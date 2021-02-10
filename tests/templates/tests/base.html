@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0"/>
+	<title>Stencil Component Starter</title>
+	<link href="{% static 'node_modules/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+	<script type="module" src="{% static 'django-formset/django-formset.esm.js' %}"></script>
+	<script nomodule src="{% static 'django-formset/django-formset.js' %}"></script>
+</head>
+<body>
+<div class="container">
+	<div class="row">
+		<div class="col">
+			{% block "main-content" %}{% endblock %}
+		</div>
+	</div>
+</div>
+</body>
+</html>

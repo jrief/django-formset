@@ -1,0 +1,41 @@
+{
+  "name": "django-formset",
+  "version": "0.0.1",
+  "description": "Stencil Component Starter",
+  "main": "dist/index.cjs.js",
+  "module": "dist/custom-elements/index.js",
+  "es2015": "dist/esm/index.mjs",
+  "es2017": "dist/esm/index.mjs",
+  "types": "dist/custom-elements/index.d.ts",
+  "collection": "dist/collection/collection-manifest.json",
+  "collection:main": "dist/collection/index.js",
+  "unpkg": "dist/django-formset/django-formset.esm.js",
+  "files": [
+    "dist/",
+    "loader/"
+  ],
+  "scripts": {
+    "build": "stencil build --docs",
+    "start": "stencil build --dev --watch --serve",
+    "watch": "stencil build --dev --watch",
+    "test": "stencil test --spec --e2e",
+    "test.watch": "stencil test --spec --e2e --watchAll",
+    "generate": "stencil generate"
+  },
+  "dependencies": {
+    "@stencil/core": "^2.0.1",
+    "@types/lodash": "^4.14.168",
+    "bootstrap": "^4.6.0",
+    "lodash.get": "^4.4.2"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@stencil/sass": "^1.4.1",
+    "@types/jest": "^26.0.20",
+    "@types/puppeteer": "^5.4.3",
+    "jest": "^26.6.3",
+    "jest-cli": "^26.6.3",
+    "puppeteer": "^7.0.4",
+    "typescript": "^4.1.4"
+  }
+}
