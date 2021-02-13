@@ -152,15 +152,15 @@ class FieldGroup {
 	}
 
 	private validate() {
-		let element: FieldElement;
-		for (element of this.inputElements) {
-			if (!element.validity.valid)
+		let inputElement: FieldElement;
+		for (inputElement of this.inputElements) {
+			if (!inputElement.validity.valid)
 				break;
 		}
 		let validity = true;
-		if (!element.validity.valid) {
+		if (!inputElement.validity.valid) {
 			for (const key in this.errorMessages) {
-				if (element.validity[key]) {
+				if (inputElement.validity[key]) {
 					this.errorPlaceholder.innerHTML = this.errorMessages[key];
 					validity = false;
 					break;
@@ -173,18 +173,18 @@ class FieldGroup {
 
 	private validateCheckboxSelectMultiple() {
 		let validity = false;
-		for (const element of this.inputElements) {
-			if (element.type !== 'checkbox')
+		for (const inputElement of this.inputElements) {
+			if (inputElement.type !== 'checkbox')
 				throw new Error("Expected input element of type 'checkbox'.");
-			if ((element as HTMLInputElement).checked) {
+			if ((inputElement as HTMLInputElement).checked) {
 				validity = true;
 			} else {
-				element.setCustomValidity(this.errorMessages['customError']);
+				inputElement.setCustomValidity(this.errorMessages['customError']);
 			}
 		}
 		if (validity) {
-			for (const element of this.inputElements) {
-				element.setCustomValidity('');
+			for (const inputElement of this.inputElements) {
+				inputElement.setCustomValidity('');
 			}
 		} else if (this.pristineValue !== undefined) {
 			this.errorPlaceholder.innerHTML = this.errorMessages['customError'];
