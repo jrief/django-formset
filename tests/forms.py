@@ -28,51 +28,52 @@ class SubscribeForm(forms.Form):
     ]
 
     last_name = fields.CharField(
-        label='Last name',
+        label="Last name",
         min_length=2,
         max_length=50,
         help_text="Please enter at least two characters",
+        initial='JACK',
     )
 
     first_name = fields.RegexField(
         r'^[A-Z][a-z -]*$',
-        label='First name',
-        error_messages={'invalid': 'A first name must start in upper case.'},
+        label="First name",
+        error_messages={'invalid': "A first name must start in upper case."},
     )
 
     sex = fields.ChoiceField(
-        choices=(('m', 'Male'), ('f', 'Female')),
+        choices=[('m', 'Male'), ('f', 'Female')],
         widget=widgets.RadioSelect,
-        error_messages={'invalid_choice': 'Please select your sex.'},
+        error_messages={'invalid_choice': "Please select your sex."},
     )
 
     email = fields.EmailField(
-        label='E-Mail',
-        help_text='Please enter a valid email address',
+        label="E-Mail",
+        help_text="Please enter a valid email address",
     )
 
     subscribe = fields.BooleanField(
-        label='Subscribe Newsletter',
+        label="Subscribe Newsletter",
         initial=False,
         required=False,
     )
 
     phone = fields.RegexField(
         r'^\+?[0-9 .-]{4,25}$',
-        label='Phone number',
+        label="Phone number",
         error_messages={'invalid': "Phone number have 4-25 digits and may start with '+'."},
         widget=fields.TextInput(attrs={'hide-if': 'subscribe'})
     )
 
     birth_date = fields.DateField(
-        label='Date of birth',
+        label="Date of birth",
         widget=widgets.DateInput(attrs={'type': 'date', 'pattern': '\d{4}-\d{2}-\d{2}'}),
         help_text="Allowed date format: yyyy-mm-dd",
         initial=datetime(year=1966, month=7, day=9),
     )
 
     continent = fields.ChoiceField(
-        label='Living on continent',
+        label="Living on continent",
         choices=CONTINENT_CHOICES,
         required=True,
         initial='',
