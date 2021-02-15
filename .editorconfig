@@ -5,11 +5,19 @@ root = true
 [*]
 charset = utf-8
 indent_style = space
-indent_size = 2
+indent_size = 4
 end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.md]
-insert_final_newline = false
+[*.py]
+max_line_length = 119
+
+[*.{html,md,ts,tsx,rst,scss}]
+indent_style = tab
+
+[*.{md,rst}]
 trim_trailing_whitespace = false
+
+[*.{html,scss}]
+indent_size = 2
