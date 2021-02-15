@@ -55,6 +55,8 @@ class FieldGroup {
 		}
 		if (requiredAny) {
 			this.validateCheckboxSelectMultiple();
+		} else {
+			this.validateBoundField();
 		}
 		this.pristineValue = new BoundValue(this.aggregateValue());
 		this.updateVisibility = this.parseIfAttribute('show-if', true) || this.parseIfAttribute('hide-if', false) || function() {};
@@ -191,6 +193,22 @@ class FieldGroup {
 		}
 		this.form.validate();
 		return validity;
+	}
+
+	private validateBoundField() {
+		// By default, HTML input fields do not validate their bound value regarding their min-
+		// and max-length. Therefore this validation must be performed separately.
+		if (this.inputElements.length !== 1 || !(this.inputElements[0] instanceof HTMLInputElement))
+			return;
+		const inputElement = this.inputElements[0];
+		if (!inputElement.value)
+			return;
+		if (inputElement.type === 'text') {
+			if (inputElement.minLength > 0 && inputElement.value.length < inputElement.minLength)
+				return inputElement.setCustomValidity(this.errorMessages['tooShort']);
+			if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength)
+				return inputElement.setCustomValidity(this.errorMessages['tooLong']);
+		}
 	}
 
 	private findErrorPlaceholder() {
