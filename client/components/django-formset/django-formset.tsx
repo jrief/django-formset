@@ -36,21 +36,36 @@ class FieldGroup {
 		this.element = element;
 		this.findErrorPlaceholder();
 		this.parseErrorMessages();
-		this.inputElements = Array<FieldElement>(0).concat(
-			(Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(element => element.type !== 'hidden'),
-			Array.from(element.getElementsByTagName('SELECT')) as Array<HTMLSelectElement>,
-			Array.from(element.getElementsByTagName('TEXTAREA')) as Array<HTMLTextAreaElement>,
-		);
 		const requiredAny = element.classList.contains('dj-required-any');
-		for (const inputElement of this.inputElements) {
-			inputElement.addEventListener('focus', () => this.touch());
-			inputElement.addEventListener('input', () => this.inputted());
-			inputElement.addEventListener('change', () => requiredAny ? this.validateCheckboxSelectMultiple() : this.validate());
-			if (typeof this.name === 'undefined') {
-				this.name = inputElement.name;
+		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(element => element.type !== 'hidden');
+		for (const element of inputElements) {
+			if (['checkbox', 'radio'].includes(element.type)) {
+				element.addEventListener('input', () => {this.touch(); this.inputted()});
+				element.addEventListener('change', () => {requiredAny ? this.validateCheckboxSelectMultiple() : this.validate()});
 			} else {
-				if (this.name !== inputElement.name)
-					throw new Error(`Name mismatch on multiple input fields on ${inputElement.name}`);
+				element.addEventListener('focus', () => this.touch());
+				element.addEventListener('input', () => this.inputted());
+				element.addEventListener('blur', () => this.validate());
+			}
+		}
+		const selectElements = Array.from(element.getElementsByTagName('SELECT')) as Array<HTMLSelectElement>;
+		for (const element of selectElements) {
+			element.addEventListener('focus', () => this.touch());
+			element.addEventListener('change', () => {this.setDirty(); this.validate()});
+		}
+		const textAreaElements = Array.from(element.getElementsByTagName('TEXTAREA')) as Array<HTMLTextAreaElement>;
+		for (const element of textAreaElements) {
+			element.addEventListener('focus', () => this.touch());
+			element.addEventListener('input', () => this.inputted());
+			element.addEventListener('blur', () => this.validate());
+		}
+		this.inputElements = Array<FieldElement>(0).concat(inputElements, selectElements, textAreaElements);
+		for (const element of this.inputElements) {
+			if (typeof this.name === 'undefined') {
+				this.name = element.name;
+			} else {
+				if (this.name !== element.name)
+					throw new Error(`Name mismatch on multiple input fields on ${element.name}`);
 			}
 		}
 		if (requiredAny) {
