@@ -1,4 +1,4 @@
-import { Component, Element } from '@stencil/core';
+import { Component, Element, Method, Prop } from '@stencil/core';
 import getDataValue from 'lodash.get';
 
 
@@ -237,8 +237,9 @@ class FieldGroup {
 		const errorlist = this.element.getElementsByClassName('dj-errorlist');
 		if (errorlist.length > 0) {
 			const placeholder = errorlist[0].getElementsByClassName('dj-placeholder');
-			if (placeholder.length > 0)
+			if (placeholder.length > 0) {
 				this.errorPlaceholder = placeholder[0];
+			}
 		}
 	}
 
@@ -587,11 +588,12 @@ class DjangoForm {
 // customError: if the element has a custom error.
 export class DjangoFormset {
 	@Element() private element: HTMLElement;
+	@Prop() endpoint: string;
+	@Prop({attribute: 'withhold-messages'}) withholdMessages = false;
+	@Prop({attribute: 'force-submission'}) private forceSubmission = false;
 	private data = {};
 	private buttons = Array<DjangoButton>(0);
 	private forms = Array<DjangoForm>(0);
-	private endpoint: string;
-	private forceSubmission: boolean;
 
 	connectedCallback() {
 		for (const element of Array.from(this.element.getElementsByTagName('BUTTON')) as Array<HTMLButtonElement>) {
@@ -602,10 +604,8 @@ export class DjangoFormset {
 		for (const element of Array.from(this.element.getElementsByTagName('FORM')) as Array<HTMLFormElement>) {
 			this.forms.push(new DjangoForm(this, element));
 		}
-		this.endpoint = this.element.getAttribute('endpoint');
 		if (!this.endpoint)
-			throw new Error("<django-form> requires attribute 'endpoint=\"server endpoint\"'");
-		this.forceSubmission = !!JSON.parse((this.element.getAttribute('force-submission') || 'false').toLowerCase());
+			throw new Error("Webcomponent <django-formset> requires attribute 'endpoint=\"server endpoint\"'");
 	}
 
 	componentWillLoad() {
@@ -652,6 +652,7 @@ export class DjangoFormset {
 		return isValid;
 	}
 
+	@Method()
 	public async submit(): Promise<Response | undefined> {
 		let formsAreValid = true;
 		if (!this.forceSubmission) {
@@ -659,6 +660,7 @@ export class DjangoFormset {
 				formsAreValid = form.isValid() && formsAreValid;
 			}
 		}
+		this.setSubmitted();
 		if (formsAreValid) {
 			const response = await fetch(this.endpoint, {
 				method: 'POST',
@@ -684,6 +686,12 @@ export class DjangoFormset {
 			for (const form of this.forms) {
 				form.reportValidity();
 			}
+		}
+	}
+
+	private setSubmitted() {
+		for (const form of this.forms) {
+			form.setSubmitted();
 		}
 	}
 
