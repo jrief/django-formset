@@ -174,18 +174,25 @@ class FieldGroup {
 			if (!inputElement.validity.valid)
 				break;
 		}
-		let validity = true;
 		if (!inputElement.validity.valid) {
 			for (const key in this.errorMessages) {
 				if (inputElement.validity[key]) {
 					this.errorPlaceholder.innerHTML = this.errorMessages[key];
-					validity = false;
+					inputElement = null;
 					break;
+				}
+			}
+			if (inputElement instanceof HTMLInputElement && inputElement.type === 'text' && inputElement.value) {
+				// By default, HTML input fields do not validate their bound value regarding their
+				// min- and max-length. Therefore this validation must be performed separately.
+				if (inputElement.minLength > 0 && inputElement.value.length < inputElement.minLength) {
+					this.errorPlaceholder.innerHTML = this.errorMessages['tooShort'];
+				} else if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength) {
+					this.errorPlaceholder.innerHTML = this.errorMessages['tooLong'];
 				}
 			}
 		}
 		this.form.validate();
-		return validity;
 	}
 
 	private validateCheckboxSelectMultiple() {
