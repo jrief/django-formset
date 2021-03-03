@@ -143,6 +143,7 @@ class FieldGroup {
 	}
 
 	private touch() {
+		this.element.classList.remove('dj-submitted');
 		this.element.classList.remove('dj-untouched');
 		this.element.classList.remove('dj-validated');
 		this.element.classList.add('dj-touched');
@@ -154,7 +155,6 @@ class FieldGroup {
 	}
 
 	private setDirty() {
-		this.element.classList.remove('dj-submitted');
 		this.element.classList.remove('dj-pristine');
 		this.element.classList.add('dj-dirty');
 	}
