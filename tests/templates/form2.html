@@ -1,4 +1,4 @@
-{% extends "tests/base.html" %}
+{% extends "base.html" %}
 {% load bootstrap_formset %}
 
 {% block "main-content" %}
@@ -6,7 +6,7 @@
 	<form name="{{ form.name }}">
 		{% csrf_token %}
 		{% for field in form|bootstrapify %}
-		{% render_group field 'tests/field_group.html' %}
+		{% render_group field 'field_group.html' %}
 		{% endfor %}
 	</form>
 	<button type="button" click="disable -> submit -> intercept -> delay(900) -> proceed !~ intercept -> addClass(error) -> delay(9000)" auto-disable="false" class="btn btn-primary">Submit</button>

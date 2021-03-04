@@ -9,7 +9,7 @@ from forms import SubscribeForm
 
 
 class SubscribeView(FormView):
-    template_name = 'tests/form2.html'
+    template_name = 'form2.html'
     form_class = SubscribeForm
     success_url = reverse_lazy('form_data_valid')
 
@@ -51,4 +51,8 @@ default_subscribe_data = {
 
 
 class SuccessView(TemplateView):
-    template_name = 'tests/success.html'
+    template_name = 'success.html'
+
+
+class TestView(TemplateView):
+    template_name = 'form3.html'

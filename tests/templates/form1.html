@@ -1,8 +1,8 @@
-{% extends "tests/base.html" %}
+{% extends "base.html" %}
 {% load bootstrap_formset %}
 
 {% block "main-content" %}
-<django-formset endpoint="{{ request.path }}" force-submission="false">
+<django-formset endpoint="{{ request.path }}" force-submission="false" withhold-messages="false">
 	<form name="{{ form.name }}">
 		{% csrf_token %}
 		{#% render_groups form field_classes="form-group row" label_classes="col-sm-3 col-form-label" control_classes="col-sm-9" %#}
