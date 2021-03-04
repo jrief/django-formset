@@ -13,6 +13,13 @@ INSTALLED_APPS = [
     'formset',
 ]
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'testdb',  # live_server requires a file rather than :memory:
+    }
+}
+
 MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
