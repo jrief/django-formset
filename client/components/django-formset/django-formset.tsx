@@ -51,7 +51,11 @@ class FieldGroup {
 		const selectElements = Array.from(element.getElementsByTagName('SELECT')) as Array<HTMLSelectElement>;
 		for (const element of selectElements) {
 			element.addEventListener('focus', () => this.touch());
-			element.addEventListener('change', () => {this.setDirty(); this.validate()});
+			element.addEventListener('change', () => {
+				this.setDirty();
+				this.resetCustomError();
+				this.validate()
+			});
 		}
 		const textAreaElements = Array.from(element.getElementsByTagName('TEXTAREA')) as Array<HTMLTextAreaElement>;
 		for (const element of textAreaElements) {
@@ -135,6 +139,10 @@ class FieldGroup {
 		} else {
 			this.setDirty();
 		}
+		this.resetCustomError();
+	}
+
+	private resetCustomError() {
 		this.errorPlaceholder.innerHTML = '';
 		for (const element of this.inputElements) {
 			if (element.validity.customError)
@@ -169,27 +177,23 @@ class FieldGroup {
 	}
 
 	private validate() {
-		let inputElement: FieldElement;
-		for (inputElement of this.inputElements) {
-			if (!inputElement.validity.valid)
+		let element: FieldElement;
+		for (element of this.inputElements) {
+			if (!element.validity.valid)
 				break;
 		}
-		if (!inputElement.validity.valid) {
+		if (!element.validity.valid) {
 			for (const key in this.errorMessages) {
-				if (inputElement.validity[key]) {
-					this.errorPlaceholder.innerHTML = this.errorMessages[key];
-					inputElement = null;
+				if (element.validity[key]) {
+					if (!this.form.formset.withholdMessages) {
+						this.errorPlaceholder.innerHTML = this.errorMessages[key];
+					}
+					element = null;
 					break;
 				}
 			}
-			if (inputElement instanceof HTMLInputElement && inputElement.type === 'text' && inputElement.value) {
-				// By default, HTML input fields do not validate their bound value regarding their
-				// min- and max-length. Therefore this validation must be performed separately.
-				if (inputElement.minLength > 0 && inputElement.value.length < inputElement.minLength) {
-					this.errorPlaceholder.innerHTML = this.errorMessages['tooShort'];
-				} else if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength) {
-					this.errorPlaceholder.innerHTML = this.errorMessages['tooLong'];
-				}
+			if (!this.form.formset.withholdMessages && element instanceof HTMLInputElement) {
+				this.validateInputLength(element);
 			}
 		}
 		this.form.validate();
@@ -210,11 +214,27 @@ class FieldGroup {
 			for (const inputElement of this.inputElements) {
 				inputElement.setCustomValidity('');
 			}
-		} else if (this.pristineValue !== undefined) {
+		} else if (this.pristineValue !== undefined && !this.form.formset.withholdMessages) {
 			this.errorPlaceholder.innerHTML = this.errorMessages['customError'];
 		}
 		this.form.validate();
 		return validity;
+	}
+
+	private validateInputLength(inputElement: HTMLInputElement) {
+		// By default, HTML input fields do not validate their bound value regarding their
+		// min- and max-length. Therefore this validation must be performed by the client.
+		if (inputElement.type === 'text' && inputElement.value) {
+			if (inputElement.minLength > 0 && inputElement.value.length < inputElement.minLength) {
+				this.errorPlaceholder.innerHTML = this.errorMessages['tooShort'];
+				return false;
+			}
+			if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength) {
+				this.errorPlaceholder.innerHTML = this.errorMessages['tooLong'];
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private validateBoundField() {
@@ -267,6 +287,8 @@ class FieldGroup {
 				return false;
 			}
 		}
+		if (element instanceof HTMLInputElement)
+			return this.validateInputLength(element);
 		return true;
 	}
 
@@ -590,7 +612,7 @@ export class DjangoFormset {
 	@Element() private element: HTMLElement;
 	@Prop() endpoint: string;
 	@Prop({attribute: 'withhold-messages'}) withholdMessages = false;
-	@Prop({attribute: 'force-submission'}) private forceSubmission = false;
+	@Prop({attribute: 'force-submission'}) forceSubmission = false;
 	private data = {};
 	private buttons = Array<DjangoButton>(0);
 	private forms = Array<DjangoForm>(0);

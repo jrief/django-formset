@@ -5,7 +5,7 @@ django-field-group {
 
 	&.dj-required, &.dj-required-any {
 		> label {
-			font-weight: 600;
+			font-weight: bolder;
 
 			&::before {
 				content: "* ";
