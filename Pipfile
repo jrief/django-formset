@@ -10,6 +10,7 @@ django = "*"
 playwright = "*"
 pytest = "*"
 pytest-django = "*"
+pytest-mock = "*"
 
 [requires]
 python_version = "3.8"
