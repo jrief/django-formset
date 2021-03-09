@@ -20,30 +20,30 @@ class SubscribeForm(Form):
 
 
 urlpatterns = [
-    path('', FormsetView.as_view(
+    path('form1', FormsetView.as_view(
         template_name='form.html',
         form_class=SubscribeForm,
         success_url='/success',
         extra_context={'force_submission': True, 'withhold_messages': True},
-    )),
+    ), name='form1'),
+    path('form2', FormsetView.as_view(
+        template_name='form.html',
+        form_class=SubscribeForm,
+        success_url='/success',
+        extra_context={'force_submission': False, 'withhold_messages': False},
+    ), name='form2'),
 ]
 
 
-# @pytest.mark.urls(__name__)
-# def test_unbound_form(live_server):
-#     form = SubscribeForm()
-#     assert form.is_bound is False
-#     print(live_server)
-#     with sync_playwright() as p:
-#         browser = p.chromium.launch()
-#         page = browser.new_page()
-#         page.goto(live_server.url)
-#         page.screenshot(path="example.png")
-#         browser.close()
-#     sleep(10)
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['form1'])
+def test_screenshot(page):
+    page.screenshot(path="example1.png")
+    assert True
 
 
 @pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['form2'])
 def test_fixture(page, mocker):
     page.screenshot(path="example2.png")
     valid_form = page.query_selector('django-formset form:valid')
@@ -54,8 +54,5 @@ def test_fixture(page, mocker):
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     assert request['subscribe']['last_name'] == 'J'
-    # assert spy.spy_return.status_code == 422
-    # response = json.loads(spy.spy_return.getvalue())
-    # assert response['subscribe']['last_name'] == ["Ensure this value has at least 2 characters (it has 1)."]
     error_message = page.query_selector('django-formset .dj-errorlist > .dj-placeholder').inner_text()
     assert error_message == "Ensure this value has at least 2 characters (it has 1)."

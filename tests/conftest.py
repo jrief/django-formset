@@ -1,8 +1,13 @@
+import os
 import pytest
 from playwright.sync_api import sync_playwright
 
+from django.urls import reverse
 
-class BrowserPage:
+os.environ.setdefault('DJANGO_ALLOW_ASYNC_UNSAFE', 'true')
+
+
+class Connector:
     def __init__(self, live_server):
         print(live_server)
         self.live_server = live_server
@@ -14,17 +19,22 @@ class BrowserPage:
 
         self.playwright = sync_playwright().start()
         self.browser = self.playwright.chromium.launch()
-        page = self.browser.new_page()
-        page.goto(self.live_server.url)
-        page.on('console', print_args)
-        return page
+        self.page = self.browser.new_page()
+        self.page.on('console', print_args)
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.browser.close()
         self.playwright.stop()
 
 
+@pytest.fixture(scope='session')
+def connector(live_server):
+    with Connector(live_server) as connector:
+        yield connector
+
+
 @pytest.fixture
-def page(live_server):
-    with BrowserPage(live_server) as page:
-        yield page
+def page(connector, viewname):
+    connector.page.goto(connector.live_server.url + reverse(viewname))
+    return connector.page
