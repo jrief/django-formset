@@ -1,7 +1,7 @@
 from django.core import validators
 from django.forms import boundfield
 from django.utils.functional import cached_property
-from django.utils.html import format_html, format_html_join
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 

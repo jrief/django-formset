@@ -14,6 +14,8 @@ class Connector:
 
     def __enter__(self):
         def print_args(msg):
+            if msg.type in ['info', 'debug']:
+                return
             for arg in msg.args:
                 print(arg.json_value())
 

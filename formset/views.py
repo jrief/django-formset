@@ -1,7 +1,7 @@
 import json
 
 from django.http import JsonResponse
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.views.generic import FormView
 
 
@@ -11,7 +11,7 @@ class FormsetViewMixin:
             request_data = json.loads(request.body)
             form = self.form_class(data=request_data[self.form_class.name])
             if form.is_valid():
-                return JsonResponse({'success_url': force_text(self.success_url)})
+                return JsonResponse({'success_url': force_str(self.success_url)})
             else:
                 return JsonResponse({form.name: form.errors}, status=422)
         return super().post(request, **kwargs)
