@@ -122,6 +122,6 @@ class BoundField(boundfield.BoundField):
             pass
         else:
             data = {'step_value': step_value}
-            client_messages['step_mismatch'] = _("Input value must be a multiple of {step_value}").format(**data)
+            client_messages['step_mismatch'] = _("Input value must be a multiple of {step_value}.").format(**data)
         client_messages['bad_input'] = validators.ProhibitNullCharactersValidator.message
         return client_messages
