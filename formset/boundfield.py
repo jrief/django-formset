@@ -106,16 +106,18 @@ class BoundField(boundfield.BoundField):
                     client_messages['type_mismatch'] = validator.message
         if getattr(self.field, 'max_length', None) is not None:
             data = {'max_length': self.field.max_length}
-            client_messages['too_long'] = _("Ensure this value has at most {max_length} characters.").format(**data)
+            max_length_message = _("Ensure this value has at most %(max_length)s characters.")
+            client_messages['too_long'] = server_messages.get('max_length', max_length_message) % data
         if getattr(self.field, 'min_length', None) is not None:
             data = {'min_length': self.field.min_length}
-            client_messages['too_short'] = _("Ensure this value has at least {min_length} characters.").format(**data)
+            min_length_message = _("Ensure this value has at least %(min_length)s characters.")
+            client_messages['too_short'] = server_messages.get('min_length', min_length_message) % data
         if getattr(self.field, 'min_value', None) is not None:
             data = {'limit_value': self.field.min_value}
-            client_messages['range_underflow'] = validators.MinValueValidator.message % data
+            client_messages['range_underflow'] = server_messages.get('min_value', validators.MinValueValidator.message) % data
         if getattr(self.field, 'max_value', None) is not None:
             data = {'limit_value': self.field.max_value}
-            client_messages['range_overflow'] = validators.MaxValueValidator.message % data
+            client_messages['range_overflow'] = server_messages.get('max_value', validators.MaxValueValidator.message) % data
         try:
             step_value = float(self.field.widget.attrs['step'])
         except (KeyError, TypeError):
