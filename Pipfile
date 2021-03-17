@@ -11,6 +11,7 @@ playwright = "*"
 pytest = "*"
 pytest-django = "*"
 pytest-mock = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.8"

@@ -9,7 +9,7 @@ os.environ.setdefault('DJANGO_ALLOW_ASYNC_UNSAFE', 'true')
 
 class Connector:
     def __init__(self, live_server):
-        print(live_server)
+        print(f"\nStarting end-to-end test server at {live_server}\n")
         self.live_server = live_server
 
     def __enter__(self):

@@ -4,6 +4,7 @@ import json
 
 from django.forms import fields, Form, widgets
 from django.urls import path
+from django.utils import timezone
 
 from formset.views import FormsetView
 
@@ -218,18 +219,18 @@ def test_email_field(page):
     assert placeholder_text == "Enter a valid email address."
 
 
-
 urlpatterns.append(
     path('integer_form', FormsetView.as_view(
         template_name='form.html',
         form_class=type('IntegerForm', (Form,), {
             'name': 'integer_form',
-            'integer': fields.IntegerField(
-                initial=3,
+            'intval': fields.IntegerField(
                 min_value=2,
                 max_value=4,
                 error_messages={'min_value': "Value too low."},
-            )}),
+            ),
+        }),
+        initial={'intval': 3},
         success_url='/success',
     ), name='integer_form')
 )
@@ -238,7 +239,7 @@ urlpatterns.append(
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['integer_form'])
 def test_integer_field(page):
-    name = 'integer'
+    name = 'intval'
     assert page.query_selector('django-formset form:valid') is not None
     assert page.query_selector('django-formset form:invalid') is None
     input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
@@ -272,17 +273,18 @@ urlpatterns.append(
         template_name='form.html',
         form_class=type('FloatForm', (Form,), {
             'name': 'float_form',
-            'float': fields.FloatField(initial=2, widget=widgets.NumberInput(attrs={'step': 0.5}))
+            'floatval': fields.FloatField(widget=widgets.NumberInput(attrs={'step': 0.5})),
         }),
+        initial={'floatval': 2.5},
         success_url='/success',
-    ), name='float_form')
+), name='float_form')
 )
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['float_form'])
-def test_integer_field(page):
-    name = 'float'
+def test_float_field(page):
+    name = 'floatval'
     assert page.query_selector('django-formset form:valid') is not None
     assert page.query_selector('django-formset form:invalid') is None
     input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
@@ -299,3 +301,123 @@ def test_integer_field(page):
     assert page.query_selector('django-formset form:invalid') is not None
     placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == "Input value must be a multiple of 0.5."
+
+
+urlpatterns.append(
+    path('date_form', FormsetView.as_view(
+        template_name='form.html',
+        form_class=type('DateForm', (Form,), {
+            'name': 'date_form',
+            'dateval': fields.DateField(widget=widgets.DateInput(attrs={'type': 'date'})),
+        }),
+        initial={'dateval': timezone.now().strftime('%Y-%m-%d')},
+        success_url='/success',
+    ), name='date_form')
+)
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['date_form'])
+def test_date_field(page):
+    name = 'dateval'
+    assert page.query_selector('django-formset form:valid') is not None
+    assert page.query_selector('django-formset form:invalid') is None
+    input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
+    input_elem.click()
+    input_elem.evaluate('elem => elem.blur()')
+    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is not None
+    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is None
+    input_elem.click()
+    page.keyboard.press('Home')
+    input_elem.type("29")
+    input_elem.type("02")
+    input_elem.type("2021")
+    input_elem.evaluate('elem => elem.blur()')
+    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is None
+    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is not None
+    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is None
+    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is not None
+    placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
+    assert placeholder_text == "This field is required."
+
+
+urlpatterns.append(
+    path('boolean_form', FormsetView.as_view(
+        template_name='form.html',
+        form_class=type('BooleanForm', (Form,), {
+            'name': 'boolean_form',
+            'boolval': fields.BooleanField(),
+        }),
+        success_url='/success',
+    ), name='boolean_form')
+)
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['boolean_form'])
+def test_boolean_field(page, mocker):
+    name = 'boolval'
+    assert page.query_selector('django-formset form:valid') is None
+    assert page.query_selector('django-formset form:invalid') is not None
+    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is None
+    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is not None
+    placeholder_field = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder')
+    assert placeholder_field.inner_text() == ""
+    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    assert placeholder_field.inner_text() == "This field is required."
+    input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
+    input_elem.click()
+    assert placeholder_field.inner_text() == ""
+    spy = mocker.spy(FormsetView, 'post')
+    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    request = json.loads(spy.call_args.args[1].body)
+    assert request['boolean_form'][name] == 'on'
+    assert spy.spy_return.status_code == 200
+    response = json.loads(spy.spy_return.content)
+    assert response['success_url'] == '/success'
+
+
+urlpatterns.append(
+    path('multichoice_form', FormsetView.as_view(
+        template_name='form.html',
+        form_class=type('MultiChoiceForm', (Form,), {
+            'name': 'multichoice_form',
+            'choices': fields.MultipleChoiceField(
+                choices=[
+                    ('a', "A"),
+                    ('b', "B"),
+                    ('c', "C"),
+                    ('d', "D"),
+                ],
+                widget=widgets.CheckboxSelectMultiple,
+                required=True,
+            ),
+        }),
+        success_url='/success',
+    ), name='multichoice_form')
+)
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['multichoice_form'])
+def test_multichoice_field(page, mocker):
+    assert page.query_selector('django-formset form:valid') is None
+    assert page.query_selector('django-formset form:invalid') is not None
+    placeholder_field = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder')
+    assert placeholder_field.inner_text() == ""
+    input_elem_a = page.query_selector(f'django-formset form input[value="a"]')
+    input_elem_a.click()
+    input_elem_a.click()
+    assert placeholder_field.inner_text() == "At least one checkbox must be selected."
+    input_elem_a.click()
+    assert page.query_selector('django-formset form:valid') is not None
+    assert page.query_selector('django-formset form:invalid') is None
+    assert placeholder_field.inner_text() == ""
+    page.query_selector(f'django-formset form input[value="d"]').click()
+    spy = mocker.spy(FormsetView, 'post')
+    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    request = json.loads(spy.call_args.args[1].body)
+    assert request['multichoice_form']['choices'] == ['a', 'd']
+    assert spy.spy_return.status_code == 200
+    response = json.loads(spy.spy_return.content)
+    assert response['success_url'] == '/success'
