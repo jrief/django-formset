@@ -108,7 +108,8 @@ class FieldGroup {
 						value.push(element.value);
 					}
 				} else if (element.type === 'radio') {
-					return (element as HTMLInputElement).checked ? element.value : '';
+					if ((element as HTMLInputElement).checked)
+						return element.value;
 				}
 			}
 			return value;
