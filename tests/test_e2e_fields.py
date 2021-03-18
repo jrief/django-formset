@@ -377,18 +377,128 @@ def test_boolean_field(page, mocker):
     assert response['success_url'] == '/success'
 
 
+CHOICES = [
+    ('a', "A"),
+    ('b', "B"),
+    ('c', "C"),
+    ('d', "D"),
+]
+
+
+urlpatterns.append(
+    path('select_form', FormsetView.as_view(
+        template_name='form.html',
+        form_class=type('SelectForm', (Form,), {
+            'name': 'select_form',
+            'choice': fields.ChoiceField(
+                choices=CHOICES,
+                required=True,
+            ),
+        }),
+        success_url='/success',
+    ), name='select_form')
+)
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['select_form'])
+def test_select_field(page, mocker):
+    name = 'choice'
+    assert page.query_selector('django-formset form:valid') is not None
+    assert page.query_selector('django-formset form:invalid') is None
+    assert page.query_selector(f'django-formset form select[name="{name}"]:valid') is not None
+    assert page.query_selector(f'django-formset form select[name="{name}"]:invalid') is None
+    page.select_option(f'django-formset form select[name="{name}"]', 'c')
+    spy = mocker.spy(FormsetView, 'post')
+    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    request = json.loads(spy.call_args.args[1].body)
+    assert request['select_form']['choice'] == 'c'
+    assert spy.spy_return.status_code == 200
+    response = json.loads(spy.spy_return.content)
+    assert response['success_url'] == '/success'
+
+
+urlpatterns.append(
+    path('multiselect_form', FormsetView.as_view(
+        template_name='form.html',
+        form_class=type('MultiSelectForm', (Form,), {
+            'name': 'multiselect_form',
+            'choices': fields.MultipleChoiceField(
+                choices=CHOICES,
+                required=True,
+            ),
+        }),
+        success_url='/success',
+    ), name='multiselect_form')
+)
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['multiselect_form'])
+def test_select_field(page, mocker):
+    name = 'choices'
+    assert page.query_selector('django-formset form:valid') is None
+    assert page.query_selector('django-formset form:invalid') is not None
+    assert page.query_selector(f'django-formset form select[name="{name}"]:valid') is None
+    assert page.query_selector(f'django-formset form select[name="{name}"]:invalid') is not None
+    page.select_option(f'django-formset form select[name="{name}"]', ['c', 'b'])
+    assert page.query_selector('django-formset form:valid') is not None
+    assert page.query_selector('django-formset form:invalid') is None
+    spy = mocker.spy(FormsetView, 'post')
+    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    request = json.loads(spy.call_args.args[1].body)
+    assert set(request['multiselect_form']['choices']) == set(['b', 'c'])
+    assert spy.spy_return.status_code == 200
+    response = json.loads(spy.spy_return.content)
+    assert response['success_url'] == '/success'
+
+
+urlpatterns.append(
+    path('radiochoice_form', FormsetView.as_view(
+        template_name='form.html',
+        form_class=type('RadioChoiceForm', (Form,), {
+            'name': 'radiochoice_form',
+            'choice': fields.ChoiceField(
+                choices=CHOICES,
+                widget=widgets.RadioSelect,
+                required=True,
+            ),
+        }),
+        success_url='/success',
+    ), name='radiochoice_form')
+)
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['radiochoice_form'])
+def test_radiochoice_field(page, mocker):
+    assert page.query_selector('django-formset form:valid') is None
+    assert page.query_selector('django-formset form:invalid') is not None
+    placeholder_field = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder')
+    assert placeholder_field.inner_text() == ""
+    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    assert placeholder_field.inner_text() == "This field is required."
+    input_elem_b = page.query_selector('django-formset form input[value="b"]')
+    input_elem_b.click(position=dict(x=6.5, y=6.5))
+    assert page.query_selector('django-formset form:valid') is not None
+    assert page.query_selector('django-formset form:invalid') is None
+    assert placeholder_field.inner_text() == ""
+    spy = mocker.spy(FormsetView, 'post')
+    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    request = json.loads(spy.call_args.args[1].body)
+    assert request['radiochoice_form']['choice'] == 'b'
+    assert spy.spy_return.status_code == 200
+    response = json.loads(spy.spy_return.content)
+    assert response['success_url'] == '/success'
+
+
 urlpatterns.append(
     path('multichoice_form', FormsetView.as_view(
         template_name='form.html',
         form_class=type('MultiChoiceForm', (Form,), {
             'name': 'multichoice_form',
             'choices': fields.MultipleChoiceField(
-                choices=[
-                    ('a', "A"),
-                    ('b', "B"),
-                    ('c', "C"),
-                    ('d', "D"),
-                ],
+                choices=CHOICES,
                 widget=widgets.CheckboxSelectMultiple,
                 required=True,
             ),
@@ -405,7 +515,7 @@ def test_multichoice_field(page, mocker):
     assert page.query_selector('django-formset form:invalid') is not None
     placeholder_field = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder')
     assert placeholder_field.inner_text() == ""
-    input_elem_a = page.query_selector(f'django-formset form input[value="a"]')
+    input_elem_a = page.query_selector('django-formset form input[value="a"]')
     input_elem_a.click()
     input_elem_a.click()
     assert placeholder_field.inner_text() == "At least one checkbox must be selected."
@@ -418,6 +528,43 @@ def test_multichoice_field(page, mocker):
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     assert request['multichoice_form']['choices'] == ['a', 'd']
+    assert spy.spy_return.status_code == 200
+    response = json.loads(spy.spy_return.content)
+    assert response['success_url'] == '/success'
+
+
+urlpatterns.append(
+    path('textarea_form', FormsetView.as_view(
+        template_name='form.html',
+        form_class=type('TextareaForm', (Form,), {
+            'name': 'textarea_form',
+            'text': fields.CharField(
+                widget=widgets.Textarea,
+            ),
+        }),
+        success_url='/success',
+    ), name='textarea_form')
+)
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['textarea_form'])
+def test_multichoice_field(page, mocker):
+    assert page.query_selector('django-formset form:valid') is None
+    assert page.query_selector('django-formset form:invalid') is not None
+    placeholder_field = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder')
+    assert placeholder_field.inner_text() == ""
+    textarea_elem = page.query_selector('django-formset form textarea')
+    textarea_elem.click()
+    page.screenshot(path='textarea1.png')
+    textarea_elem.evaluate('elem => elem.blur()')
+    assert placeholder_field.inner_text() == "This field is required."
+    textarea_elem.type("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
+    textarea_elem.evaluate('elem => elem.blur()')
+    spy = mocker.spy(FormsetView, 'post')
+    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    request = json.loads(spy.call_args.args[1].body)
+    assert request['textarea_form']['text'].startswith("Lorem ipsum dolor sit amet")
     assert spy.spy_return.status_code == 200
     response = json.loads(spy.spy_return.content)
     assert response['success_url'] == '/success'
