@@ -21,6 +21,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        curl -sL https://deb.nodesource.com/setup_12.x | bash -
+        apt install nodejs
+        npm install
         python -m pip install --upgrade pip
         pip install -r tests/requirements.txt
         playwright install
@@ -33,4 +36,5 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
+        npm run build
         python -m pytest tests
