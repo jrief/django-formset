@@ -331,9 +331,7 @@ def test_date_field(page):
     page.keyboard.press('ArrowLeft')
     page.keyboard.press('ArrowLeft')
     page.keyboard.press('ArrowLeft')
-    input_elem.type("29")
-    input_elem.type("02")
-    input_elem.type("2021")
+    input_elem.type("3104")
     input_elem.evaluate('elem => elem.blur()')
     assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is None
     assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is not None
