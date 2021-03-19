@@ -328,13 +328,13 @@ def test_date_field(page):
     assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is not None
     assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is None
     input_elem.click()
-    page.keyboard.press('Home')
+    page.keyboard.press('ArrowLeft')
+    page.keyboard.press('ArrowLeft')
+    page.keyboard.press('ArrowLeft')
     input_elem.type("29")
     input_elem.type("02")
     input_elem.type("2021")
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is None
-    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is not None
     assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is None
     assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is not None
     placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
