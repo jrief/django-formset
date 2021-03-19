@@ -13,6 +13,7 @@ pytest-django = "*"
 pytest-mock = "*"
 pytest-cov = "*"
 flake8 = "*"
+sphinx = "*"
 
 [requires]
 python_version = "3.8"
