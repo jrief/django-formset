@@ -556,7 +556,6 @@ def test_multichoice_field(page, mocker):
     assert placeholder_field.inner_text() == ""
     textarea_elem = page.query_selector('django-formset form textarea')
     textarea_elem.click()
-    page.screenshot(path='textarea1.png')
     textarea_elem.evaluate('elem => elem.blur()')
     assert placeholder_field.inner_text() == "This field is required."
     textarea_elem.type("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
