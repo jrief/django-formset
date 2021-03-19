@@ -4,7 +4,6 @@ import json
 
 from django.forms import fields, Form, widgets
 from django.urls import path
-from django.utils import timezone
 
 from formset.views import FormsetView
 
@@ -310,7 +309,7 @@ urlpatterns.append(
             'name': 'date_form',
             'dateval': fields.DateField(widget=widgets.DateInput(attrs={'type': 'date'})),
         }),
-        initial={'dateval': timezone.now().strftime('%Y-%m-%d')},
+        initial={'dateval': '2021-03-29'},
         success_url='/success',
     ), name='date_form')
 )
@@ -318,7 +317,7 @@ urlpatterns.append(
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['date_form'])
-def test_date_field(page):
+def test_date_field(page, mocker):
     name = 'dateval'
     assert page.query_selector('django-formset form:valid') is not None
     assert page.query_selector('django-formset form:invalid') is None
@@ -327,16 +326,13 @@ def test_date_field(page):
     input_elem.evaluate('elem => elem.blur()')
     assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is not None
     assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is None
-    input_elem.click()
-    page.keyboard.press('ArrowLeft')
-    page.keyboard.press('ArrowLeft')
-    page.keyboard.press('ArrowLeft')
-    input_elem.type("3104")
-    input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is None
-    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is not None
-    placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
-    assert placeholder_text == "This field is required."
+    spy = mocker.spy(FormsetView, 'post')
+    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    request = json.loads(spy.call_args.args[1].body)
+    assert request['date_form'][name] == '2021-03-29'
+    assert spy.spy_return.status_code == 200
+    response = json.loads(spy.spy_return.content)
+    assert response['success_url'] == '/success'
 
 
 urlpatterns.append(
