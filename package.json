@@ -16,6 +16,9 @@
     "lodash.get": "^4.4.2"
   },
   "license": "MIT",
+  "main": "./formset/static/index.cjs.js",
+  "module": "./formset/static/index.js",
+  "types": "./formset/static/types/components.d.ts",
   "devDependencies": {
     "@stencil/sass": "^1.4.1",
     "typescript": "^4.1.4"
