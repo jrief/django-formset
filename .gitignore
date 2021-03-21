@@ -9,6 +9,7 @@ loader/
 log.txt
 *.sublime-project
 *.sublime-workspace
+*.egg-info
 
 .stencil/
 .idea/
