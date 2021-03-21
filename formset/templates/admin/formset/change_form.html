@@ -1,0 +1,14 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+	{{ block.super }}
+	<script type="module" src="{% static 'django-formset/django-formset.esm.js' %}"></script>
+	<script nomodule src="{% static 'django-formset/django-formset.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<django-formset endpoint="{{ request.path }}">
+	{{ block.super }}
+</django-formset>
+{% endblock %}
