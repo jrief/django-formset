@@ -1,7 +1,13 @@
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from django.core.exceptions import ValidationError
 from django.forms import fields, forms, widgets
+from django.forms.models import ModelForm
 from django.utils.timezone import datetime
+
+from entangled.forms import EntangledModelFormMixin
+from formset.mixins.default import FormMixin
+
+from testapp.models import DummyModel
 
 
 def validate_password(value):
@@ -10,7 +16,7 @@ def validate_password(value):
         raise ValidationError('The password is wrong.')
 
 
-class SubscribeForm(forms.Form):
+class SubscribeForm(EntangledModelFormMixin, FormMixin, ModelForm):
     name = 'subscribe'
 
     CONTINENT_CHOICES = [
@@ -148,6 +154,13 @@ class SubscribeForm(forms.Form):
         widget=widgets.HiddenInput(),
         initial='hidden value',
     )
+
+    class Meta:
+        model = DummyModel
+        entangled_fields = {'payload': ['last_name', 'first_name', 'sex', 'email', 'subscribe',
+            'phone', 'birth_date', 'continent', 'weight', 'height', 'used_transportation',
+            'preferred_transportation', 'available_transportation', 'notifyme', 'annotation',
+            'agree', 'password', 'confirmation_key']}
 
 
 class SubscribeForm2(forms.Form):
