@@ -16,6 +16,7 @@
     "lodash.get": "^4.4.2"
   },
   "license": "MIT",
+  "collection": "./formset/static/collection/collection-manifest.json",
   "main": "./formset/static/index.cjs.js",
   "module": "./formset/static/index.js",
   "types": "./formset/static/types/components.d.ts",

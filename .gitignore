@@ -28,3 +28,4 @@ client/components.d.ts
 coverage/
 formset/static/
 docs/build/
+testapp/test.db
