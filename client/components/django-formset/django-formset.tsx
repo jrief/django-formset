@@ -627,8 +627,6 @@ export class DjangoFormset {
 		for (const element of Array.from(this.element.getElementsByTagName('FORM')) as Array<HTMLFormElement>) {
 			this.forms.push(new DjangoForm(this, element));
 		}
-		if (!this.endpoint)
-			throw new Error("Webcomponent <django-formset> requires attribute 'endpoint=\"server endpoint\"'");
 	}
 
 	componentWillLoad() {
@@ -685,6 +683,8 @@ export class DjangoFormset {
 		}
 		this.setSubmitted();
 		if (formsAreValid) {
+			if (!this.endpoint)
+				throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
 			const response = await fetch(this.endpoint, {
 				method: 'POST',
 				headers: {
