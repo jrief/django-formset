@@ -12,8 +12,8 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
-from formset import __version__ as release
+sys.path.insert(0, os.path.abspath(os.path.join(os.pardir, os.pardir)))
+from formset import __version__ as release  # noqa
 
 
 # -- Project information -----------------------------------------------------
