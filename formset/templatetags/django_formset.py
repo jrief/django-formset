@@ -5,9 +5,17 @@ from django.template.loader import get_template
 from formset.mixins.default import FormsetErrorList, FormMixin
 
 
-def _render_groups(form, form_mixin_class=FormMixin, field_classes=None, label_classes=None, control_classes=None):
+def _formsetify(form, form_mixin=FormMixin):
+    assert isinstance(form, BaseForm), "'bootstrapify' must be applied to a Django Form."
+    if not isinstance(form, form_mixin):
+        form.__class__ = type(form.__class__.__name__, (form_mixin, form.__class__), {})
+        form.error_class = FormsetErrorList
+    return form
+
+
+def _render_groups(form, form_mixin=FormMixin, field_classes=None, label_classes=None, control_classes=None):
     assert isinstance(form, BaseForm), "'render_groups' must be applied to a Django Form or ModelForm instance."
-    if not isinstance(form, form_mixin_class):
+    if not isinstance(form, form_mixin):
         args = {}
         if field_classes:
             args['field_css_classes'] = field_classes
@@ -15,7 +23,7 @@ def _render_groups(form, form_mixin_class=FormMixin, field_classes=None, label_c
             args['label_css_classes'] = label_classes
         if control_classes:
             args['control_css_classes'] = control_classes
-        form.__class__ = type(form.__class__.__name__, (form_mixin_class, form.__class__), args)
+        form.__class__ = type(form.__class__.__name__, (form_mixin, form.__class__), args)
         form.error_class = FormsetErrorList
     return form.as_field_group()
 
@@ -41,5 +49,6 @@ def _render_group(bf, template_name='formset/default/field_group.html'):
 
 
 register = template.Library()
+register.filter('formsetify', _formsetify)
 register.simple_tag(_render_groups, name='render_groups')
 register.simple_tag(_render_group, name='render_group')
