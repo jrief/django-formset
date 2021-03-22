@@ -28,7 +28,7 @@ jobs:
       run: |
         npm install
         python -m pip install --upgrade pip
-        pip install -r tests/requirements.txt
+        pip install -r testapp/requirements.txt
         playwright install
     - name: Lint with flake8
       run: |
