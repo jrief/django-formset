@@ -48,11 +48,3 @@ default_subscribe_data = {
     'agree': True,
     'password': '',
 }
-
-
-class SuccessView(TemplateView):
-    template_name = 'success.html'
-
-
-class TestView(TemplateView):
-    template_name = 'form3.html'

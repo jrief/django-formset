@@ -1,11 +1,19 @@
-{% extends "base.html" %}
-{% load django_formset %}
+{% load static django_formset %}
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
 
-{% block "main-content" %}
-<django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}">
-	<form{% if form.name %} name="{{ form.name }}"{% endif %}>
-		{% csrf_token %}
-		{% render_groups form %}
-	</form>
-</django-formset>
-{% endblock %}
+<head>
+	<script type="module" src="{% static 'django-formset/django-formset.esm.js' %}"></script>
+	<script nomodule src="{% static 'django-formset/django-formset.js' %}"></script>
+</head>
+
+<body>
+	<django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}">
+		<form{% if form.name %} name="{{ form.name }}"{% endif %}>
+			{% csrf_token %}
+			{% render_groups form %}
+		</form>
+	</django-formset>
+</body>
+
+</html>

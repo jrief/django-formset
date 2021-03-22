@@ -1,12 +1,11 @@
-{% extends "base.html" %}
-{% load django_formset %}
+{% extends "./base.html" %}
+{% load bootstrap_formset %}
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="false" withhold-messages="false">
 	<form name="{{ form.name }}">
 		{% csrf_token %}
-		{#% render_groups form field_classes="form-group row" label_classes="col-sm-3 col-form-label" control_classes="col-sm-9" %#}
-		{% render_groups form %}
+		{% render_groups form field_classes="form-group row" label_classes="col-sm-3 col-form-label" control_classes="col-sm-9" %}
 	</form>
 	<button type="button" click="disable -> submit -> intercept -> delay(900) -> proceed !~ intercept -> addClass(error) -> delay(3000)" auto-disable="false" class="btn btn-primary">Submit</button>
 </django-formset>
