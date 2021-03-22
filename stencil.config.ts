@@ -22,6 +22,7 @@ export const config: Config = {
     sass({
       includePaths: [
         'node_modules',
+        'client/global',
       ],
       sourceMap: true,
     })
