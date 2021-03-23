@@ -70,7 +70,7 @@ class WidgetMixin:
 
 
 class FormMixin:
-    field_css_classes = 'form-group'
+    # field_css_classes = 'form-group'
     help_text_html = '<span>%s</span>'
     # widget_css_classes = {
     #     'text': 'form-control',

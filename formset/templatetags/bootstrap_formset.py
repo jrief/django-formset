@@ -1,8 +1,6 @@
 from django import template
-from django.forms import BaseForm
 
 from formset.mixins.bootstrap4 import BootstrapFormMixin
-from formset.mixins.default import FormsetErrorList
 from .django_formset import _formsetify, _render_group, _render_groups
 
 register = template.Library()
