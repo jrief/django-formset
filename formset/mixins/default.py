@@ -70,25 +70,11 @@ class WidgetMixin:
 
 
 class FormMixin:
-    # field_css_classes = 'form-group'
     help_text_html = '<span>%s</span>'
-    # widget_css_classes = {
-    #     'text': 'form-control',
-    #     'email': 'form-control',
-    #     'date': 'form-control',
-    #     'select': 'form-control',
-    #     'selectmultiple': 'form-control',
-    #     'number': 'form-control',
-    #     'textarea': 'form-control',
-    #     'password': 'form-control',
-    # }
 
     def __init__(self, error_class=FormsetErrorList, **kwargs):
         kwargs['error_class'] = error_class
         super().__init__(**kwargs)
-
-    def as_table(self):
-        return super().as_table()
 
     def as_field_group(self):
         """

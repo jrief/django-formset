@@ -12,5 +12,7 @@ urlpatterns = [
     path('bootstrap/formsetify', SubscribeView.as_view(template_name='bootstrap/formsetify.html')),
     path('bootstrap/form-groups', SubscribeView.as_view(template_name='bootstrap/render_groups.html')),
     path('bootstrap/form-groups-classes', SubscribeView.as_view(template_name='bootstrap/render_groups_with_classes.html')),
+    path('tailwind/formsetify', SubscribeView.as_view(template_name='tailwind/formsetify.html')),
+    path('tailwind/form-groups', SubscribeView.as_view(template_name='tailwind/render_groups.html')),
     path('success', TemplateView.as_view(template_name='default/success.html'), name='form_data_valid'),
 ]

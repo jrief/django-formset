@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Django-Formset Demo</title>
+	<link href="{% static 'testapp/tailwind.css' %}" rel="stylesheet">
+	<script type="module" src="{% static 'django-formset/django-formset.esm.js' %}"></script>
+	<script nomodule src="{% static 'django-formset/django-formset.js' %}"></script>
+</head>
+<body>
+	<div class="flex items-center min-h-screen bg-gray-50 dark:bg-gray-900">
+		<div class="container mx-auto">
+		{% block "main-content" %}{% endblock %}
+		</div>
+	</div>
+</body>
+</html>

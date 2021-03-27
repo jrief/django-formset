@@ -1,0 +1,18 @@
+{% extends "./base.html" %}
+{% load tailwind_formset %}
+
+{% block "main-content" %}
+<div class="max-w-lg mx-auto my-10 bg-white p-5 rounded-md shadow-sm">
+	<div class="m-7">
+		<django-formset endpoint="{{ request.path }}" force-submission="false">
+			<form name="{{ form.name }}">
+				{% csrf_token %}
+				{% for field in form|formsetify %}
+				{% render_group field %}
+				{% endfor %}
+			</form>
+			<button type="button" click="disable -> submit -> intercept -> delay(900) -> proceed !~ intercept -> addClass(error) -> delay(9000)" auto-disable="false" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+		</django-formset>
+  </div>
+</div>
+{% endblock %}
