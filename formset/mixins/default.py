@@ -1,7 +1,8 @@
 import copy
 
 from django.forms.utils import ErrorList
-from django.utils.html import format_html, format_html_join, html_safe
+from django.utils.html import format_html, format_html_join, html_safe, strip_spaces_between_tags
+from django.utils.safestring import mark_safe
 
 from formset.boundfield import BoundField
 
@@ -44,7 +45,7 @@ class WidgetMixin:
         context = super().get_context(name, value, attrs)
         class_name = self.__class__.__name__
         if class_name == 'CheckboxInput':
-            context['checkbox_label'] = attrs.pop('checkbox_label')
+            context['checkbox_label'] = attrs.pop('checkbox_label', None)
         elif class_name in ['CheckboxSelectMultiple', 'RadioSelect']:
             inlined_checks = getattr(self, 'inlined_checks', None)
             if inlined_checks is None:
@@ -93,7 +94,7 @@ class FormMixin:
             row_ender='</django-field-group>',
             help_text_html=self.help_text_html,
             errors_on_separate_row=False)
-        return html_element
+        return mark_safe(strip_spaces_between_tags(html_element.strip()))
 
     def __getitem__(self, name):
         "Returns a modified BoundField for the given field. In addition modify the widget class."
@@ -102,6 +103,30 @@ class FormMixin:
         except KeyError:
             raise KeyError('Key %r not found in Form' % name)
         return BoundField(self, field, name)
+
+    def render_label(self, bound_field, contents, attrs, label_suffix):
+        return super(BoundField, bound_field).label_tag(contents, attrs, label_suffix)
+
+    def get_widget_attrs(self, bound_field, attrs, widget):
+        attrs = super(BoundField, bound_field).build_widget_attrs(attrs, widget)
+
+        # widget_css_classes is an optional member of a Form optimized for django-formset
+        css_classes = set(attrs.pop('class', '').split())
+        widget_css_classes = getattr(self, 'widget_css_classes', None)
+        if isinstance(widget_css_classes, dict):
+            extra_css_classes = widget_css_classes.get(bound_field.widget_type)
+            if isinstance(extra_css_classes, str):
+                css_classes.add(extra_css_classes)
+            elif isinstance(extra_css_classes, (list, tuple)):
+                css_classes.update(extra_css_classes)
+        attrs['class'] = ' '.join(css_classes)
+
+        # some fields need a modified context
+        regex = getattr(bound_field.field, 'regex', None)
+        if regex:
+            attrs['pattern'] = regex.pattern
+
+        return attrs
 
     def get_widget(self, field):
         widget = copy.deepcopy(field.widget)

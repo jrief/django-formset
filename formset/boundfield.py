@@ -1,11 +1,24 @@
 from django.core import validators
 from django.forms import boundfield
 from django.utils.functional import cached_property
-from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 
 class BoundField(boundfield.BoundField):
+    @property
+    def errors(self):
+        errors = self.form.errors.get(self.name, self.form.error_class())
+        errors.client_messages = self._get_client_messages()
+        return errors
+
+    def as_widget(self, widget=None, attrs=None, only_initial=False):
+        if widget is None:
+            widget = self.form.get_widget(self.field)
+        return super().as_widget(widget, attrs, only_initial)
+
+    def label_tag(self, contents=None, attrs=None, label_suffix=None):
+        return self.form.render_label(self, contents, attrs, label_suffix)
+
     def css_classes(self, extra_classes=None):
         """
         Return a string of space-separated CSS classes for this field.
@@ -27,64 +40,14 @@ class BoundField(boundfield.BoundField):
             extra_classes.update(field_css_classes)
         return super().css_classes(extra_classes)
 
-    def build_widget_attrs(self, attrs, widget=None):
-        attrs = super().build_widget_attrs(attrs, widget)
-
-        # widget_css_classes is an optional member of a Form optimized for django-formset
-        css_classes = set(attrs.pop('class', '').split())
-        widget_css_classes = getattr(self.form, 'widget_css_classes', None)
-        if isinstance(widget_css_classes, dict):
-            extra_css_classes = widget_css_classes.get(self.widget_type)
-            if isinstance(extra_css_classes, str):
-                css_classes.add(extra_css_classes)
-            elif isinstance(extra_css_classes, (list, tuple)):
-                css_classes.update(extra_css_classes)
-        attrs['class'] = ' '.join(css_classes)
-
-        # some fields need a modified context
-        regex = getattr(self.field, 'regex', None)
-        if regex:
-            attrs['pattern'] = regex.pattern
-
-        # checkbox widgets render their label themselves
-        if self.widget_type == 'checkbox':
-            attrs['checkbox_label'] = self.label
-
-        return attrs
-
     @cached_property
     def widget_type(self):
         return super().widget_type
 
-    def label_tag(self, contents=None, attrs=None, label_suffix=None):
-        label_css_classes = getattr(self.form, 'label_css_classes', None)
-        if self.widget_type == 'checkbox':
-            if label_css_classes:
-                label_tag = format_html('<div class="{}"></div>', label_css_classes)
-            else:
-                label_tag = ''
-        else:
-            if label_css_classes:
-                attrs = dict(attrs or {})
-                if 'class' in attrs:
-                    attrs['class'] += ' ' + label_css_classes
-                else:
-                    attrs['class'] = label_css_classes
-            label_tag = super().label_tag(contents, attrs, label_suffix)
-        return label_tag
+    def build_widget_attrs(self, attrs, widget=None):
+        return self.form.get_widget_attrs(self, attrs, widget)
 
-    def as_widget(self, widget=None, attrs=None, only_initial=False):
-        if widget is None:
-            widget = self.form.get_widget(self.field)
-        return super().as_widget(widget, attrs, only_initial)
-
-    @property
-    def errors(self):
-        errors = self.form.errors.get(self.name, self.form.error_class())
-        errors.client_messages = self.get_client_messages()
-        return errors
-
-    def get_client_messages(self):
+    def _get_client_messages(self):
         """
         Extract server validation error messages to be rendered by the client side.
         """
