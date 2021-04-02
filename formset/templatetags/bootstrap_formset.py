@@ -1,7 +1,7 @@
 from django import template
 
-from formset.mixins.bootstrap4 import BootstrapFormMixin
-from .django_formset import _formsetify, _render_group, _render_groups
+from formset.mixins.bootstrap import BootstrapFormMixin
+from formset.templatetags.django_formset import _formsetify, _render_group, _render_groups
 
 register = template.Library()
 
@@ -17,5 +17,5 @@ def render_groups(form, field_classes=None, label_classes=None, control_classes=
 
 
 @register.simple_tag
-def render_group(bf, template_name='formset/bootstrap4/field_group.html'):
+def render_group(bf, template_name='formset/bootstrap/field_group.html'):
     return _render_group(bf, template_name)

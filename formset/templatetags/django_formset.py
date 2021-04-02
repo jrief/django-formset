@@ -2,11 +2,11 @@ from django import template
 from django.forms import BaseForm
 from django.template.loader import get_template
 
-from formset.mixins.default import FormsetErrorList, FormMixin
+from formset.mixins.default import FormMixin, FormsetErrorList
 
 
 def _formsetify(form, form_mixin=FormMixin):
-    assert isinstance(form, BaseForm), "'bootstrapify' must be applied to a Django Form."
+    assert isinstance(form, BaseForm), "'formsetify' must be applied to a Django Form."
     if not isinstance(form, form_mixin):
         form.__class__ = type(form.__class__.__name__, (form_mixin, form.__class__), {})
         form.error_class = FormsetErrorList
@@ -25,7 +25,7 @@ def _render_groups(form, form_mixin=FormMixin, field_classes=None, label_classes
             args['control_css_classes'] = control_classes
         form.__class__ = type(form.__class__.__name__, (form_mixin, form.__class__), args)
         form.error_class = FormsetErrorList
-    return form.as_field_group()
+    return form.as_field_groups()
 
 
 def _render_group(bf, template_name='formset/default/field_group.html'):

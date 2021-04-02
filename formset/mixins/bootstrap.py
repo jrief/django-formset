@@ -7,10 +7,16 @@ from formset.mixins.default import FormMixin, WidgetMixin
 
 class BootstrapWidgetMixin(WidgetMixin):
     template_mapping = {
-        'RadioSelect': 'formset/widgets/bootstrap/radio.html',
-        'CheckboxInput': 'formset/widgets/bootstrap/checkbox.html',
-        'CheckboxSelectMultiple': 'formset/widgets/bootstrap/checkboxselectmultiple.html',
+        'RadioSelect': 'formset/bootstrap/widgets/radio.html',
+        'CheckboxInput': 'formset/bootstrap/widgets/checkbox.html',
+        'CheckboxSelectMultiple': 'formset/bootstrap/widgets/checkboxselectmultiple.html',
     }
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        if self.__class__.__name__ == 'CheckboxInput':
+            context['checkbox_label'] = attrs.pop('checkbox_label')
+        return context
 
 
 class BootstrapFormMixin(FormMixin):

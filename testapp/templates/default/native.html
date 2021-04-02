@@ -1,0 +1,9 @@
+{% extends "./base.html" %}
+
+{% block "main-content" %}
+<form name="{{ form.name }}" action="{{ request.path }}">
+	{% csrf_token %}
+	{{ form.as_p }}
+	<button type="submit">Submit</button>
+</form>
+{% endblock %}

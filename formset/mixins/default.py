@@ -36,17 +36,14 @@ class FormsetErrorList(ErrorList):
 class WidgetMixin:
     max_options_per_line = 5
     template_mapping = {
-        'RadioSelect': 'formset/widgets/default/radio.html',
-        'CheckboxInput': 'formset/widgets/default/checkbox.html',
-        'CheckboxSelectMultiple': 'formset/widgets/default/checkboxselectmultiple.html',
+        'RadioSelect': 'formset/default/widgets/radio.html',
+        'CheckboxSelectMultiple': 'formset/default/widgets/checkboxselectmultiple.html',
     }
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
         class_name = self.__class__.__name__
-        if class_name == 'CheckboxInput':
-            context['checkbox_label'] = attrs.pop('checkbox_label', None)
-        elif class_name in ['CheckboxSelectMultiple', 'RadioSelect']:
+        if class_name in ['CheckboxSelectMultiple', 'RadioSelect']:
             inlined_checks = getattr(self, 'inlined_checks', None)
             if inlined_checks is None:
                 # group all checkboxes into one line if there are less than 5
@@ -77,7 +74,7 @@ class FormMixin:
         kwargs['error_class'] = error_class
         super().__init__(**kwargs)
 
-    def as_field_group(self):
+    def as_field_groups(self):
         """
         Returns this form rendered as HTML
         """
