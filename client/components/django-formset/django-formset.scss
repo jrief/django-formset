@@ -80,11 +80,15 @@ django-field-group {
 		color: var(--django-formset-color-invalid);
 	}
 
-	.form-optgroup {
+	.dj-form-optgroup {
 		padding-left: 1.25rem;
 
 		> em {
 			margin-right: 0.5rem;
 		}
+	}
+
+	.dj-form-inlined {
+		display: inline-block;
 	}
 }
