@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.urls import path
 from django.views.generic import TemplateView
 
-from views import SubscribeView
+from testapp.forms import SubscribeMixinForm, BootstrapMixinForm
+from testapp.views import SubscribeView
 
 
 urlpatterns = [
@@ -10,9 +11,11 @@ urlpatterns = [
     path('native', SubscribeView.as_view(template_name='default/native.html')),
     path('formsetify', SubscribeView.as_view(template_name='default/formsetify.html')),
     path('form-groups', SubscribeView.as_view(template_name='default/render_groups.html')),
+    path('mixin-form', SubscribeView.as_view(form_class=SubscribeMixinForm, template_name='default/mixin_form.html')),
     path('bootstrap/formsetify', SubscribeView.as_view(template_name='bootstrap/formsetify.html')),
     path('bootstrap/form-groups', SubscribeView.as_view(template_name='bootstrap/render_groups.html')),
     path('bootstrap/form-groups-classes', SubscribeView.as_view(template_name='bootstrap/render_groups_with_classes.html')),
+    path('bootstrap/mixin-form', SubscribeView.as_view(form_class=BootstrapMixinForm, template_name='bootstrap/mixin_form.html')),
     path('foundation/formsetify', SubscribeView.as_view(template_name='foundation/formsetify.html')),
     path('foundation/form-groups', SubscribeView.as_view(template_name='foundation/render_groups.html')),
     path('tailwind/formsetify', SubscribeView.as_view(template_name='tailwind/formsetify.html')),

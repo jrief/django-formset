@@ -1,11 +1,11 @@
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from django.core.exceptions import ValidationError
-from django.forms import fields, forms, widgets
-from django.forms.models import ModelForm
+from django.forms import fields, widgets
 from django.utils.timezone import datetime
 
-from entangled.forms import EntangledModelFormMixin
-from formset.mixins.default import FormMixin
+from entangled.forms import EntangledModelForm
+import formset.mixins.default
+import formset.mixins.bootstrap
 
 from testapp.models import DummyModel
 
@@ -16,7 +16,7 @@ def validate_password(value):
         raise ValidationError('The password is wrong.')
 
 
-class SubscribeForm(EntangledModelFormMixin, FormMixin, ModelForm):
+class SubscribeForm(EntangledModelForm):
     name = 'subscribe'
 
     CONTINENT_CHOICES = [
@@ -163,21 +163,11 @@ class SubscribeForm(EntangledModelFormMixin, FormMixin, ModelForm):
             'agree', 'password', 'confirmation_key']}
 
 
-class SubscribeForm2(forms.Form):
-    used_transportation = fields.MultipleChoiceField(
-        label="Used Tranportation",
-        choices=SubscribeForm.TRANSPORTATION_CHOICES,
-        widget=widgets.CheckboxSelectMultiple,
-        required=True,
-        initial=['air', 'foot'],
-        help_text="Used means of tranportation.",
-    )
+class SubscribeMixinForm(formset.mixins.default.FormMixin, SubscribeForm):
+    class Meta(SubscribeForm.Meta):
+        exclude = ['payload']
 
 
-class SubscribeForm3(forms.Form):
-    preferred_transportation = fields.ChoiceField(
-        label="Preferred Transportation",
-        choices=SubscribeForm.TRANSPORTATION_CHOICES,
-        widget=widgets.RadioSelect,
-        help_text="Preferred mean of tranportation.",
-    )
+class BootstrapMixinForm(formset.mixins.bootstrap.BootstrapFormMixin, SubscribeForm):
+    class Meta(SubscribeForm.Meta):
+        exclude = ['payload']

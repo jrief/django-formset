@@ -9,6 +9,6 @@
 		{% render_group field %}
 		{% endfor %}
 	</form>
-	<button type="button" click="disable -> submit -> intercept -> delay(900) -> proceed !~ intercept -> addClass(error) -> delay(9000)" auto-disable="false" class="btn btn-primary">Submit</button>
+	{% include "./submit_button.html" %}
 </django-formset>
 {% endblock %}

@@ -1,11 +1,10 @@
 {% extends "./base.html" %}
-{% load tailwind_formset %}
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="false" withhold-messages="false">
 	<form name="{{ form.name }}">
 		{% csrf_token %}
-		{% render_groups form %}
+		{{ form.as_field_groups }}
 	</form>
 	{% include "./submit_button.html" %}
 </django-formset>

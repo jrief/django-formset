@@ -2,14 +2,13 @@ import json
 
 from django.http import JsonResponse
 from django.urls import reverse_lazy
-from django.views.generic import FormView, TemplateView
+from django.views.generic import FormView
 from django.utils.encoding import force_text
 
 from forms import SubscribeForm
 
 
 class SubscribeView(FormView):
-    template_name = 'form2.html'
     form_class = SubscribeForm
     success_url = reverse_lazy('form_data_valid')
 
