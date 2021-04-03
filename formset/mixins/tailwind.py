@@ -8,12 +8,6 @@ class WidgetMixin(default.WidgetMixin):
         'CheckboxSelectMultiple': 'formset/tailwind/widgets/checkboxselectmultiple.html',
     }
 
-    def get_context(self, name, value, attrs):
-        context = super().get_context(name, value, attrs)
-        if self.__class__.__name__ == 'CheckboxInput':
-            context['checkbox_label'] = attrs.pop('checkbox_label')
-        return context
-
 
 class FormMixin(default.FormMixin):
     """
@@ -22,7 +16,7 @@ class FormMixin(default.FormMixin):
     Adopt styles by editing assets/tailwind-styles.css and recompile using:
     ``npm run tailwindcss``
     """
-    field_css_classes = 'mb-6'
+    field_css_classes = 'mb-5'
     help_text_html='<p class="formset-help-text">%s</p>'
     widget_mixin = WidgetMixin
     widget_css_classes = {

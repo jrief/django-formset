@@ -10,12 +10,6 @@ class WidgetMixin(default.WidgetMixin):
         'CheckboxSelectMultiple': 'formset/bootstrap/widgets/checkboxselectmultiple.html',
     }
 
-    def get_context(self, name, value, attrs):
-        context = super().get_context(name, value, attrs)
-        if self.__class__.__name__ == 'CheckboxInput':
-            context['checkbox_label'] = attrs.pop('checkbox_label')
-        return context
-
 
 class FormMixin(default.FormMixin):
     field_css_classes = 'form-group'
