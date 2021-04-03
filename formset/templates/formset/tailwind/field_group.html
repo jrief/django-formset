@@ -1,6 +1,6 @@
 {% spaceless %}
 {% if is_hidden %}{{ widget }}{% else %}
-<django-field-group class="{% if css_classes %} {{ css_classes }}{% endif %}">
+<django-field-group{% if css_classes %} class="{{ css_classes }}"{% endif %}>
 	{% if widget_type != 'checkbox' %}
 	<label class="formset-label" for="{{ auto_id }}">{{ label }}:</label>
 	{% endif %}

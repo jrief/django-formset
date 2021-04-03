@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from django.views.generic import TemplateView
 
-from testapp.forms import SubscribeMixinForm, BootstrapMixinForm
+from testapp.forms import SubscribeMixinForm, BootstrapMixinForm, TailwindMixinForm
 from testapp.views import SubscribeView
 
 
@@ -20,5 +20,6 @@ urlpatterns = [
     path('foundation/form-groups', SubscribeView.as_view(template_name='foundation/render_groups.html')),
     path('tailwind/formsetify', SubscribeView.as_view(template_name='tailwind/formsetify.html')),
     path('tailwind/form-groups', SubscribeView.as_view(template_name='tailwind/render_groups.html')),
+    path('tailwind/mixin-form', SubscribeView.as_view(form_class=TailwindMixinForm, template_name='tailwind/mixin_form.html')),
     path('success', TemplateView.as_view(template_name='default/success.html'), name='form_data_valid'),
 ]
