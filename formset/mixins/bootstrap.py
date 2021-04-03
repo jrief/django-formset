@@ -1,11 +1,9 @@
-import copy
-
 from django.utils.html import format_html
 
-from formset.mixins.default import FormMixin, WidgetMixin
+from formset.mixins import default
 
 
-class BootstrapWidgetMixin(WidgetMixin):
+class WidgetMixin(default.WidgetMixin):
     template_mapping = {
         'RadioSelect': 'formset/bootstrap/widgets/radio.html',
         'CheckboxInput': 'formset/bootstrap/widgets/checkbox.html',
@@ -19,13 +17,17 @@ class BootstrapWidgetMixin(WidgetMixin):
         return context
 
 
-class BootstrapFormMixin(FormMixin):
+class FormMixin(default.FormMixin):
     field_css_classes = 'form-group'
     help_text_html='<span class="form-text text-muted">%s</span>'
+    widget_mixin = WidgetMixin
     widget_css_classes = {
         'text': 'form-control',
         'email': 'form-control',
         'date': 'form-control',
+        'checkbox': 'form-check-input',
+        'checkboxselectmultiple': 'form-check-input',
+        'radioselect': 'form-check-input',
         'select': 'form-control',
         'selectmultiple': 'form-control',
         'number': 'form-control',
@@ -58,8 +60,3 @@ class BootstrapFormMixin(FormMixin):
             attrs['checkbox_label'] = bound_field.label
 
         return attrs
-
-    def get_widget(self, field):
-        widget = copy.deepcopy(field.widget)
-        widget.__class__ = type(widget.__class__.__name__, (BootstrapWidgetMixin, widget.__class__), {})
-        return widget

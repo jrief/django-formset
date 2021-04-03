@@ -13,12 +13,7 @@ django-field-group {
 	&.dj-required, &.dj-required-any {
 		> label {
 			font-weight: bolder;
-
-			&::before {
-				content: "* ";
-				font-size: small;
-				vertical-align: top;
-			}
+			vertical-align: top;
 		}
 	}
 
@@ -80,11 +75,14 @@ django-field-group {
 		color: var(--django-formset-color-invalid);
 	}
 
-	.dj-form-optgroup {
-		padding-left: 1.25rem;
+	.dj-help-text {
+		font-style: oblique;
+	}
 
+	.dj-form-optgroup {
+		margin-bottom: 0.5rem;
 		> em {
-			margin-right: 0.5rem;
+			margin-left: 0.75rem;
 		}
 	}
 

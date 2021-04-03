@@ -1,5 +1,5 @@
-{% with id=widget.attrs.id %}<div{% if id %} id="{{ id }}"{% endif %}{% if widget.attrs.class %} class="{{ widget.attrs.class }}"{% endif %}>{% for group, options, index in widget.optgroups %}{% if group %}
-	<div class="dj-form-optgroup"><em class="text-muted">{{ group }}</em>{% endif %}{% for option in options %}
+{% with id=widget.attrs.id %}<div{% if id %} id="{{ id }}"{% endif %} class="d-flex flex-column">{% for group, options, index in widget.optgroups %}{% if group %}
+	<div class="mb-2"><span class="text-italics text-muted">{{ group }}</span>{% endif %}{% for option in options %}
 		<div class="form-check{% if inlined_checks %} form-check-inline{% endif %}">{% include option.template_name with widget=option %}</div>{% endfor %}{% if group %}
 	</div>{% endif %}{% endfor %}
 </div>{% endwith %}

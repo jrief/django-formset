@@ -68,7 +68,8 @@ class WidgetMixin:
 
 
 class FormMixin:
-    help_text_html = '<span>%s</span>'
+    help_text_html = '<span class="dj-help-text">%s</span>'
+    widget_mixin = WidgetMixin
 
     def __init__(self, error_class=FormsetErrorList, **kwargs):
         kwargs['error_class'] = error_class
@@ -127,5 +128,5 @@ class FormMixin:
 
     def get_widget(self, field):
         widget = copy.deepcopy(field.widget)
-        widget.__class__ = type(widget.__class__.__name__, (WidgetMixin, widget.__class__), {})
+        widget.__class__ = type(widget.__class__.__name__, (self.widget_mixin, widget.__class__), {})
         return widget

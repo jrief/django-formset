@@ -6,6 +6,7 @@ from django.utils.timezone import datetime
 from entangled.forms import EntangledModelForm
 import formset.mixins.default
 import formset.mixins.bootstrap
+import formset.mixins.tailwind
 
 from testapp.models import DummyModel
 
@@ -157,17 +158,23 @@ class SubscribeForm(EntangledModelForm):
 
     class Meta:
         model = DummyModel
+        exclude = ['payload']
         entangled_fields = {'payload': ['last_name', 'first_name', 'sex', 'email', 'subscribe',
             'phone', 'birth_date', 'continent', 'weight', 'height', 'used_transportation',
             'preferred_transportation', 'available_transportation', 'notifyme', 'annotation',
             'agree', 'password', 'confirmation_key']}
 
+    def __str__(self):
+        return self.as_field_groups()
+
 
 class SubscribeMixinForm(formset.mixins.default.FormMixin, SubscribeForm):
-    class Meta(SubscribeForm.Meta):
-        exclude = ['payload']
+    pass
 
 
-class BootstrapMixinForm(formset.mixins.bootstrap.BootstrapFormMixin, SubscribeForm):
-    class Meta(SubscribeForm.Meta):
-        exclude = ['payload']
+class BootstrapMixinForm(formset.mixins.bootstrap.FormMixin, SubscribeForm):
+    pass
+
+
+class TailwindMixinForm(formset.mixins.tailwind.FormMixin, SubscribeForm):
+    pass
