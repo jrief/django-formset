@@ -4,9 +4,7 @@ from django.forms import fields, widgets
 from django.utils.timezone import datetime
 
 from entangled.forms import EntangledModelForm
-import formset.mixins.default
-import formset.mixins.bootstrap
-import formset.mixins.tailwind
+from formset.mixins import default, bootstrap, foundation, tailwind
 
 from testapp.models import DummyModel
 
@@ -168,13 +166,17 @@ class SubscribeForm(EntangledModelForm):
         return self.as_field_groups()
 
 
-class SubscribeMixinForm(formset.mixins.default.FormMixin, SubscribeForm):
+class DefaultMixinForm(default.FormMixin, SubscribeForm):
     pass
 
 
-class BootstrapMixinForm(formset.mixins.bootstrap.FormMixin, SubscribeForm):
+class BootstrapMixinForm(bootstrap.FormMixin, SubscribeForm):
     pass
 
 
-class TailwindMixinForm(formset.mixins.tailwind.FormMixin, SubscribeForm):
+class FoundationMixinForm(foundation.FormMixin, SubscribeForm):
+    pass
+
+
+class TailwindMixinForm(tailwind.FormMixin, SubscribeForm):
     pass

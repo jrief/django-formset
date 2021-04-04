@@ -1,0 +1,14 @@
+{% extends "./base.html" %}
+{% load foundation_formset %}
+
+{% block "main-content" %}
+<django-formset endpoint="{{ request.path }}" force-submission="false">
+	<form name="{{ form.name }}">
+		{% csrf_token %}
+		{% for field in form|formsetify %}
+		{% render_group field %}
+		{% endfor %}
+	</form>
+	{% include "./submit_button.html" %}
+</django-formset>
+{% endblock %}

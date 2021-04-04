@@ -121,7 +121,8 @@ class FormMixin:
                 css_classes.add(extra_css_classes)
             elif isinstance(extra_css_classes, (list, tuple)):
                 css_classes.update(extra_css_classes)
-        attrs['class'] = ' '.join(css_classes)
+        if css_classes:
+            attrs['class'] = ' '.join(css_classes)
 
         # some fields need a modified context
         regex = getattr(bound_field.field, 'regex', None)

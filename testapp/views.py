@@ -5,10 +5,10 @@ from django.urls import reverse_lazy
 from django.views.generic import FormView
 from django.utils.encoding import force_text
 
-from forms import SubscribeForm
+from testapp.forms import SubscribeForm
 
 
-class SubscribeView(FormView):
+class SubscribeFormView(FormView):
     form_class = SubscribeForm
     success_url = reverse_lazy('form_data_valid')
 

@@ -1,0 +1,11 @@
+{% extends "./base.html" %}
+
+{% block "main-content" %}
+<django-formset endpoint="{{ request.path }}" force-submission="false" withhold-messages="false">
+	<form name="{{ form.name }}">
+		{% csrf_token %}
+		{{ form }}
+	</form>
+	{% include "./submit_button.html" %}
+</django-formset>
+{% endblock %}

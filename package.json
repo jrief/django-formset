@@ -14,6 +14,7 @@
     "@stencil/core": "^2.0.1",
     "@types/lodash": "^4.14.168",
     "bootstrap": "^4.6.0",
+    "foundation-sites": "^6.6.3",
     "lodash.get": "^4.4.2"
   },
   "license": "MIT",
