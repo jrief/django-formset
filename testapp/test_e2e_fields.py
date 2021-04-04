@@ -543,7 +543,7 @@ urlpatterns.append(
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['textarea_form'])
-def test_multichoice_field(page, mocker):
+def test_textarea(page, mocker):
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
     placeholder_field = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder')
@@ -553,6 +553,7 @@ def test_multichoice_field(page, mocker):
     textarea_elem.evaluate('elem => elem.blur()')
     assert placeholder_field.inner_text() == "This field is required."
     textarea_elem.type("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
+    assert placeholder_field.inner_text() == ""
     textarea_elem.evaluate('elem => elem.blur()')
     spy = mocker.spy(FormsetView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
