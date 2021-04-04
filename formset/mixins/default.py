@@ -41,13 +41,13 @@ class WidgetMixin:
     }
 
     def get_context(self, name, value, attrs):
-        context = super().get_context(name, value, attrs)
+        context = {}
         class_name = self.__class__.__name__
-        if class_name == 'CheckboxInput':
-            if 'checkbox_label' in attrs:
-                # some CSS frameworks require to wrap a single checkbox into a label
-                context['checkbox_label'] = attrs.pop('checkbox_label')
-        elif class_name in ['CheckboxSelectMultiple', 'RadioSelect']:
+        if class_name == 'CheckboxInput' and 'checkbox_label' in attrs:
+            # some CSS frameworks require to wrap a single checkbox into a label
+            context['checkbox_label'] = attrs.pop('checkbox_label')
+        context.update(super().get_context(name, value, attrs))
+        if class_name in ['CheckboxSelectMultiple', 'RadioSelect']:
             inlined_checks = getattr(self, 'inlined_checks', None)
             if inlined_checks is None:
                 # group all checkboxes into one line if there are less than 5
