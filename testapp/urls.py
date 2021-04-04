@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from django.views.generic import TemplateView
 
-from testapp.forms import DefaultMixinForm, BootstrapMixinForm, FoundationMixinForm, TailwindMixinForm
+from testapp.forms import DefaultMixinForm, BootstrapMixinForm, BulmaMixinForm, FoundationMixinForm, TailwindMixinForm
 from testapp.views import SubscribeFormView
 
 
@@ -16,6 +16,9 @@ urlpatterns = [
     path('bootstrap/form-groups', SubscribeFormView.as_view(template_name='bootstrap/render_groups.html')),
     path('bootstrap/form-groups-classes', SubscribeFormView.as_view(template_name='bootstrap/render_groups_with_classes.html')),
     path('bootstrap/mixin-form', SubscribeFormView.as_view(form_class=BootstrapMixinForm, template_name='bootstrap/mixin_form.html')),
+    path('bulma/formsetify', SubscribeFormView.as_view(template_name='bulma/formsetify.html')),
+    path('bulma/form-groups', SubscribeFormView.as_view(template_name='bulma/render_groups.html')),
+    path('bulma/mixin-form', SubscribeFormView.as_view(form_class=BulmaMixinForm, template_name='bulma/mixin_form.html')),
     path('foundation/formsetify', SubscribeFormView.as_view(template_name='foundation/formsetify.html')),
     path('foundation/form-groups', SubscribeFormView.as_view(template_name='foundation/render_groups.html')),
     path('foundation/mixin-form', SubscribeFormView.as_view(form_class=FoundationMixinForm, template_name='foundation/mixin_form.html')),

@@ -1,0 +1,1 @@
+<label{% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %} class="radio{% if not inlined_checks %} is-block ml-0 mb-1{% endif %}">{% include "django/forms/widgets/input.html" %} {{ widget.label }}</label>

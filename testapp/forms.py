@@ -4,7 +4,7 @@ from django.forms import fields, widgets
 from django.utils.timezone import datetime
 
 from entangled.forms import EntangledModelForm
-from formset.mixins import default, bootstrap, foundation, tailwind
+from formset.mixins import default, bootstrap, bulma, foundation, tailwind
 
 from testapp.models import DummyModel
 
@@ -171,6 +171,10 @@ class DefaultMixinForm(default.FormMixin, SubscribeForm):
 
 
 class BootstrapMixinForm(bootstrap.FormMixin, SubscribeForm):
+    pass
+
+
+class BulmaMixinForm(bulma.FormMixin, SubscribeForm):
     pass
 
 

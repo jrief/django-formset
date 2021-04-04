@@ -1,0 +1,24 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Django-Formset Demo</title>
+	<link href="{% static 'node_modules/bulma/css/bulma.min.css' %}" rel="stylesheet">
+	<script type="module" src="{% static 'django-formset/django-formset.esm.js' %}"></script>
+	<script nomodule src="{% static 'django-formset/django-formset.js' %}"></script>
+</head>
+
+<body>
+	<section class="section">
+		<div class="container">
+			<div class="columns">
+					{% block "main-content" %}{% endblock %}
+			</div>
+		</div>
+	</section>
+</body>
+
+</html>

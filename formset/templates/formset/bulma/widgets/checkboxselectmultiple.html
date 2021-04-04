@@ -1,0 +1,5 @@
+{% with id=widget.attrs.id %}<div{% if id %} id="{{ id }}"{% endif %} class="control">{% for group, options, index in widget.optgroups %}{% if group %}
+	<div class="mb-2"><span class="is-italic has-text-grey">{{ group }}</span>{% endif %}{% for option in options %}
+		{% include option.template_name with widget=option %}{% endfor %}{% if group %}
+	</div>{% endif %}{% endfor %}
+</div>{% endwith %}

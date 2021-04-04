@@ -1,0 +1,11 @@
+{% spaceless %}
+{% if is_hidden %}{{ widget }}{% else %}
+<django-field-group{% if css_classes %} class="{{ css_classes }}"{% endif %}>
+	{% if widget_type != 'checkbox' %}
+	<label class="label" for="{{ auto_id }}">{{ label }}:</label>
+	{% endif %}
+	{{ widget }}
+	{{ errors }}
+	{% if help_text %}<p class="help">{{ help_text }}</p>{% endif %}
+</django-field-group>
+{% endif %}{% endspaceless %}
