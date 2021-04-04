@@ -9,7 +9,7 @@ class WidgetMixin(default.WidgetMixin):
     }
 
 
-class FormMixin(default.FormMixin):
+class FormMixin(default.CheckboxMixin, default.FormMixin):
     """
     Class to mix into a Django ``Form`` or ``ModelForm`` class.
 
@@ -17,6 +17,7 @@ class FormMixin(default.FormMixin):
     ``npm run tailwindcss``
     """
     field_css_classes = 'mb-5'
+    label_css_classes = 'formset-label'
     help_text_html='<p class="formset-help-text">%s</p>'
     widget_mixin = WidgetMixin
     widget_css_classes = {
@@ -32,21 +33,3 @@ class FormMixin(default.FormMixin):
         'textarea': 'formset-textarea',
         'password': 'formset-password-input',
     }
-
-    def render_label(self, bound_field, contents, attrs, label_suffix):
-        if bound_field.widget_type == 'checkbox':
-            # label is rendered by formset/tailwind/widgets/checkbox.html
-            label_tag = ''
-        else:
-            attrs = dict(attrs or {}, **{'class': 'formset-label'})
-            label_tag = super().render_label(bound_field, contents, attrs, label_suffix)
-        return label_tag
-
-    def get_widget_attrs(self, bound_field, attrs, widget):
-        attrs = super().get_widget_attrs(bound_field, attrs, widget)
-
-        # checkbox widgets render their label themselves
-        if bound_field.widget_type == 'checkbox':
-            attrs['checkbox_label'] = bound_field.label
-
-        return attrs

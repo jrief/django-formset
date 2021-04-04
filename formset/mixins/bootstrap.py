@@ -11,8 +11,9 @@ class WidgetMixin(default.WidgetMixin):
     }
 
 
-class FormMixin(default.FormMixin):
+class FormMixin(default.CheckboxMixin, default.FormMixin):
     field_css_classes = 'form-group'
+    checkbox_label_html = '<div class="{label_css_classes}"></div>'
     help_text_html='<span class="form-text text-muted">%s</span>'
     widget_mixin = WidgetMixin
     widget_css_classes = {
@@ -28,29 +29,3 @@ class FormMixin(default.FormMixin):
         'textarea': 'form-control',
         'password': 'form-control',
     }
-
-    def render_label(self, bound_field, contents, attrs, label_suffix):
-        label_css_classes = getattr(self, 'label_css_classes', None)
-        if bound_field.widget_type == 'checkbox':
-            if label_css_classes:
-                label_tag = format_html('<div class="{}"></div>', label_css_classes)
-            else:
-                label_tag = ''
-        else:
-            if label_css_classes:
-                attrs = dict(attrs or {})
-                if 'class' in attrs:
-                    attrs['class'] += ' ' + label_css_classes
-                else:
-                    attrs['class'] = label_css_classes
-            label_tag = super().render_label(bound_field, contents, attrs, label_suffix)
-        return label_tag
-
-    def get_widget_attrs(self, bound_field, attrs, widget):
-        attrs = super().get_widget_attrs(bound_field, attrs, widget)
-
-        # checkbox widgets render their label themselves
-        if bound_field.widget_type == 'checkbox':
-            attrs['checkbox_label'] = bound_field.label
-
-        return attrs

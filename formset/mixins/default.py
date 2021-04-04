@@ -135,3 +135,35 @@ class FormMixin:
         widget = copy.deepcopy(field.widget)
         widget.__class__ = type(widget.__class__.__name__, (self.widget_mixin, widget.__class__), {})
         return widget
+
+
+class CheckboxMixin:
+    """
+    Mixin class to let the checkbox widget render its label itself.
+    """
+    def get_widget_attrs(self, bound_field, attrs, widget):
+        attrs = super().get_widget_attrs(bound_field, attrs, widget)
+
+        # checkbox widgets render their label themselves
+        if bound_field.widget_type == 'checkbox':
+            attrs['checkbox_label'] = bound_field.label
+
+        return attrs
+
+    def render_label(self, bound_field, contents, attrs, label_suffix):
+        label_css_classes = getattr(self, 'label_css_classes', None)
+        if bound_field.widget_type == 'checkbox':
+            checkbox_label_html = getattr(self, 'checkbox_label_html', None)
+            if checkbox_label_html and label_css_classes:
+                label_tag = format_html(checkbox_label_html, label_css_classes=label_css_classes)
+            else:
+                label_tag = ''
+        else:
+            if label_css_classes:
+                attrs = dict(attrs or {})
+                if 'class' in attrs:
+                    attrs['class'] += ' ' + label_css_classes
+                else:
+                    attrs['class'] = label_css_classes
+            label_tag = super().render_label(bound_field, contents, attrs, label_suffix)
+        return label_tag
