@@ -356,7 +356,6 @@ class DjangoButton {
 	// @ts-ignore
 	private disable() {
 		return response => {
-			console.log('disable');
 			this.element.disabled = true;
 			return Promise.resolve(response);
 		};
@@ -460,6 +459,31 @@ class DjangoButton {
 	private toggleClass(cssClass: string) {
 		return response => {
 			this.element.classList.toggle(cssClass);
+			return Promise.resolve(response);
+		};
+	}
+
+	/**
+	 * Emit an event to the DOM.
+	 *
+	 * @param event: The named event.
+	 */
+	// @ts-ignore
+	private emitEvent(event: string) {
+		return response => {
+			return Promise.resolve(response);
+		};
+	}
+
+	/**
+	 * Emit a custom event to the DOM.
+	 *
+	 * @param event: The named event.
+	 * @param data: Some arbitrary data passed into the event handler.
+	 */
+	// @ts-ignore
+	private emitCustomEvent(event: string, data: any) {
+		return response => {
 			return Promise.resolve(response);
 		};
 	}
