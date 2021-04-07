@@ -372,7 +372,6 @@ class DjangoButton {
 	// @ts-ignore
 	enable() {
 		return response => {
-			console.log('enable');
 			this.element.disabled = false;
 			return Promise.resolve(response);
 		};
@@ -488,14 +487,13 @@ class DjangoButton {
 	// @ts-ignore
 	private intercept() {
 		return response => {
-			console.log(response);
+			console.info(response);
 			return Promise.resolve(response);
 		}
 	}
 
 	private restore() {
 		return () => {
-			console.log('restore');
 			this.element.setAttribute('class', this.initialClass);
 			this.element.disabled = false;
 		}

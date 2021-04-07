@@ -10,7 +10,7 @@ actions
   { return { successChain: successChain, rejectChain: [] } }
 
 chain
-  = lhs:function _ '=>' _ rhs:chain _
+  = lhs:function _ '->' _ rhs:chain _
   { return [lhs].concat(rhs) }
   / func:function
   { return [func] }
