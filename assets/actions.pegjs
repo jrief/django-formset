@@ -1,10 +1,13 @@
+// PEG rules to create parser for <button click="..."> action chain
+// Build file `client/components/django-formset/actions.ts` using `npm run pegjs`
+
 // ----- 1. Actions -----
 
 actions
-  = successChain:chain _ '!~' _ failureChain:chain _
-  { return { successChain: successChain, failureChain: failureChain } }
+  = successChain:chain _ '!~' _ rejectChain:chain _
+  { return { successChain: successChain, rejectChain: rejectChain } }
   / successChain:chain
-  { return { successChain: successChain, failureChain: [] } }
+  { return { successChain: successChain, rejectChain: [] } }
 
 chain
   = lhs:function _ '=>' _ rhs:chain _
@@ -13,14 +16,12 @@ chain
   { return [func] }
 
 function
-  = _ funcname:funcname '(' args:arglist ')' _
+  = _ funcname:$keystring '(' args:arglist ')' _
   { return { funcname: funcname, args: args } }
-  / funcname:funcname '()'
+  / funcname:$keystring '()'
   { return { funcname: funcname, args: [] } }
-  / funcname:funcname
+  / funcname:$keystring
   { return { funcname: funcname, args: [] } }
-
-funcname = funcname:$[a-z]i+
 
 arglist
   = lhs:argument _ ',' _ rhs:arglist

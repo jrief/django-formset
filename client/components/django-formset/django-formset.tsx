@@ -1,6 +1,6 @@
 import { Component, Element, Method, Prop } from '@stencil/core';
 import getDataValue from 'lodash.get';
-
+import { parse } from './actions';
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
@@ -299,25 +299,30 @@ class FieldGroup {
 	}
 }
 
+class ButtonAction {
+	constructor(func: Function, args: Array<any>) {
+		this.func = func;
+		this.args = args;
+	}
+
+	public readonly func: Function;
+	public readonly args: Array<any>;
+}
 
 class DjangoButton {
 	private readonly formset: DjangoFormset;
 	private readonly element: HTMLButtonElement;
 	private readonly initialClass: string;
 	private readonly isAutoDisabled: boolean;
-	private readonly successTasks: Array<[Function, string | number]>;
-	private readonly rejectTasks = Array<[Function, string | number]>(0);
+	private readonly successActions = Array<ButtonAction>(0);
+	private readonly rejectActions = Array<ButtonAction>(0);
 
 	constructor(formset: DjangoFormset, element: HTMLButtonElement) {
 		this.formset = formset;
 		this.element = element;
 		this.initialClass = element.getAttribute('class');
 		this.isAutoDisabled = !!JSON.parse((element.getAttribute('auto-disable') || 'false').toLowerCase());
-		const taskQueues = element.getAttribute('click').split('!~');
-		this.successTasks = this.parseTaskQueue(taskQueues[0]);
-		if (taskQueues.length > 1) {
-			this.rejectTasks = this.parseTaskQueue(taskQueues[1]);
-		}
+		this.parseActionsQueue(element.getAttribute('click'));
 		element.addEventListener('click', () => this.clicked());
 	}
 
@@ -327,18 +332,18 @@ class DjangoButton {
 	// @ts-ignore
 	private clicked() {
 		let promise: Promise<any>;
-		for (const [index, task] of this.successTasks.entries()) {
+		for (const [index, action] of this.successActions.entries()) {
 			if (index === 0) {
-				promise = task[0].apply(this, task.slice(1))();
+				promise = action.func.apply(this, action.args)();
 			} else {
-				promise = promise.then(task[0].apply(this, task.slice(1)));
+				promise = promise.then(action.func.apply(this, action.args));
 			}
 		}
-		for (const [index, task] of this.rejectTasks.entries()) {
+		for (const [index, action] of this.rejectActions.entries()) {
 			if (index === 0) {
-				promise = promise.catch(task[0].apply(this, task.slice(1)));
+				promise = promise.catch(action.func.apply(this, action.args));
 			} else {
-				promise = promise.then(task[0].apply(this, task.slice(1)));
+				promise = promise.then(action.func.apply(this, action.args));
 			}
 		}
 		promise.finally(this.restore.apply(this));
@@ -469,21 +474,10 @@ class DjangoButton {
 	 * @param event: The named event.
 	 */
 	// @ts-ignore
-	private emitEvent(event: string) {
+	private emit(namedEvent: string, data: any) {
 		return response => {
-			return Promise.resolve(response);
-		};
-	}
-
-	/**
-	 * Emit a custom event to the DOM.
-	 *
-	 * @param event: The named event.
-	 * @param data: Some arbitrary data passed into the event handler.
-	 */
-	// @ts-ignore
-	private emitCustomEvent(event: string, data: any) {
-		return response => {
+			const event = data instanceof Object ? new CustomEvent(namedEvent, data) : new Event(namedEvent);
+			this.element.dispatchEvent(event);
 			return Promise.resolve(response);
 		};
 	}
@@ -507,33 +501,24 @@ class DjangoButton {
 		}
 	}
 
-	private parseTaskQueue(taskQueue: string): Array<[Function, string | number]> {
-		const tasks = Array<[Function, string | number]>(0);
-		for (let task of taskQueue.split('->')) {
-			task = task.trim();
-			const openBracket = task.indexOf('('), closeBracket = task.indexOf(')');
-			if (openBracket > 0 && closeBracket > openBracket && typeof this[task.substring(0, openBracket)] === 'function') {
-				const func = this[task.substring(0, openBracket)];
-				if (func.length === 1) {
-					const arg = task.substring(openBracket + 1, closeBracket).trim();
-					if (arg.startsWith('\'') && arg.endsWith('\'') || arg.startsWith('"') && arg.endsWith('"')) {
-						tasks.push([func, arg.slice(1, -1)]);
-					} else {
-						const numArg = parseFloat(arg);
-						if (isFinite(numArg)) {
-							tasks.push([func, numArg]);
-						} else {
-							tasks.push([func, arg]);
-						}
-					}
-				} else {
-					tasks.push([func, undefined]);
-				}
-			} else if (typeof this[task] === 'function') {
-				tasks.push([this[task], undefined]);
+	private parseActionsQueue(actionsQueue: string) {
+		function createActions(actions, chain) {
+			for (let action of chain) {
+				const func = self[action.funcname];
+				if (typeof func !== 'function')
+					throw new Error(`Unknown function '${action.funcname}'.`);
+				actions.push(new ButtonAction(func, action.args));
 			}
 		}
-		return tasks;
+
+		let self = this;
+		try {
+			const ast = parse(actionsQueue);
+			createActions(this.successActions, ast.successChain);
+			createActions(this.rejectActions, ast.rejectChain);
+		} catch (error) {
+			throw new Error(`Error while parsing <button click="...">: ${error}.`);
+		}
 	}
 }
 
