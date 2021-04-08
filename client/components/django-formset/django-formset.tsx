@@ -316,6 +316,7 @@ class DjangoButton {
 	private readonly isAutoDisabled: boolean;
 	private readonly successActions = Array<ButtonAction>(0);
 	private readonly rejectActions = Array<ButtonAction>(0);
+	private timeoutHandler: number;
 
 	constructor(formset: DjangoFormset, element: HTMLButtonElement) {
 		this.formset = formset;
@@ -423,9 +424,17 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private delay(ms: number) {
-		return response => new Promise(resolve => setTimeout(() => {
+		return response => new Promise(resolve => this.timeoutHandler = setTimeout(() => {
+			this.timeoutHandler = null;
 			resolve(response);
 		}, ms));
+	}
+
+	public abortAction() {
+		if (this.timeoutHandler) {
+			clearTimeout(this.timeoutHandler);
+			this.timeoutHandler = null;
+		}
 	}
 
 	/**
@@ -624,6 +633,7 @@ export class DjangoFormset {
 	private data = {};
 	private buttons = Array<DjangoButton>(0);
 	private forms = Array<DjangoForm>(0);
+	private abortController: AbortController;
 
 	connectedCallback() {
 		for (const element of Array.from(this.element.getElementsByTagName('BUTTON')) as Array<HTMLButtonElement>) {
@@ -634,6 +644,7 @@ export class DjangoFormset {
 		for (const element of Array.from(this.element.getElementsByTagName('FORM')) as Array<HTMLFormElement>) {
 			this.forms.push(new DjangoForm(this, element));
 		}
+		this.abortController = new AbortController();
 	}
 
 	componentWillLoad() {
@@ -700,6 +711,7 @@ export class DjangoFormset {
 					'X-CSRFToken': this.getCSRFToken(),
 				},
 				body: JSON.stringify(this.data),
+				signal: this.abortController.signal,
 			});
 			if (response.status === 422) {
 				response.json().then(body => {
@@ -717,6 +729,18 @@ export class DjangoFormset {
 				form.reportValidity();
 			}
 		}
+	}
+
+	/**
+	 * Abort the current actions.
+	 *
+	 */
+	@Method()
+	public async abort() {
+		for (const button of this.buttons) {
+			button.abortAction();
+		}
+		this.abortController.abort();
 	}
 
 	private setSubmitted() {
