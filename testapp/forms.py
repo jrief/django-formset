@@ -1,9 +1,8 @@
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from django.core.exceptions import ValidationError
-from django.forms import fields, widgets
+from django.forms import forms, fields, widgets
 from django.utils.timezone import datetime
 
-from entangled.forms import EntangledModelForm
 from formset.mixins import default, bootstrap, bulma, foundation, tailwind
 
 from testapp.models import DummyModel
@@ -15,7 +14,7 @@ def validate_password(value):
         raise ValidationError('The password is wrong.')
 
 
-class SubscribeForm(EntangledModelForm):
+class SubscribeForm(forms.Form):
     name = 'subscribe'
 
     CONTINENT_CHOICES = [

@@ -4,7 +4,7 @@ from .models import DummyModel
 from .forms import SubscribeForm
 
 
-@admin.register(DummyModel)
+# @admin.register(DummyModel)
 class DummyAdmin(admin.ModelAdmin):
     form = SubscribeForm
     change_form_template = 'admin/formset/change_form.html'
