@@ -18,6 +18,6 @@ class WidgetMixin(default.WidgetMixin):
         return context
 
 
-class FormMixin(default.CheckboxMixin, default.FormMixin):
+class FormMixin(default.CheckboxFormMixin, default.FormMixin):
     help_text_html='<p class="help-text">%s</p>'
     widget_mixin = WidgetMixin

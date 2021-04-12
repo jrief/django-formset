@@ -103,7 +103,7 @@ class FormMixin:
         try:
             field = self.fields[name]
         except KeyError:
-            raise KeyError('Key %r not found in Form' % name)
+            raise KeyError(f"Key {name} not found in Form")
         return BoundField(self, field, name)
 
     def render_label(self, bound_field, contents, attrs, label_suffix):
@@ -137,7 +137,7 @@ class FormMixin:
         return widget
 
 
-class CheckboxMixin:
+class CheckboxFormMixin:
     """
     Mixin class to let the checkbox widget render its label itself.
     """

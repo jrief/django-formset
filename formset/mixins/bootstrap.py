@@ -11,7 +11,7 @@ class WidgetMixin(default.WidgetMixin):
     }
 
 
-class FormMixin(default.CheckboxMixin, default.FormMixin):
+class FormMixin(default.CheckboxFormMixin, default.FormMixin):
     field_css_classes = 'form-group'
     checkbox_label_html = '<div class="{label_css_classes}"></div>'
     help_text_html='<span class="form-text text-muted">%s</span>'

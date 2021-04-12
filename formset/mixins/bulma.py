@@ -25,7 +25,7 @@ class WidgetMixin(default.WidgetMixin):
         return context
 
 
-class FormMixin(default.CheckboxMixin, default.FormMixin):
+class FormMixin(default.CheckboxFormMixin, default.FormMixin):
     """
     Class to mix into a Django ``Form`` or ``ModelForm`` class.
     """
