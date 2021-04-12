@@ -4,6 +4,7 @@ from django.forms import forms, fields, widgets
 from django.utils.timezone import datetime
 
 from formset.mixins import default, bootstrap, bulma, foundation, tailwind
+from formset.widgets import UploadedFileInput
 
 from testapp.models import DummyModel
 
@@ -183,3 +184,15 @@ class FoundationMixinForm(foundation.FormMixin, SubscribeForm):
 
 class TailwindMixinForm(tailwind.FormMixin, SubscribeForm):
     pass
+
+
+class UploadForm(forms.Form):
+    name = 'upload'
+
+    file = fields.FileField(widget=UploadedFileInput)
+
+
+class NativeUploadForm(forms.Form):
+    name = 'upload'
+
+    file = fields.FileField()

@@ -1,9 +1,17 @@
-{% extends "./base.html" %}
-
+{% load static %}
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<title>Django-Formset Demo</title>
+</head>
+<body>
 {% block "main-content" %}
-<form name="{{ form.name }}" action="{{ request.path }}">
-	{% csrf_token %}
-	{{ form.as_p }}
-	<button type="submit">Submit</button>
-</form>
+	<form name="{{ form.name }}" action="{{ request.path }}" method="post" enctype="multipart/form-data">
+		{% csrf_token %}
+		{{ form.as_p }}
+		<button type="submit">Submit</button>
+	</form>
 {% endblock %}
+</body>
+</html>

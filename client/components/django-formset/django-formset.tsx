@@ -5,13 +5,13 @@ import { parse } from './actions';
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
 class BoundValue {
-	readonly value: string | Array<string>;
+	readonly value: string | Array<string | Object>;
 
-	constructor(value: string | Array<string>) {
+	constructor(value: string | Array<string | Object>) {
 		this.value = value;
 	}
 
-	equals(other: string | Array<string>) {
+	equals(other: string | Array<string | Object>) {
 		if (typeof this.value === 'string') {
 			return this.value === other;
 		} else {
@@ -30,6 +30,7 @@ class FieldGroup {
 	private inputElements: Array<FieldElement>;
 	private errorPlaceholder: Element | null = null;
 	private errorMessages = new Map<string, string>();
+	private tempFileHandle: Array<Object>;
 
 	constructor(form: DjangoForm, element: HTMLElement) {
 		this.form = form;
@@ -40,8 +41,18 @@ class FieldGroup {
 		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(element => element.type !== 'hidden');
 		for (const element of inputElements) {
 			if (['checkbox', 'radio'].includes(element.type)) {
-				element.addEventListener('input', () => {this.touch(); this.inputted()});
-				element.addEventListener('change', () => {requiredAny ? this.validateCheckboxSelectMultiple() : this.validate()});
+				element.addEventListener('input', () => {
+					this.touch();
+					this.inputted()
+				});
+				element.addEventListener('change', () => {
+					requiredAny ? this.validateCheckboxSelectMultiple() : this.validate()
+				});
+			} else if (['file'].includes(element.type)) {
+				this.tempFileHandle = [];
+				element.addEventListener('input', () => {
+					this.inputtedFile().then(() => this.validate());
+				});
 			} else {
 				element.addEventListener('focus', () => this.touch());
 				element.addEventListener('input', () => this.inputted());
@@ -83,7 +94,7 @@ class FieldGroup {
 		this.setPristine();
 	}
 
-	aggregateValue(): string | Array<string> {
+	aggregateValue(): string | Array<string | Object> {
 		if (this.inputElements.length === 1) {
 			const element = this.inputElements[0];
 			if (element.type === 'checkbox') {
@@ -99,6 +110,10 @@ class FieldGroup {
 				}
 				return value;
 			}
+			if (element.type === 'file') {
+				return this.tempFileHandle;
+			}
+			// all other input types just return their value
 			return element.value;
 		} else {
 			const value = [];
@@ -141,6 +156,16 @@ class FieldGroup {
 			this.setDirty();
 		}
 		this.resetCustomError();
+	}
+
+	private async inputtedFile() {
+		const files = (this.inputElements[0] as HTMLInputElement).files;
+		for (let k = 0; k < files.length; k++) {
+			const response = await this.form.formset.uploadFile(files.item(k));
+			const fileHandle = await response.json();
+			this.tempFileHandle.push(fileHandle);
+		}
+		this.inputted();
 	}
 
 	private resetCustomError() {
@@ -689,6 +714,18 @@ export class DjangoFormset {
 		}
 		this.aggregateValues();
 		return isValid;
+	}
+
+	public async uploadFile(file: File) {
+		const body = new FormData();
+		body.append('temp_file', file);
+		const response = await fetch(this.endpoint, {
+			method: 'POST',
+			headers: {'X-CSRFToken': this.getCSRFToken()},
+			body: body,
+			signal: this.abortController.signal,
+		});
+		return response;
 	}
 
 	@Method()
