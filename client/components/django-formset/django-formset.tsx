@@ -50,9 +50,7 @@ class FieldGroup {
 				});
 			} else if (['file'].includes(element.type)) {
 				this.tempFileHandle = [];
-				element.addEventListener('input', () => {
-					this.inputtedFile().then(() => this.validate());
-				});
+				element.addEventListener('input', () =>	this.inputtedFile().then(() => this.validate()));
 			} else {
 				element.addEventListener('focus', () => this.touch());
 				element.addEventListener('input', () => this.inputted());
@@ -163,9 +161,21 @@ class FieldGroup {
 		for (let k = 0; k < files.length; k++) {
 			const response = await this.form.formset.uploadFile(files.item(k));
 			const fileHandle = await response.json();
-			this.tempFileHandle.push(fileHandle);
+			this.tempFileHandle = [fileHandle];  // Django currently can't handle mutiple file uploads
 		}
+		this.renderFileHandle();
 		this.inputted();
+	}
+
+	private renderFileHandle() {
+		const uploadedFiles = this.element.getElementsByClassName('dj-uploaded-files');
+		if (uploadedFiles.length === 1) {
+			let list = [];
+			for (const fileHandle of this.tempFileHandle) {
+				list.push(`<li><img src="${fileHandle['thumbnail_url']}"></li>`)
+			}
+			uploadedFiles[0].innerHTML = list.join('');
+		}
 	}
 
 	private resetCustomError() {

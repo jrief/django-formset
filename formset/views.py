@@ -11,6 +11,7 @@ from django.views.generic import FormView
 
 class FormsetViewMixin:
     upload_temp_dir = default_storage.base_location / 'upload_temp'
+    thumbnail_size = (100, 100)
 
     def post(self, request, **kwargs):
         if request.content_type == 'application/json':
@@ -33,6 +34,7 @@ class FormsetViewMixin:
         """
         if not file_obj:
             return HttpResponseBadRequest(f"File upload failed for '{file_obj.name}'.")
+        signer = get_cookie_signer(salt='formset')
 
         # copy uploaded file into temporary clipboard inside the default storage location
         prefix, ext = os.path.splitext(file_obj.name)
@@ -44,15 +46,39 @@ class FormsetViewMixin:
         assert default_storage.size(relative_path) == file_obj.size
 
         # dict returned by the form on submission
-        signer = get_cookie_signer(salt='formset')
+        mime_type, sub_type = file_obj.content_type.split('/')
+        if mime_type == 'image':
+            thumbnail_url = self.thumbnail_image(temp_path)
+        else:
+            thumbnail_url = self.file_icon_url(file_obj.content_type)
         file_handle = {
             'upload_temp_name': signer.sign(relative_path),
             'content_type': file_obj.content_type,
             'content_type_extra': file_obj.content_type_extra,
             'name': file_obj.name,
-            'url': default_storage.url(relative_path),
+            'download_url': default_storage.url(relative_path),
+            'thumbnail_url': thumbnail_url,
         }
         return JsonResponse(file_handle)
+
+    def thumbnail_image(self, image_path):
+        try:
+            from PIL import Image, ImageOps
+
+            image = Image.open(image_path)
+        except Exception:
+            return os.path.relpath(image_path, default_storage.location)
+        else:
+            thumb = ImageOps.fit(image, self.thumbnail_size)
+            base, ext = os.path.splitext(image_path)
+            size = 'x'.join(str(s) for s in self.thumbnail_size)
+            thumb_path = f'{base}_{size}{ext}'
+            thumb.save(thumb_path)
+            thumb_path = os.path.relpath(thumb_path, default_storage.location)
+            return default_storage.url(thumb_path)
+
+    def file_icon_url(self, content_type):
+        pass
 
 
 class FormsetView(FormsetViewMixin, FormView):

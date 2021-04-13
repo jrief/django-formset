@@ -89,4 +89,9 @@ django-field-group {
 	.dj-form-inlined {
 		display: inline-block;
 	}
+
+	.dj-uploaded-files {
+		margin: 0;
+		list-style: none;
+	}
 }

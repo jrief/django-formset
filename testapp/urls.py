@@ -1,7 +1,8 @@
-from django.views.generic import FormView
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
-from django.views.generic import TemplateView
+from django.views.generic import FormView, TemplateView
 
 from testapp.forms import (DefaultMixinForm, BootstrapMixinForm, BulmaMixinForm, FoundationMixinForm,
                            TailwindMixinForm, UploadForm, NativeUploadForm)
@@ -30,3 +31,8 @@ urlpatterns = [
     path('tailwind/mixin-form', SubscribeFormView.as_view(form_class=TailwindMixinForm, template_name='tailwind/mixin_form.html')),
     path('success', TemplateView.as_view(template_name='default/success.html'), name='form_data_valid'),
 ]
+if settings.DEBUG:
+    urlpatterns.extend(static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT
+    ))

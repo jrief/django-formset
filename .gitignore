@@ -30,5 +30,6 @@ client/components/django-formset/actions.ts
 coverage/
 formset/static/
 docs/build/
+media/
 testapp/static
 testapp/test.db
