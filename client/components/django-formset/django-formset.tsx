@@ -119,7 +119,7 @@ class FieldGroup {
 	}
 
 	private fileRemove = () => {
-		(this.inputElements[0] as HTMLInputElement).files = null;
+		this.inputElements[0].value = '';
 		this.tempFileHandle = [];
 		while (this.dropbox.firstChild) {
 			this.dropbox.removeChild(this.dropbox.firstChild);
