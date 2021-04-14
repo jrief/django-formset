@@ -101,12 +101,20 @@ django-field-group {
 		list-style: none;
 		width: 100px;
 		height: 100px;
-		background-color: whitesmoke;
-		color: grey;
 		outline: grey thin dotted;
 		cursor: pointer;
-		li p {
-			text-align: center;
+		li {
+			background-color: whitesmoke;
+			color: grey;
+			height: 100%;
+			display: flow-root;
+			img {
+				height: 100%;
+				width: 100%;
+			}
+			p {
+				text-align: center;
+			}
 		}
 	}
 }

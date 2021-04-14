@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.files.storage import default_storage
 from django.core.signing import get_cookie_signer
 from django.http.response import HttpResponseBadRequest, JsonResponse
@@ -37,6 +38,8 @@ class FormsetViewMixin:
         signer = get_cookie_signer(salt='formset')
 
         # copy uploaded file into temporary clipboard inside the default storage location
+        if not os.path.exists(self.upload_temp_dir):
+            os.makedirs(self.upload_temp_dir)
         prefix, ext = os.path.splitext(file_obj.name)
         fh, temp_path = tempfile.mkstemp(suffix=ext, prefix=prefix + '.', dir=self.upload_temp_dir)
         for chunk in file_obj.chunks():
@@ -67,7 +70,7 @@ class FormsetViewMixin:
 
             image = Image.open(image_path)
         except Exception:
-            return os.path.relpath(image_path, default_storage.location)
+            return staticfiles_storage.url('formset/icons/file-picture.pdf')
         else:
             thumb = ImageOps.fit(image, self.thumbnail_size)
             base, ext = os.path.splitext(image_path)
@@ -78,7 +81,12 @@ class FormsetViewMixin:
             return default_storage.url(thumb_path)
 
     def file_icon_url(self, content_type):
-        pass
+        mime_type, sub_type = content_type.split('/')
+        if mime_type in ['audio', 'font', 'video']:
+            return staticfiles_storage.url(f'formset/icons/file-{mime_type}.svg')
+        if mime_type == 'application' and sub_type in ['zip', 'pdf']:
+            return staticfiles_storage.url(f'formset/icons/file-{sub_type}.svg')
+        return staticfiles_storage.url('formset/icons/file-unknown.svg')
 
 
 class FormsetView(FormsetViewMixin, FormView):
