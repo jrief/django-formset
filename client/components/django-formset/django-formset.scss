@@ -90,8 +90,23 @@ django-field-group {
 		display: inline-block;
 	}
 
-	.dj-uploaded-files {
+	input[type="file"] {
+		display: none;
+	}
+	.dj-dropbox {
+		display: inline-block;
 		margin: 0;
+		margin-left: 0.5em;
+		padding: 0;
 		list-style: none;
+		width: 100px;
+		height: 100px;
+		background-color: whitesmoke;
+		color: grey;
+		outline: grey thin dotted;
+		cursor: pointer;
+		li p {
+			text-align: center;
+		}
 	}
 }

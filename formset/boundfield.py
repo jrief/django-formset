@@ -3,6 +3,8 @@ from django.forms import boundfield
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
+from formset.widgets import UploadedFileInput
+
 
 class BoundField(boundfield.BoundField):
     @property
@@ -89,4 +91,6 @@ class BoundField(boundfield.BoundField):
             data = {'step_value': step_value}
             client_messages['step_mismatch'] = _("Input value must be a multiple of {step_value}.").format(**data)
         client_messages['bad_input'] = validators.ProhibitNullCharactersValidator.message
+        if isinstance(self.field.widget, UploadedFileInput):
+            client_messages['type_mismatch'] = _("File upload still in progress.")
         return client_messages

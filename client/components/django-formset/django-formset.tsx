@@ -31,6 +31,8 @@ class FieldGroup {
 	private errorPlaceholder: Element | null = null;
 	private errorMessages = new Map<string, string>();
 	private tempFileHandle: Array<Object>;
+	private dropbox: HTMLUListElement;
+	private defaultDropboxItem: HTMLLIElement;
 
 	constructor(form: DjangoForm, element: HTMLElement) {
 		this.form = form;
@@ -49,8 +51,20 @@ class FieldGroup {
 					requiredAny ? this.validateCheckboxSelectMultiple() : this.validate()
 				});
 			} else if (['file'].includes(element.type)) {
+				const dropboxes = this.element.getElementsByClassName('dj-dropbox');
+				if (dropboxes.length !== 1)
+					throw new Error('Element <input type="file"> requires sibling element <ul class="dj-dropbox"></ul>');
 				this.tempFileHandle = [];
-				element.addEventListener('input', () =>	this.inputtedFile().then(() => this.validate()));
+				this.dropbox = dropboxes[0] as HTMLUListElement;
+				this.dropbox.addEventListener('dragenter', this.swallowEvent);
+				this.dropbox.addEventListener('dragover', this.swallowEvent);
+				this.dropbox.addEventListener('drop', this.fileDrop);
+				this.dropbox.addEventListener('click', this.fileRemove);
+				this.defaultDropboxItem = this.dropbox.getElementsByTagName('li')[0];
+				element.addEventListener('change', () => {
+					const files = (this.inputElements[0] as HTMLInputElement).files;
+					this.uploadFiles(files).then(() => this.validate());
+				});
 			} else {
 				element.addEventListener('focus', () => this.touch());
 				element.addEventListener('input', () => this.inputted());
@@ -90,6 +104,27 @@ class FieldGroup {
 		this.updateVisibility = this.parseIfAttribute('show-if', true) || this.parseIfAttribute('hide-if', false) || function() {};
 		this.untouch();
 		this.setPristine();
+	}
+
+	private swallowEvent = (event: Event) => {
+		event.stopPropagation();
+		event.preventDefault();
+	}
+
+	private fileDrop = (event: DragEvent) => {
+		this.swallowEvent(event);
+		const files = event.dataTransfer.files;
+		(this.inputElements[0] as HTMLInputElement).files = files;
+		this.uploadFiles(files).then(() => this.validate());
+	}
+
+	private fileRemove = () => {
+		(this.inputElements[0] as HTMLInputElement).files = null;
+		this.tempFileHandle = [];
+		while (this.dropbox.firstChild) {
+			this.dropbox.removeChild(this.dropbox.firstChild);
+    	}
+		this.dropbox.appendChild(this.defaultDropboxItem);
 	}
 
 	aggregateValue(): string | Array<string | Object> {
@@ -156,25 +191,24 @@ class FieldGroup {
 		this.resetCustomError();
 	}
 
-	private async inputtedFile() {
-		const files = (this.inputElements[0] as HTMLInputElement).files;
+	private async uploadFiles(files: FileList) {
 		for (let k = 0; k < files.length; k++) {
 			const response = await this.form.formset.uploadFile(files.item(k));
 			const fileHandle = await response.json();
 			this.tempFileHandle = [fileHandle];  // Django currently can't handle mutiple file uploads
 		}
-		this.renderFileHandle();
+		this.renderDropbox();
 		this.inputted();
 	}
 
-	private renderFileHandle() {
-		const uploadedFiles = this.element.getElementsByClassName('dj-uploaded-files');
-		if (uploadedFiles.length === 1) {
+	private renderDropbox() {
+		const dropbox = this.element.getElementsByClassName('dj-dropbox');
+		if (dropbox.length === 1) {
 			let list = [];
 			for (const fileHandle of this.tempFileHandle) {
 				list.push(`<li><img src="${fileHandle['thumbnail_url']}"></li>`)
 			}
-			uploadedFiles[0].innerHTML = list.join('');
+			dropbox[0].innerHTML = list.join('');
 		}
 	}
 
@@ -267,6 +301,13 @@ class FieldGroup {
 			}
 			if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength) {
 				this.errorPlaceholder.innerHTML = this.errorMessages['tooLong'];
+				return false;
+			}
+		}
+		if (inputElement.type === 'file' && inputElement.files) {
+			// seems that file upload is still in progress => field shall not be valid
+			if (this.tempFileHandle.length === 0) {
+				this.errorPlaceholder.innerHTML = this.errorMessages['typeMismatch'];
 				return false;
 			}
 		}

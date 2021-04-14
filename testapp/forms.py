@@ -189,7 +189,10 @@ class TailwindMixinForm(tailwind.FormMixin, SubscribeForm):
 class UploadForm(forms.Form):
     name = 'upload'
 
-    file = fields.FileField(widget=UploadedFileInput)
+    file = fields.FileField(
+        label="Choose file",
+        widget=UploadedFileInput,
+    )
 
 
 class NativeUploadForm(forms.Form):
