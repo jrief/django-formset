@@ -12,16 +12,17 @@ from django.views.generic import FormView
 
 class FormsetViewMixin:
     upload_temp_dir = default_storage.base_location / 'upload_temp'
-    thumbnail_size = (100, 100)
+    filename_max_length = 50
+    thumbnail_max_height = 150
 
     def post(self, request, **kwargs):
         if request.content_type == 'application/json':
-            return self.handle_form_data(request.body)
+            return self._handle_form_data(request.body)
         if request.content_type == 'multipart/form-data':
-            return self.receive_uploaded_file(request.FILES.get('temp_file'))
+            return self._receive_uploaded_file(request.FILES.get('temp_file'), request.POST.get('image_height'))
         return super().post(request, **kwargs)
 
-    def handle_form_data(self, form_data):
+    def _handle_form_data(self, form_data):
         form_data = json.loads(form_data)
         form = self.form_class(data=form_data[self.form_class.name])
         if form.is_valid():
@@ -29,7 +30,7 @@ class FormsetViewMixin:
         else:
             return JsonResponse({form.name: form.errors}, status=422)
 
-    def receive_uploaded_file(self, file_obj):
+    def _receive_uploaded_file(self, file_obj, image_height=None):
         """
         Iterate over all uploaded files.
         """
@@ -51,20 +52,21 @@ class FormsetViewMixin:
         # dict returned by the form on submission
         mime_type, sub_type = file_obj.content_type.split('/')
         if mime_type == 'image':
-            thumbnail_url = self.thumbnail_image(temp_path)
+            thumbnail_url = self._thumbnail_image(temp_path, image_height)
         else:
-            thumbnail_url = self.file_icon_url(file_obj.content_type)
+            thumbnail_url = self._file_icon_url(file_obj.content_type)
         file_handle = {
             'upload_temp_name': signer.sign(relative_path),
             'content_type': file_obj.content_type,
             'content_type_extra': file_obj.content_type_extra,
-            'name': file_obj.name,
+            'name': file_obj.name[:self.filename_max_length],
             'download_url': default_storage.url(relative_path),
             'thumbnail_url': thumbnail_url,
+            'size': file_obj.size,
         }
         return JsonResponse(file_handle)
 
-    def thumbnail_image(self, image_path):
+    def _thumbnail_image(self, image_path, image_height):
         try:
             from PIL import Image, ImageOps
 
@@ -72,15 +74,18 @@ class FormsetViewMixin:
         except Exception:
             return staticfiles_storage.url('formset/icons/file-picture.pdf')
         else:
-            thumb = ImageOps.fit(image, self.thumbnail_size)
+            height = int(image_height) if image_height else self.thumbnail_max_height
+            height = min(height, self.thumbnail_max_height)
+            size = int(round(image.width * height / image.height)), height
+            thumb = ImageOps.fit(image, size)
             base, ext = os.path.splitext(image_path)
-            size = 'x'.join(str(s) for s in self.thumbnail_size)
+            size = 'x'.join(str(s) for s in size)
             thumb_path = f'{base}_{size}{ext}'
             thumb.save(thumb_path)
             thumb_path = os.path.relpath(thumb_path, default_storage.location)
             return default_storage.url(thumb_path)
 
-    def file_icon_url(self, content_type):
+    def _file_icon_url(self, content_type):
         mime_type, sub_type = content_type.split('/')
         if mime_type in ['audio', 'font', 'video']:
             return staticfiles_storage.url(f'formset/icons/file-{mime_type}.svg')

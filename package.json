@@ -16,7 +16,8 @@
     "@types/lodash": "^4.14.168",
     "bootstrap": "^4.6.0",
     "foundation-sites": "^6.6.3",
-    "lodash.get": "^4.4.2"
+    "lodash.get": "^4.4.2",
+    "lodash.template": "^4.5.0"
   },
   "license": "MIT",
   "collection": "./formset/static/collection/collection-manifest.json",

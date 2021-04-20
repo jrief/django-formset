@@ -1,3 +1,27 @@
 {% load i18n %}
-<input type="{{ widget.type }}" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %}>
-<ul class="dj-dropbox"><li><p>{% trans "Drag file here" %}</p></li></ul>
+<div class="dj-control-panel">
+	<input type="{{ widget.type }}" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %}>
+	<ul class="dj-dropbox"><li class="dj-empty-item">{% trans "Drag file here" %}</li></ul>
+	<div>
+		<button type="button" class="dj-choose-file">{% trans "Choose file" %}</button>
+		<div class="dj-progress-bar"><div></div></div>
+	</div>
+</div>
+<template class="dj-dropbox-items">
+	<li class="dj-file-picture"><img src="${thumbnail_url}"></li>
+	<li class="dj-file-caption">
+		<figure>
+			<figcaption>{% trans 'Name' %}:</figcaption>
+			<p>${name}</p>
+		</figure>
+		<figure>
+			<figcaption>{% trans 'Content-Type' %}:</figcaption>
+			<p>${content_type}</p>
+		</figure>
+		<figure>
+			<figcaption>{% trans 'Size' %}:</figcaption>
+			<p>${size}</p>
+		</figure>
+		<a class="dj-delete-file">{% trans "Delete file" %}</a>
+	</li>
+</template>

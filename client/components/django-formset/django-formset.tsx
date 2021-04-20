@@ -1,5 +1,6 @@
 import { Component, Element, Method, Prop } from '@stencil/core';
 import getDataValue from 'lodash.get';
+import template from 'lodash.template';
 import { parse } from './actions';
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -30,8 +31,11 @@ class FieldGroup {
 	private inputElements: Array<FieldElement>;
 	private errorPlaceholder: Element | null = null;
 	private errorMessages = new Map<string, string>();
-	private tempFileHandle: Array<Object>;
+	private uploadedFiles: Array<Object>;
 	private dropbox: HTMLUListElement;
+	private chooseFileButton: HTMLButtonElement;
+	private progressBar: HTMLDivElement | null = null;
+	private dropboxItemTemplate: Function;
 	private defaultDropboxItem: HTMLLIElement;
 
 	constructor(form: DjangoForm, element: HTMLElement) {
@@ -42,33 +46,25 @@ class FieldGroup {
 		const requiredAny = element.classList.contains('dj-required-any');
 		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(element => element.type !== 'hidden');
 		for (const element of inputElements) {
-			if (['checkbox', 'radio'].includes(element.type)) {
-				element.addEventListener('input', () => {
-					this.touch();
-					this.inputted()
-				});
-				element.addEventListener('change', () => {
-					requiredAny ? this.validateCheckboxSelectMultiple() : this.validate()
-				});
-			} else if (['file'].includes(element.type)) {
-				const dropboxes = this.element.getElementsByClassName('dj-dropbox');
-				if (dropboxes.length !== 1)
-					throw new Error('Element <input type="file"> requires sibling element <ul class="dj-dropbox"></ul>');
-				this.tempFileHandle = [];
-				this.dropbox = dropboxes[0] as HTMLUListElement;
-				this.dropbox.addEventListener('dragenter', this.swallowEvent);
-				this.dropbox.addEventListener('dragover', this.swallowEvent);
-				this.dropbox.addEventListener('drop', this.fileDrop);
-				this.dropbox.addEventListener('click', this.fileRemove);
-				this.defaultDropboxItem = this.dropbox.getElementsByTagName('li')[0];
-				element.addEventListener('change', () => {
-					const files = (this.inputElements[0] as HTMLInputElement).files;
-					this.uploadFiles(files).then(() => this.validate());
-				});
-			} else {
-				element.addEventListener('focus', () => this.touch());
-				element.addEventListener('input', () => this.inputted());
-				element.addEventListener('blur', () => this.validate());
+			switch (element.type) {
+				case 'checkbox':
+				case 'radio':
+					element.addEventListener('input', () => {
+						this.touch();
+						this.inputted()
+					});
+					element.addEventListener('change', () => {
+						requiredAny ? this.validateCheckboxSelectMultiple() : this.validate()
+					});
+					break;
+				case 'file':
+					this.initFileControlPanel(element);
+					break;
+				default:
+					element.addEventListener('focus', () => this.touch());
+					element.addEventListener('input', () => this.inputted());
+					element.addEventListener('blur', () => this.validate());
+					break;
 			}
 		}
 		const selectElements = Array.from(element.getElementsByTagName('SELECT')) as Array<HTMLSelectElement>;
@@ -111,22 +107,6 @@ class FieldGroup {
 		event.preventDefault();
 	}
 
-	private fileDrop = (event: DragEvent) => {
-		this.swallowEvent(event);
-		const files = event.dataTransfer.files;
-		(this.inputElements[0] as HTMLInputElement).files = files;
-		this.uploadFiles(files).then(() => this.validate());
-	}
-
-	private fileRemove = () => {
-		this.inputElements[0].value = '';
-		this.tempFileHandle = [];
-		while (this.dropbox.firstChild) {
-			this.dropbox.removeChild(this.dropbox.firstChild);
-    	}
-		this.dropbox.appendChild(this.defaultDropboxItem);
-	}
-
 	aggregateValue(): string | Array<string | Object> {
 		if (this.inputElements.length === 1) {
 			const element = this.inputElements[0];
@@ -144,7 +124,7 @@ class FieldGroup {
 				return value;
 			}
 			if (element.type === 'file') {
-				return this.tempFileHandle;
+				return this.uploadedFiles;
 			}
 			// all other input types just return their value
 			return element.value;
@@ -191,24 +171,119 @@ class FieldGroup {
 		this.resetCustomError();
 	}
 
-	private async uploadFiles(files: FileList) {
-		for (let k = 0; k < files.length; k++) {
-			const response = await this.form.formset.uploadFile(files.item(k));
-			const fileHandle = await response.json();
-			this.tempFileHandle = [fileHandle];  // Django currently can't handle mutiple file uploads
+	private initFileControlPanel(inputElement: HTMLInputElement) {
+		const dropboxes = this.element.getElementsByClassName('dj-dropbox');
+		if (dropboxes.length !== 1)
+			throw new Error('Element <input type="file"> requires sibling element <ul class="dj-dropbox"></ul>');
+		this.dropbox = dropboxes[0] as HTMLUListElement;
+
+		const buttons = this.element.getElementsByClassName('dj-choose-file');
+		if (buttons.length !== 1)
+			throw new Error('Element <input type="file"> requires sibling element <button class="dj-choose-file"></button>');
+		this.chooseFileButton = buttons[0] as HTMLButtonElement;
+
+		const progressBars = this.element.getElementsByClassName('dj-progress-bar');
+		if (progressBars.length === 1) {
+			this.progressBar = progressBars[0] as HTMLDivElement;
+			this.progressBar.style.visibility = 'hidden';
 		}
-		this.renderDropbox();
-		this.inputted();
+
+		const templates = this.element.getElementsByClassName('dj-dropbox-items');
+		if (templates.length !== 1)
+			throw new Error('Element <input type="file"> requires sibling element <template class="dj-dropbox-items"></template>');
+		this.dropboxItemTemplate = template(templates[0].innerHTML);
+
+		this.uploadedFiles = [];
+		this.dropbox.addEventListener('dragenter', this.swallowEvent);
+		this.dropbox.addEventListener('dragover', this.swallowEvent);
+		this.dropbox.addEventListener('drop', this.fileDrop);
+		// this.dropbox.addEventListener('click', this.fileRemove);  // TODO: move towards explicit delete button
+		this.chooseFileButton.addEventListener('click', () => inputElement.click());
+		this.defaultDropboxItem = this.dropbox.getElementsByTagName('li')[0];
+		inputElement.addEventListener('change', () => {
+			const files = (this.inputElements[0] as HTMLInputElement).files;
+			this.uploadFiles(files).then(() => this.validate());
+		});
+	}
+
+	private fileDrop = (event: DragEvent) => {
+		this.swallowEvent(event);
+		const files = event.dataTransfer.files;
+		(this.inputElements[0] as HTMLInputElement).files = files;
+		this.uploadFiles(files).then(() => this.validate());
+	}
+
+	private fileRemove = () => {
+		this.inputElements[0].value = '';
+		this.uploadedFiles = [];
+		while (this.dropbox.firstChild) {
+			this.dropbox.removeChild(this.dropbox.firstChild);
+		}
+		this.dropbox.appendChild(this.defaultDropboxItem);
+	}
+
+	private uploadFiles(files: FileList): Promise<void> {
+		if (files.length === 0)
+			return Promise.reject();
+		return new Promise<void>(resolve => {
+			// Django currently can't handle multiple file uploads, restrict to first file
+			this.uploadFile(files.item(0), this.dropbox.clientHeight).then(response => {
+				this.uploadedFiles = [response];
+				this.renderDropbox();
+				this.inputted();
+				resolve();
+			});
+		});
+	}
+
+	public async uploadFile(file: File, imageHeight: number): Promise<Object> {
+		let self = this;
+
+		function updateProgress(event: ProgressEvent) {
+			const complete = event.lengthComputable ? event.loaded / event.total : 0;
+			self.progressBar.style.visibility = 'visible';
+			self.progressBar.getElementsByTagName('div')[0].style.width = `${complete * 100}%`;
+		}
+
+		const body = new FormData();
+		body.append('temp_file', file);
+		body.append('image_height', imageHeight.toString());
+
+		return new Promise<Response>((resolve, reject) => {
+			function transferComplete() {
+				if (self.progressBar) {
+					self.progressBar.style.visibility = 'hidden';
+				}
+				if (request.status === 200) {
+					resolve(request.response);
+				} else {
+					reject(request.response);
+				}
+			}
+
+			const request = new XMLHttpRequest();
+			if (self.progressBar) {
+				request.addEventListener('loadstart', updateProgress);
+				request.addEventListener('progress', updateProgress);
+			}
+			request.addEventListener('loadend', transferComplete);
+			request.open('POST', this.form.formset.endpoint, true);
+			request.setRequestHeader('X-CSRFToken', this.form.formset.getCSRFToken());
+			request.responseType = 'json';
+			request.send(body);
+		});
 	}
 
 	private renderDropbox() {
-		const dropbox = this.element.getElementsByClassName('dj-dropbox');
-		if (dropbox.length === 1) {
-			let list = [];
-			for (const fileHandle of this.tempFileHandle) {
-				list.push(`<li><img src="${fileHandle['thumbnail_url']}"></li>`)
-			}
-			dropbox[0].innerHTML = list.join('');
+		let list = [];
+		for (const fileHandle of this.uploadedFiles) {
+			const listItem = this.dropboxItemTemplate(fileHandle);
+			list.push(listItem);
+		}
+		this.dropbox.innerHTML = list.join('');
+		const buttons = this.dropbox.getElementsByClassName('dj-delete-file');
+		if (buttons.length > 0) {
+			buttons[0].addEventListener('click', this.fileRemove, {once: true});
 		}
 	}
 
@@ -306,7 +381,7 @@ class FieldGroup {
 		}
 		if (inputElement.type === 'file' && inputElement.files) {
 			// seems that file upload is still in progress => field shall not be valid
-			if (this.tempFileHandle.length === 0) {
+			if (this.uploadedFiles.length === 0) {
 				this.errorPlaceholder.innerHTML = this.errorMessages['typeMismatch'];
 				return false;
 			}
@@ -736,7 +811,7 @@ export class DjangoFormset {
 		this.validate();
 	}
 
-	private getCSRFToken() {
+	getCSRFToken() {
 		const value = `; ${document.cookie}`;
 		const parts = value.split('; csrftoken=');
 
@@ -765,18 +840,6 @@ export class DjangoFormset {
 		}
 		this.aggregateValues();
 		return isValid;
-	}
-
-	public async uploadFile(file: File) {
-		const body = new FormData();
-		body.append('temp_file', file);
-		const response = await fetch(this.endpoint, {
-			method: 'POST',
-			headers: {'X-CSRFToken': this.getCSRFToken()},
-			body: body,
-			signal: this.abortController.signal,
-		});
-		return response;
 	}
 
 	@Method()

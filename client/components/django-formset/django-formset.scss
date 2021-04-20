@@ -93,27 +93,72 @@ django-field-group {
 	input[type="file"] {
 		display: none;
 	}
+	.dj-control-panel {
+		display: inline-flex;
+		> div {
+			height: fit-content;
+			margin-left: 0.5rem;
+			.dj-progress-bar {
+				width: 100%;
+				border: 1px solid darkgray;
+				margin-top: 0.5rem;
+				> div {
+					background-color: darkgray;
+					height: 0.5rem;
+					width: 0%;
+				}
+			}
+		}
+	}
 	.dj-dropbox {
-		display: inline-block;
-		margin: 0;
-		margin-left: 0.5em;
+		display: inline-flex;
+		align-items: center;
+		justify-content: space-between;
+		background-color: whitesmoke;
+		margin: 0 0 0 0.25rem;
 		padding: 0;
 		list-style: none;
-		width: 100px;
-		height: 100px;
+		height: 128px;
+		min-width: 128px;
 		outline: grey thin dotted;
-		cursor: pointer;
 		li {
-			background-color: whitesmoke;
 			color: grey;
-			height: 100%;
-			display: flow-root;
-			img {
-				height: 100%;
-				width: 100%;
-			}
-			p {
+			flex-grow: 1;
+			height: inherit;
+			&.dj-empty-item {
 				text-align: center;
+				height: auto;
+			}
+			&.dj-file-picture {
+				img {
+					display: block;
+					height: inherit;
+				}
+			}
+			&.dj-file-caption {
+				padding: 0.25rem 0.5rem;
+				background-color: white;
+
+				figure {
+					font-size: small;
+					margin: 0 0 0.25rem 0;
+
+					figcaption {
+						font-weight: bold;
+					}
+
+					p {
+						margin: 0;
+					}
+				}
+			}
+			a.dj-delete-file {
+				font-weight: bold;
+				display: inline-block;
+				cursor: pointer;
+				&:hover {
+					text-decoration: underline;
+				}
 			}
 		}
 	}
