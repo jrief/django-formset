@@ -270,7 +270,7 @@ class FieldGroup {
 			const request = new XMLHttpRequest();
 			if (self.progressBar) {
 				request.addEventListener('loadstart', updateProgress);
-				request.addEventListener('progress', updateProgress);
+				request.upload.addEventListener('progress', updateProgress, false);
 			}
 			request.addEventListener('loadend', transferComplete);
 			request.open('POST', this.form.formset.endpoint, true);

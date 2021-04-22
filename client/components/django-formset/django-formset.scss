@@ -13,7 +13,6 @@ django-field-group {
 	&.dj-required, &.dj-required-any {
 		> label {
 			font-weight: bolder;
-			vertical-align: top;
 		}
 	}
 
@@ -94,7 +93,7 @@ django-field-group {
 		display: none;
 	}
 	.dj-control-panel {
-		display: inline-flex;
+		display: flex;
 		> div {
 			height: fit-content;
 			margin-left: 0.5rem;
@@ -105,7 +104,7 @@ django-field-group {
 				margin-top: 0.5rem;
 				> div {
 					background-color: darkgray;
-					height: 0.5rem;
+					height: 0.25rem;
 					width: 0;
 				}
 			}
