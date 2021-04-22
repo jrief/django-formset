@@ -100,12 +100,13 @@ django-field-group {
 			margin-left: 0.5rem;
 			.dj-progress-bar {
 				width: 100%;
-				border: 1px solid darkgray;
+				border: 1px solid black;
+				border-radius: 0.25rem;
 				margin-top: 0.5rem;
 				> div {
 					background-color: darkgray;
 					height: 0.5rem;
-					width: 0%;
+					width: 0;
 				}
 			}
 		}
@@ -152,13 +153,19 @@ django-field-group {
 					}
 				}
 			}
-			a.dj-delete-file {
+			a.dj-delete-file, a.dj-download-file {
 				font-weight: bold;
 				display: inline-block;
 				cursor: pointer;
+				color: inherit;
+				text-decoration: none;
 				&:hover {
 					text-decoration: underline;
 				}
+			}
+			a.dj-download-file {
+				margin-left: 1rem;
+				float: right;
 			}
 		}
 	}

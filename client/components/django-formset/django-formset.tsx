@@ -188,18 +188,24 @@ class FieldGroup {
 			this.progressBar.style.visibility = 'hidden';
 		}
 
+		this.defaultDropboxItem = this.dropbox.getElementsByTagName('li')[0];
 		const templates = this.element.getElementsByClassName('dj-dropbox-items');
 		if (templates.length !== 1)
 			throw new Error('Element <input type="file"> requires sibling element <template class="dj-dropbox-items"></template>');
 		this.dropboxItemTemplate = template(templates[0].innerHTML);
 
-		this.uploadedFiles = [];
+		const initialData = document.getElementById(`initial_${inputElement.id}`);
+		if (initialData) {
+			this.uploadedFiles = [JSON.parse(initialData.textContent)];
+			this.renderDropbox();
+		} else {
+			this.uploadedFiles = [];
+		}
 		this.dropbox.addEventListener('dragenter', this.swallowEvent);
 		this.dropbox.addEventListener('dragover', this.swallowEvent);
 		this.dropbox.addEventListener('drop', this.fileDrop);
 		// this.dropbox.addEventListener('click', this.fileRemove);  // TODO: move towards explicit delete button
 		this.chooseFileButton.addEventListener('click', () => inputElement.click());
-		this.defaultDropboxItem = this.dropbox.getElementsByTagName('li')[0];
 		inputElement.addEventListener('change', () => {
 			const files = (this.inputElements[0] as HTMLInputElement).files;
 			this.uploadFiles(files).then(() => this.validate());
@@ -222,7 +228,7 @@ class FieldGroup {
 		this.dropbox.appendChild(this.defaultDropboxItem);
 	}
 
-	private uploadFiles(files: FileList): Promise<void> {
+	private async uploadFiles(files: FileList): Promise<void> {
 		if (files.length === 0)
 			return Promise.reject();
 		return new Promise<void>(resolve => {

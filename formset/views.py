@@ -13,7 +13,7 @@ from django.views.generic import FormView
 class FormsetViewMixin:
     upload_temp_dir = default_storage.base_location / 'upload_temp'
     filename_max_length = 50
-    thumbnail_max_height = 150
+    thumbnail_max_height = 200
 
     def post(self, request, **kwargs):
         if request.content_type == 'application/json':

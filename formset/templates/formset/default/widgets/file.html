@@ -1,6 +1,11 @@
 {% load i18n %}
 <div class="dj-control-panel">
-	<input type="{{ widget.type }}" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %}>
+	<input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
+	{% if widget.value != None %}
+		{% with script_id='initial_'|add:widget.attrs.id %}
+		{{ widget.value|json_script:script_id }}
+		{% endwith %}
+	{% endif %}
 	<ul class="dj-dropbox"><li class="dj-empty-item">{% trans "Drag file here" %}</li></ul>
 	<div>
 		<button type="button" class="dj-choose-file">{% trans "Choose file" %}</button>
@@ -22,6 +27,7 @@
 			<figcaption>{% trans 'Size' %}:</figcaption>
 			<p>${size}</p>
 		</figure>
-		<a class="dj-delete-file">{% trans "Delete file" %}</a>
+		<a class="dj-delete-file">{% trans "Delete" %}</a>
+		<a class="dj-download-file" href="${download_url}" download="${name}">{% trans "Download" %}</a>
 	</li>
 </template>

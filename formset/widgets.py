@@ -15,6 +15,9 @@ class UploadedFileInput(FileInput):
     """
     template_name = 'formset/default/widgets/file.html'
 
+    def format_value(self, value):
+        return value
+
     def value_from_datadict(self, data, files, name):
         signer = get_cookie_signer(salt='formset')
         handle = data.get(name, [None])[0]

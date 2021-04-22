@@ -6,7 +6,6 @@
     "build": "stencil build --docs --prod",
     "start": "stencil build --dev --watch --serve",
     "watch": "stencil build --dev --watch",
-    "test.e2e": "stencil test --e2e --debug --dev --log --watch",
     "generate": "stencil generate",
     "tailwindcss": "tailwindcss build assets/tailwind-styles.css -o testapp/static/testapp/tailwind.css",
     "pegjs": "tspegjs -o client/components/django-formset/actions.ts --custom-header '// @ts-nocheck' assets/actions.pegjs"
