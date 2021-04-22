@@ -344,7 +344,7 @@ class FieldGroup {
 				}
 			}
 			if (!this.form.formset.withholdMessages && element instanceof HTMLInputElement) {
-				this.validateInputLength(element);
+				this.validateInput(element);
 			}
 		}
 		this.form.validate();
@@ -372,7 +372,7 @@ class FieldGroup {
 		return validity;
 	}
 
-	private validateInputLength(inputElement: HTMLInputElement) {
+	private validateInput(inputElement: HTMLInputElement) {
 		// By default, HTML input fields do not validate their bound value regarding their
 		// min- and max-length. Therefore this validation must be performed by the client.
 		if (inputElement.type === 'text' && inputElement.value) {
@@ -385,7 +385,7 @@ class FieldGroup {
 				return false;
 			}
 		}
-		if (inputElement.type === 'file' && inputElement.files) {
+		if (inputElement.type === 'file' && inputElement.required && inputElement.files) {
 			// seems that file upload is still in progress => field shall not be valid
 			if (this.uploadedFiles.length === 0) {
 				this.errorPlaceholder.innerHTML = this.errorMessages['typeMismatch'];
@@ -446,7 +446,7 @@ class FieldGroup {
 			}
 		}
 		if (element instanceof HTMLInputElement)
-			return this.validateInputLength(element);
+			return this.validateInput(element);
 		return true;
 	}
 
