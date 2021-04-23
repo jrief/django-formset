@@ -57,6 +57,12 @@ class SubscribeForm(forms.Form):
         help_text="Please enter a valid email address",
     )
 
+    avatar = fields.FileField(
+        label="Avatar",
+        widget=UploadedFileInput,
+        required=True,
+    )
+
     subscribe = fields.BooleanField(
         label="Subscribe Newsletter",
         initial=False,
@@ -192,6 +198,7 @@ class UploadForm(forms.Form):
     file = fields.FileField(
         label="Choose file",
         widget=UploadedFileInput,
+        required=True,
     )
 
 
