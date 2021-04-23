@@ -8,6 +8,7 @@ class WidgetMixin(default.WidgetMixin):
         'RadioSelect': 'formset/bootstrap/widgets/radio.html',
         'CheckboxInput': 'formset/bootstrap/widgets/checkbox.html',
         'CheckboxSelectMultiple': 'formset/bootstrap/widgets/checkboxselectmultiple.html',
+        'UploadedFileInput': 'formset/bootstrap/widgets/file.html',
     }
 
 

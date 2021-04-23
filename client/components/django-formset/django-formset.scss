@@ -90,7 +90,9 @@ django-field-group {
 	}
 
 	input[type="file"] {
-		display: none;
+		// `display: none;` causes Chrome to complain on calling `form.reportValidity()`.
+		width: 0 !important;
+		height: 0 !important;
 	}
 	.dj-control-panel {
 		display: flex;
@@ -152,7 +154,7 @@ django-field-group {
 					}
 				}
 			}
-			a.dj-delete-file, a.dj-download-file {
+			.dj-delete-file, .dj-download-file {
 				font-weight: bold;
 				display: inline-block;
 				cursor: pointer;
@@ -162,7 +164,7 @@ django-field-group {
 					text-decoration: underline;
 				}
 			}
-			a.dj-download-file {
+			.dj-download-file {
 				margin-left: 1rem;
 				float: right;
 			}
