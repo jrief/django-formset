@@ -11,6 +11,7 @@ from testapp.views import SubscribeFormView
 
 urlpatterns = [
     path('admin', admin.site.urls),
+    path('', TemplateView.as_view(template_name='index.html')),
     path('native', FormView.as_view(form_class=NativeUploadForm, template_name='default/native.html', success_url='/success')),
     path('formsetify', SubscribeFormView.as_view(template_name='default/formsetify.html')),
     path('form-groups', SubscribeFormView.as_view(template_name='default/render_groups.html')),
