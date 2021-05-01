@@ -1,15 +1,8 @@
-import { html, css, LitElement, property } from 'lit-element';
+import { html, LitElement, property, unsafeCSS } from 'lit-element';
+import styles from 'sass:./DjangoFormset.scss';
 
 export class DjangoFormset extends LitElement {
-	static get styles() {
-		return css`
-			:host {
-				display: block;
-				padding: 30px;
-				color: var(--django-formset3-text-color, #000);
-			}
-		`;
-	}
+	static styles = unsafeCSS(styles);
 
 	@property({ type: String }) title = 'Hey there';
 
