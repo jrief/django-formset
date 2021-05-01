@@ -2,10 +2,10 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import summary from 'rollup-plugin-summary';
 import {terser} from 'rollup-plugin-terser';
 import resolve from '@rollup/plugin-node-resolve';
-import replace from '@rollup/plugin-replace';
+import typescript from 'rollup-plugin-typescript2';
 
 export default {
-  input: 'dist/formset/django-formset.js',
+  input: 'client/django-formset.ts',
   output: {
     file: 'formset/static/formset/js/django-formset.js',
     format: 'esm',
@@ -17,8 +17,10 @@ export default {
     }
   },
   plugins: [
-    replace({'Reflect.decorate': 'undefined'}),
     resolve(),
+    typescript({
+      tsconfig: "client/tsconfig.json",
+    }),
     sourcemaps(),
     terser({
       ecma: 2017,

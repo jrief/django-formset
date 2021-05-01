@@ -4,9 +4,8 @@
   "description": "Django-Formset",
   "scripts": {
     "serve": "wds",
-    "build": "tsc --build \"client\"",
-    "bundle": "rollup --config",
-    "build:watch": "tsc --build --watch \"client\"",
+    "build": "rollup --config",
+    "build:watch": "rollup --config --watch",
     "tailwindcss": "tailwindcss build assets/tailwind-styles.css -o testapp/static/testapp/tailwind.css",
     "pegjs": "tspegjs -o client/components/django-formset/actions.ts --custom-header '// @ts-nocheck' assets/actions.pegjs"
   },
@@ -34,6 +33,7 @@
     "rollup-plugin-sourcemaps": "^0.6.3",
     "rollup-plugin-summary": "^1.3.0",
     "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.30.0",
     "tailwindcss": "^2.0.4",
     "ts-pegjs": "^0.3.1",
     "typescript": "^4.1.4"
