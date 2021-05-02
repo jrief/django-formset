@@ -3,14 +3,13 @@
   "version": "0.0.1",
   "description": "Django-Formset",
   "scripts": {
-    "build": "node client/build.cjs --minify",
+    "build": "node client/build.cjs",
     "build:watch": "node client/build.cjs --watch",
     "tailwindcss": "tailwindcss build assets/tailwind-styles.css -o testapp/static/testapp/tailwind.css",
-    "pegjs": "tspegjs -o client/components/django-formset/actions.ts --custom-header '// @ts-nocheck' assets/actions.pegjs"
+    "pegjs": "tspegjs -o client/django-formset/actions.ts --custom-header '// @ts-nocheck' assets/actions.pegjs"
   },
   "license": "MIT",
   "dependencies": {
-    "@types/lodash": "^4.14.168",
     "@webcomponents/webcomponentsjs": "^2.5.0",
     "bootstrap": "^4.6.0",
     "foundation-sites": "^6.6.3",
@@ -23,6 +22,8 @@
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.2.1",
+    "@types/lodash.get": "^4.4.6",
+    "@types/lodash.template": "^4.5.0",
     "autoprefixer": "^10.2.5",
     "bulma": "^0.9.2",
     "esbuild": "^0.11.17",

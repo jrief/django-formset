@@ -1,3 +1,3 @@
-import { DjangoFormset } from './django-formset/DjangoFormset.js';
+import { Hello } from './django-formset/DjangoFormset.js';
 
-window.customElements.define('django-formset', DjangoFormset);
+window.customElements.define('django-hello', Hello);

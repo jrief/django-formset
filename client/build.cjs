@@ -34,6 +34,7 @@ build({
     // Run all other stylesheets through Sass
     sassPlugin()
   ],
-  sourcemap: 'external',
+  sourcemap: true,
   target: ['es2020', 'chrome84', 'firefox84', 'safari14', 'edge84'],
+  watch: true
 }).catch(() => process.exit(1))

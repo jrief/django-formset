@@ -26,6 +26,7 @@ UserInterfaceState.xcuserstate
 .env
 
 coverage/
+client/django-formset/actions.ts
 formset/static/formset/js/django-formset*
 dist/
 docs/build/
