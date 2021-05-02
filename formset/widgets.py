@@ -20,7 +20,7 @@ class UploadedFileInput(FileInput):
 
     def value_from_datadict(self, data, files, name):
         signer = get_cookie_signer(salt='formset')
-        for handle in data.get(name, []):
+        if handle := next(iter(data.get(name, ())), None):
             upload_temp_name = signer.unsign(handle['upload_temp_name'])
             file = open(default_storage.path(upload_temp_name))
             file.seek(0, os.SEEK_END)
@@ -30,5 +30,4 @@ class UploadedFileInput(FileInput):
                 file=file, name=handle['name'], size=size, content_type=handle['content_type'],
                 content_type_extra=handle['content_type_extra'],
             )
-            break  # currently only one upload allowed
         return files.get(name)
