@@ -16,5 +16,8 @@
     "declaration": true,
     "declarationMap": true,
     "incremental": true
-  }
+  },
+  "include": [
+    "**/*.ts"
+  ]
 }
