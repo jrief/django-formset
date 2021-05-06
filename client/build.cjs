@@ -24,7 +24,6 @@ build({
                 reject(err);
                 return;
               }
-
               resolve(result.css.toString());
             }
           );
@@ -37,4 +36,4 @@ build({
   sourcemap: true,
   target: ['es2020', 'chrome84', 'firefox84', 'safari14', 'edge84'],
   watch: true
-}).catch(() => process.exit(1))
+}).catch(() => process.exit(1));

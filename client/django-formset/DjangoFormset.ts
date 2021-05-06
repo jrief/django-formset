@@ -1,18 +1,7 @@
-import { html, LitElement, unsafeCSS, css } from 'lit';
-import { customElement, property, query } from 'lit/decorators.js';
-
-import helloStyles from 'sass:./hello.scss';
-import styles from 'sass:./DjangoFormset.scss';
 import getDataValue from 'lodash.get';
 import template from 'lodash.template';
 import { parse } from './actions';
 
-
-function addCssToDocument() {
-	const style = document.createElement('style');
-	style.innerText = styles;
-	document.head.appendChild(style)
-}
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
@@ -158,7 +147,7 @@ class FileUploadWidget {
 			}
 			request.addEventListener('loadend', transferComplete);
 			request.open('POST', this.field.form.formset.endpoint, true);
-			request.setRequestHeader('X-CSRFToken', this.field.form.formset.getCSRFToken());
+			request.setRequestHeader('X-CSRFToken', this.field.form.formset.CSRFToken);
 			request.responseType = 'json';
 			request.send(body);
 		});
@@ -825,8 +814,6 @@ export class DjangoFormset extends HTMLElement {
 		for (const element of Array.from(this.getElementsByTagName('FORM')) as Array<HTMLFormElement>) {
 			this.forms.push(new DjangoForm(this, element));
 		}
-		console.log(helloStyles);
-		console.log(typeof helloStyles);
 	}
 
 	componentWillLoad() {
@@ -842,7 +829,7 @@ export class DjangoFormset extends HTMLElement {
 		this.validate();
 	}
 
-	public get CSRFToken(): string | undefined {
+	public get CSRFToken(): string {
 		const value = `; ${document.cookie}`;
 		const parts = value.split('; csrftoken=');
 
@@ -931,32 +918,5 @@ export class DjangoFormset extends HTMLElement {
 
 	public getDataValue(path: string) {
 		return getDataValue(this.data, path);
-	}
-}
-
-window.customElements.define('django-formset', DjangoFormset);
-const style = document.createElement('style');
-style.innerText = styles;
-document.head.appendChild(style)
-
-
-@customElement('django-hello')
-export class Hello extends LitElement {
-	static styles = unsafeCSS(helloStyles);
-
-	@property({ type: String }) title = 'Hey there';
-
-	@property({ type: Number }) counter = 5;
-
-	__increment() {
-		this.counter += 1;
-	}
-
-	render() {
-		return html`
-			<h2>${this.title} Nr. ${this.counter}!</h2>
-			<slot></slot>
-			<button @click=${this.__increment}>increment</button>
-		`;
 	}
 }

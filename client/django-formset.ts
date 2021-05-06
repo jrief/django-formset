@@ -1,3 +1,7 @@
-import { Hello } from './django-formset/DjangoFormset.js';
+import styles from 'sass:./django-formset/DjangoFormset.scss';
+import {DjangoFormset} from "./django-formset/DjangoFormset";
 
-window.customElements.define('django-hello', Hello);
+const style = document.createElement('style');
+style.innerText = styles;
+document.head.appendChild(style)
+window.customElements.define('django-formset', DjangoFormset);
