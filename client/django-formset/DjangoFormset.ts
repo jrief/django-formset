@@ -1,9 +1,10 @@
+import { parse } from './actions';
 import getDataValue from 'lodash.get';
 import template from 'lodash.template';
-import { parse } from './actions';
 
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
 
 class BoundValue {
 	readonly value: string | Array<string | Object>;
@@ -490,6 +491,7 @@ class ButtonAction {
 	public readonly func: Function;
 	public readonly args: Array<any>;
 }
+
 
 class DjangoButton {
 	private readonly formset: DjangoFormset;
