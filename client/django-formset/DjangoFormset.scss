@@ -1,5 +1,176 @@
-:host {
-    display: block;
-    padding: 30px;
-    color: var(--django-formset3-text-color, #000);
+$django-formset-alert: red;
+$django-formset-warning: orange;
+$django-formset-success: green;
+
+:root {
+	--django-formset-color-invalid: #{$django-formset-alert};
+	--django-formset-color-valid: #{$django-formset-success};
+}
+
+
+django-field-group {
+	$feedback-inputs: 'input[type=email]', 'input[type=text]', 'input[type=number]', 'input[type=date]';
+	$field-inputs: '#{$feedback-inputs}, select, textarea';
+	display: block;
+
+	&.dj-required, &.dj-required-any {
+		> label {
+			font-weight: bolder;
+		}
+	}
+
+	input {
+		background-repeat: no-repeat;
+		background-position: center right;
+		background-origin: content-box;
+	}
+
+	select, textarea {
+		background-image: none !important;
+	}
+
+	&.dj-dirty {
+		#{$field-inputs} {
+			&:valid:not(:focus) {
+				border-color: var(--django-formset-color-valid);
+			}
+		}
+		#{$feedback-inputs} {
+			&:valid {
+				background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 16" fill="#{$django-formset-success}"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg>') !important;
+			}
+		}
+	}
+
+	&.dj-touched {
+		&:not(.dj-submitted) {
+			#{$field-inputs} {
+				&:invalid:not(:focus) {
+					border-color: var(--django-formset-color-invalid);
+					background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 16" fill="#{$django-formset-alert}"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/></svg>');
+				}
+
+				&:invalid:focus {
+					background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 16" fill="#{$django-formset-warning}"><path fill-rule="evenodd" d="M7.938 2.016a.146.146 0 0 0-.054.057L1.027 13.74a.176.176 0 0 0-.002.183c.016.03.037.05.054.06.015.01.034.017.066.017h13.713a.12.12 0 0 0 .066-.017.163.163 0 0 0 .055-.06.176.176 0 0 0-.003-.183L8.12 2.073a.146.146 0 0 0-.054-.057A.13.13 0 0 0 8.002 2a.13.13 0 0 0-.064.016zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/><path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/></svg>');
+				}
+			}
+		}
+	}
+
+	&.dj-submitted {
+		#{$field-inputs} {
+			&:invalid {
+				border-color: var(--django-formset-color-invalid);
+				background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 16" fill="#{$django-formset-alert}"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/></svg>');
+				&:focus {
+					box-shadow: 0 0 0 0.2rem rgb(255 0 0 / 25%);
+				}
+			}
+		}
+	}
+
+	.dj-errorlist {
+		list-style: none;
+		margin-top: 0;
+		margin-bottom: 0;
+		padding-left: 0;
+		color: var(--django-formset-color-invalid);
+	}
+
+	.dj-help-text {
+		font-style: oblique;
+	}
+
+	.dj-form-optgroup {
+		margin-bottom: 0.5rem;
+		> em {
+			margin-left: 0.75rem;
+		}
+	}
+
+	.dj-form-inlined {
+		display: inline-block;
+	}
+
+	input[type="file"] {
+		// `display: none;` causes Chrome to complain on calling `form.reportValidity()`.
+		width: 0 !important;
+		height: 0 !important;
+	}
+	.dj-control-panel {
+		display: flex;
+		> div {
+			height: fit-content;
+			margin-left: 0.5rem;
+			.dj-progress-bar {
+				width: 100%;
+				border: 1px solid black;
+				border-radius: 0.25rem;
+				margin-top: 0.5rem;
+				> div {
+					background-color: darkgray;
+					height: 0.25rem;
+					width: 0;
+				}
+			}
+		}
+	}
+	.dj-dropbox {
+		display: inline-flex;
+		align-items: center;
+		justify-content: space-between;
+		background-color: whitesmoke;
+		margin: 0 0 0 0.25rem;
+		padding: 0;
+		list-style: none;
+		height: 128px;
+		min-width: 128px;
+		outline: grey thin dotted;
+		li {
+			color: grey;
+			flex-grow: 1;
+			height: inherit;
+			&.dj-empty-item {
+				text-align: center;
+				height: auto;
+			}
+			&.dj-file-picture {
+				img {
+					display: block;
+					height: inherit;
+				}
+			}
+			&.dj-file-caption {
+				padding: 0.25rem 0.5rem;
+				background-color: white;
+
+				figure {
+					font-size: small;
+					margin: 0 0 0.25rem 0;
+
+					figcaption {
+						font-weight: bold;
+					}
+
+					p {
+						margin: 0;
+					}
+				}
+			}
+			.dj-delete-file, .dj-download-file {
+				font-weight: bold;
+				display: inline-block;
+				cursor: pointer;
+				color: inherit;
+				text-decoration: none;
+				&:hover {
+					text-decoration: underline;
+				}
+			}
+			.dj-download-file {
+				margin-left: 1rem;
+				float: right;
+			}
+		}
+	}
 }
