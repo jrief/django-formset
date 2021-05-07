@@ -743,6 +743,7 @@ class DjangoForm {
 	public readonly name: string;
 	public readonly formset: DjangoFormset;
 	private readonly element: HTMLFormElement;
+	private readonly errorList: Element | null;
 	private readonly errorPlaceholder: Element | null;
 	private readonly fieldGroups = Array<FieldGroup>(0);
 
@@ -750,7 +751,13 @@ class DjangoForm {
 		this.name = element.getAttribute('name') || '__default__';
 		this.formset = formset;
 		this.element = element;
-		this.errorPlaceholder = findErrorPlaceholder(element);
+		const placeholder = findErrorPlaceholder(element);
+		if (placeholder) {
+			this.errorList = placeholder.parentElement;
+			this.errorPlaceholder = this.errorList ? this.errorList.removeChild(placeholder) : null;
+		} else {
+			this.errorList = this.errorPlaceholder = null;
+		}
 		for (const element of Array.from(this.element.getElementsByTagName('django-field-group')) as Array<HTMLElement>) {
 			this.fieldGroups.push(new FieldGroup(this, element));
 		}
@@ -803,14 +810,18 @@ class DjangoForm {
 	}
 
 	resetCustomError() {
-		if (this.errorPlaceholder) {
-			this.errorPlaceholder.innerHTML = '';
+		while (this.errorList && this.errorList.lastChild) {
+			this.errorList.removeChild(this.errorList.lastChild);
 		}
 	}
 
 	reportCustomErrors(errors: Object) {
-		if (errors[NON_FIELD_ERRORS] instanceof Array && errors[NON_FIELD_ERRORS].length > 0 && this.errorPlaceholder) {
-			this.errorPlaceholder.innerHTML = errors[NON_FIELD_ERRORS][0];
+		if (errors[NON_FIELD_ERRORS] instanceof Array && this.errorPlaceholder) {
+			for (const message of errors[NON_FIELD_ERRORS]) {
+				const item = this.errorPlaceholder.cloneNode() as Element;
+				item.innerHTML = message;
+				this.errorList.appendChild(item);
+			}
 		}
 		for (const fieldGroup of this.fieldGroups) {
 			if (errors[fieldGroup.name] instanceof Array && errors[fieldGroup.name].length > 0) {
