@@ -7,6 +7,7 @@ const { build } = require('esbuild');
 build({
   entryPoints: ['client/django-formset.ts'],
   bundle: true,
+  minify: false,
   outfile: 'formset/static/formset/js/django-formset.js',
   plugins: [
     // Run inline style imports through Sass
