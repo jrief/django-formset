@@ -11,3 +11,5 @@ django==3.1.7
 pytz==2021.1
 sqlparse==0.4.1; python_version >= '3.5'
 playwright<2.0
+pytest-django
+pytest-mock
