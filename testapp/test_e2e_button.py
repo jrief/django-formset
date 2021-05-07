@@ -13,7 +13,7 @@ class SampleForm(Form):
 
 views = {
     f'test_button_{ctr}': FormsetView.as_view(
-        template_name='form_with_button.html',
+        template_name='tests/form_with_button.html',
         form_class=SampleForm,
         success_url='/success',
         extra_context={'click_actions': click_actions},
