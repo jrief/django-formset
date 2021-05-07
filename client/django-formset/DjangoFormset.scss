@@ -7,6 +7,15 @@ $django-formset-success: green;
 	--django-formset-color-valid: #{$django-formset-success};
 }
 
+django-formset {
+	.dj-errorlist {
+		list-style: none;
+		margin-top: 0;
+		margin-bottom: 0;
+		padding-left: 0;
+		color: var(--django-formset-color-invalid);
+	}
+}
 
 django-field-group {
 	$feedback-inputs: 'input[type=email]', 'input[type=text]', 'input[type=number]', 'input[type=date]';
@@ -67,14 +76,6 @@ django-field-group {
 				}
 			}
 		}
-	}
-
-	.dj-errorlist {
-		list-style: none;
-		margin-top: 0;
-		margin-bottom: 0;
-		padding-left: 0;
-		color: var(--django-formset-color-invalid);
 	}
 
 	.dj-help-text {

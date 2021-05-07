@@ -48,7 +48,13 @@ def _render_group(bf, template_name='formset/default/field_group.html'):
     return template.render(context)
 
 
+def _render_error_placeholder(template_name='formset/default/error_placeholder.html'):
+    template = get_template(template_name)
+    return template.render({})
+
+
 register = template.Library()
 register.filter('formsetify', _formsetify)
 register.simple_tag(_render_groups, name='render_groups')
 register.simple_tag(_render_group, name='render_group')
+register.simple_tag(_render_error_placeholder, name='render_error_placeholder')

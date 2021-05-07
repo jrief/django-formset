@@ -4,6 +4,7 @@ import template from 'lodash.template';
 
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+const NON_FIELD_ERRORS = '__all__'
 
 
 class BoundValue {
@@ -173,6 +174,19 @@ class FileUploadWidget {
 }
 
 
+function findErrorPlaceholder(element: HTMLElement): Element | null {
+	const errorlist = element.getElementsByClassName('dj-errorlist');
+	for (const listelement of errorlist) {
+		if (listelement.parentElement && listelement.parentElement.isEqualNode(element)) {
+			const placeholder = listelement.getElementsByClassName('dj-placeholder');
+			if (placeholder.length > 0)
+				return placeholder[0] as HTMLElement;
+			break;
+		}
+	}
+	return null;
+}
+
 type ErrorKey = keyof ValidityState;
 
 
@@ -199,15 +213,15 @@ class FieldGroup {
 	public readonly name: string = '__undefined__';
 	public readonly updateVisibility: Function;
 	public readonly element: HTMLElement;
-	private inputElements: Array<FieldElement>;
-	private errorPlaceholder?: Element;
-	private errorMessages: ErrorMessages;
-	private fileUploader: FileUploadWidget | null = null;
+	private readonly inputElements: Array<FieldElement>;
+	private readonly errorPlaceholder: Element | null;
+	private readonly errorMessages: ErrorMessages;
+	private readonly fileUploader: FileUploadWidget | null = null;
 
 	constructor(form: DjangoForm, element: HTMLElement) {
 		this.form = form;
 		this.element = element;
-		this.findErrorPlaceholder();
+		this.errorPlaceholder = findErrorPlaceholder(element);
 		this.errorMessages = new ErrorMessages(this);
 		const requiredAny = element.classList.contains('dj-required-any');
 		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(element => element.type !== 'hidden');
@@ -335,6 +349,7 @@ class FieldGroup {
 	}
 
 	private resetCustomError() {
+		this.form.resetCustomError();
 		if (this.errorPlaceholder) {
 			this.errorPlaceholder.innerHTML = '';
 		}
@@ -408,7 +423,7 @@ class FieldGroup {
 			for (const inputElement of this.inputElements) {
 				inputElement.setCustomValidity('');
 			}
-		} else if (this.pristineValue !== undefined && !this.form.formset.withholdMessages&& this.errorPlaceholder) {
+		} else if (this.pristineValue !== undefined && !this.form.formset.withholdMessages && this.errorPlaceholder) {
 			this.errorPlaceholder.innerHTML = this.errorMessages.get('customError') || '';
 		}
 		this.form.validate();
@@ -457,16 +472,6 @@ class FieldGroup {
 				return inputElement.setCustomValidity(this.errorMessages.get('tooShort') || '');
 			if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength)
 				return inputElement.setCustomValidity(this.errorMessages.get('tooLong') || '');
-		}
-	}
-
-	private findErrorPlaceholder() {
-		const errorlist = this.element.getElementsByClassName('dj-errorlist');
-		if (errorlist.length > 0) {
-			const placeholder = errorlist[0].getElementsByClassName('dj-placeholder');
-			if (placeholder.length > 0) {
-				this.errorPlaceholder = placeholder[0];
-			}
 		}
 	}
 
@@ -738,12 +743,14 @@ class DjangoForm {
 	public readonly name: string;
 	public readonly formset: DjangoFormset;
 	private readonly element: HTMLFormElement;
+	private readonly errorPlaceholder: Element | null;
 	private readonly fieldGroups = Array<FieldGroup>(0);
 
 	constructor(formset: DjangoFormset, element: HTMLFormElement) {
 		this.name = element.getAttribute('name') || '__default__';
 		this.formset = formset;
 		this.element = element;
+		this.errorPlaceholder = findErrorPlaceholder(element);
 		for (const element of Array.from(this.element.getElementsByTagName('django-field-group')) as Array<HTMLElement>) {
 			this.fieldGroups.push(new FieldGroup(this, element));
 		}
@@ -795,7 +802,16 @@ class DjangoForm {
 		this.element.reportValidity();
 	}
 
-	reportCustomErrors(errors) {
+	resetCustomError() {
+		if (this.errorPlaceholder) {
+			this.errorPlaceholder.innerHTML = '';
+		}
+	}
+
+	reportCustomErrors(errors: Object) {
+		if (errors[NON_FIELD_ERRORS] instanceof Array && errors[NON_FIELD_ERRORS].length > 0 && this.errorPlaceholder) {
+			this.errorPlaceholder.innerHTML = errors[NON_FIELD_ERRORS][0];
+		}
 		for (const fieldGroup of this.fieldGroups) {
 			if (errors[fieldGroup.name] instanceof Array && errors[fieldGroup.name].length > 0) {
 				fieldGroup.reportCustomError(errors[fieldGroup.name][0]);
@@ -807,9 +823,9 @@ class DjangoForm {
 
 export class DjangoFormset extends HTMLElement {
 	private data = {};
-	private buttons = Array<DjangoButton>(0);
-	private forms = Array<DjangoForm>(0);
-	private abortController = new AbortController;
+	private readonly buttons = Array<DjangoButton>(0);
+	private readonly forms = Array<DjangoForm>(0);
+	private readonly abortController = new AbortController;
 
 	static get observedAttributes() {
 		return ['endpoint', 'withhold-messages', 'force-submission'];

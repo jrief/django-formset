@@ -2,21 +2,21 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
-from django.views.generic import FormView, TemplateView
+from django.views.generic import TemplateView
 
 from testapp.forms import (DefaultMixinForm, BootstrapMixinForm, BulmaMixinForm, FoundationMixinForm,
-                           TailwindMixinForm, UploadForm, NativeUploadForm)
+                           TailwindMixinForm, UploadForm, PersonaForm)
 from testapp.views import SubscribeFormView
 
 
 urlpatterns = [
     path('admin', admin.site.urls),
     path('', TemplateView.as_view(template_name='index.html')),
-    path('native', FormView.as_view(form_class=NativeUploadForm, template_name='default/native.html', success_url='/success')),
     path('formsetify', SubscribeFormView.as_view(template_name='default/formsetify.html')),
     path('form-groups', SubscribeFormView.as_view(template_name='default/render_groups.html')),
     path('mixin-form', SubscribeFormView.as_view(form_class=DefaultMixinForm, template_name='default/mixin_form.html')),
     path('upload', SubscribeFormView.as_view(form_class=UploadForm, template_name='default/render_groups.html')),
+    path('persona', SubscribeFormView.as_view(form_class=PersonaForm, template_name='default/render_groups.html')),
     path('bootstrap/formsetify', SubscribeFormView.as_view(template_name='bootstrap/formsetify.html')),
     path('bootstrap/form-groups', SubscribeFormView.as_view(template_name='bootstrap/render_groups.html')),
     path('bootstrap/form-groups-classes', SubscribeFormView.as_view(template_name='bootstrap/render_groups_with_classes.html')),

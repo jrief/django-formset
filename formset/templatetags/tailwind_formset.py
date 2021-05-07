@@ -1,7 +1,7 @@
 from django import template
 
 from formset.mixins import tailwind
-from .django_formset import _formsetify, _render_group, _render_groups
+from .django_formset import _formsetify, _render_group, _render_groups, _render_error_placeholder
 
 register = template.Library()
 
@@ -19,3 +19,8 @@ def render_groups(form, field_classes=None, label_classes=None, control_classes=
 @register.simple_tag
 def render_group(bf, template_name='formset/tailwind/field_group.html'):
     return _render_group(bf, template_name)
+
+
+@register.simple_tag
+def render_error_placeholder():
+    return _render_error_placeholder()

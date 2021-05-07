@@ -202,7 +202,25 @@ class UploadForm(forms.Form):
     )
 
 
-class NativeUploadForm(forms.Form):
-    name = 'upload'
+class PersonaForm(forms.Form):
+    name = 'persona'
 
-    file = fields.FileField()
+    first_name = fields.RegexField(
+        r'^[A-Z][a-z -]*$',
+        label="First name",
+        error_messages={'invalid': "A first name must start in upper case."},
+    )
+
+    last_name = fields.CharField(
+        label="Last name",
+        min_length=2,
+        max_length=50,
+        help_text="Please enter at least two characters",
+        initial='JACK',
+    )
+
+    def clean(self):
+        cd = super().clean()
+        if cd['first_name'].lower().startswith("john") and cd['last_name'].lower().startswith("doe"):
+            raise ValidationError(f"{cd['first_name']} {cd['last_name']} is persona non grata here!")
+        return cd
