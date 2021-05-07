@@ -35,6 +35,5 @@ build({
     sassPlugin()
   ],
   sourcemap: true,
-  target: ['es2020', 'chrome84', 'firefox84', 'safari14', 'edge84'],
-  watch: true
+  target: ['es2020', 'chrome84', 'firefox84', 'safari14', 'edge84']
 }).catch(() => process.exit(1));
