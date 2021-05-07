@@ -1,5 +1,3 @@
-from django.utils.html import format_html
-
 from formset.mixins import default
 
 

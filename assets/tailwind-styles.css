@@ -20,3 +20,12 @@
 .formset-help-text {
     @apply text-gray-500;
 }
+.dj-choose-file {
+    @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded;
+}
+.dj-delete-file {
+    @apply bg-yellow-200 hover:bg-yellow-600 text-black hover:text-white font-semibold text-sm py-1 px-3 rounded;
+}
+.dj-download-file {
+    @apply bg-gray-200 hover:bg-gray-300 text-black font-semibold py-1 px-3 text-sm rounded;
+}

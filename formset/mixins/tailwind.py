@@ -6,6 +6,7 @@ class WidgetMixin(default.WidgetMixin):
         'RadioSelect': 'formset/tailwind/widgets/radio.html',
         'CheckboxInput': 'formset/tailwind/widgets/checkbox.html',
         'CheckboxSelectMultiple': 'formset/tailwind/widgets/checkboxselectmultiple.html',
+        'UploadedFileInput': 'formset/tailwind/widgets/file.html',
     }
 
 

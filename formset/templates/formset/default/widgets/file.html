@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n %}{% spaceless %}
 <div class="dj-control-panel">
 	<input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
 	{% if widget.value != None %}
@@ -6,14 +6,27 @@
 		{{ widget.value|json_script:script_id }}
 		{% endwith %}
 	{% endif %}
+	{% block "dropbox" %}
 	<ul class="dj-dropbox"><li class="dj-empty-item">{% trans "Drag file here" %}</li></ul>
+	{% endblock %}
+	{% block "controller" %}
 	<div>
+		{% block "choose-file" %}
 		<button type="button" class="dj-choose-file">{% trans "Choose file" %}</button>
+		{% endblock %}
+		{% block "progress-bar" %}
 		<div class="dj-progress-bar"><div></div></div>
+		{% endblock %}
 	</div>
+	{% endblock %}
 </div>
+
+{% block "dropbox-items" %}
 <template class="dj-dropbox-items">
+	{% block "file-picture" %}
 	<li class="dj-file-picture"><img src="${thumbnail_url}"></li>
+	{% endblock %}
+	{% block "file-caption" %}
 	<li class="dj-file-caption">
 		<figure>
 			<figcaption>{% trans 'Name' %}:</figcaption>
@@ -30,4 +43,8 @@
 		<a class="dj-delete-file">{% trans "Delete" %}</a>
 		<a class="dj-download-file" href="${download_url}" download="${name}">{% trans "Download" %}</a>
 	</li>
+	{% endblock %}
 </template>
+{% endblock %}
+
+{% endspaceless %}

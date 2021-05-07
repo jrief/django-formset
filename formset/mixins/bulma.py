@@ -8,6 +8,7 @@ class WidgetMixin(default.WidgetMixin):
         'RadioSelect': 'formset/bulma/widgets/radio.html',
         'CheckboxInput': 'formset/bulma/widgets/checkbox.html',
         'CheckboxSelectMultiple': 'formset/bulma/widgets/checkboxselectmultiple.html',
+        'UploadedFileInput': 'formset/bulma/widgets/file.html',
     }
 
     def get_context(self, name, value, attrs):

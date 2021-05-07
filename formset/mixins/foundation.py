@@ -6,6 +6,7 @@ class WidgetMixin(default.WidgetMixin):
         'RadioSelect': 'formset/foundation/widgets/radio.html',
         'CheckboxInput': 'formset/foundation/widgets/checkbox.html',
         'CheckboxSelectMultiple': 'formset/foundation/widgets/checkboxselectmultiple.html',
+        'UploadedFileInput': 'formset/foundation/widgets/file.html',
     }
 
     def get_context(self, name, value, attrs):

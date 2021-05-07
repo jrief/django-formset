@@ -120,14 +120,13 @@ django-field-group {
 		align-items: center;
 		justify-content: space-between;
 		background-color: whitesmoke;
-		margin: 0 0 0 0.25rem;
+		margin: 0 0 0.25rem 0.25rem;
 		padding: 0;
 		list-style: none;
 		height: 128px;
 		min-width: 128px;
 		outline: grey thin dotted;
 		li {
-			color: grey;
 			flex-grow: 1;
 			height: inherit;
 			&.dj-empty-item {
@@ -161,7 +160,6 @@ django-field-group {
 				font-weight: bold;
 				display: inline-block;
 				cursor: pointer;
-				color: inherit;
 				text-decoration: none;
 				&:hover {
 					text-decoration: underline;
