@@ -1,12 +1,13 @@
-import { Component, Element, Method, Prop } from '@stencil/core';
+import { parse } from './actions';
 import getDataValue from 'lodash.get';
 import template from 'lodash.template';
-import { parse } from './actions';
+
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
+
 class BoundValue {
-	readonly value: string | Array<string | Object>;
+	declare readonly value: string | Array<string | Object>;
 
 	constructor(value: string | Array<string | Object>) {
 		this.value = value;
@@ -24,7 +25,7 @@ class BoundValue {
 
 class FileUploadWidget {
 	declare private field: FieldGroup;
-	private inputElement: HTMLInputElement;
+	private readonly inputElement: HTMLInputElement;
 	private dropbox: HTMLUListElement;
 	private chooseFileButton: HTMLButtonElement;
 	private progressBar: HTMLDivElement | null = null;
@@ -59,7 +60,7 @@ class FileUploadWidget {
 		this.dropboxItemTemplate = template(templates[0].innerHTML);
 
 		const initialData = document.getElementById(`initial_${inputElement.id}`);
-		if (initialData) {
+		if (initialData?.textContent) {
 			this.uploadedFiles = [JSON.parse(initialData.textContent)];
 			this.renderDropbox();
 		} else {
@@ -74,8 +75,10 @@ class FileUploadWidget {
 
 	private fileDrop = (event: DragEvent) => {
 		this.swallowEvent(event);
-		this.inputElement.files = event.dataTransfer.files;
-		this.uploadFiles(this.inputElement.files).then(() => this.field.validate());
+		if (event.dataTransfer) {
+			this.inputElement.files = event.dataTransfer.files;
+			this.uploadFiles(this.inputElement.files).then(() => this.field.validate());
+		}
 	}
 
 	private fileRemove = () => {
@@ -92,17 +95,22 @@ class FileUploadWidget {
 		event.preventDefault();
 	}
 
-	private async uploadFiles(files: FileList): Promise<void> {
-		if (files.length === 0)
+	private async uploadFiles(files: FileList | null): Promise<void> {
+		if (!files || files.length === 0)
 			return Promise.reject();
-		return new Promise<void>(resolve => {
+		return new Promise<void>((resolve, reject) => {
 			// Django currently can't handle multiple file uploads, restrict to first file
-			this.uploadFile(files.item(0), this.dropbox.clientHeight).then(response => {
-				this.uploadedFiles = [response];
-				this.renderDropbox();
-				this.field.inputted();
-				resolve();
-			});
+			const file = files.item(0);
+			if (file) {
+				this.uploadFile(file, this.dropbox.clientHeight).then(response => {
+					this.uploadedFiles = [response];
+					this.renderDropbox();
+					this.field.inputted();
+					resolve();
+				});
+			} else {
+				reject();
+			}
 		});
 	}
 
@@ -111,8 +119,10 @@ class FileUploadWidget {
 
 		function updateProgress(event: ProgressEvent) {
 			const complete = event.lengthComputable ? event.loaded / event.total : 0;
-			self.progressBar.style.visibility = 'visible';
-			self.progressBar.getElementsByTagName('div')[0].style.width = `${complete * 100}%`;
+			if (self.progressBar) {
+				self.progressBar.style.visibility = 'visible';
+				self.progressBar.getElementsByTagName('div')[0].style.width = `${complete * 100}%`;
+			}
 		}
 
 		const body = new FormData();
@@ -138,7 +148,7 @@ class FileUploadWidget {
 			}
 			request.addEventListener('loadend', transferComplete);
 			request.open('POST', this.field.form.formset.endpoint, true);
-			request.setRequestHeader('X-CSRFToken', this.field.form.formset.getCSRFToken());
+			request.setRequestHeader('X-CSRFToken', this.field.form.formset.CSRFToken);
 			request.responseType = 'json';
 			request.send(body);
 		});
@@ -158,26 +168,47 @@ class FileUploadWidget {
 	}
 
 	public inProgress(): boolean {
-		return this.inputElement.files.length > this.uploadedFiles.length;
+		return !!this.inputElement.files && this.inputElement.files.length > this.uploadedFiles.length;
 	}
 }
+
+
+type ErrorKey = keyof ValidityState;
+
+
+class ErrorMessages extends Map<ErrorKey, string>{
+	constructor(fieldGroup: FieldGroup) {
+		super();
+		const element = Array.from(fieldGroup.element.getElementsByTagName('django-error-messages')) as Array<HTMLElement>;
+		if (element.length !== 1)
+			throw new Error(`<django-field-group> for '${fieldGroup.name}' requires excatly one <django-error-messages> tag.`);
+		for (const attr of element[0].getAttributeNames()) {
+			const clientKey = attr.replace(/([_][a-z])/g, (group) => group.toUpperCase().replace('_', ''));
+			const clientValue = element[0].getAttribute(attr);
+			if (clientValue) {
+				this.set(clientKey as ErrorKey, clientValue);
+			}
+		}
+	}
+}
+
 
 class FieldGroup {
 	declare form: DjangoForm;
 	private pristineValue: BoundValue;
-	public readonly name: string;
+	public readonly name: string = '__undefined__';
 	public readonly updateVisibility: Function;
 	public readonly element: HTMLElement;
 	private inputElements: Array<FieldElement>;
-	private errorPlaceholder: Element | null = null;
-	private errorMessages = new Map<string, string>();
+	private errorPlaceholder?: Element;
+	private errorMessages: ErrorMessages;
 	private fileUploader: FileUploadWidget | null = null;
 
 	constructor(form: DjangoForm, element: HTMLElement) {
 		this.form = form;
 		this.element = element;
 		this.findErrorPlaceholder();
-		this.parseErrorMessages();
+		this.errorMessages = new ErrorMessages(this);
 		const requiredAny = element.classList.contains('dj-required-any');
 		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(element => element.type !== 'hidden');
 		for (const element of inputElements) {
@@ -219,7 +250,7 @@ class FieldGroup {
 		}
 		this.inputElements = Array<FieldElement>(0).concat(inputElements, selectElements, textAreaElements);
 		for (const element of this.inputElements) {
-			if (typeof this.name === 'undefined') {
+			if (this.name === '__undefined__') {
 				this.name = element.name;
 			} else {
 				if (this.name !== element.name)
@@ -254,6 +285,8 @@ class FieldGroup {
 				return value;
 			}
 			if (element.type === 'file') {
+				if (!this.fileUploader)
+					throw new Error("fileUploader expected");
 				return this.fileUploader.uploadedFiles;
 			}
 			// all other input types just return their value
@@ -276,10 +309,10 @@ class FieldGroup {
 
 	private parseIfAttribute(attribute: string, visible: boolean): Function {
 		if (this.inputElements.length !== 1)
-			return;  // groups with multiple input elements are ignored
+			return () => {};  // groups with multiple input elements are ignored
 		const attrValue = this.inputElements[0].getAttribute(attribute);
 		if (typeof attrValue !== 'string')
-			return;
+			return () => {};
 		const path = attrValue.includes('.') ? attrValue : `${this.form.name}.${attrValue}`;
 		if (visible) {
 			return () => this.form.formset.getDataValue(path)
@@ -302,7 +335,9 @@ class FieldGroup {
 	}
 
 	private resetCustomError() {
-		this.errorPlaceholder.innerHTML = '';
+		if (this.errorPlaceholder) {
+			this.errorPlaceholder.innerHTML = '';
+		}
 		for (const element of this.inputElements) {
 			if (element.validity.customError)
 				element.setCustomValidity('');
@@ -336,16 +371,16 @@ class FieldGroup {
 	}
 
 	public validate() {
-		let element: FieldElement;
+		let element: FieldElement | null = null;
 		for (element of this.inputElements) {
 			if (!element.validity.valid)
 				break;
 		}
-		if (!element.validity.valid) {
-			for (const key in this.errorMessages) {
-				if (element.validity[key]) {
-					if (!this.form.formset.withholdMessages) {
-						this.errorPlaceholder.innerHTML = this.errorMessages[key];
+		if (element && !element.validity.valid) {
+			for (const [key, message] of this.errorMessages) {
+				if (element.validity[key as keyof ValidityState]) {
+					if (!this.form.formset.withholdMessages && this.errorPlaceholder) {
+						this.errorPlaceholder.innerHTML = message;
 					}
 					element = null;
 					break;
@@ -366,15 +401,15 @@ class FieldGroup {
 			if ((inputElement as HTMLInputElement).checked) {
 				validity = true;
 			} else {
-				inputElement.setCustomValidity(this.errorMessages['customError']);
+				inputElement.setCustomValidity(this.errorMessages.get('customError') || '');
 			}
 		}
 		if (validity) {
 			for (const inputElement of this.inputElements) {
 				inputElement.setCustomValidity('');
 			}
-		} else if (this.pristineValue !== undefined && !this.form.formset.withholdMessages) {
-			this.errorPlaceholder.innerHTML = this.errorMessages['customError'];
+		} else if (this.pristineValue !== undefined && !this.form.formset.withholdMessages&& this.errorPlaceholder) {
+			this.errorPlaceholder.innerHTML = this.errorMessages.get('customError') || '';
 		}
 		this.form.validate();
 		return validity;
@@ -385,18 +420,24 @@ class FieldGroup {
 		// min- and max-length. Therefore this validation must be performed by the client.
 		if (inputElement.type === 'text' && inputElement.value) {
 			if (inputElement.minLength > 0 && inputElement.value.length < inputElement.minLength) {
-				this.errorPlaceholder.innerHTML = this.errorMessages['tooShort'];
+				if (this.errorPlaceholder) {
+					this.errorPlaceholder.innerHTML = this.errorMessages.get('tooShort') || '';
+				}
 				return false;
 			}
 			if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength) {
-				this.errorPlaceholder.innerHTML = this.errorMessages['tooLong'];
+				if (this.errorPlaceholder) {
+					this.errorPlaceholder.innerHTML = this.errorMessages.get('tooLong') || '';
+				}
 				return false;
 			}
 		}
-		if (inputElement.type === 'file') {
+		if (inputElement.type === 'file' && this.fileUploader) {
 			if (this.fileUploader.inProgress()) {
 				// seems that file upload is still in progress => field shall not be valid
-				this.errorPlaceholder.innerHTML = this.errorMessages['typeMismatch'];
+				if (this.errorPlaceholder) {
+					this.errorPlaceholder.innerHTML = this.errorMessages.get('typeMismatch') || '';
+				}
 				return false;
 			}
 		}
@@ -413,9 +454,9 @@ class FieldGroup {
 			return;
 		if (inputElement.type === 'text') {
 			if (inputElement.minLength > 0 && inputElement.value.length < inputElement.minLength)
-				return inputElement.setCustomValidity(this.errorMessages['tooShort']);
+				return inputElement.setCustomValidity(this.errorMessages.get('tooShort') || '');
 			if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength)
-				return inputElement.setCustomValidity(this.errorMessages['tooLong']);
+				return inputElement.setCustomValidity(this.errorMessages.get('tooLong') || '');
 		}
 	}
 
@@ -429,27 +470,18 @@ class FieldGroup {
 		}
 	}
 
-	private parseErrorMessages() {
-		const element = Array.from(this.element.getElementsByTagName('django-error-messages')) as Array<HTMLElement>;
-		if (element.length !== 1)
-			throw new Error(`<django-field-group> for '${this.name}' requires excatly one <django-error-messages> tag.`);
-		for (const key of element[0].getAttributeNames()) {
-			const clientKey = key.replace(/([_][a-z])/g,(group) => group.toUpperCase().replace('_', ''));
-			this.errorMessages[clientKey] = element[0].getAttribute(key);
-		}
-	}
-
 	public setValidationError(): boolean {
-		let element: FieldElement;
+		let element: FieldElement | undefined;
 		for (element of this.inputElements) {
 			if (!element.validity.valid)
 				break;
 		}
-		for (const key in this.errorMessages) {
-			if (element.validity[key]) {
-				const message = this.errorMessages[key];
-				this.errorPlaceholder.innerHTML = message;
-				element.setCustomValidity(message);
+		for (const [key, message] of this.errorMessages) {
+			if (element && element.validity[key as ErrorKey]) {
+				if (this.errorPlaceholder) {
+					this.errorPlaceholder.innerHTML = message;
+					element.setCustomValidity(message);
+				}
 				return false;
 			}
 		}
@@ -459,10 +491,13 @@ class FieldGroup {
 	}
 
 	reportCustomError(message: string) {
-		this.errorPlaceholder.innerHTML = message;
+		if (this.errorPlaceholder) {
+			this.errorPlaceholder.innerHTML = message;
+		}
 		this.inputElements[0].setCustomValidity(message);
 	}
 }
+
 
 class ButtonAction {
 	constructor(func: Function, args: Array<any>) {
@@ -474,6 +509,7 @@ class ButtonAction {
 	public readonly args: Array<any>;
 }
 
+
 class DjangoButton {
 	private readonly formset: DjangoFormset;
 	private readonly element: HTMLButtonElement;
@@ -481,12 +517,12 @@ class DjangoButton {
 	private readonly isAutoDisabled: boolean;
 	private readonly successActions = Array<ButtonAction>(0);
 	private readonly rejectActions = Array<ButtonAction>(0);
-	private timeoutHandler: number;
+	private timeoutHandler?: number;
 
 	constructor(formset: DjangoFormset, element: HTMLButtonElement) {
 		this.formset = formset;
 		this.element = element;
-		this.initialClass = element.getAttribute('class');
+		this.initialClass = element.getAttribute('class') || '';
 		this.isAutoDisabled = !!JSON.parse((element.getAttribute('auto-disable') || 'false').toLowerCase());
 		this.parseActionsQueue(element.getAttribute('click'));
 		element.addEventListener('click', () => this.clicked());
@@ -673,17 +709,20 @@ class DjangoButton {
 		}
 	}
 
-	private parseActionsQueue(actionsQueue: string) {
-		function createActions(actions, chain) {
+	private parseActionsQueue(actionsQueue: string | null) {
+		if (!actionsQueue)
+			return;
+
+		let self = this;
+		function createActions(actions: Array<ButtonAction>, chain: Array<any>) {
 			for (let action of chain) {
-				const func = self[action.funcname];
+				const func = self[action.funcname as keyof DjangoButton];
 				if (typeof func !== 'function')
 					throw new Error(`Unknown function '${action.funcname}'.`);
 				actions.push(new ButtonAction(func, action.args));
 			}
 		}
 
-		let self = this;
 		try {
 			const ast = parse(actionsQueue);
 			createActions(this.successActions, ast.successChain);
@@ -766,50 +805,37 @@ class DjangoForm {
 }
 
 
-@Component({
-	tag: 'django-formset',
-	styleUrl: 'django-formset.scss',
-	shadow: false,
-})
-// valid: This property returns true if the element’s contents are valid and false otherwise.
-// invalid: This property returns true if the element’s contents are invalid and false otherwise.
-//
-// pristine: This property returns true if the element’s contents have not been changed.
-// dirty: This property returns true if the element’s contents have been changed.
-//
-// untouched: This property returns true if the user has not visited the element.
-// touched: This property returns true if the user has visited the element.
-
-// valueMissing: if the element has no value but is a required field.
-// typeMismatch: if the element's value is not in the correct syntax.
-// patternMismatch: if the element's value doesn't match the provided pattern.
-// tooLong: if the element's value is longer than the provided maximum length.
-// tooShort: if the element's value, if it is not the empty string, is shorter than the provided minimum length.
-// rangeUnderflow: if the element's value is lower than the provided minimum.
-// rangeOverflow: if the element's value is higher than the provided maximum.
-// stepMismatch: if the element's value doesn't fit the rules given by the step attribute.
-// badInput: if the user has provided input in the user interface that the user agent is unable to convert to a value.
-// customError: if the element has a custom error.
-export class DjangoFormset {
-	@Element() private element: HTMLElement;
-	@Prop() endpoint: string;
-	@Prop({attribute: 'withhold-messages'}) withholdMessages = false;
-	@Prop({attribute: 'force-submission'}) forceSubmission = false;
+export class DjangoFormset extends HTMLElement {
 	private data = {};
 	private buttons = Array<DjangoButton>(0);
 	private forms = Array<DjangoForm>(0);
-	private abortController: AbortController;
+	private abortController = new AbortController;
+
+	static get observedAttributes() {
+		return ['endpoint', 'withhold-messages', 'force-submission'];
+	}
+
+	public get endpoint(): string {
+		return this.getAttribute('endpoint') || '';
+	}
+
+	public get withholdMessages(): Boolean {
+		return Boolean(JSON.parse(this.getAttribute('withhold-messages') || 'false'));
+	}
+
+	public get forceSubmission(): Boolean {
+		return Boolean(JSON.parse(this.getAttribute('force-submission') || 'false'));
+	}
 
 	connectedCallback() {
-		for (const element of Array.from(this.element.getElementsByTagName('BUTTON')) as Array<HTMLButtonElement>) {
+		for (const element of Array.from(this.getElementsByTagName('BUTTON')) as Array<HTMLButtonElement>) {
 			if (element.hasAttribute('click')) {
 				this.buttons.push(new DjangoButton(this, element));
 			}
 		}
-		for (const element of Array.from(this.element.getElementsByTagName('FORM')) as Array<HTMLFormElement>) {
+		for (const element of Array.from(this.getElementsByTagName('FORM')) as Array<HTMLFormElement>) {
 			this.forms.push(new DjangoForm(this, element));
 		}
-		this.abortController = new AbortController();
 	}
 
 	componentWillLoad() {
@@ -825,12 +851,12 @@ export class DjangoFormset {
 		this.validate();
 	}
 
-	getCSRFToken() {
+	public get CSRFToken(): string {
 		const value = `; ${document.cookie}`;
 		const parts = value.split('; csrftoken=');
 
 		if (parts.length === 2) {
-			return  parts.pop().split(';').shift();
+			return parts.pop().split(';').shift();
 		}
 	}
 
@@ -856,7 +882,6 @@ export class DjangoFormset {
 		return isValid;
 	}
 
-	@Method()
 	public async submit(): Promise<Response | undefined> {
 		let formsAreValid = true;
 		if (!this.forceSubmission) {
@@ -873,7 +898,7 @@ export class DjangoFormset {
 				headers: {
 					'Accept': 'application/json',
 					'Content-Type': 'application/json',
-					'X-CSRFToken': this.getCSRFToken(),
+					'X-CSRFToken': this.CSRFToken,
 				},
 				body: JSON.stringify(this.data),
 				signal: this.abortController.signal,
@@ -900,7 +925,6 @@ export class DjangoFormset {
 	 * Abort the current actions.
 	 *
 	 */
-	@Method()
 	public async abort() {
 		for (const button of this.buttons) {
 			button.abortAction();
@@ -914,7 +938,7 @@ export class DjangoFormset {
 		}
 	}
 
-	public getDataValue(path) {
+	public getDataValue(path: string) {
 		return getDataValue(this.data, path);
 	}
 }

@@ -1,9 +1,12 @@
-@import "variables";
+$django-formset-alert: red;
+$django-formset-warning: orange;
+$django-formset-success: green;
 
 :root {
 	--django-formset-color-invalid: #{$django-formset-alert};
 	--django-formset-color-valid: #{$django-formset-success};
 }
+
 
 django-field-group {
 	$feedback-inputs: 'input[type=email]', 'input[type=text]', 'input[type=number]', 'input[type=date]';

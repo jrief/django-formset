@@ -25,12 +25,10 @@ Thumbs.db
 UserInterfaceState.xcuserstate
 .env
 
-client/components.d.ts
-client/components/django-formset/actions.ts
 coverage/
-formset/static/django-formset/
-formset/static/types/
-formset/static/index.d.ts
+client/django-formset/actions.ts
+formset/static/formset/js/django-formset*
+dist/
 docs/build/
 media/
 testapp/static

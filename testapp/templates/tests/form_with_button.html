@@ -1,0 +1,12 @@
+{% extends "./base.html" %}
+{% load static django_formset %}
+
+{% block "main-content" %}
+<django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}">
+	<form{% if form.name %} name="{{ form.name }}"{% endif %}>
+		{% csrf_token %}
+		{% render_groups form %}
+	</form>
+	<button type="button" click="{{ click_actions }}" class="button">Click Me</button>
+</django-formset>
+{% endblock %}

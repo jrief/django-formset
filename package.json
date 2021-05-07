@@ -1,36 +1,35 @@
 {
   "name": "django-formset",
   "version": "0.0.1",
-  "description": "Stencil Component Starter",
+  "description": "Django-Formset",
   "scripts": {
-    "build": "stencil build --docs --prod",
-    "start": "stencil build --dev --watch --serve",
-    "watch": "stencil build --dev --watch",
-    "generate": "stencil generate",
+    "build": "node client/build.cjs",
+    "build:watch": "node client/build.cjs --watch",
     "tailwindcss": "tailwindcss build assets/tailwind-styles.css -o testapp/static/testapp/tailwind.css",
-    "pegjs": "tspegjs -o client/components/django-formset/actions.ts --custom-header '// @ts-nocheck' assets/actions.pegjs"
-  },
-  "dependencies": {
-    "@stencil/core": "^2.0.1",
-    "@types/lodash": "^4.14.168",
-    "bootstrap": "^4.6.0",
-    "foundation-sites": "^6.6.3",
-    "lodash.get": "^4.4.2",
-    "lodash.template": "^4.5.0"
+    "pegjs": "pegjs -o client/django-formset/actions.ts --extra-options-file pegjsconf.json --plugin ./node_modules/ts-pegjs/src/tspegjs.js assets/actions.pegjs"
   },
   "license": "MIT",
-  "collection": "./formset/static/collection/collection-manifest.json",
-  "main": "./formset/static/index.cjs.js",
-  "module": "./formset/static/index.js",
-  "types": "./formset/static/types/components.d.ts",
+  "dependencies": {
+    "bootstrap": "^4.6.0",
+    "foundation-sites": "^6.6.3"
+  },
   "devDependencies": {
-    "@stencil/sass": "^1.4.1",
     "@tailwindcss/forms": "^0.2.1",
+    "@types/lodash.get": "^4.4.6",
+    "@types/lodash.template": "^4.5.0",
+    "@webcomponents/webcomponentsjs": "^2.5.0",
     "autoprefixer": "^10.2.5",
     "bulma": "^0.9.2",
+    "esbuild": "^0.11.17",
+    "esbuild-plugin-inline-import": "^1.0.1",
+    "esbuild-plugin-sass": "^0.5.0",
+    "lodash.get": "^4.4.2",
+    "lodash.template": "^4.5.0",
     "postcss": "^8.2.8",
+    "sass": "^1.32.12",
     "tailwindcss": "^2.0.4",
     "ts-pegjs": "^0.3.1",
+    "tslib": "^2.2.0",
     "typescript": "^4.1.4"
   }
 }

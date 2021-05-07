@@ -1,0 +1,6 @@
+{
+  "tspegjs": {
+      "customHeader": "// @ts-nocheck"
+  },
+  "optimize": "size"
+}

@@ -1,26 +1,23 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "allowUnreachableCode": false,
-    "declaration": false,
-    "experimentalDecorators": true,
-    "lib": [
-      "dom",
-      "es2018",
-    ],
+    "target": "es2019",
+    "module": "es2015",
     "moduleResolution": "node",
-    "module": "esnext",
-    "target": "es2018",
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "jsx": "react",
-    "jsxFactory": "h"
+    "noEmitOnError": true,
+    "lib": ["es2019", "dom"],
+    "strict": true,
+    "esModuleInterop": false,
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "inlineSources": true,
+    "rootDir": "./",
+    "declaration": true,
+    "declarationMap": true,
+    "incremental": true
   },
   "include": [
-    "client",
-    "types/jsx.d.ts"
-  ],
-  "exclude": [
-    "node_modules"
+    "**/*.ts"
   ]
 }
