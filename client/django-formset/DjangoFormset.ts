@@ -7,7 +7,7 @@ type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
 
 class BoundValue {
-	readonly value: string | Array<string | Object>;
+	declare readonly value: string | Array<string | Object>;
 
 	constructor(value: string | Array<string | Object>) {
 		this.value = value;
@@ -173,6 +173,26 @@ class FileUploadWidget {
 }
 
 
+type ErrorKey = keyof ValidityState;
+
+
+class ErrorMessages extends Map<ErrorKey, string>{
+	constructor(fieldGroup: FieldGroup) {
+		super();
+		const element = Array.from(fieldGroup.element.getElementsByTagName('django-error-messages')) as Array<HTMLElement>;
+		if (element.length !== 1)
+			throw new Error(`<django-field-group> for '${fieldGroup.name}' requires excatly one <django-error-messages> tag.`);
+		for (const attr of element[0].getAttributeNames()) {
+			const clientKey = attr.replace(/([_][a-z])/g, (group) => group.toUpperCase().replace('_', ''));
+			const clientValue = element[0].getAttribute(attr);
+			if (clientValue) {
+				this.set(clientKey as ErrorKey, clientValue);
+			}
+		}
+	}
+}
+
+
 class FieldGroup {
 	declare form: DjangoForm;
 	private pristineValue: BoundValue;
@@ -180,15 +200,15 @@ class FieldGroup {
 	public readonly updateVisibility: Function;
 	public readonly element: HTMLElement;
 	private inputElements: Array<FieldElement>;
-	private errorPlaceholder: Element | null = null;
-	private errorMessages = new Map<string, string>();
+	private errorPlaceholder?: Element;
+	private errorMessages: ErrorMessages;
 	private fileUploader: FileUploadWidget | null = null;
 
 	constructor(form: DjangoForm, element: HTMLElement) {
 		this.form = form;
 		this.element = element;
 		this.findErrorPlaceholder();
-		this.parseErrorMessages();
+		this.errorMessages = new ErrorMessages(this);
 		const requiredAny = element.classList.contains('dj-required-any');
 		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(element => element.type !== 'hidden');
 		for (const element of inputElements) {
@@ -315,7 +335,9 @@ class FieldGroup {
 	}
 
 	private resetCustomError() {
-		this.errorPlaceholder.innerHTML = '';
+		if (this.errorPlaceholder) {
+			this.errorPlaceholder.innerHTML = '';
+		}
 		for (const element of this.inputElements) {
 			if (element.validity.customError)
 				element.setCustomValidity('');
@@ -355,10 +377,10 @@ class FieldGroup {
 				break;
 		}
 		if (element && !element.validity.valid) {
-			for (const key in this.errorMessages) {
-				if (element.validity[key]) {
+			for (const [key, message] of this.errorMessages) {
+				if (element.validity[key as keyof ValidityState]) {
 					if (!this.form.formset.withholdMessages && this.errorPlaceholder) {
-						this.errorPlaceholder.innerHTML = this.errorMessages[key];
+						this.errorPlaceholder.innerHTML = message;
 					}
 					element = null;
 					break;
@@ -379,15 +401,15 @@ class FieldGroup {
 			if ((inputElement as HTMLInputElement).checked) {
 				validity = true;
 			} else {
-				inputElement.setCustomValidity(this.errorMessages['customError']);
+				inputElement.setCustomValidity(this.errorMessages.get('customError') || '');
 			}
 		}
 		if (validity) {
 			for (const inputElement of this.inputElements) {
 				inputElement.setCustomValidity('');
 			}
-		} else if (this.pristineValue !== undefined && !this.form.formset.withholdMessages) {
-			this.errorPlaceholder.innerHTML = this.errorMessages['customError'];
+		} else if (this.pristineValue !== undefined && !this.form.formset.withholdMessages&& this.errorPlaceholder) {
+			this.errorPlaceholder.innerHTML = this.errorMessages.get('customError') || '';
 		}
 		this.form.validate();
 		return validity;
@@ -398,18 +420,24 @@ class FieldGroup {
 		// min- and max-length. Therefore this validation must be performed by the client.
 		if (inputElement.type === 'text' && inputElement.value) {
 			if (inputElement.minLength > 0 && inputElement.value.length < inputElement.minLength) {
-				this.errorPlaceholder.innerHTML = this.errorMessages['tooShort'];
+				if (this.errorPlaceholder) {
+					this.errorPlaceholder.innerHTML = this.errorMessages.get('tooShort') || '';
+				}
 				return false;
 			}
 			if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength) {
-				this.errorPlaceholder.innerHTML = this.errorMessages['tooLong'];
+				if (this.errorPlaceholder) {
+					this.errorPlaceholder.innerHTML = this.errorMessages.get('tooLong') || '';
+				}
 				return false;
 			}
 		}
-		if (inputElement.type === 'file') {
+		if (inputElement.type === 'file' && this.fileUploader) {
 			if (this.fileUploader.inProgress()) {
 				// seems that file upload is still in progress => field shall not be valid
-				this.errorPlaceholder.innerHTML = this.errorMessages['typeMismatch'];
+				if (this.errorPlaceholder) {
+					this.errorPlaceholder.innerHTML = this.errorMessages.get('typeMismatch') || '';
+				}
 				return false;
 			}
 		}
@@ -426,9 +454,9 @@ class FieldGroup {
 			return;
 		if (inputElement.type === 'text') {
 			if (inputElement.minLength > 0 && inputElement.value.length < inputElement.minLength)
-				return inputElement.setCustomValidity(this.errorMessages['tooShort']);
+				return inputElement.setCustomValidity(this.errorMessages.get('tooShort') || '');
 			if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength)
-				return inputElement.setCustomValidity(this.errorMessages['tooLong']);
+				return inputElement.setCustomValidity(this.errorMessages.get('tooLong') || '');
 		}
 	}
 
@@ -442,25 +470,14 @@ class FieldGroup {
 		}
 	}
 
-	private parseErrorMessages() {
-		const element = Array.from(this.element.getElementsByTagName('django-error-messages')) as Array<HTMLElement>;
-		if (element.length !== 1)
-			throw new Error(`<django-field-group> for '${this.name}' requires excatly one <django-error-messages> tag.`);
-		for (const key of element[0].getAttributeNames()) {
-			const clientKey = key.replace(/([_][a-z])/g,(group) => group.toUpperCase().replace('_', ''));
-			this.errorMessages[clientKey] = element[0].getAttribute(key);
-		}
-	}
-
 	public setValidationError(): boolean {
-		let element: FieldElement;
+		let element: FieldElement | undefined;
 		for (element of this.inputElements) {
 			if (!element.validity.valid)
 				break;
 		}
-		for (const key in this.errorMessages) {
-			if (element.validity[key]) {
-				const message = this.errorMessages[key];
+		for (const [key, message] of this.errorMessages) {
+			if (element && element.validity[key as ErrorKey]) {
 				if (this.errorPlaceholder) {
 					this.errorPlaceholder.innerHTML = message;
 					element.setCustomValidity(message);
@@ -500,12 +517,12 @@ class DjangoButton {
 	private readonly isAutoDisabled: boolean;
 	private readonly successActions = Array<ButtonAction>(0);
 	private readonly rejectActions = Array<ButtonAction>(0);
-	private timeoutHandler: number;
+	private timeoutHandler?: number;
 
 	constructor(formset: DjangoFormset, element: HTMLButtonElement) {
 		this.formset = formset;
 		this.element = element;
-		this.initialClass = element.getAttribute('class');
+		this.initialClass = element.getAttribute('class') || '';
 		this.isAutoDisabled = !!JSON.parse((element.getAttribute('auto-disable') || 'false').toLowerCase());
 		this.parseActionsQueue(element.getAttribute('click'));
 		element.addEventListener('click', () => this.clicked());
@@ -692,17 +709,20 @@ class DjangoButton {
 		}
 	}
 
-	private parseActionsQueue(actionsQueue: string) {
-		function createActions(actions, chain) {
+	private parseActionsQueue(actionsQueue: string | null) {
+		if (!actionsQueue)
+			return;
+
+		let self = this;
+		function createActions(actions: Array<ButtonAction>, chain: Array<any>) {
 			for (let action of chain) {
-				const func = self[action.funcname];
+				const func = self[action.funcname as keyof DjangoButton];
 				if (typeof func !== 'function')
 					throw new Error(`Unknown function '${action.funcname}'.`);
 				actions.push(new ButtonAction(func, action.args));
 			}
 		}
 
-		let self = this;
 		try {
 			const ast = parse(actionsQueue);
 			createActions(this.successActions, ast.successChain);
