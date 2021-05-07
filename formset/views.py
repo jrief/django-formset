@@ -24,7 +24,7 @@ class FormsetViewMixin:
 
     def _handle_form_data(self, form_data):
         form_data = json.loads(form_data)
-        form = self.form_class(data=form_data[self.form_class.name])
+        form = self.form_class(data=form_data.get(self.form_class.name, {}))
         if form.is_valid():
             return JsonResponse({'success_url': force_str(self.success_url)})
         else:
