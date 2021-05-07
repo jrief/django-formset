@@ -820,11 +820,11 @@ export class DjangoFormset extends HTMLElement {
 	}
 
 	public get withholdMessages(): Boolean {
-		return Boolean(this.getAttribute('withhold-messages')) || false;
+		return Boolean(JSON.parse(this.getAttribute('withhold-messages') || 'false'));
 	}
 
 	public get forceSubmission(): Boolean {
-		return Boolean(this.getAttribute('force-submission')) || false;
+		return Boolean(JSON.parse(this.getAttribute('force-submission') || 'false'));
 	}
 
 	connectedCallback() {
