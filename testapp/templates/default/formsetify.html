@@ -5,7 +5,6 @@
 <django-formset endpoint="{{ request.path }}" force-submission="false">
 	<form name="{{ form.name }}">
 		{% csrf_token %}
-		{% render_error_placeholder %}
 		{% for field in form|formsetify %}
 		{% render_group field %}
 		{% endfor %}

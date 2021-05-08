@@ -32,6 +32,9 @@ class FormsetErrorList(ErrorList):
     def __str__(self):
         return self.as_ul()
 
+    def __bool__(self):
+        return True
+
 
 class WidgetMixin:
     max_options_per_line = 5
@@ -92,7 +95,7 @@ class FormMixin:
             normal_row = '<django-field-group%(html_class_attr)s>%(label)s%(field)s%(errors)s%(help_text)s</django-field-group>'
         html_element = self._html_output(
             normal_row=normal_row,
-            error_row='<div class="dj-field-error">%s</div>',
+            error_row='<div class="dj-form-errors">%s</div>',
             row_ender='</django-field-group>',
             help_text_html=self.help_text_html,
             errors_on_separate_row=False)

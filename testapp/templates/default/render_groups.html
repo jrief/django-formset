@@ -5,7 +5,6 @@
 <django-formset endpoint="{{ request.path }}" force-submission="false" withhold-messages="false">
 	<form name="{{ form.name }}">
 		{% csrf_token %}
-		{% render_error_placeholder %}
 		{% render_groups form %}
 	</form>
 	{% include "./submit_button.html" %}

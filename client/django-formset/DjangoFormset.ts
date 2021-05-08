@@ -174,7 +174,7 @@ class FileUploadWidget {
 }
 
 
-function findErrorPlaceholder(element: HTMLElement): Element | null {
+function findErrorPlaceholder(element: Element): HTMLElement | null {
 	const errorlist = element.getElementsByClassName('dj-errorlist');
 	for (const listelement of errorlist) {
 		if (listelement.parentElement && listelement.parentElement.isEqualNode(element)) {
@@ -751,7 +751,8 @@ class DjangoForm {
 		this.name = element.getAttribute('name') || '__default__';
 		this.formset = formset;
 		this.element = element;
-		const placeholder = findErrorPlaceholder(element);
+		const formErrors = element.getElementsByClassName('dj-form-errors');
+		const placeholder = formErrors.length > 0 ? findErrorPlaceholder(formErrors[0]) : null;
 		if (placeholder) {
 			this.errorList = placeholder.parentElement;
 			this.errorPlaceholder = this.errorList ? this.errorList.removeChild(placeholder) : null;
