@@ -4,17 +4,20 @@ import template from 'lodash.template';
 
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+type FieldValue = string | Array<string | Object>;
+type ErrorKey = keyof ValidityState;
+
 const NON_FIELD_ERRORS = '__all__'
 
 
 class BoundValue {
-	declare readonly value: string | Array<string | Object>;
+	declare readonly value: FieldValue;
 
-	constructor(value: string | Array<string | Object>) {
+	constructor(value: FieldValue) {
 		this.value = value;
 	}
 
-	equals(other: string | Array<string | Object>) {
+	equals(other: FieldValue) {
 		if (typeof this.value === 'string') {
 			return this.value === other;
 		} else {
@@ -149,7 +152,10 @@ class FileUploadWidget {
 			}
 			request.addEventListener('loadend', transferComplete);
 			request.open('POST', this.field.form.formset.endpoint, true);
-			request.setRequestHeader('X-CSRFToken', this.field.form.formset.CSRFToken);
+			const csrfToken = this.field.form.formset.CSRFToken;
+			if (csrfToken) {
+				request.setRequestHeader('X-CSRFToken', csrfToken);
+			}
 			request.responseType = 'json';
 			request.send(body);
 		});
@@ -186,8 +192,6 @@ function findErrorPlaceholder(element: Element): HTMLElement | null {
 	}
 	return null;
 }
-
-type ErrorKey = keyof ValidityState;
 
 
 class ErrorMessages extends Map<ErrorKey, string>{
@@ -282,7 +286,7 @@ class FieldGroup {
 		this.setPristine();
 	}
 
-	public aggregateValue(): string | Array<string | Object> {
+	public aggregateValue(): FieldValue {
 		if (this.inputElements.length === 1) {
 			const element = this.inputElements[0];
 			if (element.type === 'checkbox') {
@@ -538,22 +542,24 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private clicked() {
-		let promise: Promise<any>;
+		let promise: Promise<Response> | undefined;
 		for (const [index, action] of this.successActions.entries()) {
-			if (index === 0) {
+			if (!promise) {
 				promise = action.func.apply(this, action.args)();
 			} else {
 				promise = promise.then(action.func.apply(this, action.args));
 			}
 		}
-		for (const [index, action] of this.rejectActions.entries()) {
-			if (index === 0) {
-				promise = promise.catch(action.func.apply(this, action.args));
-			} else {
-				promise = promise.then(action.func.apply(this, action.args));
+		if (promise) {
+			for (const [index, action] of this.rejectActions.entries()) {
+				if (index === 0) {
+					promise = promise.catch(action.func.apply(this, action.args));
+				} else {
+					promise = promise.then(action.func.apply(this, action.args));
+				}
 			}
+			promise.finally(this.restore.apply(this));
 		}
-		promise.finally(this.restore.apply(this));
 	}
 
 	autoDisable(formValidity: Boolean) {
@@ -567,7 +573,7 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private disable() {
-		return response => {
+		return (response: Response) => {
 			this.element.disabled = true;
 			return Promise.resolve(response);
 		};
@@ -578,7 +584,7 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	enable() {
-		return response => {
+		return (response: Response) => {
 			this.element.disabled = false;
 			return Promise.resolve(response);
 		};
@@ -608,7 +614,7 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private proceed(fallbackUrl: string | undefined) {
-		return response => {
+		return (response: Response) => {
 			if (response instanceof Response && response.status === 200) {
 				response.json().then(body => {
 					if ('success_url' in body) {
@@ -630,8 +636,8 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private delay(ms: number) {
-		return response => new Promise(resolve => this.timeoutHandler = setTimeout(() => {
-			this.timeoutHandler = null;
+		return (response: Response) => new Promise(resolve => this.timeoutHandler = setTimeout(() => {
+			this.timeoutHandler = undefined;
 			resolve(response);
 		}, ms));
 	}
@@ -639,7 +645,7 @@ class DjangoButton {
 	public abortAction() {
 		if (this.timeoutHandler) {
 			clearTimeout(this.timeoutHandler);
-			this.timeoutHandler = null;
+			this.timeoutHandler = undefined;
 		}
 	}
 
@@ -650,7 +656,7 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private addClass(cssClass: string) {
-		return response => {
+		return (response: Response) => {
 			this.element.classList.add(cssClass);
 			return Promise.resolve(response);
 		};
@@ -663,7 +669,7 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private removeClass(cssClass: string) {
-		return response => {
+		return (response: Response) => {
 			this.element.classList.remove(cssClass);
 			return Promise.resolve(response);
 		};
@@ -676,7 +682,7 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private toggleClass(cssClass: string) {
-		return response => {
+		return (response: Response) => {
 			this.element.classList.toggle(cssClass);
 			return Promise.resolve(response);
 		};
@@ -689,7 +695,7 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private emit(namedEvent: string, data: any) {
-		return response => {
+		return (response: Response) => {
 			const event = data instanceof Object ? new CustomEvent(namedEvent, data) : new Event(namedEvent);
 			this.element.dispatchEvent(event);
 			return Promise.resolve(response);
@@ -701,7 +707,7 @@ class DjangoButton {
  	 */
 	// @ts-ignore
 	private intercept() {
-		return response => {
+		return (response: Response) => {
 			console.info(response);
 			return Promise.resolve(response);
 		}
@@ -764,15 +770,15 @@ class DjangoForm {
 		}
 	}
 
-	aggregateValues() {
-		const data = {};
+	aggregateValues(): Map<string, FieldValue> {
+		const data = new Map<string, FieldValue>();
 		for (const fieldGroup of this.fieldGroups) {
-			data[fieldGroup.name] = fieldGroup.aggregateValue();
+			data.set(fieldGroup.name, fieldGroup.aggregateValue());
 		}
 		// hidden fields are not handled by a django-field-group
 		for (const element of Array.from(this.element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>) {
 			if (element.type === 'hidden') {
-				data[element.name] = element.value;
+				data.set(element.name, element.value);
 			}
 		}
 		return data;
@@ -816,17 +822,19 @@ class DjangoForm {
 		}
 	}
 
-	reportCustomErrors(errors: Object) {
-		if (errors[NON_FIELD_ERRORS] instanceof Array && this.errorPlaceholder) {
-			for (const message of errors[NON_FIELD_ERRORS]) {
+	reportCustomErrors(errors: Map<string, Array<string>>) {
+		const nonFieldErrors = errors.get(NON_FIELD_ERRORS);
+		if (this.errorList && nonFieldErrors instanceof Array && this.errorPlaceholder) {
+			for (const message of nonFieldErrors) {
 				const item = this.errorPlaceholder.cloneNode() as Element;
 				item.innerHTML = message;
 				this.errorList.appendChild(item);
 			}
 		}
 		for (const fieldGroup of this.fieldGroups) {
-			if (errors[fieldGroup.name] instanceof Array && errors[fieldGroup.name].length > 0) {
-				fieldGroup.reportCustomError(errors[fieldGroup.name][0]);
+			const fieldErrors = errors.get(fieldGroup.name);
+			if (fieldErrors instanceof Array && fieldErrors.length > 0) {
+				fieldGroup.reportCustomError(fieldErrors[0]);
 			}
 		}
 	}
@@ -879,20 +887,21 @@ export class DjangoFormset extends HTMLElement {
 		this.validate();
 	}
 
-	public get CSRFToken(): string {
+	public get CSRFToken(): string | undefined {
 		const value = `; ${document.cookie}`;
 		const parts = value.split('; csrftoken=');
 
 		if (parts.length === 2) {
-			return parts.pop().split(';').shift();
+			return parts[1].split(';').shift();
 		}
 	}
 
 	private aggregateValues() {
-		this.data = {};
+		const data = new Map<string, Object>();
 		for (const form of this.forms) {
-			this.data[form.name] = form.aggregateValues();
+			data.set(form.name, Object.fromEntries(form.aggregateValues()));
 		}
+		this.data = Object.fromEntries(data);
 		for (const form of this.forms) {
 			form.updateVisibility();
 		}
@@ -921,13 +930,16 @@ export class DjangoFormset extends HTMLElement {
 		if (formsAreValid) {
 			if (!this.endpoint)
 				throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
+			const headers = new Headers();
+			headers.append('Accept', 'application/json');
+			headers.append('Content-Type', 'application/json');
+			const csrfToken = this.CSRFToken;
+			if (csrfToken) {
+				headers.append('X-CSRFToken', csrfToken);
+			}
 			const response = await fetch(this.endpoint, {
 				method: 'POST',
-				headers: {
-					'Accept': 'application/json',
-					'Content-Type': 'application/json',
-					'X-CSRFToken': this.CSRFToken,
-				},
+				headers: headers,
 				body: JSON.stringify(this.data),
 				signal: this.abortController.signal,
 			});
@@ -935,7 +947,7 @@ export class DjangoFormset extends HTMLElement {
 				response.json().then(body => {
 					for (const form of this.forms) {
 						if (form.name in body) {
-							form.reportCustomErrors(body[form.name]);
+							form.reportCustomErrors(new Map(Object.entries(body[form.name])));
 							form.reportValidity();
 						}
 					}
