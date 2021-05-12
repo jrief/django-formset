@@ -86,7 +86,7 @@ class FileUploadWidget {
 	}
 
 	private fileRemove = () => {
-		this.inputElement.value = '';  // also clears `this.inputElement.files`
+		this.inputElement.value = '';  // used to clear readonly `this.inputElement.files`
 		this.uploadedFiles = [];
 		while (this.dropbox.firstChild) {
 			this.dropbox.removeChild(this.dropbox.firstChild);
@@ -636,7 +636,7 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private delay(ms: number) {
-		return (response: Response) => new Promise(resolve => this.timeoutHandler = setTimeout(() => {
+		return (response: Response) => new Promise(resolve => this.timeoutHandler = window.setTimeout(() => {
 			this.timeoutHandler = undefined;
 			resolve(response);
 		}, ms));
