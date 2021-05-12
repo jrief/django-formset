@@ -44,6 +44,7 @@ def test_upload_file(page, mocker):
     file_picture = dropbox.query_selector('li.dj-file-picture')
     assert file_picture is not None
     img_src = file_picture.query_selector('img').get_attribute('src')
+    print(img_src)
     match = re.match(r'^/((media/upload_temp/python-django\.[a-z0-9_]+?)_154x128(.png))$', img_src)
     assert match is not None
     thumbnail_url = match.group(1)
