@@ -40,11 +40,10 @@ def test_upload_file(page, mocker):
     dropbox = page.query_selector('django-formset form ul.dj-dropbox')
     assert dropbox.inner_html() == '<li class="dj-empty-item">Drag file here</li>'
     page.set_input_files('django-formset form input#id_file', 'testapp/assets/python-django.png')
-    sleep(0.1)
-    file_picture = dropbox.query_selector('li.dj-file-picture')
+    file_picture = page.wait_for_selector('li.dj-file-picture')
     assert file_picture is not None
+    print(dropbox.inner_html())
     img_src = file_picture.query_selector('img').get_attribute('src')
-    print(img_src)
     match = re.match(r'^/((media/upload_temp/python-django\.[a-z0-9_]+?)_154x128(.png))$', img_src)
     assert match is not None
     thumbnail_url = match.group(1)
