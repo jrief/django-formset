@@ -72,7 +72,7 @@ class FormsetViewMixin:
 
             image = Image.open(image_path)
         except Exception:
-            return staticfiles_storage.url('formset/icons/file-picture.pdf')
+            return staticfiles_storage.url('formset/icons/file-picture.svg')
         else:
             height = int(image_height) if image_height else self.thumbnail_max_height
             height = min(height, self.thumbnail_max_height)
