@@ -14,6 +14,7 @@ class FormsetViewMixin:
     upload_temp_dir = default_storage.base_location / 'upload_temp'
     filename_max_length = 50
     thumbnail_max_height = 200
+    thumbnail_max_width = 400
 
     def post(self, request, **kwargs):
         if request.content_type == 'application/json':
@@ -75,11 +76,11 @@ class FormsetViewMixin:
             return staticfiles_storage.url('formset/icons/file-picture.svg')
         else:
             height = int(image_height) if image_height else self.thumbnail_max_height
-            height = min(height, self.thumbnail_max_height)
-            size = int(round(image.width * height / image.height)), height
-            thumb = ImageOps.fit(image, size)
+            width = int(round(image.width * height / image.height))
+            width, height = min(width, self.thumbnail_max_width), min(height, self.thumbnail_max_height)
+            thumb = ImageOps.fit(image, (width, height))
             base, ext = os.path.splitext(image_path)
-            size = 'x'.join(str(s) for s in size)
+            size = f'{width}x{height}'
             thumb_path = f'{base}_{size}{ext}'
             thumb.save(thumb_path)
             thumb_path = os.path.relpath(thumb_path, default_storage.location)
