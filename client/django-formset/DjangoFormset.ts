@@ -11,7 +11,7 @@ const NON_FIELD_ERRORS = '__all__'
 
 
 class BoundValue {
-	declare readonly value: FieldValue;
+	public readonly value: FieldValue;
 
 	constructor(value: FieldValue) {
 		this.value = value;
@@ -28,13 +28,13 @@ class BoundValue {
 
 
 class FileUploadWidget {
-	declare private field: FieldGroup;
+	private readonly field: FieldGroup;
 	private readonly inputElement: HTMLInputElement;
-	private dropbox: HTMLUListElement;
-	private chooseFileButton: HTMLButtonElement;
-	private progressBar: HTMLDivElement | null = null;
-	private dropboxItemTemplate: Function;
-	private defaultDropboxItem: HTMLLIElement;
+	private readonly dropbox: HTMLUListElement;
+	private readonly chooseFileButton: HTMLButtonElement;
+	private readonly progressBar: HTMLDivElement | null = null;
+	private readonly dropboxItemTemplate: Function;
+	private readonly defaultDropboxItem: HTMLLIElement;
 	public uploadedFiles: Array<Object>;
 
 	constructor(fieldGroup: FieldGroup, inputElement: HTMLInputElement) {
@@ -212,11 +212,11 @@ class ErrorMessages extends Map<ErrorKey, string>{
 
 
 class FieldGroup {
-	declare form: DjangoForm;
-	private pristineValue: BoundValue;
+	public readonly form: DjangoForm;
 	public readonly name: string = '__undefined__';
 	public readonly updateVisibility: Function;
 	public readonly element: HTMLElement;
+	private readonly pristineValue: BoundValue;
 	private readonly inputElements: Array<FieldElement>;
 	private readonly errorPlaceholder: Element | null;
 	private readonly errorMessages: ErrorMessages;
@@ -562,7 +562,7 @@ class DjangoButton {
 		}
 	}
 
-	autoDisable(formValidity: Boolean) {
+	public autoDisable(formValidity: Boolean) {
 		if (this.isAutoDisabled) {
 			this.element.disabled = !formValidity;
 		}
@@ -841,50 +841,50 @@ class DjangoForm {
 }
 
 
-export class DjangoFormset extends HTMLElement {
-	private data = {};
+class DjangoFormset {
+	private readonly element: DjangoFormsetElement;
 	private readonly buttons = Array<DjangoButton>(0);
 	private readonly forms = Array<DjangoForm>(0);
 	private readonly abortController = new AbortController;
+	private data = {};
 
-	static get observedAttributes() {
-		return ['endpoint', 'withhold-messages', 'force-submission'];
+	constructor(formset: DjangoFormsetElement) {
+		this.element = formset;
 	}
 
 	public get endpoint(): string {
-		return this.getAttribute('endpoint') || '';
+		return this.element.getAttribute('endpoint') || '';
 	}
 
 	public get withholdMessages(): Boolean {
-		return Boolean(JSON.parse(this.getAttribute('withhold-messages') || 'false'));
+		return Boolean(JSON.parse(this.element.getAttribute('withhold-messages') || 'false'));
 	}
 
 	public get forceSubmission(): Boolean {
-		return Boolean(JSON.parse(this.getAttribute('force-submission') || 'false'));
+		return Boolean(JSON.parse(this.element.getAttribute('force-submission') || 'false'));
 	}
 
-	connectedCallback() {
-		for (const element of Array.from(this.getElementsByTagName('BUTTON')) as Array<HTMLButtonElement>) {
-			if (element.hasAttribute('click')) {
-				this.buttons.push(new DjangoButton(this, element));
-			}
-		}
-		for (const element of Array.from(this.getElementsByTagName('FORM')) as Array<HTMLFormElement>) {
+	public findForms() {
+		for (const element of Array.from(this.element.getElementsByTagName('FORM')) as Array<HTMLFormElement>) {
 			this.forms.push(new DjangoForm(this, element));
 		}
 	}
 
-	componentWillLoad() {
+	public findButtons() {
+		for (const element of Array.from(this.element.getElementsByTagName('BUTTON')) as Array<HTMLButtonElement>) {
+			if (element.hasAttribute('click')) {
+				this.buttons.push(new DjangoButton(this, element));
+			}
+		}
+	}
+
+	public connectForms() {
 		const formNames = Array<string>(0);
 		for (const form of this.forms) {
 			if (form.name in formNames)
 				throw new Error(`Detected more than one <form name="${form.name}"> in <django-formset>`);
 			formNames.push(form.name);
 		}
-	}
-
-	componentDidLoad() {
-		this.validate();
 	}
 
 	public get CSRFToken(): string | undefined {
@@ -963,9 +963,8 @@ export class DjangoFormset extends HTMLElement {
 
 	/**
 	 * Abort the current actions.
-	 *
 	 */
-	public async abort() {
+	public abort() {
 		for (const button of this.buttons) {
 			button.abortAction();
 		}
@@ -980,5 +979,42 @@ export class DjangoFormset extends HTMLElement {
 
 	public getDataValue(path: string) {
 		return getDataValue(this.data, path);
+	}
+}
+
+
+const FS = Symbol('DjangoFormset');
+
+export class DjangoFormsetElement extends HTMLElement {
+	private readonly [FS]: DjangoFormset;  // hides internal implementation
+
+	constructor() {
+		super();
+		this[FS] = new DjangoFormset(this);
+	}
+
+	private static get observedAttributes() {
+		return ['endpoint', 'withhold-messages', 'force-submission'];
+	}
+
+	private connectedCallback() {
+		this[FS].findButtons();
+		this[FS].findForms();
+	}
+
+	private componentWillLoad() {
+		this[FS].connectForms();
+	}
+
+	private componentDidLoad() {
+		this[FS].validate();
+	}
+
+	public async submit(): Promise<Response | undefined> {
+		return this[FS].submit();
+	}
+
+	public async abort() {
+		return this[FS].abort();
 	}
 }
