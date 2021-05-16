@@ -19,6 +19,7 @@ log.txt
 __pycache__/
 node_modules/
 $RECYCLE.BIN/
+tsconfig.tsbuildinfo
 
 .DS_Store
 Thumbs.db
