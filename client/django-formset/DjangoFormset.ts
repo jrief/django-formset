@@ -74,7 +74,11 @@ class FileUploadWidget {
 		this.dropbox.addEventListener('dragover', this.swallowEvent);
 		this.dropbox.addEventListener('drop', this.fileDrop);
 		this.chooseFileButton.addEventListener('click', () => inputElement.click());
-		inputElement.addEventListener('change', () => this.uploadFiles(this.inputElement.files).then(() => this.field.validate()));
+		inputElement.addEventListener('change', () => this.uploadFiles(this.inputElement.files).then(() => {
+			this.field.validate();
+		}).catch(() => {
+			this.field.reportFailedUpload();
+		}));
 	}
 
 	private fileDrop = (event: DragEvent) => {
@@ -111,6 +115,8 @@ class FileUploadWidget {
 					this.renderDropbox();
 					this.field.inputted();
 					resolve();
+				}).catch(() => {
+					reject();
 				});
 			} else {
 				reject();
@@ -499,11 +505,17 @@ class FieldGroup {
 		return true;
 	}
 
-	reportCustomError(message: string) {
+	public reportCustomError(message: string) {
 		if (this.errorPlaceholder) {
 			this.errorPlaceholder.innerHTML = message;
 		}
 		this.inputElements[0].setCustomValidity(message);
+	}
+
+	public reportFailedUpload() {
+		if (this.errorPlaceholder) {
+			this.errorPlaceholder.innerHTML = this.errorMessages.get('badInput') || "File upload failed";
+		}
 	}
 }
 

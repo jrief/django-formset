@@ -92,5 +92,9 @@ class BoundField(boundfield.BoundField):
             client_messages['step_mismatch'] = _("Input value must be a multiple of {step_value}.").format(**data)
         client_messages['bad_input'] = validators.ProhibitNullCharactersValidator.message
         if isinstance(self.field.widget, UploadedFileInput):
-            client_messages['type_mismatch'] = _("File upload still in progress.")
+            # abuse built-in client errors for failed file upload messages
+            client_messages.update(
+                type_mismatch=_("File upload still in progress."),
+                bad_input=_("File upload failed."),
+            )
         return client_messages
