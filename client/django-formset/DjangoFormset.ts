@@ -877,8 +877,13 @@ class DjangoFormset {
 	}
 
 	public findForms() {
+		const formNames = Array<string>(0);
 		for (const element of Array.from(this.element.getElementsByTagName('FORM')) as Array<HTMLFormElement>) {
-			this.forms.push(new DjangoForm(this, element));
+			const form = new DjangoForm(this, element);
+			if (form.name in formNames)
+				throw new Error(`Detected more than one <form name="${form.name}"> in <django-formset>`);
+			this.forms.push(form);
+			formNames.push(form.name);
 		}
 	}
 
@@ -887,15 +892,6 @@ class DjangoFormset {
 			if (element.hasAttribute('click')) {
 				this.buttons.push(new DjangoButton(this, element));
 			}
-		}
-	}
-
-	public connectForms() {
-		const formNames = Array<string>(0);
-		for (const form of this.forms) {
-			if (form.name in formNames)
-				throw new Error(`Detected more than one <form name="${form.name}"> in <django-formset>`);
-			formNames.push(form.name);
 		}
 	}
 
@@ -1012,14 +1008,7 @@ export class DjangoFormsetElement extends HTMLElement {
 	private connectedCallback() {
 		this[FS].findButtons();
 		this[FS].findForms();
-	}
-
-	private componentWillLoad() {
-		this[FS].connectForms();
-	}
-
-	private componentDidLoad() {
-		this[FS].validate();
+		window.setTimeout(() => this[FS].validate(), 0);
 	}
 
 	public async submit(): Promise<Response | undefined> {
