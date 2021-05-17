@@ -102,6 +102,15 @@ def test_upload_broken_image(page):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
+def test_upload_required(page):
+    field_group = page.query_selector('django-formset django-field-group')
+    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    error_placeholder = field_group.wait_for_selector('.dj-errorlist .dj-placeholder')
+    assert error_placeholder.inner_html() == "This field is required."
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['upload'])
 def test_delete_uploaded_file(page):
     field_group = page.query_selector('django-formset django-field-group')
     page.set_input_files('django-formset form input#id_file', 'testapp/assets/python-django.png')
