@@ -1,6 +1,6 @@
 from collections import namedtuple
-import pytest
 import json
+import pytest
 
 from django.forms import fields, Form, widgets
 from django.urls import path

@@ -1,3 +1,4 @@
+import json
 import pytest
 from time import sleep
 
@@ -8,7 +9,8 @@ from formset.views import FormsetView
 
 
 class SampleForm(Form):
-   enter = fields.CharField()
+    name = 'sample_form'
+    enter = fields.CharField()
 
 
 views = {
@@ -16,14 +18,21 @@ views = {
         template_name='tests/form_with_button.html',
         form_class=SampleForm,
         success_url='/success',
-        extra_context={'click_actions': click_actions},
+        extra_context={'click_actions': click_actions, 'auto_disable': False},
     )
     for ctr, click_actions in enumerate([
         'disable -> delay(100)',
         'addClass("foo") -> delay(100)',
         'removeClass("button") -> delay(100)',
+        'toggleClass("button") -> delay(10) -> toggleClass("foo") -> delay(10) -> toggleClass("bar") -> delay(10) -> toggleClass("foo") -> delay(10) -> toggleClass("bar") -> delay(10)'
     ])
 }
+views['test_button_submit'] = FormsetView.as_view(
+    template_name='tests/form_with_button.html',
+    form_class=SampleForm,
+    success_url='/success',
+    extra_context={'click_actions': 'submit', 'auto_disable': True},
+)
 
 urlpatterns = [path(name, view, name=name) for name, view in views.items()]
 
@@ -63,3 +72,52 @@ def test_button_remove_class(page):
     sleep(0.15)
     # as a final action, <button> restores its state
     assert 'button' in button_elem.get_attribute('class')
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['test_button_3'])
+def test_button_toggle_class(page):
+    formset = page.query_selector('django-formset')
+    button_elem = formset.query_selector('button.button')
+    assert button_elem is not None
+    button_elem.click()
+    button_elem = formset.wait_for_selector('button:not(.button)')
+    assert button_elem is not None
+    button_elem = formset.wait_for_selector('button.foo')
+    assert button_elem is not None
+    button_elem = formset.wait_for_selector('button.foo.bar')
+    assert button_elem is not None
+    button_elem = formset.wait_for_selector('button.bar:not(.foo)')
+    assert button_elem is not None
+    button_elem = formset.wait_for_selector('button:not(.foo):not(.bar)')
+    assert button_elem is not None
+    button_elem = formset.wait_for_selector('button.button')
+    assert button_elem is not None
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['test_button_submit'])
+def test_button_autodisable(page):
+    button_elem = page.query_selector('django-formset button:disabled')
+    assert button_elem is not None
+    input_elem = page.query_selector('django-formset #id_enter')
+    assert input_elem is not None
+    input_elem.type("A")
+    input_elem.evaluate('elem => elem.blur()')
+    button_elem = page.query_selector('django-formset button:enabled')
+    assert button_elem is not None
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['test_button_submit'])
+def test_button_submit(page, mocker):
+    input_elem = page.query_selector('django-formset #id_enter')
+    assert input_elem is not None
+    input_elem.type("A")
+    input_elem.evaluate('elem => elem.blur()')
+    button_elem = page.query_selector('django-formset button')
+    assert button_elem is not None
+    spy = mocker.spy(FormsetView, 'post')
+    page.wait_for_selector('django-formset button').click()
+    request = json.loads(spy.call_args.args[1].body)
+    assert request['sample_form']['enter'] == "A"

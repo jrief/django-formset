@@ -7,6 +7,6 @@
 		{% csrf_token %}
 		{% render_groups form %}
 	</form>
-	<button type="button" click="{{ click_actions }}" class="button">Click Me</button>
+	<button type="button" click="{{ click_actions }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="button">Click Me</button>
 </django-formset>
 {% endblock %}
