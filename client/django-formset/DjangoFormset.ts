@@ -617,7 +617,7 @@ class DjangoButton {
 	}
 
 	/**
-	 * Proceed to a given URL, if the response object returs status code 200.
+	 * Proceed to a given URL, if the response object returns status code 200.
 	 * If the response object contains an element `success_url`, proceed to that URL,
 	 * otherwise proceed to the given fallback URL.
 	 *
