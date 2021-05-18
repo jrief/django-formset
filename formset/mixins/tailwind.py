@@ -15,7 +15,9 @@ class FormMixin(default.CheckboxFormMixin, default.FormMixin):
     Class to mix into a Django ``Form`` or ``ModelForm`` class.
 
     Adopt styles by editing assets/tailwind-styles.css and recompile using:
-    ``npm run tailwindcss``
+    ```
+    npm run tailwindcss
+    ```
     """
     field_css_classes = 'mb-5'
     label_css_classes = 'formset-label'

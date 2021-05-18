@@ -21,13 +21,15 @@ class FormsetErrorList(ErrorList):
         return copy
 
     def as_ul(self):
-        lis = format_html_join('', '<li>{}</li>', ((e,) for e in self))
+        list_items = format_html_join('', '<li>{}</li>', ((e,) for e in self))
         if hasattr(self, 'client_messages'):
             return format_html(
-                '<django-error-messages {}></django-error-messages><ul class="dj-errorlist"><li class="dj-placeholder"></li>{}</ul>',
-                format_html_join(' ', '{0}="{1}"', ((key, value) for key, value in self.client_messages.items())), lis
+                '<django-error-messages {}></django-error-messages>' +
+                '<ul class="dj-errorlist"><li class="dj-placeholder"></li>{}</ul>',
+                format_html_join(' ', '{0}="{1}"', ((key, value) for key, value in self.client_messages.items())),
+                list_items
             )
-        return format_html('<ul class="dj-errorlist"><li class="dj-placeholder"></li>{}</ul>', lis)
+        return format_html('<ul class="dj-errorlist"><li class="dj-placeholder"></li>{}</ul>', list_items)
 
     def __str__(self):
         return self.as_ul()
@@ -68,6 +70,7 @@ class WidgetMixin:
     def render(self, name, value, attrs=None, renderer=None):
         if not hasattr(self, 'template_name'):
             return super().render(name, value, attrs, renderer)
+
         # remap templates of widgets
         template_name = self.template_mapping.get(self.__class__.__name__, self.template_name)
         context = self.get_context(name, value, attrs)
@@ -127,7 +130,7 @@ class FormMixin:
         if css_classes:
             attrs['class'] = ' '.join(css_classes)
 
-        # some fields need a modified context
+        # RegexField needs a modified context
         regex = getattr(bound_field.field, 'regex', None)
         if regex:
             attrs['pattern'] = regex.pattern
