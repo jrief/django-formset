@@ -708,7 +708,8 @@ class DjangoButton {
 	// @ts-ignore
 	private emit(namedEvent: string, data: any) {
 		return (response: Response) => {
-			const event = data instanceof Object ? new CustomEvent(namedEvent, data) : new Event(namedEvent);
+			const options = {bubbles: true, cancelable: true};
+			const event = data instanceof Object ? new CustomEvent(namedEvent, data) : new Event(namedEvent, options);
 			this.element.dispatchEvent(event);
 			return Promise.resolve(response);
 		};

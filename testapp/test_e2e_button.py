@@ -24,7 +24,8 @@ views = {
         'disable -> delay(100)',
         'addClass("foo") -> delay(100)',
         'removeClass("button") -> delay(100)',
-        'toggleClass("button") -> delay(10) -> toggleClass("foo") -> delay(10) -> toggleClass("bar") -> delay(10) -> toggleClass("foo") -> delay(10) -> toggleClass("bar") -> delay(10)'
+        'toggleClass("button") -> delay(10) -> toggleClass("foo") -> delay(10) -> toggleClass("bar") -> delay(10) -> toggleClass("foo") -> delay(10) -> toggleClass("bar") -> delay(10)',
+        'emit("my_submit")',
     ])
 }
 views['test_button_submit'] = FormsetView.as_view(
@@ -96,6 +97,16 @@ def test_button_toggle_class(page):
 
 
 @pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['test_button_4'])
+def test_button_event(page, mocker):
+    magic_mock = mocker.MagicMock()
+    page.expose_function('handle_my_submit', lambda s: magic_mock(s))
+    page.evaluate('document.addEventListener("my_submit", () => handle_my_submit("button_clicked"))')
+    page.click('django-formset button')
+    magic_mock.assert_called_with('button_clicked')
+
+
+@pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_submit'])
 def test_button_autodisable(page):
     button_elem = page.query_selector('django-formset button:disabled')
@@ -111,7 +122,7 @@ def test_button_autodisable(page):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_submit'])
 def test_button_submit(page, mocker):
-    input_elem = page.query_selector('django-formset #id_enter')
+    input_elem = page.query_selector('#id_enter')
     assert input_elem is not None
     input_elem.type("A")
     input_elem.evaluate('elem => elem.blur()')
