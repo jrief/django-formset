@@ -25,7 +25,8 @@ views = {
         'addClass("foo") -> delay(100)',
         'removeClass("button") -> delay(100)',
         'toggleClass("button") -> delay(10) -> toggleClass("foo") -> delay(10) -> toggleClass("bar") -> delay(10) -> toggleClass("foo") -> delay(10) -> toggleClass("bar") -> delay(10)',
-        'emit("my_submit")',
+        'emit("my_event")',
+        'emit("my_event", {foo: "bar"})',
     ])
 }
 views['test_button_submit'] = FormsetView.as_view(
@@ -98,12 +99,22 @@ def test_button_toggle_class(page):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_4'])
-def test_button_event(page, mocker):
+def test_button_emit_event(page, mocker):
     magic_mock = mocker.MagicMock()
-    page.expose_function('handle_my_submit', lambda s: magic_mock(s))
-    page.evaluate('document.addEventListener("my_submit", () => handle_my_submit("button_clicked"))')
+    page.expose_function('handle_emit_4', lambda s: magic_mock(s))
+    page.evaluate('document.addEventListener("my_event", () => handle_emit_4("button_clicked"))')
     page.click('django-formset button')
     magic_mock.assert_called_with('button_clicked')
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['test_button_5'])
+def test_button_emit_custom_event(page, mocker):
+    magic_mock = mocker.MagicMock()
+    page.expose_function('handle_emit_5', lambda s: magic_mock(s))
+    page.evaluate('document.addEventListener("my_event", event => handle_emit_5(event.detail))')
+    page.click('django-formset button')
+    magic_mock.assert_called_with({'foo': 'bar'})
 
 
 @pytest.mark.urls(__name__)

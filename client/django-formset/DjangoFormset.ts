@@ -706,11 +706,15 @@ class DjangoButton {
 	 * @param event: The named event.
 	 */
 	// @ts-ignore
-	private emit(namedEvent: string, data: any) {
+	private emit(namedEvent: string, detail: Object | undefined) {
 		return (response: Response) => {
 			const options = {bubbles: true, cancelable: true};
-			const event = data instanceof Object ? new CustomEvent(namedEvent, data) : new Event(namedEvent, options);
-			this.element.dispatchEvent(event);
+			if (detail !== undefined) {
+				Object.assign(options, {detail: detail});
+				this.element.dispatchEvent(new CustomEvent(namedEvent, options));
+			} else {
+				this.element.dispatchEvent(new Event(namedEvent, options));
+			}
 			return Promise.resolve(response);
 		};
 	}
