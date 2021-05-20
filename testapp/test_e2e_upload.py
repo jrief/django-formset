@@ -112,11 +112,11 @@ def test_upload_required(page):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_delete_uploaded_file(page):
-    field_group = page.query_selector('django-formset django-field-group')
     page.set_input_files('django-formset form input#id_file', 'testapp/assets/python-django.png')
-    delete_button = field_group.wait_for_selector('li.dj-file-caption a.dj-delete-file')
+    page.wait_for_selector('ul.dj-dropbox li.dj-file-picture')
+    delete_button = page.wait_for_selector('ul.dj-dropbox li.dj-file-caption a.dj-delete-file')
     delete_button.click()
-    empty_item = field_group.wait_for_selector('ul.dj-dropbox li.dj-empty-item')
+    empty_item = page.wait_for_selector('ul.dj-dropbox li.dj-empty-item')
     assert empty_item is not None
 
 
