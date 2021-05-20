@@ -24,7 +24,7 @@ views = {
         'disable -> delay(100)',
         'addClass("foo") -> delay(100)',
         'removeClass("button") -> delay(100)',
-        'toggleClass("button") -> delay(10) -> toggleClass("foo") -> delay(10) -> toggleClass("bar") -> delay(10) -> toggleClass("foo") -> delay(10) -> toggleClass("bar") -> delay(10)',
+        'toggleClass("button") -> delay(50) -> toggleClass("foo") -> delay(50) -> toggleClass("bar") -> delay(50) -> toggleClass("foo") -> delay(50) -> toggleClass("bar") -> delay(50)',
         'emit("my_event")',
         'emit("my_event", {foo: "bar"})',
     ])
@@ -79,21 +79,18 @@ def test_button_remove_class(page):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_3'])
 def test_button_toggle_class(page):
-    formset = page.query_selector('django-formset')
-    button_elem = formset.query_selector('button.button')
+    page.click('django-formset button.button')
+    button_elem = page.wait_for_selector('django-formset button:not(.button)')
     assert button_elem is not None
-    button_elem.click()
-    button_elem = formset.wait_for_selector('button:not(.button)')
+    button_elem = page.wait_for_selector('django-formset button.foo')
     assert button_elem is not None
-    button_elem = formset.wait_for_selector('button.foo')
+    button_elem = page.wait_for_selector('django-formset button.foo.bar')
     assert button_elem is not None
-    button_elem = formset.wait_for_selector('button.foo.bar')
+    button_elem = page.wait_for_selector('django-formset button.bar:not(.foo)')
     assert button_elem is not None
-    button_elem = formset.wait_for_selector('button.bar:not(.foo)')
+    button_elem = page.wait_for_selector('django-formset button:not(.foo):not(.bar)')
     assert button_elem is not None
-    button_elem = formset.wait_for_selector('button:not(.foo):not(.bar)')
-    assert button_elem is not None
-    button_elem = formset.wait_for_selector('button.button')
+    button_elem = page.wait_for_selector('django-formset button.button')
     assert button_elem is not None
 
 
