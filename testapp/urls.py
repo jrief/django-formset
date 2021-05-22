@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.urls import path
 from django.views.generic import TemplateView
 
@@ -10,11 +9,10 @@ from testapp.views import SubscribeFormView
 
 
 urlpatterns = [
-    path('admin', admin.site.urls),
     path('', TemplateView.as_view(template_name='index.html')),
-    path('formsetify', SubscribeFormView.as_view(template_name='default/formsetify.html')),
-    path('form-groups', SubscribeFormView.as_view(template_name='default/render_groups.html')),
-    path('mixin-form', SubscribeFormView.as_view(form_class=DefaultMixinForm, template_name='default/mixin_form.html')),
+    path('formsetify', SubscribeFormView.as_view(template_name='default/formsetify.html'), name='formsetify'),
+    path('form-groups', SubscribeFormView.as_view(template_name='default/render_groups.html'), name='form-groups'),
+    path('mixin-form', SubscribeFormView.as_view(form_class=DefaultMixinForm, template_name='default/mixin_form.html'), name='mixin-form'),
     path('upload', SubscribeFormView.as_view(form_class=UploadForm, template_name='default/render_groups.html')),
     path('persona', SubscribeFormView.as_view(form_class=PersonaForm, template_name='default/render_groups.html')),
     path('bootstrap/formsetify', SubscribeFormView.as_view(template_name='bootstrap/formsetify.html')),
