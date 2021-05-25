@@ -35,7 +35,7 @@ def _render_group(bf, template_name='formset/default/field_group.html'):
         "'render_group' must be applied to a Form object inheriting from 'formset.mixins.FormMixin'."
     template = get_template(template_name)
     context = {
-        'auto_id': bf.auto_id,
+        'id_for_label': bf.id_for_label,
         'required': bf.field.required,
         'is_hidden': bf.is_hidden,
         'label': bf.label,

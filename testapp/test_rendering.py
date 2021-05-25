@@ -5,13 +5,8 @@ from bs4 import BeautifulSoup
 from django.forms.widgets import Textarea
 from django.test import RequestFactory
 
-from .forms import DefaultMixinForm, SubscribeForm
+from .forms import DefaultMixinForm, SubscribeForm, BootstrapMixinForm
 from .views import SubscribeFormView, sample_subscribe_data
-
-
-class DefaultSubscribeForm(DefaultMixinForm, SubscribeForm):
-    pass
-
 
 http_request = RequestFactory().get('/')
 
@@ -21,8 +16,11 @@ http_request = RequestFactory().get('/')
     ('default/formsetify.html', SubscribeForm, sample_subscribe_data),
     ('default/render_groups.html', SubscribeForm),
     ('default/render_groups.html', SubscribeForm, sample_subscribe_data),
-    ('default/mixin_form.html', DefaultSubscribeForm),
-    ('default/mixin_form.html', DefaultSubscribeForm, sample_subscribe_data),
+    ('default/mixin_form.html', DefaultMixinForm),
+    ('default/mixin_form.html', DefaultMixinForm, sample_subscribe_data),
+    ('bootstrap/formsetify.html', SubscribeForm),
+    ('bootstrap/render_groups.html', SubscribeForm),
+    ('bootstrap/mixin_form.html', BootstrapMixinForm),
 ], scope='session')
 def view(request):
     view_initkwargs = {
@@ -41,15 +39,17 @@ def form_soup(view):
     soup = BeautifulSoup(response.content, 'html.parser')
     form = view.view_initkwargs['form_class']()
     initial = view.view_initkwargs['initial'] if 'initial' in view.view_initkwargs else {}
-    return form, soup, initial
+    prefix = view.view_initkwargs['template_name'].split('/')[0]
+    return form, soup, initial, prefix
 
 
 @pytest.mark.parametrize('field_name', SubscribeForm.base_fields.keys())
-def test_fields(form_soup, field_name):
+def test_default_fields(form_soup, field_name):
     form_name = form_soup[0].name
     bf = form_soup[0][field_name]
     soup = form_soup[1]
     initial_value = form_soup[2].get(field_name)
+    prefix = form_soup[3]
     field_elem = soup.find(id=f'id_{field_name}')
     assert field_elem is not None
     widget_type = 'textarea' if isinstance(bf.field.widget, Textarea) else bf.field.widget.input_type
@@ -127,5 +127,26 @@ def test_fields(form_soup, field_name):
     assert placeholder_elem is not None
 
     if bf.field.help_text:
-        help_text = field_group.find('span', class_='dj-help-text')
+        if prefix == 'default':
+            help_text = field_group.find('span', class_='dj-help-text')
+        elif prefix == 'bootstrap':
+            help_text = field_group.find('span', class_='form-text text-muted')
         assert help_text.text == bf.field.help_text
+
+
+    if bf.field.label:
+        label = field_group.find('label')
+        assert bf.label == label.text.rstrip(':')
+        if allow_multiple_selected and widget_type == 'checkbox':
+            assert 'for' not in label.attrs
+            labels = field_elem.find_all('label')
+            assert len(bf.subwidgets) == len(labels)
+            for subwidget, label in zip(bf.subwidgets, labels):
+                assert subwidget.id_for_label == label.attrs['for']
+        else:
+            assert label.attrs['for'] == bf.id_for_label
+
+    if prefix == 'bootstrap':
+        if widget_type in ['text', 'email', 'number', 'date', 'select', 'textarea', 'password']:
+            assert 'form-control' in field_elem.attrs['class']
+        assert 'form-group' in field_group.attrs['class']

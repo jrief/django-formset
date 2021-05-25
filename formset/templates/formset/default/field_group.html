@@ -1,7 +1,7 @@
 {% spaceless %}
 {% if is_hidden %}{{ widget }}{% else %}
 <django-field-group{% if css_classes %} class="{{ css_classes }}"{% endif %}>
-	<label for="{{ auto_id }}">{{ label }}:</label>
+	<label{% if id_for_label %} for="{{ id_for_label }}"{% endif %}>{{ label }}:</label>
 	{{ widget }}
 	{{ errors }}
 	{% if help_text %}<span class="dj-help-text">{{ help_text }}</span>{% endif %}
