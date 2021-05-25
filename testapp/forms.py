@@ -1,7 +1,6 @@
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from django.core.exceptions import ValidationError
 from django.forms import forms, fields, widgets
-from django.utils.timezone import datetime
 
 from formset.mixins import default, bootstrap, bulma, foundation, tailwind
 from formset.widgets import UploadedFileInput
@@ -37,7 +36,6 @@ class SubscribeForm(forms.Form):
         min_length=2,
         max_length=50,
         help_text="Please enter at least two characters",
-        initial='JACK',
     )
 
     first_name = fields.RegexField(
@@ -80,7 +78,6 @@ class SubscribeForm(forms.Form):
         label="Date of birth",
         widget=widgets.DateInput(attrs={'type': 'date', 'pattern': r'\d{4}-\d{2}-\d{2}'}),
         help_text="Allowed date format: yyyy-mm-dd",
-        initial=datetime(year=1966, month=7, day=9),
     )
 
     continent = fields.ChoiceField(
@@ -216,7 +213,6 @@ class PersonaForm(forms.Form):
         min_length=2,
         max_length=50,
         help_text="Please enter at least two characters",
-        initial='JACK',
     )
 
     def clean(self):

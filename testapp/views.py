@@ -1,4 +1,5 @@
 from django.urls import reverse_lazy
+from django.utils.timezone import datetime
 
 from formset.views import FormsetView
 
@@ -10,19 +11,22 @@ class SubscribeFormView(FormsetView):
     success_url = reverse_lazy('form_data_valid')
 
 
-default_subscribe_data = {
+sample_subscribe_data = {
     'first_name': "John",
     'last_name': "Doe",
     'sex': 'm',
     'email': 'john.doe@example.org',
+    'subscribe': True,
     'phone': '+1 234 567 8900',
-    'birth_date': '1975-06-01',
+    'birth_date': datetime(year=1966, month=7, day=9),
     'continent': 'eu',
+    'available_transportation': ['foot', 'taxi'],
+    'preferred_transportation': 'car',
+    'used_transportation': ['foot', 'bike', 'car', 'train'],
     'height': 1.82,
     'weight': 81,
     'traveling': ['bike', 'train'],
     'notifyme': ['email', 'sms'],
     'annotation': "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    'agree': True,
-    'password': '',
+    'password': 'secret',
 }

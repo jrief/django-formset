@@ -6,7 +6,8 @@ from formset.mixins.default import FormMixin, FormsetErrorList
 
 
 def _formsetify(form, form_mixin=FormMixin):
-    assert isinstance(form, BaseForm), "'formsetify' must be applied to a Django Form."
+    assert isinstance(form, BaseForm), \
+        "'formsetify' must be applied to a Form object inheriting from 'django.forms.BaseForm'."
     if not isinstance(form, form_mixin):
         form.__class__ = type(form.__class__.__name__, (form_mixin, form.__class__), {})
         form.error_class = FormsetErrorList
@@ -14,7 +15,8 @@ def _formsetify(form, form_mixin=FormMixin):
 
 
 def _render_groups(form, form_mixin=FormMixin, field_classes=None, label_classes=None, control_classes=None):
-    assert isinstance(form, BaseForm), "'render_groups' must be applied to a Django Form or ModelForm instance."
+    assert isinstance(form, BaseForm), \
+        "'render_groups' must be applied to a Form object inheriting from 'django.forms.BaseForm'."
     if not isinstance(form, form_mixin):
         args = {}
         if field_classes:
@@ -30,7 +32,7 @@ def _render_groups(form, form_mixin=FormMixin, field_classes=None, label_classes
 
 def _render_group(bf, template_name='formset/default/field_group.html'):
     assert isinstance(bf.form, FormMixin), \
-        "'render_group' must be applied only to a Form inheriting from 'formset.mixins.FormMixin'."
+        "'render_group' must be applied to a Form object inheriting from 'formset.mixins.FormMixin'."
     template = get_template(template_name)
     context = {
         'auto_id': bf.auto_id,

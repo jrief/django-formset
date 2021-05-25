@@ -3,92 +3,129 @@ import pytest
 from bs4 import BeautifulSoup
 
 from django.forms.widgets import Textarea
+from django.test import RequestFactory
 
 from .forms import DefaultMixinForm, SubscribeForm
-from .views import SubscribeFormView
+from .views import SubscribeFormView, sample_subscribe_data
 
 
 class DefaultSubscribeForm(DefaultMixinForm, SubscribeForm):
     pass
 
 
-# views = [
-#     SubscribeFormView.as_view(
-#         template_name='default/formsetify.html',
-#         form_class=SubscribeForm,
-#     ),
-#     SubscribeFormView.as_view(
-#         template_name='default/render_groups.html',
-#         form_class=SubscribeForm,
-#     ),
-#     SubscribeFormView.as_view(
-#         template_name='default/mixin_form.html',
-#         form_class=DefaultSubscribeForm,
-#     ),
-# ]
+http_request = RequestFactory().get('/')
 
 
 @pytest.fixture(params=[
     ('default/formsetify.html', SubscribeForm),
+    ('default/formsetify.html', SubscribeForm, sample_subscribe_data),
     ('default/render_groups.html', SubscribeForm),
+    ('default/render_groups.html', SubscribeForm, sample_subscribe_data),
     ('default/mixin_form.html', DefaultSubscribeForm),
-])
+    ('default/mixin_form.html', DefaultSubscribeForm, sample_subscribe_data),
+], scope='session')
 def view(request):
-    return SubscribeFormView.as_view(
-        template_name=request.param[0],
-        form_class=request.param[1],
-    )
+    view_initkwargs = {
+        'template_name': request.param[0],
+        'form_class': request.param[1],
+    }
+    if len(request.param) == 3:
+        view_initkwargs['initial'] = request.param[2]
+    return SubscribeFormView.as_view(**view_initkwargs)
 
 
-@pytest.fixture(scope='function')
-def form_soup(rf, view):
-    response = view(rf.get('/'))
+@pytest.fixture(scope='session')
+def form_soup(view):
+    response = view(http_request)
     response.render()
     soup = BeautifulSoup(response.content, 'html.parser')
     form = view.view_initkwargs['form_class']()
-    return form, soup
+    initial = view.view_initkwargs['initial'] if 'initial' in view.view_initkwargs else {}
+    return form, soup, initial
 
 
 @pytest.mark.parametrize('field_name', SubscribeForm.base_fields.keys())
 def test_fields(form_soup, field_name):
-    form, soup = form_soup
-    bf = form[field_name]
+    form_name = form_soup[0].name
+    bf = form_soup[0][field_name]
+    soup = form_soup[1]
+    initial_value = form_soup[2].get(field_name)
     field_elem = soup.find(id=f'id_{field_name}')
     assert field_elem is not None
-    input_type = 'textarea' if isinstance(bf.field.widget, Textarea) else bf.field.widget.input_type
+    widget_type = 'textarea' if isinstance(bf.field.widget, Textarea) else bf.field.widget.input_type
     allow_multiple_selected = getattr(bf.field.widget, 'allow_multiple_selected', False)
-    if input_type in ['text', 'email', 'date', 'number', 'textarea']:
+    if widget_type in ['text', 'email', 'date', 'number', 'password', 'textarea']:
         if bf.field.required:
             assert 'required' in field_elem.attrs
-    if input_type in ['text', 'email', 'number', 'textarea']:
-        if bf.field.initial:
-            assert field_elem.attrs['value'] == str(bf.field.initial)
-    if input_type in ['text', 'email']:
+    if widget_type in ['text', 'email', 'number']:
+        if initial_value:
+            assert field_elem.attrs['value'] == str(initial_value)
+    if widget_type in ['text', 'email', 'password']:
         min_length = getattr(bf.field, 'min_length', None)
         if min_length:
             assert field_elem.attrs['minlength'] == str(min_length)
         max_length = getattr(bf.field, 'max_length', None)
         if max_length:
             assert field_elem.attrs['maxlength'] == str(max_length)
-    if input_type == 'radio':
+    if widget_type in ['date']:
+        if initial_value:
+            assert field_elem.attrs['value'] == initial_value.strftime('%Y-%m-%d')
+    if widget_type == 'checkbox' and not allow_multiple_selected:
+        if initial_value:
+            assert 'checked' in field_elem.attrs
+    if widget_type == 'radio' or widget_type == 'checkbox' and allow_multiple_selected:
         input_elems = field_elem.find_all('input')
         assert len(input_elems) > 0
+        if widget_type == 'radio':
+            if bf.field.required:
+                assert all('required' in el.attrs for el in input_elems)
+        if initial_value:
+            if not allow_multiple_selected:
+                initial_value = [initial_value]
+            assert all('checked' in el.attrs for el in input_elems if el.attrs['value'] in initial_value)
+            assert not any('checked' in el.attrs for el in input_elems if el.attrs['value'] not in initial_value)
+    if widget_type == 'select':
         if bf.field.required:
-            assert all('required' in el.attrs for el in input_elems)
+            assert 'required' in field_elem.attrs
+        opt_elems = field_elem.find_all('option')
+        assert len(opt_elems) > 0
+        if initial_value:
+            if not allow_multiple_selected:
+                initial_value = [initial_value]
+            assert all('selected' in el.attrs for el in opt_elems if el.attrs['value'] in initial_value)
+            assert not any('selected' in el.attrs for el in opt_elems if el.attrs['value'] not in initial_value)
+    if widget_type == 'textarea':
+        if bf.field.required:
+            assert 'required' in field_elem.attrs
+        if initial_value:
+            field_elem.text.strip() == initial_value
 
-    field_group = field_elem.find_parent('django-field-group')
     if bf.field.widget.is_hidden:
-        assert field_group is None
-    else:
-        assert field_group is not None
-        if bf.field.required:
-            assert {'dj-required', 'dj-required-any'}.intersection(field_group.attrs['class'])
-        errorlist_elem = field_group.find('ul', class_='dj-errorlist')
+        formset = field_elem.find_parent('django-formset')
+        assert formset is not None
+        assert len(formset.attrs.get('endpoint', '')) > 0
+        form_elem = formset.find('form')
+        assert form_elem.attrs['name'] == form_name
+        errors_elem = form_elem.find('div', class_='dj-form-errors')
+        assert errors_elem is not None
+        errorlist_elem = errors_elem.find('ul', class_='dj-errorlist')
         assert errorlist_elem is not None
         placeholder_elem = errorlist_elem.find('li', class_='dj-placeholder')
         assert placeholder_elem is not None
+        return
+
+    field_group = field_elem.find_parent('django-field-group')
+    assert field_group is not None
+    if bf.field.required:
+        if allow_multiple_selected and widget_type == 'checkbox':
+            assert 'dj-required-any' in field_group.attrs['class']
+        else:
+            assert 'dj-required' in field_group.attrs['class']
+    errorlist_elem = field_group.find('ul', class_='dj-errorlist')
+    assert errorlist_elem is not None
+    placeholder_elem = errorlist_elem.find('li', class_='dj-placeholder')
+    assert placeholder_elem is not None
 
     if bf.field.help_text:
         help_text = field_group.find('span', class_='dj-help-text')
-        assert help_text is not None
-
+        assert help_text.text == bf.field.help_text
