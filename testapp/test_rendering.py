@@ -5,7 +5,8 @@ from bs4 import BeautifulSoup
 from django.forms.widgets import Textarea
 from django.test import RequestFactory
 
-from .forms import DefaultMixinForm, SubscribeForm, BootstrapMixinForm
+from .forms import DefaultMixinForm, SubscribeForm, BootstrapMixinForm, BulmaMixinForm, \
+                   FoundationMixinForm, TailwindMixinForm
 from .views import SubscribeFormView, sample_subscribe_data
 
 http_request = RequestFactory().get('/')
@@ -21,6 +22,15 @@ http_request = RequestFactory().get('/')
     ('bootstrap/formsetify.html', SubscribeForm),
     ('bootstrap/render_groups.html', SubscribeForm),
     ('bootstrap/mixin_form.html', BootstrapMixinForm),
+    ('bulma/formsetify.html', SubscribeForm),
+    ('bulma/render_groups.html', SubscribeForm),
+    ('bulma/mixin_form.html', BulmaMixinForm),
+    ('foundation/formsetify.html', SubscribeForm),
+    ('foundation/render_groups.html', SubscribeForm),
+    ('foundation/mixin_form.html', FoundationMixinForm),
+    ('tailwind/formsetify.html', SubscribeForm),
+    ('tailwind/render_groups.html', SubscribeForm),
+    ('tailwind/mixin_form.html', TailwindMixinForm),
 ], scope='session')
 def view(request):
     view_initkwargs = {
@@ -39,8 +49,8 @@ def form_soup(view):
     soup = BeautifulSoup(response.content, 'html.parser')
     form = view.view_initkwargs['form_class']()
     initial = view.view_initkwargs['initial'] if 'initial' in view.view_initkwargs else {}
-    prefix = view.view_initkwargs['template_name'].split('/')[0]
-    return form, soup, initial, prefix
+    framework = view.view_initkwargs['template_name'].split('/')[0]
+    return form, soup, initial, framework
 
 
 @pytest.mark.parametrize('field_name', SubscribeForm.base_fields.keys())
@@ -49,7 +59,7 @@ def test_default_fields(form_soup, field_name):
     bf = form_soup[0][field_name]
     soup = form_soup[1]
     initial_value = form_soup[2].get(field_name)
-    prefix = form_soup[3]
+    framework = form_soup[3]
     field_elem = soup.find(id=f'id_{field_name}')
     assert field_elem is not None
     widget_type = 'textarea' if isinstance(bf.field.widget, Textarea) else bf.field.widget.input_type
@@ -71,10 +81,11 @@ def test_default_fields(form_soup, field_name):
         if initial_value:
             assert field_elem.attrs['value'] == initial_value.strftime('%Y-%m-%d')
     if widget_type == 'checkbox' and not allow_multiple_selected:
+        input_elems = [field_elem]
         if initial_value:
             assert 'checked' in field_elem.attrs
     if widget_type == 'radio' or widget_type == 'checkbox' and allow_multiple_selected:
-        input_elems = field_elem.find_all('input')
+        input_elems = field_elem.find_all('input', type=widget_type)
         assert len(input_elems) > 0
         if widget_type == 'radio':
             if bf.field.required:
@@ -127,11 +138,14 @@ def test_default_fields(form_soup, field_name):
     assert placeholder_elem is not None
 
     if bf.field.help_text:
-        if prefix == 'default':
+        help_text = None
+        if framework == 'default':
             help_text = field_group.find('span', class_='dj-help-text')
-        elif prefix == 'bootstrap':
+        elif framework == 'bootstrap':
             help_text = field_group.find('span', class_='form-text text-muted')
-        assert help_text.text == bf.field.help_text
+        elif framework == 'tailwind':
+            help_text = field_group.find('p', class_='formset-help-text')
+        assert not help_text or help_text.text == bf.field.help_text
 
 
     if bf.field.label:
@@ -141,12 +155,48 @@ def test_default_fields(form_soup, field_name):
             assert 'for' not in label.attrs
             labels = field_elem.find_all('label')
             assert len(bf.subwidgets) == len(labels)
-            for subwidget, label in zip(bf.subwidgets, labels):
-                assert subwidget.id_for_label == label.attrs['for']
+            for subwidget, sublabel in zip(bf.subwidgets, labels):
+                assert subwidget.id_for_label == sublabel.attrs['for']
         else:
             assert label.attrs['for'] == bf.id_for_label
+        if framework == 'tailwind':
+            if widget_type != 'checkbox' or allow_multiple_selected:
+                assert 'formset-label' in label.attrs['class']
 
-    if prefix == 'bootstrap':
+    if framework == 'bootstrap':
+        assert 'form-group' in field_group.attrs['class']
         if widget_type in ['text', 'email', 'number', 'date', 'select', 'textarea', 'password']:
             assert 'form-control' in field_elem.attrs['class']
-        assert 'form-group' in field_group.attrs['class']
+        elif widget_type in ['checkbox', 'radio']:
+            for input_elem in input_elems:
+                assert 'form-check-input' in input_elem.attrs['class']
+
+    if framework == 'tailwind':
+        if widget_type == 'text':
+            assert 'formset-text-input' in field_elem.attrs['class']
+        if widget_type == 'number':
+            assert 'formset-number-input' in field_elem.attrs['class']
+        elif widget_type == 'email':
+            assert 'formset-email-input' in field_elem.attrs['class']
+        elif widget_type == 'date':
+            assert 'formset-date-input' in field_elem.attrs['class']
+        elif widget_type == 'select':
+            if allow_multiple_selected:
+                assert 'formset-select-multiple' in field_elem.attrs['class']
+            else:
+                assert 'formset-select' in field_elem.attrs['class']
+        elif widget_type == 'textarea':
+            assert 'formset-textarea' in field_elem.attrs['class']
+        elif widget_type == 'password':
+            assert 'formset-password-input' in field_elem.attrs['class']
+        elif widget_type == 'checkbox':
+            if allow_multiple_selected:
+                for input_elem in input_elems:
+                    assert 'formset-checkbox-multiple' in input_elem.attrs['class']
+            else:
+                assert 'formset-checkbox' in input_elems[0].attrs['class']
+        elif widget_type == 'radio':
+            for input_elem in input_elems:
+                assert 'formset-radio-select' in input_elem.attrs['class']
+
+    # CSS framework "Bulma" and "Foundation 6" do not add special classes to their field-groups

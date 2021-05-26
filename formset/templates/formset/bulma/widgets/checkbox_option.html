@@ -1,1 +1,1 @@
-<label{% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %} class="checkbox {% if inlined_checks %}mr-2{% else %}is-block mb-1{% endif %}">{% include "django/forms/widgets/input.html" %} {{ widget.label }}</label>
+<label{% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %} class="checkbox {% if inlined_checks %}mr-2{% else %}is-block mb-1{% endif %}">{% include "formset/bulma/widgets/input.html" %}{{ widget.label }}</label>

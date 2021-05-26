@@ -2,7 +2,7 @@
 {% if is_hidden %}{{ widget }}{% else %}
 <django-field-group{% if css_classes %} class="{{ css_classes }}"{% endif %}>
 	{% if widget_type != 'checkbox' %}
-	<label class="label" for="{{ auto_id }}">{{ label }}:</label>
+	<label class="label"{% if id_for_label %} for="{{ id_for_label }}"{% endif %}>{{ label }}:</label>
 	{% endif %}
 	{{ widget }}
 	{{ errors }}
