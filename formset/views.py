@@ -49,11 +49,15 @@ class FormsetViewMixin:
         os.close(fh)
         relative_path = os.path.relpath(temp_path, default_storage.location)
         assert default_storage.size(relative_path) == file_obj.size
+        download_url = default_storage.url(relative_path)
 
         # dict returned by the form on submission
         mime_type, sub_type = file_obj.content_type.split('/')
         if mime_type == 'image':
-            thumbnail_url = self._thumbnail_image(temp_path, image_height)
+            if sub_type == 'svg+xml':
+                thumbnail_url = download_url
+            else:
+                thumbnail_url = self._thumbnail_image(temp_path, image_height)
         else:
             thumbnail_url = self._file_icon_url(file_obj.content_type)
         file_handle = {
@@ -61,7 +65,7 @@ class FormsetViewMixin:
             'content_type': file_obj.content_type,
             'content_type_extra': file_obj.content_type_extra,
             'name': file_obj.name[:self.filename_max_length],
-            'download_url': default_storage.url(relative_path),
+            'download_url': download_url,
             'thumbnail_url': thumbnail_url,
             'size': file_obj.size,
         }
