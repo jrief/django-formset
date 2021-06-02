@@ -47,7 +47,7 @@ class SubscribeForm(forms.Form):
     sex = fields.ChoiceField(
         choices=[('m', 'Male'), ('f', 'Female')],
         widget=widgets.RadioSelect,
-        error_messages={'invalid_choice': "Please select your sex."},
+        error_messages={'invalid_choice': "Please select your gender."},
     )
 
     email = fields.EmailField(
@@ -203,16 +203,29 @@ class PersonaForm(forms.Form):
     name = 'persona'
 
     first_name = fields.RegexField(
-        r'^[A-Z][a-z -]*$',
+        r'^[A-Z][a-z -]+$',
         label="First name",
         error_messages={'invalid': "A first name must start in upper case."},
+        help_text="Must start in upper case followed by one or more lowercase characters.",
     )
 
     last_name = fields.CharField(
         label="Last name",
         min_length=2,
         max_length=50,
-        help_text="Please enter at least two characters",
+        help_text="Please enter at least two, but no more than 50 characters.",
+    )
+
+    gender = fields.ChoiceField(
+        label="Gender",
+        choices=[('m', "Male"), ('f', "Female")],
+        widget=widgets.RadioSelect,
+        error_messages={'invalid_choice': "Please select your gender."},
+    )
+
+    accept = fields.BooleanField(
+        label="Accept terms and conditions",
+        initial=False,
     )
 
     def clean(self):
