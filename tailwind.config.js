@@ -1,4 +1,4 @@
-// build with `npx tailwindcss build assets/tailwind-styles.css -o testapp/static/testapp/tailwind.css`
+// build with `npx tailwindcss build assets/tailwind-styles.css -o formset/static/formset/css/tailwind.css`
 module.exports = {
   purge: [],
   darkMode: false, // or 'media' or 'class'
