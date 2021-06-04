@@ -35,6 +35,12 @@ views['test_button_submit'] = FormsetView.as_view(
     success_url='/success',
     extra_context={'click_actions': 'submit', 'auto_disable': True},
 )
+views['test_button_submit_with_data'] = FormsetView.as_view(
+    template_name='tests/form_with_button.html',
+    form_class=SampleForm,
+    success_url='/success',
+    extra_context={'click_actions': 'submit({foo: "bar"})', 'auto_disable': True},
+)
 
 urlpatterns = [path(name, view, name=name) for name, view in views.items()]
 
@@ -140,3 +146,19 @@ def test_button_submit(page, mocker):
     page.wait_for_selector('django-formset button').click()
     request = json.loads(spy.call_args.args[1].body)
     assert request['sample_form']['enter'] == "A"
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['test_button_submit_with_data'])
+def test_button_submit_with_data(page, mocker):
+    input_elem = page.query_selector('#id_enter')
+    assert input_elem is not None
+    input_elem.type("BAR")
+    input_elem.evaluate('elem => elem.blur()')
+    button_elem = page.query_selector('django-formset button')
+    assert button_elem is not None
+    spy = mocker.spy(FormsetView, 'post')
+    page.wait_for_selector('django-formset button').click()
+    request = json.loads(spy.call_args.args[1].body)
+    assert request['_extra']['foo'] == "bar"
+    assert request['sample_form']['enter'] == "BAR"

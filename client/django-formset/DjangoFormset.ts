@@ -606,10 +606,10 @@ class DjangoButton {
 	 * Validate form content and submit to the endpoint given in element `<django-formset>`.
 	 */
 	// @ts-ignore
-	submit() {
+	submit(data: Object | undefined) {
 		return () => {
 			return new Promise((resolve, reject) => {
-				this.formset.submit().then(response =>
+				this.formset.submit(data).then(response =>
 					response instanceof Response && response.status === 200 ? resolve(response) : reject(response)
 				);
 			});
@@ -932,7 +932,7 @@ class DjangoFormset {
 		return isValid;
 	}
 
-	public async submit(): Promise<Response | undefined> {
+	public async submit(extraData: Object | undefined): Promise<Response | undefined> {
 		let formsAreValid = true;
 		if (!this.forceSubmission) {
 			for (const form of this.forms) {
@@ -950,10 +950,11 @@ class DjangoFormset {
 			if (csrfToken) {
 				headers.append('X-CSRFToken', csrfToken);
 			}
+			const payload = Object.assign({}, this.data, {_extra: extraData});
 			const response = await fetch(this.endpoint, {
 				method: 'POST',
 				headers: headers,
-				body: JSON.stringify(this.data),
+				body: JSON.stringify(payload),
 				signal: this.abortController.signal,
 			});
 			if (response.status === 422) {
@@ -1016,8 +1017,8 @@ export class DjangoFormsetElement extends HTMLElement {
 		window.setTimeout(() => this[FS].validate(), 0);
 	}
 
-	public async submit(): Promise<Response | undefined> {
-		return this[FS].submit();
+	public async submit(data: Object | undefined): Promise<Response | undefined> {
+		return this[FS].submit(data);
 	}
 
 	public async abort() {
