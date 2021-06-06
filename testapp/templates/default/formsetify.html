@@ -3,7 +3,7 @@
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="false">
-	<form name="{{ form.prefix }}">
+	<form name="{{ form.name }}">
 		{% csrf_token %}
 		{% include "formset/default/non_field_errors.html" %}
 		{% for field in form|formsetify %}
