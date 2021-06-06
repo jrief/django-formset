@@ -15,7 +15,7 @@ def validate_password(value):
 
 
 class SubscribeForm(forms.Form):
-    name = 'subscribe'
+    prefix = 'subscribe'
 
     CONTINENT_CHOICES = [
         ('', "––– please select –––"), ('am', "America"), ('eu', "Europe"), ('as', "Asia"),
@@ -200,7 +200,7 @@ class UploadForm(forms.Form):
 
 
 class PersonaForm(forms.Form):
-    name = 'persona'
+    prefix = 'persona'
 
     first_name = fields.RegexField(
         r'^[A-Z][a-z -]+$',

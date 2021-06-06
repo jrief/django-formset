@@ -3,7 +3,7 @@
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="false" withhold-messages="false">
-	<form name="{{ form.name }}">
+	<form name="{{ form.prefix }}">
 		{% csrf_token %}
 		{% render_groups form %}
 	</form>
