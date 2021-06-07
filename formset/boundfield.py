@@ -46,6 +46,21 @@ class BoundField(boundfield.BoundField):
     def widget_type(self):
         return super().widget_type
 
+    @property
+    def auto_id(self):
+        """
+        Since we can have many forms with a different name each, prefix the id with the form name
+        """
+        auto_id = self.form.auto_id
+        if auto_id and '%s' in str(auto_id):
+            auto_id = auto_id % self.html_name
+            if getattr(self.form, 'name', None):
+                return f'{self.form.name}_{auto_id}'
+            return auto_id
+        elif auto_id:
+            return self.html_name
+        return ''
+
     def build_widget_attrs(self, attrs, widget=None):
         return self.form.get_widget_attrs(self, attrs, widget)
 
