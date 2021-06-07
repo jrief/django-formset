@@ -16,12 +16,20 @@ class FormViewMixin:
     thumbnail_max_height = 200
     thumbnail_max_width = 400
 
+    def get(self, request, **kwargs):
+        if request.accepts('application/json') and 'q' in request.GET:
+            return self._fetch_options(request)
+        return super().get(request, **kwargs)
+
     def post(self, request, **kwargs):
         if request.content_type == 'application/json':
             return self._handle_form_data(request.body)
         if request.content_type == 'multipart/form-data':
             return self._receive_uploaded_file(request.FILES.get('temp_file'), request.POST.get('image_height'))
         return super().post(request, **kwargs)
+
+    def _fetch_options(self, request):
+        return JsonResponse({})
 
     def _handle_form_data(self, form_data):
         form_data = json.loads(form_data)

@@ -1,0 +1,5 @@
+<select is="django-selectize" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
+	{% for option in widget.options %}
+		{% include "django/forms/widgets/select_option.html" with widget=option %}
+	{% endfor %}
+</select>

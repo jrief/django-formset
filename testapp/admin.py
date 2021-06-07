@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import DummyModel
+from .models import PayloadModel
 from .forms import SubscribeForm
 
 

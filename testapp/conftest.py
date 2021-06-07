@@ -4,6 +4,8 @@ from playwright.sync_api import sync_playwright
 
 from django.urls import reverse
 
+from testapp.models import ChoiceModel
+
 os.environ.setdefault('DJANGO_ALLOW_ASYNC_UNSAFE', 'true')
 
 
@@ -40,3 +42,13 @@ def connector(live_server):
 def page(connector, viewname):
     connector.page.goto(connector.live_server.url + reverse(viewname))
     return connector.page
+
+
+@pytest.fixture(autouse=True)
+def choices(db):
+    for counter in range(100, 200):
+        ChoiceModel.objects.create(
+            tenant=1,
+            label=f"Option {counter}"
+        )
+    return ChoiceModel.objects.all()

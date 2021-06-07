@@ -2,7 +2,6 @@ import { parse } from './actions';
 import getDataValue from 'lodash.get';
 import template from 'lodash.template';
 
-
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FieldValue = string | Array<string | Object>;
 type ErrorKey = keyof ValidityState;
@@ -236,7 +235,14 @@ class FieldGroup {
 		const requiredAny = element.classList.contains('dj-required-any');
 		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(element => element.type !== 'hidden');
 		for (const element of inputElements) {
-			switch (element.type) {
+			if (element.getAttribute('is') === 'django-selectize') {
+				element.addEventListener('focus', () => this.touch());
+				element.addEventListener('change', () => {
+					this.setDirty();
+					this.resetCustomError();
+					this.validate()
+				});
+			} else switch (element.type) {
 				case 'checkbox':
 				case 'radio':
 					element.addEventListener('input', () => {
@@ -858,7 +864,7 @@ class DjangoForm {
 }
 
 
-class DjangoFormset {
+export class DjangoFormset {
 	private readonly element: DjangoFormsetElement;
 	private readonly buttons = Array<DjangoButton>(0);
 	private readonly forms = Array<DjangoForm>(0);

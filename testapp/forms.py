@@ -1,11 +1,11 @@
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from django.core.exceptions import ValidationError
-from django.forms import forms, fields, widgets
+from django.forms import forms, fields, widgets, models
 
 from formset.mixins import default, bootstrap, bulma, foundation, tailwind
-from formset.widgets import UploadedFileInput
+from formset.widgets import Selectize, UploadedFileInput
 
-from testapp.models import DummyModel
+from testapp.models import PayloadModel, ChoicesModel
 
 
 def validate_password(value):
@@ -42,10 +42,12 @@ class SubscribeForm(forms.Form):
         r'^[A-Z][a-z -]*$',
         label="First name",
         error_messages={'invalid': "A first name must start in upper case."},
+        help_text="Must start in upper case followed by one or more lowercase characters.",
     )
 
-    sex = fields.ChoiceField(
-        choices=[('m', 'Male'), ('f', 'Female')],
+    gender = fields.ChoiceField(
+        label="Gender",
+        choices=[('m', "Male"), ('f', "Female")],
         widget=widgets.RadioSelect,
         error_messages={'invalid_choice': "Please select your gender."},
     )
@@ -158,7 +160,7 @@ class SubscribeForm(forms.Form):
     )
 
     class Meta:
-        model = DummyModel
+        model = PayloadModel
         exclude = ['payload']
         entangled_fields = {'payload': ['last_name', 'first_name', 'sex', 'email', 'subscribe',
             'phone', 'birth_date', 'continent', 'weight', 'height', 'used_transportation',
@@ -199,7 +201,7 @@ class UploadForm(forms.Form):
     )
 
 
-class PersonaForm(forms.Form):
+class PersonForm(forms.Form):
     name = 'persona'
 
     first_name = fields.RegexField(
@@ -233,3 +235,14 @@ class PersonaForm(forms.Form):
         if cd['first_name'].lower().startswith("john") and cd['last_name'].lower().startswith("doe"):
             raise ValidationError(f"{cd['first_name']} {cd['last_name']} is persona non grata here!")
         return cd
+
+
+class SelectForm(forms.Form):
+    name = 'select'
+
+    choice = models.ModelChoiceField(
+        queryset=ChoicesModel.objects.filter(tenant=1),
+        label="Choose from",
+        empty_label="Select an option",
+        widget=Selectize,
+    )
