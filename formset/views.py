@@ -7,10 +7,10 @@ from django.core.files.storage import default_storage
 from django.core.signing import get_cookie_signer
 from django.http.response import HttpResponseBadRequest, JsonResponse
 from django.utils.encoding import force_str
-from django.views.generic import FormView
+from django.views.generic import FormView as GenericFormView
 
 
-class FormsetViewMixin:
+class FormViewMixin:
     upload_temp_dir = default_storage.base_location / 'upload_temp'
     filename_max_length = 50
     thumbnail_max_height = 200
@@ -99,5 +99,5 @@ class FormsetViewMixin:
         return staticfiles_storage.url('formset/icons/file-unknown.svg')
 
 
-class FormsetView(FormsetViewMixin, FormView):
+class FormView(FormViewMixin, GenericFormView):
     pass

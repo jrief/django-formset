@@ -1,12 +1,12 @@
 from django.urls import reverse_lazy
 from django.utils.timezone import datetime
 
-from formset.views import FormsetView
+from formset.views import FormView
 
 from testapp.forms import SubscribeForm
 
 
-class SubscribeFormView(FormsetView):
+class SubscribeFormView(FormView):
     form_class = SubscribeForm
     success_url = reverse_lazy('form_data_valid')
 
