@@ -244,5 +244,5 @@ class SelectForm(forms.Form):
         queryset=ChoicesModel.objects.filter(tenant=1),
         label="Choose from",
         empty_label="Select an option",
-        widget=Selectize,
+        widget=Selectize(search_lookup='label__icontains'),
     )

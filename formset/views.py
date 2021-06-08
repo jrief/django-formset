@@ -9,6 +9,8 @@ from django.http.response import HttpResponseBadRequest, JsonResponse
 from django.utils.encoding import force_str
 from django.views.generic import FormView as GenericFormView
 
+from formset.widgets import Selectize
+
 
 class FormViewMixin:
     upload_temp_dir = default_storage.base_location / 'upload_temp'
@@ -17,7 +19,7 @@ class FormViewMixin:
     thumbnail_max_width = 400
 
     def get(self, request, **kwargs):
-        if request.accepts('application/json') and 'q' in request.GET:
+        if request.accepts('application/json') and 'query' in request.GET:
             return self._fetch_options(request)
         return super().get(request, **kwargs)
 
@@ -29,7 +31,20 @@ class FormViewMixin:
         return super().post(request, **kwargs)
 
     def _fetch_options(self, request):
-        return JsonResponse({})
+        _, field_name = request.GET.get('field').split('.')
+        field = self.form_class()[field_name].field
+        assert isinstance(field.widget, Selectize)
+        query = request.GET.get('query')
+        filtered_qs = field.widget.search(query).order_by('-id')[:field.widget.max_prefetch_choices]
+        to_field_name = field.to_field_name if field.to_field_name else 'pk'
+        items = [{'id': getattr(item, to_field_name), 'label': str(item)} for item in filtered_qs]
+        data = {
+            'query': query,
+            'count': filtered_qs.count(),
+            'total_count': field.widget.choices.queryset.count(),
+            'items': items,
+        }
+        return JsonResponse(data)
 
     def _handle_form_data(self, form_data):
         form_data = json.loads(form_data)

@@ -2,77 +2,72 @@ import TomSelect from 'tom-select/src/tom-select';
 import TomSettings from 'tom-select/src/types/settings';
 import {TomInput} from 'tom-select/src/types';
 
-export class DjangoSelectizeElement extends HTMLSelectElement {
-	private tomSelect?: TomSelect;
+class DjangoSelectize {
+	private readonly endpoint?: string;
+	private readonly fieldName?: string;
+	private readonly tomSelect?: TomSelect;
 
-	private connectedCallback() {
+	constructor(tomInput: TomInput) {
+		const form = tomInput.closest('form');
+		const formset = tomInput.closest('django-formset');
+		if (!form || !formset)
+			return;
 		// @ts-ignore
 		const config: TomSettings = {
-			hidePlaceholder: true
+			create: false,
+			valueField: 'id',
+			labelField: 'label',
+			searchField: 'label',
 		};
-		if (!this.getAttribute('multiple')) {
+		if (!tomInput.getAttribute('multiple')) {
 			config.maxItems = 1;
 		}
-		if (!this.hasChildNodes()) {
+		if (tomInput.hasAttribute('uncomplete')) {
+			this.endpoint = formset.getAttribute('endpoint') || '';
+			const formName = form.getAttribute('name') || '__default__';
+			this.fieldName = `${formName}.${tomInput.getAttribute('name')}`;
 			config.load = (query: string, callback: Function) => this.loadOptions(query, callback);
-			//config.render = this.render;
 		}
-		this.tomSelect = new TomSelect(this as unknown as TomInput, config);
+		this.tomSelect = new TomSelect(tomInput, config);
 	}
 
-	private loadOptions(query: string, callback: Function) {
-		const formset = this.tomSelect ? this.tomSelect.input.closest('django-formset') : null;
-		if (!formset)
-			return;
-		const endpoint = formset.getAttribute('endpoint');
-		if (!endpoint)
-			return;
+	private async loadOptions(query: string, callback: Function) {
 		const headers = new Headers();
 		headers.append('Accept', 'application/json');
-		fetch(endpoint + '?q=' + encodeURIComponent(query), {
+		const csrfToken = this.CSRFToken;
+		if (csrfToken) {
+			headers.append('X-CSRFToken', csrfToken);
+		}
+		const url = `${this.endpoint}?field=${this.fieldName}&query=${encodeURIComponent(query)}`;
+		const response = await fetch(url, {
 			method: 'GET',
 			headers: headers,
-		}).then(response => response.json())
-			.then(json => {
-				callback(json.items);
-			}).catch(()=>{
-				callback();
+		});
+		if (response.status === 200) {
+			response.json().then(data => {
+				callback(data.items);
 			});
+		} else {
+			console.error(`Failed to fetch from ${url}`);
+		}
 	}
 
-	// custom rendering functions for options and items
-	private render = {
-		option: function(item, escape) {
-			return `<div class="py-2 d-flex">
-						<div class="icon me-3">
-							<img class="img-fluid" src="${item.owner.avatar_url}" />
-						</div>
-						<div>
-							<div class="mb-1">
-								<span class="h4">
-									${ escape(item.name) }
-								</span>
-								<span class="text-muted">by ${ escape(item.owner.login) }</span>
-							</div>
-							<div class="description">${ escape(item.description) }</div>
-						</div>
-					</div>`;
-		},
-		item: function(item, escape) {
-			return `<div class="py-2 d-flex">
-						<div class="icon me-3">
-							<img class="img-fluid" src="${item.owner.avatar_url}" />
-						</div>
-						<div>
-							<div class="mb-1">
-								<span class="h4">
-									${ escape(item.name) }
-								</span>
-								<span class="text-muted">by ${ escape(item.owner.login) }</span>
-							</div>
-							<div class="description">${ escape(item.description) }</div>
-						</div>
-					</div>`;
+	private get CSRFToken(): string | undefined {
+		const value = `; ${document.cookie}`;
+		const parts = value.split('; csrftoken=');
+
+		if (parts.length === 2) {
+			return parts[1].split(';').shift();
 		}
+	}
+}
+
+const DS = Symbol('DjangoSelectize');
+
+export class DjangoSelectizeElement extends HTMLSelectElement {
+	private [DS]: DjangoSelectize;  // hides internal implementation
+
+	private connectedCallback() {
+		this[DS] = new DjangoSelectize(this as unknown as TomInput);
 	}
 }
