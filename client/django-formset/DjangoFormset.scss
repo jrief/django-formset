@@ -1,6 +1,7 @@
 $django-formset-alert: red;
 $django-formset-warning: orange;
 $django-formset-success: green;
+@import "dropbox";
 
 :root {
 	--django-formset-color-invalid: #{$django-formset-alert};
@@ -117,60 +118,5 @@ django-field-group {
 			}
 		}
 	}
-	.dj-dropbox {
-		display: inline-flex;
-		align-items: center;
-		justify-content: space-between;
-		background-color: whitesmoke;
-		margin: 0 0 0.25rem 0.25rem;
-		padding: 0;
-		list-style: none;
-		height: 128px;
-		min-width: 128px;
-		outline: grey thin dotted;
-		li {
-			flex-grow: 1;
-			height: inherit;
-			&.dj-empty-item {
-				text-align: center;
-				height: auto;
-			}
-			&.dj-file-picture {
-				img {
-					display: block;
-					height: inherit;
-				}
-			}
-			&.dj-file-caption {
-				padding: 0.25rem 0.5rem;
-				background-color: white;
-
-				figure {
-					font-size: small;
-					margin: 0 0 0.25rem 0;
-
-					figcaption {
-						font-weight: bold;
-					}
-
-					p {
-						margin: 0;
-					}
-				}
-			}
-			.dj-delete-file, .dj-download-file {
-				font-weight: bold;
-				display: inline-block;
-				cursor: pointer;
-				text-decoration: none;
-				&:hover {
-					text-decoration: underline;
-				}
-			}
-			.dj-download-file {
-				margin-left: 1rem;
-				float: right;
-			}
-		}
-	}
+	@include dropbox;
 }
