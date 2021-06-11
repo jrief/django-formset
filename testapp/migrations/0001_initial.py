@@ -2,6 +2,12 @@
 
 from django.db import migrations, models
 
+def initialize_choices(apps, schema_editor):
+    ChoicesModel = apps.get_model('testapp', 'ChoicesModel')
+    for counter in range(500):
+        label = f"Option {counter + 100}"
+        ChoicesModel.objects.create(tenant=1, label=label)
+
 
 class Migration(migrations.Migration):
 
@@ -29,4 +35,5 @@ class Migration(migrations.Migration):
                 'unique_together': {('tenant', 'label')},
             },
         ),
+        migrations.RunPython(initialize_choices),
     ]
