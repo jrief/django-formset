@@ -1,7 +1,9 @@
 {% extends "./base.html" %}
-{% load django_formset %}
+{% load static django_formset %}
 
 {% block "main-content" %}
+	<link href="{% static 'node_modules/tom-select/dist/css/tom-select.css' %}" rel="stylesheet">
+
 <django-formset endpoint="{{ request.path }}" force-submission="false">
 	<form name="{{ form.name }}">
 		{% csrf_token %}

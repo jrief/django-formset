@@ -1,0 +1,75 @@
+$select-max-height-dropdown: 200px;
+$select-dropdown-border: 1px solid rgba(0, 0, 0, 0.15);
+$select-color-dropdown: #fff;
+$select-color-highlight: rgba(255, 237, 40, 0.4);
+$select-padding-dropdown-item-y: 3px;
+$select-padding-dropdown-item-x:  0.25rem;
+
+@mixin selectize {
+	select[is="django-selectize"] + .ts-control {
+		display: inline-block;
+		position: relative;
+		overflow: visible !important;
+		.ts-input {
+			border: 1px solid black;
+			* {
+				vertical-align: baseline;
+				display: inline-block;
+			}
+			> input {
+				&::-ms-clear {
+					display: none;
+				}
+				&:focus {
+					outline: none !important;
+				}
+
+				flex: 1 1 auto;
+				min-width: 7rem;
+				display: inline-block;
+				user-select: auto;
+				box-shadow: none;
+				border: none;
+			}
+		}
+		.ts-dropdown {
+			position: absolute;
+			top: 100%;
+			left: 0;
+			width: 100%;
+			z-index: 10;
+
+			border: $select-dropdown-border;
+			background: $select-color-dropdown;
+			//margin: 0.25rem 0 0 0;
+			border-top: 0 none;
+			box-sizing: border-box;
+
+			[data-selectable] {
+				cursor: pointer;
+				overflow: hidden;
+				.highlight {
+					background: $select-color-highlight;
+					border-radius: 1px;
+				}
+			}
+
+			.option, .no-results {
+				padding: $select-padding-dropdown-item-y $select-padding-dropdown-item-x;
+			}
+/*
+			.option, [data-disabled], [data-disabled] [data-selectable].option {
+				cursor: inherit;
+				opacity: 0.5;
+			}
+*/
+			.ts-dropdown-content {
+				overflow-y: auto;
+				overflow-x: hidden;
+				max-height: $select-max-height-dropdown;
+				overflow-scrolling: touch;
+				scroll-behavior: smooth;
+			}
+		}
+	}
+}

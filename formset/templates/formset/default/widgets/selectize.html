@@ -1,5 +1,11 @@
+{% load i18n %}
 <select is="django-selectize" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
 	{% for option in widget.options %}
 		{% include "django/forms/widgets/select_option.html" with widget=option %}
 	{% endfor %}
 </select>
+{% block "selectize-no-results" %}
+<template class="selectize-no-results">
+	<div class="no-results">{% trans "No results found for '${input}'" %}</div>
+</template>
+{% endblock %}

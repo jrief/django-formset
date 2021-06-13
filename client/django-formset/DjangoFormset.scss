@@ -2,6 +2,8 @@ $django-formset-alert: red;
 $django-formset-warning: orange;
 $django-formset-success: green;
 @import "dropbox";
+@import "select";
+@import "selectize";
 
 :root {
 	--django-formset-color-invalid: #{$django-formset-alert};
@@ -119,4 +121,6 @@ django-field-group {
 		}
 	}
 	@include dropbox;
+	//@include select-caret-style;
+	@include selectize;
 }

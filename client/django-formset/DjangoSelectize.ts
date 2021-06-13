@@ -1,11 +1,13 @@
 import TomSelect from 'tom-select/src/tom-select';
 import TomSettings from 'tom-select/src/types/settings';
-import {TomInput} from 'tom-select/src/types';
+import { TomInput } from 'tom-select/src/types';
+import template from 'lodash.template';
 
 class DjangoSelectize {
 	private readonly endpoint?: string;
 	private readonly fieldName?: string;
 	private readonly tomSelect?: TomSelect;
+	private readonly shadowRoot?: ShadowRoot;
 
 	constructor(tomInput: TomInput) {
 		const form = tomInput.closest('form');
@@ -18,6 +20,8 @@ class DjangoSelectize {
 			valueField: 'id',
 			labelField: 'label',
 			searchField: 'label',
+			//optionClass: 'django-option',
+			render: this.setupRender(tomInput),
 		};
 		if (!tomInput.getAttribute('multiple')) {
 			config.maxItems = 1;
@@ -29,6 +33,19 @@ class DjangoSelectize {
 			config.load = (query: string, callback: Function) => this.loadOptions(query, callback);
 		}
 		this.tomSelect = new TomSelect(tomInput, config);
+		// this.shadowRoot = this.tomSelect.wrapper.attachShadow({mode: 'open'});
+	}
+
+	private setupRender(tomInput: TomInput): object {
+		const renderes = new Map<string, Function>();
+		const templates = tomInput.parentElement ? tomInput.parentElement.getElementsByTagName('template') : [];
+		for (const tmpl of templates) {
+			if (tmpl.classList.contains('selectize-no-results')) {
+				const render = template(tmpl.innerHTML);
+				renderes.set('no_results', (data: any, escape: Function) => render(data));
+			}
+		}
+		return Object.fromEntries(renderes);
 	}
 
 	private async loadOptions(query: string, callback: Function) {
