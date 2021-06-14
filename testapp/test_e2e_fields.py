@@ -5,7 +5,7 @@ import pytest
 from django.forms import fields, Form, widgets
 from django.urls import path
 
-from formset.views import FormsetView
+from formset.views import FormView
 
 
 FieldTuple = namedtuple('FieldTuple', ['name', 'field', 'extra_context'])
@@ -49,7 +49,7 @@ test_fields = dict(
 )
 
 views = {
-    f'form{ctr}': FormsetView.as_view(
+    f'form{ctr}': FormView.as_view(
         template_name='tests/form.html',
         form_class=type(snake2camel(f'{tpl.name}_form'), (Form,), {'name': tpl.name, 'something': tpl.field}),
         success_url='/success',
@@ -186,7 +186,7 @@ def test_valid_form_submission(page, mocker, view, form):
 
 
 urlpatterns.append(
-    path('email_form', FormsetView.as_view(
+    path('email_form', FormView.as_view(
         template_name='tests/form.html',
         form_class=type('EmailForm', (Form,), {'name': 'email_form', 'email': fields.EmailField(initial="john@doe")}),
         success_url='/success',
@@ -219,7 +219,7 @@ def test_email_field(page):
 
 
 urlpatterns.append(
-    path('integer_form', FormsetView.as_view(
+    path('integer_form', FormView.as_view(
         template_name='tests/form.html',
         form_class=type('IntegerForm', (Form,), {
             'name': 'integer_form',
@@ -268,7 +268,7 @@ def test_integer_field(page):
 
 
 urlpatterns.append(
-    path('float_form', FormsetView.as_view(
+    path('float_form', FormView.as_view(
         template_name='tests/form.html',
         form_class=type('FloatForm', (Form,), {
             'name': 'float_form',
@@ -303,7 +303,7 @@ def test_float_field(page):
 
 
 urlpatterns.append(
-    path('date_form', FormsetView.as_view(
+    path('date_form', FormView.as_view(
         template_name='tests/form.html',
         form_class=type('DateForm', (Form,), {
             'name': 'date_form',
@@ -326,7 +326,7 @@ def test_date_field(page, mocker):
     input_elem.evaluate('elem => elem.blur()')
     assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is not None
     assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is None
-    spy = mocker.spy(FormsetView, 'post')
+    spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     assert request['date_form'][name] == '2021-03-29'
@@ -336,7 +336,7 @@ def test_date_field(page, mocker):
 
 
 urlpatterns.append(
-    path('boolean_form', FormsetView.as_view(
+    path('boolean_form', FormView.as_view(
         template_name='tests/form.html',
         form_class=type('BooleanForm', (Form,), {
             'name': 'boolean_form',
@@ -362,7 +362,7 @@ def test_boolean_field(page, mocker):
     input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
     input_elem.click()
     assert placeholder_field.inner_text() == ""
-    spy = mocker.spy(FormsetView, 'post')
+    spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     assert request['boolean_form'][name] == 'on'
@@ -380,7 +380,7 @@ CHOICES = [
 
 
 urlpatterns.append(
-    path('select_form', FormsetView.as_view(
+    path('select_form', FormView.as_view(
         template_name='tests/form.html',
         form_class=type('SelectForm', (Form,), {
             'name': 'select_form',
@@ -403,7 +403,7 @@ def test_select_field(page, mocker):
     assert page.query_selector(f'django-formset form select[name="{name}"]:valid') is not None
     assert page.query_selector(f'django-formset form select[name="{name}"]:invalid') is None
     page.select_option(f'django-formset form select[name="{name}"]', 'c')
-    spy = mocker.spy(FormsetView, 'post')
+    spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     assert request['select_form']['choice'] == 'c'
@@ -413,7 +413,7 @@ def test_select_field(page, mocker):
 
 
 urlpatterns.append(
-    path('multiselect_form', FormsetView.as_view(
+    path('multiselect_form', FormView.as_view(
         template_name='tests/form.html',
         form_class=type('MultiSelectForm', (Form,), {
             'name': 'multiselect_form',
@@ -448,7 +448,7 @@ def test_select_field(page, mocker):
 
 
 urlpatterns.append(
-    path('radiochoice_form', FormsetView.as_view(
+    path('radiochoice_form', FormView.as_view(
         template_name='tests/form.html',
         form_class=type('RadioChoiceForm', (Form,), {
             'name': 'radiochoice_form',
@@ -477,7 +477,7 @@ def test_radiochoice_field(page, mocker):
     assert page.query_selector('django-formset form:valid') is not None
     assert page.query_selector('django-formset form:invalid') is None
     assert placeholder_field.inner_text() == ""
-    spy = mocker.spy(FormsetView, 'post')
+    spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     assert request['radiochoice_form']['choice'] == 'b'
@@ -487,7 +487,7 @@ def test_radiochoice_field(page, mocker):
 
 
 urlpatterns.append(
-    path('multichoice_form', FormsetView.as_view(
+    path('multichoice_form', FormView.as_view(
         template_name='tests/form.html',
         form_class=type('MultiChoiceForm', (Form,), {
             'name': 'multichoice_form',
@@ -518,7 +518,7 @@ def test_multichoice_field(page, mocker):
     assert page.query_selector('django-formset form:invalid') is None
     assert placeholder_field.inner_text() == ""
     page.query_selector(f'django-formset form input[value="d"]').click()
-    spy = mocker.spy(FormsetView, 'post')
+    spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     assert request['multichoice_form']['choices'] == ['a', 'd']
@@ -528,7 +528,7 @@ def test_multichoice_field(page, mocker):
 
 
 urlpatterns.append(
-    path('textarea_form', FormsetView.as_view(
+    path('textarea_form', FormView.as_view(
         template_name='tests/form.html',
         form_class=type('TextareaForm', (Form,), {
             'name': 'textarea_form',
@@ -555,7 +555,7 @@ def test_textarea(page, mocker):
     textarea_elem.type("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
     assert placeholder_field.inner_text() == ""
     textarea_elem.evaluate('elem => elem.blur()')
-    spy = mocker.spy(FormsetView, 'post')
+    spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     assert request['textarea_form']['text'].startswith("Lorem ipsum dolor sit amet")

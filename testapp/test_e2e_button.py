@@ -5,7 +5,7 @@ from time import sleep
 from django.forms import fields, Form
 from django.urls import path
 
-from formset.views import FormsetView
+from formset.views import FormView
 
 
 class SampleForm(Form):
@@ -14,7 +14,7 @@ class SampleForm(Form):
 
 
 views = {
-    f'test_button_{ctr}': FormsetView.as_view(
+    f'test_button_{ctr}': FormView.as_view(
         template_name='tests/form_with_button.html',
         form_class=SampleForm,
         success_url='/success',
@@ -29,13 +29,13 @@ views = {
         'emit("my_event", {foo: "bar"})',
     ])
 }
-views['test_button_submit'] = FormsetView.as_view(
+views['test_button_submit'] = FormView.as_view(
     template_name='tests/form_with_button.html',
     form_class=SampleForm,
     success_url='/success',
     extra_context={'click_actions': 'submit', 'auto_disable': True},
 )
-views['test_button_submit_with_data'] = FormsetView.as_view(
+views['test_button_submit_with_data'] = FormView.as_view(
     template_name='tests/form_with_button.html',
     form_class=SampleForm,
     success_url='/success',
@@ -142,7 +142,7 @@ def test_button_submit(page, mocker):
     input_elem.evaluate('elem => elem.blur()')
     button_elem = page.query_selector('django-formset button')
     assert button_elem is not None
-    spy = mocker.spy(FormsetView, 'post')
+    spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset button').click()
     request = json.loads(spy.call_args.args[1].body)
     assert request['sample_form']['enter'] == "A"
@@ -157,7 +157,7 @@ def test_button_submit_with_data(page, mocker):
     input_elem.evaluate('elem => elem.blur()')
     button_elem = page.query_selector('django-formset button')
     assert button_elem is not None
-    spy = mocker.spy(FormsetView, 'post')
+    spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset button').click()
     request = json.loads(spy.call_args.args[1].body)
     assert request['_extra']['foo'] == "bar"

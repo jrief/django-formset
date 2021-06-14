@@ -8,7 +8,7 @@ from django.core.signing import get_cookie_signer
 from django.forms import fields, Form
 from django.urls import path
 
-from formset.views import FormsetView
+from formset.views import FormView
 from formset.widgets import UploadedFileInput
 
 
@@ -22,7 +22,7 @@ class UploadForm(Form):
     )
 
 
-view = FormsetView.as_view(
+view = FormView.as_view(
     template_name='tests/form_with_button.html',
     form_class=UploadForm,
     success_url='/success',
