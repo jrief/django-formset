@@ -41,7 +41,20 @@ this gives our Subscribe Form a much better **User eXperience**.
 * Before submitting, our Form is prevalidated by the browser using the constraints we defined for
   each field.
 * Multiple FormData objects are submitted to an endpoint.
-* Server side validation errors are injected back to do form
+* Server side validation errors are injected back to do form.
+* Much better user experience, since form data is sent using Ajax, rather than rerendering everything.
+
+
+## Documentation
+
+Not deployed on RTD, but some documentation can be found in the `docs` folder.
+
+
+## Motivation
+
+This library shall replace the form-validation framework in django-angular. In many aspects it already
+is far superior than the latter. Currently I am working on the `Selectize`-widget, which shall be used on
+Django's `forms.models.ModelChoiceField` and hence be used for `db.models.ForeignKey`.
 
 
 [![Build Status](https://github.com/jrief/django-formset/actions/workflows/pythonpackage.yml/badge.svg)]()
