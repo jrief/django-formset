@@ -125,7 +125,7 @@ def test_button_emit_custom_event(page, mocker):
 def test_button_autodisable(page):
     button_elem = page.query_selector('django-formset button:disabled')
     assert button_elem is not None
-    input_elem = page.query_selector('django-formset #id_enter')
+    input_elem = page.query_selector('django-formset #sample_form_id_enter')
     assert input_elem is not None
     input_elem.type("A")
     input_elem.evaluate('elem => elem.blur()')
@@ -136,7 +136,7 @@ def test_button_autodisable(page):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_submit'])
 def test_button_submit(page, mocker):
-    input_elem = page.query_selector('#id_enter')
+    input_elem = page.query_selector('#sample_form_id_enter')
     assert input_elem is not None
     input_elem.type("A")
     input_elem.evaluate('elem => elem.blur()')
@@ -151,7 +151,7 @@ def test_button_submit(page, mocker):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_submit_with_data'])
 def test_button_submit_with_data(page, mocker):
-    input_elem = page.query_selector('#id_enter')
+    input_elem = page.query_selector('#sample_form_id_enter')
     assert input_elem is not None
     input_elem.type("BAR")
     input_elem.evaluate('elem => elem.blur()')

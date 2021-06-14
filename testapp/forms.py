@@ -90,12 +90,12 @@ class SubscribeForm(forms.Form):
         error_messages={'invalid_choice': "Please select your continent."},
     )
 
-    choice = models.ModelChoiceField(
-        queryset=ChoicesModel.objects.filter(tenant=1),
-        label="Choose from",
-        empty_label="Select an option",
-        widget=Selectize(search_lookup='label__icontains'),
-    )
+    # choice = models.ModelChoiceField(
+    #     queryset=ChoicesModel.objects.filter(tenant=1),
+    #     label="Choose from",
+    #     empty_label="Select an option",
+    #     widget=Selectize(search_lookup='label__icontains'),
+    # )
 
     weight = fields.IntegerField(
         label="Weight in kg",

@@ -438,7 +438,7 @@ def test_select_field(page, mocker):
     page.select_option(f'django-formset form select[name="{name}"]', ['c', 'b'])
     assert page.query_selector('django-formset form:valid') is not None
     assert page.query_selector('django-formset form:invalid') is None
-    spy = mocker.spy(FormsetView, 'post')
+    spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     assert set(request['multiselect_form']['choices']) == set(['b', 'c'])

@@ -60,7 +60,7 @@ def test_default_fields(form_soup, field_name):
     soup = form_soup[1]
     initial_value = form_soup[2].get(field_name)
     framework = form_soup[3]
-    field_elem = soup.find(id=f'id_{field_name}')
+    field_elem = soup.find(id=f'subscribe_id_{field_name}')
     assert field_elem is not None
     widget_type = 'textarea' if isinstance(bf.field.widget, Textarea) else bf.field.widget.input_type
     allow_multiple_selected = getattr(bf.field.widget, 'allow_multiple_selected', False)
