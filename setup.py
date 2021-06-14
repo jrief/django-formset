@@ -29,7 +29,7 @@ setup(
     author='Jacob Rief',
     author_email='jacob.rief@gmail.com',
     url='https://github.com/jrief/django-formset',
-    packages=find_packages(),
+    packages=find_packages(exclude=['testapp', 'docs']),
     install_requires=[
         'django>=3.1',
     ],
@@ -40,5 +40,5 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     include_package_data=True,
-    zip_safe=False
+    zip_safe=False,
 )
