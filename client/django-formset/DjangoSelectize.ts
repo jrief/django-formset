@@ -1,7 +1,12 @@
+import styles from 'sass:./DjangoSelectize.scss';
 import TomSelect from 'tom-select/src/tom-select';
 import TomSettings from 'tom-select/src/types/settings';
 import { TomInput } from 'tom-select/src/types';
 import template from 'lodash.template';
+
+const style = document.createElement('style');
+style.textContent = styles;
+
 
 class DjangoSelectize {
 	private readonly endpoint?: string;
@@ -10,9 +15,10 @@ class DjangoSelectize {
 	private readonly shadowRoot?: ShadowRoot;
 
 	constructor(tomInput: TomInput) {
+		const group = tomInput.closest('django-field-group');
 		const form = tomInput.closest('form');
 		const formset = tomInput.closest('django-formset');
-		if (!form || !formset)
+		if (!group || !form || !formset)
 			return;
 		// @ts-ignore
 		const config: TomSettings = {
@@ -32,8 +38,15 @@ class DjangoSelectize {
 			this.fieldName = `${formName}.${tomInput.getAttribute('name')}`;
 			config.load = (query: string, callback: Function) => this.loadOptions(query, callback);
 		}
+
+		const wrapper = document.createElement('span');
+		wrapper.classList.add('wrapper');
+		tomInput.insertAdjacentElement('beforebegin', wrapper);
+		const select = group.removeChild(tomInput);
+		this.shadowRoot = wrapper.attachShadow({mode: 'open'});
+		this.shadowRoot.appendChild(style);
+		this.shadowRoot.appendChild(select);
 		this.tomSelect = new TomSelect(tomInput, config);
-		// this.shadowRoot = this.tomSelect.wrapper.attachShadow({mode: 'open'});
 	}
 
 	private setupRender(tomInput: TomInput): object {
