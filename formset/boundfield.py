@@ -6,6 +6,15 @@ from django.utils.translation import gettext_lazy as _
 from formset.widgets import UploadedFileInput
 
 
+class BoundWidget(boundfield.BoundWidget):
+    # can be removed after https://code.djangoproject.com/ticket/32855 has been fixed
+
+    @property
+    def id_for_label(self):
+        # overrides super method, which for unknown reason rerenders id_for_label
+        return self.data['attrs']['id']
+
+
 class BoundField(boundfield.BoundField):
     @property
     def errors(self):
@@ -60,6 +69,18 @@ class BoundField(boundfield.BoundField):
         elif auto_id:
             return self.html_name
         return ''
+
+    @property
+    def subwidgets(self):
+        # Can be removed when https://code.djangoproject.com/ticket/32855 is fixed, probably in Django-4.0
+        # overrides super method, to replace BoundWidget with patched implementation
+        id_ = self.field.widget.attrs.get('id') or self.auto_id
+        attrs = {'id': id_} if id_ else {}
+        attrs = self.build_widget_attrs(attrs)
+        return [
+            BoundWidget(self.field.widget, widget, self.form.renderer)
+            for widget in self.field.widget.subwidgets(self.html_name, self.value(), attrs=attrs)
+        ]
 
     def build_widget_attrs(self, attrs, widget=None):
         return self.form.get_widget_attrs(self, attrs, widget)

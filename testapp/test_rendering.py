@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from django.forms.widgets import Textarea
 from django.test import RequestFactory
 
+from formset.mixins.default import FormMixin
 from .forms import DefaultMixinForm, SubscribeForm, BootstrapMixinForm, BulmaMixinForm, \
                    FoundationMixinForm, TailwindMixinForm
 from .views import SubscribeFormView, sample_subscribe_data
@@ -47,9 +48,23 @@ def form_soup(view):
     response = view(http_request)
     response.render()
     soup = BeautifulSoup(response.content, 'html.parser')
-    form = view.view_initkwargs['form_class']()
+    Form = view.view_initkwargs['form_class']
     initial = view.view_initkwargs['initial'] if 'initial' in view.view_initkwargs else {}
     framework = view.view_initkwargs['template_name'].split('/')[0]
+    if issubclass(Form, FormMixin):
+        form = Form()
+    elif framework == 'default':
+        form = DefaultMixinForm()
+    elif framework == 'bootstrap':
+        form = BootstrapMixinForm()
+    elif framework == 'bulma':
+        form = BulmaMixinForm()
+    elif framework == 'foundation':
+        form = FoundationMixinForm()
+    elif framework == 'tailwind':
+        form = TailwindMixinForm()
+    else:
+        raise RuntimeError(f"Unknown framework: {framework}")
     return form, soup, initial, framework
 
 
@@ -146,7 +161,6 @@ def test_default_fields(form_soup, field_name):
         elif framework == 'tailwind':
             help_text = field_group.find('p', class_='formset-help-text')
         assert not help_text or help_text.text == bf.field.help_text
-
 
     if bf.field.label:
         label = field_group.find('label')
