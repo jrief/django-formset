@@ -41,12 +41,11 @@ class DjangoSelectize {
 
 		const wrapper = document.createElement('span');
 		wrapper.classList.add('wrapper');
-		tomInput.insertAdjacentElement('beforebegin', wrapper);
-		const select = group.removeChild(tomInput);
-		this.shadowRoot = wrapper.attachShadow({mode: 'open'});
-		this.shadowRoot.appendChild(style);
-		this.shadowRoot.appendChild(select);
+		tomInput.insertAdjacentElement('afterend', wrapper);
 		this.tomSelect = new TomSelect(tomInput, config);
+		this.shadowRoot = wrapper.attachShadow({mode: 'open', delegatesFocus: true});
+		this.shadowRoot.appendChild(style);
+		this.shadowRoot.appendChild(group.removeChild(this.tomSelect.wrapper));
 	}
 
 	private setupRender(tomInput: TomInput): object {
