@@ -11,7 +11,17 @@ $select-padding-dropdown-item-x:  0.25rem;
 	overflow: visible !important;
 
 	.ts-input {
-		border: 1px solid black;
+		border: 1px solid #ced4da;
+		padding: .375rem .75rem;
+		width: 100%;
+		overflow: hidden;
+		position: relative;
+		z-index: 1;
+		box-sizing: border-box;
+		box-shadow: none;
+		border-radius: .25rem;
+		display: flex;
+		flex-wrap: wrap;
 
 		* {
 			vertical-align: baseline;
@@ -23,7 +33,7 @@ $select-padding-dropdown-item-x:  0.25rem;
 				display: none;
 			}
 
-			&:focus {
+			&:focus, &:focus-visible {
 				outline: none !important;
 			}
 

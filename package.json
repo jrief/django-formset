@@ -29,12 +29,10 @@
     "postcss": "^8.2.8",
     "sass": "^1.32.12",
     "tailwindcss": "^2.0.4",
+    "tom-select": "^1.7.5",
     "ts-pegjs": "^0.3.1",
     "tslib": "^2.2.0",
     "typescript": "^4.1.4",
     "uglify-js": "^3.13.8"
-  },
-  "dependencies": {
-    "tom-select": "^1.7.5"
   }
 }

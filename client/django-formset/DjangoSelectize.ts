@@ -12,7 +12,7 @@ class DjangoSelectize {
 	private readonly endpoint?: string;
 	private readonly fieldName?: string;
 	private readonly tomSelect?: TomSelect;
-	private readonly shadowRoot?: ShadowRoot;
+	private shadowRoot?: ShadowRoot;
 
 	constructor(tomInput: TomInput) {
 		const group = tomInput.closest('django-field-group');
@@ -33,19 +33,24 @@ class DjangoSelectize {
 			config.maxItems = 1;
 		}
 		if (tomInput.hasAttribute('uncomplete')) {
-			this.endpoint = formset.getAttribute('endpoint') || '';
+			// select fields marked as "uncomplete" will fetch additional data from their backend
 			const formName = form.getAttribute('name') || '__default__';
+			this.endpoint = formset.getAttribute('endpoint') || '';
 			this.fieldName = `${formName}.${tomInput.getAttribute('name')}`;
 			config.load = (query: string, callback: Function) => this.loadOptions(query, callback);
 		}
-
-		const wrapper = document.createElement('span');
-		wrapper.classList.add('wrapper');
-		tomInput.insertAdjacentElement('afterend', wrapper);
 		this.tomSelect = new TomSelect(tomInput, config);
+		const wrapper = group.removeChild(this.tomSelect.wrapper);
+		tomInput.insertAdjacentElement('afterend', this.wrapInShadowRoot(wrapper));
+	}
+
+	private wrapInShadowRoot(controller: HTMLElement) {
+		const wrapper = document.createElement('span');
+		wrapper.classList.add('shadow-wrapper');
 		this.shadowRoot = wrapper.attachShadow({mode: 'open', delegatesFocus: true});
 		this.shadowRoot.appendChild(style);
-		this.shadowRoot.appendChild(group.removeChild(this.tomSelect.wrapper));
+		this.shadowRoot.appendChild(controller);
+		return wrapper;
 	}
 
 	private setupRender(tomInput: TomInput): object {
