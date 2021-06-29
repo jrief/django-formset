@@ -40,27 +40,24 @@ class FileUploadWidget {
 		this.field = fieldGroup;
 		this.inputElement = inputElement;
 
-		const dropboxes = this.field.element.getElementsByClassName('dj-dropbox');
-		if (dropboxes.length !== 1)
+		this.dropbox = this.field.element.querySelector('ul.dj-dropbox') as HTMLUListElement;
+		if (!this.dropbox)
 			throw new Error('Element <input type="file"> requires sibling element <ul class="dj-dropbox"></ul>');
-		this.dropbox = dropboxes[0] as HTMLUListElement;
 
-		const buttons = this.field.element.getElementsByClassName('dj-choose-file');
-		if (buttons.length !== 1)
+		this.chooseFileButton = this.field.element.querySelector('button.dj-choose-file') as HTMLButtonElement;
+		if (!this.chooseFileButton)
 			throw new Error('Element <input type="file"> requires sibling element <button class="dj-choose-file"></button>');
-		this.chooseFileButton = buttons[0] as HTMLButtonElement;
 
-		const progressBars = this.field.element.getElementsByClassName('dj-progress-bar');
-		if (progressBars.length === 1) {
-			this.progressBar = progressBars[0] as HTMLDivElement;
+		this.progressBar = this.field.element.querySelector('div.dj-progress-bar') as HTMLDivElement;
+		if (this.progressBar) {
 			this.progressBar.style.visibility = 'hidden';
 		}
 
-		this.defaultDropboxItem = this.dropbox.getElementsByTagName('li')[0];
-		const templates = this.field.element.getElementsByClassName('dj-dropbox-items');
-		if (templates.length !== 1)
+		this.defaultDropboxItem = this.dropbox.querySelector('li') as HTMLLIElement;
+		const dropboxItemTemplate = this.field.element.querySelector('.dj-dropbox-items');
+		if (!dropboxItemTemplate)
 			throw new Error('Element <input type="file"> requires sibling element <template class="dj-dropbox-items"></template>');
-		this.dropboxItemTemplate = template(templates[0].innerHTML);
+		this.dropboxItemTemplate = template(dropboxItemTemplate.innerHTML);
 
 		const initialData = document.getElementById(`initial_${inputElement.id}`);
 		if (initialData?.textContent) {
@@ -173,9 +170,9 @@ class FileUploadWidget {
 			list.push(listItem);
 		}
 		this.dropbox.innerHTML = list.join('');
-		const buttons = this.dropbox.getElementsByClassName('dj-delete-file');
-		if (buttons.length > 0) {
-			buttons[0].addEventListener('click', this.fileRemove, {once: true});
+		const button = this.dropbox.querySelector('.dj-delete-file');
+		if (button) {
+			button.addEventListener('click', this.fileRemove, {once: true});
 		}
 	}
 
@@ -189,9 +186,9 @@ function findErrorPlaceholder(element: Element): HTMLElement | null {
 	const errorlist = element.getElementsByClassName('dj-errorlist');
 	for (const listelement of errorlist) {
 		if (listelement.parentElement && listelement.parentElement.isEqualNode(element)) {
-			const placeholder = listelement.getElementsByClassName('dj-placeholder');
-			if (placeholder.length > 0)
-				return placeholder[0] as HTMLElement;
+			const placeholder = listelement.querySelector('.dj-placeholder');
+			if (placeholder)
+				return placeholder as HTMLElement;
 			break;
 		}
 	}
@@ -780,8 +777,8 @@ class DjangoForm {
 		this.name = element.getAttribute('name') || '__default__';
 		this.formset = formset;
 		this.element = element;
-		const formErrors = element.getElementsByClassName('dj-form-errors');
-		const placeholder = formErrors.length > 0 ? findErrorPlaceholder(formErrors[0]) : null;
+		const formError = element.querySelector('.dj-form-errors');
+		const placeholder = formError ? findErrorPlaceholder(formError) : null;
 		if (placeholder) {
 			this.errorList = placeholder.parentElement;
 			this.errorPlaceholder = this.errorList ? this.errorList.removeChild(placeholder) : null;
