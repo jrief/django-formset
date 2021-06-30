@@ -12,7 +12,7 @@ class DjangoSelectize {
 	private readonly endpoint?: string;
 	private readonly fieldName?: string;
 	private readonly tomSelect?: TomSelect;
-	private shadowRoot?: ShadowRoot;
+	private readonly shadowRoot?: ShadowRoot;
 
 	constructor(tomInput: TomInput) {
 		const group = tomInput.closest('django-field-group');
@@ -40,17 +40,27 @@ class DjangoSelectize {
 			config.load = (query: string, callback: Function) => this.loadOptions(query, callback);
 		}
 		this.tomSelect = new TomSelect(tomInput, config);
-		const wrapper = group.removeChild(this.tomSelect.wrapper);
-		tomInput.insertAdjacentElement('afterend', this.wrapInShadowRoot(wrapper));
+		const styles = this.extractStyles(tomInput);
+		this.shadowRoot = this.wrapInShadowRoot(this.tomSelect.wrapper);
 	}
 
-	private wrapInShadowRoot(controller: HTMLElement) {
-		const wrapper = document.createElement('span');
-		wrapper.classList.add('shadow-wrapper');
-		this.shadowRoot = wrapper.attachShadow({mode: 'open', delegatesFocus: true});
-		this.shadowRoot.appendChild(style);
-		this.shadowRoot.appendChild(controller);
-		return wrapper;
+	private wrapInShadowRoot(wrapper: HTMLElement) : ShadowRoot | undefined {
+		const controlInput = wrapper.querySelector('.ts-input');
+		const dropdown = wrapper.querySelector('.ts-dropdown');
+		if (!controlInput || !dropdown)
+			return;
+		wrapper.removeChild(controlInput);
+		wrapper.removeChild(dropdown);
+		const shadowRoot = wrapper.attachShadow({mode: 'open', delegatesFocus: true});
+		shadowRoot.appendChild(style);
+		shadowRoot.appendChild(controlInput);
+		shadowRoot.appendChild(dropdown);
+		return shadowRoot;
+	}
+
+	private extractStyles(tomInput: TomInput) {
+		const styles = getComputedStyle(tomInput);
+		console.log(styles);
 	}
 
 	private setupRender(tomInput: TomInput): object {
