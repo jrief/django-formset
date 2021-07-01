@@ -119,4 +119,10 @@ django-field-group {
 		}
 	}
 	@include dropbox;
+
+	.ts-control {
+		display: inline-block;
+		position: relative;
+		overflow: visible !important;
+	}
 }
