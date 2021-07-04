@@ -29,7 +29,7 @@
     "postcss": "^8.2.8",
     "sass": "^1.32.12",
     "tailwindcss": "^2.0.4",
-    "tom-select": "^1.7.5",
+    "tom-select": "^1.7.6",
     "ts-pegjs": "^0.3.1",
     "tslib": "^2.2.0",
     "typescript": "^4.1.4",
