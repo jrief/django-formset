@@ -1,25 +1,27 @@
-import styles from 'sass:./DjangoSelectize.scss';
 import TomSelect from 'tom-select/src/tom-select';
 import TomSettings from 'tom-select/src/types/settings';
 import { TomInput } from 'tom-select/src/types';
 import template from 'lodash.template';
 
-const style = document.createElement('style');
-style.textContent = styles;
+const shadowStyleElement = document.createElement('style');
+import styles from 'sass:./DjangoSelectize.scss';
+shadowStyleElement.textContent = styles;
 
 
 class DjangoSelectize {
 	private readonly endpoint?: string;
 	private readonly fieldName?: string;
-	private readonly tomSelect?: TomSelect;
-	private readonly shadowRoot?: ShadowRoot;
+	private readonly tomSelect: TomSelect;
+	private readonly shadowRoot: ShadowRoot;
+	private readonly extraCSSRules: Array<[number, number]> = [];
 
 	constructor(tomInput: TomInput) {
+		this.insertPseudoClasses();
 		const group = tomInput.closest('django-field-group');
 		const form = tomInput.closest('form');
 		const formset = tomInput.closest('django-formset');
 		if (!group || !form || !formset)
-			return;
+			throw new Error("Attempt to initialize <django-selectize> outside <django-formset>")
 		// @ts-ignore
 		const config: TomSettings = {
 			create: false,
@@ -102,6 +104,37 @@ class DjangoSelectize {
 
 		if (parts.length === 2) {
 			return parts[1].split(';').shift();
+		}
+	}
+
+	private insertPseudoClasses() {
+		for (let index = 0; index < document.styleSheets.length; index++) {
+			const sheet = document.styleSheets[index];
+			for (let k = 0; k < sheet.cssRules.length; k++) {
+				const cssRule = sheet.cssRules.item(k) as CSSStyleRule;
+				if (!cssRule.selectorText)
+					continue;
+				const newSelectorText = cssRule.selectorText.
+					replaceAll(':focus', '.-focus-').
+					replaceAll(':hover', '.-hover-').
+					replaceAll(':invalid', '.-invalid-').
+					replaceAll('::placeholder', '.-placeholder-').
+					replaceAll(':placeholder', '.-placeholder-');
+				if (newSelectorText !== cssRule.selectorText) {
+					//console.log(cssRule.selectorText);
+					//console.log(newSelectorText);
+					sheet.insertRule(`${newSelectorText}{${cssRule.style.cssText}}`, ++k);
+					this.extraCSSRules.push([index, k]);
+				}
+			}
+		}
+	}
+
+	private removePseudoClasses() {
+		for (let [index, k] of this.extraCSSRules.reverse()) {
+			const sheet = document.styleSheets[index];
+			console.log(sheet.cssRules.item(k));
+			sheet.deleteRule(k);
 		}
 	}
 }
