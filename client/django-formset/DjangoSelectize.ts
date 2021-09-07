@@ -16,7 +16,7 @@ class DjangoSelectize {
 	private readonly extraCSSRules: Array<[number, number]> = [];
 
 	constructor(tomInput: TomInput) {
-		this.insertPseudoClasses();
+		this.convertPseudoClasses();
 		const group = tomInput.closest('django-field-group');
 		const form = tomInput.closest('form');
 		const formset = tomInput.closest('django-formset');
@@ -41,28 +41,102 @@ class DjangoSelectize {
 			this.fieldName = `${formName}.${tomInput.getAttribute('name')}`;
 			config.load = (query: string, callback: Function) => this.loadOptions(query, callback);
 		}
+		const nativeStyles = {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
+
 		this.tomSelect = new TomSelect(tomInput, config);
-		const styles = this.extractStyles(tomInput);
-		this.shadowRoot = this.wrapInShadowRoot(this.tomSelect.wrapper);
+		this.shadowRoot = this.wrapInShadowRoot(tomInput);
+		this.shadowRoot.appendChild(group.removeChild(this.tomSelect.wrapper));
+		this.transferStyles(tomInput as unknown as HTMLSelectElement, nativeStyles);
+		this.removeConvertedClasses();
 	}
 
-	private wrapInShadowRoot(wrapper: HTMLElement) : ShadowRoot | undefined {
-		const controlInput = wrapper.querySelector('.ts-input');
-		const dropdown = wrapper.querySelector('.ts-dropdown');
-		if (!controlInput || !dropdown)
-			return;
-		wrapper.removeChild(controlInput);
-		wrapper.removeChild(dropdown);
+	private wrapInShadowRoot(tomInput: TomInput) : ShadowRoot {
+		const wrapper = document.createElement('div');
+		wrapper.classList.add('shadow-wrapper');
 		const shadowRoot = wrapper.attachShadow({mode: 'open', delegatesFocus: true});
-		shadowRoot.appendChild(style);
-		shadowRoot.appendChild(controlInput);
-		shadowRoot.appendChild(dropdown);
+		shadowRoot.appendChild(shadowStyleElement);
+		tomInput.insertAdjacentElement('afterend', wrapper);
 		return shadowRoot;
 	}
 
-	private extractStyles(tomInput: TomInput) {
-		const styles = getComputedStyle(tomInput);
-		console.log(styles);
+	private transferStyles(tomInput: HTMLSelectElement, nativeStyles: CSSStyleDeclaration) {
+		const wrapperStyle = (this.shadowRoot.host as HTMLElement).style;
+		wrapperStyle.setProperty('display', nativeStyles.display);
+		//wrapperStyle.setProperty('outline', 'none');
+		const sheet = shadowStyleElement.sheet as CSSStyleSheet;
+		const optionElement = tomInput.querySelector('option');
+		const placeholderLength = optionElement ? optionElement.label.length : 0;
+		for (let index = 0; index < sheet.cssRules.length; index++) {
+			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
+			console.log(cssRule.selectorText);
+			let extraStyles: string;
+			switch (cssRule.selectorText) {
+				case '.ts-control':
+					extraStyles = this.extractStyles(tomInput, [
+						'font-family', 'font-size', 'font-strech', 'font-style', 'font-weight',
+						'letter-spacing', 'white-space']);
+					console.log(extraStyles);
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '.ts-control .ts-input':
+					extraStyles = this.extractStyles(tomInput, [
+						'background-color', 'border', 'border-radius', 'box-shadow', 'color',
+						'padding']);
+					console.log(extraStyles);
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '.ts-control .ts-input > input':
+					extraStyles = this.extractStyles(tomInput, [
+						'line-height'])
+						.concat(`width: ${nativeStyles['width']};`);
+					console.log(extraStyles);
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '.ts-control .ts-input > div':
+					extraStyles = this.extractStyles(tomInput, [
+						'line-height'])
+						.concat(`width: ${nativeStyles['width']};`);
+					console.log(extraStyles);
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '.ts-control .ts-input > input::placeholder':
+					tomInput.classList.add('-placeholder-');
+					extraStyles = this.extractStyles(tomInput, [
+							'background-color', 'color'])
+					console.log(extraStyles);
+					tomInput.classList.remove('-placeholder-');
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '.ts-control .ts-input.focus':
+					tomInput.classList.add('-focus-');
+					extraStyles = this.extractStyles(tomInput, [
+							'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'])
+					console.log(extraStyles);
+					tomInput.classList.remove('-focus-');
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '.ts-control .ts-dropdown':
+					const lineHeight = window.getComputedStyle(tomInput).getPropertyValue('line-height');
+					extraStyles = this.extractStyles(tomInput, [
+						'border-right', 'border-bottom', 'border-left', 'color', 'padding-left'])
+						.concat(`line-height: calc(${lineHeight} * 1.25);`);
+					console.log(extraStyles);
+					console.log(cssRule.style.cssText);
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
+	private extractStyles(element: Element, properties: Array<string>): string {
+		let styles = Array<string>();
+		const style = window.getComputedStyle(element);
+		for (let property of properties) {
+			styles.push(`${property}:${style.getPropertyValue(property)}`);
+		}
+		return styles.join('; ').concat('; ');
 	}
 
 	private setupRender(tomInput: TomInput): object {
@@ -107,7 +181,12 @@ class DjangoSelectize {
 		}
 	}
 
-	private insertPseudoClasses() {
+	private convertPseudoClasses() {
+		// Iterate over all style sheets, find most pseudo classes and add CSSRules with a
+		// CSS selector where the pseudo class has been replaced by a real counterpart.
+		// This is required, because browsers can not invoke `window.getComputedStyle(element)`
+		// using pseudo classes.
+		// With function `removeConvertedClasses()` the added CSSRules are removed again.
 		for (let index = 0; index < document.styleSheets.length; index++) {
 			const sheet = document.styleSheets[index];
 			for (let k = 0; k < sheet.cssRules.length; k++) {
@@ -116,13 +195,14 @@ class DjangoSelectize {
 					continue;
 				const newSelectorText = cssRule.selectorText.
 					replaceAll(':focus', '.-focus-').
+					replaceAll(':focus-visible', '.-focus-visible-').
 					replaceAll(':hover', '.-hover-').
 					replaceAll(':invalid', '.-invalid-').
+					replaceAll('::placeholder-shown', '.-placeholder-shown').
+					replaceAll(':placeholder-shown', '.-placeholder-shown').
 					replaceAll('::placeholder', '.-placeholder-').
 					replaceAll(':placeholder', '.-placeholder-');
 				if (newSelectorText !== cssRule.selectorText) {
-					//console.log(cssRule.selectorText);
-					//console.log(newSelectorText);
 					sheet.insertRule(`${newSelectorText}{${cssRule.style.cssText}}`, ++k);
 					this.extraCSSRules.push([index, k]);
 				}
@@ -130,12 +210,13 @@ class DjangoSelectize {
 		}
 	}
 
-	private removePseudoClasses() {
+	private removeConvertedClasses() {
+		// Remove the converted pseudo classes as added by `convertPseudoClasses()`
+		// resetting all stylesheets into their starting point.
 		for (let [index, k] of this.extraCSSRules.reverse()) {
-			const sheet = document.styleSheets[index];
-			console.log(sheet.cssRules.item(k));
-			sheet.deleteRule(k);
+			document.styleSheets[index].deleteRule(k);
 		}
+		this.extraCSSRules.splice(0);
 	}
 }
 

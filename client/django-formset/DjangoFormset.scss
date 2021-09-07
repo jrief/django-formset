@@ -8,6 +8,10 @@ $django-formset-success: green;
 	--django-formset-color-valid: #{$django-formset-success};
 }
 
+select::placeholder {
+	color: rgb(128, 128, 128);
+}
+
 django-formset {
 	.dj-errorlist {
 		list-style: none;
@@ -119,10 +123,4 @@ django-field-group {
 		}
 	}
 	@include dropbox;
-
-	.ts-control {
-		display: inline-block;
-		position: relative;
-		overflow: visible !important;
-	}
 }
