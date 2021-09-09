@@ -42,6 +42,7 @@ class FormMixin(default.CheckboxFormMixin, default.FormMixin):
         'checkboxselectmultiple': 'mr-2',
         'radioselect': 'mr-2',
         'number': 'input',
+        'selectize': 'input',
         'textarea': 'textarea',
         'password': 'input',
     }

@@ -11,6 +11,9 @@ $django-formset-success: green;
 select::placeholder {
 	color: rgb(128, 128, 128);
 }
+select[hidden="hidden"] {
+	display: none;
+}
 
 django-formset {
 	.dj-errorlist {

@@ -17,10 +17,10 @@ class DjangoSelectize {
 
 	constructor(tomInput: TomInput) {
 		this.convertPseudoClasses();
-		const group = tomInput.closest('django-field-group');
+		const fieldGroup = tomInput.closest('django-field-group');
 		const form = tomInput.closest('form');
 		const formset = tomInput.closest('django-formset');
-		if (!group || !form || !formset)
+		if (!fieldGroup || !form || !formset)
 			throw new Error("Attempt to initialize <django-selectize> outside <django-formset>")
 		// @ts-ignore
 		const config: TomSettings = {
@@ -28,7 +28,6 @@ class DjangoSelectize {
 			valueField: 'id',
 			labelField: 'label',
 			searchField: 'label',
-			//optionClass: 'django-option',
 			render: this.setupRender(tomInput),
 		};
 		if (!tomInput.getAttribute('multiple')) {
@@ -45,27 +44,25 @@ class DjangoSelectize {
 
 		this.tomSelect = new TomSelect(tomInput, config);
 		this.shadowRoot = this.wrapInShadowRoot(tomInput);
-		this.shadowRoot.appendChild(group.removeChild(this.tomSelect.wrapper));
-		this.transferStyles(tomInput as unknown as HTMLSelectElement, nativeStyles);
+		this.transferStyles(tomInput as unknown as HTMLElement, nativeStyles);
 		this.removeConvertedClasses();
 	}
 
 	private wrapInShadowRoot(tomInput: TomInput) : ShadowRoot {
-		const wrapper = document.createElement('div');
-		wrapper.classList.add('shadow-wrapper');
-		const shadowRoot = wrapper.attachShadow({mode: 'open', delegatesFocus: true});
+		const shadowWrapper = document.createElement('div');
+		shadowWrapper.classList.add('shadow-wrapper');
+		const shadowRoot = shadowWrapper.attachShadow({mode: 'open', delegatesFocus: true});
 		shadowRoot.appendChild(shadowStyleElement);
-		tomInput.insertAdjacentElement('afterend', wrapper);
+		tomInput.insertAdjacentElement('afterend', shadowWrapper);
+		const wrapper = (tomInput.parentElement as HTMLElement).removeChild(this.tomSelect.wrapper);
+		shadowRoot.appendChild(wrapper);
 		return shadowRoot;
 	}
 
-	private transferStyles(tomInput: HTMLSelectElement, nativeStyles: CSSStyleDeclaration) {
+	private transferStyles(tomInput: HTMLElement, nativeStyles: CSSStyleDeclaration) {
 		const wrapperStyle = (this.shadowRoot.host as HTMLElement).style;
 		wrapperStyle.setProperty('display', nativeStyles.display);
-		//wrapperStyle.setProperty('outline', 'none');
 		const sheet = shadowStyleElement.sheet as CSSStyleSheet;
-		const optionElement = tomInput.querySelector('option');
-		const placeholderLength = optionElement ? optionElement.label.length : 0;
 		for (let index = 0; index < sheet.cssRules.length; index++) {
 			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
 			console.log(cssRule.selectorText);

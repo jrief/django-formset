@@ -1,5 +1,8 @@
+// This stylesheet is added to the shadow root created by DjangoSelectize.
+// Changes in here do not affect HTML elements outside of this realm.
 $select-max-height-dropdown: 200px;
 $select-color-highlight: rgba(255, 237, 40, 0.4);
+$select-color-dropdown: rgb(248, 248, 248);
 
 .ts-control {
 	position: relative;
