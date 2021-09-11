@@ -11,6 +11,7 @@ shadowStyleElement.textContent = styles;
 class DjangoSelectize {
 	private readonly endpoint?: string;
 	private readonly fieldName?: string;
+	private readonly numOptions: number = 12;
 	private readonly tomSelect: TomSelect;
 	private readonly shadowRoot: ShadowRoot;
 	private readonly extraCSSRules: Array<[number, number]> = [];
@@ -40,6 +41,10 @@ class DjangoSelectize {
 			this.fieldName = `${formName}.${tomInput.getAttribute('name')}`;
 			config.load = (query: string, callback: Function) => this.loadOptions(query, callback);
 		}
+		const numOptions = tomInput.getAttribute('options');
+		if (numOptions) {
+			this.numOptions = parseInt(numOptions);
+		}
 		const nativeStyles = {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
 
 		this.tomSelect = new TomSelect(tomInput, config);
@@ -66,7 +71,9 @@ class DjangoSelectize {
 		for (let index = 0; index < sheet.cssRules.length; index++) {
 			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
 			console.log(cssRule.selectorText);
+			const lineHeight = window.getComputedStyle(tomInput).getPropertyValue('line-height');
 			let extraStyles: string;
+			const optionElement = tomInput.querySelector('option');
 			switch (cssRule.selectorText) {
 				case '.ts-control':
 					extraStyles = this.extractStyles(tomInput, [
@@ -78,28 +85,22 @@ class DjangoSelectize {
 				case '.ts-control .ts-input':
 					extraStyles = this.extractStyles(tomInput, [
 						'background-color', 'border', 'border-radius', 'box-shadow', 'color',
-						'padding']);
+						'padding']).concat(`width: ${nativeStyles['width']}; height: ${nativeStyles['height']};`);
 					console.log(extraStyles);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case '.ts-control .ts-input > input':
-					extraStyles = this.extractStyles(tomInput, [
-						'line-height'])
-						.concat(`width: ${nativeStyles['width']};`);
-					console.log(extraStyles);
-					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					break;
 				case '.ts-control .ts-input > div':
-					extraStyles = this.extractStyles(tomInput, [
-						'line-height'])
-						.concat(`width: ${nativeStyles['width']};`);
+					extraStyles = this.extractStyles(tomInput, ['line-height']);
+					if (optionElement) {
+						extraStyles = extraStyles.concat(this.extractStyles(optionElement, ['padding-left']));
+					}
 					console.log(extraStyles);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case '.ts-control .ts-input > input::placeholder':
 					tomInput.classList.add('-placeholder-');
-					extraStyles = this.extractStyles(tomInput, [
-							'background-color', 'color'])
+					extraStyles = this.extractStyles(tomInput, ['background-color', 'color'])
 					console.log(extraStyles);
 					tomInput.classList.remove('-placeholder-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
@@ -112,13 +113,24 @@ class DjangoSelectize {
 					tomInput.classList.remove('-focus-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
+				case '.ts-control .ts-input.has-items':
+					extraStyles = 'border-color: var(--django-formset-color-valid);'
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
 				case '.ts-control .ts-dropdown':
-					const lineHeight = window.getComputedStyle(tomInput).getPropertyValue('line-height');
 					extraStyles = this.extractStyles(tomInput, [
 						'border-right', 'border-bottom', 'border-left', 'color', 'padding-left'])
-						.concat(`line-height: calc(${lineHeight} * 1.25);`);
+						.concat(parseFloat(lineHeight) > 0 ? `line-height: calc(${lineHeight} * 1.2);` : 'line-height: 1.2em;');
 					console.log(extraStyles);
-					console.log(cssRule.style.cssText);
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '.ts-control .ts-dropdown .ts-dropdown-content':
+					if (parseFloat(lineHeight) > 0) {
+						extraStyles =  `max-height: calc(${lineHeight} * 1.2 * ${this.numOptions});`;
+					} else {
+						extraStyles =  `max-height: ${this.numOptions * 1.2}em;`;
+					}
+					console.log(extraStyles);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				default:
@@ -195,6 +207,7 @@ class DjangoSelectize {
 					replaceAll(':focus-visible', '.-focus-visible-').
 					replaceAll(':hover', '.-hover-').
 					replaceAll(':invalid', '.-invalid-').
+					replaceAll(':valid', '.-valid-').
 					replaceAll('::placeholder-shown', '.-placeholder-shown').
 					replaceAll(':placeholder-shown', '.-placeholder-shown').
 					replaceAll('::placeholder', '.-placeholder-').

@@ -6,4 +6,4 @@ const style = document.createElement('style');
 style.innerText = styles;
 document.head.appendChild(style)
 window.customElements.define('django-formset', DjangoFormsetElement);
-window.customElements.define('django-selectize', DjangoSelectizeElement, {extends: 'select'});
+window.addEventListener('load', (event) => window.customElements.define('django-selectize', DjangoSelectizeElement, {extends: 'select'}));

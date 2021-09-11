@@ -247,9 +247,24 @@ class PersonForm(forms.Form):
 class SelectForm(forms.Form):
     name = 'select'
 
-    choice = models.ModelChoiceField(
+    choice = fields.ChoiceField(
+        label="Classic Select",
+        choices=[
+            (None, "Select an option"),
+            (1, "One"),
+            (2, "Two"),
+            (3, "Three"),
+        ],
+    )
+
+    model_choice = models.ModelChoiceField(
+        label="Selectize",
         queryset=ChoicesModel.objects.filter(tenant=1),
-        label="Choose from",
         empty_label="Select an option",
         widget=Selectize(search_lookup='label__icontains'),
+    )
+
+    text_input = fields.CharField(
+        label="Text Input",
+        widget=widgets.TextInput(attrs={'placeholder': "Start typing ..."}),
     )

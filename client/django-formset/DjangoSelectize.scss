@@ -1,8 +1,7 @@
 // This stylesheet is added to the shadow root created by DjangoSelectize.
 // Changes in here do not affect HTML elements outside of this realm.
-$select-max-height-dropdown: 200px;
 $select-color-highlight: rgba(255, 237, 40, 0.4);
-$select-color-dropdown: rgb(248, 248, 248);
+$select-color-dropdown: rgb(244, 244, 244);
 
 .ts-control {
 	position: relative;
@@ -19,6 +18,7 @@ $select-color-dropdown: rgb(248, 248, 248);
 			user-select: auto;
 			box-shadow: none;
 			border: none;
+			padding: 0;
 			font-size: inherit;
 			font-weight: inherit;
 			font-style: inherit;
@@ -38,11 +38,14 @@ $select-color-dropdown: rgb(248, 248, 248);
 		}
 
 		> div {
-			padding: 1px 2px;
+			flex: 1 1 auto;
 			box-sizing: border-box;
 		}
 
 		&.focus {
+			opacity: 1;
+		}
+		&.has-items {
 			opacity: 1;
 		}
 	}
@@ -82,7 +85,6 @@ $select-color-dropdown: rgb(248, 248, 248);
 		.ts-dropdown-content {
 			overflow-y: auto;
 			overflow-x: hidden;
-			max-height: $select-max-height-dropdown;
 			overflow-scrolling: touch;
 			scroll-behavior: smooth;
 		}
