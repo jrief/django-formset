@@ -178,9 +178,11 @@ def test_default_fields(form_soup, field_name):
                 assert 'formset-label' in label.attrs['class']
 
     if framework == 'bootstrap':
-        assert 'form-group' in field_group.attrs['class']
-        if widget_type in ['text', 'email', 'number', 'date', 'select', 'textarea', 'password']:
+        assert BootstrapMixinForm.field_css_classes in field_group.attrs['class']
+        if widget_type in ['text', 'email', 'number', 'date', 'textarea', 'password']:
             assert 'form-control' in field_elem.attrs['class']
+        elif widget_type in ['select']:
+            assert 'form-select' in field_elem.attrs['class']
         elif widget_type in ['checkbox', 'radio']:
             for input_elem in input_elems:
                 assert 'form-check-input' in input_elem.attrs['class']
