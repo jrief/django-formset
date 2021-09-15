@@ -57,6 +57,8 @@ class DjangoSelectize {
 		this.tomSelect = new TomSelect(tomInput, config);
 		this.shadowRoot = this.wrapInShadowRoot();
 		this.transferStyles(tomInput as unknown as HTMLElement, nativeStyles);
+		this.validateInput(this.tomSelect.getValue() as String);
+		this.tomSelect.on('change', (value: String) => this.validateInput(value));
 		this.removeConvertedClasses();
 	}
 
@@ -69,6 +71,12 @@ class DjangoSelectize {
 		const wrapper = (this.tomInput.parentElement as HTMLElement).removeChild(this.tomSelect.wrapper);
 		shadowRoot.appendChild(wrapper);
 		return shadowRoot;
+	}
+
+	private validateInput(value: String) {
+		if (this.tomSelect.isRequired && !value) {
+			this.tomInput.setCustomValidity("Value is missing.");
+		}
 	}
 
 	private transferStyles(tomInput: HTMLElement, nativeStyles: CSSStyleDeclaration) {
