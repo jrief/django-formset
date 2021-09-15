@@ -28,6 +28,8 @@ class Selectize(Select):
 
     def build_attrs(self, base_attrs, extra_attrs):
         attrs = super().build_attrs(base_attrs, extra_attrs)
+        if self.is_required:
+            attrs['required'] = True  # Selectize overrides the default behaviour
         return attrs
 
     def search(self, search_term):
