@@ -1,4 +1,5 @@
-{% load i18n %}{% spaceless %}
+{% load i18n %}
+{% spaceless %}
 {% block "selectize-select-widget" %}
 <select is="django-selectize" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %} size="1" options="10">
 	{% for option in widget.options %}
