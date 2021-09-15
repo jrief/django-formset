@@ -17,12 +17,14 @@ class DjangoSelectize {
 	private readonly endpoint?: string;
 	private readonly fieldName?: string;
 	private readonly numOptions: number = 12;
+	private readonly tomInput: TomInput;
 	private readonly tomSelect: TomSelect;
 	private readonly shadowRoot: ShadowRoot;
 	private readonly extraCSSRules: Array<[number, number]> = [];
 
 	constructor(tomInput: TomInput) {
 		this.convertPseudoClasses();
+		this.tomInput = tomInput;
 		const fieldGroup = tomInput.closest('django-field-group');
 		const form = tomInput.closest('form');
 		const formset = tomInput.closest('django-formset');
@@ -53,18 +55,18 @@ class DjangoSelectize {
 		const nativeStyles = {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
 
 		this.tomSelect = new TomSelect(tomInput, config);
-		this.shadowRoot = this.wrapInShadowRoot(tomInput);
+		this.shadowRoot = this.wrapInShadowRoot();
 		this.transferStyles(tomInput as unknown as HTMLElement, nativeStyles);
 		this.removeConvertedClasses();
 	}
 
-	private wrapInShadowRoot(tomInput: TomInput) : ShadowRoot {
+	private wrapInShadowRoot() : ShadowRoot {
 		const shadowWrapper = document.createElement('div');
 		shadowWrapper.classList.add('shadow-wrapper');
 		const shadowRoot = shadowWrapper.attachShadow({mode: 'open', delegatesFocus: true});
 		shadowRoot.appendChild(shadowStyleElement);
-		tomInput.insertAdjacentElement('afterend', shadowWrapper);
-		const wrapper = (tomInput.parentElement as HTMLElement).removeChild(this.tomSelect.wrapper);
+		this.tomInput.insertAdjacentElement('afterend', shadowWrapper);
+		const wrapper = (this.tomInput.parentElement as HTMLElement).removeChild(this.tomSelect.wrapper);
 		shadowRoot.appendChild(wrapper);
 		return shadowRoot;
 	}
