@@ -127,7 +127,10 @@ class FileUploadWidget {
 			const complete = event.lengthComputable ? event.loaded / event.total : 0;
 			if (self.progressBar) {
 				self.progressBar.style.visibility = 'visible';
-				self.progressBar.getElementsByTagName('div')[0].style.width = `${complete * 100}%`;
+				const divElement = self.progressBar.querySelector('div');
+				if (divElement) {
+					divElement.style.width = `${complete * 100}%`;
+				}
 			}
 		}
 
@@ -199,12 +202,12 @@ function findErrorPlaceholder(element: Element): HTMLElement | null {
 class ErrorMessages extends Map<ErrorKey, string>{
 	constructor(fieldGroup: FieldGroup) {
 		super();
-		const element = Array.from(fieldGroup.element.getElementsByTagName('django-error-messages')) as Array<HTMLElement>;
-		if (element.length !== 1)
-			throw new Error(`<django-field-group> for '${fieldGroup.name}' requires excatly one <django-error-messages> tag.`);
-		for (const attr of element[0].getAttributeNames()) {
+		const element = fieldGroup.element.querySelector('django-error-messages');
+		if (!element)
+			throw new Error(`<django-field-group> for '${fieldGroup.name}' requires one <django-error-messages> tag.`);
+		for (const attr of element.getAttributeNames()) {
 			const clientKey = attr.replace(/([_][a-z])/g, (group) => group.toUpperCase().replace('_', ''));
-			const clientValue = element[0].getAttribute(attr);
+			const clientValue = element.getAttribute(attr);
 			if (clientValue) {
 				this.set(clientKey as ErrorKey, clientValue);
 			}
@@ -785,8 +788,8 @@ class DjangoForm {
 		} else {
 			this.errorList = this.errorPlaceholder = null;
 		}
-		for (const element of Array.from(this.element.getElementsByTagName('django-field-group')) as Array<HTMLElement>) {
-			this.fieldGroups.push(new FieldGroup(this, element));
+		for (const element of Array.from(this.element.getElementsByTagName('django-field-group'))) {
+			this.fieldGroups.push(new FieldGroup(this, element as HTMLElement));
 		}
 	}
 
@@ -886,8 +889,8 @@ export class DjangoFormset {
 
 	public findForms() {
 		const formNames = Array<string>(0);
-		for (const element of Array.from(this.element.getElementsByTagName('FORM')) as Array<HTMLFormElement>) {
-			const form = new DjangoForm(this, element);
+		for (const element of Array.from(this.element.getElementsByTagName('FORM'))) {
+			const form = new DjangoForm(this, element as HTMLFormElement);
 			if (form.name in formNames)
 				throw new Error(`Detected more than one <form name="${form.name}"> in <django-formset>`);
 			this.forms.push(form);
@@ -896,9 +899,9 @@ export class DjangoFormset {
 	}
 
 	public findButtons() {
-		for (const element of Array.from(this.element.getElementsByTagName('BUTTON')) as Array<HTMLButtonElement>) {
+		for (const element of Array.from(this.element.getElementsByTagName('BUTTON'))) {
 			if (element.hasAttribute('click')) {
-				this.buttons.push(new DjangoButton(this, element));
+				this.buttons.push(new DjangoButton(this, element as HTMLButtonElement));
 			}
 		}
 	}
