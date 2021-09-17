@@ -3,7 +3,7 @@
 {% block "selectize-select-widget" %}
 <select is="django-selectize" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %} size="1" options="10">
 	{% for option in widget.options %}
-		{% include "django/forms/widgets/select_option.html" with widget=option %}
+	<option value="{{ option.value|stringformat:'s' }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>
 	{% endfor %}
 </select>
 {% endblock %}
