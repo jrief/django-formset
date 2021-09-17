@@ -20,7 +20,7 @@ class SubscribeForm(forms.Form):
     # ... more fields
 ```
 
-then we rendering to HTML, we shall wrap that form into our special Webcomponent:
+then when rendering to HTML, we can wrap that Form into our special Webcomponent:
 
 ```html
 {% load django_formset %}
