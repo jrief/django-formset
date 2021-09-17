@@ -22,7 +22,7 @@ INSTALLED_APPS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'test.db',  # live_server requires a file rather than :memory:
+        'NAME': Path(__file__).parent / 'test.db',  # live_server requires a file rather than :memory:
     }
 }
 

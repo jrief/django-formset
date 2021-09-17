@@ -46,6 +46,6 @@ def page(connector, viewname):
 def django_db_setup(django_db_setup, django_db_blocker):
     from testapp.models import ChoicesModel
     with django_db_blocker.unblock():
-        for counter in range(500):
+        for counter in range(999):
             label = f"Option {counter + 100}"
             ChoicesModel.objects.update_or_create(tenant=1, label=label)
