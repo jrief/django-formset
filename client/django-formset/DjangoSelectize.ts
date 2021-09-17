@@ -77,6 +77,7 @@ class DjangoSelectize {
 		if (this.tomSelect.isRequired && !value) {
 			this.tomInput.setCustomValidity("Value is missing.");
 		}
+		this.tomInput.value = value as string;
 	}
 
 	private transferStyles(tomInput: HTMLElement, nativeStyles: CSSStyleDeclaration) {
