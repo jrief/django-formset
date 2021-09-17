@@ -40,3 +40,12 @@ def connector(live_server):
 def page(connector, viewname):
     connector.page.goto(connector.live_server.url + reverse(viewname))
     return connector.page
+
+
+@pytest.fixture(scope='function')
+def django_db_setup(django_db_setup, django_db_blocker):
+    from testapp.models import ChoicesModel
+    with django_db_blocker.unblock():
+        for counter in range(500):
+            label = f"Option {counter + 100}"
+            ChoicesModel.objects.update_or_create(tenant=1, label=label)
