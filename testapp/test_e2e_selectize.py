@@ -1,7 +1,8 @@
 import pytest
 import json
+from time import sleep
 
-from django.forms import Form, models
+from django.forms import Field, Form, models
 from django.urls import path
 
 from formset.views import FormView
@@ -52,7 +53,7 @@ test_fields = dict(
 views = {
     f'selectize{ctr}': FormView.as_view(
         template_name='tests/form_with_button.html',
-        form_class=type(f'{tpl[0]}_form', (Form,), {'name': tpl[0], 'model_field': tpl[1]}),
+        form_class=type(f'{tpl[0]}_form', (Form,), {'name': tpl[0], 'model_choice': tpl[1]}),
         success_url='/success',
     )
     for ctr, tpl in enumerate(test_fields.items())
@@ -135,7 +136,7 @@ def test_changing_value(page, form, initial_option):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
-def test_lookup_value(page, form, mocker):
+def test_lookup_value(page, mocker, form):
     input_element = page.query_selector('django-formset .shadow-wrapper .ts-input input[type="select-one"]')
     assert input_element is not None
     input_element.click()
@@ -143,11 +144,67 @@ def test_lookup_value(page, form, mocker):
     page.keyboard.press('9')
     page.keyboard.press('9')
     page.keyboard.press('9')
+    sleep(1)  # because TomSelect delays the lookup
     assert spy.spy_return.status_code == 200
     content = json.loads(spy.spy_return.content)
     assert content['count'] == 1
-    assert content['items']['label'] == "Option 999"
+    assert content['items'][0]['label'] == "Option 999"
     dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-dropdown.single')
     pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(1)')
     assert pseudo_option is not None
     pseudo_option.inner_text() == "Option 999"
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['selectize1'])
+def test_submit_missing(page, view, form):
+    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
+    assert placeholder_text == Field.default_error_messages['required']
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['selectize1'])
+def test_submit_value(page, mocker, view, form, initial_option):
+    input_element = page.query_selector('django-formset .shadow-wrapper .ts-input input[type="select-one"]')
+    assert input_element is not None
+    input_element.click()
+    dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-dropdown.single')
+    assert dropdown_element is not None
+    pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(9)')
+    assert pseudo_option is not None
+    pseudo_option.click()
+    spy = mocker.spy(view.view_class, 'post')
+    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    request = json.loads(spy.call_args.args[1].body)
+    assert request[form.name]['model_choice'] == str(initial_option.id)
+    assert spy.spy_return.status_code == 200
+    response = json.loads(spy.spy_return.content)
+    assert response['success_url'] == view.view_initkwargs['success_url']
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['selectize1'])
+def test_submit_invalid(page, mocker, view, form, initial_option):
+    input_element = page.query_selector('django-formset .shadow-wrapper .ts-input input[type="select-one"]')
+    assert input_element is not None
+    input_element.click()
+    dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-dropdown.single')
+    assert dropdown_element is not None
+    pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(9)')
+    assert pseudo_option is not None
+    pseudo_option.click()
+    initial_option.tenant = 2  # this makes the selected option invalid
+    initial_option.save(update_fields=['tenant'])
+    spy = mocker.spy(view.view_class, 'post')
+    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    request = json.loads(spy.call_args.args[1].body)
+    assert request[form.name]['model_choice'] == str(initial_option.id)
+    assert spy.spy_return.status_code == 422
+    response = json.loads(spy.spy_return.content)
+    error_message = models.ModelChoiceField.default_error_messages['invalid_choice']
+    assert response == {'selection_required': {'model_choice': [error_message]}}
+    placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
+    assert placeholder_text == error_message
+    initial_option.tenant = 1  # reset to initial tenant
+    initial_option.save(update_fields=['tenant'])
