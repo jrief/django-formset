@@ -104,6 +104,10 @@ def test_changing_value(page, form, initial_option):
     assert input_element.is_visible()
     assert input_element.get_attribute('placeholder') == 'Select'
     assert input_element.evaluate('elem => elem.value') == ''
+    field_group_element = page.query_selector('django-formset django-field-group')
+    assert field_group_element is not None
+    assert 'dj-pristine' in field_group_element.get_attribute('class')
+    assert 'dj-dirty' not in field_group_element.get_attribute('class')
     dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-dropdown.single')
     assert dropdown_element is not None
     assert dropdown_element.is_hidden()
@@ -115,6 +119,8 @@ def test_changing_value(page, form, initial_option):
     assert pseudo_option.get_attribute('data-value') == str(initial_option.id)
     assert pseudo_option.inner_text() == initial_option.label
     pseudo_option.click()
+    assert 'dj-pristine' not in field_group_element.get_attribute('class')
+    assert 'dj-dirty' in field_group_element.get_attribute('class')
     assert dropdown_element.is_hidden()
     assert page.query_selector('django-formset form:valid') is not None
     selected_item_element = page.query_selector('django-formset .shadow-wrapper .ts-input div.item')

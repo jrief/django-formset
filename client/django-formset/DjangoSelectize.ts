@@ -21,6 +21,7 @@ class DjangoSelectize {
 	private readonly tomSelect: TomSelect;
 	private readonly shadowRoot: ShadowRoot;
 	private readonly extraCSSRules: Array<[number, number]> = [];
+	private readonly initialValue: string | string[];
 
 	constructor(tomInput: TomInput) {
 		this.convertPseudoClasses();
@@ -55,11 +56,17 @@ class DjangoSelectize {
 		const nativeStyles = {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
 
 		this.tomSelect = new TomSelect(tomInput, config);
+		this.initialValue = this.tomSelect.getValue();
 		this.shadowRoot = this.wrapInShadowRoot();
 		this.transferStyles(tomInput as unknown as HTMLElement, nativeStyles);
-		this.validateInput(this.tomSelect.getValue() as String);
+		this.validateInput(this.initialValue as string);
+		form.onreset = (event: Event) => this.formResetted(event);
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
 		this.removeConvertedClasses();
+	}
+
+	private formResetted(event: Event) {
+		this.tomSelect.setValue(this.initialValue);
 	}
 
 	private wrapInShadowRoot() : ShadowRoot {
@@ -74,8 +81,12 @@ class DjangoSelectize {
 	}
 
 	private validateInput(value: String) {
-		if (this.tomSelect.isRequired && !value) {
-			this.tomInput.setCustomValidity("Value is missing.");
+		if (this.tomSelect.isRequired) {
+			this.tomInput.setCustomValidity(value ? "": "Value is missing.");
+		}
+		const inputElem = this.shadowRoot.querySelector('.ts-control .ts-input');
+		if (inputElem) {
+			inputElem.classList.toggle('invalid', !this.tomInput.checkValidity());
 		}
 		this.tomInput.value = value as string;
 	}
@@ -121,10 +132,6 @@ class DjangoSelectize {
 					extraStyles = this.extractStyles(tomInput, [
 							'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'])
 					tomInput.classList.remove('-focus-');
-					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					break;
-				case '.ts-control .ts-input.has-items':
-					extraStyles = 'border-color: var(--django-formset-color-valid);'
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case '.ts-control .ts-dropdown':

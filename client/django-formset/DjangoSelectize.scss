@@ -45,9 +45,6 @@ $select-color-dropdown: rgb(244, 244, 244);
 		&.focus {
 			opacity: 1;
 		}
-		&.has-items {
-			opacity: 1;
-		}
 	}
 
 	// Hide input, while retaining its focus, and maintain layout so users can still click on the
@@ -88,5 +85,15 @@ $select-color-dropdown: rgb(244, 244, 244);
 			overflow-scrolling: touch;
 			scroll-behavior: smooth;
 		}
+	}
+}
+
+:host-context(django-field-group.dj-dirty) .ts-control {
+	.ts-input.has-items {
+		border-color: var(--django-formset-color-valid);
+	}
+
+	.ts-input.invalid {
+		border-color: var(--django-formset-color-invalid);
 	}
 }
