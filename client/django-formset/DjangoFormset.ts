@@ -364,7 +364,7 @@ class FieldGroup {
 		this.resetCustomError();
 	}
 
-	private resetCustomError() {
+	public resetCustomError() {
 		this.form.resetCustomError();
 		if (this.errorPlaceholder) {
 			this.errorPlaceholder.innerHTML = '';
@@ -382,7 +382,7 @@ class FieldGroup {
 		this.element.classList.add('dj-touched');
 	}
 
-	private untouch() {
+	public untouch() {
 		this.element.classList.remove('dj-touched');
 		this.element.classList.add('dj-untouched');
 	}
@@ -392,7 +392,7 @@ class FieldGroup {
 		this.element.classList.add('dj-dirty');
 	}
 
-	private setPristine() {
+	public setPristine() {
 		this.element.classList.remove('dj-dirty');
 		this.element.classList.add('dj-pristine');
 	}
@@ -619,7 +619,18 @@ class DjangoButton {
 					response instanceof Response && response.status === 200 ? resolve(response) : reject(response)
 				);
 			});
-		}
+		};
+	}
+
+	/**
+	 * Reset form content to their initial values.
+	 */
+	// @ts-ignore
+	reset() {
+		return (response: Response) => {
+			this.formset.resetToInitial();
+			return Promise.resolve(response);
+		};
 	}
 
 	/**
@@ -845,6 +856,15 @@ class DjangoForm {
 		}
 	}
 
+	resetToInitial() {
+		this.element.reset();
+		for (const fieldGroup of this.fieldGroups) {
+			fieldGroup.untouch();
+			fieldGroup.setPristine();
+			fieldGroup.resetCustomError();
+		}
+	}
+
 	reportCustomErrors(errors: Map<string, Array<string>>) {
 		const nonFieldErrors = errors.get(NON_FIELD_ERRORS);
 		if (this.errorList && nonFieldErrors instanceof Array && this.errorPlaceholder) {
@@ -978,6 +998,12 @@ export class DjangoFormset {
 			for (const form of this.forms) {
 				form.reportValidity();
 			}
+		}
+	}
+
+	public resetToInitial() {
+		for (const form of this.forms) {
+			form.resetToInitial();
 		}
 	}
 

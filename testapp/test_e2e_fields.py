@@ -185,6 +185,20 @@ def test_valid_form_submission(page, mocker, view, form):
     assert page.query_selector('django-formset .dj-errorlist > .dj-placeholder').inner_text() == ''
 
 
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', views.keys())
+def test_reset_form_fields(page, view, form):
+    name = next(iter(form.fields.keys()))
+    input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
+    initial_value = input_elem.evaluate('elem => elem.value')
+    input_elem.click()
+    page.keyboard.press('Backspace')
+    input_elem.type("XYZ")
+    value = input_elem.evaluate('elem => elem.value')
+    assert value == f"{initial_value[:-1]}XYZ"
+    # TODO: test reset the form
+
+
 urlpatterns.append(
     path('email_form', FormView.as_view(
         template_name='tests/form.html',
