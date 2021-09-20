@@ -3,7 +3,6 @@
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="false">
 	<form name="{{ form.name }}">
-		{% csrf_token %}
 		{{ form }}
 	</form>
 	{% include "./buttons.html" %}
