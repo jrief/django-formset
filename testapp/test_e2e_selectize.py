@@ -214,3 +214,27 @@ def test_submit_invalid(page, mocker, view, form, initial_option):
     assert placeholder_text == error_message
     initial_option.tenant = 1  # reset to initial tenant
     initial_option.save(update_fields=['tenant'])
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['selectize0', 'selectize2'])
+def test_reset_formset(page, view, form):
+    select_element = page.query_selector('django-formset select[is="django-selectize"]')
+    assert select_element is not None
+    initial_value = select_element.evaluate('elem => elem.value')
+    input_element = page.query_selector('django-formset .shadow-wrapper .ts-input input[type="select-one"]')
+    assert input_element.is_visible()
+    if form.name == 'selection':
+        input_element.click()
+        dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-dropdown.single')
+        assert dropdown_element.is_visible()
+        page.wait_for_selector('div[data-selectable]:nth-child(7)').click()
+    else:
+        input_element.focus()
+        page.keyboard.press('Backspace')
+    input_element.evaluate('elem => elem.blur()')
+    value = select_element.evaluate('elem => elem.value')
+    assert value != initial_value
+    page.wait_for_selector('django-formset').evaluate('elem => elem.reset()')
+    value = select_element.evaluate('elem => elem.value')
+    assert value == initial_value

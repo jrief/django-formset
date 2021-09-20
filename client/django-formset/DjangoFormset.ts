@@ -1056,4 +1056,8 @@ export class DjangoFormsetElement extends HTMLElement {
 	public async abort() {
 		return this[FS].abort();
 	}
+
+	public async reset() {
+		return this[FS].resetToInitial();
+	}
 }
