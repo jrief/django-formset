@@ -1,10 +1,10 @@
 from django.db import migrations, models
 
 def initialize_choices(apps, schema_editor):
-    ChoicesModel = apps.get_model('testapp', 'ChoicesModel')
+    OpinionModel = apps.get_model('testapp', 'OpinionModel')
     for counter in range(999):
-        label = f"Option {counter + 100}"
-        ChoicesModel.objects.create(tenant=1, label=label)
+        label = f"Opinion {counter + 100}"
+        OpinionModel.objects.create(tenant=1, label=label)
 
 
 class Migration(migrations.Migration):
@@ -23,11 +23,11 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='ChoicesModel',
+            name='OpinionModel',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('tenant', models.PositiveSmallIntegerField()),
-                ('label', models.CharField(max_length=50, verbose_name='Choice')),
+                ('label', models.CharField(max_length=50, verbose_name='Opinion')),
             ],
             options={
                 'unique_together': {('tenant', 'label')},

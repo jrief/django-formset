@@ -5,7 +5,7 @@ from django.forms import forms, fields, widgets, models
 from formset.mixins import default, bootstrap, bulma, foundation, tailwind
 from formset.widgets import Selectize, UploadedFileInput
 
-from testapp.models import PayloadModel, ChoicesModel
+from testapp.models import PayloadModel, OpinionModel
 
 
 def validate_password(value):
@@ -90,7 +90,7 @@ class SubscribeForm(forms.Form):
         error_messages={'invalid_choice': "Please select your continent."},
     )
 
-    # choice = models.ModelChoiceField(
+    # opinion = models.ModelChoiceField(
     #     queryset=ChoicesModel.objects.filter(tenant=1),
     #     label="Choose from",
     #     empty_label="Select an option",
@@ -257,14 +257,15 @@ class SelectForm(forms.Form):
         ],
     )
 
-    model_choice = models.ModelChoiceField(
+    opinion = models.ModelChoiceField(
         label="Selectize",
-        queryset=ChoicesModel.objects.filter(tenant=1),
-        empty_label="Select an option",
-        widget=Selectize(search_lookup='label__icontains'),
+        queryset=OpinionModel.objects.filter(tenant=1),
+        widget=Selectize(search_lookup='label__icontains', placeholder="Select my option"),
+        # initial=lambda: OpinionModel.objects.filter(tenant=1)[8],
+        required=True,
     )
 
-    text_input = fields.CharField(
-        label="Text Input",
+    annotation = fields.CharField(
+        label="Annotation",
         widget=widgets.TextInput(attrs={'placeholder': "Start typing ..."}),
     )

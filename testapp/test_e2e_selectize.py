@@ -8,45 +8,49 @@ from django.urls import path
 from formset.views import FormView
 from formset.widgets import Selectize
 
-from testapp.models import ChoicesModel
+from testapp.models import OpinionModel
 
 
-def get_initial_option():
-    return ChoicesModel.objects.filter(tenant=1)[8]
+@pytest.fixture
+def django_db_setup(django_db_blocker):
+    with django_db_blocker.unblock():
+        for counter in range(1, 100):
+            label = f"Opinion {counter}"
+            OpinionModel.objects.update_or_create(tenant=1, label=label)
+
+
+def get_initial_opinion():
+    return OpinionModel.objects.filter(tenant=1)[8]
 
 
 @pytest.fixture
 @pytest.mark.django_db
-def initial_option():
-    return get_initial_option()
+def initial_opinion():
+    return get_initial_opinion()
 
 
 test_fields = dict(
     selection=models.ModelChoiceField(
-        label="Choose Option",
-        queryset=ChoicesModel.objects.filter(tenant=1),
+        queryset=OpinionModel.objects.filter(tenant=1),
         widget=Selectize(search_lookup='label__icontains'),
         required=False,
     ),
     selection_required = models.ModelChoiceField(
-        label="Choose Option",
-        queryset=ChoicesModel.objects.filter(tenant=1),
+        queryset=OpinionModel.objects.filter(tenant=1),
         widget=Selectize(search_lookup='label__icontains'),
         required=True,
     ),
     selection_initialized=models.ModelChoiceField(
-        label="Choose Option",
-        queryset=ChoicesModel.objects.filter(tenant=1),
+        queryset=OpinionModel.objects.filter(tenant=1),
         widget=Selectize(search_lookup='label__icontains'),
         required=False,
-        initial=get_initial_option,
+        initial=get_initial_opinion,
     ),
     selection_required_initialized=models.ModelChoiceField(
-        label="Choose Option",
-        queryset=ChoicesModel.objects.filter(tenant=1),
+        queryset=OpinionModel.objects.filter(tenant=1),
         widget=Selectize(search_lookup='label__icontains'),
         required=True,
-        initial=get_initial_option,
+        initial=get_initial_opinion,
     ),
 )
 
@@ -86,19 +90,19 @@ def test_form_validated(page, form):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', views.keys())
-def test_initial_value(page, form, initial_option):
+def test_initial_value(page, form, initial_opinion):
     select_element = page.query_selector('django-formset select[is="django-selectize"]')
     assert select_element is not None
     value = select_element.evaluate('elem => elem.value')
     if 'initialized' in form.name:
-        assert value == str(initial_option.id)
+        assert value == str(initial_opinion.id)
     else:
         assert value == ''
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
-def test_changing_value(page, form, initial_option):
+def test_changing_value(page, form, initial_opinion):
     input_element = page.query_selector('django-formset .shadow-wrapper .ts-input input[type="select-one"]')
     assert input_element is not None
     assert input_element.is_visible()
@@ -116,8 +120,8 @@ def test_changing_value(page, form, initial_option):
     assert page.query_selector('django-formset form:invalid') is not None
     pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(9)')
     assert pseudo_option.is_visible()
-    assert pseudo_option.get_attribute('data-value') == str(initial_option.id)
-    assert pseudo_option.inner_text() == initial_option.label
+    assert pseudo_option.get_attribute('data-value') == str(initial_opinion.id)
+    assert pseudo_option.inner_text() == initial_opinion.label
     pseudo_option.click()
     assert 'dj-pristine' not in field_group_element.get_attribute('class')
     assert 'dj-dirty' in field_group_element.get_attribute('class')
@@ -125,12 +129,12 @@ def test_changing_value(page, form, initial_option):
     assert page.query_selector('django-formset form:valid') is not None
     selected_item_element = page.query_selector('django-formset .shadow-wrapper .ts-input div.item')
     assert selected_item_element is not None
-    assert selected_item_element.get_attribute('data-value') == str(initial_option.id)
-    assert selected_item_element.inner_text() == initial_option.label
+    assert selected_item_element.get_attribute('data-value') == str(initial_opinion.id)
+    assert selected_item_element.inner_text() == initial_opinion.label
     select_element = page.query_selector('django-formset select[is="django-selectize"]')
     assert select_element is not None
     value = select_element.evaluate('elem => elem.value')
-    assert value == str(initial_option.id)
+    assert value == str(initial_opinion.id)
     input_element.focus()
     page.keyboard.press('Backspace')
     input_element.evaluate('elem => elem.blur()')
@@ -149,16 +153,15 @@ def test_lookup_value(page, mocker, form):
     spy = mocker.spy(FormView, 'get')
     page.keyboard.press('9')
     page.keyboard.press('9')
-    page.keyboard.press('9')
     sleep(1)  # because TomSelect delays the lookup
     assert spy.spy_return.status_code == 200
     content = json.loads(spy.spy_return.content)
     assert content['count'] == 1
-    assert content['items'][0]['label'] == "Option 999"
+    assert content['items'][0]['label'] == "Opinion 99"
     dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-dropdown.single')
     pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(1)')
     assert pseudo_option is not None
-    pseudo_option.inner_text() == "Option 999"
+    pseudo_option.inner_text() == "Opinion 99"
 
 
 @pytest.mark.urls(__name__)
@@ -171,7 +174,7 @@ def test_submit_missing(page, view, form):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
-def test_submit_value(page, mocker, view, form, initial_option):
+def test_submit_value(page, mocker, view, form, initial_opinion):
     input_element = page.query_selector('django-formset .shadow-wrapper .ts-input input[type="select-one"]')
     assert input_element is not None
     input_element.click()
@@ -183,7 +186,7 @@ def test_submit_value(page, mocker, view, form, initial_option):
     spy = mocker.spy(view.view_class, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
-    assert request[form.name]['model_choice'] == str(initial_option.id)
+    assert request[form.name]['model_choice'] == str(initial_opinion.id)
     assert spy.spy_return.status_code == 200
     response = json.loads(spy.spy_return.content)
     assert response['success_url'] == view.view_initkwargs['success_url']
@@ -191,7 +194,7 @@ def test_submit_value(page, mocker, view, form, initial_option):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
-def test_submit_invalid(page, mocker, view, form, initial_option):
+def test_submit_invalid(page, mocker, view, form, initial_opinion):
     input_element = page.query_selector('django-formset .shadow-wrapper .ts-input input[type="select-one"]')
     assert input_element is not None
     input_element.click()
@@ -200,20 +203,20 @@ def test_submit_invalid(page, mocker, view, form, initial_option):
     pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(9)')
     assert pseudo_option is not None
     pseudo_option.click()
-    initial_option.tenant = 2  # this makes the selected option invalid
-    initial_option.save(update_fields=['tenant'])
+    initial_opinion.tenant = 2  # this makes the selected option invalid
+    initial_opinion.save(update_fields=['tenant'])
     spy = mocker.spy(view.view_class, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
-    assert request[form.name]['model_choice'] == str(initial_option.id)
+    assert request[form.name]['model_choice'] == str(initial_opinion.id)
     assert spy.spy_return.status_code == 422
     response = json.loads(spy.spy_return.content)
     error_message = models.ModelChoiceField.default_error_messages['invalid_choice']
     assert response == {'selection_required': {'model_choice': [error_message]}}
     placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == error_message
-    initial_option.tenant = 1  # reset to initial tenant
-    initial_option.save(update_fields=['tenant'])
+    initial_opinion.tenant = 1  # reset to initial tenant
+    initial_opinion.save(update_fields=['tenant'])
 
 
 @pytest.mark.urls(__name__)
