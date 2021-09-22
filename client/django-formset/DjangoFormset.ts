@@ -85,7 +85,7 @@ class FileUploadWidget {
 		}
 	}
 
-	private fileRemove = () => {
+	public fileRemove = () => {
 		this.inputElement.value = '';  // used to clear readonly `this.inputElement.files`
 		this.uploadedFiles = [];
 		while (this.dropbox.firstChild) {
@@ -364,7 +364,7 @@ class FieldGroup {
 		this.resetCustomError();
 	}
 
-	public resetCustomError() {
+	private resetCustomError() {
 		this.form.resetCustomError();
 		if (this.errorPlaceholder) {
 			this.errorPlaceholder.innerHTML = '';
@@ -375,6 +375,15 @@ class FieldGroup {
 		}
 	}
 
+	public resetToInitial() {
+		this.untouch();
+		this.setPristine();
+		this.resetCustomError();
+		if (this.fileUploader) {
+			return this.fileUploader.fileRemove();
+		}
+	}
+
 	private touch() {
 		this.element.classList.remove('dj-submitted');
 		this.element.classList.remove('dj-untouched');
@@ -382,7 +391,7 @@ class FieldGroup {
 		this.element.classList.add('dj-touched');
 	}
 
-	public untouch() {
+	private untouch() {
 		this.element.classList.remove('dj-touched');
 		this.element.classList.add('dj-untouched');
 	}
@@ -392,7 +401,7 @@ class FieldGroup {
 		this.element.classList.add('dj-dirty');
 	}
 
-	public setPristine() {
+	private setPristine() {
 		this.element.classList.remove('dj-dirty');
 		this.element.classList.add('dj-pristine');
 	}
@@ -859,9 +868,7 @@ class DjangoForm {
 	resetToInitial() {
 		this.element.reset();
 		for (const fieldGroup of this.fieldGroups) {
-			fieldGroup.untouch();
-			fieldGroup.setPristine();
-			fieldGroup.resetCustomError();
+			fieldGroup.resetToInitial();
 		}
 	}
 
