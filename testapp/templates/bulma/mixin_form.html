@@ -2,8 +2,7 @@
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="false" withhold-messages="false">
-	<form name="{{ form.name }}">
-		{% csrf_token %}
+	<form{% if form.name %} name="{{ form.name }}"{% endif %}>
 		{{ form }}
 	</form>
 	{% include "./buttons.html" %}
