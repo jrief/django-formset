@@ -1,6 +1,6 @@
 from django.db import migrations, models
 
-def initialize_choices(apps, schema_editor):
+def initialize_opinions(apps, schema_editor):
     OpinionModel = apps.get_model('testapp', 'OpinionModel')
     for counter in range(999):
         label = f"Opinion {counter + 100}"
@@ -33,5 +33,5 @@ class Migration(migrations.Migration):
                 'unique_together': {('tenant', 'label')},
             },
         ),
-        migrations.RunPython(initialize_choices),
+        migrations.RunPython(initialize_opinions),
     ]
