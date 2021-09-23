@@ -30,9 +30,10 @@ class FormMixin(default.CheckboxFormMixin, default.FormMixin):
         'checkbox': 'formset-checkbox',
         'checkboxselectmultiple': 'formset-checkbox-multiple',
         'radioselect': 'formset-radio-select',
+        'number': 'formset-number-input',
         'select': 'formset-select',
         'selectmultiple': 'formset-select-multiple',
-        'number': 'formset-number-input',
+        'selectize': 'formset-select',
         'textarea': 'formset-textarea',
         'password': 'formset-password-input',
     }

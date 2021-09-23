@@ -3,10 +3,9 @@
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="false" withhold-messages="false">
-	<form name="{{ form.name }}">
-		{% csrf_token %}
+	<form{% if form.name %} name="{{ form.name }}"{% endif %}>
 		{% render_groups form field_classes="form-group row" label_classes="col-sm-3 col-form-label" control_classes="col-sm-9" %}
 	</form>
-	{% include "./submit_button.html" %}
+	{% include "./buttons.html" %}
 </django-formset>
 {% endblock %}

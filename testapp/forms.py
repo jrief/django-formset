@@ -1,11 +1,12 @@
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from django.core.exceptions import ValidationError
 from django.forms import forms, fields, widgets, models
+from django.utils.timezone import datetime
 
 from formset.mixins import default, bootstrap, bulma, foundation, tailwind
 from formset.widgets import Selectize, UploadedFileInput
 
-from testapp.models import PayloadModel, ChoicesModel
+from testapp.models import PayloadModel, OpinionModel
 
 
 def validate_password(value):
@@ -90,10 +91,10 @@ class SubscribeForm(forms.Form):
         error_messages={'invalid_choice': "Please select your continent."},
     )
 
-    # choice = models.ModelChoiceField(
-    #     queryset=ChoicesModel.objects.filter(tenant=1),
-    #     label="Choose from",
-    #     empty_label="Select an option",
+    # opinion = models.ModelChoiceField(
+    #     queryset=OpinionModel.objects.filter(tenant=1),
+    #     label="Opinion",
+    #     empty_label="Your opinion",
     #     widget=Selectize(search_lookup='label__icontains'),
     # )
 
@@ -199,8 +200,6 @@ class TailwindMixinForm(tailwind.FormMixin, SubscribeForm):
 
 
 class UploadForm(forms.Form):
-    name = 'upload'
-
     file = fields.FileField(
         label="Choose file",
         widget=UploadedFileInput,
@@ -209,8 +208,6 @@ class UploadForm(forms.Form):
 
 
 class PersonForm(forms.Form):
-    name = 'persona'
-
     first_name = fields.RegexField(
         r'^[A-Z][a-z -]+$',
         label="First name",
@@ -245,11 +242,60 @@ class PersonForm(forms.Form):
 
 
 class SelectForm(forms.Form):
-    name = 'select'
-
-    choice = models.ModelChoiceField(
-        queryset=ChoicesModel.objects.filter(tenant=1),
-        label="Choose from",
-        empty_label="Select an option",
-        widget=Selectize(search_lookup='label__icontains'),
+    choice = fields.ChoiceField(
+        label="Classic Select",
+        choices=[
+            (None, "Select an option"),
+            (1, "One"),
+            (2, "Two"),
+            (3, "Three"),
+        ],
     )
+
+    opinion = models.ModelChoiceField(
+        label="Selectize",
+        queryset=OpinionModel.objects.filter(tenant=1),
+        widget=Selectize(search_lookup='label__icontains', placeholder="Select my option"),
+        required=True,
+    )
+
+    annotation = fields.CharField(
+        label="Annotation",
+        widget=widgets.TextInput(attrs={'placeholder': "Start typing ..."}),
+    )
+
+
+sample_subscribe_data = {
+    'first_name': "John",
+    'last_name': "Doe",
+    'gender': 'm',
+    'email': 'john.doe@example.org',
+    'subscribe': True,
+    'phone': '+1 234 567 8900',
+    'birth_date': datetime(year=1966, month=7, day=9),
+    'continent': 'eu',
+    'opinion': lambda: OpinionModel.objects.filter(tenant=1)[8],
+    'available_transportation': ['foot', 'taxi'],
+    'preferred_transportation': 'car',
+    'used_transportation': ['foot', 'bike', 'car', 'train'],
+    'height': 1.82,
+    'weight': 81,
+    'traveling': ['bike', 'train'],
+    'notifyme': ['email', 'sms'],
+    'annotation': "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    'password': 'secret',
+}
+
+sample_persona_data = {
+    'first_name': "John",
+    'last_name': "Doe",
+    'gender': 'm',
+    'accept': True,
+}
+
+
+sample_selectize_data = {
+    'choice': 2,
+    'opinion': lambda: OpinionModel.objects.filter(tenant=1)[6],
+    'annotation': "Lorem ipsum dolor est",
+}
