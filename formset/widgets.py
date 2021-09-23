@@ -18,7 +18,7 @@ class Selectize(Select):
     Render widget suitable for TomSelect
     """
     template_name = 'formset/default/widgets/selectize.html'
-    max_prefetch_choices = 50  # TODO: increase
+    max_prefetch_choices = 50
     search_lookup = None
     placeholder = _("Select")
 

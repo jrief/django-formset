@@ -11,7 +11,7 @@ from formset.widgets import Selectize
 from testapp.models import OpinionModel
 
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def django_db_setup(django_db_blocker):
     with django_db_blocker.unblock():
         for counter in range(1, 100):

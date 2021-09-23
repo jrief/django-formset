@@ -274,7 +274,7 @@ sample_subscribe_data = {
     'phone': '+1 234 567 8900',
     'birth_date': datetime(year=1966, month=7, day=9),
     'continent': 'eu',
-    'opinion': OpinionModel.objects.filter(tenant=1)[8],
+    'opinion': lambda: OpinionModel.objects.filter(tenant=1)[8],
     'available_transportation': ['foot', 'taxi'],
     'preferred_transportation': 'car',
     'used_transportation': ['foot', 'bike', 'car', 'train'],
@@ -296,6 +296,6 @@ sample_persona_data = {
 
 sample_selectize_data = {
     'choice': 2,
-    'opinion': OpinionModel.objects.filter(tenant=1)[6],
+    'opinion': lambda: OpinionModel.objects.filter(tenant=1)[6],
     'annotation': "Lorem ipsum dolor est",
 }
