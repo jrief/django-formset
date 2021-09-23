@@ -56,7 +56,7 @@ test_fields = dict(
 
 views = {
     f'selectize{ctr}': FormView.as_view(
-        template_name='tests/form_with_button.html',
+        template_name='tests/form.html',
         form_class=type(f'{tpl[0]}_form', (Form,), {'name': tpl[0], 'model_choice': tpl[1]}),
         success_url='/success',
     )

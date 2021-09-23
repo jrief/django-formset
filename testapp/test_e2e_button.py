@@ -15,7 +15,7 @@ class SampleForm(Form):
 
 views = {
     f'test_button_{ctr}': FormView.as_view(
-        template_name='tests/form_with_button.html',
+        template_name='tests/form.html',
         form_class=SampleForm,
         success_url='/success',
         extra_context={'click_actions': click_actions, 'auto_disable': False},
@@ -30,13 +30,13 @@ views = {
     ])
 }
 views['test_button_submit'] = FormView.as_view(
-    template_name='tests/form_with_button.html',
+    template_name='tests/form.html',
     form_class=SampleForm,
     success_url='/success',
     extra_context={'click_actions': 'submit', 'auto_disable': True},
 )
 views['test_button_submit_with_data'] = FormView.as_view(
-    template_name='tests/form_with_button.html',
+    template_name='tests/form.html',
     form_class=SampleForm,
     success_url='/success',
     extra_context={'click_actions': 'submit({foo: "bar"})', 'auto_disable': True},
@@ -144,6 +144,7 @@ def test_button_submit(page, mocker):
     assert button_elem is not None
     spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset button').click()
+    assert spy.called
     request = json.loads(spy.call_args.args[1].body)
     assert request['sample_form']['enter'] == "A"
 
@@ -159,6 +160,7 @@ def test_button_submit_with_data(page, mocker):
     assert button_elem is not None
     spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset button').click()
+    assert spy.called
     request = json.loads(spy.call_args.args[1].body)
     assert request['_extra']['foo'] == "bar"
     assert request['sample_form']['enter'] == "BAR"
