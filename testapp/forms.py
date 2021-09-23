@@ -2,10 +2,11 @@ from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from django.core.exceptions import ValidationError
 from django.forms import forms, fields, widgets, models
 
+from formset.inline import InlineFormField
 from formset.mixins import default, bootstrap, bulma, foundation, tailwind
 from formset.widgets import Selectize, UploadedFileInput
 
-from testapp.models import PayloadModel, ChoicesModel
+from testapp.models import PayloadModel, OpinionModel
 
 
 def validate_password(value):
@@ -253,3 +254,50 @@ class SelectForm(forms.Form):
         empty_label="Select an option",
         widget=Selectize(search_lookup='label__icontains'),
     )
+
+
+class NestedForm(forms.Form):
+    annotation = fields.CharField(
+        label="Annotation",
+        widget=widgets.TextInput(attrs={'placeholder': "Start typing ..."}),
+    )
+
+    person = InlineFormField(
+        PersonForm,
+    )
+
+
+sample_subscribe_data = {
+    'first_name': "John",
+    'last_name': "Doe",
+    'gender': 'm',
+    'email': 'john.doe@example.org',
+    'subscribe': True,
+    'phone': '+1 234 567 8900',
+    'birth_date': datetime(year=1966, month=7, day=9),
+    'continent': 'eu',
+    'opinion': lambda: OpinionModel.objects.filter(tenant=1)[8],
+    'available_transportation': ['foot', 'taxi'],
+    'preferred_transportation': 'car',
+    'used_transportation': ['foot', 'bike', 'car', 'train'],
+    'height': 1.82,
+    'weight': 81,
+    'traveling': ['bike', 'train'],
+    'notifyme': ['email', 'sms'],
+    'annotation': "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    'password': 'secret',
+}
+
+sample_persona_data = {
+    'first_name': "John",
+    'last_name': "Doe",
+    'gender': 'm',
+    'accept': True,
+}
+
+
+sample_selectize_data = {
+    'choice': 2,
+    'opinion': lambda: OpinionModel.objects.filter(tenant=1)[6],
+    'annotation': "Lorem ipsum dolor est",
+}
