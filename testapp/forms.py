@@ -1,6 +1,7 @@
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from django.core.exceptions import ValidationError
 from django.forms import forms, fields, widgets, models
+from django.utils.timezone import datetime
 
 from formset.inline import InlineFormField
 from formset.mixins import default, bootstrap, bulma, foundation, tailwind
@@ -91,10 +92,10 @@ class SubscribeForm(forms.Form):
         error_messages={'invalid_choice': "Please select your continent."},
     )
 
-    # choice = models.ModelChoiceField(
-    #     queryset=ChoicesModel.objects.filter(tenant=1),
-    #     label="Choose from",
-    #     empty_label="Select an option",
+    # opinion = models.ModelChoiceField(
+    #     queryset=OpinionModel.objects.filter(tenant=1),
+    #     label="Opinion",
+    #     empty_label="Your opinion",
     #     widget=Selectize(search_lookup='label__icontains'),
     # )
 
@@ -200,8 +201,6 @@ class TailwindMixinForm(tailwind.FormMixin, SubscribeForm):
 
 
 class UploadForm(forms.Form):
-    name = 'upload'
-
     file = fields.FileField(
         label="Choose file",
         widget=UploadedFileInput,
@@ -210,8 +209,6 @@ class UploadForm(forms.Form):
 
 
 class PersonForm(forms.Form):
-    name = 'persona'
-
     first_name = fields.RegexField(
         r'^[A-Z][a-z -]+$',
         label="First name",
@@ -246,13 +243,26 @@ class PersonForm(forms.Form):
 
 
 class SelectForm(forms.Form):
-    name = 'select'
+    choice = fields.ChoiceField(
+        label="Classic Select",
+        choices=[
+            (None, "Select an option"),
+            (1, "One"),
+            (2, "Two"),
+            (3, "Three"),
+        ],
+    )
 
-    choice = models.ModelChoiceField(
-        queryset=ChoicesModel.objects.filter(tenant=1),
-        label="Choose from",
-        empty_label="Select an option",
-        widget=Selectize(search_lookup='label__icontains'),
+    opinion = models.ModelChoiceField(
+        label="Selectize",
+        queryset=OpinionModel.objects.filter(tenant=1),
+        widget=Selectize(search_lookup='label__icontains', placeholder="Select my option"),
+        required=True,
+    )
+
+    annotation = fields.CharField(
+        label="Annotation",
+        widget=widgets.TextInput(attrs={'placeholder': "Start typing ..."}),
     )
 
 

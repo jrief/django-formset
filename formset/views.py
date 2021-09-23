@@ -5,34 +5,25 @@ import tempfile
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.files.storage import default_storage
 from django.core.signing import get_cookie_signer
+from django.forms.forms import BaseForm
+from django.forms.widgets import MediaDefiningClass
 from django.http.response import HttpResponseBadRequest, JsonResponse
 from django.utils.encoding import force_str
-from django.views.generic import FormView as GenericFormView
+from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
+from django.views.generic.edit import FormView as GenericFormView
 
 from formset.widgets import Selectize
 
 
-class FormViewMixin:
-    upload_temp_dir = default_storage.base_location / 'upload_temp'
-    filename_max_length = 50
-    thumbnail_max_height = 200
-    thumbnail_max_width = 400
-
+class SelectizeResponseMixin:
     def get(self, request, **kwargs):
-        if request.accepts('application/json') and 'query' in request.GET:
+        if request.accepts('application/json') and 'field' in request.GET and 'query' in request.GET:
             return self._fetch_options(request)
         return super().get(request, **kwargs)
 
-    def post(self, request, **kwargs):
-        if request.content_type == 'application/json':
-            return self._handle_form_data(request.body)
-        if request.content_type == 'multipart/form-data':
-            return self._receive_uploaded_file(request.FILES.get('temp_file'), request.POST.get('image_height'))
-        return super().post(request, **kwargs)
-
     def _fetch_options(self, request):
-        _, field_name = request.GET.get('field').split('.')
-        field = self.form_class()[field_name].field
+        form_name, field_name = request.GET['field'].split('.')
+        field = self.get_field(form_name, field_name)
         assert isinstance(field.widget, Selectize)
         query = request.GET.get('query')
         filtered_qs = field.widget.search(query).order_by('-id')[:field.widget.max_prefetch_choices]
@@ -46,13 +37,17 @@ class FormViewMixin:
         }
         return JsonResponse(data)
 
-    def _handle_form_data(self, form_data):
-        form_data = json.loads(form_data)
-        form = self.form_class(data=form_data.get(self.form_class.name, {}))
-        if form.is_valid():
-            return JsonResponse({'success_url': force_str(self.success_url)})
-        else:
-            return JsonResponse({form.name: form.errors}, status=422)
+
+class FileUploadMixin:
+    upload_temp_dir = default_storage.base_location / 'upload_temp'
+    filename_max_length = 50
+    thumbnail_max_height = 200
+    thumbnail_max_width = 400
+
+    def post(self, request, **kwargs):
+        if request.content_type == 'multipart/form-data' and 'temp_file' in request.FILES and 'image_height' in request.POST:
+            return self._receive_uploaded_file(request.FILES['temp_file'], request.POST['image_height'])
+        return super().post(request, **kwargs)
 
     def _receive_uploaded_file(self, file_obj, image_height=None):
         """
@@ -122,5 +117,102 @@ class FormViewMixin:
         return staticfiles_storage.url('formset/icons/file-unknown.svg')
 
 
-class FormView(FormViewMixin, GenericFormView):
+class FormViewMixin:
+    def post(self, request, **kwargs):
+        if request.content_type == 'application/json':
+            return self._handle_form_data(json.loads(request.body))
+        return super().post(request, **kwargs)
+
+    def _handle_form_data(self, form_data):
+        form_name = getattr(self.form_class, 'name', '__default__')
+        form = self.form_class(data=form_data.get(form_name, {}))
+        if form.is_valid():
+            return JsonResponse({'success_url': force_str(self.success_url)})
+        else:
+            return JsonResponse({form_name: form.errors}, status=422)
+
+    def get_field(self, form_name, field_name):
+        return self.form_class.declared_fields[field_name]
+
+
+class FormView(SelectizeResponseMixin, FileUploadMixin, FormViewMixin, GenericFormView):
+    """
+    FormView to be used for handling a single form.
+    """
+
+
+class FormsetViewMeta(MediaDefiningClass):
+    """Collect Forms declared on the base classes."""
+    def __new__(cls, name, bases, attrs):
+        # Collect forms from current class and remove them from attrs.
+        attrs['declared_forms'] = {
+            key: attrs.pop(key) for key, value in list(attrs.items())
+            if isinstance(value, BaseForm)
+        }
+        new_class = super().__new__(cls, name, bases, attrs)
+
+        # Walk through the MRO.
+        declared_forms = {}
+        for base in reversed(new_class.__mro__):
+            # Collect Forms from base class.
+            if hasattr(base, 'declared_forms'):
+                declared_forms.update(base.declared_forms)
+
+            # Form shadowing.
+            for attr, value in base.__dict__.items():
+                if value is None and attr in declared_forms:
+                    declared_forms.pop(attr)
+
+        new_class.declared_forms = declared_forms
+
+        return new_class
+
+
+class FormsetViewMixin(ContextMixin, metaclass=FormsetViewMeta):
+    success_url = None
+
+    def get(self, request, *args, **kwargs):
+        """Handle GET requests: instantiate a blank version of the form."""
+        return self.render_to_response(self.get_context_data())
+
+    def post(self, request, **kwargs):
+        """Handle POST requests: validate for with POST data."""
+        if request.content_type == 'application/json':
+            return self._handle_form_data(json.loads(request.body))
+        return self.render_to_response(self.get_context_data())
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['forms'] = self.get_forms()
+        return context
+
+    def get_forms(self):
+        """Return a dict of form instances to be added to the rendering context."""
+        forms = {}
+        for name, form in self.declared_forms.items():
+            if self.request.method in ('POST', 'PUT'):
+                data = self.request.POST.get(name, {})
+                forms[name] = form.__class__(data=data)
+            else:
+                forms[name] = form
+        return forms
+
+    def get_field(self, form_name, field_name):
+        return self.declared_forms[form_name].declared_fields[field_name]
+
+    def _handle_form_data(self, form_data):
+        is_valid = True
+        error_response = {}
+        for name, form in self.declared_forms.items():
+            form = form.__class__(data=form_data.get(name, {}))
+            if not form.is_valid():
+                is_valid = False
+                error_response.update({name: form.errors})
+        if is_valid:
+            return JsonResponse({'success_url': force_str(self.success_url)})
+        else:
+            return JsonResponse(error_response, status=422)
+
+
+class FormsetView(SelectizeResponseMixin, FileUploadMixin, FormsetViewMixin, TemplateResponseMixin, View):
     pass

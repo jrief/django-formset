@@ -1,4 +1,5 @@
 from functools import reduce
+import itertools
 from operator import or_
 import os
 
@@ -7,27 +8,33 @@ from django.core.files.uploadedfile import UploadedFile
 from django.core.files.storage import default_storage
 from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
-from django.forms.models import ModelChoiceIterator
+from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
 from django.forms.widgets import FileInput, Select
+from django.utils.translation import gettext_lazy as _
 
 
 class Selectize(Select):
     """
-    Render widget suitable
+    Render widget suitable for TomSelect
     """
     template_name = 'formset/default/widgets/selectize.html'
-    max_prefetch_choices = 50  # TODO: increase
+    max_prefetch_choices = 50
     search_lookup = None
+    placeholder = _("Select")
 
-    def __init__(self, attrs=None, choices=(), search_lookup=None):
+    def __init__(self, attrs=None, choices=(), search_lookup=None, placeholder=None):
         if search_lookup:
             self.search_lookup = search_lookup
         if isinstance(self.search_lookup, str):
             self.search_lookup = [self.search_lookup]
+        if placeholder is not None:
+            self.placeholder = placeholder
         super().__init__(attrs, choices)
 
     def build_attrs(self, base_attrs, extra_attrs):
         attrs = super().build_attrs(base_attrs, extra_attrs)
+        if self.is_required:
+            attrs['required'] = True  # Selectize overrides the default behaviour
         return attrs
 
     def search(self, search_term):
@@ -38,8 +45,14 @@ class Selectize(Select):
         return self.choices.queryset.filter(query)
 
     def get_context(self, name, value, attrs):
-        if isinstance(self.choices, ModelChoiceIterator) and self.choices.queryset.count() > self.max_prefetch_choices:
-            attrs = dict(attrs, uncomplete=True)
+        if isinstance(self.choices, ModelChoiceIterator):
+            if self.choices.queryset.count() > self.max_prefetch_choices:
+                attrs = dict(attrs, uncomplete=True)
+            # if first option is the "Select ..." element, replace it by the widget's placeholder
+            first_option = next(iter(self.choices))
+            if first_option and not isinstance(first_option[0], ModelChoiceIteratorValue):
+                self.choices = itertools.filterfalse(lambda c: c == first_option, self.choices)
+            self.choices = itertools.chain([('', self.placeholder)], self.choices)
         context = super().get_context(name, value, attrs)
         options = context['widget'].pop('optgroups')
         context['widget']['options'] = options

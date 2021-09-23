@@ -11,7 +11,7 @@ class WidgetMixin(default.WidgetMixin):
 
 
 class FormMixin(default.CheckboxFormMixin, default.FormMixin):
-    field_css_classes = 'form-group'
+    field_css_classes = 'mb-3'
     checkbox_label_html = '<div class="{label_css_classes}"></div>'
     help_text_html='<span class="form-text text-muted">%s</span>'
     widget_mixin = WidgetMixin
@@ -22,8 +22,9 @@ class FormMixin(default.CheckboxFormMixin, default.FormMixin):
         'checkbox': 'form-check-input',
         'checkboxselectmultiple': 'form-check-input',
         'radioselect': 'form-check-input',
-        'select': 'form-control',
-        'selectmultiple': 'form-control',
+        'select': 'form-select',
+        'selectize': 'form-control',
+        'selectmultiple': 'form-select',
         'number': 'form-control',
         'textarea': 'form-control',
         'password': 'form-control',

@@ -40,27 +40,24 @@ class FileUploadWidget {
 		this.field = fieldGroup;
 		this.inputElement = inputElement;
 
-		const dropboxes = this.field.element.getElementsByClassName('dj-dropbox');
-		if (dropboxes.length !== 1)
+		this.dropbox = this.field.element.querySelector('ul.dj-dropbox') as HTMLUListElement;
+		if (!this.dropbox)
 			throw new Error('Element <input type="file"> requires sibling element <ul class="dj-dropbox"></ul>');
-		this.dropbox = dropboxes[0] as HTMLUListElement;
 
-		const buttons = this.field.element.getElementsByClassName('dj-choose-file');
-		if (buttons.length !== 1)
+		this.chooseFileButton = this.field.element.querySelector('button.dj-choose-file') as HTMLButtonElement;
+		if (!this.chooseFileButton)
 			throw new Error('Element <input type="file"> requires sibling element <button class="dj-choose-file"></button>');
-		this.chooseFileButton = buttons[0] as HTMLButtonElement;
 
-		const progressBars = this.field.element.getElementsByClassName('dj-progress-bar');
-		if (progressBars.length === 1) {
-			this.progressBar = progressBars[0] as HTMLDivElement;
+		this.progressBar = this.field.element.querySelector('div.dj-progress-bar') as HTMLDivElement;
+		if (this.progressBar) {
 			this.progressBar.style.visibility = 'hidden';
 		}
 
-		this.defaultDropboxItem = this.dropbox.getElementsByTagName('li')[0];
-		const templates = this.field.element.getElementsByClassName('dj-dropbox-items');
-		if (templates.length !== 1)
+		this.defaultDropboxItem = this.dropbox.querySelector('li') as HTMLLIElement;
+		const dropboxItemTemplate = this.field.element.querySelector('.dj-dropbox-items');
+		if (!dropboxItemTemplate)
 			throw new Error('Element <input type="file"> requires sibling element <template class="dj-dropbox-items"></template>');
-		this.dropboxItemTemplate = template(templates[0].innerHTML);
+		this.dropboxItemTemplate = template(dropboxItemTemplate.innerHTML);
 
 		const initialData = document.getElementById(`initial_${inputElement.id}`);
 		if (initialData?.textContent) {
@@ -88,7 +85,7 @@ class FileUploadWidget {
 		}
 	}
 
-	private fileRemove = () => {
+	public fileRemove = () => {
 		this.inputElement.value = '';  // used to clear readonly `this.inputElement.files`
 		this.uploadedFiles = [];
 		while (this.dropbox.firstChild) {
@@ -130,7 +127,10 @@ class FileUploadWidget {
 			const complete = event.lengthComputable ? event.loaded / event.total : 0;
 			if (self.progressBar) {
 				self.progressBar.style.visibility = 'visible';
-				self.progressBar.getElementsByTagName('div')[0].style.width = `${complete * 100}%`;
+				const divElement = self.progressBar.querySelector('div');
+				if (divElement) {
+					divElement.style.width = `${complete * 100}%`;
+				}
 			}
 		}
 
@@ -173,9 +173,9 @@ class FileUploadWidget {
 			list.push(listItem);
 		}
 		this.dropbox.innerHTML = list.join('');
-		const buttons = this.dropbox.getElementsByClassName('dj-delete-file');
-		if (buttons.length > 0) {
-			buttons[0].addEventListener('click', this.fileRemove, {once: true});
+		const button = this.dropbox.querySelector('.dj-delete-file');
+		if (button) {
+			button.addEventListener('click', this.fileRemove, {once: true});
 		}
 	}
 
@@ -189,9 +189,9 @@ function findErrorPlaceholder(element: Element): HTMLElement | null {
 	const errorlist = element.getElementsByClassName('dj-errorlist');
 	for (const listelement of errorlist) {
 		if (listelement.parentElement && listelement.parentElement.isEqualNode(element)) {
-			const placeholder = listelement.getElementsByClassName('dj-placeholder');
-			if (placeholder.length > 0)
-				return placeholder[0] as HTMLElement;
+			const placeholder = listelement.querySelector('.dj-placeholder');
+			if (placeholder)
+				return placeholder as HTMLElement;
 			break;
 		}
 	}
@@ -202,12 +202,12 @@ function findErrorPlaceholder(element: Element): HTMLElement | null {
 class ErrorMessages extends Map<ErrorKey, string>{
 	constructor(fieldGroup: FieldGroup) {
 		super();
-		const element = Array.from(fieldGroup.element.getElementsByTagName('django-error-messages')) as Array<HTMLElement>;
-		if (element.length !== 1)
-			throw new Error(`<django-field-group> for '${fieldGroup.name}' requires excatly one <django-error-messages> tag.`);
-		for (const attr of element[0].getAttributeNames()) {
+		const element = fieldGroup.element.querySelector('django-error-messages');
+		if (!element)
+			throw new Error(`<django-field-group> for '${fieldGroup.name}' requires one <django-error-messages> tag.`);
+		for (const attr of element.getAttributeNames()) {
 			const clientKey = attr.replace(/([_][a-z])/g, (group) => group.toUpperCase().replace('_', ''));
-			const clientValue = element[0].getAttribute(attr);
+			const clientValue = element.getAttribute(attr);
 			if (clientValue) {
 				this.set(clientKey as ErrorKey, clientValue);
 			}
@@ -372,6 +372,15 @@ class FieldGroup {
 		for (const element of this.inputElements) {
 			if (element.validity.customError)
 				element.setCustomValidity('');
+		}
+	}
+
+	public resetToInitial() {
+		this.untouch();
+		this.setPristine();
+		this.resetCustomError();
+		if (this.fileUploader) {
+			return this.fileUploader.fileRemove();
 		}
 	}
 
@@ -619,7 +628,18 @@ class DjangoButton {
 					response instanceof Response && response.status === 200 ? resolve(response) : reject(response)
 				);
 			});
-		}
+		};
+	}
+
+	/**
+	 * Reset form content to their initial values.
+	 */
+	// @ts-ignore
+	reset() {
+		return (response: Response) => {
+			this.formset.resetToInitial();
+			return Promise.resolve(response);
+		};
 	}
 
 	/**
@@ -780,16 +800,16 @@ class DjangoForm {
 		this.name = element.getAttribute('name') || '__default__';
 		this.formset = formset;
 		this.element = element;
-		const formErrors = element.getElementsByClassName('dj-form-errors');
-		const placeholder = formErrors.length > 0 ? findErrorPlaceholder(formErrors[0]) : null;
+		const formError = element.querySelector('.dj-form-errors');
+		const placeholder = formError ? findErrorPlaceholder(formError) : null;
 		if (placeholder) {
 			this.errorList = placeholder.parentElement;
 			this.errorPlaceholder = this.errorList ? this.errorList.removeChild(placeholder) : null;
 		} else {
 			this.errorList = this.errorPlaceholder = null;
 		}
-		for (const element of Array.from(this.element.getElementsByTagName('django-field-group')) as Array<HTMLElement>) {
-			this.fieldGroups.push(new FieldGroup(this, element));
+		for (const element of Array.from(this.element.getElementsByTagName('django-field-group'))) {
+			this.fieldGroups.push(new FieldGroup(this, element as HTMLElement));
 		}
 	}
 
@@ -845,6 +865,13 @@ class DjangoForm {
 		}
 	}
 
+	resetToInitial() {
+		this.element.reset();
+		for (const fieldGroup of this.fieldGroups) {
+			fieldGroup.resetToInitial();
+		}
+	}
+
 	reportCustomErrors(errors: Map<string, Array<string>>) {
 		const nonFieldErrors = errors.get(NON_FIELD_ERRORS);
 		if (this.errorList && nonFieldErrors instanceof Array && this.errorPlaceholder) {
@@ -889,8 +916,8 @@ export class DjangoFormset {
 
 	public findForms() {
 		const formNames = Array<string>(0);
-		for (const element of Array.from(this.element.getElementsByTagName('FORM')) as Array<HTMLFormElement>) {
-			const form = new DjangoForm(this, element);
+		for (const element of Array.from(this.element.getElementsByTagName('FORM'))) {
+			const form = new DjangoForm(this, element as HTMLFormElement);
 			if (form.name in formNames)
 				throw new Error(`Detected more than one <form name="${form.name}"> in <django-formset>`);
 			this.forms.push(form);
@@ -899,9 +926,9 @@ export class DjangoFormset {
 	}
 
 	public findButtons() {
-		for (const element of Array.from(this.element.getElementsByTagName('BUTTON')) as Array<HTMLButtonElement>) {
+		for (const element of Array.from(this.element.getElementsByTagName('BUTTON'))) {
 			if (element.hasAttribute('click')) {
-				this.buttons.push(new DjangoButton(this, element));
+				this.buttons.push(new DjangoButton(this, element as HTMLButtonElement));
 			}
 		}
 	}
@@ -981,6 +1008,12 @@ export class DjangoFormset {
 		}
 	}
 
+	public resetToInitial() {
+		for (const form of this.forms) {
+			form.resetToInitial();
+		}
+	}
+
 	/**
 	 * Abort the current actions.
 	 */
@@ -1029,5 +1062,9 @@ export class DjangoFormsetElement extends HTMLElement {
 
 	public async abort() {
 		return this[FS].abort();
+	}
+
+	public async reset() {
+		return this[FS].resetToInitial();
 	}
 }

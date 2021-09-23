@@ -5,11 +5,11 @@ class PayloadModel(models.Model):
     data = models.JSONField()
 
 
-class ChoicesModel(models.Model):
+class OpinionModel(models.Model):
     tenant = models.PositiveSmallIntegerField()
 
     label = models.CharField(
-        "Choice",
+        "Opinion",
         max_length=50,
     )
 

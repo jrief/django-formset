@@ -2,16 +2,13 @@
 {% load static django_formset %}
 
 {% block "main-content" %}
-	<link href="{% static 'node_modules/tom-select/dist/css/tom-select.css' %}" rel="stylesheet">
-
 <django-formset endpoint="{{ request.path }}" force-submission="false">
-	<form name="{{ form.name }}">
-		{% csrf_token %}
+	<form{% if form.name %} name="{{ form.name }}"{% endif %}>
 		{% include "formset/default/non_field_errors.html" %}
 		{% for field in form|formsetify %}
 		{% render_group field %}
 		{% endfor %}
 	</form>
-	{% include "./submit_button.html" %}
+	{% include "./buttons.html" %}
 </django-formset>
 {% endblock %}

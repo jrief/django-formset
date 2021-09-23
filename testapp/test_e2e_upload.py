@@ -23,7 +23,7 @@ class UploadForm(Form):
 
 
 view = FormView.as_view(
-    template_name='tests/form_with_button.html',
+    template_name='tests/form.html',
     form_class=UploadForm,
     success_url='/success',
 )
