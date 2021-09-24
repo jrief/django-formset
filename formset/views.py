@@ -149,8 +149,7 @@ class FormsetViewMeta(MediaDefiningClass):
         for key, value in list(attrs.items()):
             if isinstance(value, BaseForm):
                 attrs.pop(key)
-                if not hasattr(value, 'name'):
-                    setattr(value, 'name', key)
+                setattr(value, 'name', key)
                 attrs['declared_forms'][key] = value
 
         new_class = super().__new__(cls, name, bases, attrs)
