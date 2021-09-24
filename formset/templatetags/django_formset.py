@@ -1,17 +1,28 @@
 from django import template
 from django.forms import BaseForm
 from django.template.loader import get_template
+from django.utils.html import format_html_join
 
 from formset.mixins.default import FormMixin, FormsetErrorList
 
 
 def _formsetify(form, form_mixin=FormMixin):
     assert isinstance(form, BaseForm), \
-        "'formsetify' must be applied to a Form object inheriting from 'django.forms.BaseForm'."
+        "Must be applied to a Form object inheriting from 'django.forms.BaseForm'."
     if not isinstance(form, form_mixin):
         form.__class__ = type(form.__class__.__name__, (form_mixin, form.__class__), {})
         form.error_class = FormsetErrorList
     return form
+
+
+def _form_attrs(form, form_mixin=FormMixin):
+    form = _formsetify(form, form_mixin)
+    attrs = []
+    if form.name:
+        attrs.append(('name', form.name))
+    if form.form_id:
+        attrs.append(('id', form.form_id))
+    return format_html_join('', ' {0}="{1}"', attrs)
 
 
 def _render_groups(form, form_mixin=FormMixin, field_classes=None, label_classes=None, control_classes=None):
@@ -52,5 +63,6 @@ def _render_group(bf, template_name='formset/default/field_group.html'):
 
 register = template.Library()
 register.filter('formsetify', _formsetify)
+register.simple_tag(_form_attrs, name='form_attrs')
 register.simple_tag(_render_groups, name='render_groups')
 register.simple_tag(_render_group, name='render_group')

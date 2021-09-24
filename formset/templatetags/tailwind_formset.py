@@ -1,7 +1,7 @@
 from django import template
 
 from formset.mixins import tailwind
-from .django_formset import _formsetify, _render_group, _render_groups
+from .django_formset import _formsetify, _form_attrs, _render_group, _render_groups
 
 register = template.Library()
 
@@ -9,6 +9,11 @@ register = template.Library()
 @register.filter
 def formsetify(form):
     return _formsetify(form, tailwind.FormMixin)
+
+
+@register.simple_tag
+def form_attrs(form):
+    return _form_attrs(form, tailwind.FormMixin)
 
 
 @register.simple_tag

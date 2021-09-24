@@ -191,14 +191,14 @@ class FormCollectionViewMixin(ContextMixin, metaclass=FormsetViewMeta):
         return context
 
     def get_forms(self):
-        """Return a dict of form instances to be added to the rendering context."""
-        forms = {}
+        """Return a list of form instances to be added to the rendering context."""
+        forms = []
         for name, form in self.declared_forms.items():
             if self.request.method in ('POST', 'PUT'):
                 data = self.request.POST.get(name, {})
-                forms[name] = form.__class__(data=data)
+                forms.append(form.__class__(data=data))
             else:
-                forms[name] = form
+                forms.append(form)
         return forms
 
     def get_field(self, form_name, field_name):

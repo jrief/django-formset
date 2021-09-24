@@ -3,8 +3,8 @@
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="false" withhold-messages="false">
-	{% for name, form in forms.items %}
-	<form name="{{ name }}">
+	{% for form in forms %}
+	<form{% form_attrs form %}>
 		{% render_groups form %}
 	</form>
 	{% endfor %}

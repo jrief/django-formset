@@ -9,7 +9,7 @@
 
 <body>
 	<django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}">
-		<form{% if form.name %} name="{{ form.name }}"{% endif %}>
+		<form{% form_attrs form %}>
 			{% csrf_token %}
 			{% render_groups form %}
 		</form>

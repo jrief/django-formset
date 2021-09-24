@@ -20,8 +20,3 @@ class CombinedFormsView(FormCollectionView):
     upload = UploadForm()
 
     select = SelectForm(initial=sample_selectize_data)
-
-
-# class NestedFormsView(FormView):
-#     form_class = NestedForm
-#     success_url = reverse_lazy('form_data_valid')

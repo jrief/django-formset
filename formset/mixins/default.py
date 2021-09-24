@@ -3,6 +3,7 @@ import copy
 from django.forms.utils import ErrorList
 from django.utils.html import format_html, format_html_join, html_safe, strip_spaces_between_tags
 from django.utils.safestring import mark_safe
+from django.utils.functional import cached_property
 
 from formset.boundfield import BoundField
 
@@ -135,12 +136,23 @@ class FormMixin:
         if regex:
             attrs['pattern'] = regex.pattern
 
+        # The "form" tag is used to link fields to their form owner
+        # See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-form for details
+        if self.form_id:
+            attrs.setdefault('form', self.form_id)
+
         return attrs
 
     def get_widget(self, field):
         widget = copy.deepcopy(field.widget)
         widget.__class__ = type(widget.__class__.__name__, (self.widget_mixin, widget.__class__), {})
         return widget
+
+    @cached_property
+    def form_id(self):
+        form_name = getattr(self, 'name', None)
+        if form_name and self.auto_id and '%s' in str(self.auto_id):
+            return self.auto_id % form_name
 
 
 class CheckboxFormMixin:

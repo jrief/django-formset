@@ -3,7 +3,7 @@
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="false">
-	<form{% if form.name %} name="{{ form.name }}"{% endif %}>
+	<form{% form_attrs form %}>
 		{% include "formset/bulma/non_field_errors.html" %}
 		{% for field in form|formsetify %}
 		{% render_group field %}
