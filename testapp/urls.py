@@ -16,7 +16,7 @@ urlpatterns = [
     path('upload', SubscribeFormView.as_view(form_class=UploadForm, template_name='default/render_groups.html')),
     path('persona', SubscribeFormView.as_view(form_class=PersonForm, template_name='default/render_groups.html')),
     path('selectize', SubscribeFormView.as_view(form_class=SelectForm, template_name='default/render_groups.html')),
-    path('combined', CombinedFormsView.as_view(template_name='default/formslist.html')),
+    path('combined', CombinedFormsView.as_view(template_name='default/formcollection.html')),
     path('bootstrap/formsetify', SubscribeFormView.as_view(template_name='bootstrap/formsetify.html')),
     path('bootstrap/form-groups', SubscribeFormView.as_view(template_name='bootstrap/render_groups.html')),
     path('bootstrap/form-groups-classes', SubscribeFormView.as_view(template_name='bootstrap/render_groups_with_classes.html')),

@@ -168,7 +168,7 @@ class FormsetViewMeta(MediaDefiningClass):
         return new_class
 
 
-class FormsetViewMixin(ContextMixin, metaclass=FormsetViewMeta):
+class FormCollectionViewMixin(ContextMixin, metaclass=FormsetViewMeta):
     success_url = None
 
     def get(self, request, *args, **kwargs):
@@ -214,5 +214,5 @@ class FormsetViewMixin(ContextMixin, metaclass=FormsetViewMeta):
             return JsonResponse(error_response, status=422)
 
 
-class FormsetView(SelectizeResponseMixin, FileUploadMixin, FormsetViewMixin, TemplateResponseMixin, View):
+class FormCollectionView(SelectizeResponseMixin, FileUploadMixin, FormCollectionViewMixin, TemplateResponseMixin, View):
     pass
