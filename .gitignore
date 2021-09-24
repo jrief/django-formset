@@ -33,5 +33,4 @@ formset/static/formset/js/django-formset*
 dist/
 docs/build/
 media/
-testapp/static
 testapp/test.db

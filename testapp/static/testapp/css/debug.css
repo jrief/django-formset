@@ -1,0 +1,12 @@
+form {
+	padding: 1rem;
+	border: 2px solid grey;
+	min-height: 1em;
+	}
+	form:valid {
+		border-color: green;
+	}
+	form:invalid {
+		border-color: red;
+	}
+
