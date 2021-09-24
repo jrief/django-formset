@@ -18,8 +18,9 @@ def _formsetify(form, form_mixin=FormMixin):
 def _form_attrs(form, form_mixin=FormMixin):
     form = _formsetify(form, form_mixin)
     attrs = []
-    if form.name:
-        attrs.append(('name', form.name))
+    form_name = getattr(form, 'name', None)
+    if form_name:
+        attrs.append(('name', form_name))
     if form.form_id:
         attrs.append(('id', form.form_id))
     return format_html_join('', ' {0}="{1}"', attrs)
