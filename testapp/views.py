@@ -2,9 +2,8 @@ from django.urls import reverse_lazy
 
 from formset.views import FormView, FormsetView
 
-from testapp.forms import (
-    SubscribeForm, PersonForm, UploadForm, SelectForm, sample_subscribe_data,
-    sample_persona_data, sample_selectize_data)
+from testapp.forms import SubscribeForm, PersonForm, UploadForm, SelectForm, NestedForm
+from testapp.sampledata import sample_subscribe_data, sample_persona_data, sample_selectize_data
 
 
 class SubscribeFormView(FormView):
