@@ -2,7 +2,7 @@ from django.urls import reverse_lazy
 
 from formset.views import FormView, FormCollectionView
 
-from testapp.forms import SubscribeForm, PersonForm, UploadForm, SelectForm, NestedForm
+from testapp.forms import SubscribeForm, PersonForm, UploadForm, SelectForm
 from testapp.sampledata import sample_subscribe_data, sample_persona_data, sample_selectize_data
 
 
@@ -20,3 +20,8 @@ class CombinedFormsView(FormCollectionView):
     upload = UploadForm()
 
     select = SelectForm(initial=sample_selectize_data)
+
+
+# class NestedFormsView(FormView):
+#     form_class = NestedForm
+#     success_url = reverse_lazy('form_data_valid')

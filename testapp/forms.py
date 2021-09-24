@@ -2,7 +2,7 @@ from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from django.core.exceptions import ValidationError
 from django.forms import forms, fields, widgets, models
 
-from formset.inline import InlineFormField
+# from formset.inline import InlineFormField
 from formset.mixins import default, bootstrap, bulma, foundation, tailwind
 from formset.widgets import Selectize, UploadedFileInput
 
@@ -265,12 +265,12 @@ class SelectForm(forms.Form):
     )
 
 
-class NestedForm(forms.Form):
-    annotation = fields.CharField(
-        label="Annotation",
-        widget=widgets.TextInput(attrs={'placeholder': "Start typing ..."}),
-    )
-
-    person = InlineFormField(
-        PersonForm,
-    )
+# class NestedForm(forms.Form):
+#     annotation = fields.CharField(
+#         label="Annotation",
+#         widget=widgets.TextInput(attrs={'placeholder': "Start typing ..."}),
+#     )
+#
+#     person = InlineFormField(
+#         PersonForm,
+#     )
