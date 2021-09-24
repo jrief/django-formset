@@ -145,10 +145,14 @@ class FormsetViewMeta(MediaDefiningClass):
     """Collect Forms declared on the base classes."""
     def __new__(cls, name, bases, attrs):
         # Collect forms from current class and remove them from attrs.
-        attrs['declared_forms'] = {
-            key: attrs.pop(key) for key, value in list(attrs.items())
-            if isinstance(value, BaseForm)
-        }
+        attrs['declared_forms'] = {}
+        for key, value in list(attrs.items()):
+            if isinstance(value, BaseForm):
+                attrs.pop(key)
+                if not hasattr(value, 'name'):
+                    setattr(value, 'name', key)
+                attrs['declared_forms'][key] = value
+
         new_class = super().__new__(cls, name, bases, attrs)
 
         # Walk through the MRO.

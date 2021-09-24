@@ -25,6 +25,9 @@ class BoundField(boundfield.BoundField):
     def as_widget(self, widget=None, attrs=None, only_initial=False):
         if widget is None:
             widget = self.form.get_widget(self.field)
+        form_name = getattr(self.form, 'name', None)
+        if form_name:
+            attrs = dict(attrs or {}, form=form_name)
         return super().as_widget(widget, attrs, only_initial)
 
     def label_tag(self, contents=None, attrs=None, label_suffix=None):
