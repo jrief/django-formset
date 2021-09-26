@@ -789,14 +789,17 @@ class DjangoButton {
 
 
 class DjangoForm {
+	public readonly formId: string | null;
 	public readonly name: string;
 	public readonly formset: DjangoFormset;
-	private readonly element: HTMLFormElement;
+	public readonly element: HTMLFormElement;
 	private readonly errorList: Element | null;
 	private readonly errorPlaceholder: Element | null;
-	private readonly fieldGroups = Array<FieldGroup>(0);
+	public readonly fieldGroups = Array<FieldGroup>(0);
+	public readonly hiddenInputFields = Array<HTMLInputElement>(0);
 
 	constructor(formset: DjangoFormset, element: HTMLFormElement) {
+		this.formId = element.getAttribute('id');
 		this.name = element.getAttribute('name') || '__default__';
 		this.formset = formset;
 		this.element = element;
@@ -808,9 +811,6 @@ class DjangoForm {
 		} else {
 			this.errorList = this.errorPlaceholder = null;
 		}
-		for (const element of Array.from(this.element.getElementsByTagName('django-field-group'))) {
-			this.fieldGroups.push(new FieldGroup(this, element as HTMLElement));
-		}
 	}
 
 	aggregateValues(): Map<string, FieldValue> {
@@ -819,7 +819,7 @@ class DjangoForm {
 			data.set(fieldGroup.name, fieldGroup.aggregateValue());
 		}
 		// hidden fields are not handled by a django-field-group
-		for (const element of Array.from(this.element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>) {
+		for (const element of this.hiddenInputFields) {
 			if (element.type === 'hidden') {
 				data.set(element.name, element.value);
 			}
@@ -912,6 +912,40 @@ export class DjangoFormset {
 
 	public get forceSubmission(): Boolean {
 		return Boolean(JSON.parse(this.element.getAttribute('force-submission') || 'false'));
+	}
+
+	public assignFieldsToForms() {
+		for (const element of this.element.querySelectorAll('INPUT, SELECT, TEXTAREA')) {
+			const formId = element.getAttribute('form');
+			let djangoForm: DjangoForm;
+			if (formId) {
+				const djangoForms = this.forms.filter(form => form.formId && form.formId === formId);
+				if (djangoForms.length > 1)
+					throw new Error(`More than one form has id="${formId}"`);
+				if (djangoForms.length !== 1)
+					continue;
+				djangoForm = djangoForms[0];
+			} else {
+				const formElement = element.closest('form');
+				if (!formElement)
+					continue;
+				const djangoForms = this.forms.filter(form => form.element === formElement);
+				if (djangoForms.length !== 1)
+					continue;
+				djangoForm = djangoForms[0];
+			}
+			const fieldGroupElement = element.closest('django-field-group');
+			if (fieldGroupElement) {
+				if (djangoForm.fieldGroups.filter(fg => fg.element === fieldGroupElement).length === 0) {
+					djangoForm.fieldGroups.push(new FieldGroup(djangoForm, fieldGroupElement as HTMLElement));
+				}
+			} else if (element.nodeName === 'INPUT' && (element as HTMLInputElement).type === 'hidden') {
+				const hiddenInputElement = element as HTMLInputElement;
+				if (!djangoForm.hiddenInputFields.includes(hiddenInputElement)) {
+					djangoForm.hiddenInputFields.push(hiddenInputElement);
+				}
+			}
+		}
 	}
 
 	public findForms() {
@@ -1053,6 +1087,7 @@ export class DjangoFormsetElement extends HTMLElement {
 	private connectedCallback() {
 		this[FS].findButtons();
 		this[FS].findForms();
+		this[FS].assignFieldsToForms();
 		window.setTimeout(() => this[FS].validate(), 0);
 	}
 
