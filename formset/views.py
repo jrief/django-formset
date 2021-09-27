@@ -129,7 +129,7 @@ class FormViewMixin:
         if form.is_valid():
             return JsonResponse({'success_url': force_str(self.success_url)})
         else:
-            return JsonResponse({form_name: form.errors}, status=422)
+            return JsonResponse({form_name: form.errors.data}, status=422)
 
     def get_field(self, form_name, field_name):
         return self.form_class.declared_fields[field_name]

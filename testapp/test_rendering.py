@@ -165,7 +165,7 @@ def test_default_fields(form_soup, field_name):
     if bf.field.label:
         label = field_group.find('label')
         assert bf.label == label.text.rstrip(':')
-        if allow_multiple_selected and widget_type == 'checkbox':
+        if allow_multiple_selected and widget_type == 'checkbox' or widget_type == 'radio':
             assert 'for' not in label.attrs
             labels = field_elem.find_all('label')
             assert len(bf.subwidgets) == len(labels)
