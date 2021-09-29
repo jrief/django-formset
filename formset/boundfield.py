@@ -1,3 +1,5 @@
+import copy
+
 from django.core import validators
 from django.forms import boundfield
 from django.utils.functional import cached_property
@@ -6,13 +8,28 @@ from django.utils.translation import gettext_lazy as _
 from formset.widgets import UploadedFileInput
 
 
-class BoundWidget(boundfield.BoundWidget):
-    # can be removed after https://code.djangoproject.com/ticket/32855 has been fixed
+class MultipleChoiceWidgetMixin:
+    """
+    Widget mixin class added to CheckboxSelectMultiple and RadioSelect.
+    It inlines a small number of input fields to remain in one line.
+    """
+    max_options_per_line = 4
 
-    @property
-    def id_for_label(self):
-        # overrides super method, which for unknown reason rerenders id_for_label
-        return self.data['attrs']['id']
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        inlined_checks = getattr(self, 'inlined_checks', None)
+        if inlined_checks is None:
+            # group all checkboxes into one line if there are less than 5
+            max_options = 0
+            for group, options, index in context['widget']['optgroups']:
+                if group is None:
+                    max_options = len(context['widget']['optgroups'])
+                    break
+                max_options = max(max_options, len(options))
+            context['inlined_checks'] = max_options <= self.max_options_per_line
+        else:
+            context['inlined_checks'] = inlined_checks
+        return context
 
 
 class BoundField(boundfield.BoundField):
@@ -23,12 +40,13 @@ class BoundField(boundfield.BoundField):
         return errors
 
     def as_widget(self, widget=None, attrs=None, only_initial=False):
-        if widget is None:
-            widget = self.form.get_widget(self.field)
+        if widget is None and self.widget_type in ['checkboxselectmultiple', 'radioselect']:
+            widget = copy.deepcopy(self.field.widget)
+            widget.__class__ = type(widget.__class__.__name__, (MultipleChoiceWidgetMixin, widget.__class__), {})
         return super().as_widget(widget, attrs, only_initial)
 
-    def label_tag(self, contents=None, attrs=None, label_suffix=None):
-        return self.form.render_label(self, contents, attrs, label_suffix)
+    # def label_tag(self, contents=None, attrs=None, label_suffix=None):
+    #     return self.form.render_label(self, contents, attrs, label_suffix)
 
     def css_classes(self, extra_classes=None):
         """
@@ -69,21 +87,6 @@ class BoundField(boundfield.BoundField):
         elif auto_id:
             return self.html_name
         return ''
-
-    @property
-    def subwidgets(self):
-        # Can be removed when https://code.djangoproject.com/ticket/32855 is fixed, probably in Django-4.0
-        # overrides super method, to replace BoundWidget with patched implementation
-        id_ = self.field.widget.attrs.get('id') or self.auto_id
-        attrs = {'id': id_} if id_ else {}
-        attrs = self.build_widget_attrs(attrs)
-        return [
-            BoundWidget(self.field.widget, widget, self.form.renderer)
-            for widget in self.field.widget.subwidgets(self.html_name, self.value(), attrs=attrs)
-        ]
-
-    def build_widget_attrs(self, attrs, widget=None):
-        return self.form.get_widget_attrs(self, attrs, widget)
 
     def _get_client_messages(self):
         """

@@ -1,0 +1,14 @@
+{% extends "./base.html" %}
+{% load form_attrs from formsetify %}
+
+{% block "main-content" %}
+<django-formset endpoint="{{ request.path }}" force-submission="false">
+	<form{% form_attrs form %}>
+		{% include "formset/default/non_field_errors.html" %}
+		{% for field in form %}
+		{% include "formset/default/field_group.html" %}
+		{% endfor %}
+	</form>
+	{% include "./buttons.html" %}
+</django-formset>
+{% endblock %}
