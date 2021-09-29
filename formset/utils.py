@@ -58,5 +58,4 @@ class FormMixin:
     def get_context(self):
         return {
             'form': self,
-            'fields': [bf for bf in self.__iter__()],
         }
