@@ -30,8 +30,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 USE_TZ = True
 
-FORM_RENDERER = 'formset.renderers.default.FormRenderer'
-
 MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

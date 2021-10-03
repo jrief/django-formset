@@ -1,21 +1,34 @@
 from django import template
 from django.forms import BaseForm
 from django.utils.html import format_html_join
+from django.utils.module_loading import import_string
 
 from formset.utils import FormMixin, FormsetErrorList
+from formset.renderers.default import FormRenderer
 
 
-def _formsetify(form, form_mixin=FormMixin):
+def _formsetify(form, *args, **kwargs):
     assert isinstance(form, BaseForm), \
         "Must be applied to a Form object inheriting from 'django.forms.BaseForm'."
-    if not isinstance(form, form_mixin):
-        form.__class__ = type(form.__class__.__name__, (form_mixin, form.__class__), {})
+    if not isinstance(form, FormMixin):
+        form.__class__ = type(form.__class__.__name__, (FormMixin, form.__class__), {})
+        if len(args) == 1:
+            framework = args[0].replace('.', '').lower()
+            form.renderer = import_string(f'formset.renderers.{framework}.FormRenderer')()
+        elif not isinstance(form.renderer, FormRenderer):
+            form.renderer = FormRenderer()
         form.error_class = FormsetErrorList
+    if 'field_classes' in kwargs and not hasattr(form, 'field_css_classes'):
+        form.field_css_classes = kwargs['field_classes']
+    if 'label_classes' in kwargs and not hasattr(form, 'label_css_classes'):
+        form.label_css_classes = kwargs['label_classes']
+    if 'control_classes' in kwargs and not hasattr(form, 'control_css_classes'):
+        form.control_css_classes = kwargs['control_classes']
     return form
 
 
-def _form_attrs(form, form_mixin=FormMixin):
-    form = _formsetify(form, form_mixin)
+def _form_attrs(form, *args, **kwargs):
+    form = _formsetify(form, *args, **kwargs)
     attrs = []
     form_name = getattr(form, 'name', None)
     if form_name:

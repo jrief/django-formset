@@ -3,6 +3,7 @@ from django.utils.html import format_html, format_html_join, html_safe
 from django.utils.functional import cached_property
 
 from formset.boundfield import BoundField
+from formset.renderers.default import FormRenderer
 
 
 @html_safe
@@ -37,8 +38,16 @@ class FormsetErrorList(ErrorList):
 
 
 class FormMixin:
-    def __init__(self, error_class=FormsetErrorList, **kwargs):
+    def __init__(self, error_class=FormsetErrorList, renderer=None, **kwargs):
         kwargs['error_class'] = error_class
+        if renderer is None:
+            if self.default_renderer is None:
+                renderer = FormRenderer()
+            else:
+                renderer = self.default_renderer
+        if isinstance(renderer, type):
+            renderer = renderer()
+        kwargs['renderer'] = renderer
         super().__init__(**kwargs)
 
     def __getitem__(self, name):
@@ -51,6 +60,8 @@ class FormMixin:
 
     @cached_property
     def form_id(self):
+        # The "form" tag is used to link fields to their form owner
+        # See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-form for details
         form_name = getattr(self, 'name', None)
         if form_name and self.auto_id and '%s' in str(self.auto_id):
             return self.auto_id % form_name

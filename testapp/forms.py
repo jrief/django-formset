@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 from django.forms import forms, fields, widgets, models
 
 # from formset.inline import InlineFormField
-from formset.mixins import default, bootstrap, bulma, foundation, tailwind
 from formset.widgets import Selectize, UploadedFileInput
 
 from testapp.models import PayloadModel, OpinionModel
@@ -12,7 +11,7 @@ from testapp.models import PayloadModel, OpinionModel
 def validate_password(value):
     pwhasher = PBKDF2PasswordHasher()
     if not pwhasher.verify(value, 'pbkdf2_sha256$216000$salt$NBY9WN4TPwv2NZJE57BRxccYp0FpyOu82J7RmaYNgQM='):
-        raise ValidationError('The password is wrong.')
+        raise ValidationError("The password is wrong.")
 
 
 class SubscribeForm(forms.Form):
@@ -174,29 +173,6 @@ class SubscribeForm(forms.Form):
             'phone', 'birth_date', 'continent', 'weight', 'height', 'used_transportation',
             'preferred_transportation', 'available_transportation', 'notifyme', 'annotation',
             'agree', 'password', 'confirmation_key']}
-
-    def __str__(self):
-        return self.as_field_groups()
-
-
-class DefaultMixinForm(default.FormMixin, SubscribeForm):
-    pass
-
-
-class BootstrapMixinForm(bootstrap.FormMixin, SubscribeForm):
-    pass
-
-
-class BulmaMixinForm(bulma.FormMixin, SubscribeForm):
-    pass
-
-
-class FoundationMixinForm(foundation.FormMixin, SubscribeForm):
-    pass
-
-
-class TailwindMixinForm(tailwind.FormMixin, SubscribeForm):
-    pass
 
 
 class UploadForm(forms.Form):
