@@ -26,11 +26,16 @@ class FormRenderer(DefaultFormRenderer):
         return context  # intentionally noop
 
     def _amend_label(self, context):
+        context = super()._amend_label(context)
         if isinstance(context['attrs'], dict):
+            css_classes = []
+            if css_class := context['attrs'].pop('class', None):
+                css_classes.append(css_class)
             if context['field'].widget_type in ['checkbox']:
-                context['attrs']['class'] = 'form-check-label'
+                css_classes = ['form-check-label']
             else:
-                context['attrs']['class'] = 'form-label'
+                css_classes.append('form-label')
+            context['attrs']['class'] = ' '.join(css_classes)
         return context
 
     def _amend_multiple_input(self, context):

@@ -3,18 +3,24 @@
 	{{ field }}
 {% else %}
 <django-field-group{% with css_classes=field.css_classes %}{% if css_classes %} class="{{ css_classes }}"{% endif %}{% endwith %}>
+	{% with control_css_classes=form.control_css_classes label_css_classes=form.label_css_classes %}
 	{% if field.widget_type == 'checkbox' %}
+		{% if label_css_classes %}<div class="{{ label_css_classes }}"></div>{% endif %}
+		{% if control_css_classes %}<div class="{{ control_css_classes }}">{% endif %}
 	<div class="form-check">
 		{{ field }}
 		{% if field.label %}{{ field.label_tag }}{% endif %}
 	</div>
 	{% else %}
 		{% if field.label %}{{ field.label_tag }}{% endif %}
+		{% if control_css_classes %}<div class="{{ control_css_classes }}">{% endif %}
 		{{ field }}
 	{% endif %}
 	{{ field.errors }}
 	{% with help_text=field.help_text %}
 	{% if help_text %}<span class="form-text text-muted">{{ help_text }}</span>{% endif %}
+	{% endwith %}
+	{% if control_css_classes %}</div>{% endif %}
 	{% endwith %}
 </django-field-group>
 {% endif %}

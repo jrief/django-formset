@@ -1,5 +1,6 @@
 from django import template
 from django.forms import BaseForm
+from django.template.exceptions import TemplateSyntaxError
 from django.utils.html import format_html_join
 from django.utils.module_loading import import_string
 
@@ -19,11 +20,13 @@ def _formsetify(form, *args, **kwargs):
             form.renderer = FormRenderer()
         form.error_class = FormsetErrorList
     if 'field_classes' in kwargs and not hasattr(form, 'field_css_classes'):
-        form.field_css_classes = kwargs['field_classes']
+        form.field_css_classes = kwargs.pop('field_classes')
     if 'label_classes' in kwargs and not hasattr(form, 'label_css_classes'):
-        form.label_css_classes = kwargs['label_classes']
+        form.label_css_classes = kwargs.pop('label_classes')
     if 'control_classes' in kwargs and not hasattr(form, 'control_css_classes'):
-        form.control_css_classes = kwargs['control_classes']
+        form.control_css_classes = kwargs.pop('control_classes')
+    if len(kwargs):
+        raise TemplateSyntaxError(f"Unknown argument '{kwargs.popitem()[0]}' in formsetify.")
     return form
 
 

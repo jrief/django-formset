@@ -27,6 +27,13 @@ class FormRenderer(DjangoTemplates):
         template_name = self._template_mapping.get(template_name, template_name)
         return super().get_template(template_name)
 
+    def _amend_label(self, context):
+        if label_css_classes := getattr(context['field'].form, 'label_css_classes', None):
+            if not isinstance(context['attrs'], dict):
+                context['attrs'] = {}
+            context['attrs']['class'] = label_css_classes
+        return context
+
     def _amend_multiple_input(self, context):
         """
         Inlines a small number of radio/checkbox fields to render them on one line.
@@ -41,6 +48,7 @@ class FormRenderer(DjangoTemplates):
         return context
 
     _context_modifiers = {
+        'django/forms/label.html': _amend_label,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
     }

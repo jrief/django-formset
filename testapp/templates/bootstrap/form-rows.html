@@ -3,8 +3,7 @@
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="false">
-	<form{% form_attrs form "bootstrap" field_classes="form-group row" label_classes="col-sm-3 col-form-label" control_classes="col-sm-9" %}>
-		{% include "formset/bootstrap/non_field_errors.html" %}
+	<form{% form_attrs form "bootstrap" field_classes="form-group row" label_classes="col-sm-3" control_classes="col-sm-9" %}>
 		{{ form }}
 	</form>
 	{% include "./buttons.html" %}
