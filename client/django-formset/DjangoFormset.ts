@@ -185,20 +185,6 @@ class FileUploadWidget {
 }
 
 
-function findErrorPlaceholder(element: Element): HTMLElement | null {
-	const errorlist = element.getElementsByClassName('dj-errorlist');
-	for (const listelement of errorlist) {
-		if (listelement.parentElement && listelement.parentElement.isEqualNode(element)) {
-			const placeholder = listelement.querySelector('.dj-placeholder');
-			if (placeholder)
-				return placeholder as HTMLElement;
-			break;
-		}
-	}
-	return null;
-}
-
-
 class ErrorMessages extends Map<ErrorKey, string>{
 	constructor(fieldGroup: FieldGroup) {
 		super();
@@ -230,7 +216,7 @@ class FieldGroup {
 	constructor(form: DjangoForm, element: HTMLElement) {
 		this.form = form;
 		this.element = element;
-		this.errorPlaceholder = findErrorPlaceholder(element);
+		this.errorPlaceholder = element.querySelector('.dj-errorlist > .dj-placeholder');
 		this.errorMessages = new ErrorMessages(this);
 		const requiredAny = element.classList.contains('dj-required-any');
 		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(element => element.type !== 'hidden');
@@ -804,7 +790,7 @@ class DjangoForm {
 		this.formset = formset;
 		this.element = element;
 		const formError = element.querySelector('.dj-form-errors');
-		const placeholder = formError ? findErrorPlaceholder(formError) : null;
+		const placeholder = formError ? formError.querySelector('.dj-errorlist > .dj-placeholder') : null;
 		if (placeholder) {
 			this.errorList = placeholder.parentElement;
 			this.errorPlaceholder = this.errorList ? this.errorList.removeChild(placeholder) : null;
