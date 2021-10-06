@@ -6,8 +6,7 @@ import template from 'lodash.template';
 const shadowStyleElement = document.createElement('style');
 import styles from 'sass:./DjangoSelectize.scss';
 import {escape_html} from "tom-select/src/utils";
-shadowStyleElement.textContent = styles;
-
+shadowStyleElement.textContent = styles.replaceAll('\n', '');
 
 type Renderer = {
 	[key:string]: (data:any, escape:typeof escape_html) => string|HTMLElement
@@ -20,11 +19,10 @@ class DjangoSelectize {
 	private readonly tomInput: TomInput;
 	private readonly tomSelect: TomSelect;
 	private readonly shadowRoot: ShadowRoot;
-	private readonly extraCSSRules: Array<[number, number]> = [];
 	private readonly initialValue: string | string[];
 
 	constructor(tomInput: TomInput) {
-		this.convertPseudoClasses();
+		const pseudoStylesElement = this.convertPseudoClasses();
 		this.tomInput = tomInput;
 		const fieldGroup = tomInput.closest('django-field-group');
 		const form = tomInput.closest('form');
@@ -62,7 +60,7 @@ class DjangoSelectize {
 		this.validateInput(this.initialValue as string);
 		form.onreset = (event: Event) => this.formResetted(event);
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
-		this.removeConvertedClasses();
+		pseudoStylesElement.remove();
 	}
 
 	private formResetted(event: Event) {
@@ -201,12 +199,15 @@ class DjangoSelectize {
 		}
 	}
 
-	private convertPseudoClasses() {
+	private convertPseudoClasses() : HTMLStyleElement {
 		// Iterate over all style sheets, find most pseudo classes and add CSSRules with a
 		// CSS selector where the pseudo class has been replaced by a real counterpart.
 		// This is required, because browsers can not invoke `window.getComputedStyle(element)`
 		// using pseudo classes.
 		// With function `removeConvertedClasses()` the added CSSRules are removed again.
+		const styleElement = document.createElement('style');
+		document.head.appendChild(styleElement);
+		const extraCSSStyleSheet = styleElement.sheet as CSSStyleSheet;
 		for (let index = 0; index < document.styleSheets.length; index++) {
 			const sheet = document.styleSheets[index];
 			for (let k = 0; k < sheet.cssRules.length; k++) {
@@ -224,20 +225,11 @@ class DjangoSelectize {
 					replaceAll('::placeholder', '.-placeholder-').
 					replaceAll(':placeholder', '.-placeholder-');
 				if (newSelectorText !== cssRule.selectorText) {
-					sheet.insertRule(`${newSelectorText}{${cssRule.style.cssText}}`, ++k);
-					this.extraCSSRules.push([index, k]);
+					extraCSSStyleSheet.insertRule(`${newSelectorText}{${cssRule.style.cssText}}`);
 				}
 			}
 		}
-	}
-
-	private removeConvertedClasses() {
-		// Remove the converted pseudo classes as added by `convertPseudoClasses()`
-		// resetting all stylesheets into their starting point.
-		for (let [index, k] of this.extraCSSRules.reverse()) {
-			document.styleSheets[index].deleteRule(k);
-		}
-		this.extraCSSRules.splice(0);
+		return styleElement;
 	}
 }
 
