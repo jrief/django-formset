@@ -9,7 +9,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox_select.html': 'formset/bootstrap/widgets/multiple_input.html',
     })
 
-    def _amend_default_widget(self, context):
+    def _amend_input(self, context):
         context['widget']['attrs']['class'] = 'form-control'
         return context
 
@@ -30,8 +30,6 @@ class FormRenderer(DefaultFormRenderer):
             css_classes = []
             if css_class := context['attrs'].pop('class', None):
                 css_classes.append(css_class)
-            if context['field'].widget_type in ['checkbox']:
-                css_classes = ['form-check-label']
             else:
                 css_classes.append('form-label')
             context['attrs']['class'] = ' '.join(css_classes)
@@ -45,19 +43,19 @@ class FormRenderer(DefaultFormRenderer):
                 option['template_name'] = 'formset/bootstrap/widgets/input_option.html'
         return context
 
-    _context_modifiers = {
+    _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
         'django/forms/label.html': _amend_label,
-        'django/forms/widgets/text.html': _amend_default_widget,
-        'django/forms/widgets/email.html': _amend_default_widget,
-        'django/forms/widgets/file.html': _amend_default_widget,
-        'django/forms/widgets/date.html': _amend_default_widget,
+        'django/forms/widgets/text.html': _amend_input,
+        'django/forms/widgets/email.html': _amend_input,
+        'django/forms/widgets/file.html': _amend_input,
+        'django/forms/widgets/date.html': _amend_input,
         'django/forms/widgets/select.html': _amend_select,
         'formset/default/widgets/selectize.html': _amend_select,
-        'django/forms/widgets/number.html': _amend_default_widget,
-        'django/forms/widgets/password.html': _amend_default_widget,
-        'django/forms/widgets/textarea.html': _amend_default_widget,
+        'django/forms/widgets/number.html': _amend_input,
+        'django/forms/widgets/password.html': _amend_input,
+        'django/forms/widgets/textarea.html': _amend_input,
         'django/forms/widgets/checkbox.html': _amend_checkbox,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'formset/default/widgets/file.html': _amend_file,
         'django/forms/widgets/radio.html': _amend_multiple_input,
-    }
+    })
