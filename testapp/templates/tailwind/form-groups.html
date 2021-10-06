@@ -1,0 +1,11 @@
+{% extends "./base.html" %}
+{% load formsetify %}
+
+{% block "main-content" %}
+<django-formset endpoint="{{ request.path }}" force-submission="false">
+	<form{% form_attrs form "tailwind"  field_classes="mb-5" %}>
+		{{ form }}
+	</form>
+	{% include "./buttons.html" %}
+</django-formset>
+{% endblock %}

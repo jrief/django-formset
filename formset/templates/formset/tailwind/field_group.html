@@ -1,11 +1,15 @@
 {% spaceless %}
-{% if is_hidden %}{{ widget }}{% else %}
-<django-field-group{% if css_classes %} class="{{ css_classes }}"{% endif %}>
-	{% if widget_type != 'checkbox' %}
-	<label class="formset-label"{% if id_for_label %} for="{{ id_for_label }}"{% endif %}>{{ label }}:</label>
+{% if field.is_hidden %}{{ field }}{% else %}
+<django-field-group{% with css_classes=field.css_classes %}{% if css_classes %} class="{{ css_classes }}"{% endif %}{% endwith %}>
+	{% if field.widget_type == 'checkbox' %}
+	{% include "formset/tailwind/checkbox_label.html" %}
+	{% else %}
+	{% if field.label %}{{ field.label_tag }}{% endif %}
+	{{ field }}
 	{% endif %}
-	{{ widget }}
-	{{ errors }}
-	{% if help_text %}<p class="formset-help-text">{{ help_text }}</p>{% endif %}
+	{{ field.errors }}
+	{% with help_text=field.help_text %}
+		{% if help_text %}<p class="formset-help-text">{{ help_text }}</p>{% endif %}
+	{% endwith %}
 </django-field-group>
 {% endif %}{% endspaceless %}
