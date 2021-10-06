@@ -16,8 +16,7 @@ class FormRenderer(DefaultFormRenderer):
         css_classes = []
         if css_class := context['attrs'].pop('class', None):
             css_classes.append(css_class)
-        else:
-            css_classes.append('formset-label')
+        css_classes.append('formset-label')
         context['attrs']['class'] = ' '.join(css_classes)
         return context
 

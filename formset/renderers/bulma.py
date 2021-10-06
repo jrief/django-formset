@@ -17,15 +17,13 @@ class FormRenderer(DefaultFormRenderer):
 
     def _amend_label(self, context):
         context = super()._amend_label(context)
-        if isinstance(context['attrs'], dict):
-            css_classes = []
-            if css_class := context['attrs'].pop('class', None):
-                css_classes.append(css_class)
-            else:
-                css_classes.append('label')
-            context['attrs']['class'] = ' '.join(css_classes)
-        else:
-            context['attrs'] = {'class': 'label'}
+        if not isinstance(context['attrs'], dict):
+            context['attrs'] = {}
+        css_classes = []
+        if css_class := context['attrs'].pop('class', None):
+            css_classes.append(css_class)
+        css_classes.append('label')
+        context['attrs']['class'] = ' '.join(css_classes)
         return context
 
     def _amend_multiple_input(self, context, css_class):
