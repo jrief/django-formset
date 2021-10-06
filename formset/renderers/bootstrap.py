@@ -6,7 +6,6 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/default.html': 'formset/bootstrap/form.html',
         'django/forms/widgets/radio.html': 'formset/bootstrap/widgets/multiple_input.html',
         'formset/default/widgets/file.html': 'formset/bootstrap/widgets/file.html',
-        #'django/forms/widgets/checkbox.html': 'formset/default/widgets/input.html',
         'django/forms/widgets/checkbox_select.html': 'formset/bootstrap/widgets/multiple_input.html',
     })
 

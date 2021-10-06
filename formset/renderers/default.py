@@ -11,16 +11,9 @@ class FormRenderer(DjangoTemplates):
         'django/forms/errors/list/default.html': 'formset/default/field_errors.html',
         'django/forms/default.html': 'formset/default/form.html',
         'django/forms/label.html': 'formset/default/label.html',
-        'django/forms/widgets/text.html': 'formset/default/widgets/input.html',
-        'django/forms/widgets/radio.html': 'formset/default/widgets/radio.html',
-        'django/forms/widgets/email.html': 'formset/default/widgets/input.html',
+        'django/forms/widgets/radio.html': 'formset/default/widgets/multiple_input.html',
         'django/forms/widgets/file.html': 'formset/default/widgets/file.html',
-        'django/forms/widgets/checkbox.html': 'formset/default/widgets/input.html',
-        'django/forms/widgets/date.html': 'formset/default/widgets/input.html',
-        'django/forms/widgets/select.html': 'formset/default/widgets/select.html',
-        'django/forms/widgets/number.html': 'formset/default/widgets/input.html',
-        'django/forms/widgets/checkbox_select.html': 'formset/default/widgets/checkbox_select.html',
-        'django/forms/widgets/password.html': 'formset/default/widgets/input.html',
+        'django/forms/widgets/checkbox_select.html': 'formset/default/widgets/multiple_input.html',
     }
 
     def get_template(self, template_name):
@@ -44,7 +37,7 @@ class FormRenderer(DjangoTemplates):
                 max_options = len(context['widget']['optgroups'])
                 break
             max_options = max(max_options, len(options))
-        context['widget']['inlined_checks'] = max_options <= self.max_options_per_line
+        context['widget']['inlined_options'] = max_options <= self.max_options_per_line
         return context
 
     _context_modifiers = {
