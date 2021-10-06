@@ -115,11 +115,10 @@ class DjangoSelectize {
 					break;
 				case '.ts-control .ts-input > input':
 				case '.ts-control .ts-input > div':
-					extraStyles = this.extractStyles(tomInput, ['line-height']);
 					if (optionElement) {
-						extraStyles = extraStyles.concat(this.extractStyles(optionElement, ['padding-left']));
+						extraStyles = this.extractStyles(optionElement, ['padding-left']);
+						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					}
-					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case '.ts-control .ts-input > input::placeholder':
 					tomInput.classList.add('-placeholder-');

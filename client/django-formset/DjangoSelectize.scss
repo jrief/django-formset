@@ -11,6 +11,7 @@ $select-color-dropdown: rgb(244, 244, 244);
 		box-sizing: border-box;
 		display: flex;
 		flex-wrap: wrap;
+		align-content: center;
 
 		> input {
 			flex: 1 1 auto;
