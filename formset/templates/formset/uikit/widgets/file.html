@@ -1,0 +1,21 @@
+{% extends "formset/default/widgets/file.html" %}
+{% load i18n %}
+
+{% block "choose-file" %}
+<button type="button" class="dj-choose-file uk-button uk-button-default">{% trans "Choose file" %}</button>
+{% endblock %}
+
+{% block "file-caption" %}
+<li class="dj-file-caption">
+	<figure>
+		<figcaption>{% trans 'Name' %}:</figcaption>
+		<p>${name}</p>
+	</figure>
+	<figure>
+		<figcaption>{% trans 'Content-Type (Size)' %}:</figcaption>
+		<p>${content_type} (${size})</p>
+	</figure>
+	<a class="dj-delete-file uk-button uk-button-danger uk-button-small">{% trans "Delete" %}</a>
+	<a class="dj-download-file uk-button uk-button-primary uk-button-small" href="${download_url}" download="${name}">{% trans "Download" %}</a>
+</li>
+{% endblock %}

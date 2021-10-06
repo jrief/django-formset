@@ -1,0 +1,4 @@
+{% include "formset/default/non_field_errors.html" %}
+{% for field in form %}
+	{% include "formset/uikit/field_group.html" %}
+{% endfor %}

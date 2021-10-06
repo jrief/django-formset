@@ -1,0 +1,4 @@
+{% with id=widget.attrs.id inlined_options=widget.inlined_options %}<div{% if id %} id="{{ id }}"{% endif %}><div class="{% if inlined_options %}uk-form-horizontal{% else %}uk-form-stacked{% endif %}">
+	{% for group, options, index in widget.optgroups %}{% if group %}<span class="font-italic text-muted">{{ group }}</span>{% endif %}
+	{% for option in options %}{% include option.template_name with widget=option %}{% endfor %}{% endfor %}
+</div></div>{% endwith %}

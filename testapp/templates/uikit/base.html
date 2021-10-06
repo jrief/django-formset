@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Django-Formset Demo</title>
+	<link href="{% static 'node_modules/uikit/dist/css/uikit.min.css' %}" rel="stylesheet">
+	<link rel="icon" href="data:,">
+	<script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
+</head>
+
+<body>
+	<div class="uk-container uk-container-small">
+		<div>
+			{% block "main-content" %}{% endblock %}
+		</div>
+	</div>
+</body>
+
+</html>

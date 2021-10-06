@@ -1,0 +1,1 @@
+<label{% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %} class="{% if inlined_options %}uk-margin-right{% else %}uk-form-label{% endif %}">{% include "django/forms/widgets/input.html" %} {{ widget.label }}</label>
