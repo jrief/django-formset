@@ -205,10 +205,11 @@ class DjangoSelectize {
 		// This is required, because browsers can not invoke `window.getComputedStyle(element)`
 		// using pseudo classes.
 		// With function `removeConvertedClasses()` the added CSSRules are removed again.
+		const numStyleSheets = document.styleSheets.length;
 		const styleElement = document.createElement('style');
 		document.head.appendChild(styleElement);
 		const extraCSSStyleSheet = styleElement.sheet as CSSStyleSheet;
-		for (let index = 0; index < document.styleSheets.length; index++) {
+		for (let index = 0; index < numStyleSheets; index++) {
 			const sheet = document.styleSheets[index];
 			for (let k = 0; k < sheet.cssRules.length; k++) {
 				const cssRule = sheet.cssRules.item(k) as CSSStyleRule;
