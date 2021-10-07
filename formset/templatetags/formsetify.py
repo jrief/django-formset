@@ -14,7 +14,7 @@ def _formsetify(form, *args, **kwargs):
     if not isinstance(form, FormMixin):
         form.__class__ = type(form.__class__.__name__, (FormMixin, form.__class__), {})
         if len(args) == 1:
-            framework = args[0].replace('.', '').lower()
+            framework = args[0].replace('.', '').lower()  # for safety reasons
             form.renderer = import_string(f'formset.renderers.{framework}.FormRenderer')()
         elif not isinstance(form.renderer, FormRenderer):
             form.renderer = FormRenderer()

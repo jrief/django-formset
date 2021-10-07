@@ -20,12 +20,35 @@ class FormRenderer(DefaultFormRenderer):
         context['attrs']['class'] = ' '.join(css_classes)
         return context
 
-    def _amend_input(self, context):
+    def _amend_text_input(self, context):
         context['widget']['attrs']['class'] = 'formset-text-input'
         return context
 
+    def _amend_email_input(self, context):
+        context['widget']['attrs']['class'] = 'formset-email-input'
+        return context
+
+    def _amend_date_input(self, context):
+        context['widget']['attrs']['class'] = 'formset-date-input'
+        return context
+
+    def _amend_number_input(self, context):
+        context['widget']['attrs']['class'] = 'formset-number-input'
+        return context
+
+    def _amend_password_input(self, context):
+        context['widget']['attrs']['class'] = 'formset-password-input'
+        return context
+
+    def _amend_textarea(self, context):
+        context['widget']['attrs']['class'] = 'formset-textarea'
+        return context
+
     def _amend_select(self, context):
-        context['widget']['attrs']['class'] = 'formset-select'
+        if context['widget']['attrs'].get('multiple') is True:
+            context['widget']['attrs']['class'] = 'formset-select-multiple'
+        else:
+            context['widget']['attrs']['class'] = 'formset-select'
         return context
 
     def _amend_checkbox(self, context):
@@ -48,12 +71,12 @@ class FormRenderer(DefaultFormRenderer):
 
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
         'django/forms/label.html': _amend_label,
-        'django/forms/widgets/text.html': _amend_input,
-        'django/forms/widgets/email.html': _amend_input,
-        'django/forms/widgets/date.html': _amend_input,
-        'django/forms/widgets/number.html': _amend_input,
-        'django/forms/widgets/password.html': _amend_input,
-        'django/forms/widgets/textarea.html': _amend_input,
+        'django/forms/widgets/text.html': _amend_text_input,
+        'django/forms/widgets/email.html': _amend_email_input,
+        'django/forms/widgets/date.html': _amend_date_input,
+        'django/forms/widgets/number.html': _amend_number_input,
+        'django/forms/widgets/password.html': _amend_password_input,
+        'django/forms/widgets/textarea.html': _amend_textarea,
         'django/forms/widgets/select.html': _amend_select,
         'django/forms/widgets/checkbox.html': _amend_checkbox,
         'django/forms/widgets/checkbox_select.html': _amend_checkbox_select,

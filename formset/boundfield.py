@@ -13,7 +13,7 @@ class BoundField(boundfield.BoundField):
         errors.client_messages = self._get_client_messages()
         return errors
 
-    def build_widget_attrs(self, attrs, widget):
+    def build_widget_attrs(self, attrs, widget=None):
         attrs = super().build_widget_attrs(attrs, widget)
         if self.form.form_id:
             attrs['form'] = self.form.form_id

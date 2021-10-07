@@ -1,4 +1,4 @@
-{% load static django_formset %}
+{% load static formsetify %}
 <!DOCTYPE html>
 <html dir="ltr" lang="en">
 
@@ -9,9 +9,8 @@
 
 <body>
 	<django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}">
-		<form{% form_attrs form %}>
-			{% csrf_token %}
-			{% render_groups form %}
+		<form{% form_attrs form framework %}>
+			{{ form }}
 		</form>
 		<button type="button" click="{{ click_actions }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="button">Click Me</button>
 	</django-formset>
