@@ -4,6 +4,8 @@ import pytest
 
 from django.forms import fields, Form, widgets
 from django.urls import path
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 from formset.views import FormView
 
@@ -13,6 +15,12 @@ FieldTuple = namedtuple('FieldTuple', ['name', 'field', 'extra_context'])
 
 def snake2camel(string):
     return ''.join(s.capitalize() for s in string.split('_'))
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SampleFormView(FormView):
+    template_name = 'testapp/form-groups.html'
+    success_url = '/success'
 
 
 test_fields = dict(
@@ -48,9 +56,9 @@ test_fields = dict(
     ),
 )
 
+
 views = {
-    f'form{ctr}': FormView.as_view(
-        template_name='tests/form.html',
+    f'form{ctr}': SampleFormView.as_view(
         form_class=type(snake2camel(f'{tpl.name}_form'), (Form,), {'name': tpl.name, 'something': tpl.field}),
         success_url='/success',
         extra_context=tpl.extra_context,
@@ -181,7 +189,7 @@ def test_valid_form_submission(page, mocker, view, form):
     assert request[form.name][field_name] == "XYZ"
     assert spy.spy_return.status_code == 200
     response = json.loads(spy.spy_return.content)
-    assert response['success_url'] == view.view_initkwargs['success_url']
+    assert response['success_url'] == view.view_class.success_url
     assert page.query_selector('django-formset .dj-errorlist > .dj-placeholder').inner_text() == ''
 
 
@@ -202,8 +210,7 @@ def t_e_s_t_reset_formset(page, view, form):
 
 
 urlpatterns.append(
-    path('email_form', FormView.as_view(
-        template_name='tests/form.html',
+    path('email_form', SampleFormView.as_view(
         form_class=type('EmailForm', (Form,), {'name': 'email_form', 'email': fields.EmailField(initial="john@doe")}),
         success_url='/success',
     ), name='email_form')
@@ -235,8 +242,7 @@ def test_email_field(page):
 
 
 urlpatterns.append(
-    path('integer_form', FormView.as_view(
-        template_name='tests/form.html',
+    path('integer_form', SampleFormView.as_view(
         form_class=type('IntegerForm', (Form,), {
             'name': 'integer_form',
             'intval': fields.IntegerField(
@@ -284,15 +290,14 @@ def test_integer_field(page):
 
 
 urlpatterns.append(
-    path('float_form', FormView.as_view(
-        template_name='tests/form.html',
+    path('float_form', SampleFormView.as_view(
         form_class=type('FloatForm', (Form,), {
             'name': 'float_form',
             'floatval': fields.FloatField(widget=widgets.NumberInput(attrs={'step': 0.5})),
         }),
         initial={'floatval': 2.5},
         success_url='/success',
-), name='float_form')
+    ), name='float_form')
 )
 
 
@@ -319,8 +324,7 @@ def test_float_field(page):
 
 
 urlpatterns.append(
-    path('date_form', FormView.as_view(
-        template_name='tests/form.html',
+    path('date_form', SampleFormView.as_view(
         form_class=type('DateForm', (Form,), {
             'name': 'date_form',
             'dateval': fields.DateField(widget=widgets.DateInput(attrs={'type': 'date'})),
@@ -352,8 +356,7 @@ def test_date_field(page, mocker):
 
 
 urlpatterns.append(
-    path('boolean_form', FormView.as_view(
-        template_name='tests/form.html',
+    path('boolean_form', SampleFormView.as_view(
         form_class=type('BooleanForm', (Form,), {
             'name': 'boolean_form',
             'boolval': fields.BooleanField(),
@@ -396,8 +399,7 @@ CHOICES = [
 
 
 urlpatterns.append(
-    path('select_form', FormView.as_view(
-        template_name='tests/form.html',
+    path('select_form', SampleFormView.as_view(
         form_class=type('SelectForm', (Form,), {
             'name': 'select_form',
             'choice': fields.ChoiceField(
@@ -429,8 +431,7 @@ def test_select_field(page, mocker):
 
 
 urlpatterns.append(
-    path('multiselect_form', FormView.as_view(
-        template_name='tests/form.html',
+    path('multiselect_form', SampleFormView.as_view(
         form_class=type('MultiSelectForm', (Form,), {
             'name': 'multiselect_form',
             'choices': fields.MultipleChoiceField(
@@ -464,8 +465,7 @@ def test_select_field(page, mocker):
 
 
 urlpatterns.append(
-    path('radiochoice_form', FormView.as_view(
-        template_name='tests/form.html',
+    path('radiochoice_form', SampleFormView.as_view(
         form_class=type('RadioChoiceForm', (Form,), {
             'name': 'radiochoice_form',
             'choice': fields.ChoiceField(
@@ -503,8 +503,7 @@ def test_radiochoice_field(page, mocker):
 
 
 urlpatterns.append(
-    path('multichoice_form', FormView.as_view(
-        template_name='tests/form.html',
+    path('multichoice_form', SampleFormView.as_view(
         form_class=type('MultiChoiceForm', (Form,), {
             'name': 'multichoice_form',
             'choices': fields.MultipleChoiceField(
@@ -544,8 +543,7 @@ def test_multichoice_field(page, mocker):
 
 
 urlpatterns.append(
-    path('textarea_form', FormView.as_view(
-        template_name='tests/form.html',
+    path('textarea_form', SampleFormView.as_view(
         form_class=type('TextareaForm', (Form,), {
             'name': 'textarea_form',
             'text': fields.CharField(
