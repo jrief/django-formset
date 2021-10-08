@@ -210,7 +210,7 @@ class FormCollectionViewMixin(ContextMixin, metaclass=FormsetViewMeta):
             form = form.__class__(data=form_data.get(name, {}))
             if not form.is_valid():
                 is_valid = False
-                error_response.update({name: form.errors})
+                error_response.update({name: form.errors.data})
         if is_valid:
             return JsonResponse({'success_url': force_str(self.success_url)})
         else:

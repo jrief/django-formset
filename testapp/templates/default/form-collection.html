@@ -1,11 +1,11 @@
 {% extends "./base.html" %}
-{% load django_formset %}
+{% load formsetify %}
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="false" withhold-messages="false">
 	{% for form in forms %}
 	<form{% form_attrs form %}>
-		{% render_groups form %}
+		{{ form }}
 	</form>
 	{% endfor %}
 	{% include "./buttons.html" %}
