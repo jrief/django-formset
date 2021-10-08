@@ -33,5 +33,5 @@ class Migration(migrations.Migration):
                 'unique_together': {('tenant', 'label')},
             },
         ),
-        migrations.RunPython(initialize_opinions),
+        migrations.RunPython(initialize_opinions, reverse_code=migrations.RunPython.noop),
     ]

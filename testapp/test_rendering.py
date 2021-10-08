@@ -162,31 +162,38 @@ class SubscribeForm(forms.Form):
     )
 
 
+class SubscribeFormView(FormView):
+    success_url = '/success'
+
+
 @pytest.fixture(scope='session', params=['default', 'bootstrap', 'bulma', 'foundation', 'tailwind', 'uikit'])
 def framework(request):
     return request.param
 
 
+@pytest.fixture(scope='session', params=[{}, sample_subscribe_data])
+def initial(request):
+    return request.param
+
+
 @pytest.fixture(scope='session')
-def native_view(framework):
-    template_name = 'testapp/form-groups.html'
-    return FormView.as_view(
-        success_url=reverse_lazy('form_data_valid'),
-        template_name=template_name,
+def native_view(framework, initial):
+    return SubscribeFormView.as_view(
+        template_name='testapp/form-groups.html',
         form_class=SubscribeForm,
+        initial=initial,
         extra_context={'framework': framework}
     )
 
 
 @pytest.fixture(scope='session', params=[
     DefaultFormRenderer, BootstrapFormRenderer, BulmaFormRenderer, FoundationFormRenderer, TailwindFormRenderer, UIKitFormRenderer])
-def extended_view(request):
-    template_name = 'testapp/extended-form.html'
+def extended_view(request, initial):
     form_class = type(SubscribeForm.__name__, (FormMixin, SubscribeForm), {'default_renderer': request.param})
-    return FormView.as_view(
-        success_url=reverse_lazy('form_data_valid'),
-        template_name=template_name,
+    return SubscribeFormView.as_view(
+        template_name='testapp/extended-form.html',
         form_class=form_class,
+        initial=initial,
     )
 
 

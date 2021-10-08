@@ -1,4 +1,3 @@
-from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from django.core.exceptions import ValidationError
 from django.forms import forms, fields, widgets, models
 
@@ -6,12 +5,7 @@ from django.forms import forms, fields, widgets, models
 from formset.widgets import Selectize, UploadedFileInput
 
 from testapp.models import PayloadModel, OpinionModel
-
-
-def validate_password(value):
-    pwhasher = PBKDF2PasswordHasher()
-    if not pwhasher.verify(value, 'pbkdf2_sha256$216000$salt$NBY9WN4TPwv2NZJE57BRxccYp0FpyOu82J7RmaYNgQM='):
-        raise ValidationError("The password is wrong.")
+from testapp.validators import validate_password
 
 
 class SubscribeForm(forms.Form):
@@ -90,12 +84,12 @@ class SubscribeForm(forms.Form):
         error_messages={'invalid_choice': "Please select your continent."},
     )
 
-    # opinion = models.ModelChoiceField(
-    #     queryset=OpinionModel.objects.filter(tenant=1),
-    #     label="Opinion",
-    #     empty_label="Your opinion",
-    #     widget=Selectize(search_lookup='label__icontains'),
-    # )
+    opinion = models.ModelChoiceField(
+        queryset=OpinionModel.objects.filter(tenant=1),
+        label="Opinion",
+        empty_label="Your opinion",
+        widget=Selectize(search_lookup='label__icontains'),
+    )
 
     weight = fields.IntegerField(
         label="Weight in kg",
