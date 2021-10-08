@@ -4,11 +4,19 @@ from time import sleep
 
 from django.forms import Field, Form, models
 from django.urls import path
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 from formset.views import FormView
 from formset.widgets import Selectize
 
 from testapp.models import OpinionModel
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SampleFormView(FormView):
+    template_name = 'testapp/form-groups.html'
+    success_url = '/success'
 
 
 @pytest.fixture(scope='function')
@@ -26,7 +34,7 @@ def get_initial_opinion():
 @pytest.fixture
 @pytest.mark.django_db
 def initial_opinion():
-    return get_initial_opinion()
+    yield get_initial_opinion()
 
 
 test_fields = dict(
@@ -55,10 +63,8 @@ test_fields = dict(
 )
 
 views = {
-    f'selectize{ctr}': FormView.as_view(
-        template_name='tests/form.html',
+    f'selectize{ctr}': SampleFormView.as_view(
         form_class=type(f'{tpl[0]}_form', (Form,), {'name': tpl[0], 'model_choice': tpl[1]}),
-        success_url='/success',
     )
     for ctr, tpl in enumerate(test_fields.items())
 }
@@ -189,7 +195,7 @@ def test_submit_value(page, mocker, view, form, initial_opinion):
     assert request[form.name]['model_choice'] == str(initial_opinion.id)
     assert spy.spy_return.status_code == 200
     response = json.loads(spy.spy_return.content)
-    assert response['success_url'] == view.view_initkwargs['success_url']
+    assert response['success_url'] == view.view_class.success_url
 
 
 @pytest.mark.urls(__name__)

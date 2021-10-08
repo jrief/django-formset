@@ -4,6 +4,8 @@ from time import sleep
 
 from django.forms import fields, Form
 from django.urls import path
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 from formset.views import FormView
 
@@ -13,11 +15,15 @@ class SampleForm(Form):
     enter = fields.CharField()
 
 
+@method_decorator(csrf_exempt, name='dispatch')
+class SampleFormView(FormView):
+    template_name = 'testapp/form-groups.html'
+    form_class = SampleForm
+    success_url = '/success'
+
+
 views = {
-    f'test_button_{ctr}': FormView.as_view(
-        template_name='testapp/form-groups.html',
-        form_class=SampleForm,
-        success_url='/success',
+    f'test_button_{ctr}': SampleFormView.as_view(
         extra_context={'click_actions': click_actions, 'auto_disable': False},
     )
     for ctr, click_actions in enumerate([
@@ -29,16 +35,10 @@ views = {
         'emit("my_event", {foo: "bar"})',
     ])
 }
-views['test_button_submit'] = FormView.as_view(
-    template_name='testapp/form-groups.html',
-    form_class=SampleForm,
-    success_url='/success',
+views['test_button_submit'] = SampleFormView.as_view(
     extra_context={'click_actions': 'submit', 'auto_disable': True},
 )
-views['test_button_submit_with_data'] = FormView.as_view(
-    template_name='testapp/form-groups.html',
-    form_class=SampleForm,
-    success_url='/success',
+views['test_button_submit_with_data'] = SampleFormView.as_view(
     extra_context={'click_actions': 'submit({foo: "bar"})', 'auto_disable': True},
 )
 

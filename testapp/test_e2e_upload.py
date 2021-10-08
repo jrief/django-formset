@@ -7,6 +7,8 @@ from time import sleep
 from django.core.signing import get_cookie_signer
 from django.forms import fields, Form
 from django.urls import path
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 from formset.views import FormView
 from formset.widgets import UploadedFileInput
@@ -22,21 +24,21 @@ class UploadForm(Form):
     )
 
 
-view = FormView.as_view(
-    template_name='tests/form.html',
-    form_class=UploadForm,
-    success_url='/success',
-)
+@method_decorator(csrf_exempt, name='dispatch')
+class SampleFormView(FormView):
+    template_name = 'testapp/form-groups.html'
+    form_class=UploadForm
+    success_url = '/success'
 
 
-urlpatterns = [path('upload', view, name='upload')]
+urlpatterns = [path('upload', SampleFormView.as_view(), name='upload')]
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_image(page, mocker):
     choose_file_button = page.query_selector('django-formset form button.dj-choose-file')
-    assert choose_file_button is not None # that button would open the file selector
+    assert choose_file_button is not None  # that button would open the file selector
     dropbox = page.query_selector('django-formset form ul.dj-dropbox')
     assert dropbox.inner_html() == '<li class="dj-empty-item">Drag file here</li>'
     page.set_input_files('#upload_id_file', 'testapp/assets/python-django.png')
@@ -65,7 +67,7 @@ def test_upload_image(page, mocker):
     assert button is not None
     assert button.get_attribute('download') == 'python-django.png'
     assert button.get_attribute('href') == download_url
-    spy = mocker.spy(view.view_class, 'post')
+    spy = mocker.spy(SampleFormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     file = request['upload']['file'][0]

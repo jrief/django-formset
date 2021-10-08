@@ -2,82 +2,201 @@ import pytest
 
 from bs4 import BeautifulSoup
 
-from django.forms.widgets import Textarea
+from django.forms import fields, forms, widgets
 from django.test import RequestFactory
+from django.urls import reverse_lazy
 
-from formset.mixins.default import FormMixin
-from .forms import DefaultMixinForm, SubscribeForm, BootstrapMixinForm, BulmaMixinForm, \
-                   FoundationMixinForm, TailwindMixinForm
-from .views import SubscribeFormView, sample_subscribe_data
+from formset.renderers.default import FormRenderer as DefaultFormRenderer
+from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
+from formset.renderers.bulma import FormRenderer as BulmaFormRenderer
+from formset.renderers.foundation import FormRenderer as FoundationFormRenderer
+from formset.renderers.tailwind import FormRenderer as TailwindFormRenderer
+from formset.renderers.uikit import FormRenderer as UIKitFormRenderer
+from formset.utils import FormMixin
+from formset.views import FormView
+
+from .sampledata import sample_subscribe_data
+from .validators import validate_password
+
 
 http_request = RequestFactory().get('/')
 
 
-@pytest.fixture(params=[
-    ('default/formsetify.html', SubscribeForm),
-    ('default/formsetify.html', SubscribeForm, sample_subscribe_data),
-    ('default/render_groups.html', SubscribeForm),
-    ('default/render_groups.html', SubscribeForm, sample_subscribe_data),
-    ('default/mixin_form.html', DefaultMixinForm),
-    ('default/mixin_form.html', DefaultMixinForm, sample_subscribe_data),
-    ('bootstrap/formsetify.html', SubscribeForm),
-    ('bootstrap/render_groups.html', SubscribeForm),
-    ('bootstrap/mixin_form.html', BootstrapMixinForm),
-    ('bulma/formsetify.html', SubscribeForm),
-    ('bulma/render_groups.html', SubscribeForm),
-    ('bulma/mixin_form.html', BulmaMixinForm),
-    ('foundation/formsetify.html', SubscribeForm),
-    ('foundation/render_groups.html', SubscribeForm),
-    ('foundation/mixin_form.html', FoundationMixinForm),
-    ('tailwind/formsetify.html', SubscribeForm),
-    ('tailwind/render_groups.html', SubscribeForm),
-    ('tailwind/mixin_form.html', TailwindMixinForm),
-], scope='session')
-def view(request):
-    view_initkwargs = {
-        'template_name': request.param[0],
-        'form_class': request.param[1],
-    }
-    if len(request.param) == 3:
-        view_initkwargs['initial'] = request.param[2]
-    return SubscribeFormView.as_view(**view_initkwargs)
+class SubscribeForm(forms.Form):
+    name = 'subscribe'
+
+    CONTINENT_CHOICES = [
+        ('', "––– please select –––"), ('am', "America"), ('eu', "Europe"), ('as', "Asia"),
+        ('af', "Africa"), ('au', "Australia"), ('oc', "Oceania"), ('an', 'Antartica'),
+    ]
+
+    TRANSPORTATION_CHOICES = [
+        ("Private Transport", [('foot', "Foot"), ('bike', "Bike"), ('mc', "Motorcycle"), ('car', "Car")]),
+        ("Public Transport", [('taxi', "Taxi"), ('bus', "Bus"), ('train', "Train"), ('ship', "Ship"), ('air', "Airplane")]),
+    ]
+
+    NOTIFY_BY = [
+        ('postal', "Letter"), ('email', "EMail"), ('phone', "Phone"), ('sms', "SMS"),
+    ]
+
+    last_name = fields.CharField(
+        label="Last name",
+        min_length=2,
+        max_length=50,
+        help_text="Please enter at least two characters",
+    )
+
+    first_name = fields.RegexField(
+        r'^[A-Z][a-z -]*$',
+        label="First name",
+        error_messages={'invalid': "A first name must start in upper case."},
+        help_text="Must start in upper case followed by one or more lowercase characters.",
+    )
+
+    gender = fields.ChoiceField(
+        label="Gender",
+        choices=[('m', "Male"), ('f', "Female")],
+        widget=widgets.RadioSelect,
+        error_messages={'invalid_choice': "Please select your gender."},
+    )
+
+    email = fields.EmailField(
+        label="E-Mail",
+        help_text="Please enter a valid email address",
+    )
+
+    subscribe = fields.BooleanField(
+        label="Subscribe Newsletter",
+        initial=False,
+        required=False,
+    )
+
+    phone = fields.RegexField(
+        r'^\+?[0-9 .-]{4,25}$',
+        label="Phone number",
+        error_messages={'invalid': "Phone number have 4-25 digits and may start with '+'."},
+        widget=fields.TextInput(attrs={'hide-if': 'subscribe'})
+    )
+
+    birth_date = fields.DateField(
+        label="Date of birth",
+        widget=widgets.DateInput(attrs={'type': 'date', 'pattern': r'\d{4}-\d{2}-\d{2}'}),
+        help_text="Allowed date format: yyyy-mm-dd",
+    )
+
+    continent = fields.ChoiceField(
+        label="Living on continent",
+        choices=CONTINENT_CHOICES,
+        required=True,
+        initial='',
+        error_messages={'invalid_choice': "Please select your continent."},
+    )
+
+    weight = fields.IntegerField(
+        label="Weight in kg",
+        min_value=42,
+        max_value=95,
+        error_messages={'min_value': "You are too lightweight.", 'max_value': "You are too obese."},
+    )
+
+    height = fields.FloatField(
+        label="Height in meters",
+        min_value=1.45,
+        max_value=1.95,
+        widget=widgets.NumberInput(attrs={'step': 0.01}),
+        error_messages={'max_value': "You are too tall."},
+    )
+
+    used_transportation = fields.MultipleChoiceField(
+        label="Used Tranportation",
+        choices=TRANSPORTATION_CHOICES,
+        widget=widgets.CheckboxSelectMultiple,
+        required=True,
+        help_text="Used means of tranportation.",
+    )
+
+    preferred_transportation = fields.ChoiceField(
+        label="Preferred Transportation",
+        choices=TRANSPORTATION_CHOICES,
+        widget=widgets.RadioSelect,
+        help_text="Preferred mean of tranportation.",
+    )
+
+    available_transportation = fields.MultipleChoiceField(
+        label="Available Tranportation",
+        choices=TRANSPORTATION_CHOICES,
+        help_text="Available means of tranportation.",
+    )
+
+    notifyme = fields.MultipleChoiceField(
+        label="Notification",
+        choices=NOTIFY_BY,
+        widget=widgets.CheckboxSelectMultiple,
+        required=True,
+        help_text="Must choose at least one type of notification",
+    )
+
+    annotation = fields.CharField(
+        label="Annotation",
+        required=True,
+        widget=widgets.Textarea(attrs={'cols': '80', 'rows': '3'}),
+    )
+
+    agree = fields.BooleanField(
+        label="Agree with our terms and conditions",
+        initial=False,
+    )
+
+    password = fields.CharField(
+        label="Password",
+        widget=widgets.PasswordInput,
+        validators=[validate_password],
+        help_text="The password is 'secret'",
+    )
+
+    confirmation_key = fields.CharField(
+        max_length=40,
+        required=True,
+        widget=widgets.HiddenInput(),
+        initial='hidden value',
+    )
+
+
+@pytest.fixture(scope='session', params=['default', 'bootstrap', 'bulma', 'foundation', 'tailwind', 'uikit'])
+def framework(request):
+    return request.param
 
 
 @pytest.fixture(scope='session')
-def form_soup(view):
-    response = view(http_request)
-    response.render()
-    soup = BeautifulSoup(response.content, 'html.parser')
-    Form = view.view_initkwargs['form_class']
-    initial = view.view_initkwargs['initial'] if 'initial' in view.view_initkwargs else {}
-    framework = view.view_initkwargs['template_name'].split('/')[0]
-    if issubclass(Form, FormMixin):
-        form = Form()
-    elif framework == 'default':
-        form = DefaultMixinForm()
-    elif framework == 'bootstrap':
-        form = BootstrapMixinForm()
-    elif framework == 'bulma':
-        form = BulmaMixinForm()
-    elif framework == 'foundation':
-        form = FoundationMixinForm()
-    elif framework == 'tailwind':
-        form = TailwindMixinForm()
-    else:
-        raise RuntimeError(f"Unknown framework: {framework}")
-    return form, soup, initial, framework
+def native_view(framework):
+    template_name = 'testapp/form-groups.html'
+    return FormView.as_view(
+        success_url=reverse_lazy('form_data_valid'),
+        template_name=template_name,
+        form_class=SubscribeForm,
+        extra_context={'framework': framework}
+    )
 
 
-@pytest.mark.parametrize('field_name', SubscribeForm.base_fields.keys())
-def test_default_fields(form_soup, field_name):
-    form_name = form_soup[0].name
-    bf = form_soup[0][field_name]
-    soup = form_soup[1]
-    initial_value = form_soup[2].get(field_name)
-    framework = form_soup[3]
-    field_elem = soup.find(id=f'subscribe_id_{field_name}')
+@pytest.fixture(scope='session', params=[
+    DefaultFormRenderer, BootstrapFormRenderer, BulmaFormRenderer, FoundationFormRenderer, TailwindFormRenderer, UIKitFormRenderer])
+def extended_view(request):
+    template_name = 'testapp/extended-form.html'
+    form_class = type(SubscribeForm.__name__, (FormMixin, SubscribeForm), {'default_renderer': request.param})
+    return FormView.as_view(
+        success_url=reverse_lazy('form_data_valid'),
+        template_name=template_name,
+        form_class=form_class,
+    )
+
+
+def check_field(framework, form, field_name, soup, initial):
+    form_name = form.name
+    bf = form[field_name]
+    initial_value = initial.get(field_name) if initial else None
+    field_elem = soup.find(id=f'{form_name}_id_{field_name}')
     assert field_elem is not None
-    widget_type = 'textarea' if isinstance(bf.field.widget, Textarea) else bf.field.widget.input_type
+    widget_type = 'textarea' if isinstance(bf.field.widget, widgets.Textarea) else bf.field.widget.input_type
     allow_multiple_selected = getattr(bf.field.widget, 'allow_multiple_selected', False)
     if widget_type in ['text', 'email', 'date', 'number', 'password', 'textarea']:
         if bf.field.required:
@@ -164,7 +283,7 @@ def test_default_fields(form_soup, field_name):
 
     if bf.field.label:
         label = field_group.find('label')
-        assert bf.label == label.text.rstrip(':')
+        assert bf.label == label.text.strip().rstrip(':')
         if allow_multiple_selected and widget_type == 'checkbox' or widget_type == 'radio':
             assert 'for' not in label.attrs
             labels = field_elem.find_all('label')
@@ -178,7 +297,6 @@ def test_default_fields(form_soup, field_name):
                 assert 'formset-label' in label.attrs['class']
 
     if framework == 'bootstrap':
-        assert BootstrapMixinForm.field_css_classes in field_group.attrs['class']
         if widget_type in ['text', 'email', 'number', 'date', 'textarea', 'password']:
             assert 'form-control' in field_elem.attrs['class']
         elif widget_type in ['select']:
@@ -215,4 +333,41 @@ def test_default_fields(form_soup, field_name):
             for input_elem in input_elems:
                 assert 'formset-radio-select' in input_elem.attrs['class']
 
-    # CSS framework "Bulma" and "Foundation 6" do not add special classes to their field-groups
+
+@pytest.fixture(scope='session')
+def native_soup(native_view):
+    response = native_view(http_request)
+    response.render()
+    soup = BeautifulSoup(response.content, 'html.parser')
+    view_initkwargs = native_view.view_initkwargs
+    framework = view_initkwargs['extra_context']['framework']
+    form_class = view_initkwargs['form_class']
+    initial = view_initkwargs['initial'] if 'initial' in view_initkwargs else None
+    return framework, form_class, soup, initial
+
+
+@pytest.fixture(scope='session')
+def extended_soup(extended_view):
+    response = extended_view(http_request)
+    response.render()
+    soup = BeautifulSoup(response.content, 'html.parser')
+    view_initkwargs = extended_view.view_initkwargs
+    form_class = view_initkwargs['form_class']
+    initial = view_initkwargs['initial'] if 'initial' in view_initkwargs else None
+    return form_class, soup, initial
+
+
+@pytest.mark.parametrize('field_name', SubscribeForm.base_fields.keys())
+def test_field_from_native_form(native_soup, field_name):
+    framework, form_class, soup, initial = native_soup
+    assert not issubclass(form_class, FormMixin)
+    form = type(form_class.__name__, (FormMixin, form_class), {})()
+    check_field(framework, form, field_name, soup, initial)
+
+
+@pytest.mark.parametrize('field_name', SubscribeForm.base_fields.keys())
+def test_field_from_extended_form(extended_soup, field_name):
+    form_class, soup, initial = extended_soup
+    assert issubclass(form_class, FormMixin)
+    framework = form_class.default_renderer.__module__.split('.')[-1]
+    check_field(framework, form_class(), field_name, soup, initial)

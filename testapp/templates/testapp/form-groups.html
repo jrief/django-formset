@@ -4,7 +4,6 @@
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}">
 	<form{% form_attrs form framework %}>
-		{% csrf_token %}
 		{{ form }}
 	</form>
 	<button type="button" click="{{ click_actions }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="button">Click Me</button>

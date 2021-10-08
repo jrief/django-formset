@@ -60,7 +60,6 @@ test_fields = dict(
 views = {
     f'form{ctr}': SampleFormView.as_view(
         form_class=type(snake2camel(f'{tpl.name}_form'), (Form,), {'name': tpl.name, 'something': tpl.field}),
-        success_url='/success',
         extra_context=tpl.extra_context,
     )
     for ctr, tpl in enumerate(FieldTuple(name, field, {'force_submission': fs, 'withhold_messages': wm})
@@ -212,7 +211,6 @@ def t_e_s_t_reset_formset(page, view, form):
 urlpatterns.append(
     path('email_form', SampleFormView.as_view(
         form_class=type('EmailForm', (Form,), {'name': 'email_form', 'email': fields.EmailField(initial="john@doe")}),
-        success_url='/success',
     ), name='email_form')
 )
 
@@ -252,7 +250,6 @@ urlpatterns.append(
             ),
         }),
         initial={'intval': 3},
-        success_url='/success',
     ), name='integer_form')
 )
 
@@ -296,7 +293,6 @@ urlpatterns.append(
             'floatval': fields.FloatField(widget=widgets.NumberInput(attrs={'step': 0.5})),
         }),
         initial={'floatval': 2.5},
-        success_url='/success',
     ), name='float_form')
 )
 
@@ -330,7 +326,6 @@ urlpatterns.append(
             'dateval': fields.DateField(widget=widgets.DateInput(attrs={'type': 'date'})),
         }),
         initial={'dateval': '2021-03-29'},
-        success_url='/success',
     ), name='date_form')
 )
 
@@ -361,7 +356,6 @@ urlpatterns.append(
             'name': 'boolean_form',
             'boolval': fields.BooleanField(),
         }),
-        success_url='/success',
     ), name='boolean_form')
 )
 
@@ -407,7 +401,6 @@ urlpatterns.append(
                 required=True,
             ),
         }),
-        success_url='/success',
     ), name='select_form')
 )
 
@@ -439,7 +432,6 @@ urlpatterns.append(
                 required=True,
             ),
         }),
-        success_url='/success',
     ), name='multiselect_form')
 )
 
@@ -474,7 +466,6 @@ urlpatterns.append(
                 required=True,
             ),
         }),
-        success_url='/success',
     ), name='radiochoice_form')
 )
 
@@ -512,7 +503,6 @@ urlpatterns.append(
                 required=True,
             ),
         }),
-        success_url='/success',
     ), name='multichoice_form')
 )
 
@@ -550,7 +540,6 @@ urlpatterns.append(
                 widget=widgets.Textarea,
             ),
         }),
-        success_url='/success',
     ), name='textarea_form')
 )
 
