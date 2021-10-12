@@ -2,7 +2,7 @@
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}">
-	<form{% include "formset/default/form_attrs.html" %}>
+	<form{% include "formset/form_attrs.html" %}>
 		{{ form }}
 	</form>
 	<button type="button" click="{{ click_actions }}" auto-disable="{{ auto_disable|yesno:'true,false' }}">Click Me</button>

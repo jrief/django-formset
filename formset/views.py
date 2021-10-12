@@ -5,8 +5,6 @@ import tempfile
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.files.storage import default_storage
 from django.core.signing import get_cookie_signer
-from django.forms.forms import BaseForm
-from django.forms.widgets import MediaDefiningClass
 from django.http.response import HttpResponseBadRequest, JsonResponse
 from django.utils.encoding import force_str
 from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
@@ -125,7 +123,7 @@ class FormViewMixin:
 
     def _handle_form_data(self, form_data):
         form_name = getattr(self.form_class, 'name', '__default__')
-        form = self.form_class(data=form_data.get(form_name, {}))
+        form = self.form_class(data=form_data.get(form_name))
         if form.is_valid():
             return JsonResponse({'success_url': force_str(self.success_url)})
         else:
@@ -141,38 +139,14 @@ class FormView(SelectizeResponseMixin, FileUploadMixin, FormViewMixin, GenericFo
     """
 
 
-class FormsetViewMeta(MediaDefiningClass):
-    """Collect Forms declared on the base classes."""
-    def __new__(cls, name, bases, attrs):
-        # Collect forms from current class and remove them from attrs.
-        attrs['declared_forms'] = {}
-        for key, value in list(attrs.items()):
-            if isinstance(value, BaseForm):
-                attrs.pop(key)
-                setattr(value, 'name', key)
-                attrs['declared_forms'][key] = value
-
-        new_class = super().__new__(cls, name, bases, attrs)
-
-        # Walk through the MRO.
-        declared_forms = {}
-        for base in reversed(new_class.__mro__):
-            # Collect Forms from base class.
-            if hasattr(base, 'declared_forms'):
-                declared_forms.update(base.declared_forms)
-
-            # Form shadowing.
-            for attr, value in base.__dict__.items():
-                if value is None and attr in declared_forms:
-                    declared_forms.pop(attr)
-
-        new_class.declared_forms = declared_forms
-
-        return new_class
-
-
-class FormCollectionViewMixin(ContextMixin, metaclass=FormsetViewMeta):
+class FormCollectionViewMixin(ContextMixin):
+    collection_class = None
     success_url = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.collection_class:
+            self.form_collection = self.collection_class()
 
     def get(self, request, *args, **kwargs):
         """Handle GET requests: instantiate a blank version of the form."""
@@ -186,35 +160,29 @@ class FormCollectionViewMixin(ContextMixin, metaclass=FormsetViewMeta):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['forms'] = self.get_forms()
+        context['form_collection'] = self.form_collection
         return context
 
-    def get_forms(self):
-        """Return a list of form instances to be added to the rendering context."""
-        forms = []
-        for name, form in self.declared_forms.items():
-            if self.request.method in ('POST', 'PUT'):
-                data = self.request.POST.get(name, {})
-                forms.append(form.__class__(data=data))
-            else:
-                forms.append(form)
-        return forms
+    # def get_forms(self):
+    #     """Return a list of form instances to be added to the rendering context."""
+    #     forms = []
+    #     for name, form in self.form_collection.declared_forms.items():
+    #         if self.request.method in ('POST', 'PUT'):
+    #             data = self.request.POST.get(name, {})
+    #             forms.append(form.__class__(data=data))
+    #         else:
+    #             forms.append(form)
+    #     return forms
 
     def get_field(self, form_name, field_name):
-        return self.declared_forms[form_name].declared_fields[field_name]
+        return self.form_collection.get_field(form_name, field_name)
 
     def _handle_form_data(self, form_data):
-        is_valid = True
-        error_response = {}
-        for name, form in self.declared_forms.items():
-            form = form.__class__(data=form_data.get(name, {}))
-            if not form.is_valid():
-                is_valid = False
-                error_response.update({name: form.errors.data})
-        if is_valid:
+        form_collection = self.collection_class(data=form_data)
+        if form_collection.is_valid():
             return JsonResponse({'success_url': force_str(self.success_url)})
         else:
-            return JsonResponse(error_response, status=422)
+            return JsonResponse(form_collection.errors.data, status=422)
 
 
 class FormCollectionView(SelectizeResponseMixin, FileUploadMixin, FormCollectionViewMixin, TemplateResponseMixin, View):

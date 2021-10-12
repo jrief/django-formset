@@ -1,10 +1,12 @@
 from django.core.exceptions import ValidationError
 from django.forms import forms, fields, widgets, models
+from django.urls import reverse_lazy
 
-# from formset.inline import InlineFormField
+from formset.collection import FormCollection
 from formset.widgets import Selectize, UploadedFileInput
 
 from testapp.models import PayloadModel, OpinionModel
+from testapp.sampledata import sample_persona_data, sample_selectize_data
 from testapp.validators import validate_password
 
 
@@ -235,12 +237,9 @@ class SelectForm(forms.Form):
     )
 
 
-# class NestedForm(forms.Form):
-#     annotation = fields.CharField(
-#         label="Annotation",
-#         widget=widgets.TextInput(attrs={'placeholder': "Start typing ..."}),
-#     )
-#
-#     person = InlineFormField(
-#         PersonForm,
-#     )
+class TripleFormCollection(FormCollection):
+    persona = PersonForm(initial=sample_persona_data)
+
+    upload = UploadForm()
+
+    select = SelectForm(initial=sample_selectize_data)

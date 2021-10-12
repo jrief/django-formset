@@ -2,7 +2,7 @@
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="false" withhold-messages="false">
-	<form{% include "formset/default/form_attrs.html" %}>
+	<form{% include "formset/form_attrs.html" %}>
 		{{ form }}
 	</form>
 	{% include "./buttons.html" %}

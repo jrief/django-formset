@@ -13,12 +13,12 @@ def _formsetify(form, *args, **kwargs):
         "Must be applied to a Form object inheriting from 'django.forms.BaseForm'."
     if not isinstance(form, FormMixin):
         form.__class__ = type(form.__class__.__name__, (FormMixin, form.__class__), {})
-        if len(args) == 1 and args[0]:
-            framework = args[0].replace('.', '').lower()  # for safety reasons
-            form.renderer = import_string(f'formset.renderers.{framework}.FormRenderer')()
-        elif not isinstance(form.renderer, FormRenderer):
-            form.renderer = FormRenderer()
-        form.error_class = FormsetErrorList
+    if len(args) == 1 and args[0]:
+        framework = args[0].replace('.', '').lower()  # for safety reasons
+        form.renderer = import_string(f'formset.renderers.{framework}.FormRenderer')()
+    elif not isinstance(form.renderer, FormRenderer):
+        form.renderer = FormRenderer()
+    form.error_class = FormsetErrorList
     if 'field_classes' in kwargs and not hasattr(form, 'field_css_classes'):
         form.field_css_classes = kwargs.pop('field_classes')
     if 'label_classes' in kwargs and not hasattr(form, 'label_css_classes'):

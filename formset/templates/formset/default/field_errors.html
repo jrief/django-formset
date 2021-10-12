@@ -1,1 +1,4 @@
-<div class="dj-form-errors">{{ errors.as_ul }}</div>
+<div class="dj-field-errors" foo="bar">
+	<django-error-messages{% for key, value in client_messages.items %} {{ key }}="{{ value }}"{% endfor %}></django-error-messages>
+	<ul class="dj-errorlist"><li class="dj-placeholder"></li>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+</div>

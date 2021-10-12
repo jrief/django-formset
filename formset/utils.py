@@ -1,13 +1,13 @@
 from django.forms.utils import ErrorList
-from django.utils.html import format_html, format_html_join, html_safe
 from django.utils.functional import cached_property
 
 from formset.boundfield import BoundField
 from formset.renderers.default import FormRenderer
 
 
-@html_safe
 class FormsetErrorList(ErrorList):
+    template_name = 'formset/default/field_errors.html'
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if args and hasattr(args[0], 'client_messages'):
@@ -19,22 +19,11 @@ class FormsetErrorList(ErrorList):
             copy.client_messages = self.client_messages
         return copy
 
-    def as_ul(self):
-        list_items = format_html_join('', '<li>{}</li>', ((e,) for e in self))
-        if hasattr(self, 'client_messages'):
-            return format_html(
-                '<django-error-messages {}></django-error-messages>' +
-                '<ul class="dj-errorlist"><li class="dj-placeholder"></li>{}</ul>',
-                format_html_join(' ', '{0}="{1}"', ((key, value) for key, value in self.client_messages.items())),
-                list_items
-            )
-        return format_html('<ul class="dj-errorlist"><li class="dj-placeholder"></li>{}</ul>', list_items)
-
-    def __str__(self):
-        return self.as_ul()
-
-    def __bool__(self):
-        return True
+    def get_context(self):
+        return {
+            'errors': self,
+            'client_messages': self.client_messages,
+        }
 
 
 class FormMixin:
