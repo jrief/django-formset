@@ -1,4 +1,6 @@
-{% include "formset/default/non_field_errors.html" %}
-{% for field in form %}
-	{% include "formset/default/field_group.html" %}
-{% endfor %}
+<form{% include "formset/form_attrs.html" %}>
+	{% include "formset/default/non_field_errors.html" %}
+	{% for field in form %}
+		{% include "formset/default/field_group.html" %}
+	{% endfor %}
+</form>

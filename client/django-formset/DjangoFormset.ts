@@ -1,5 +1,6 @@
 import { parse } from './actions';
 import getDataValue from 'lodash.get';
+import setDataValue from 'lodash.set';
 import template from 'lodash.template';
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -859,6 +860,7 @@ class DjangoForm {
 	}
 
 	reportCustomErrors(errors: Map<string, Array<string>>) {
+		this.resetCustomError();
 		const nonFieldErrors = errors.get(NON_FIELD_ERRORS);
 		if (this.errorList && nonFieldErrors instanceof Array && this.errorPlaceholder) {
 			for (const message of nonFieldErrors) {
@@ -963,11 +965,10 @@ export class DjangoFormset {
 	}
 
 	private aggregateValues() {
-		const data = new Map<string, Object>();
+		this.data = {};
 		for (const form of this.forms) {
-			data.set(form.name, Object.fromEntries(form.aggregateValues()));
+			setDataValue(this.data, form.name, Object.fromEntries(form.aggregateValues()));
 		}
-		this.data = Object.fromEntries(data);
 		for (const form of this.forms) {
 			form.updateVisibility();
 		}
@@ -1013,8 +1014,9 @@ export class DjangoFormset {
 			if (response.status === 422) {
 				response.json().then(body => {
 					for (const form of this.forms) {
-						if (form.name in body) {
-							form.reportCustomErrors(new Map(Object.entries(body[form.name])));
+						const errors = getDataValue(body, form.name);
+						if (errors) {
+							form.reportCustomErrors(new Map(Object.entries(errors)));
 							form.reportValidity();
 						}
 					}

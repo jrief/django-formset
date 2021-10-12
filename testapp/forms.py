@@ -201,11 +201,6 @@ class PersonForm(forms.Form):
         error_messages={'invalid_choice': "Please select your gender."},
     )
 
-    accept = fields.BooleanField(
-        label="Accept terms and conditions",
-        initial=False,
-    )
-
     def clean(self):
         cd = super().clean()
         if cd['first_name'].lower().startswith("john") and cd['last_name'].lower().startswith("doe"):
@@ -243,3 +238,16 @@ class TripleFormCollection(FormCollection):
     upload = UploadForm()
 
     select = SelectForm(initial=sample_selectize_data)
+
+
+class ConfirmForm(forms.Form):
+    accept = fields.BooleanField(
+        label="Accept terms and conditions",
+        initial=False,
+    )
+
+
+class NestedCollection(FormCollection):
+    triple = TripleFormCollection()
+
+    confirm = ConfirmForm()

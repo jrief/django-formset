@@ -59,3 +59,6 @@ class FormMixin:
         return {
             'form': self,
         }
+
+    def get_field(self, field_name):
+        return self.declared_fields[field_name]

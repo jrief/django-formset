@@ -20,8 +20,11 @@ class SelectizeResponseMixin:
         return super().get(request, **kwargs)
 
     def _fetch_options(self, request):
-        form_name, field_name = request.GET['field'].split('.')
-        field = self.get_field(form_name, field_name)
+        field_path = request.GET['field']
+        try:
+            field = self.get_field(field_path)
+        except KeyError:
+            return HttpResponseBadRequest(f"No such field: {field_path}")
         assert isinstance(field.widget, Selectize)
         query = request.GET.get('query')
         filtered_qs = field.widget.search(query).order_by('-id')[:field.widget.max_prefetch_choices]
@@ -129,7 +132,8 @@ class FormViewMixin:
         else:
             return JsonResponse({form_name: form.errors.data}, status=422)
 
-    def get_field(self, form_name, field_name):
+    def get_field(self, path):
+        field_name = path.split('.')[-1]
         return self.form_class.declared_fields[field_name]
 
 
@@ -163,19 +167,8 @@ class FormCollectionViewMixin(ContextMixin):
         context['form_collection'] = self.form_collection
         return context
 
-    # def get_forms(self):
-    #     """Return a list of form instances to be added to the rendering context."""
-    #     forms = []
-    #     for name, form in self.form_collection.declared_forms.items():
-    #         if self.request.method in ('POST', 'PUT'):
-    #             data = self.request.POST.get(name, {})
-    #             forms.append(form.__class__(data=data))
-    #         else:
-    #             forms.append(form)
-    #     return forms
-
-    def get_field(self, form_name, field_name):
-        return self.form_collection.get_field(form_name, field_name)
+    def get_field(self, path):
+        return self.form_collection.get_field(path)
 
     def _handle_form_data(self, form_data):
         form_collection = self.collection_class(data=form_data)

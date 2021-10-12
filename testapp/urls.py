@@ -7,7 +7,7 @@ from formset.views import FormCollectionView
 from formset.renderers import bootstrap
 from formset.utils import FormMixin
 
-from testapp.forms import SubscribeForm, UploadForm, PersonForm, SelectForm, TripleFormCollection
+from testapp.forms import SubscribeForm, UploadForm, PersonForm, SelectForm, TripleFormCollection, NestedCollection
 from testapp.views import SubscribeFormView
 
 
@@ -29,6 +29,11 @@ urlpatterns = [
     path('selectize', SubscribeFormView.as_view(form_class=SelectForm, template_name='default/form-groups.html')),
     path('collection', FormCollectionView.as_view(
         collection_class=TripleFormCollection,
+        success_url=reverse_lazy('form_data_valid'),
+        template_name='default/form-collection.html'),
+    ),
+    path('nested', FormCollectionView.as_view(
+        collection_class=NestedCollection,
         success_url=reverse_lazy('form_data_valid'),
         template_name='default/form-collection.html'),
     ),
