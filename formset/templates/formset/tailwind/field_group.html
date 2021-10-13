@@ -1,5 +1,4 @@
 {% spaceless %}
-{% if field.is_hidden %}{{ field }}{% else %}
 <django-field-group{% with css_classes=field.css_classes %}{% if css_classes %} class="{{ css_classes }}"{% endif %}{% endwith %}>
 	{% if field.widget_type == 'checkbox' %}
 	{% include "formset/tailwind/checkbox_label.html" %}
@@ -12,4 +11,4 @@
 		{% if help_text %}<p class="formset-help-text">{{ help_text }}</p>{% endif %}
 	{% endwith %}
 </django-field-group>
-{% endif %}{% endspaceless %}
+{% endspaceless %}

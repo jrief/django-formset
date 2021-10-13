@@ -14,8 +14,8 @@ from testapp.models import OpinionModel
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class SampleFormView(FormView):
-    template_name = 'testapp/form-groups.html'
+class NativeFormView(FormView):
+    template_name = 'testapp/native-form.html'
     success_url = '/success'
 
 
@@ -63,7 +63,7 @@ test_fields = dict(
 )
 
 views = {
-    f'selectize{ctr}': SampleFormView.as_view(
+    f'selectize{ctr}': NativeFormView.as_view(
         form_class=type(f'{tpl[0]}_form', (Form,), {'name': tpl[0], 'model_choice': tpl[1]}),
     )
     for ctr, tpl in enumerate(test_fields.items())

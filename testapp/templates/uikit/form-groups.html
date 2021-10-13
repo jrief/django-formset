@@ -1,5 +1,5 @@
 {% extends "./base.html" %}
-{% load formsetify %}
+{% load render_form from formsetify %}
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="false">

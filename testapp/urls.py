@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import HttpResponse
 from django.urls import path, reverse_lazy
 from django.views.generic import TemplateView
 
@@ -21,21 +22,39 @@ class SubscribeFormExtendedBootstrap(SubscribeFormExtended):
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html')),
-    path('subscribe.form-groups', SubscribeFormView.as_view(template_name='default/form-groups.html')),
-    path('subscribe.form-extended', SubscribeFormView.as_view(form_class=SubscribeFormExtended, template_name='default/form-extended.html')),
-    path('subscribe.field-by-field', SubscribeFormView.as_view(template_name='default/field-by-field.html')),
-    path('upload', SubscribeFormView.as_view(form_class=UploadForm, template_name='default/form-groups.html')),
-    path('persona', SubscribeFormView.as_view(form_class=PersonForm, template_name='default/form-groups.html')),
-    path('selectize', SubscribeFormView.as_view(form_class=SelectForm, template_name='default/form-groups.html')),
+    path('success', lambda request: HttpResponse('<h1>Form data succesfully submitted</h1>'), name='form_data_valid'),
+    path('subscribe.native-form', SubscribeFormView.as_view(
+        template_name='testapp/native-form.html',
+        # extra_context={'click_actions': 'disable -> submit -> delay(900) -> proceed'}
+    )),
+    path('subscribe.extended-form', SubscribeFormView.as_view(
+        form_class=SubscribeFormExtended,
+        template_name='testapp/extended-form.html',
+    )),
+    path('subscribe.field-by-field', SubscribeFormView.as_view(
+        template_name='testapp/field-by-field.html'
+    )),
+    path('upload', SubscribeFormView.as_view(
+        form_class=UploadForm,
+        template_name='testapp/native-form.html',
+    )),
+    path('persona', SubscribeFormView.as_view(
+        form_class=PersonForm,
+        template_name='testapp/native-form.html',
+    )),
+    path('selectize', SubscribeFormView.as_view(
+        form_class=SelectForm,
+        template_name='testapp/native-form.html',
+    )),
     path('collection', FormCollectionView.as_view(
         collection_class=TripleFormCollection,
         success_url=reverse_lazy('form_data_valid'),
-        template_name='default/form-collection.html'),
+        template_name='testapp/form-collection.html'),
     ),
     path('nested', FormCollectionView.as_view(
         collection_class=NestedCollection,
         success_url=reverse_lazy('form_data_valid'),
-        template_name='default/form-collection.html'),
+        template_name='testapp/form-collection.html'),
     ),
     path('bootstrap/subscribe.form-groups', SubscribeFormView.as_view(form_class=SubscribeForm, template_name='bootstrap/form-groups.html')),
     path('bootstrap/subscribe.form-extended', SubscribeFormView.as_view(form_class=SubscribeFormExtendedBootstrap, template_name='bootstrap/form-extended.html')),
@@ -62,7 +81,6 @@ urlpatterns = [
     #path('tailwind/mixin-form', SubscribeFormView.as_view(form_class=TailwindMixinForm, template_name='tailwind/mixin_form.html')),
     # path('tailwind/persona', SubscribeFormView.as_view(form_class=PersonForm, template_name='tailwind/render_groups.html')),
     # path('tailwind/selectize', SubscribeFormView.as_view(form_class=SelectForm, template_name='tailwind/render_groups.html')),
-    path('success', TemplateView.as_view(template_name='default/success.html'), name='form_data_valid'),
 ]
 if settings.DEBUG:
     urlpatterns.extend(static(

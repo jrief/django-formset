@@ -1,11 +1,8 @@
 {% extends "./base.html" %}
-{% load formsetify %}
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}">
-	<form{% form_attrs form framework %}>
-		{{ form }}
-	</form>
-	<button type="button" click="{{ click_actions }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="button">Click Me</button>
+	{{ form_collection }}
+	{% include "./buttons.html" %}
 </django-formset>
 {% endblock %}

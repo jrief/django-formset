@@ -1,8 +1,9 @@
 {% extends "./base.html" %}
+{% load render_form from formsetify %}
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}">
-	{{ form }}
+	{% render_form form framework %}
 	{% include "./buttons.html" %}
 </django-formset>
 {% endblock %}

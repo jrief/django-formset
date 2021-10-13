@@ -1,16 +1,10 @@
 {% spaceless %}
-{% if field.is_hidden %}
-	{{ field }}
-{% else %}
 <django-field-group{% with css_classes=field.css_classes %}{% if css_classes %} class="{{ css_classes }}"{% endif %}{% endwith %}>
 	{% if field.label %}{{ field.label_tag }}{% endif %}
-	{% if control_css_classes %}<div class="{{ control_css_classes }}">{% endif %}
 	{{ field }}
 	{{ field.errors }}
 	{% with help_text=field.help_text %}
 	{% if help_text %}<span class="dj-help-text">{{ help_text }}</span>{% endif %}
 	{% endwith %}
-	{% if control_css_classes %}</div>{% endif %}
 </django-field-group>
-{% endif %}
 {% endspaceless %}

@@ -18,8 +18,8 @@ def snake2camel(string):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class SampleFormView(FormView):
-    template_name = 'testapp/form-groups.html'
+class NativeFormView(FormView):
+    template_name = 'testapp/native-form.html'
     success_url = '/success'
 
 
@@ -58,7 +58,7 @@ test_fields = dict(
 
 
 views = {
-    f'form{ctr}': SampleFormView.as_view(
+    f'form{ctr}': NativeFormView.as_view(
         form_class=type(snake2camel(f'{tpl.name}_form'), (Form,), {'name': tpl.name, 'something': tpl.field}),
         extra_context=tpl.extra_context,
     )
@@ -209,7 +209,7 @@ def test_reset_formset(page, view, form):
 
 
 urlpatterns.append(
-    path('email_form', SampleFormView.as_view(
+    path('email_form', NativeFormView.as_view(
         form_class=type('EmailForm', (Form,), {'name': 'email_form', 'email': fields.EmailField(initial="john@doe")}),
     ), name='email_form')
 )
@@ -240,7 +240,7 @@ def test_email_field(page):
 
 
 urlpatterns.append(
-    path('integer_form', SampleFormView.as_view(
+    path('integer_form', NativeFormView.as_view(
         form_class=type('IntegerForm', (Form,), {
             'name': 'integer_form',
             'intval': fields.IntegerField(
@@ -287,7 +287,7 @@ def test_integer_field(page):
 
 
 urlpatterns.append(
-    path('float_form', SampleFormView.as_view(
+    path('float_form', NativeFormView.as_view(
         form_class=type('FloatForm', (Form,), {
             'name': 'float_form',
             'floatval': fields.FloatField(widget=widgets.NumberInput(attrs={'step': 0.5})),
@@ -320,7 +320,7 @@ def test_float_field(page):
 
 
 urlpatterns.append(
-    path('date_form', SampleFormView.as_view(
+    path('date_form', NativeFormView.as_view(
         form_class=type('DateForm', (Form,), {
             'name': 'date_form',
             'dateval': fields.DateField(widget=widgets.DateInput(attrs={'type': 'date'})),
@@ -351,7 +351,7 @@ def test_date_field(page, mocker):
 
 
 urlpatterns.append(
-    path('boolean_form', SampleFormView.as_view(
+    path('boolean_form', NativeFormView.as_view(
         form_class=type('BooleanForm', (Form,), {
             'name': 'boolean_form',
             'boolval': fields.BooleanField(),
@@ -393,7 +393,7 @@ CHOICES = [
 
 
 urlpatterns.append(
-    path('select_form', SampleFormView.as_view(
+    path('select_form', NativeFormView.as_view(
         form_class=type('SelectForm', (Form,), {
             'name': 'select_form',
             'choice': fields.ChoiceField(
@@ -424,7 +424,7 @@ def test_select_field(page, mocker):
 
 
 urlpatterns.append(
-    path('multiselect_form', SampleFormView.as_view(
+    path('multiselect_form', NativeFormView.as_view(
         form_class=type('MultiSelectForm', (Form,), {
             'name': 'multiselect_form',
             'choices': fields.MultipleChoiceField(
@@ -457,7 +457,7 @@ def test_select_field(page, mocker):
 
 
 urlpatterns.append(
-    path('radiochoice_form', SampleFormView.as_view(
+    path('radiochoice_form', NativeFormView.as_view(
         form_class=type('RadioChoiceForm', (Form,), {
             'name': 'radiochoice_form',
             'choice': fields.ChoiceField(
@@ -494,7 +494,7 @@ def test_radiochoice_field(page, mocker):
 
 
 urlpatterns.append(
-    path('multichoice_form', SampleFormView.as_view(
+    path('multichoice_form', NativeFormView.as_view(
         form_class=type('MultiChoiceForm', (Form,), {
             'name': 'multichoice_form',
             'choices': fields.MultipleChoiceField(
@@ -533,7 +533,7 @@ def test_multichoice_field(page, mocker):
 
 
 urlpatterns.append(
-    path('textarea_form', SampleFormView.as_view(
+    path('textarea_form', NativeFormView.as_view(
         form_class=type('TextareaForm', (Form,), {
             'name': 'textarea_form',
             'text': fields.CharField(

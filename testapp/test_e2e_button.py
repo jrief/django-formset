@@ -16,14 +16,14 @@ class SampleForm(Form):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class SampleFormView(FormView):
-    template_name = 'testapp/form-groups.html'
+class NativeFormView(FormView):
+    template_name = 'testapp/native-form.html'
     form_class = SampleForm
     success_url = '/success'
 
 
 views = {
-    f'test_button_{ctr}': SampleFormView.as_view(
+    f'test_button_{ctr}': NativeFormView.as_view(
         extra_context={'click_actions': click_actions, 'auto_disable': False},
     )
     for ctr, click_actions in enumerate([
@@ -35,10 +35,10 @@ views = {
         'emit("my_event", {foo: "bar"})',
     ])
 }
-views['test_button_submit'] = SampleFormView.as_view(
+views['test_button_submit'] = NativeFormView.as_view(
     extra_context={'click_actions': 'submit', 'auto_disable': True},
 )
-views['test_button_submit_with_data'] = SampleFormView.as_view(
+views['test_button_submit_with_data'] = NativeFormView.as_view(
     extra_context={'click_actions': 'submit({foo: "bar"})', 'auto_disable': True},
 )
 

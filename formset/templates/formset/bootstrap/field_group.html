@@ -1,5 +1,4 @@
 {% spaceless %}
-{% if field.is_hidden %}{{ field }}{% else %}
 <django-field-group{% with css_classes=field.css_classes %}{% if css_classes %} class="{{ css_classes }}"{% endif %}{% endwith %}>
 	{% with control_css_classes=form.control_css_classes label_css_classes=form.label_css_classes %}
 	{% if field.widget_type == 'checkbox' %}
@@ -20,5 +19,4 @@
 	{% if control_css_classes %}</div>{% endif %}
 	{% endwith %}
 </django-field-group>
-{% endif %}
 {% endspaceless %}

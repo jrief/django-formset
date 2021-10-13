@@ -26,7 +26,7 @@ class UploadForm(Form):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SampleFormView(FormView):
-    template_name = 'testapp/form-groups.html'
+    template_name = 'testapp/native-form.html'
     form_class=UploadForm
     success_url = '/success'
 

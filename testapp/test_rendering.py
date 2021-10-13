@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 
 from django.forms import fields, forms, widgets
 from django.test import RequestFactory
-from django.urls import reverse_lazy
 
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
@@ -179,7 +178,7 @@ def initial(request):
 @pytest.fixture(scope='session')
 def native_view(framework, initial):
     return SubscribeFormView.as_view(
-        template_name='testapp/form-groups.html',
+        template_name='testapp/native-form.html',
         form_class=SubscribeForm,
         initial=initial,
         extra_context={'framework': framework}
