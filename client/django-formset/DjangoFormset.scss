@@ -38,9 +38,9 @@ django-field-group {
 	}
 
 	input {
-		background-repeat: no-repeat;
-		background-position: center right;
-		background-origin: content-box;
+		background-repeat: no-repeat !important;
+		background-position: center right !important;
+		background-origin: content-box !important;
 	}
 
 	select, textarea {
