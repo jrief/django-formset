@@ -1,8 +1,8 @@
-{% extends "./base.html" %}
+{% extends framework|default:"testapp"|add:"/base.html" %}
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}">
 	{{ form_collection }}
-	{% include "./buttons.html" %}
+	{% include framework|default:"testapp"|add:"/buttons.html" %}
 </django-formset>
 {% endblock %}

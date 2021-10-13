@@ -1,11 +1,9 @@
 {% extends "./base.html" %}
-{% load formsetify %}
+{% load render_form from formsetify %}
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="false">
-	<form{% form_attrs form "bootstrap" field_classes="row mb-3" label_classes="col-sm-3" control_classes="col-sm-9" %}>
-		{{ form }}
-	</form>
+	{% render_form form "bootstrap" field_classes="row mb-3" label_classes="col-sm-3" control_classes="col-sm-9" %}
 	<div class="offset-sm-3">
 	{% include "./buttons.html" %}
 	</div>

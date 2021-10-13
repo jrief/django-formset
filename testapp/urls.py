@@ -2,86 +2,94 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
 from django.urls import path, reverse_lazy
+from django.utils.module_loading import import_string
 from django.views.generic import TemplateView
 
 from formset.views import FormCollectionView
-from formset.renderers import bootstrap
 from formset.utils import FormMixin
 
 from testapp.forms import SubscribeForm, UploadForm, PersonForm, SelectForm, TripleFormCollection, NestedCollection
 from testapp.views import SubscribeFormView
 
 
-class SubscribeFormExtended(FormMixin, SubscribeForm):
-    pass
-
-
-class SubscribeFormExtendedBootstrap(SubscribeFormExtended):
-    default_renderer = bootstrap.FormRenderer
-
+framework_contexts = {
+    None: None,
+    'bootstrap': {'field_css_classes': 'mb-2'},
+    # 'bulma': {'field_css_classes': 'mb-2'},
+    # 'foundation': {},
+    # 'tailwind': {'field_css_classes': 'mb-5'},
+    # 'uikit': {'field_css_classes': 'uk-margin-bottom'},
+}
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html')),
     path('success', lambda request: HttpResponse('<h1>Form data succesfully submitted</h1>'), name='form_data_valid'),
-    path('subscribe.native-form', SubscribeFormView.as_view(
-        template_name='testapp/native-form.html',
-        # extra_context={'click_actions': 'disable -> submit -> delay(900) -> proceed'}
-    )),
-    path('subscribe.extended-form', SubscribeFormView.as_view(
-        form_class=SubscribeFormExtended,
-        template_name='testapp/extended-form.html',
-    )),
-    path('subscribe.field-by-field', SubscribeFormView.as_view(
-        template_name='testapp/field-by-field.html'
-    )),
-    path('upload', SubscribeFormView.as_view(
-        form_class=UploadForm,
-        template_name='testapp/native-form.html',
-    )),
-    path('persona', SubscribeFormView.as_view(
-        form_class=PersonForm,
-        template_name='testapp/native-form.html',
-    )),
-    path('selectize', SubscribeFormView.as_view(
-        form_class=SelectForm,
-        template_name='testapp/native-form.html',
-    )),
-    path('collection', FormCollectionView.as_view(
-        collection_class=TripleFormCollection,
-        success_url=reverse_lazy('form_data_valid'),
-        template_name='testapp/form-collection.html'),
-    ),
-    path('nested', FormCollectionView.as_view(
-        collection_class=NestedCollection,
-        success_url=reverse_lazy('form_data_valid'),
-        template_name='testapp/form-collection.html'),
-    ),
-    path('bootstrap/subscribe.form-groups', SubscribeFormView.as_view(form_class=SubscribeForm, template_name='bootstrap/form-groups.html')),
-    path('bootstrap/subscribe.form-extended', SubscribeFormView.as_view(form_class=SubscribeFormExtendedBootstrap, template_name='bootstrap/form-extended.html')),
-    path('bootstrap/subscribe.form-rows', SubscribeFormView.as_view(form_class=SubscribeForm, template_name='bootstrap/form-rows.html')),
-    path('bootstrap/persona.form-groups', SubscribeFormView.as_view(form_class=PersonForm, template_name='bootstrap/form-groups.html')),
-    path('bootstrap/persona.form-rows', SubscribeFormView.as_view(form_class=PersonForm, template_name='bootstrap/form-rows.html')),
-    path('bootstrap/selectize.form-groups', SubscribeFormView.as_view(form_class=SelectForm, template_name='bootstrap/form-groups.html')),
-    path('bulma/subscribe.form', SubscribeFormView.as_view(form_class=SubscribeForm, template_name='bulma/form-groups.html')),
-    # path('bulma/formsetify', SubscribeFormView.as_view(template_name='bulma/formsetify.html')),
-    # path('bulma/form-groups', SubscribeFormView.as_view(template_name='bulma/render_groups.html')),
-    #path('bulma/mixin-form', SubscribeFormView.as_view(form_class=BulmaMixinForm, template_name='bulma/mixin_form.html')),
-    # path('bulma/persona', SubscribeFormView.as_view(form_class=PersonForm, template_name='bulma/render_groups.html')),
-    # path('bulma/selectize', SubscribeFormView.as_view(form_class=SelectForm, template_name='bulma/render_groups.html')),
-    path('foundation/subscribe.form', SubscribeFormView.as_view(form_class=SubscribeForm, template_name='foundation/form-groups.html')),
-    path('tailwind/subscribe.form', SubscribeFormView.as_view(form_class=SubscribeForm, template_name='tailwind/form-groups.html')),
-    path('uikit/subscribe.form', SubscribeFormView.as_view(form_class=SubscribeForm, template_name='uikit/form-groups.html')),
-    # path('foundation/formsetify', SubscribeFormView.as_view(template_name='foundation/formsetify.html')),
-    # path('foundation/form-groups', SubscribeFormView.as_view(template_name='foundation/render_groups.html')),
-    #path('foundation/mixin-form', SubscribeFormView.as_view(form_class=FoundationMixinForm, template_name='foundation/mixin_form.html')),
-    # path('foundation/persona', SubscribeFormView.as_view(form_class=PersonForm, template_name='foundation/render_groups.html')),
-    # path('foundation/selectize', SubscribeFormView.as_view(form_class=SelectForm, template_name='foundation/render_groups.html')),
-    # path('tailwind/formsetify', SubscribeFormView.as_view(template_name='tailwind/formsetify.html')),
-    # path('tailwind/form-groups', SubscribeFormView.as_view(template_name='tailwind/render_groups.html')),
-    #path('tailwind/mixin-form', SubscribeFormView.as_view(form_class=TailwindMixinForm, template_name='tailwind/mixin_form.html')),
-    # path('tailwind/persona', SubscribeFormView.as_view(form_class=PersonForm, template_name='tailwind/render_groups.html')),
-    # path('tailwind/selectize', SubscribeFormView.as_view(form_class=SelectForm, template_name='tailwind/render_groups.html')),
 ]
+for framework, attrs in framework_contexts.items():
+    if framework:
+        urlprefix = f'{framework}/'
+        extra_context = dict(attrs, framework=framework)
+        attrs['default_renderer'] = default_renderer = import_string(f'formset.renderers.{framework}.FormRenderer')
+        SubscribeFormExtended = type('SubscribeForm', (FormMixin, SubscribeForm), attrs)
+        TripleFormCollectionClass = type('TripleFormCollection', (TripleFormCollection,), {'default_renderer': default_renderer})
+        NestedCollectionClass = type('TripleFormCollection', (NestedCollection,), {'default_renderer': default_renderer})
+    else:
+        urlprefix = ''
+        extra_context = None
+        SubscribeFormExtended = type('SubscribeForm', (FormMixin, SubscribeForm), {})
+        TripleFormCollectionClass = TripleFormCollection
+        NestedCollectionClass = NestedCollection
+
+    urlpatterns.extend([
+        path(f'{urlprefix}subscribe.native-form', SubscribeFormView.as_view(
+            form_class=SubscribeForm,
+            template_name='testapp/native-form.html',
+            extra_context=extra_context,
+        )),
+        path(f'{urlprefix}subscribe.extended-form', SubscribeFormView.as_view(
+            form_class=SubscribeFormExtended,
+            template_name='testapp/extended-form.html',
+            extra_context={'framework': framework},
+        )),
+        path(f'{urlprefix}subscribe.field-by-field', SubscribeFormView.as_view(
+            template_name='testapp/field-by-field.html',
+            extra_context=extra_context,
+        )),
+        path(f'{urlprefix}upload', SubscribeFormView.as_view(
+            form_class=UploadForm,
+            template_name='testapp/native-form.html',
+            extra_context=extra_context,
+        )),
+        path(f'{urlprefix}persona', SubscribeFormView.as_view(
+            form_class=PersonForm,
+            template_name='testapp/native-form.html',
+            extra_context=extra_context,
+        )),
+        path(f'{urlprefix}selectize', SubscribeFormView.as_view(
+            form_class=SelectForm,
+            template_name='testapp/native-form.html',
+            extra_context=extra_context,
+        )),
+        path(f'{urlprefix}collection', FormCollectionView.as_view(
+            collection_class=TripleFormCollectionClass,
+            success_url=reverse_lazy('form_data_valid'),
+            template_name='testapp/form-collection.html',
+            extra_context=extra_context,
+        )),
+        path(f'{urlprefix}nested', FormCollectionView.as_view(
+            collection_class=NestedCollectionClass,
+            success_url=reverse_lazy('form_data_valid'),
+            template_name='testapp/form-collection.html',
+            extra_context=extra_context,
+        )),
+    ])
+urlpatterns.append(
+    path('bootstrap/subscribe.form-rows',
+        SubscribeFormView.as_view(form_class=SubscribeForm,
+        template_name='bootstrap/form-rows.html',
+    ))
+)
+
 if settings.DEBUG:
     urlpatterns.extend(static(
         settings.MEDIA_URL,

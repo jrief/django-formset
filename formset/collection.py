@@ -16,11 +16,14 @@ class FormCollectionMeta(MediaDefiningClass):
     def __new__(cls, name, bases, attrs):
         # Collect forms and sub-collections from current class and remove them from attrs.
         attrs['declared_holders'] = {}
-        default_renderer = FormRenderer
-        for base in bases:
-            if hasattr(base, 'default_renderer'):
-                default_renderer = base.default_renderer
-                break
+        default_renderer = attrs.get('default_renderer')
+        if not default_renderer:
+            for base in bases:
+                if hasattr(base, 'default_renderer'):
+                    default_renderer = base.default_renderer
+                    break
+            else:
+                default_renderer = FormRenderer
         if isinstance(default_renderer, type):
             default_renderer = default_renderer()
         for key, value in list(attrs.items()):
@@ -29,16 +32,12 @@ class FormCollectionMeta(MediaDefiningClass):
                 setattr(value, 'name', key)
                 if not isinstance(value, FormMixin):
                     value.__class__ = type(value.__class__.__name__, (FormMixin, value.__class__), {})
-                    value.renderer = default_renderer
-                    value.error_class = FormsetErrorList
                 attrs['declared_holders'][key] = value
             elif isinstance(value, BaseFormCollection):
                 for subholder in attrs.pop(key):
                     if hasattr(subholder, 'name'):
                         subholder.name = f'{key}.{subholder.name}'
                 setattr(value, 'name', key)
-                if not hasattr(value, 'renderer'):
-                    value.renderer = default_renderer
                 attrs['declared_holders'][key] = value
 
         new_class = super().__new__(cls, name, bases, attrs)
@@ -55,6 +54,12 @@ class FormCollectionMeta(MediaDefiningClass):
                 if value is None and attr in declared_holders:
                     declared_holders.pop(attr)
 
+        for holder in declared_holders.values():
+            if isinstance(holder, BaseForm):
+                holder.renderer = default_renderer
+                holder.error_class = FormsetErrorList
+            elif isinstance(holder, BaseFormCollection):
+                holder.renderer = default_renderer
         new_class.declared_holders = declared_holders
 
         return new_class

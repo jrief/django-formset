@@ -1,2 +1,2 @@
-<button type="button" click="disable -> submit -> intercept -> delay(900) -> proceed !~ intercept -> addClass('error') -> delay(900)" auto-disable="false" class="uk-button uk-button-primary">Submit</button>
+<button type="button" click="{{ click_actions|default:'disable -> submit -> proceed' }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="uk-button uk-button-primary">Submit</button>
 <button type="button" click="reset" class="uk-button uk-button-secondary">Reset to initial</button>

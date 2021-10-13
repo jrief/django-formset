@@ -1,9 +1,0 @@
-{% extends "./base.html" %}
-{% load render_form from formsetify %}
-
-{% block "main-content" %}
-<django-formset endpoint="{{ request.path }}" force-submission="false">
-	{% render_form form "bootstrap" field_classes="mb-2" %}
-	{% include "./buttons.html" %}
-</django-formset>
-{% endblock %}
