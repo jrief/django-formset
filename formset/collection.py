@@ -26,6 +26,7 @@ class FormCollectionMeta(MediaDefiningClass):
                 default_renderer = FormRenderer
         if isinstance(default_renderer, type):
             default_renderer = default_renderer()
+
         for key, value in list(attrs.items()):
             if isinstance(value, BaseForm):
                 attrs.pop(key)

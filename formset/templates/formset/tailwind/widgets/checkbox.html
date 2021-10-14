@@ -1,1 +1,1 @@
-<label{% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %}><input type="{{ widget.type }}" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %}>{% if checkbox_label %}{{ checkbox_label }}{% endif %}</label>
+<label{% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %}>{% include widget.template_name %} {{ label }}</label>

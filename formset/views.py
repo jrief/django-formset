@@ -43,7 +43,7 @@ class FileUploadMixin:
     upload_temp_dir = default_storage.base_location / 'upload_temp'
     filename_max_length = 50
     thumbnail_max_height = 200
-    thumbnail_max_width = 400
+    thumbnail_max_width = 350
 
     def post(self, request, **kwargs):
         if request.content_type == 'multipart/form-data' and 'temp_file' in request.FILES and 'image_height' in request.POST:

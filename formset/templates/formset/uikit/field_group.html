@@ -1,14 +1,10 @@
 {% spaceless %}
 <django-field-group{% with css_classes=field.css_classes %}{% if css_classes %} class="{{ css_classes }}"{% endif %}{% endwith %}>
-	{% if field.widget_type == 'checkbox' %}
-	{% include "formset/uikit/checkbox_label.html" %}
-	{% else %}
-	{% if field.label %}{{ field.label_tag }}{% endif %}
+	{{ field.label_tag }}
 	{{ field }}
 	{% with help_text=field.help_text %}
 		{% if help_text %}<span class="uk-text-meta">{{ help_text }}</span>{% endif %}
 	{% endwith %}
-	{% endif %}
 	{{ field.errors }}
 </django-field-group>
 {% endspaceless %}

@@ -15,15 +15,36 @@ class FormRenderer(DjangoTemplates):
         'django/forms/widgets/checkbox_select.html': 'formset/default/widgets/multiple_input.html',
     }
 
+    def __init__(self, field_css_classes=None, label_css_classes=None, control_css_classes=None,
+                 form_css_classes=None, max_options_per_line=None):
+        self.field_css_classes = field_css_classes
+        self.label_css_classes = label_css_classes
+        self.control_css_classes = control_css_classes
+        self.form_css_classes = form_css_classes
+        if max_options_per_line is not None:
+            self.max_options_per_line = max_options_per_line
+        super().__init__()
+
     def get_template(self, template_name):
         template_name = self._template_mapping.get(template_name, template_name)
         return super().get_template(template_name)
 
-    def _amend_label(self, context):
-        if label_css_classes := getattr(context['field'].form, 'label_css_classes', None):
+    def _amend_form(self, context):
+        context.update(
+            control_css_classes=self.control_css_classes,
+            form_css_classes=self.form_css_classes,
+        )
+        return context
+
+    def _amend_label(self, context, hide_checkbox_label=False):
+        if self.label_css_classes:
             if not isinstance(context['attrs'], dict):
                 context['attrs'] = {}
-            context['attrs']['class'] = label_css_classes
+            context['attrs']['class'] = self.label_css_classes
+        if hide_checkbox_label and context['field'].widget_type == 'checkbox':
+            # label is rendered by {{ field }}, so remove it to prevent double rendering
+            context['use_tag'] = False
+            context.pop('label', None)
         return context
 
     def _amend_multiple_input(self, context):
@@ -40,6 +61,7 @@ class FormRenderer(DjangoTemplates):
         return context
 
     _context_modifiers = {
+        'django/forms/default.html': _amend_form,
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,

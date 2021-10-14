@@ -6,12 +6,29 @@ from django.utils.translation import gettext_lazy as _
 from formset.widgets import UploadedFileInput
 
 
+class CheckboxInputMixin:
+    """
+    This hack is required for adding the field's label to the rendering context.
+    This is to make the single checkbox to be rendered with its label after the input field.
+    """
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context['label'] = self.label
+        return context
+
+
 class BoundField(boundfield.BoundField):
     @property
     def errors(self):
         errors = self.form.errors.get(self.name, self.form.error_class())
         errors.client_messages = self._get_client_messages()
         return errors
+
+    def as_widget(self, widget=None, attrs=None, only_initial=False):
+        if self.widget_type == 'checkbox':
+            widget = widget or self.field.widget
+            widget.__class__ = type(widget.__class__.__name__, (CheckboxInputMixin, widget.__class__), {'label': self.label})
+        return super().as_widget(widget, attrs, only_initial)
 
     def build_widget_attrs(self, attrs, widget=None):
         attrs = super().build_widget_attrs(attrs, widget)
@@ -34,8 +51,8 @@ class BoundField(boundfield.BoundField):
             else:
                 extra_classes.add('dj-required')
 
-        # field_css_classes is an optional member of a Form optimized for django-formset
-        field_css_classes = getattr(self.form, 'field_css_classes', None)
+        # field_css_classes is an optional member of a FormRenderer optimized for django-formset
+        field_css_classes = getattr(self.form.renderer, 'field_css_classes', None)
         if hasattr(field_css_classes, 'split'):
             extra_classes.update(field_css_classes.split())
         elif isinstance(field_css_classes, (list, tuple)):

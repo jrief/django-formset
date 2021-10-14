@@ -4,10 +4,14 @@ from formset.renderers.default import FormRenderer as DefaultFormRenderer
 class FormRenderer(DefaultFormRenderer):
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
         'django/forms/default.html': 'formset/foundation/form.html',
+        'django/forms/widgets/checkbox.html': 'formset/foundation/widgets/checkbox.html',
         'django/forms/widgets/radio.html': 'formset/foundation/widgets/multiple_input.html',
         'formset/default/widgets/file.html': 'formset/foundation/widgets/file.html',
         'django/forms/widgets/checkbox_select.html': 'formset/foundation/widgets/multiple_input.html',
     })
+
+    def _amend_label(self, context):
+        return super()._amend_label(context, hide_checkbox_label=True)
 
     def _amend_multiple_input(self, context):
         context = super()._amend_multiple_input(context)
@@ -18,6 +22,7 @@ class FormRenderer(DefaultFormRenderer):
         return context
 
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
+        'django/forms/label.html': _amend_label,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
     })

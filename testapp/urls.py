@@ -15,10 +15,10 @@ from testapp.views import SubscribeFormView
 framework_contexts = {
     None: None,
     'bootstrap': {'field_css_classes': 'mb-2'},
-    # 'bulma': {'field_css_classes': 'mb-2'},
-    # 'foundation': {},
-    # 'tailwind': {'field_css_classes': 'mb-5'},
-    # 'uikit': {'field_css_classes': 'uk-margin-bottom'},
+    'bulma': {'field_css_classes': 'mb-2'},
+    'foundation': {},
+    'tailwind': {'field_css_classes': 'mb-5'},
+    'uikit': {'field_css_classes': 'uk-margin-bottom'},
 }
 
 urlpatterns = [
@@ -29,10 +29,10 @@ for framework, attrs in framework_contexts.items():
     if framework:
         urlprefix = f'{framework}/'
         extra_context = dict(attrs, framework=framework)
-        attrs['default_renderer'] = default_renderer = import_string(f'formset.renderers.{framework}.FormRenderer')
-        SubscribeFormExtended = type('SubscribeForm', (FormMixin, SubscribeForm), attrs)
-        TripleFormCollectionClass = type('TripleFormCollection', (TripleFormCollection,), {'default_renderer': default_renderer})
-        NestedCollectionClass = type('TripleFormCollection', (NestedCollection,), {'default_renderer': default_renderer})
+        renderer = import_string(f'formset.renderers.{framework}.FormRenderer')(**attrs)
+        SubscribeFormExtended = type('SubscribeForm', (FormMixin, SubscribeForm), {'default_renderer': renderer})
+        TripleFormCollectionClass = type('TripleFormCollection', (TripleFormCollection,), {'default_renderer': renderer})
+        NestedCollectionClass = type('TripleFormCollection', (NestedCollection,), {'default_renderer': renderer})
     else:
         urlprefix = ''
         extra_context = None

@@ -1,11 +1,7 @@
 {% spaceless %}
 <django-field-group{% with css_classes=field.css_classes %}{% if css_classes %} class="{{ css_classes }}"{% endif %}{% endwith %}>
-	{% if field.widget_type == 'checkbox' %}
-	{% include "formset/bulma/checkbox_label.html" %}
-	{% else %}
-	{% if field.label %}{{ field.label_tag }}{% endif %}
+	{{ field.label_tag }}
 	{{ field }}
-	{% endif %}
 	{{ field.errors }}
 	{% with help_text=field.help_text %}
 		{% if help_text %}<p class="help">{{ help_text }}</p>{% endif %}

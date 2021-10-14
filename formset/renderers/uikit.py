@@ -4,6 +4,7 @@ from formset.renderers.default import FormRenderer as DefaultFormRenderer
 class FormRenderer(DefaultFormRenderer):
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
         'django/forms/default.html': 'formset/uikit/form.html',
+        'django/forms/widgets/checkbox.html': 'formset/uikit/widgets/checkbox.html',
         'django/forms/widgets/radio.html': 'formset/uikit/widgets/multiple_input.html',
         'formset/default/widgets/file.html': 'formset/uikit/widgets/file.html',
         'django/forms/widgets/checkbox_select.html': 'formset/uikit/widgets/multiple_input.html',
@@ -14,7 +15,7 @@ class FormRenderer(DefaultFormRenderer):
         return context
 
     def _amend_label(self, context):
-        context = super()._amend_label(context)
+        context = super()._amend_label(context, hide_checkbox_label=True)
         if not isinstance(context['attrs'], dict):
             context['attrs'] = {}
         css_classes = []

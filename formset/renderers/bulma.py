@@ -4,6 +4,7 @@ from formset.renderers.default import FormRenderer as DefaultFormRenderer
 class FormRenderer(DefaultFormRenderer):
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
         'django/forms/default.html': 'formset/bulma/form.html',
+        'django/forms/widgets/checkbox.html': 'formset/bulma/widgets/checkbox.html',
         'django/forms/widgets/radio.html': 'formset/bulma/widgets/multiple_input.html',
         'django/forms/widgets/select.html': 'formset/bulma/widgets/select.html',
         'formset/default/widgets/selectize.html': 'formset/bulma/widgets/select.html',
@@ -16,7 +17,7 @@ class FormRenderer(DefaultFormRenderer):
         return context
 
     def _amend_label(self, context):
-        context = super()._amend_label(context)
+        context = super()._amend_label(context, hide_checkbox_label=True)
         if not isinstance(context['attrs'], dict):
             context['attrs'] = {}
         css_classes = []
