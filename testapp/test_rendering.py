@@ -304,12 +304,43 @@ def check_field(framework, form, field_name, soup, initial):
 
     if framework == 'bootstrap':
         if widget_type in ['text', 'email', 'number', 'date', 'textarea', 'password']:
+            assert 'form-label' in label.attrs['class']
             assert 'form-control' in field_elem.attrs['class']
         elif widget_type in ['select']:
+            assert 'form-label' in label.attrs['class']
             assert 'form-select' in field_elem.attrs['class']
-        elif widget_type in ['checkbox', 'radio']:
+        elif widget_type in ['checkbox']:
             for input_elem in input_elems:
                 assert 'form-check-input' in input_elem.attrs['class']
+        elif widget_type in ['radio']:
+            if bf.subwidgets:
+                assert 'form-label' in label.attrs['class']
+            else:
+                assert 'form-check-label' in label.attrs['class']
+            for input_elem in input_elems:
+                assert 'form-check-input' in input_elem.attrs['class']
+
+    if framework == 'bulma':
+        if widget_type in ['text', 'email', 'number', 'date', 'password']:
+            assert 'label' in label.attrs['class']
+            assert 'input' in field_elem.attrs['class']
+        elif widget_type in ['textarea']:
+            assert 'label' in label.attrs['class']
+            assert 'textarea' in field_elem.attrs['class']
+        elif widget_type in ['select']:
+            assert 'label' in label.attrs['class']
+            assert 'class' not in field_elem.attrs
+            assert field_elem.parent('div', class_='select') is not None
+        elif widget_type == 'checkbox':
+            if allow_multiple_selected:
+                assert 'label' in label.attrs['class']
+            else:
+                assert 'checkbox' in label.attrs['class']
+            for input_elem in input_elems:
+                assert 'class' not in input_elem.attrs
+        elif widget_type == 'radio':
+            for input_elem in input_elems:
+                assert 'class' not in input_elem.attrs
 
     if framework == 'tailwind':
         if widget_type == 'text':

@@ -39,7 +39,7 @@ class FormRenderer(DefaultFormRenderer):
         return context
 
     def _amend_checkbox_select(self, context):
-        return self._amend_multiple_input(context, 'checkox mr-2')
+        return self._amend_multiple_input(context, 'checkbox mr-2')
 
     def _amend_radio(self, context):
         return self._amend_multiple_input(context, 'radio mr-1')
