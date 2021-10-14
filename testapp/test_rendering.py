@@ -165,7 +165,7 @@ class SubscribeFormView(FormView):
     success_url = '/success'
 
 
-@pytest.fixture(scope='session', params=['default', 'bootstrap', 'bulma', 'foundation', 'tailwind', 'uikit'])
+@pytest.fixture(scope='session', params=[None, 'bootstrap', 'bulma', 'foundation', 'tailwind', 'uikit'])
 def framework(request):
     return request.param
 
@@ -279,7 +279,7 @@ def check_field(framework, form, field_name, soup, initial):
 
     if bf.field.help_text:
         help_text = None
-        if framework == 'default':
+        if framework is None:
             help_text = field_group.find('span', class_='dj-help-text')
         elif framework == 'bootstrap':
             help_text = field_group.find('span', class_='form-text text-muted')
