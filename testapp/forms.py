@@ -1,6 +1,5 @@
 from django.core.exceptions import ValidationError
 from django.forms import forms, fields, widgets, models
-from django.urls import reverse_lazy
 
 from formset.collection import FormCollection
 from formset.widgets import Selectize, UploadedFileInput
@@ -232,10 +231,14 @@ class SelectForm(forms.Form):
     )
 
 
-class TripleFormCollection(FormCollection):
-    persona = PersonForm(initial=sample_persona_data)
+class DoubleFormCollection(FormCollection):
+    persona = PersonForm()
 
     upload = UploadForm()
+
+
+class TripleFormCollection(FormCollection):
+    double = DoubleFormCollection(initial=[{'persona': sample_persona_data}])
 
     select = SelectForm(initial=sample_selectize_data)
 
@@ -251,3 +254,9 @@ class NestedCollection(FormCollection):
     triple = TripleFormCollection()
 
     confirm = ConfirmForm()
+
+
+class ListCollection(FormCollection):
+    min_siblings = 1
+
+    double = DoubleFormCollection(initial=[{'persona': sample_persona_data}])

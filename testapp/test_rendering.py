@@ -22,8 +22,6 @@ http_request = RequestFactory().get('/')
 
 
 class SubscribeForm(forms.Form):
-    name = 'subscribe'
-
     CONTINENT_CHOICES = [
         ('', "––– please select –––"), ('am', "America"), ('eu', "Europe"), ('as', "Asia"),
         ('af', "Africa"), ('au', "Australia"), ('oc', "Oceania"), ('an', 'Antartica'),
@@ -197,10 +195,9 @@ def extended_view(request, initial):
 
 
 def check_field(framework, form, field_name, soup, initial):
-    form_name = form.name
     bf = form[field_name]
     initial_value = initial.get(field_name) if initial else None
-    field_elem = soup.find(id=f'{form_name}_id_{field_name}')
+    field_elem = soup.find(id=f'id_{field_name}')
     assert field_elem is not None
     widget_type = 'textarea' if isinstance(bf.field.widget, widgets.Textarea) else bf.field.widget.input_type
     allow_multiple_selected = getattr(bf.field.widget, 'allow_multiple_selected', False)
@@ -256,7 +253,6 @@ def check_field(framework, form, field_name, soup, initial):
         assert formset is not None
         assert len(formset.attrs.get('endpoint', '')) > 0
         form_elem = formset.find('form')
-        assert form_elem.attrs['name'] == form_name
         errors_elem = form_elem.find('div', class_='dj-form-errors')
         assert errors_elem is not None
         errorlist_elem = errors_elem.find('ul', class_='dj-errorlist')

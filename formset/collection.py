@@ -4,6 +4,7 @@ from django.forms.forms import BaseForm
 from django.forms.widgets import MediaDefiningClass
 from django.forms.utils import ErrorDict, RenderableMixin
 from django.utils.datastructures import MultiValueDict
+from django.utils.functional import cached_property
 
 from formset.renderers.default import FormRenderer
 from formset.utils import FormMixin, FormsetErrorList
@@ -17,17 +18,11 @@ class FormCollectionMeta(MediaDefiningClass):
         # Collect forms and sub-collections from current class and remove them from attrs.
         attrs['declared_holders'] = {}
         for key, value in list(attrs.items()):
-            if isinstance(value, BaseForm):
+            if isinstance(value, (BaseForm, BaseFormCollection)):
                 attrs.pop(key)
-                setattr(value, 'name', key)
-                if not isinstance(value, FormMixin):
+                setattr(value, '_name', key)
+                if isinstance(value, BaseForm) and not isinstance(value, FormMixin):
                     value.__class__ = type(value.__class__.__name__, (FormMixin, value.__class__), {})
-                attrs['declared_holders'][key] = value
-            elif isinstance(value, BaseFormCollection):
-                for subholder in attrs.pop(key):
-                    if hasattr(subholder, 'name'):
-                        subholder.name = f'{key}.{subholder.name}'
-                setattr(value, 'name', key)
                 attrs['declared_holders'][key] = value
 
         new_class = super().__new__(cls, name, bases, attrs)
@@ -57,16 +52,19 @@ class BaseFormCollection(RenderableMixin):
 
     template_name = 'formset/default/collection.html'
 
-    def __init__(self, data=None, renderer=None):
+    def __init__(self, data=None, initial=None, renderer=None):
         self.data = MultiValueDict() if data is None else data
+        self.initial = initial
         self._errors = None  # Stores the errors after clean() has been called.
 
         # The declared_holders class attribute is the *class-wide* definition of
-        # forms. Because a particular *instance* of the class might want to
-        # alter self.forms, we create self.forms here by copying declared_holders.
+        # collections and/or forms. Because a particular *instance* of the class might
+        # want to alter self.holders, we create self.forms here by copying declared_holders.
         # Instances should always modify self.forms; they should not modify
         # self.declared_holders.
         self.holders = copy.deepcopy(self.declared_holders)
+        for holder in self.holders.values():
+            holder.parent_collection = self
 
         # Initialize form renderer. Use a global default if not specified
         # either as an argument or as self.default_renderer.
@@ -76,9 +74,22 @@ class BaseFormCollection(RenderableMixin):
                 renderer = renderer()
         self.set_form_renderer(renderer)
 
+    @cached_property
+    def name(self):
+        if name := getattr(self, '_name', None):
+            parent_collection = getattr(self, 'parent_collection', None)
+            if parent_collection and parent_collection.name:
+                return f'{parent_collection.name}.{name}'
+            else:
+                return name
+
     def __iter__(self):
-        for holder in self.holders.values():
-            yield holder
+        for name, holder in self.holders.items():
+            if self.is_multiple:
+                for i in range(2):
+                    yield holder
+            else:
+                yield holder
 
     def get_context(self):
         return {
@@ -108,6 +119,10 @@ class BaseFormCollection(RenderableMixin):
 
     def clean(self):
         return self.cleaned_data
+
+    @property
+    def is_multiple(self):
+        return getattr(self, 'min_siblings', 0) > 0
 
     def set_form_renderer(self, renderer):
         self.renderer = renderer

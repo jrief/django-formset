@@ -1,3 +1,5 @@
+<django-form-collection min-siblings="{{ collection.min_siblings }}"{% if collection.name %} name="{{ collection.name }}"{% endif %}>
 {% for holder in collection %}
 	{{ holder }}
 {% endfor %}
+</django-form-collection>
