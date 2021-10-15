@@ -743,6 +743,15 @@ class DjangoButton {
 		}
 	}
 
+	/**
+	 * Dummy action to be called in case of empty actionsQueue.
+ 	 */
+	private noop() {
+		return (response: Response) => {
+			return Promise.resolve(response);
+		}
+	}
+
 	private restore() {
 		return () => {
 			this.element.setAttribute('class', this.initialClass);
@@ -761,6 +770,10 @@ class DjangoButton {
 				if (typeof func !== 'function')
 					throw new Error(`Unknown function '${action.funcname}'.`);
 				actions.push(new ButtonAction(func, action.args));
+			}
+			if (actions.length === 0) {
+				// the actionsQueue must resolve at least once
+				actions.push(new ButtonAction(self.noop, []));
 			}
 		}
 
