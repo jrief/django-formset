@@ -16,17 +16,6 @@ class FormCollectionMeta(MediaDefiningClass):
     def __new__(cls, name, bases, attrs):
         # Collect forms and sub-collections from current class and remove them from attrs.
         attrs['declared_holders'] = {}
-        default_renderer = attrs.get('default_renderer')
-        if not default_renderer:
-            for base in bases:
-                if hasattr(base, 'default_renderer'):
-                    default_renderer = base.default_renderer
-                    break
-            else:
-                default_renderer = FormRenderer
-        if isinstance(default_renderer, type):
-            default_renderer = default_renderer()
-
         for key, value in list(attrs.items()):
             if isinstance(value, BaseForm):
                 attrs.pop(key)
@@ -46,7 +35,7 @@ class FormCollectionMeta(MediaDefiningClass):
         # Walk through the MRO.
         declared_holders = {}
         for base in reversed(new_class.__mro__):
-            # Collect Forms from base class.
+            # Collect Form and FormCollection instances from base classes.
             if hasattr(base, 'declared_holders'):
                 declared_holders.update(base.declared_holders)
 
@@ -55,12 +44,6 @@ class FormCollectionMeta(MediaDefiningClass):
                 if value is None and attr in declared_holders:
                     declared_holders.pop(attr)
 
-        for holder in declared_holders.values():
-            if isinstance(holder, BaseForm):
-                holder.renderer = default_renderer
-                holder.error_class = FormsetErrorList
-            elif isinstance(holder, BaseFormCollection):
-                holder.renderer = default_renderer
         new_class.declared_holders = declared_holders
 
         return new_class
@@ -91,7 +74,7 @@ class BaseFormCollection(RenderableMixin):
             renderer = self.default_renderer
             if isinstance(self.default_renderer, type):
                 renderer = renderer()
-        self.renderer = renderer
+        self.set_form_renderer(renderer)
 
     def __iter__(self):
         for holder in self.holders.values():
@@ -125,6 +108,15 @@ class BaseFormCollection(RenderableMixin):
 
     def clean(self):
         return self.cleaned_data
+
+    def set_form_renderer(self, renderer):
+        self.renderer = renderer
+        for holder in self.holders.values():
+            if isinstance(holder, BaseFormCollection):
+                holder.set_form_renderer(renderer)
+            elif isinstance(holder, BaseForm):
+                holder.renderer = renderer
+                holder.error_class = FormsetErrorList
 
 
 class FormCollection(BaseFormCollection, metaclass=FormCollectionMeta):
