@@ -210,7 +210,7 @@ class FieldGroup {
 	public readonly element: HTMLElement;
 	private readonly pristineValue: BoundValue;
 	private readonly inputElements: Array<FieldElement>;
-	private readonly errorPlaceholder: Element | null;
+	public readonly errorPlaceholder: Element | null;
 	private readonly errorMessages: ErrorMessages;
 	private readonly fileUploader: FileUploadWidget | null = null;
 
@@ -733,12 +733,26 @@ class DjangoButton {
 	}
 
 	/**
-	 * For debugging purpose only: Intercept, log and forward the response to the next handler.
+	 * For debugging purpose only: Intercept, log and forward the response object to the next handler.
  	 */
 	// @ts-ignore
 	private intercept() {
 		return (response: Response) => {
 			console.info(response);
+			return Promise.resolve(response);
+		}
+	}
+
+	/**
+	 * Scroll to first element reporting an error.
+ 	 */
+	// @ts-ignore
+	private scrollToError() {
+		return (response: Response) => {
+			const errorReportElement = this.formset.findFirstErrorReport();
+			if (errorReportElement) {
+				errorReportElement.scrollIntoView({behavior: 'smooth'});
+			}
 			return Promise.resolve(response);
 		}
 	}
@@ -888,6 +902,16 @@ class DjangoForm {
 				fieldGroup.reportCustomError(fieldErrors[0]);
 			}
 		}
+	}
+
+	findFirstErrorReport() : Element | null {
+		if (this.errorList?.textContent)
+			return this.element;  // report a non-field error
+		for (const fieldGroup of this.fieldGroups) {
+			if (fieldGroup.errorPlaceholder?.textContent)
+				return fieldGroup.element;
+		}
+		return null;
 	}
 }
 
@@ -1066,6 +1090,15 @@ export class DjangoFormset {
 
 	public getDataValue(path: string) {
 		return getDataValue(this.data, path);
+	}
+
+	findFirstErrorReport() : Element | null {
+		for (const form of this.forms) {
+			const errorReportElement = form.findFirstErrorReport();
+			if (errorReportElement)
+				return errorReportElement;
+		}
+		return null;
 	}
 }
 

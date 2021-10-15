@@ -1,2 +1,2 @@
-<button type="button" click="{{ click_actions|default:'disable -> submit -> proceed' }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="btn btn-primary">Submit</button>
+<button type="button" click="{{ click_actions|default:'disable -> submit -> proceed !~ scrollToError ' }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="btn btn-primary">Submit</button>
 <button type="button" click="reset" class="ms-2 btn btn-warning">Reset to initial</button>
