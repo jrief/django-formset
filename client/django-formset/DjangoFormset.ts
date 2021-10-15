@@ -1025,15 +1025,14 @@ export class DjangoFormset {
 				signal: this.abortController.signal,
 			});
 			if (response.status === 422) {
-				response.json().then(body => {
-					for (const form of this.forms) {
-						const errors = getDataValue(body, form.name);
-						if (errors) {
-							form.reportCustomErrors(new Map(Object.entries(errors)));
-							form.reportValidity();
-						}
+				const body = await response.json();
+				for (const form of this.forms) {
+					const errors = getDataValue(body, form.name);
+					if (errors) {
+						form.reportCustomErrors(new Map(Object.entries(errors)));
+						form.reportValidity();
 					}
-				});
+				}
 			}
 			return response;
 		} else {
