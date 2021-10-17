@@ -5,7 +5,7 @@ from formset.collection import FormCollection
 from formset.widgets import Selectize, UploadedFileInput
 
 from testapp.models import PayloadModel, OpinionModel
-from testapp.sampledata import sample_persona_data, sample_selectize_data
+from testapp.sampledata import sample_persona_data, sample_personb_data, sample_selectize_data
 from testapp.validators import validate_password
 
 
@@ -219,7 +219,7 @@ class SelectForm(forms.Form):
     )
 
     opinion = models.ModelChoiceField(
-        label="Selectize",
+        label="Opinion",
         queryset=OpinionModel.objects.filter(tenant=1),
         widget=Selectize(search_lookup='label__icontains', placeholder="Select my option"),
         required=True,
@@ -240,7 +240,9 @@ class DoubleFormCollection(FormCollection):
 
 
 class TripleFormCollection(FormCollection):
-    double = DoubleFormCollection(initial=[{'persona': sample_persona_data}])
+    min_siblings = 1
+
+    double = DoubleFormCollection(initial=[{'persona': sample_persona_data}, {'persona': sample_personb_data}])
 
     select = SelectForm(initial=sample_selectize_data)
 

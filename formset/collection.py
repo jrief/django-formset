@@ -98,7 +98,7 @@ class BaseFormCollection(RenderableMixin):
                 for name, declared_holder in self.declared_holders.items():
                     holder = declared_holder.__class__(data=data.get(name))
                     if holder.is_valid():
-                        self.cleaned_data[-1]['name'] = holder.cleaned_data
+                        self.cleaned_data[-1][name] = holder.cleaned_data
                     else:
                         self._errors.extend([{}] * (index - len(self._errors)))
                         self._errors.append({name: holder.errors.data})
@@ -144,7 +144,9 @@ class BaseFormCollection(RenderableMixin):
         for name, declared_holder in self.declared_holders.items():
             prefix = f'{self.prefix}.{name}' if self.prefix else name
             data = self.data.get(name)
-            initial = self.initial.get(name) if self.initial else None
+            initial = None
+            if isinstance(self.initial, dict):
+                initial = self.initial.get(name)
             if initial is None:
                 initial = declared_holder.initial
             holder = declared_holder.__class__(data=data, initial=initial, prefix=prefix)
@@ -159,26 +161,29 @@ class BaseFormCollection(RenderableMixin):
             if not isinstance(self.data, list):
                 raise FormCollectionError(errmsg.format(class_name=self.__class__.__name__, argument='data'))
             num_instances = max(num_instances, len(self.data))
-        if self.initial is not None:
+        if self.initial:
             if not isinstance(self.initial, list):
                 raise FormCollectionError(errmsg.format(class_name=self.__class__.__name__, argument='initial'))
             num_instances = max(num_instances, len(self.initial))
         for index in range(num_instances):
+            first = True
             for name, declared_holder in self.declared_holders.items():
                 prefix = f'{self.prefix}.{index}.{name}' if self.prefix else f'{index}.{name}'
                 try:
                     data = self.data[index][name]
                 except (IndexError, KeyError, TypeError):
                     data = None
-                try:
-                    initial = self.initial[index][name]
-                except (IndexError, KeyError, TypeError):
-                    try:
-                        initial = declared_holder.initial[index]
-                    except (IndexError, KeyError):
-                        initial = None
+                initial = None
+                if self.initial and index < len(self.initial):
+                    initial = self.initial[index].get(name)
+                if initial is None:
+                    initial = declared_holder.initial
                 holder = declared_holder.__class__(data=data, initial=initial, prefix=prefix)
+                if first:
+                    holder.is_first = True
+                    first = False
                 instantiated_holders.append(holder)
+            holder.is_last = True
         return instantiated_holders
 
 

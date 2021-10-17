@@ -8,7 +8,7 @@ from django.views.generic import TemplateView
 from formset.views import FormCollectionView
 from formset.utils import FormMixin
 
-from testapp.forms import SubscribeForm, UploadForm, PersonForm, SelectForm, TripleFormCollection, NestedCollection, MultipleCollection
+from testapp.forms import SubscribeForm, UploadForm, PersonForm, SelectForm, DoubleFormCollection, TripleFormCollection, NestedCollection, MultipleCollection
 from testapp.views import SubscribeFormView
 
 
@@ -31,6 +31,7 @@ for framework, attrs in framework_contexts.items():
         extra_context = dict(attrs, framework=framework)
         renderer = import_string(f'formset.renderers.{framework}.FormRenderer')(**attrs)
         SubscribeFormExtended = type('SubscribeForm', (FormMixin, SubscribeForm), {'default_renderer': renderer})
+        DoubleFormCollectionClass = type('DoubleFormCollection', (DoubleFormCollection,), {'default_renderer': renderer})
         TripleFormCollectionClass = type('TripleFormCollection', (TripleFormCollection,), {'default_renderer': renderer})
         NestedCollectionClass = type('NestedCollection', (NestedCollection,), {'default_renderer': renderer})
         MultipleCollectionClass = type('MultipleCollection', (MultipleCollection,), {'default_renderer': renderer})
@@ -38,6 +39,7 @@ for framework, attrs in framework_contexts.items():
         urlprefix = ''
         extra_context = None
         SubscribeFormExtended = type('SubscribeForm', (FormMixin, SubscribeForm), {})
+        DoubleFormCollectionClass = DoubleFormCollection
         TripleFormCollectionClass = TripleFormCollection
         NestedCollectionClass = NestedCollection
         MultipleCollectionClass = MultipleCollection
@@ -72,7 +74,13 @@ for framework, attrs in framework_contexts.items():
             template_name='testapp/native-form.html',
             extra_context=extra_context,
         )),
-        path(f'{urlprefix}collection', FormCollectionView.as_view(
+        path(f'{urlprefix}double', FormCollectionView.as_view(
+            collection_class=DoubleFormCollectionClass,
+            success_url=reverse_lazy('form_data_valid'),
+            template_name='testapp/form-collection.html',
+            extra_context=extra_context,
+        )),
+        path(f'{urlprefix}triple', FormCollectionView.as_view(
             collection_class=TripleFormCollectionClass,
             success_url=reverse_lazy('form_data_valid'),
             template_name='testapp/form-collection.html',

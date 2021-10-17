@@ -31,6 +31,14 @@ sample_persona_data = {
 }
 
 
+sample_personb_data = {
+    'first_name': "Tim",
+    'last_name': "Cook",
+    'gender': 'm',
+    'accept': True,
+}
+
+
 sample_selectize_data = {
     'choice': 2,
     'opinion': lambda: OpinionModel.objects.filter(tenant=1)[6],
