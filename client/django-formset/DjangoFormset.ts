@@ -916,10 +916,22 @@ class DjangoForm {
 }
 
 
+class DjangoFormCollection {
+	public readonly formset: DjangoFormset;
+	public readonly element: Element;
+
+	constructor(formset: DjangoFormset, element: Element) {
+		this.formset = formset;
+		this.element = element;
+	}
+}
+
+
 export class DjangoFormset {
 	private readonly element: DjangoFormsetElement;
 	private readonly buttons = Array<DjangoButton>(0);
 	private readonly forms = Array<DjangoForm>(0);
+	private readonly formCollections = Array<DjangoFormCollection>(0);
 	private readonly abortController = new AbortController;
 	private data = {};
 
@@ -981,6 +993,10 @@ export class DjangoFormset {
 				throw new Error(`Detected more than one <form name="${form.name}"> in <django-formset>`);
 			this.forms.push(form);
 			formNames.push(form.name);
+			const formCollection = element.closest('django-form-collection');
+			if (formCollection) {
+				this.formCollections.push(new DjangoFormCollection(this, formCollection));
+			}
 		}
 	}
 

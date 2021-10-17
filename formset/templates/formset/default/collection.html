@@ -1,9 +1,5 @@
-{% if collection.has_many %}
-<django-form-collection min-siblings="{{ collection.min_siblings }}"{% if collection.prefix %} name="{{ collection.prefix }}"{% endif %}>
-{% endif %}
 {% for holder in collection %}
+	{% if holder.is_first %}<django-form-collection min-siblings="{{ collection.min_siblings }}"{% if collection.prefix %} name="{{ collection.prefix }}"{% endif %}>{% endif %}
 	{{ holder }}
+	{% if holder.is_last %}</django-form-collection>{% endif %}
 {% endfor %}
-{% if collection.has_many %}
-</django-form-collection>
-{% endif %}
