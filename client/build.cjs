@@ -18,7 +18,8 @@ build({
           sass.render(
             {
               data: contents,
-              includePaths: [path.dirname(args.path)]
+              includePaths: [path.dirname(args.path)],
+              outputStyle: 'compressed'
             },
             (err, result) => {
               if (err) {
