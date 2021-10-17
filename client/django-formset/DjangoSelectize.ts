@@ -3,10 +3,8 @@ import { TomSettings } from 'tom-select/src/types/settings';
 import { TomInput } from 'tom-select/src/types';
 import template from 'lodash.template';
 
-const shadowStyleElement = document.createElement('style');
 import styles from 'sass:./DjangoSelectize.scss';
 import {escape_html} from "tom-select/src/utils";
-shadowStyleElement.textContent = styles.replaceAll('\n', '');
 
 type Renderer = {
 	[key:string]: (data:any, escape:typeof escape_html) => string|HTMLElement
@@ -71,7 +69,8 @@ class DjangoSelectize {
 		const shadowWrapper = document.createElement('div');
 		shadowWrapper.classList.add('shadow-wrapper');
 		const shadowRoot = shadowWrapper.attachShadow({mode: 'open', delegatesFocus: true});
-		shadowRoot.appendChild(shadowStyleElement);
+		const shadowStyleElement = document.createElement('style');
+		shadowRoot.appendChild(shadowStyleElement).textContent = styles;
 		this.tomInput.insertAdjacentElement('afterend', shadowWrapper);
 		const wrapper = (this.tomInput.parentElement as HTMLElement).removeChild(this.tomSelect.wrapper);
 		shadowRoot.appendChild(wrapper);
@@ -92,7 +91,7 @@ class DjangoSelectize {
 	private transferStyles(tomInput: HTMLElement, nativeStyles: CSSStyleDeclaration) {
 		const wrapperStyle = (this.shadowRoot.host as HTMLElement).style;
 		wrapperStyle.setProperty('display', nativeStyles.display);
-		const sheet = shadowStyleElement.sheet as CSSStyleSheet;
+		const sheet = this.shadowRoot.styleSheets[0];
 		for (let index = 0; index < sheet.cssRules.length; index++) {
 			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
 			const lineHeight = window.getComputedStyle(tomInput).getPropertyValue('line-height');
