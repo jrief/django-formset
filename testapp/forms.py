@@ -238,7 +238,7 @@ class DoubleFormCollection(FormCollection):
 
 
 class TripleFormCollection(FormCollection):
-    double = DoubleFormCollection(initial=[{'persona': sample_persona_data}])
+    double = DoubleFormCollection(initial={'persona': sample_persona_data})
 
     select = SelectForm(initial=sample_selectize_data)
 
@@ -256,7 +256,7 @@ class NestedCollection(FormCollection):
     confirm = ConfirmForm()
 
 
-class ListCollection(FormCollection):
+class MultipleCollection(FormCollection):
     min_siblings = 1
 
-    double = DoubleFormCollection(initial=[{'persona': sample_persona_data}])
+    double = DoubleFormCollection(initial={'persona': sample_persona_data})

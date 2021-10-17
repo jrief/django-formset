@@ -51,17 +51,14 @@ class FormMixin:
     def form_id(self):
         # The "form" tag is used to link fields to their form owner
         # See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-form for details
-        if self.name and self.auto_id and '%s' in str(self.auto_id):
-            return self.auto_id % self.name
+        if self.prefix and self.auto_id and '%s' in str(self.auto_id):
+            return self.auto_id % self.prefix
 
-    @cached_property
-    def name(self):
-        if name := getattr(self, '_name', None):
-            parent_collection = getattr(self, 'parent_collection', None)
-            if parent_collection and parent_collection.name:
-                return f'{parent_collection.name}.{name}'
-            else:
-                return name
+    def add_prefix(self, field_name):
+        """
+        Return the field name with a prefix appended, if this Form has a prefix set.
+        """
+        return f'{self.prefix}.{field_name}' if self.prefix else field_name
 
     def get_context(self):
         return {

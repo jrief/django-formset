@@ -8,7 +8,7 @@ from django.views.generic import TemplateView
 from formset.views import FormCollectionView
 from formset.utils import FormMixin
 
-from testapp.forms import SubscribeForm, UploadForm, PersonForm, SelectForm, TripleFormCollection, NestedCollection, ListCollection
+from testapp.forms import SubscribeForm, UploadForm, PersonForm, SelectForm, TripleFormCollection, NestedCollection, MultipleCollection
 from testapp.views import SubscribeFormView
 
 
@@ -33,14 +33,14 @@ for framework, attrs in framework_contexts.items():
         SubscribeFormExtended = type('SubscribeForm', (FormMixin, SubscribeForm), {'default_renderer': renderer})
         TripleFormCollectionClass = type('TripleFormCollection', (TripleFormCollection,), {'default_renderer': renderer})
         NestedCollectionClass = type('NestedCollection', (NestedCollection,), {'default_renderer': renderer})
-        ListCollectionClass = type('ListCollection', (ListCollection,), {'default_renderer': renderer})
+        MultipleCollectionClass = type('MultipleCollection', (MultipleCollection,), {'default_renderer': renderer})
     else:
         urlprefix = ''
         extra_context = None
         SubscribeFormExtended = type('SubscribeForm', (FormMixin, SubscribeForm), {})
         TripleFormCollectionClass = TripleFormCollection
         NestedCollectionClass = NestedCollection
-        ListCollectionClass = ListCollection
+        MultipleCollectionClass = MultipleCollection
 
     urlpatterns.extend([
         path(f'{urlprefix}subscribe.native-form', SubscribeFormView.as_view(
@@ -84,8 +84,8 @@ for framework, attrs in framework_contexts.items():
             template_name='testapp/form-collection.html',
             extra_context=extra_context,
         )),
-        path(f'{urlprefix}list', FormCollectionView.as_view(
-            collection_class=ListCollectionClass,
+        path(f'{urlprefix}multiple', FormCollectionView.as_view(
+            collection_class=MultipleCollectionClass,
             success_url=reverse_lazy('form_data_valid'),
             template_name='testapp/form-collection.html',
             extra_context=extra_context,

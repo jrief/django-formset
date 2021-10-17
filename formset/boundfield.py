@@ -25,10 +25,21 @@ class BoundField(boundfield.BoundField):
         return errors
 
     def as_widget(self, widget=None, attrs=None, only_initial=False):
+        widget = widget or self.field.widget
         if self.widget_type == 'checkbox':
-            widget = widget or self.field.widget
             widget.__class__ = type(widget.__class__.__name__, (CheckboxInputMixin, widget.__class__), {'label': self.label})
-        return super().as_widget(widget, attrs, only_initial)
+        if self.field.localize:
+            widget.is_localized = True
+        attrs = attrs or {}
+        attrs = self.build_widget_attrs(attrs, widget)
+        if self.auto_id and 'id' not in widget.attrs:
+            attrs.setdefault('id', self.html_initial_id if only_initial else self.auto_id)
+        return widget.render(
+            name=self.name,  # `self.html_name` contains the full path and hence doesn't work with form collections
+            value=self.value(),
+            attrs=attrs,
+            renderer=self.form.renderer,
+        )
 
     def build_widget_attrs(self, attrs, widget=None):
         attrs = super().build_widget_attrs(attrs, widget)

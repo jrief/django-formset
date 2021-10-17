@@ -49,22 +49,16 @@ class BaseFormCollection(RenderableMixin):
     The main implementation of all the FormCollection logic.
     """
     default_renderer = FormRenderer
-
+    prefix = None
     template_name = 'formset/default/collection.html'
 
-    def __init__(self, data=None, initial=None, renderer=None):
+    def __init__(self, data=None, initial=None, renderer=None, prefix=None):
         self.data = MultiValueDict() if data is None else data
         self.initial = initial
+        if prefix is not None:
+            self.prefix = prefix
         self._errors = None  # Stores the errors after clean() has been called.
-
-        # The declared_holders class attribute is the *class-wide* definition of
-        # collections and/or forms. Because a particular *instance* of the class might
-        # want to alter self.holders, we create self.forms here by copying declared_holders.
-        # Instances should always modify self.forms; they should not modify
-        # self.declared_holders.
-        self.holders = copy.deepcopy(self.declared_holders)
-        for holder in self.holders.values():
-            holder.parent_collection = self
+        self.holders = self.instantiate_holders()
 
         # Initialize form renderer. Use a global default if not specified
         # either as an argument or as self.default_renderer.
@@ -74,22 +68,9 @@ class BaseFormCollection(RenderableMixin):
                 renderer = renderer()
         self.set_form_renderer(renderer)
 
-    @cached_property
-    def name(self):
-        if name := getattr(self, '_name', None):
-            parent_collection = getattr(self, 'parent_collection', None)
-            if parent_collection and parent_collection.name:
-                return f'{parent_collection.name}.{name}'
-            else:
-                return name
-
     def __iter__(self):
-        for name, holder in self.holders.items():
-            if self.is_multiple:
-                for i in range(2):
-                    yield holder
-            else:
-                yield holder
+        for holder in self.holders:
+            yield holder
 
     def get_context(self):
         return {
@@ -110,8 +91,8 @@ class BaseFormCollection(RenderableMixin):
     def full_clean(self):
         self._errors = ErrorDict()
         self.cleaned_data = {}
-        for name, holder in self.holders.items():
-            holder = holder.__class__(data=self.data.get(name))
+        for name, declared_holder in self.declared_holders.items():
+            holder = declared_holder.__class__(data=self.data.get(name))
             if holder.is_valid():
                 self.cleaned_data[name] = holder.cleaned_data
             else:
@@ -126,12 +107,41 @@ class BaseFormCollection(RenderableMixin):
 
     def set_form_renderer(self, renderer):
         self.renderer = renderer
-        for holder in self.holders.values():
+        for holder in self.holders:
             if isinstance(holder, BaseFormCollection):
                 holder.set_form_renderer(renderer)
             elif isinstance(holder, BaseForm):
                 holder.renderer = renderer
                 holder.error_class = FormsetErrorList
+            else:
+                raise RuntimeError("Should never reach this line")  # noqa
+
+    def instantiate_holders(self):
+        """
+        # The declared_holders class attribute is the *class-wide* definition of
+        # collections and/or forms. Because a particular *instance* of the class might
+        # want to alter self.holders, we create it here by instantiating each entity of
+        # declared_holder again.
+        """
+        instantiated_holders = []
+        for name, declared_holder in self.declared_holders.items():
+            data = self.data.get(name) if self.data else None
+            initial = self.initial.get(name) if self.initial else None
+            if self.is_multiple:
+                num_instances = max(len(data or []), len(initial or []), 2)
+                for index in range(num_instances):
+                    data = data[index] if data else None
+                    initial = initial[index] if initial else None
+                    prefix = f'{self.prefix}.{name}[{index}]' if self.prefix else f'{name}[{index}]'
+                    holder = declared_holder.__class__(data=data, initial=initial, prefix=prefix)
+                    instantiated_holders.append(holder)
+            else:
+                prefix = f'{self.prefix}.{name}' if getattr(self, 'prefix', None) else name
+                if initial is None:
+                    initial = declared_holder.initial
+                holder = declared_holder.__class__(data=data, initial=initial, prefix=prefix)
+                instantiated_holders.append(holder)
+        return instantiated_holders
 
 
 class FormCollection(BaseFormCollection, metaclass=FormCollectionMeta):
