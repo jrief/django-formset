@@ -1,11 +1,9 @@
-import copy
-
 from django.forms.forms import BaseForm
 from django.forms.widgets import MediaDefiningClass
-from django.forms.utils import ErrorDict, RenderableMixin
+from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
 from django.utils.datastructures import MultiValueDict
-from django.utils.functional import cached_property
 
+from formset.exceptions import FormCollectionError
 from formset.renderers.default import FormRenderer
 from formset.utils import FormMixin, FormsetErrorList
 
@@ -58,7 +56,10 @@ class BaseFormCollection(RenderableMixin):
         if prefix is not None:
             self.prefix = prefix
         self._errors = None  # Stores the errors after clean() has been called.
-        self.holders = self.instantiate_holders()
+        if self.has_many:
+            self.holders = self.instantiate_many_holders()
+        else:
+            self.holders = self.instantiate_holders()
 
         # Initialize form renderer. Use a global default if not specified
         # either as an argument or as self.default_renderer.
@@ -89,20 +90,36 @@ class BaseFormCollection(RenderableMixin):
         return not self.errors
 
     def full_clean(self):
-        self._errors = ErrorDict()
-        self.cleaned_data = {}
-        for name, declared_holder in self.declared_holders.items():
-            holder = declared_holder.__class__(data=self.data.get(name))
-            if holder.is_valid():
-                self.cleaned_data[name] = holder.cleaned_data
-            else:
-                self._errors.update({name: holder.errors.data})
+        if self.has_many:
+            self.cleaned_data = []
+            self._errors = ErrorList()
+            for index, data in enumerate(self.data):
+                self.cleaned_data.append({})
+                for name, declared_holder in self.declared_holders.items():
+                    holder = declared_holder.__class__(data=data.get(name))
+                    if holder.is_valid():
+                        self.cleaned_data[-1]['name'] = holder.cleaned_data
+                    else:
+                        self._errors.extend([{}] * (index - len(self._errors)))
+                        self._errors.append({name: holder.errors.data})
+        else:
+            self.cleaned_data = {}
+            self._errors = ErrorDict()
+            for name, declared_holder in self.declared_holders.items():
+                holder = declared_holder.__class__(data=self.data.get(name))
+                if holder.is_valid():
+                    self.cleaned_data[name] = holder.cleaned_data
+                else:
+                    self._errors.update({name: holder.errors.data})
 
     def clean(self):
         return self.cleaned_data
 
     @property
-    def is_multiple(self):
+    def has_many(self):
+        """
+        Returns True if current FormCollection manages a list of sibling forms.
+        """
         return getattr(self, 'min_siblings', 0) > 0
 
     def set_form_renderer(self, renderer):
@@ -125,20 +142,41 @@ class BaseFormCollection(RenderableMixin):
         """
         instantiated_holders = []
         for name, declared_holder in self.declared_holders.items():
-            data = self.data.get(name) if self.data else None
+            prefix = f'{self.prefix}.{name}' if self.prefix else name
+            data = self.data.get(name)
             initial = self.initial.get(name) if self.initial else None
-            if self.is_multiple:
-                num_instances = max(len(data or []), len(initial or []), 2)
-                for index in range(num_instances):
-                    data = data[index] if data else None
-                    initial = initial[index] if initial else None
-                    prefix = f'{self.prefix}.{name}[{index}]' if self.prefix else f'{name}[{index}]'
-                    holder = declared_holder.__class__(data=data, initial=initial, prefix=prefix)
-                    instantiated_holders.append(holder)
-            else:
-                prefix = f'{self.prefix}.{name}' if getattr(self, 'prefix', None) else name
-                if initial is None:
-                    initial = declared_holder.initial
+            if initial is None:
+                initial = declared_holder.initial
+            holder = declared_holder.__class__(data=data, initial=initial, prefix=prefix)
+            instantiated_holders.append(holder)
+        return instantiated_holders
+
+    def instantiate_many_holders(self):
+        instantiated_holders = []
+        num_instances = 2
+        errmsg = "{class_name} is declared to have siblings, but provided argument `{argument}` is not a list"
+        if self.data:
+            if not isinstance(self.data, list):
+                raise FormCollectionError(errmsg.format(class_name=self.__class__.__name__, argument='data'))
+            num_instances = max(num_instances, len(self.data))
+        if self.initial is not None:
+            if not isinstance(self.initial, list):
+                raise FormCollectionError(errmsg.format(class_name=self.__class__.__name__, argument='initial'))
+            num_instances = max(num_instances, len(self.initial))
+        for index in range(num_instances):
+            for name, declared_holder in self.declared_holders.items():
+                prefix = f'{self.prefix}.{index}.{name}' if self.prefix else f'{index}.{name}'
+                try:
+                    data = self.data[index][name]
+                except (IndexError, KeyError, TypeError):
+                    data = None
+                try:
+                    initial = self.initial[index][name]
+                except (IndexError, KeyError, TypeError):
+                    try:
+                        initial = declared_holder.initial[index]
+                    except (IndexError, KeyError):
+                        initial = None
                 holder = declared_holder.__class__(data=data, initial=initial, prefix=prefix)
                 instantiated_holders.append(holder)
         return instantiated_holders

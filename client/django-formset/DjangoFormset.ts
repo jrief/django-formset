@@ -1004,7 +1004,7 @@ export class DjangoFormset {
 	private aggregateValues() {
 		this.data = {};
 		for (const form of this.forms) {
-			setDataValue(this.data, form.name, Object.fromEntries(form.aggregateValues()));
+			setDataValue(this.data, form.name.split('.'), Object.fromEntries(form.aggregateValues()));
 		}
 		for (const form of this.forms) {
 			form.updateVisibility();
@@ -1051,10 +1051,12 @@ export class DjangoFormset {
 			if (response.status === 422) {
 				const body = await response.json();
 				for (const form of this.forms) {
-					const errors = getDataValue(body, form.name);
+					const errors = getDataValue(body, form.name.split('.'), null);
 					if (errors) {
 						form.reportCustomErrors(new Map(Object.entries(errors)));
 						form.reportValidity();
+					} else {
+						form.resetCustomError();
 					}
 				}
 			}
@@ -1088,8 +1090,8 @@ export class DjangoFormset {
 		}
 	}
 
-	public getDataValue(path: string) {
-		return getDataValue(this.data, path);
+	public getDataValue(path: string) : string | null{
+		return getDataValue(this.data, path.split('.'), null);
 	}
 
 	findFirstErrorReport() : Element | null {
