@@ -2,6 +2,7 @@ from django.forms.forms import BaseForm
 from django.forms.widgets import MediaDefiningClass
 from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
 from django.utils.datastructures import MultiValueDict
+from django.utils.functional import cached_property
 
 from formset.exceptions import FormCollectionError
 from formset.renderers.default import FormRenderer
@@ -56,10 +57,6 @@ class BaseFormCollection(RenderableMixin):
         if prefix is not None:
             self.prefix = prefix
         self._errors = None  # Stores the errors after clean() has been called.
-        if self.has_many:
-            self.holders = self.instantiate_many_holders()
-        else:
-            self.holders = self.instantiate_holders()
 
         # Initialize form renderer. Use a global default if not specified
         # either as an argument or as self.default_renderer.
@@ -67,11 +64,59 @@ class BaseFormCollection(RenderableMixin):
             renderer = self.default_renderer
             if isinstance(self.default_renderer, type):
                 renderer = renderer()
-        self.set_form_renderer(renderer)
+        self.renderer = renderer
+
+    def iter_single(self):
+        for name, declared_holder in self.declared_holders.items():
+            prefix = f'{self.prefix}.{name}' if self.prefix else name
+            initial = None
+            if isinstance(self.initial, dict):
+                initial = self.initial.get(name)
+            if initial is None:
+                initial = declared_holder.initial
+            holder = declared_holder.__class__(initial=initial, prefix=prefix, renderer=self.renderer)
+            yield holder
+
+    def iter_many(self):
+        num_instances = 2
+        if self.initial:
+            if not isinstance(self.initial, list):
+                errmsg = "{class_name} is declared to have siblings, but provided argument `{argument}` is not a list"
+                raise FormCollectionError(errmsg.format(class_name=self.__class__.__name__, argument='initial'))
+            num_instances = max(num_instances, len(self.initial))
+        first, last = 0, len(self.declared_holders.items()) - 1
+        # add initialized collections/forms
+        for counter in range(num_instances):
+            for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
+                prefix = f'{self.prefix}.{counter}.{name}' if self.prefix else f'{counter}.{name}'
+                initial = None
+                if self.initial and counter < len(self.initial):
+                    initial = self.initial[counter].get(name)
+                if initial is None:
+                    initial = declared_holder.initial
+                holder = declared_holder.__class__(initial=initial, prefix=prefix, renderer=self.renderer)
+                holder.counter = counter
+                if item_num == first:
+                    holder.is_first = True
+                if item_num == last:
+                    holder.is_last = True
+                yield holder
+        # add empty placeholder as template for extra collections
+        for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
+            prefix = f'{self.prefix}.${{counter}}.{name}' if self.prefix else f'${{counter}}.{name}'
+            holder = declared_holder.__class__(prefix=prefix, renderer=self.renderer)
+            holder.is_template = True
+            if item_num == first:
+                holder.is_first = True
+            if item_num == last:
+                holder.is_last = True
+            yield holder
 
     def __iter__(self):
-        for holder in self.holders:
-            yield holder
+        if self.has_many:
+            yield from self.iter_many()
+        else:
+            yield from self.iter_single()
 
     def get_context(self):
         return {
@@ -115,76 +160,12 @@ class BaseFormCollection(RenderableMixin):
     def clean(self):
         return self.cleaned_data
 
-    @property
+    @cached_property
     def has_many(self):
         """
         Returns True if current FormCollection manages a list of sibling forms.
         """
         return getattr(self, 'min_siblings', 0) > 0
-
-    def set_form_renderer(self, renderer):
-        self.renderer = renderer
-        for holder in self.holders:
-            if isinstance(holder, BaseFormCollection):
-                holder.set_form_renderer(renderer)
-            elif isinstance(holder, BaseForm):
-                holder.renderer = renderer
-                holder.error_class = FormsetErrorList
-            else:
-                raise RuntimeError("Should never reach this line")  # noqa
-
-    def instantiate_holders(self):
-        """
-        # The declared_holders class attribute is the *class-wide* definition of
-        # collections and/or forms. Because a particular *instance* of the class might
-        # want to alter self.holders, we create it here by instantiating each entity of
-        # declared_holder again.
-        """
-        instantiated_holders = []
-        for name, declared_holder in self.declared_holders.items():
-            prefix = f'{self.prefix}.{name}' if self.prefix else name
-            data = self.data.get(name)
-            initial = None
-            if isinstance(self.initial, dict):
-                initial = self.initial.get(name)
-            if initial is None:
-                initial = declared_holder.initial
-            holder = declared_holder.__class__(data=data, initial=initial, prefix=prefix)
-            instantiated_holders.append(holder)
-        return instantiated_holders
-
-    def instantiate_many_holders(self):
-        instantiated_holders = []
-        num_instances = 2
-        errmsg = "{class_name} is declared to have siblings, but provided argument `{argument}` is not a list"
-        if self.data:
-            if not isinstance(self.data, list):
-                raise FormCollectionError(errmsg.format(class_name=self.__class__.__name__, argument='data'))
-            num_instances = max(num_instances, len(self.data))
-        if self.initial:
-            if not isinstance(self.initial, list):
-                raise FormCollectionError(errmsg.format(class_name=self.__class__.__name__, argument='initial'))
-            num_instances = max(num_instances, len(self.initial))
-        for index in range(num_instances):
-            first = True
-            for name, declared_holder in self.declared_holders.items():
-                prefix = f'{self.prefix}.{index}.{name}' if self.prefix else f'{index}.{name}'
-                try:
-                    data = self.data[index][name]
-                except (IndexError, KeyError, TypeError):
-                    data = None
-                initial = None
-                if self.initial and index < len(self.initial):
-                    initial = self.initial[index].get(name)
-                if initial is None:
-                    initial = declared_holder.initial
-                holder = declared_holder.__class__(data=data, initial=initial, prefix=prefix)
-                if first:
-                    holder.is_first = True
-                    first = False
-                instantiated_holders.append(holder)
-            holder.is_last = True
-        return instantiated_holders
 
 
 class FormCollection(BaseFormCollection, metaclass=FormCollectionMeta):
