@@ -428,7 +428,7 @@ class FieldGroup {
 			if ((inputElement as HTMLInputElement).checked) {
 				validity = true;
 			} else {
-				inputElement.setCustomValidity(this.errorMessages.get('customError') || '');
+				inputElement.setCustomValidity(this.errorMessages.get('customError') ?? '');
 			}
 		}
 		if (validity) {
@@ -436,7 +436,7 @@ class FieldGroup {
 				inputElement.setCustomValidity('');
 			}
 		} else if (this.pristineValue !== undefined && !this.form.formset.withholdMessages && this.errorPlaceholder) {
-			this.errorPlaceholder.innerHTML = this.errorMessages.get('customError') || '';
+			this.errorPlaceholder.innerHTML = this.errorMessages.get('customError') ?? '';
 		}
 		this.form.validate();
 		return validity;
@@ -448,13 +448,13 @@ class FieldGroup {
 		if (inputElement.type === 'text' && inputElement.value) {
 			if (inputElement.minLength > 0 && inputElement.value.length < inputElement.minLength) {
 				if (this.errorPlaceholder) {
-					this.errorPlaceholder.innerHTML = this.errorMessages.get('tooShort') || '';
+					this.errorPlaceholder.innerHTML = this.errorMessages.get('tooShort') ?? '';
 				}
 				return false;
 			}
 			if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength) {
 				if (this.errorPlaceholder) {
-					this.errorPlaceholder.innerHTML = this.errorMessages.get('tooLong') || '';
+					this.errorPlaceholder.innerHTML = this.errorMessages.get('tooLong') ?? '';
 				}
 				return false;
 			}
@@ -463,7 +463,7 @@ class FieldGroup {
 			if (this.fileUploader.inProgress()) {
 				// seems that file upload is still in progress => field shall not be valid
 				if (this.errorPlaceholder) {
-					this.errorPlaceholder.innerHTML = this.errorMessages.get('typeMismatch') || '';
+					this.errorPlaceholder.innerHTML = this.errorMessages.get('typeMismatch') ?? '';
 				}
 				return false;
 			}
@@ -481,9 +481,9 @@ class FieldGroup {
 			return;
 		if (inputElement.type === 'text') {
 			if (inputElement.minLength > 0 && inputElement.value.length < inputElement.minLength)
-				return inputElement.setCustomValidity(this.errorMessages.get('tooShort') || '');
+				return inputElement.setCustomValidity(this.errorMessages.get('tooShort') ?? '');
 			if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength)
-				return inputElement.setCustomValidity(this.errorMessages.get('tooLong') || '');
+				return inputElement.setCustomValidity(this.errorMessages.get('tooLong') ?? '');
 		}
 	}
 
@@ -516,7 +516,7 @@ class FieldGroup {
 
 	public reportFailedUpload() {
 		if (this.errorPlaceholder) {
-			this.errorPlaceholder.innerHTML = this.errorMessages.get('badInput') || "File upload failed";
+			this.errorPlaceholder.innerHTML = this.errorMessages.get('badInput') ?? "File upload failed";
 		}
 	}
 }
@@ -545,8 +545,8 @@ class DjangoButton {
 	constructor(formset: DjangoFormset, element: HTMLButtonElement) {
 		this.formset = formset;
 		this.element = element;
-		this.initialClass = element.getAttribute('class') || '';
-		this.isAutoDisabled = !!JSON.parse((element.getAttribute('auto-disable') || 'false').toLowerCase());
+		this.initialClass = element.getAttribute('class') ?? '';
+		this.isAutoDisabled = !!JSON.parse((element.getAttribute('auto-disable') ?? 'false').toLowerCase());
 		this.parseActionsQueue(element.getAttribute('click'));
 		element.addEventListener('click', () => this.clicked());
 	}
@@ -814,7 +814,7 @@ class DjangoForm {
 
 	constructor(formset: DjangoFormset, element: HTMLFormElement) {
 		this.formId = element.getAttribute('id');
-		this.name = element.getAttribute('name') || '__default__';
+		this.name = element.getAttribute('name') ?? '__default__';
 		this.formset = formset;
 		this.element = element;
 		const formError = element.querySelector('.dj-form-errors');
