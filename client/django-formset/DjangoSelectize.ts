@@ -160,7 +160,7 @@ class DjangoSelectize {
 	}
 
 	private setupRender(tomInput: TomInput): Renderer {
-		const templ = tomInput.parentElement ? tomInput.parentElement.querySelector('template.selectize-no-results') : null;
+		const templ = tomInput.parentElement?.querySelector('template.selectize-no-results');
 		if (!templ)
 			return {};
 		return {
