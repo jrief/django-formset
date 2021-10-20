@@ -1,6 +1,9 @@
 import { parse } from './actions';
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
+import template from 'lodash.template';
+import zip from 'lodash.zip';
+
 import { FileUploadWidget } from './FileUploadWidget';
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -51,6 +54,7 @@ class FieldGroup {
 	public readonly element: HTMLElement;
 	private readonly pristineValue: BoundValue;
 	private readonly inputElements: Array<FieldElement>;
+	private readonly initialDisabled: Array<Boolean>;
 	public readonly errorPlaceholder: Element | null;
 	private readonly errorMessages: ErrorMessages;
 	private readonly fileUploader: FileUploadWidget | null = null;
@@ -115,6 +119,7 @@ class FieldGroup {
 					throw new Error(`Name mismatch on multiple input fields on ${element.name}`);
 			}
 		}
+		this.initialDisabled = this.inputElements.map(element => element.disabled);
 		if (requiredAny) {
 			this.validateCheckboxSelectMultiple();
 		} else {
@@ -209,6 +214,20 @@ class FieldGroup {
 		this.resetCustomError();
 		if (this.fileUploader) {
 			return this.fileUploader.fileRemove();
+		}
+	}
+
+	public disableAllFields() {
+		for (const element of this.inputElements) {
+			element.disabled = true;
+		}
+	}
+
+	public reenableAllFields() {
+		for (const [element, disabled] of zip(this.inputElements, this.initialDisabled)) {
+			if (element && typeof disabled === 'boolean') {
+				element.disabled = disabled;
+			}
 		}
 	}
 
@@ -652,6 +671,7 @@ class DjangoForm {
 	private readonly errorPlaceholder: Element | null;
 	public readonly fieldGroups = Array<FieldGroup>(0);
 	public readonly hiddenInputFields = Array<HTMLInputElement>(0);
+	private markedForRemoval = false;
 
 	constructor(formset: DjangoFormset, element: HTMLFormElement) {
 		this.formId = element.getAttribute('id');
@@ -727,6 +747,17 @@ class DjangoForm {
 		}
 	}
 
+	markForRemoval(removeForm: boolean) {
+		this.markedForRemoval = removeForm;
+		for (const fieldGroup of this.fieldGroups) {
+			if (removeForm) {
+				fieldGroup.disableAllFields();
+			} else {
+				fieldGroup.reenableAllFields();
+			}
+		}
+	}
+
 	reportCustomErrors(errors: Map<string, Array<string>>) {
 		this.resetCustomError();
 		const nonFieldErrors = errors.get(NON_FIELD_ERRORS);
@@ -758,12 +789,107 @@ class DjangoForm {
 
 
 class DjangoFormCollection {
-	public readonly formset: DjangoFormset;
-	public readonly element: Element;
+	private readonly name: string | null;
+	private readonly formset: DjangoFormset;
+	private readonly element: Element;
+	public readonly counter: number | null;
+	private readonly children = Array<DjangoFormCollection>(0);
+	private prevSibling: DjangoFormCollection | null = null;
+	private nextSibling: DjangoFormCollection | null = null;
+	private forms = Array<DjangoForm>(0);
+	private readonly emptyCollectionTemplate: Function = () => {};
+	private readonly addButton: HTMLButtonElement | null = null;
+	private readonly removeButton: HTMLButtonElement | null = null;
+	private markedForRemoval = false;
 
-	constructor(formset: DjangoFormset, element: Element) {
+	constructor(formset: DjangoFormset, element: Element, prevSibling?: DjangoFormCollection) {
 		this.formset = formset;
 		this.element = element;
+		const counter = element.getAttribute('counter');
+		this.counter = counter ? parseInt(counter) : null;
+		this.name = element.getAttribute('name');
+		if (prevSibling) {
+			prevSibling.nextSibling = this;
+			this.prevSibling = prevSibling;
+		}
+		this.findFormCollections();
+		console.log(`Initializing ${this.name}`);
+		this.removeButton = element.querySelector(':scope > button.remove-collection');
+		this.removeButton?.addEventListener('click', () => this.removeCollection());
+		if (element.nextElementSibling?.matches('template.empty-collection')) {
+			const emptyCollectionTemplate = element.nextElementSibling as HTMLTemplateElement;
+			this.emptyCollectionTemplate = template(emptyCollectionTemplate.innerHTML);
+			if (emptyCollectionTemplate.nextElementSibling?.matches('button.add-collection')) {
+				this.addButton = emptyCollectionTemplate.nextElementSibling as HTMLButtonElement;
+				this.addButton.addEventListener('click', event => this.addCollection());
+			}
+		}
+	}
+
+	private findFormCollections() {
+		let prevSibling;
+		for (const childElement of Array.from(this.element.getElementsByTagName('django-form-collection'))) {
+			if (childElement.parentElement?.isEqualNode(this.element)) {
+				prevSibling = new DjangoFormCollection(this.formset, childElement, prevSibling);
+				this.children.push(prevSibling);
+			}
+		}
+	}
+
+	private addCollection() {
+		console.log("Add collection");
+		let counter = 0;
+		let lastCollection: DjangoFormCollection | null = null;
+		for (let last: DjangoFormCollection | null = this; last; last = last.nextSibling) {
+			counter = Math.max(counter, last?.counter ?? 0);
+			lastCollection = last;
+		}
+		const context = {
+			counter: ++counter,
+			content_type: '${content_type}',
+			download_url: '${download_url}',
+			thumbnail_url: '${thumbnail_url}',
+			name: '${name}',
+			size: '${size}'
+		};
+		const renderedHTML = this.emptyCollectionTemplate(context, {variable: 'holder'});
+		if (lastCollection) {
+			lastCollection.element.insertAdjacentHTML('afterend', renderedHTML);
+			this.formset.findForms();
+			this.formset.findFormCollections();
+			this.formset.assignFieldsToForms();
+			this.formset.assignFormsToCollections();
+			this.formset.validate();
+		}
+	}
+
+	private removeCollection() {
+		console.log(`remove collection ${this.name}`);
+		this.markForRemoval(!this.markedForRemoval);
+		if (this.removeButton) {
+			this.removeButton.disabled = false;
+		}
+	}
+
+	private markForRemoval(removeCollection: boolean) {
+		this.markedForRemoval = removeCollection;
+		if (this.removeButton) {
+			this.removeButton.disabled = removeCollection;
+		}
+		for (const form of this.forms) {
+			form.markForRemoval(removeCollection);
+		}
+		for (const formCollection of this.children) {
+			formCollection.markForRemoval(removeCollection);
+		}
+		this.element.classList.toggle('dj-marked-for-removal', removeCollection);
+	}
+
+	public assignForms(forms: Array<DjangoForm>) {
+		this.forms = forms.filter(form => form.element.parentElement?.isEqualNode(this.element));
+		for (const formCollection of this.children) {
+			formCollection.assignForms(forms);
+		}
 	}
 }
 
@@ -781,15 +907,15 @@ export class DjangoFormset {
 	}
 
 	public get endpoint(): string {
-		return this.element.getAttribute('endpoint') || '';
+		return this.element.getAttribute('endpoint') ?? '';
 	}
 
 	public get withholdMessages(): Boolean {
-		return Boolean(JSON.parse(this.element.getAttribute('withhold-messages') || 'false'));
+		return Boolean(JSON.parse(this.element.getAttribute('withhold-messages') ?? 'false'));
 	}
 
 	public get forceSubmission(): Boolean {
-		return Boolean(JSON.parse(this.element.getAttribute('force-submission') || 'false'));
+		return Boolean(JSON.parse(this.element.getAttribute('force-submission') ?? 'false'));
 	}
 
 	public assignFieldsToForms() {
@@ -827,25 +953,38 @@ export class DjangoFormset {
 	}
 
 	public findForms() {
+		this.forms.length = 0;
 		const formNames = Array<string>(0);
-		for (const element of Array.from(this.element.getElementsByTagName('FORM'))) {
+		for (const element of this.element.getElementsByTagName('FORM')) {
 			const form = new DjangoForm(this, element as HTMLFormElement);
 			if (form.name in formNames)
 				throw new Error(`Detected more than one <form name="${form.name}"> in <django-formset>`);
 			this.forms.push(form);
 			formNames.push(form.name);
-			const formCollection = element.closest('django-form-collection');
-			if (formCollection) {
-				this.formCollections.push(new DjangoFormCollection(this, formCollection));
+		}
+	}
+
+	public findFormCollections() {
+		this.formCollections.length = 0;
+		for (const element of this.element.getElementsByTagName('django-form-collection')) {
+			if (element.parentElement?.isEqualNode(this.element)) {
+				this.formCollections.push(new DjangoFormCollection(this, element));
 			}
 		}
 	}
 
 	public findButtons() {
+		this.buttons.length = 0;
 		for (const element of Array.from(this.element.getElementsByTagName('BUTTON'))) {
 			if (element.hasAttribute('click')) {
 				this.buttons.push(new DjangoButton(this, element as HTMLButtonElement));
 			}
+		}
+	}
+
+	public assignFormsToCollections() {
+		for (const formCollection of this.formCollections) {
+			formCollection.assignForms(this.forms);
 		}
 	}
 
@@ -979,7 +1118,9 @@ export class DjangoFormsetElement extends HTMLElement {
 	private connectedCallback() {
 		this[FS].findButtons();
 		this[FS].findForms();
+		this[FS].findFormCollections();
 		this[FS].assignFieldsToForms();
+		this[FS].assignFormsToCollections();
 		window.setTimeout(() => this[FS].validate(), 0);
 	}
 

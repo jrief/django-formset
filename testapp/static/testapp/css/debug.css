@@ -10,3 +10,18 @@ form {
 		border-color: red;
 	}
 
+select:disabled {
+	opacity: 0.5;
+	}
+
+django-form-collection {
+	padding: 0.5rem;
+	border: 2px solid grey;
+	display: block;
+	}
+	django-form-collection.dj-marked-for-removal {
+		color: gray;
+		background-color: lightgray;
+		background-image: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,.5) 4px, rgba(255,255,255,.5) 8px);
+		background-size: contain;
+		}

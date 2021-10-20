@@ -1,4 +1,4 @@
-import template from "lodash.template";
+import template from 'lodash.template';
 
 interface DjangoFormset {
 	endpoint: string;
@@ -166,8 +166,7 @@ export class FileUploadWidget {
 	private renderDropbox() {
 		let list = [];
 		for (const fileHandle of this.uploadedFiles) {
-			const listItem = this.dropboxItemTemplate(fileHandle);
-			list.push(listItem);
+			list.push(this.dropboxItemTemplate(fileHandle));
 		}
 		this.dropbox.innerHTML = list.join('');
 		const button = this.dropbox.querySelector('.dj-delete-file');
