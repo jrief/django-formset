@@ -11,4 +11,6 @@
 </django-form-collection>
 		{% endif %}
 {% endfor %}
+{% if collection.has_many %}
 <button class="add-collection">{% trans "Add" %}</button>
+{% endif %}

@@ -171,11 +171,11 @@ class FormCollectionViewMixin(ContextMixin):
         return self.form_collection.get_field(path)
 
     def _handle_form_data(self, form_data):
-        form_collection = self.collection_class(data=form_data)
+        form_collection = self.collection_class(data=form_data.get('payload'))
         if form_collection.is_valid():
             return JsonResponse({'success_url': force_str(self.success_url)})
         else:
-            return JsonResponse(form_collection.errors.data, status=422)
+            return JsonResponse(form_collection.errors.data, status=422, safe=False)
 
 
 class FormCollectionView(SelectizeResponseMixin, FileUploadMixin, FormCollectionViewMixin, TemplateResponseMixin, View):

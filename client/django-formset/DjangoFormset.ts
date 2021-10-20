@@ -852,14 +852,17 @@ class DjangoFormCollection {
 			name: '${name}',
 			size: '${size}'
 		};
-		const renderedHTML = this.emptyCollectionTemplate(context, {variable: 'holder'});
 		if (lastCollection) {
+			const renderedHTML = this.emptyCollectionTemplate(context);
 			lastCollection.element.insertAdjacentHTML('afterend', renderedHTML);
-			this.formset.findForms();
-			this.formset.findFormCollections();
-			this.formset.assignFieldsToForms();
-			this.formset.assignFormsToCollections();
-			this.formset.validate();
+			const newCollectionElement = lastCollection.element.nextElementSibling;
+			if (newCollectionElement) {
+				this.formset.findForms(newCollectionElement);
+				this.formset.findFormCollections(newCollectionElement);
+				this.formset.assignFieldsToForms(newCollectionElement);
+				this.formset.assignFormsToCollections();
+				this.formset.validate();
+			}
 		}
 	}
 
@@ -918,8 +921,9 @@ export class DjangoFormset {
 		return Boolean(JSON.parse(this.element.getAttribute('force-submission') ?? 'false'));
 	}
 
-	public assignFieldsToForms() {
-		for (const element of this.element.querySelectorAll('INPUT, SELECT, TEXTAREA')) {
+	public assignFieldsToForms(parentElement?: Element) {
+		parentElement = parentElement ?? this.element;
+		for (const element of parentElement.querySelectorAll('INPUT, SELECT, TEXTAREA')) {
 			const formId = element.getAttribute('form');
 			let djangoForm: DjangoForm;
 			if (formId) {
@@ -952,21 +956,27 @@ export class DjangoFormset {
 		}
 	}
 
-	public findForms() {
-		this.forms.length = 0;
-		const formNames = Array<string>(0);
-		for (const element of this.element.getElementsByTagName('FORM')) {
+	public findForms(parentElement?: Element) {
+		parentElement = parentElement ?? this.element;
+		for (const element of parentElement.getElementsByTagName('FORM')) {
 			const form = new DjangoForm(this, element as HTMLFormElement);
+			this.forms.push(form);
+		}
+		this.checkForUniqueness();
+	}
+
+	private checkForUniqueness() {
+		const formNames = Array<string>(0);
+		for (const form of this.forms) {
 			if (form.name in formNames)
 				throw new Error(`Detected more than one <form name="${form.name}"> in <django-formset>`);
-			this.forms.push(form);
 			formNames.push(form.name);
 		}
 	}
 
-	public findFormCollections() {
-		this.formCollections.length = 0;
-		for (const element of this.element.getElementsByTagName('django-form-collection')) {
+	public findFormCollections(parentElement?: Element) {
+		parentElement = parentElement ?? this.element;
+		for (const element of parentElement.getElementsByTagName('django-form-collection')) {
 			if (element.parentElement?.isEqualNode(this.element)) {
 				this.formCollections.push(new DjangoFormCollection(this, element));
 			}
@@ -1000,7 +1010,9 @@ export class DjangoFormset {
 	private aggregateValues() {
 		this.data = {};
 		for (const form of this.forms) {
-			setDataValue(this.data, form.name.split('.'), Object.fromEntries(form.aggregateValues()));
+			const path = ['payload']
+			path.push(...form.name.split('.'));
+			setDataValue(this.data, path, Object.fromEntries(form.aggregateValues()));
 		}
 		for (const form of this.forms) {
 			form.updateVisibility();

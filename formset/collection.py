@@ -140,14 +140,15 @@ class BaseFormCollection(RenderableMixin):
             self.cleaned_data = []
             self._errors = ErrorList()
             for index, data in enumerate(self.data):
-                self.cleaned_data.append({})
+                cleaned_data = {}
                 for name, declared_holder in self.declared_holders.items():
                     holder = declared_holder.__class__(data=data.get(name))
                     if holder.is_valid():
-                        self.cleaned_data[-1][name] = holder.cleaned_data
+                        cleaned_data[name] = holder.cleaned_data
                     else:
                         self._errors.extend([{}] * (index - len(self._errors)))
                         self._errors.append({name: holder.errors.data})
+                self.cleaned_data.append(cleaned_data)
         else:
             self.cleaned_data = {}
             self._errors = ErrorDict()
