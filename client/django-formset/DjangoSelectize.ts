@@ -17,6 +17,7 @@ class DjangoSelectize {
 	private readonly tomInput: TomInput;
 	private readonly tomSelect: TomSelect;
 	private readonly shadowRoot: ShadowRoot;
+	private readonly observer: MutationObserver;
 	private readonly initialValue: string | string[];
 
 	constructor(tomInput: TomInput) {
@@ -52,6 +53,8 @@ class DjangoSelectize {
 		const nativeStyles = {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
 
 		this.tomSelect = new TomSelect(tomInput, config);
+		this.observer = new MutationObserver(mutationsList => this.attributesChanged(mutationsList));
+		this.observer.observe(this.tomInput, {attributes: true});
 		this.initialValue = this.tomSelect.getValue();
 		this.shadowRoot = this.wrapInShadowRoot();
 		this.transferStyles(tomInput as unknown as HTMLElement, nativeStyles);
@@ -128,6 +131,13 @@ class DjangoSelectize {
 					extraStyles = this.extractStyles(tomInput, [
 							'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'])
 					tomInput.classList.remove('-focus-');
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '.ts-control .ts-input.disabled':
+					tomInput.classList.add('-disabled-');
+					extraStyles = this.extractStyles(tomInput, [
+							'background-color', 'border', 'box-shadow', 'color', 'opacity', 'outline', 'transition'])
+					tomInput.classList.remove('-disabled-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case '.ts-control .ts-dropdown':
@@ -218,6 +228,7 @@ class DjangoSelectize {
 					replaceAll(':focus', '.-focus-').
 					replaceAll(':focus-visible', '.-focus-visible-').
 					replaceAll(':hover', '.-hover-').
+					replaceAll(':disabled', '.-disabled-').
 					replaceAll(':invalid', '.-invalid-').
 					replaceAll(':valid', '.-valid-').
 					replaceAll('::placeholder-shown', '.-placeholder-shown').
@@ -230,6 +241,22 @@ class DjangoSelectize {
 			}
 		}
 		return styleElement;
+	}
+
+	private attributesChanged(mutationsList: Array<MutationRecord>) {
+		for (const mutation of mutationsList) {
+			if (mutation.type === 'attributes' && mutation.attributeName === 'disabled') {
+				if (this.tomInput.disabled) {
+					if (!this.tomSelect.isDisabled) {
+						this.tomSelect.disable();
+					}
+				} else {
+					if (this.tomSelect.isDisabled) {
+						this.tomSelect.enable();
+					}
+				}
+			}
+		}
 	}
 }
 

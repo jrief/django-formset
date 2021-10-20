@@ -46,6 +46,10 @@ $select-color-dropdown: rgb(244, 244, 244);
 		&.focus {
 			opacity: 1;
 		}
+
+		&.disabled {
+			opacity: 1;
+		}
 	}
 
 	// Hide input, while retaining its focus, and maintain layout so users can still click on the
