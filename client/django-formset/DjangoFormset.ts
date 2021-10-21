@@ -791,22 +791,25 @@ class DjangoForm {
 class DjangoFormCollectionSibling {
 	private readonly formset: DjangoFormset;
 	private readonly element: Element;
-	public readonly counter: number;
+	public readonly position: number;
+	private readonly parent?: DjangoFormCollectionSibling;
 	private readonly children = Array<DjangoFormCollectionSibling>(0);
 	public readonly formCollectionTemplates = Array<DjangoFormCollectionTemplate>(0);
 	private prevSibling: DjangoFormCollectionSibling | null = null;
 	private nextSibling: DjangoFormCollectionSibling | null = null;
 	private forms = Array<DjangoForm>(0);
 	private readonly removeButton: HTMLButtonElement | null = null;
+	private justAdded = false;
 	private markedForRemoval = false;
 
-	constructor(formset: DjangoFormset, element: Element, prevSibling?: DjangoFormCollectionSibling) {
+	constructor(formset: DjangoFormset, element: Element, prevSibling?: DjangoFormCollectionSibling, justAdded?: boolean) {
 		this.formset = formset;
 		this.element = element;
-		const counter = element.getAttribute('counter');
-		if (!counter)
+		this.justAdded = justAdded ?? false;
+		const position = element.getAttribute('position');
+		if (!position)
 			throw new Error("Missing argument 'position' in <django-form-collection-sibling>")
-		this.counter = parseInt(counter);
+		this.position = parseInt(position);
 		if (prevSibling) {
 			prevSibling.nextSibling = this;
 			this.prevSibling = prevSibling;
@@ -852,14 +855,14 @@ class DjangoFormCollectionSibling {
 
 	public getMaxPosition() : number {
 		// look for the highest position number inside interconnected DjangoFormCollectionSiblings
-		let counter = 0;
+		let position = 0;
 		for (let last: DjangoFormCollectionSibling | null = this; last; last = last.prevSibling) {
-			counter = Math.max(counter, last.counter);
+			position = Math.max(position, last.position);
 		}
 		for (let last: DjangoFormCollectionSibling | null = this; last; last = last.nextSibling) {
-			counter = Math.max(counter, last.counter);
+			position = Math.max(position, last.position);
 		}
-		return counter;
+		return position;
 	}
 
 	public assignForms(forms: Array<DjangoForm>) {
@@ -897,15 +900,15 @@ class DjangoFormCollectionTemplate {
 	private appendFormCollectionSibling() {
 		console.log("Append <django-form-collection-sibling>");
 		const context = Object.fromEntries(this.baseContext);
-		const counter = (this.lastFormCollectionSibling?.getMaxPosition() ?? -1) + 1;
-		context['counter'] = counter.toString();
+		const position = (this.lastFormCollectionSibling?.getMaxPosition() ?? -1) + 1;
+		context['position'] = position.toString();
 		const renderedHTML = this.renderEmptyCollection(context);
 		this.element.insertAdjacentHTML('beforebegin', renderedHTML);
 		const newCollectionElement = this.element.previousElementSibling;
 		if (!newCollectionElement)
 			throw new Error("Unable to insert empty <django-form-collection-sibling>");
 		this.formset.findForms(newCollectionElement);
-		this.formset.formCollectionSiblings.push(new DjangoFormCollectionSibling(this.formset, newCollectionElement, this.lastFormCollectionSibling));
+		this.formset.formCollectionSiblings.push(new DjangoFormCollectionSibling(this.formset, newCollectionElement, this.lastFormCollectionSibling, true));
 		this.formset.assignFieldsToForms(newCollectionElement);
 		this.formset.assignFormsToCollections();
 		this.formset.validate();

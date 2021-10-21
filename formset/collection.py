@@ -86,16 +86,16 @@ class BaseFormCollection(RenderableMixin):
             num_instances = max(num_instances, len(self.initial))
         first, last = 0, len(self.declared_holders.items()) - 1
         # add initialized collections/forms
-        for counter in range(num_instances):
+        for position in range(num_instances):
             for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
-                prefix = f'{self.prefix}.{counter}.{name}' if self.prefix else f'{counter}.{name}'
+                prefix = f'{self.prefix}.{position}.{name}' if self.prefix else f'{position}.{name}'
                 initial = None
-                if self.initial and counter < len(self.initial):
-                    initial = self.initial[counter].get(name)
+                if self.initial and position < len(self.initial):
+                    initial = self.initial[position].get(name)
                 if initial is None:
                     initial = declared_holder.initial
                 holder = declared_holder.__class__(initial=initial, prefix=prefix, renderer=self.renderer)
-                holder.counter = counter
+                holder.position = position
                 if item_num == first:
                     holder.is_first = True
                 if item_num == last:
@@ -103,10 +103,10 @@ class BaseFormCollection(RenderableMixin):
                 yield holder
         # add empty placeholder as template for extra collections
         for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
-            prefix = f'{self.prefix}.${{counter}}.{name}' if self.prefix else f'${{counter}}.{name}'
+            prefix = f'{self.prefix}.${{position}}.{name}' if self.prefix else f'${{position}}.{name}'
             holder = declared_holder.__class__(prefix=prefix, renderer=self.renderer)
             holder.is_template = True
-            holder.counter = '${counter}'
+            holder.position = '${position}'
             if item_num == first:
                 holder.is_first = True
             if item_num == last:
