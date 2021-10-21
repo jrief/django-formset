@@ -14,12 +14,12 @@ select:disabled {
 	opacity: 0.5;
 	}
 
-django-form-collection {
+django-form-collection-sibling {
 	padding: 0.5rem;
 	border: 2px solid grey;
 	display: block;
 	}
-	django-form-collection.dj-marked-for-removal {
+	django-form-collection-sibling.dj-marked-for-removal {
 		color: gray;
 		background-color: lightgray;
 		background-image: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,.5) 4px, rgba(255,255,255,.5) 8px);

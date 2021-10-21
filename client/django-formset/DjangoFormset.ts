@@ -788,86 +788,48 @@ class DjangoForm {
 }
 
 
-class DjangoFormCollection {
-	private readonly name: string | null;
+class DjangoFormCollectionSibling {
 	private readonly formset: DjangoFormset;
 	private readonly element: Element;
-	public readonly counter: number | null;
-	private readonly children = Array<DjangoFormCollection>(0);
-	private prevSibling: DjangoFormCollection | null = null;
-	private nextSibling: DjangoFormCollection | null = null;
+	public readonly counter: number;
+	private readonly children = Array<DjangoFormCollectionSibling>(0);
+	public readonly formCollectionTemplates = Array<DjangoFormCollectionTemplate>(0);
+	private prevSibling: DjangoFormCollectionSibling | null = null;
+	private nextSibling: DjangoFormCollectionSibling | null = null;
 	private forms = Array<DjangoForm>(0);
-	private readonly emptyCollectionTemplate: Function = () => {};
-	private readonly addButton: HTMLButtonElement | null = null;
 	private readonly removeButton: HTMLButtonElement | null = null;
 	private markedForRemoval = false;
 
-	constructor(formset: DjangoFormset, element: Element, prevSibling?: DjangoFormCollection) {
+	constructor(formset: DjangoFormset, element: Element, prevSibling?: DjangoFormCollectionSibling) {
 		this.formset = formset;
 		this.element = element;
 		const counter = element.getAttribute('counter');
-		this.counter = counter ? parseInt(counter) : null;
-		this.name = element.getAttribute('name');
+		if (!counter)
+			throw new Error("Missing argument 'position' in <django-form-collection-sibling>")
+		this.counter = parseInt(counter);
 		if (prevSibling) {
 			prevSibling.nextSibling = this;
 			this.prevSibling = prevSibling;
 		}
-		this.findFormCollections();
-		console.log(`Initializing ${this.name}`);
+		this.findFormCollectionSiblings();
 		this.removeButton = element.querySelector(':scope > button.remove-collection');
 		this.removeButton?.addEventListener('click', () => this.removeCollection());
-		if (element.nextElementSibling?.matches('template.empty-collection')) {
-			const emptyCollectionTemplate = element.nextElementSibling as HTMLTemplateElement;
-			this.emptyCollectionTemplate = template(emptyCollectionTemplate.innerHTML);
-			if (emptyCollectionTemplate.nextElementSibling?.matches('button.add-collection')) {
-				this.addButton = emptyCollectionTemplate.nextElementSibling as HTMLButtonElement;
-				this.addButton.addEventListener('click', event => this.addCollection());
-			}
-		}
 	}
 
-	private findFormCollections() {
+	private findFormCollectionSiblings() {
+		// find all immediate elements named <django-form-collection-sibling> belonging to the current DjangoFormCollection
 		let prevSibling;
-		for (const childElement of Array.from(this.element.getElementsByTagName('django-form-collection'))) {
-			if (childElement.parentElement?.isEqualNode(this.element)) {
-				prevSibling = new DjangoFormCollection(this.formset, childElement, prevSibling);
-				this.children.push(prevSibling);
-			}
+		for (const childElement of this.element.querySelectorAll(':scope > django-form-collection-sibling')) {
+			prevSibling = new DjangoFormCollectionSibling(this.formset, childElement, prevSibling);
+			this.children.push(prevSibling);
 		}
-	}
-
-	private addCollection() {
-		console.log("Add collection");
-		let counter = 0;
-		let lastCollection: DjangoFormCollection | null = null;
-		for (let last: DjangoFormCollection | null = this; last; last = last.nextSibling) {
-			counter = Math.max(counter, last?.counter ?? 0);
-			lastCollection = last;
-		}
-		const context = {
-			counter: ++counter,
-			content_type: '${content_type}',
-			download_url: '${download_url}',
-			thumbnail_url: '${thumbnail_url}',
-			name: '${name}',
-			size: '${size}'
-		};
-		if (lastCollection) {
-			const renderedHTML = this.emptyCollectionTemplate(context);
-			lastCollection.element.insertAdjacentHTML('afterend', renderedHTML);
-			const newCollectionElement = lastCollection.element.nextElementSibling;
-			if (newCollectionElement) {
-				this.formset.findForms(newCollectionElement);
-				this.formset.findFormCollections(newCollectionElement);
-				this.formset.assignFieldsToForms(newCollectionElement);
-				this.formset.assignFormsToCollections();
-				this.formset.validate();
-			}
+		for (const element of this.element.querySelectorAll(':scope > template.empty-collection')) {
+			this.formCollectionTemplates.push(new DjangoFormCollectionTemplate(this.formset, element as HTMLTemplateElement, prevSibling));
 		}
 	}
 
 	private removeCollection() {
-		console.log(`remove collection ${this.name}`);
+		console.log(`remove collection`);
 		this.markForRemoval(!this.markedForRemoval);
 		if (this.removeButton) {
 			this.removeButton.disabled = false;
@@ -888,6 +850,18 @@ class DjangoFormCollection {
 		this.element.classList.toggle('dj-marked-for-removal', removeCollection);
 	}
 
+	public getMaxPosition() : number {
+		// look for the highest position number inside interconnected DjangoFormCollectionSiblings
+		let counter = 0;
+		for (let last: DjangoFormCollectionSibling | null = this; last; last = last.prevSibling) {
+			counter = Math.max(counter, last.counter);
+		}
+		for (let last: DjangoFormCollectionSibling | null = this; last; last = last.nextSibling) {
+			counter = Math.max(counter, last.counter);
+		}
+		return counter;
+	}
+
 	public assignForms(forms: Array<DjangoForm>) {
 		this.forms = forms.filter(form => form.element.parentElement?.isEqualNode(this.element));
 		for (const formCollection of this.children) {
@@ -897,11 +871,54 @@ class DjangoFormCollection {
 }
 
 
+class DjangoFormCollectionTemplate {
+	private readonly formset: DjangoFormset;
+	private readonly element: HTMLTemplateElement;
+	private readonly lastFormCollectionSibling?: DjangoFormCollectionSibling;
+	private readonly renderEmptyCollection: Function;
+	private readonly addButton?: HTMLButtonElement;
+	private readonly baseContext = new Map<string, string>();
+
+	constructor(formset: DjangoFormset, element: HTMLTemplateElement, prevSibling?: DjangoFormCollectionSibling) {
+		this.formset = formset;
+		this.element = element;
+		this.lastFormCollectionSibling = prevSibling;
+		const matches = element.innerHTML.matchAll(/\$\{([^} ]+)\}/g);
+		for (const match of matches) {
+			this.baseContext.set(match[1], match[0]);
+		}
+		this.renderEmptyCollection = template(element.innerHTML);
+		if (element.nextElementSibling?.matches('button.add-collection')) {
+			this.addButton = element.nextElementSibling as HTMLButtonElement;
+			this.addButton.addEventListener('click', event => this.appendFormCollectionSibling());
+		}
+	}
+
+	private appendFormCollectionSibling() {
+		console.log("Append <django-form-collection-sibling>");
+		const context = Object.fromEntries(this.baseContext);
+		const counter = (this.lastFormCollectionSibling?.getMaxPosition() ?? -1) + 1;
+		context['counter'] = counter.toString();
+		const renderedHTML = this.renderEmptyCollection(context);
+		this.element.insertAdjacentHTML('beforebegin', renderedHTML);
+		const newCollectionElement = this.element.previousElementSibling;
+		if (!newCollectionElement)
+			throw new Error("Unable to insert empty <django-form-collection-sibling>");
+		this.formset.findForms(newCollectionElement);
+		this.formset.formCollectionSiblings.push(new DjangoFormCollectionSibling(this.formset, newCollectionElement, this.lastFormCollectionSibling));
+		this.formset.assignFieldsToForms(newCollectionElement);
+		this.formset.assignFormsToCollections();
+		this.formset.validate();
+	}
+}
+
+
 export class DjangoFormset {
 	private readonly element: DjangoFormsetElement;
 	private readonly buttons = Array<DjangoButton>(0);
 	private readonly forms = Array<DjangoForm>(0);
-	private readonly formCollections = Array<DjangoFormCollection>(0);
+	public readonly formCollectionSiblings = Array<DjangoFormCollectionSibling>(0);
+	public readonly formCollectionTemplates = Array<DjangoFormCollectionTemplate>(0);
 	private readonly abortController = new AbortController;
 	private data = {};
 
@@ -974,18 +991,21 @@ export class DjangoFormset {
 		}
 	}
 
-	public findFormCollections(parentElement?: Element) {
-		parentElement = parentElement ?? this.element;
-		for (const element of parentElement.getElementsByTagName('django-form-collection')) {
-			if (element.parentElement?.isEqualNode(this.element)) {
-				this.formCollections.push(new DjangoFormCollection(this, element));
-			}
+	public findFormCollectionSiblings() {
+		// find all immediate elements named <django-form-collection-sibling> belonging to the current <django-formset>
+		let prevSibling;
+		for (const element of this.element.querySelectorAll(':scope > django-form-collection-sibling')) {
+			prevSibling = new DjangoFormCollectionSibling(this, element);
+			this.formCollectionSiblings.push(prevSibling);
+		}
+		for (const element of this.element.querySelectorAll(':scope > template.empty-collection')) {
+			this.formCollectionTemplates.push(new DjangoFormCollectionTemplate(this, element as HTMLTemplateElement, prevSibling));
 		}
 	}
 
 	public findButtons() {
 		this.buttons.length = 0;
-		for (const element of Array.from(this.element.getElementsByTagName('BUTTON'))) {
+		for (const element of this.element.getElementsByTagName('BUTTON')) {
 			if (element.hasAttribute('click')) {
 				this.buttons.push(new DjangoButton(this, element as HTMLButtonElement));
 			}
@@ -993,8 +1013,8 @@ export class DjangoFormset {
 	}
 
 	public assignFormsToCollections() {
-		for (const formCollection of this.formCollections) {
-			formCollection.assignForms(this.forms);
+		for (const sibling of this.formCollectionSiblings) {
+			sibling.assignForms(this.forms);
 		}
 	}
 
@@ -1130,7 +1150,7 @@ export class DjangoFormsetElement extends HTMLElement {
 	private connectedCallback() {
 		this[FS].findButtons();
 		this[FS].findForms();
-		this[FS].findFormCollections();
+		this[FS].findFormCollectionSiblings();
 		this[FS].assignFieldsToForms();
 		this[FS].assignFormsToCollections();
 		window.setTimeout(() => this[FS].validate(), 0);
