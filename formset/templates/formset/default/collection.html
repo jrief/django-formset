@@ -1,16 +1,18 @@
 {% load i18n %}
 {% for holder in collection %}
 	{% if holder.is_first %}
-		{% if holder.is_template %}<template class="empty-collection">{% endif %}
+		{% if holder.is_template %}
+<template class="empty-collection">
+		{% endif %}
 <django-form-collection-sibling counter="{{ holder.counter }}">
 		{% endif %}
 	{{ holder }}
 	{% if holder.is_last %}
 	<button class="remove-collection">{% trans "Remove" %}</button>
-		{% if holder.is_template %}</template>{% endif %}
 </django-form-collection-sibling>
-		{% endif %}
-{% endfor %}
-{% if collection.has_many %}
+		{% if holder.is_template %}
+</template>
 <button class="add-collection">{% trans "Add" %}</button>
-{% endif %}
+		{% endif %}
+	{% endif %}
+{% endfor %}
