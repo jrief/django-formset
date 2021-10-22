@@ -1,8 +1,9 @@
 import { parse } from './actions';
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
-import template from 'lodash.template';
+import cloneDeep from 'lodash.clone';
 import zip from 'lodash.zip';
+import template from 'lodash.template';
 
 import { FileUploadWidget } from './FileUploadWidget';
 
@@ -65,7 +66,7 @@ class FieldGroup {
 		this.errorPlaceholder = element.querySelector('.dj-errorlist > .dj-placeholder');
 		this.errorMessages = new ErrorMessages(this);
 		const requiredAny = element.classList.contains('dj-required-any');
-		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(element => element.type !== 'hidden');
+		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(e => e.type !== 'hidden');
 		for (const element of inputElements) {
 			if (element.getAttribute('is') === 'django-selectize') {
 				element.addEventListener('focus', () => this.touch());
@@ -671,7 +672,7 @@ class DjangoForm {
 	private readonly errorPlaceholder: Element | null;
 	public readonly fieldGroups = Array<FieldGroup>(0);
 	public readonly hiddenInputFields = Array<HTMLInputElement>(0);
-	private markedForRemoval = false;
+	public removalDepth: number = 0;
 
 	constructor(formset: DjangoFormset, element: HTMLFormElement) {
 		this.formId = element.getAttribute('id');
@@ -694,10 +695,8 @@ class DjangoForm {
 			data.set(fieldGroup.name, fieldGroup.aggregateValue());
 		}
 		// hidden fields are not handled by a django-field-group
-		for (const element of this.hiddenInputFields) {
-			if (element.type === 'hidden') {
-				data.set(element.name, element.value);
-			}
+		for (const element of this.hiddenInputFields.filter(e => e.type === 'hidden')) {
+			data.set(element.name, element.value);
 		}
 		return data;
 	}
@@ -747,10 +746,10 @@ class DjangoForm {
 		}
 	}
 
-	markForRemoval(removeForm: boolean) {
-		this.markedForRemoval = removeForm;
+	markForRemoval(removalDepth: number) {
+		this.removalDepth = removalDepth;
 		for (const fieldGroup of this.fieldGroups) {
-			if (removeForm) {
+			if (removalDepth) {
 				fieldGroup.disableAllFields();
 			} else {
 				fieldGroup.reenableAllFields();
@@ -785,6 +784,10 @@ class DjangoForm {
 		}
 		return null;
 	}
+
+	get markedForRemoval() : boolean {
+		return Boolean(this.removalDepth);
+	}
 }
 
 
@@ -793,27 +796,22 @@ class DjangoFormCollectionSibling {
 	private readonly element: Element;
 	public readonly position: number;
 	private readonly parent?: DjangoFormCollectionSibling;
-	private readonly children = Array<DjangoFormCollectionSibling>(0);
+	public readonly children = Array<DjangoFormCollectionSibling>(0);
 	public readonly formCollectionTemplates = Array<DjangoFormCollectionTemplate>(0);
-	private prevSibling: DjangoFormCollectionSibling | null = null;
-	private nextSibling: DjangoFormCollectionSibling | null = null;
 	private forms = Array<DjangoForm>(0);
 	private readonly removeButton: HTMLButtonElement | null = null;
 	private justAdded = false;
 	private markedForRemoval = false;
 
-	constructor(formset: DjangoFormset, element: Element, prevSibling?: DjangoFormCollectionSibling, justAdded?: boolean) {
+	constructor(formset: DjangoFormset, element: Element, parent?: DjangoFormCollectionSibling, justAdded?: boolean) {
 		this.formset = formset;
 		this.element = element;
+		this.parent = parent;
 		this.justAdded = justAdded ?? false;
 		const position = element.getAttribute('position');
 		if (!position)
 			throw new Error("Missing argument 'position' in <django-form-collection-sibling>")
 		this.position = parseInt(position);
-		if (prevSibling) {
-			prevSibling.nextSibling = this;
-			this.prevSibling = prevSibling;
-		}
 		this.findFormCollectionSiblings();
 		this.removeButton = element.querySelector(':scope > button.remove-collection');
 		this.removeButton?.addEventListener('click', () => this.removeCollection());
@@ -821,57 +819,46 @@ class DjangoFormCollectionSibling {
 
 	private findFormCollectionSiblings() {
 		// find all immediate elements named <django-form-collection-sibling> belonging to the current DjangoFormCollection
-		let prevSibling;
 		for (const childElement of this.element.querySelectorAll(':scope > django-form-collection-sibling')) {
-			prevSibling = new DjangoFormCollectionSibling(this.formset, childElement, prevSibling);
-			this.children.push(prevSibling);
+			this.children.push(new DjangoFormCollectionSibling(this.formset, childElement, this));
 		}
 		for (const element of this.element.querySelectorAll(':scope > template.empty-collection')) {
-			this.formCollectionTemplates.push(new DjangoFormCollectionTemplate(this.formset, element as HTMLTemplateElement, prevSibling));
+			this.formCollectionTemplates.push(new DjangoFormCollectionTemplate(this.formset, element as HTMLTemplateElement, this));
 		}
 	}
 
 	private removeCollection() {
 		console.log(`remove collection`);
+		let removalDepth = 0;
+		if (!this.markedForRemoval) {
+			for (let collection: DjangoFormCollectionSibling | undefined = this; collection; collection = collection.parent) {
+				removalDepth++;
+			}
+		}
 		if (this.justAdded) {
 			this.element.remove();
-			if (this.prevSibling) {
-				this.prevSibling.nextSibling = this.nextSibling;
+			this.markForRemoval(removalDepth);
+		} else {
+			this.markForRemoval(removalDepth);
+			if (this.removeButton) {
+				// reenable "Remove" button to reverse removal
+				this.removeButton.disabled = false;
 			}
-			if (this.nextSibling) {
-				this.nextSibling.prevSibling = this.prevSibling;
-			}
-		}
-		this.markForRemoval(!this.markedForRemoval);
-		if (this.removeButton) {
-			this.removeButton.disabled = false;
 		}
 	}
 
-	private markForRemoval(removeCollection: boolean) {
-		this.markedForRemoval = removeCollection;
+	private markForRemoval(removalDepth: number) {
+		this.markedForRemoval = Boolean(removalDepth);
 		if (this.removeButton) {
-			this.removeButton.disabled = removeCollection;
+			this.removeButton.disabled = this.markedForRemoval;
 		}
 		for (const form of this.forms) {
-			form.markForRemoval(removeCollection);
+			form.markForRemoval(removalDepth);
 		}
 		for (const formCollection of this.children) {
-			formCollection.markForRemoval(removeCollection);
+			formCollection.markForRemoval(removalDepth);
 		}
-		this.element.classList.toggle('dj-marked-for-removal', removeCollection);
-	}
-
-	public getMaxPosition() : number {
-		// look for the highest position number inside interconnected DjangoFormCollectionSiblings
-		let position = 0;
-		for (let last: DjangoFormCollectionSibling | null = this; last; last = last.prevSibling) {
-			position = Math.max(position, last.position);
-		}
-		for (let last: DjangoFormCollectionSibling | null = this; last; last = last.nextSibling) {
-			position = Math.max(position, last.position);
-		}
-		return position;
+		this.element.classList.toggle('dj-marked-for-removal', this.markedForRemoval);
 	}
 
 	public assignForms(forms: Array<DjangoForm>) {
@@ -886,15 +873,15 @@ class DjangoFormCollectionSibling {
 class DjangoFormCollectionTemplate {
 	private readonly formset: DjangoFormset;
 	private readonly element: HTMLTemplateElement;
-	private readonly lastFormCollectionSibling?: DjangoFormCollectionSibling;
+	private readonly parent?: DjangoFormCollectionSibling;
 	private readonly renderEmptyCollection: Function;
 	private readonly addButton?: HTMLButtonElement;
 	private readonly baseContext = new Map<string, string>();
 
-	constructor(formset: DjangoFormset, element: HTMLTemplateElement, prevSibling?: DjangoFormCollectionSibling) {
+	constructor(formset: DjangoFormset, element: HTMLTemplateElement, parent?: DjangoFormCollectionSibling) {
 		this.formset = formset;
 		this.element = element;
-		this.lastFormCollectionSibling = prevSibling;
+		this.parent = parent;
 		const matches = element.innerHTML.matchAll(/\$\{([^} ]+)\}/g);
 		for (const match of matches) {
 			this.baseContext.set(match[1], match[0]);
@@ -909,18 +896,32 @@ class DjangoFormCollectionTemplate {
 	private appendFormCollectionSibling() {
 		console.log("Append <django-form-collection-sibling>");
 		const context = Object.fromEntries(this.baseContext);
-		const position = (this.lastFormCollectionSibling?.getMaxPosition() ?? -1) + 1;
-		context['position'] = position.toString();
+		context['position'] = (this.getHighestPosition() + 1).toString();
 		const renderedHTML = this.renderEmptyCollection(context);
 		this.element.insertAdjacentHTML('beforebegin', renderedHTML);
 		const newCollectionElement = this.element.previousElementSibling;
 		if (!newCollectionElement)
-			throw new Error("Unable to insert empty <django-form-collection-sibling>");
+			throw new Error("Unable to insert empty <django-form-collection-sibling> element.");
 		this.formset.findForms(newCollectionElement);
-		this.formset.formCollectionSiblings.push(new DjangoFormCollectionSibling(this.formset, newCollectionElement, this.lastFormCollectionSibling, true));
+		this.formset.formCollectionSiblings.push(new DjangoFormCollectionSibling(this.formset, newCollectionElement, this.parent, true));
 		this.formset.assignFieldsToForms(newCollectionElement);
 		this.formset.assignFormsToCollections();
 		this.formset.validate();
+	}
+
+	private getHighestPosition() : number {
+		// look for the highest position number inside interconnected DjangoFormCollectionSiblings
+		let position = -1;
+		if (this.parent) {
+			for (const sibling of this.parent.children) {
+				position = Math.max(position, sibling.position);
+			}
+		} else {
+			for (const sibling of this.formset.formCollectionSiblings) {
+				position = Math.max(position, sibling.position);
+			}
+		}
+		return position;
 	}
 }
 
@@ -1009,13 +1010,11 @@ export class DjangoFormset {
 
 	public findFormCollectionSiblings() {
 		// find all immediate elements named <django-form-collection-sibling> belonging to the current <django-formset>
-		let prevSibling;
 		for (const element of this.element.querySelectorAll(':scope > django-form-collection-sibling')) {
-			prevSibling = new DjangoFormCollectionSibling(this, element);
-			this.formCollectionSiblings.push(prevSibling);
+			this.formCollectionSiblings.push(new DjangoFormCollectionSibling(this, element));
 		}
 		for (const element of this.element.querySelectorAll(':scope > template.empty-collection')) {
-			this.formCollectionTemplates.push(new DjangoFormCollectionTemplate(this, element as HTMLTemplateElement, prevSibling));
+			this.formCollectionTemplates.push(new DjangoFormCollectionTemplate(this, element as HTMLTemplateElement));
 		}
 	}
 
@@ -1053,14 +1052,16 @@ export class DjangoFormset {
 			setDataValue(this.data, path, Object.fromEntries(form.aggregateValues()));
 		}
 		for (const form of this.forms) {
-			form.updateVisibility();
+			if (!form.markedForRemoval) {
+				form.updateVisibility();
+			}
 		}
 	}
 
 	public validate() {
 		let isValid = true;
 		for (const form of this.forms) {
-			isValid = form.checkValidity() && isValid;
+			isValid = (form.markedForRemoval || form.checkValidity()) && isValid;
 		}
 		for (const button of this.buttons) {
 			button.autoDisable(isValid);
@@ -1069,11 +1070,57 @@ export class DjangoFormset {
 		return isValid;
 	}
 
-	public async submit(extraData: Object | undefined): Promise<Response | undefined> {
+	private buildBody(extraData?: Object) : Object {
+		const body = new Map<string, Object | Array<Object>>();
+		for (const form of this.forms) {
+			if (!form.name || form.markedForRemoval)
+				continue;
+
+			const parts = ['payload'];
+			parts.push(...form.name.split('.'));
+			const dataValue = getDataValue(this.data, parts);
+
+			function extendBody(depth: number, entry: Map<string, Object> | Array<Object>) {
+				if (depth == parts.length - 1) {
+					if (Array.isArray(entry)) {
+						entry.push(dataValue);
+					} else {
+						entry.set(parts[depth], dataValue);
+					}
+					return;
+				}
+				if (isNaN(parseInt(parts[depth + 1]))) {
+					let innerObject;
+					if (Array.isArray(entry)) {
+						innerObject = new Map<string, Object>();
+						entry.push(innerObject)
+					} else {
+						innerObject = entry.get(parts[depth]) as Map<string, Object> ?? new Map<string, Object>();
+						entry.set(parts[depth], innerObject);
+					}
+					extendBody(depth + 1, innerObject);
+				} else {
+					if (Array.isArray(entry))
+						throw new Error(`Invalid form name: ${form.name}. Contains nested arrays.`);
+					const innerArray = entry.get(parts[depth]) as Array<Object> ?? new Array<Object>();
+					entry.set(parts[depth], innerArray);
+					extendBody(depth + 1, innerArray);
+				}
+			}
+
+			extendBody(0, body);
+		}
+		//console.log(body);
+		const result = Object.assign({}, body, {_extra: extraData});
+		console.log(result);
+		return result;
+	}
+
+	public async submit(extraData?: Object): Promise<Response | undefined> {
 		let formsAreValid = true;
 		if (!this.forceSubmission) {
 			for (const form of this.forms) {
-				formsAreValid = form.isValid() && formsAreValid;
+				formsAreValid = (form.markedForRemoval || form.isValid()) && formsAreValid;
 			}
 		}
 		this.setSubmitted();
@@ -1087,11 +1134,10 @@ export class DjangoFormset {
 			if (csrfToken) {
 				headers.append('X-CSRFToken', csrfToken);
 			}
-			const body = Object.assign({}, this.data, {_extra: extraData});
 			const response = await fetch(this.endpoint, {
 				method: 'POST',
 				headers: headers,
-				body: JSON.stringify(body),
+				body: JSON.stringify(this.buildBody(extraData)),
 				signal: this.abortController.signal,
 			});
 			if (response.status === 422) {
