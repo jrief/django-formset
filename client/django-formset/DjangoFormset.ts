@@ -664,7 +664,7 @@ class DjangoButton {
 
 class DjangoForm {
 	public readonly formId: string | null;
-	public readonly name: string;
+	public readonly name: string | null;
 	public readonly formset: DjangoFormset;
 	public readonly element: HTMLFormElement;
 	private readonly errorList: Element | null;
@@ -675,7 +675,7 @@ class DjangoForm {
 
 	constructor(formset: DjangoFormset, element: HTMLFormElement) {
 		this.formId = element.getAttribute('id');
-		this.name = element.getAttribute('name') ?? '__default__';
+		this.name = element.getAttribute('name') ?? null;
 		this.formset = formset;
 		this.element = element;
 		const formError = element.querySelector('.dj-form-errors');
@@ -833,6 +833,15 @@ class DjangoFormCollectionSibling {
 
 	private removeCollection() {
 		console.log(`remove collection`);
+		if (this.justAdded) {
+			this.element.remove();
+			if (this.prevSibling) {
+				this.prevSibling.nextSibling = this.nextSibling;
+			}
+			if (this.nextSibling) {
+				this.nextSibling.prevSibling = this.prevSibling;
+			}
+		}
 		this.markForRemoval(!this.markedForRemoval);
 		if (this.removeButton) {
 			this.removeButton.disabled = false;
@@ -987,10 +996,14 @@ export class DjangoFormset {
 
 	private checkForUniqueness() {
 		const formNames = Array<string>(0);
-		for (const form of this.forms) {
-			if (form.name in formNames)
-				throw new Error(`Detected more than one <form name="${form.name}"> in <django-formset>`);
-			formNames.push(form.name);
+		if (this.forms.length > 1) {
+			for (const form of this.forms) {
+				if (!form.name)
+					throw new Error('Multiple <form>-elements in a <django-formset> require a unique name each.');
+				if (form.name in formNames)
+					throw new Error(`Detected more than one <form name="${form.name}"> in <django-formset>.`);
+				formNames.push(form.name);
+			}
 		}
 	}
 
@@ -1034,7 +1047,9 @@ export class DjangoFormset {
 		this.data = {};
 		for (const form of this.forms) {
 			const path = ['payload']
-			path.push(...form.name.split('.'));
+			if (form.name) {
+				path.push(...form.name.split('.'));
+			}
 			setDataValue(this.data, path, Object.fromEntries(form.aggregateValues()));
 		}
 		for (const form of this.forms) {
@@ -1072,17 +1087,17 @@ export class DjangoFormset {
 			if (csrfToken) {
 				headers.append('X-CSRFToken', csrfToken);
 			}
-			const payload = Object.assign({}, this.data, {_extra: extraData});
+			const body = Object.assign({}, this.data, {_extra: extraData});
 			const response = await fetch(this.endpoint, {
 				method: 'POST',
 				headers: headers,
-				body: JSON.stringify(payload),
+				body: JSON.stringify(body),
 				signal: this.abortController.signal,
 			});
 			if (response.status === 422) {
 				const body = await response.json();
 				for (const form of this.forms) {
-					const errors = getDataValue(body, form.name.split('.'), null);
+					const errors = form.name ? getDataValue(body, form.name.split('.'), null) : body;
 					if (errors) {
 						form.reportCustomErrors(new Map(Object.entries(errors)));
 						form.reportValidity();

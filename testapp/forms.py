@@ -10,8 +10,6 @@ from testapp.validators import validate_password
 
 
 class SubscribeForm(forms.Form):
-    name = 'subscribe'
-
     CONTINENT_CHOICES = [
         ('', "––– please select –––"), ('am', "America"), ('eu', "Europe"), ('as', "Asia"),
         ('af', "Africa"), ('au', "Australia"), ('oc', "Oceania"), ('an', 'Antartica'),

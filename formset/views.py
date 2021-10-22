@@ -125,12 +125,13 @@ class FormViewMixin:
         return super().post(request, **kwargs)
 
     def _handle_form_data(self, form_data):
-        form_name = getattr(self.form_class, 'name', '__default__')
-        form = self.form_class(data=form_data.get(form_name))
+        form_name = getattr(self.form_class, 'name', None)
+        form = self.form_class(data=form_data.get(form_name or 'payload'))
         if form.is_valid():
             return JsonResponse({'success_url': force_str(self.success_url)})
         else:
-            return JsonResponse({form_name: form.errors.data}, status=422)
+            error_data = {form_name: form.errors.data} if form_name else form.errors.data
+            return JsonResponse(error_data, status=422)
 
     def get_field(self, path):
         field_name = path.split('.')[-1]
