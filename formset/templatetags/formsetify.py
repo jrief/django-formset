@@ -1,5 +1,6 @@
 from django import template
 from django.forms import BaseForm
+from django.middleware.csrf import get_token
 from django.template.exceptions import TemplateSyntaxError
 from django.utils.html import format_html_join
 from django.utils.module_loading import import_string
@@ -33,7 +34,8 @@ def _formsetify(form, *args, **kwargs):
     return form
 
 
-def _form_attrs(form, *args, **kwargs):
+def _form_attrs(context, form, *args, **kwargs):
+    get_token(context['request'])  # ensures that the CSRF-Cookie is set
     form = _formsetify(form, *args, **kwargs)
     attrs = []
     form_name = getattr(form, 'name', None)
@@ -44,11 +46,12 @@ def _form_attrs(form, *args, **kwargs):
     return format_html_join('', ' {0}="{1}"', attrs)
 
 
-def _render_form(form, *args, **kwargs):
+def _render_form(context, form, *args, **kwargs):
+    get_token(context['request'])  # ensures that the CSRF-Cookie is set
     form = _formsetify(form, *args, **kwargs)
     return str(form)
 
 
 register = template.Library()
-register.simple_tag(_form_attrs, name='form_attrs')
-register.simple_tag(_render_form, name='render_form')
+register.simple_tag(_form_attrs, name='form_attrs', takes_context=True)
+register.simple_tag(_render_form, name='render_form', takes_context=True)
