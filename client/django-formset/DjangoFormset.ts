@@ -1110,10 +1110,25 @@ export class DjangoFormset {
 
 			extendBody(0, body);
 		}
-		//console.log(body);
-		const result = Object.assign({}, body, {_extra: extraData});
-		console.log(result);
-		return result;
+
+		function fromEntries(entry: Map<string, Object>) : Object | Array<Object> {
+			if (Array.isArray(entry)) {
+				let result = [];
+				for (let item of entry) {
+					result.push(fromEntries(item));
+				}
+				return result;
+			} else if (entry instanceof Map) {
+				let result = Object.fromEntries(entry);
+				for (let [key, obj] of entry) {
+					result[key] = fromEntries(obj as Map<string, Object>);
+				}
+				return result;
+			} else {
+				return entry;
+			}
+		}
+		return Object.assign({}, fromEntries(body), {_extra: extraData});
 	}
 
 	public async submit(extraData?: Object): Promise<Response | undefined> {
