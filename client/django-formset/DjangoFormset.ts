@@ -1,7 +1,6 @@
 import { parse } from './actions';
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
-import cloneDeep from 'lodash.clone';
 import zip from 'lodash.zip';
 import template from 'lodash.template';
 
@@ -672,7 +671,7 @@ class DjangoForm {
 	private readonly errorPlaceholder: Element | null;
 	public readonly fieldGroups = Array<FieldGroup>(0);
 	public readonly hiddenInputFields = Array<HTMLInputElement>(0);
-	public removalDepth: number = 0;
+	public markedForRemoval = false;
 
 	constructor(formset: DjangoFormset, element: HTMLFormElement) {
 		this.formId = element.getAttribute('id');
@@ -746,10 +745,10 @@ class DjangoForm {
 		}
 	}
 
-	markForRemoval(removalDepth: number) {
-		this.removalDepth = removalDepth;
+	markForRemoval(remove: boolean) {
+		this.markedForRemoval = remove;
 		for (const fieldGroup of this.fieldGroups) {
-			if (removalDepth) {
+			if (remove) {
 				fieldGroup.disableAllFields();
 			} else {
 				fieldGroup.reenableAllFields();
@@ -783,10 +782,6 @@ class DjangoForm {
 				return fieldGroup.element;
 		}
 		return null;
-	}
-
-	get markedForRemoval() : boolean {
-		return Boolean(this.removalDepth);
 	}
 }
 
@@ -829,17 +824,11 @@ class DjangoFormCollectionSibling {
 
 	private removeCollection() {
 		console.log(`remove collection`);
-		let removalDepth = 0;
-		if (!this.markedForRemoval) {
-			for (let collection: DjangoFormCollectionSibling | undefined = this; collection; collection = collection.parent) {
-				removalDepth++;
-			}
-		}
 		if (this.justAdded) {
 			this.element.remove();
-			this.markForRemoval(removalDepth);
+			this.markForRemoval(true);
 		} else {
-			this.markForRemoval(removalDepth);
+			this.markForRemoval(!this.markedForRemoval);
 			if (this.removeButton) {
 				// reenable "Remove" button to reverse removal
 				this.removeButton.disabled = false;
@@ -847,16 +836,16 @@ class DjangoFormCollectionSibling {
 		}
 	}
 
-	private markForRemoval(removalDepth: number) {
-		this.markedForRemoval = Boolean(removalDepth);
+	private markForRemoval(remove: boolean) {
+		this.markedForRemoval = remove;
 		if (this.removeButton) {
 			this.removeButton.disabled = this.markedForRemoval;
 		}
 		for (const form of this.forms) {
-			form.markForRemoval(removalDepth);
+			form.markForRemoval(remove);
 		}
 		for (const formCollection of this.children) {
-			formCollection.markForRemoval(removalDepth);
+			formCollection.markForRemoval(remove);
 		}
 		this.element.classList.toggle('dj-marked-for-removal', this.markedForRemoval);
 	}
