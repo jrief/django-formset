@@ -1,5 +1,5 @@
 <form{% include "formset/form_attrs.html" %}>
-	{% include "formset/default/non_field_errors.html" %}
+	{% include "formset/non_field_errors.html" %}
 	{% for field in form %}
 		{% if field.is_hidden %}{{ field }}{% else %}{% include "formset/uikit/field_group.html" %}{% endif %}
 	{% endfor %}
