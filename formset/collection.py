@@ -53,13 +53,28 @@ class BaseFormCollection(RenderableMixin):
     default_renderer = FormRenderer
     prefix = None
     template_name = 'formset/default/collection.html'
+    min_siblings = None
+    max_siblings = None
+    extra_siblings = None
 
-    def __init__(self, data=None, initial=None, renderer=None, prefix=None):
+    def __init__(self, data=None, initial=None, renderer=None, prefix=None, min_siblings=None,
+                 max_siblings=None, extra_siblings=None):
         self.data = MultiValueDict() if data is None else data
         self.initial = initial
         if prefix is not None:
             self.prefix = prefix
-        self._errors = None  # Stores the errors after clean() has been called.
+        self._errors = None  # Stores the errors after `clean()` has been called.
+        if min_siblings is not None:
+            self.min_siblings = min_siblings
+        if max_siblings is not None:
+            self.max_siblings = max_siblings
+        if extra_siblings is not None:
+            self.extra_siblings = max_siblings
+        if self.has_many:
+            if self.min_siblings is None:
+                self.min_siblings = 1
+            if self.extra_siblings is None:
+                self.extra_siblings = 0
 
         # Initialize form renderer. Use a global default if not specified
         # either as an argument or as self.default_renderer.
@@ -81,15 +96,17 @@ class BaseFormCollection(RenderableMixin):
             yield holder
 
     def iter_many(self):
-        num_instances = 2
+        num_siblings = max(self.min_siblings, self.extra_siblings)
         if self.initial:
             if not isinstance(self.initial, list):
                 errmsg = "{class_name} is declared to have siblings, but provided argument `{argument}` is not a list"
                 raise FormCollectionError(errmsg.format(class_name=self.__class__.__name__, argument='initial'))
-            num_instances = max(num_instances, len(self.initial))
+            num_siblings = max(num_siblings, len(self.initial))
+            num_siblings += self.extra_siblings
+
         first, last = 0, len(self.declared_holders.items()) - 1
         # add initialized collections/forms
-        for position in range(num_instances):
+        for position in range(num_siblings):
             for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
                 prefix = f'{self.prefix}.{position}.{name}' if self.prefix else f'{position}.{name}'
                 initial = None
@@ -106,7 +123,14 @@ class BaseFormCollection(RenderableMixin):
                 yield holder
         # add empty placeholder as template for extra collections
         for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
-            prefix = f'{self.prefix}.${{position}}.{name}' if self.prefix else f'${{position}}.{name}'
+            if self.prefix:
+                count = self.prefix.count('${position')
+                assert count < 10, "Maximum number of nested FormCollections reached"
+                # this context rewriting is necessary to render nested templates properly
+                position = f'${{position_{count}}}' if count > 0 else '${position}'
+                prefix = f'{self.prefix}.{position}.{name}'
+            else:
+                prefix = f'${{position}}.{name}'
             holder = declared_holder.__class__(prefix=prefix, renderer=self.renderer)
             holder.is_template = True
             holder.position = '${position}'
@@ -167,12 +191,12 @@ class BaseFormCollection(RenderableMixin):
     def clean(self):
         return self.cleaned_data
 
-    @cached_property
+    @property
     def has_many(self):
         """
-        Returns True if current FormCollection manages a list of sibling forms.
+        Returns True if current FormCollection manages a list of sibling forms/(sub-)collections.
         """
-        return getattr(self, 'min_siblings', 0) > 0
+        return not (self.min_siblings is None and self.max_siblings is None and self.extra_siblings is None)
 
 
 class FormCollection(BaseFormCollection, metaclass=FormCollectionMeta):

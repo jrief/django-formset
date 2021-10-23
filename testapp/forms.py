@@ -230,7 +230,8 @@ class SelectForm(forms.Form):
 
 
 class DoubleFormCollection(FormCollection):
-    min_siblings = 1
+    extra_siblings = 1
+    max_siblings = 5
 
     persona = PersonForm()
 
