@@ -1034,7 +1034,7 @@ export class DjangoFormset {
 	private aggregateValues() {
 		this.data = {};
 		for (const form of this.forms) {
-			const path = ['payload']
+			const path = ['formset_data']
 			if (form.name) {
 				path.push(...form.name.split('.'));
 			}
@@ -1065,7 +1065,7 @@ export class DjangoFormset {
 			if (!form.name || form.markedForRemoval)
 				continue;
 
-			const parts = ['payload'];
+			const parts = ['formset_data'];
 			parts.push(...form.name.split('.'));
 			const dataValue = getDataValue(this.data, parts);
 

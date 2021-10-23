@@ -124,9 +124,9 @@ class FormViewMixin:
             return self._handle_form_data(json.loads(request.body))
         return super().post(request, **kwargs)
 
-    def _handle_form_data(self, form_data):
+    def _handle_form_data(self, body):
         form_name = getattr(self.form_class, 'name', None)
-        form = self.form_class(data=form_data.get(form_name or 'payload'))
+        form = self.form_class(data=body.get(form_name or 'formset_data'))
         if form.is_valid():
             return JsonResponse({'success_url': force_str(self.success_url)})
         else:
@@ -171,8 +171,8 @@ class FormCollectionViewMixin(ContextMixin):
     def get_field(self, path):
         return self.form_collection.get_field(path)
 
-    def _handle_form_data(self, form_data):
-        form_collection = self.collection_class(data=form_data.get('payload'))
+    def _handle_form_data(self, body):
+        form_collection = self.collection_class(data=body.get('formset_data'))
         if form_collection.is_valid():
             return JsonResponse({'success_url': force_str(self.success_url)})
         else:
