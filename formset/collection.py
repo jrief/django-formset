@@ -6,7 +6,10 @@ from django.utils.functional import cached_property
 
 from formset.exceptions import FormCollectionError
 from formset.renderers.default import FormRenderer
-from formset.utils import FormMixin, FormsetErrorList
+from formset.utils import FormMixin
+
+
+MARKED_FOR_REMOVAL = '_marked_for_removal_'
 
 
 class FormCollectionMeta(MediaDefiningClass):
@@ -140,6 +143,8 @@ class BaseFormCollection(RenderableMixin):
             self.cleaned_data = []
             self._errors = ErrorList()
             for index, data in enumerate(self.data):
+                if MARKED_FOR_REMOVAL in data:
+                    continue
                 cleaned_data = {}
                 for name, declared_holder in self.declared_holders.items():
                     holder = declared_holder.__class__(data=data.get(name))

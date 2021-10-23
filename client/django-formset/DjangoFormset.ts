@@ -10,7 +10,8 @@ type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FieldValue = string | Array<string | Object>;
 type ErrorKey = keyof ValidityState;
 
-const NON_FIELD_ERRORS = '__all__'
+const NON_FIELD_ERRORS = '__all__';
+const MARKED_FOR_REMOVAL = '_marked_for_removal_';
 
 
 class BoundValue {
@@ -1062,20 +1063,22 @@ export class DjangoFormset {
 	private buildBody(extraData?: Object) : Object {
 		const body = {};
 		for (const form of this.forms) {
-			if (!form.name || form.markedForRemoval)
+			if (!form.name)
 				continue;
 
 			const parts = ['formset_data'];
 			parts.push(...form.name.split('.'));
-			const dataValue = getDataValue(this.data, parts);
+			const dataValue = form.markedForRemoval ? MARKED_FOR_REMOVAL : getDataValue(this.data, parts);
 
 			// Build `body`-Object recursively.
 			// deliberately ignore type-checking, because `body` must be build as POJO to be JSON serializable.
 			// If it would have been build as a `Map<string, Object>`, the `body` would additionally have to be
 			// converted to a POJO by a second recursive function.
 			function extendBody(depth: number, entry: any) {
-				if (depth == parts.length - 1) {
-					if (Array.isArray(entry)) {
+				if (depth === parts.length - 1) {
+					if (dataValue === MARKED_FOR_REMOVAL) {
+						entry[dataValue] = dataValue;
+					} else if (Array.isArray(entry)) {
 						entry.push(dataValue);
 					} else {
 						entry[parts[depth]] = dataValue;
