@@ -1122,8 +1122,8 @@ export class DjangoFormset {
 	private buildBody(extraData?: Object) : Object {
 		const body = {};
 		for (const form of this.forms) {
-			if (!form.name)
-				continue;
+			if (!form.name)  // only a single form doesn't have a name
+				return Object.assign({}, this.data, {_extra: extraData});
 
 			const parts = ['formset_data'];
 			parts.push(...form.name.split('.'));
@@ -1164,7 +1164,6 @@ export class DjangoFormset {
 			}
 
 			extendBody(0, body);
-			console.log(body)
 		}
 
 		return Object.assign({}, body, {_extra: extraData});

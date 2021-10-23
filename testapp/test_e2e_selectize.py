@@ -192,7 +192,7 @@ def test_submit_value(page, mocker, view, form, initial_opinion):
     spy = mocker.spy(view.view_class, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
-    assert request[form.name]['model_choice'] == str(initial_opinion.id)
+    assert request['formset_data']['model_choice'] == str(initial_opinion.id)
     assert spy.spy_return.status_code == 200
     response = json.loads(spy.spy_return.content)
     assert response['success_url'] == view.view_class.success_url
@@ -214,11 +214,11 @@ def test_submit_invalid(page, mocker, view, form, initial_opinion):
     spy = mocker.spy(view.view_class, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
-    assert request[form.name]['model_choice'] == str(initial_opinion.id)
+    assert request['formset_data']['model_choice'] == str(initial_opinion.id)
     assert spy.spy_return.status_code == 422
     response = json.loads(spy.spy_return.content)
     error_message = models.ModelChoiceField.default_error_messages['invalid_choice']
-    assert response == {'selection_required': {'model_choice': [error_message]}}
+    assert response == {'model_choice': [error_message]}
     placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == error_message
     initial_opinion.tenant = 1  # reset to initial tenant
