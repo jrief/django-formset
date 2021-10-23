@@ -26,8 +26,11 @@ def _formsetify(form, *args, **kwargs):
         raise TemplateSyntaxError(f"Unknown argument '{kwargs.popitem()[0]}' in formsetify.")
 
     if len(args) == 1 and args[0]:
-        framework = args[0].replace('.', '').lower()  # for safety reasons
-        form.renderer = import_string(f'formset.renderers.{framework}.FormRenderer')(**renderer_kwargs)
+        framework = args[0].lower()
+        if '.' in framework:
+            form.renderer = import_string(f'{framework}.FormRenderer')(**renderer_kwargs)
+        else:
+            form.renderer = import_string(f'formset.renderers.{framework}.FormRenderer')(**renderer_kwargs)
     elif not isinstance(form.renderer, FormRenderer):
         form.renderer = FormRenderer(**renderer_kwargs)
     form.error_class = FormsetErrorList
