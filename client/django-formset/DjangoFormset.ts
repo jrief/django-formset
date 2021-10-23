@@ -1060,7 +1060,7 @@ export class DjangoFormset {
 	}
 
 	private buildBody(extraData?: Object) : Object {
-		const body = new Map<string, Object | Array<Object>>();
+		const body = {};
 		for (const form of this.forms) {
 			if (!form.name || form.markedForRemoval)
 				continue;
@@ -1069,55 +1069,43 @@ export class DjangoFormset {
 			parts.push(...form.name.split('.'));
 			const dataValue = getDataValue(this.data, parts);
 
-			function extendBody(depth: number, entry: Map<string, Object> | Array<Object>) {
+			// Build `body`-Object recursively.
+			// deliberately ignore type-checking, because `body` must be build as POJO to be JSON serializable.
+			// If it would have been build as a `Map<string, Object>`, the `body` would additionally have to be
+			// converted to a POJO by a second recursive function.
+			function extendBody(depth: number, entry: any) {
 				if (depth == parts.length - 1) {
 					if (Array.isArray(entry)) {
 						entry.push(dataValue);
 					} else {
-						entry.set(parts[depth], dataValue);
+						entry[parts[depth]] = dataValue;
 					}
 					return;
 				}
 				if (isNaN(parseInt(parts[depth + 1]))) {
 					let innerObject;
 					if (Array.isArray(entry)) {
-						innerObject = new Map<string, Object>();
+						innerObject = {};
 						entry.push(innerObject)
 					} else {
-						innerObject = entry.get(parts[depth]) as Map<string, Object> ?? new Map<string, Object>();
-						entry.set(parts[depth], innerObject);
+						innerObject = (entry as any)[depth] ?? {};
+						entry[parts[depth]] = innerObject;
 					}
 					extendBody(depth + 1, innerObject);
 				} else {
 					if (Array.isArray(entry))
 						throw new Error(`Invalid form name: ${form.name}. Contains nested arrays.`);
-					const innerArray = entry.get(parts[depth]) as Array<Object> ?? new Array<Object>();
-					entry.set(parts[depth], innerArray);
+					const innerArray = entry[parts[depth]] ?? [];
+					entry[parts[depth]] = innerArray;
 					extendBody(depth + 1, innerArray);
 				}
 			}
 
 			extendBody(0, body);
+			console.log(body)
 		}
 
-		function fromEntries(entry: Map<string, Object>) : Object | Array<Object> {
-			if (Array.isArray(entry)) {
-				let result = [];
-				for (let item of entry) {
-					result.push(fromEntries(item));
-				}
-				return result;
-			} else if (entry instanceof Map) {
-				let result = Object.fromEntries(entry);
-				for (let [key, obj] of entry) {
-					result[key] = fromEntries(obj as Map<string, Object>);
-				}
-				return result;
-			} else {
-				return entry;
-			}
-		}
-		return Object.assign({}, fromEntries(body), {_extra: extraData});
+		return Object.assign({}, body, {_extra: extraData});
 	}
 
 	public async submit(extraData?: Object): Promise<Response | undefined> {
