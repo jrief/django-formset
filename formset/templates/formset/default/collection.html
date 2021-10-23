@@ -4,8 +4,8 @@
 		{% if holder.is_template %}
 <template class="empty-collection">
 		{% endif %}
-<django-form-collection-sibling position="{{ holder.position }}">
-		{% endif %}
+<django-form-collection-sibling position="{{ holder.position }}" min-siblings="{{ collection.min_siblings }}"{% if collection.max_siblings %} max-siblings="{{ collection.max_siblings }}"{% endif %}>
+	{% endif %}
 	{{ holder }}
 	{% if holder.is_last %}
 	<button class="remove-collection">{% trans "Remove" %}</button>
