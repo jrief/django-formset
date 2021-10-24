@@ -58,30 +58,32 @@ to the way Django handles Forms, Models and Views.
   [Bulma](https://bulma.io/documentation/form/general/),
   [Foundation](https://get.foundation/sites/docs/forms.html),
   [Tailwind](https://tailwindcss.com/) [^1] and [UIKit](https://getuikit.com/docs/form).
-* Support for all widgets Django offers, this also includes Radios and multiple checkboxes with
-  options.
-* File uploads are handled asynchrounosly. This means that the user drags a file to the form, which
-  is uploaded immediatly to a temporary folder, returning a unique handle together with a thumbnail
-  of the uploaded file. This handle then is used to access that file and proceed as usual.
+* Support for all standard widgets Django currently offers. This also includes radio buttons and
+  multiple checkboxes with options.
+* File uploads are handled asynchrounosly. This means that the user opens the file dialog or drags a
+  file to the form. This file then is uploaded immediatly to a temporary folder, returning a unique
+  handle together with a thumbnail of it. On form submission, this handle then is used to access
+  that file and proceed as usual.
 * Select boxes with too many entries, can be filtered by the server using a search query. No extra
   endpoint is required for this feature.
-* Radios and Multiple Checkboxes with only a few fields can be rendered inlined rather than beneath
-  each other.
+* Radio buttons and multiple checkboxes with only a few fields can be rendered inlined rather than
+  beneath each other.
 * The Submit buttons can be configured as a chain of actions. It for instance is possible to change
-  the CSS depending on success or failure, add delays and specify the further proceeding, for
-  instance the success page.
-* A Formset can group multiple Forms into a Form-Collection. On submission, this collection then is
+  the CSS depending on success or failure, add delays and specify the further proceedings. This
+  for instance allows to specify the success page in HTML rather than in the Django View.
+* A Formset can group multiple Forms into a collection. On submission, this collection then is
   sent to the server as a group a separate entities. After all Forms have been validated, the
   submitted data is provided as a nested Python dictionary.
-* Such a Form-Collection can be declared to have many entities. This allows to create siblings of
-  Forms, similar the Django's Admin Inline Forms. However, each of these siblings can contain other
-  Form-Collections, which themselves can also be declared as siblings. It is possible to change the
-  number of siblings using one "Add" and multiple "Remove" buttons.
-* The client part, has no dependencies to any JavaScript-framework. It is written completely in
-  pure TypeScript and cleanely compiles to a single, portable JS-file.
+* Such a Form-Collection can be declared to have many Form entities of the same kind. This allows to
+  create siblings of Forms, similar the Django's Admin Inline Forms. However, each of these siblings
+  can contain other Form-Collections, which themselves can also be declared as siblings. Those list
+  of siblings can be extended or reduced using one "Add" and multiple "Remove" buttons.
+* The client part, has no dependencies to any JavaScript-framework. It is written in pure TypeScript
+  and compiles to a single, portable JS-file.
 
-[^1]: Tailwind is special here, it doesn't include purpose-built form control classes out of the
-      box. Instead **django-formset** adds an opinionated set of CSS classes suitable for Tailwind.
+[^1]: Tailwind is special here, since it doesn't include purpose-built form control classes out of
+      the box. Instead **django-formset** adds an opinionated set of CSS classes suitable for
+      Tailwind.
 
 
 ## Documentation
