@@ -79,7 +79,8 @@ def view(viewname):
 
 @pytest.fixture
 def form(view):
-    return view.view_initkwargs['form_class']()
+    form_class = view.view_initkwargs['form_class']
+    return form_class()
 
 
 @pytest.fixture
@@ -185,7 +186,7 @@ def test_valid_form_submission(page, mocker, view, form):
     spy = mocker.spy(view.view_class, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
-    assert request[form.name][field_name] == "XYZ"
+    assert request['formset_data'][field_name] == "XYZ"
     assert spy.spy_return.status_code == 200
     response = json.loads(spy.spy_return.content)
     assert response['success_url'] == view.view_class.success_url
@@ -344,7 +345,7 @@ def test_date_field(page, mocker):
     spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
-    assert request['date_form'][name] == '2021-03-29'
+    assert request['formset_data'][name] == '2021-03-29'
     assert spy.spy_return.status_code == 200
     response = json.loads(spy.spy_return.content)
     assert response['success_url'] == '/success'
@@ -378,7 +379,7 @@ def test_boolean_field(page, mocker):
     spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
-    assert request['boolean_form'][name] == 'on'
+    assert request['formset_data'][name] == 'on'
     assert spy.spy_return.status_code == 200
     response = json.loads(spy.spy_return.content)
     assert response['success_url'] == '/success'
@@ -450,7 +451,7 @@ def test_select_field(page, mocker):
     spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
-    assert set(request['multiselect_form']['choices']) == set(['b', 'c'])
+    assert set(request['formset_data']['choices']) == set(['b', 'c'])
     assert spy.spy_return.status_code == 200
     response = json.loads(spy.spy_return.content)
     assert response['success_url'] == '/success'
@@ -487,7 +488,7 @@ def test_radiochoice_field(page, mocker):
     spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
-    assert request['radiochoice_form']['choice'] == 'b'
+    assert request['formset_data']['choice'] == 'b'
     assert spy.spy_return.status_code == 200
     response = json.loads(spy.spy_return.content)
     assert response['success_url'] == '/success'
@@ -526,7 +527,7 @@ def test_multichoice_field(page, mocker):
     spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
-    assert request['multichoice_form']['choices'] == ['a', 'd']
+    assert request['formset_data']['choices'] == ['a', 'd']
     assert spy.spy_return.status_code == 200
     response = json.loads(spy.spy_return.content)
     assert response['success_url'] == '/success'
@@ -561,7 +562,7 @@ def test_textarea(page, mocker):
     spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
-    assert request['textarea_form']['text'].startswith("Lorem ipsum dolor sit amet")
+    assert request['formset_data']['text'].startswith("Lorem ipsum dolor sit amet")
     assert spy.spy_return.status_code == 200
     response = json.loads(spy.spy_return.content)
     assert response['success_url'] == '/success'

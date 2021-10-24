@@ -2,6 +2,7 @@ import json
 import pytest
 from time import sleep
 
+from django.core.exceptions import ValidationError
 from django.forms import fields, Form
 from django.urls import path
 from django.utils.decorators import method_decorator
@@ -11,7 +12,13 @@ from formset.views import FormView
 
 
 class SampleForm(Form):
-    enter = fields.CharField()
+    enter = fields.CharField(min_length=2)
+
+    def clean_enter(self):
+        cd = super().clean()
+        if cd['enter'] == 'invalid':
+            raise ValidationError("It's invalid")
+        return cd
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -39,6 +46,9 @@ views['test_button_submit'] = NativeFormView.as_view(
 )
 views['test_button_submit_with_data'] = NativeFormView.as_view(
     extra_context={'click_actions': 'submit({foo: "bar"})', 'auto_disable': True},
+)
+views['test_button_submit_with_invalid_data'] = NativeFormView.as_view(
+    extra_context={'click_actions': 'submit !~ scrollToError', 'auto_disable': False},
 )
 
 urlpatterns = [path(name, view, name=name) for name, view in views.items()]
@@ -126,7 +136,7 @@ def test_button_autodisable(page):
     assert button_elem is not None
     input_elem = page.query_selector('django-formset #id_enter')
     assert input_elem is not None
-    input_elem.type("A")
+    input_elem.type("BAR")
     input_elem.evaluate('elem => elem.blur()')
     button_elem = page.query_selector('django-formset button:enabled')
     assert button_elem is not None
@@ -137,7 +147,7 @@ def test_button_autodisable(page):
 def test_button_submit(page, mocker):
     input_elem = page.query_selector('#id_enter')
     assert input_elem is not None
-    input_elem.type("A")
+    input_elem.type("BAR")
     input_elem.evaluate('elem => elem.blur()')
     button_elem = page.query_selector('django-formset button')
     assert button_elem is not None
@@ -145,7 +155,7 @@ def test_button_submit(page, mocker):
     page.wait_for_selector('django-formset button').click()
     assert spy.called is True
     request = json.loads(spy.call_args.args[1].body)
-    assert request['formset_data']['enter'] == "A"
+    assert request['formset_data']['enter'] == "BAR"
 
 
 @pytest.mark.urls(__name__)
@@ -163,3 +173,23 @@ def test_button_submit_with_data(page, mocker):
     request = json.loads(spy.call_args.args[1].body)
     assert request['_extra']['foo'] == "bar"
     assert request['formset_data']['enter'] == "BAR"
+
+
+@pytest.mark.skip(reason="no reason why scroll event isn't fired?")
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['test_button_submit_with_invalid_data'])
+def test_button_scroll_to_error(page):
+    def page_scrolled(evt):
+        global scroll_event_fired
+        scroll_event_fired = True
+
+    scroll_event_fired = False
+    input_elem = page.query_selector('#id_enter')
+    assert input_elem is not None
+    page.on('scroll', page_scrolled)
+    input_elem.type("invalid")
+    input_elem.evaluate('elem => elem.blur()')
+    button_elem = page.query_selector('django-formset button')
+    assert button_elem is not None
+    page.wait_for_selector('django-formset button').click()
+    assert scroll_event_fired is True

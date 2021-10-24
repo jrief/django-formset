@@ -70,7 +70,7 @@ def test_upload_image(page, mocker):
     spy = mocker.spy(SampleFormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
-    file = request['upload']['file'][0]
+    file = request['formset_data']['file'][0]
     signer = get_cookie_signer(salt='formset')
     upload_temp_name = signer.unsign(file['upload_temp_name'])
     assert os.path.exists(f'media/{upload_temp_name}')
