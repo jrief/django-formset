@@ -1,14 +1,16 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
-from django.urls import path, reverse_lazy
+from django.template.loader import get_template
+from django.urls import get_resolver, path, reverse_lazy
 from django.utils.module_loading import import_string
 from django.views.generic import TemplateView
 
 from formset.views import FormCollectionView
 from formset.utils import FormMixin
 
-from testapp.forms import SubscribeForm, UploadForm, PersonForm, SelectForm, DoubleFormCollection, TripleFormCollection, NestedCollection, MultipleCollection
+from testapp.forms import (SubscribeForm, UploadForm, PersonForm, SelectForm, DoubleFormCollection,
+                           TripleFormCollection, NestedCollection, MultipleCollection)
 from testapp.views import SubscribeFormView
 
 
@@ -21,8 +23,25 @@ framework_contexts = {
     'uikit': {'field_css_classes': 'uk-margin-bottom'},
 }
 
+
+def render_startpage(request):
+    def not_blacklisted(url):
+        blacklist = ['media', 'success']
+        for denyurl in blacklist:
+            if not url or url.startswith(denyurl):
+                return False
+        return True
+
+    all_urls = filter(not_blacklisted, (v[0][0][0] for v in get_resolver().reverse_dict.values()))
+    context = {
+        'all_urls': all_urls,
+    }
+    template = get_template('index.html')
+    return HttpResponse(template.render(context))
+
+
 urlpatterns = [
-    path('', TemplateView.as_view(template_name='index.html')),
+    path('', render_startpage),
     path('success', lambda request: HttpResponse('<h1>Form data succesfully submitted</h1>'), name='form_data_valid'),
 ]
 for framework, attrs in framework_contexts.items():
@@ -105,9 +124,7 @@ urlpatterns.append(
         template_name='bootstrap/form-rows.html',
     ))
 )
-
-if settings.DEBUG:
-    urlpatterns.extend(static(
-        settings.MEDIA_URL,
-        document_root=settings.MEDIA_ROOT
-    ))
+urlpatterns.extend(static(
+    settings.MEDIA_URL,
+    document_root=settings.MEDIA_ROOT
+))
