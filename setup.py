@@ -31,7 +31,7 @@ setup(
     url='https://github.com/jrief/django-formset',
     packages=find_packages(exclude=['testapp', 'docs']),
     install_requires=[
-        'django>=3.1',
+        'django>=4.0',
     ],
     license='MIT',
     platforms=['OS Independent'],
