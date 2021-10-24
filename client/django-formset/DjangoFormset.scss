@@ -31,6 +31,9 @@ django-field-group {
 	$field-inputs: '#{$feedback-inputs}, select, textarea';
 	display: block;
 
+	&[hidden] {
+		display: none;
+	}
 	&.dj-required, &.dj-required-any {
 		> label {
 			font-weight: bolder;

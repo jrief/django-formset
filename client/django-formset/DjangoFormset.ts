@@ -127,7 +127,7 @@ class FieldGroup {
 			this.validateBoundField();
 		}
 		this.pristineValue = new BoundValue(this.aggregateValue());
-		this.updateVisibility = this.parseIfAttribute('show-if', true) || this.parseIfAttribute('hide-if', false) || function() {};
+		this.updateVisibility = this.parseIfAttribute('show-if', true) ?? this.parseIfAttribute('hide-if', false) ?? function() {};
 		this.untouch();
 		this.setPristine();
 	}
@@ -171,21 +171,17 @@ class FieldGroup {
 		}
 	}
 
-	private parseIfAttribute(attribute: string, visible: boolean): Function {
+	private parseIfAttribute(attribute: string, visible: boolean): Function | null {
 		if (this.inputElements.length !== 1)
-			return () => {};  // groups with multiple input elements are ignored
+			return null;  // groups with multiple input elements are ignored
 		const attrValue = this.inputElements[0].getAttribute(attribute);
 		if (typeof attrValue !== 'string')
-			return () => {};
-		const path = attrValue.includes('.') ? attrValue : `${this.form.name}.${attrValue}`;
+			return null;
+		const path = this.form.name === null || attrValue.includes('.') ? attrValue : `${this.form.name}.${attrValue}`;
 		if (visible) {
-			return () => this.form.formset.getDataValue(path)
-				? this.element.removeAttribute('hidden')
-				: this.element.setAttribute('hidden', 'hidden');
+			return () => this.element.toggleAttribute('hidden', !this.form.formset.getDataValue(path));
 		} else {
-			return () => this.form.formset.getDataValue(path)
-				? this.element.setAttribute('hidden', 'hidden')
-				: this.element.removeAttribute('hidden');
+			return () => this.element.toggleAttribute('hidden', !!this.form.formset.getDataValue(path));
 		}
 	}
 
@@ -1236,7 +1232,9 @@ export class DjangoFormset {
 	}
 
 	public getDataValue(path: string) : string | null{
-		return getDataValue(this.data, path.split('.'), null);
+		const propertyPath = ['formset_data'];
+		propertyPath.push(...path.split('.'));
+		return getDataValue(this.data, propertyPath, null);
 	}
 
 	findFirstErrorReport() : Element | null {
