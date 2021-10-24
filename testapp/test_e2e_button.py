@@ -39,6 +39,7 @@ views = {
         'toggleClass("button") -> delay(50) -> toggleClass("foo") -> delay(50) -> toggleClass("bar") -> delay(50) -> toggleClass("foo") -> delay(50) -> toggleClass("bar") -> delay(50)',
         'emit("my_event")',
         'emit("my_event", {foo: "bar"})',
+        'submit !~ scrollToError',
     ])
 }
 views['test_button_submit'] = NativeFormView.as_view(
@@ -46,9 +47,6 @@ views['test_button_submit'] = NativeFormView.as_view(
 )
 views['test_button_submit_with_data'] = NativeFormView.as_view(
     extra_context={'click_actions': 'submit({foo: "bar"})', 'auto_disable': True},
-)
-views['test_button_submit_with_invalid_data'] = NativeFormView.as_view(
-    extra_context={'click_actions': 'submit !~ scrollToError', 'auto_disable': False},
 )
 
 urlpatterns = [path(name, view, name=name) for name, view in views.items()]
@@ -130,6 +128,25 @@ def test_button_emit_custom_event(page, mocker):
 
 
 @pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['test_button_6'])
+def test_button_scroll_to_error(page):
+    input_elem = page.query_selector('#id_enter')
+    assert input_elem is not None
+    input_elem.type("invalid")
+    input_elem.evaluate('elem => elem.blur()')
+    button_elem = page.query_selector('django-formset button')
+    assert button_elem is not None
+    window_handle = page.evaluate_handle('() => Promise.resolve(window)');
+    assert window_handle.get_property('scrollY').json_value() == 0
+    button_elem.evaluate('elem => elem.setAttribute("style", "margin-top: 1500px;")')
+    button_elem.scroll_into_view_if_needed()
+    assert window_handle.get_property('scrollY').json_value() > 500
+    page.wait_for_selector('django-formset button').click()
+    sleep(0.25)  # because scrollToError uses behavior='smooth'
+    assert window_handle.get_property('scrollY').json_value() < 50
+
+
+@pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_submit'])
 def test_button_autodisable(page):
     button_elem = page.query_selector('django-formset button:disabled')
@@ -173,23 +190,3 @@ def test_button_submit_with_data(page, mocker):
     request = json.loads(spy.call_args.args[1].body)
     assert request['_extra']['foo'] == "bar"
     assert request['formset_data']['enter'] == "BAR"
-
-
-@pytest.mark.skip(reason="no reason why scroll event isn't fired?")
-@pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['test_button_submit_with_invalid_data'])
-def test_button_scroll_to_error(page):
-    def page_scrolled(evt):
-        global scroll_event_fired
-        scroll_event_fired = True
-
-    scroll_event_fired = False
-    input_elem = page.query_selector('#id_enter')
-    assert input_elem is not None
-    page.on('scroll', page_scrolled)
-    input_elem.type("invalid")
-    input_elem.evaluate('elem => elem.blur()')
-    button_elem = page.query_selector('django-formset button')
-    assert button_elem is not None
-    page.wait_for_selector('django-formset button').click()
-    assert scroll_event_fired is True
