@@ -4,3 +4,5 @@ include setup.py
 recursive-include formset *.py
 recursive-include formset/static *
 recursive-include formset/templates *
+recursive-exclude testapp *
+recursive-exclude * *.pyc

@@ -30,6 +30,7 @@ coverage/
 client/django-formset/actions.ts
 formset/static/formset/css/tailwind*
 formset/static/formset/js/django-formset*
+build/
 dist/
 docs/build/
 media/
