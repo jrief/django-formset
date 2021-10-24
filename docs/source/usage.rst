@@ -135,7 +135,7 @@ suits best:
 	<django-formset endpoint="/path/to/endpoint">
 	   <form name="{{ form.name }}">
 	      {% csrf_token %}
-	      {% include "formset/default/non_field_errors.html" %}
+	      {% include "formset/non_field_errors.html" %}
 	      {% for field in form|formsetify %}
 	      {% render_group field %}
 	      {% endfor %}
