@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "==3.2"
+django = ">=4.0"
 pillow = "*"
 
 [dev-packages]

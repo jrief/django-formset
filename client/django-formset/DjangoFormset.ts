@@ -649,7 +649,7 @@ class DjangoButton {
 		}
 
 		try {
-			const ast = parse(actionsQueue);
+			const ast = parse(actionsQueue, {startRule: 'actions'});
 			createActions(this.successActions, ast.successChain);
 			createActions(this.rejectActions, ast.rejectChain);
 		} catch (error) {

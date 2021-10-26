@@ -2,7 +2,6 @@ from django.forms.forms import BaseForm
 from django.forms.widgets import MediaDefiningClass
 from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
 from django.utils.datastructures import MultiValueDict
-from django.utils.functional import cached_property
 
 from formset.exceptions import FormCollectionError
 from formset.renderers.default import FormRenderer
