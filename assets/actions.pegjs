@@ -92,7 +92,7 @@ member
   { return { name: name, value: value } }
 
 keystring
-  = [$A-Za-z_] [$0-9A-Za-z_]*
+  = [$A-Za-z_][$0-9A-Za-z_]*
 
 // ----- 5. Arrays -----
 
