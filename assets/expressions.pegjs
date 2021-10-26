@@ -1,42 +1,25 @@
 // Simple Arithmetics Grammar
 // ==========================
 //
-// Accepts expressions like "2 * (3 + 4)" and computes their value.
-// "a"+"v"+(6+9)+"e"=="av15e" return true
-// 1.5 == 3/2 returns true
-
-{
-    const callVariable = (variableName) => {
-        console.log(variableName);
-        return 5;
-    };
-}
 
 Expression
-  = CompareTerms
-  / Term
-  / _ { return false; }
-
-CompareTerms
   = _ head:Term _ op:ComparisonOperator _ tail:Term _ {
-    switch (op) {
-      case '===':
-        return head === tail;
-      case '==':
-        return head == tail;
-      case '!==':
-        return head !== tail;
-      case '!=':
-        return head != tail;
-      case '<=':
-        return head <= tail;
-      case '>=':
-        return head >= tail;
-      case '<':
-        return head < tail;
-      case '>':
-        return head > tail;
-    }
+      return head + op + tail;
+  }
+  / _ head:Term _ {
+      return head;
+  }
+  / _ { return 'false'; }
+
+Term
+  = _ head:Factor _ op:BinaryOperator _ tail:Term _ {
+      return head + op + tail;
+  }
+  / head:Factor {
+      return head;
+  }
+  / op:UnaryOperator head:Factor {
+      return op + head;
   }
 
 ComparisonOperator
@@ -49,45 +32,30 @@ ComparisonOperator
   / "<"
   / ">"
 
-Term
-  = BooleanTerm
-  / AdditiveTerm
-  / MultiplicativeTerm
-  / Factor
+BinaryOperator
+  = "+"
+  / "-"
+  / "*"
+  / "/"
+  / "&&"
+  / "&"
+  / "||"
+  / "|"
+
+UnaryOperator
+  = "!"
 
 Factor
-  = "(" _ expr:Expression _ ")" { return expr; }
+  = "(" _ expr:Expression _ ")" { return '(' + expr + ')'; }
   / number
-  / LowerCase
-  / UpperCase
-  / string
-  / variable
+  / boolean
+  / getDataValue
+  / s:string { return '\'' + s + '\''; }
 
-BooleanTerm
-  = _ head:boolean tail:(_ ("&&" / "||") _ Term)* _ {
-      return tail.reduce(function(result, element) {
-        if (element[1] === "&&") { return result && Boolean(element[3]); }
-        if (element[1] === "||") { return result || Boolean(element[3]); }
-      }, head);
-    }
-  / _ "!" _ term:Term { return !term; }
-
-
-AdditiveTerm
-  = _ head:MultiplicativeTerm tail:(_ ("+" / "-") _ MultiplicativeTerm)* _ {
-      return tail.reduce(function(result, element) {
-        if (element[1] === "+") { return result + element[3]; }
-        if (element[1] === "-") { return result - element[3]; }
-      }, head);
-    }
-
-MultiplicativeTerm
-  = _ head:Factor tail:(_ ("*" / "/") _ Factor)* {
-      return tail.reduce(function(result, element) {
-        if (element[1] === "*") { return result * element[3]; }
-        if (element[1] === "/") { return result / element[3]; }
-      }, head);
-    }
+getDataValue
+  = path:PATH {
+    return 'this.getDataValue(\'' + path + '\')';
+  }
 
 // ----- 6. Numbers -----
 
@@ -153,10 +121,26 @@ boolean "boolean"
   / NULL { return null; }
 
 // ----- 9. Variables -----
-variable
-  = _ variableName:[$a-zA-Z_][$a-zA-Z0-9_]* {
-      return callVariable(variableName);
-    }
+PATH
+  = head:VARIABLE tail:('.' VARIABLE)* {
+      return tail.reduce(function(result, element) {
+          return result + '.' + element[1];
+      }, head);
+  }
+
+
+VARIABLE
+= var_starter:VAR_STARTER var_remainder:VAR_REMAINDER {
+   return var_starter + var_remainder;
+}
+
+VAR_STARTER = [$a-zA-Z_]
+
+VAR_REMAINDER
+  = identifier:[$a-zA-Z0-9_]* {
+    return identifier instanceof Array ? identifier.join('') : identifier;
+  }
+
 
 // ----- Core ABNF Rules -----
 
