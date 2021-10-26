@@ -1,28 +1,12 @@
-// Simple Arithmetics Grammar
-// ==========================
-//
-
 Expression
-  = _ head:Term _ op:ComparisonOperator _ tail:Term _ {
-      return head + op + tail;
-  }
-  / _ head:Term _ {
-      return head;
+  = _ head:Factor _ tail:(_ Operator _ Expression)* _ {
+      return tail.reduce(function(result, element) {
+          return result + element[1] + element[3];
+      }, head);
   }
   / _ { return 'false'; }
 
-Term
-  = _ head:Factor _ op:BinaryOperator _ tail:Term _ {
-      return head + op + tail;
-  }
-  / head:Factor {
-      return head;
-  }
-  / op:UnaryOperator head:Factor {
-      return op + head;
-  }
-
-ComparisonOperator
+Operator
   = "==="
   / "=="
   / "!=="
@@ -31,9 +15,7 @@ ComparisonOperator
   / ">="
   / "<"
   / ">"
-
-BinaryOperator
-  = "+"
+  / "+"
   / "-"
   / "*"
   / "/"

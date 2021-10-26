@@ -28,6 +28,7 @@ UserInterfaceState.xcuserstate
 
 coverage/
 client/django-formset/actions.ts
+client/django-formset/expressions.ts
 formset/static/formset/css/tailwind*
 formset/static/formset/js/django-formset*
 build/

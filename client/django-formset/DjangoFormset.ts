@@ -1,4 +1,5 @@
-import { parse } from './actions';
+//import { parse } from './actions';
+import { parse } from './expressions';
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
 import zip from 'lodash.zip';
@@ -177,12 +178,20 @@ class FieldGroup {
 		const attrValue = this.inputElements[0].getAttribute(attribute);
 		if (typeof attrValue !== 'string')
 			return null;
-		const path = this.form.name === null || attrValue.includes('.') ? attrValue : `${this.form.name}.${attrValue}`;
-		if (visible) {
-			return () => this.element.toggleAttribute('hidden', !this.form.formset.getDataValue(path));
-		} else {
-			return () => this.element.toggleAttribute('hidden', !!this.form.formset.getDataValue(path));
+		try {
+			const func = new Function('return ' + parse(attrValue));
+			if (visible) {
+				return () => this.element.toggleAttribute('hidden', !func.call(this));
+			} else {
+				return () => this.element.toggleAttribute('hidden', func.call(this));
+			}
+		} catch (error) {
+			throw new Error(`Error while parsing <... show-if="...">: ${error}.`);
 		}
+	}
+
+	private getDataValue(path: string) {
+		return this.form.formset.getDataValue(path);
 	}
 
 	public inputted() {
