@@ -1,5 +1,4 @@
-//import { parse } from './actions';
-import { parse } from './expressions';
+import { parse } from './tag-attributes';
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
 import zip from 'lodash.zip';
@@ -179,14 +178,14 @@ class FieldGroup {
 		if (typeof attrValue !== 'string')
 			return null;
 		try {
-			const func = new Function('return ' + parse(attrValue));
+			const func = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
 			if (visible) {
 				return () => this.element.toggleAttribute('hidden', !func.call(this));
 			} else {
 				return () => this.element.toggleAttribute('hidden', func.call(this));
 			}
 		} catch (error) {
-			throw new Error(`Error while parsing <... show-if="...">: ${error}.`);
+			throw new Error(`Error while parsing <... show-if="${attrValue}">: ${error}.`);
 		}
 	}
 
@@ -658,11 +657,11 @@ class DjangoButton {
 		}
 
 		try {
-			const ast = parse(actionsQueue, {startRule: 'actions'});
+			const ast = parse(actionsQueue, {startRule: 'Actions'});
 			createActions(this.successActions, ast.successChain);
 			createActions(this.rejectActions, ast.rejectChain);
 		} catch (error) {
-			throw new Error(`Error while parsing <button click="...">: ${error}.`);
+			throw new Error(`Error while parsing <button click="${actionsQueue}">: ${error}.`);
 		}
 	}
 }

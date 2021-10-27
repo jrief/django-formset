@@ -1,9 +1,55 @@
 // PEG rules to create parser for <button click="..."> action chain
 // Build file `client/components/django-formset/actions.ts` using `npm run pegjs`
 
-// ----- 1. Actions -----
+// ----- A. Expression -----
+// The starting rule for `<field-group show-if="..."` and `hide-if="..."`.
 
-actions
+Expression
+  = _ head:Factor _ tail:(_ Operator _ Expression)* _ {
+      return tail.reduce(function(result, element) {
+          return result + element[1] + element[3];
+      }, head);
+  }
+  / _ { return 'false'; }
+
+Operator
+  = "==="
+  / "=="
+  / "!=="
+  / "!="
+  / "<="
+  / ">="
+  / "<"
+  / ">"
+  / "+"
+  / "-"
+  / "*"
+  / "/"
+  / "&&"
+  / "&"
+  / "||"
+  / "|"
+
+UnaryOperator
+  = "!"
+
+Factor
+  = "(" _ expr:Expression _ ")" { return '(' + expr + ')'; }
+  / number
+  / boolean
+  / getDataValue
+  / s:string { return '\'' + s + '\''; }
+
+getDataValue
+  = path:PATH {
+    return 'this.getDataValue(\'' + path + '\')';
+  }
+
+
+// ----- B. Actions -----
+// The starting rule for <button `click="..."` ...>.
+
+Actions
   = successChain:chain _ '!~' _ rejectChain:chain _
   { return { successChain: successChain, rejectChain: rejectChain } }
   / successChain:chain
@@ -41,7 +87,7 @@ _ = [ \t\n\r]*
 //
 // Adopted from https://github.com/pegjs/pegjs/blob/master/examples/json.pegjs
 //
-// ----- 2. POJO Grammar -----
+// ----- 1. POJO Grammar -----
 
 begin_array     = _ '[' _
 begin_object    = _ '{' _
@@ -50,22 +96,18 @@ end_object      = _ '}' _
 name_separator  = _ ':' _
 value_separator = _ ',' _
 
-// ----- 3. Values -----
+
+// ----- 2. Values -----
 
 value
-  = false
-  / null
-  / true
+  = boolean
   / object
   / array
   / number
   / string
 
-false = "false" { return false; }
-null  = "null"  { return null;  }
-true  = "true"  { return true;  }
 
-// ----- 4. Objects -----
+// ----- 3. Objects -----
 
 object
   = begin_object
@@ -94,7 +136,8 @@ member
 keystring
   = [$A-Za-z_][$0-9A-Za-z_]*
 
-// ----- 5. Arrays -----
+
+// ----- 4. Arrays -----
 
 array
   = begin_array
@@ -106,7 +149,8 @@ array
     end_array
     { return values !== null ? values : []; }
 
-// ----- 6. Numbers -----
+
+// ----- 5. Numbers -----
 
 number "number"
   = minus? int frac? exp?
@@ -139,7 +183,8 @@ plus
 zero
   = '0'
 
-// ----- 7. Strings -----
+
+// ----- 6. Strings -----
 
 string "string"
   = '"' chars:$char_double_quote* '"' { return chars }
@@ -159,6 +204,42 @@ escape
   = '\\\\' / '\\b' / '\\f' / '\\n' / '\\r' / '\\t'
   / '\\u' digits:$(HEXDIG HEXDIG HEXDIG HEXDIG)
   { return String.fromCharCode(parseInt(digits, 16)) }
+
+
+// ----- 7. Boolean ----
+
+boolean "boolean"
+  = TRUE { return true; }
+  / FALSE { return false; }
+  / NULL { return null; }
+
+FALSE = 'false'
+TRUE = 'true'
+NULL = 'null'
+
+
+// ----- 8. Variables -----
+
+PATH
+  = head:VARIABLE tail:('.' VARIABLE)* {
+      return tail.reduce(function(result, element) {
+          return result + '.' + element[1];
+      }, head);
+  }
+
+
+VARIABLE
+= var_starter:VAR_STARTER var_remainder:VAR_REMAINDER {
+   return var_starter + var_remainder;
+}
+
+VAR_STARTER = [$a-zA-Z_]
+
+VAR_REMAINDER
+  = identifier:[$a-zA-Z0-9_]* {
+    return identifier instanceof Array ? identifier.join('') : identifier;
+  }
+
 
 // ----- Core ABNF Rules -----
 

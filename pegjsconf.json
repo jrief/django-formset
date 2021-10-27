@@ -2,5 +2,6 @@
   "tspegjs": {
       "customHeader": "// @ts-nocheck"
   },
+  "allowedStartRules": ["Actions", "Expression"],
   "optimize": "size"
 }
