@@ -189,8 +189,8 @@ class FieldGroup {
 		}
 	}
 
-	private getDataValue(path: string) {
-		return this.form.formset.getDataValue(path);
+	getDataValue(path: string) {
+		return this.form.getDataValue(path);
 	}
 
 	public inputted() {
@@ -703,6 +703,12 @@ class DjangoForm {
 			data.set(element.name, element.value);
 		}
 		return data;
+	}
+
+	getDataValue(path: string) {
+		const propertyPath = this.name ? this.name.split('.') : [];
+		propertyPath.push(...path.split('.'));
+		return this.formset.getDataValue(propertyPath);
 	}
 
 	updateVisibility() {
@@ -1239,9 +1245,9 @@ export class DjangoFormset {
 		}
 	}
 
-	public getDataValue(path: string) : string | null{
+	public getDataValue(path: string | Array<string>) : string | null{
 		const propertyPath = ['formset_data'];
-		propertyPath.push(...path.split('.'));
+		propertyPath.push(...(path instanceof Array ? path : path.split('.')));
 		return getDataValue(this.data, propertyPath, null);
 	}
 
