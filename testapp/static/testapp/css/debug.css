@@ -14,12 +14,26 @@ select:disabled {
 	opacity: 0.5;
 	}
 
-django-form-collection-sibling {
+django-form-collection {
 	padding: 0.5rem;
-	border: 2px solid grey;
+	border-left: 2px solid grey;
+	border-right: 2px solid grey;
 	display: block;
 	}
-	django-form-collection-sibling.dj-marked-for-removal {
+	django-form-collection:first-of-type {
+		border-top: 2px solid grey;
+		}
+	django-form-collection:not(:first-of-type) {
+		margin-top: -0.5rem;
+	}
+	django-form-collection:last-of-type {
+		border-bottom: 2px solid grey;
+		margin-bottom: 0.5rem;
+		}
+	django-form-collection[sibling-position]:not(:first-of-type) {
+		border-top: 2px dashed grey;
+		}
+	django-form-collection.dj-marked-for-removal {
 		color: gray;
 		background-color: lightgray;
 		background-image: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,.5) 4px, rgba(255,255,255,.5) 8px);
@@ -27,5 +41,10 @@ django-form-collection-sibling {
 		}
 
 button.add-collection {
+	margin-top: -0.5rem;
+	margin-bottom: 0.5rem;
+	}
+button.remove-collection {
+	margin-top: 0.25rem;
 	margin-bottom: 0.5rem;
 	}

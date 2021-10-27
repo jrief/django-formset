@@ -816,13 +816,13 @@ class DjangoFormCollectionSibling {
 		this.element = element;
 		this.parent = parent;
 		this.justAdded = justAdded ?? false;
-		const position = element.getAttribute('position');
+		const position = element.getAttribute('sibling-position');
 		if (!position)
-			throw new Error("Missing argument 'position' in <django-form-collection-sibling>")
+			throw new Error("Missing argument 'sibling-position' in <django-form-collection>")
 		this.position = parseInt(position);
 		const minSiblings = element.getAttribute('min-siblings');
 		if (!minSiblings)
-			throw new Error("Missing argument 'min-siblings' in <django-form-collection-sibling>")
+			throw new Error("Missing argument 'min-siblings' in <django-form-collection>")
 		this.minSiblings = parseInt(minSiblings);
 		const maxSiblings = element.getAttribute('max-siblings');
 		if (maxSiblings)
@@ -833,8 +833,8 @@ class DjangoFormCollectionSibling {
 	}
 
 	private findFormCollectionSiblings() {
-		// find all immediate elements named <django-form-collection-sibling> belonging to the current DjangoFormCollection
-		for (const childElement of this.element.querySelectorAll(':scope > django-form-collection-sibling')) {
+		// find all immediate elements named <django-form-collection> belonging to the current DjangoFormCollection
+		for (const childElement of this.element.querySelectorAll(':scope > django-form-collection[sibling-position]')) {
 			this.children.push(new DjangoFormCollectionSibling(this.formset, childElement, this));
 		}
 		for (const sibling of this.children) {
@@ -926,7 +926,6 @@ class DjangoFormCollectionTemplate {
 	}
 
 	private appendFormCollectionSibling() {
-		console.log("Append <django-form-collection-sibling>");
 		const context = Object.fromEntries(this.baseContext);
 		context['position'] = (this.getHighestPosition() + 1).toString();
 		// this context rewriting is necessary to render nested templates properly.
@@ -939,7 +938,7 @@ class DjangoFormCollectionTemplate {
 		this.element.insertAdjacentHTML('beforebegin', renderedHTML);
 		const newCollectionElement = this.element.previousElementSibling;
 		if (!newCollectionElement)
-			throw new Error("Unable to insert empty <django-form-collection-sibling> element.");
+			throw new Error("Unable to insert empty <django-form-collection> element.");
 		const siblings = this.parent?.children ?? this.formset.formCollectionSiblings;
 		siblings.push(new DjangoFormCollectionSibling(this.formset, newCollectionElement, this.parent, true));
 		this.formset.findForms(newCollectionElement);
@@ -1063,8 +1062,8 @@ export class DjangoFormset {
 	}
 
 	public findFormCollectionSiblings() {
-		// find all immediate elements named <django-form-collection-sibling> belonging to the current <django-formset>
-		for (const element of this.element.querySelectorAll(':scope > django-form-collection-sibling')) {
+		// find all immediate elements named <django-form-collection> belonging to the current <django-formset>
+		for (const element of this.element.querySelectorAll(':scope > django-form-collection[sibling-position]')) {
 			this.formCollectionSiblings.push(new DjangoFormCollectionSibling(this, element));
 		}
 		for (const sibling of this.formCollectionSiblings) {

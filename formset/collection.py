@@ -1,3 +1,4 @@
+from django.core.exceptions import NON_FIELD_ERRORS
 from django.forms.forms import BaseForm
 from django.forms.widgets import MediaDefiningClass
 from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
@@ -92,6 +93,7 @@ class BaseFormCollection(RenderableMixin):
             if initial is None:
                 initial = declared_holder.initial
             holder = declared_holder.__class__(initial=initial, prefix=prefix, renderer=self.renderer)
+            holder.is_single = True
             yield holder
 
     def iter_many(self):
@@ -177,6 +179,12 @@ class BaseFormCollection(RenderableMixin):
                         self._errors.extend([{}] * (index - len(self._errors)))
                         self._errors.append({name: holder.errors.data})
                 self.cleaned_data.append(cleaned_data)
+            if len(self.cleaned_data) < self.min_siblings:
+                # this can only happen, if the client bypasses the browser control
+                self._errors.update({NON_FIELD_ERRORS: "Too few siblings."})
+            if len(self.cleaned_data) > self.min_siblings:
+                # this can only happen, if the client bypasses the browser control
+                self._errors.update({NON_FIELD_ERRORS: "Too many siblings."})
         else:
             self.cleaned_data = {}
             self._errors = ErrorDict()
