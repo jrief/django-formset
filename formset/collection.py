@@ -131,10 +131,11 @@ class BaseFormCollection(RenderableMixin):
                 position = f'${{position_{count}}}' if count > 0 else '${position}'
                 prefix = f'{self.prefix}.{position}.{name}'
             else:
+                position = '${position}'
                 prefix = f'${{position}}.{name}'
             holder = declared_holder.__class__(prefix=prefix, renderer=self.renderer)
             holder.is_template = True
-            holder.position = '${position}'
+            holder.position = position
             if item_num == first:
                 holder.is_first = True
             if item_num == last:
