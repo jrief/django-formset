@@ -51,7 +51,6 @@ class ErrorMessages extends Map<ErrorKey, string>{
 class FieldGroup {
 	public readonly form: DjangoForm;
 	public readonly name: string = '__undefined__';
-	public readonly updateVisibility: Function;
 	public readonly element: HTMLElement;
 	private readonly pristineValue: BoundValue;
 	private readonly inputElements: Array<FieldElement>;
@@ -59,6 +58,8 @@ class FieldGroup {
 	public readonly errorPlaceholder: Element | null;
 	private readonly errorMessages: ErrorMessages;
 	private readonly fileUploader: FileUploadWidget | null = null;
+	private readonly updateVisibility: Function;
+	private readonly updateDisabled: Function;
 
 	constructor(form: DjangoForm, element: HTMLElement) {
 		this.form = form;
@@ -127,7 +128,8 @@ class FieldGroup {
 			this.validateBoundField();
 		}
 		this.pristineValue = new BoundValue(this.aggregateValue());
-		this.updateVisibility = this.parseIfAttribute('show-if', true) ?? this.parseIfAttribute('hide-if', false) ?? function() {};
+		this.updateVisibility = this.evalVisibility('show-if', true) ?? this.evalVisibility('hide-if', false) ?? function() {};
+		this.updateDisabled = this.evalDisable() ?? function() {};
 		this.untouch();
 		this.setPristine();
 	}
@@ -171,21 +173,39 @@ class FieldGroup {
 		}
 	}
 
-	private parseIfAttribute(attribute: string, visible: boolean): Function | null {
-		if (this.inputElements.length !== 1)
-			return null;  // groups with multiple input elements are ignored
+	public updateOperability() {
+		this.updateVisibility();
+		this.updateDisabled();
+	}
+
+	private evalVisibility(attribute: string, visible: boolean): Function | null {
 		const attrValue = this.inputElements[0].getAttribute(attribute);
 		if (typeof attrValue !== 'string')
 			return null;
 		try {
-			const func = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
+			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
 			if (visible) {
-				return () => this.element.toggleAttribute('hidden', !func.call(this));
+				return () => this.element.toggleAttribute('hidden', !evalExpression.call(this));
 			} else {
-				return () => this.element.toggleAttribute('hidden', func.call(this));
+				return () => this.element.toggleAttribute('hidden', evalExpression.call(this));
 			}
 		} catch (error) {
-			throw new Error(`Error while parsing <... show-if="${attrValue}">: ${error}.`);
+			throw new Error(`Error while parsing <... show-if/hide-if="${attrValue}">: ${error}.`);
+		}
+	}
+
+	private evalDisable(): Function | null {
+		const attrValue = this.inputElements[0].getAttribute('disable-if');
+		if (typeof attrValue !== 'string')
+			return null;
+		try {
+			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
+			return () => {
+				const disable = evalExpression.call(this);
+				this.inputElements.forEach(elem => elem.disabled = disable);
+			}
+		} catch (error) {
+			throw new Error(`Error while parsing <... disable-if="${attrValue}">: ${error}.`);
 		}
 	}
 
@@ -711,9 +731,9 @@ class DjangoForm {
 		return this.formset.getDataValue(propertyPath);
 	}
 
-	updateVisibility() {
+	updateOperability() {
 		for (const fieldGroup of this.fieldGroups) {
-			fieldGroup.updateVisibility();
+			fieldGroup.updateOperability();
 		}
 	}
 
@@ -1111,7 +1131,7 @@ export class DjangoFormset {
 		}
 		for (const form of this.forms) {
 			if (!form.markedForRemoval) {
-				form.updateVisibility();
+				form.updateOperability();
 			}
 		}
 	}
