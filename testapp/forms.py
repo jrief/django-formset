@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.forms import forms, fields, widgets, models
 
 from formset.collection import FormCollection
+from formset.fieldset import Fieldset
 from formset.widgets import Selectize, UploadedFileInput
 
 from testapp.models import PayloadModel, OpinionModel
@@ -66,7 +67,7 @@ class SubscribeForm(forms.Form):
         r'^\+?[0-9 .-]{4,25}$',
         label="Phone number",
         error_messages={'invalid': "Phone number have 4-25 digits and may start with '+'."},
-        widget=fields.TextInput(attrs={'hide-if': 'subscribe'})
+        widget=fields.TextInput(attrs={'show-if': 'subscribe'})
     )
 
     birth_date = fields.DateField(
@@ -198,6 +199,12 @@ class PersonForm(forms.Form):
         error_messages={'invalid_choice': "Please select your gender."},
     )
 
+    pregnat = fields.BooleanField(
+        label="Are you pregnat?",
+        required=False,
+        widget=widgets.CheckboxInput(attrs={'disable-if': ".gender!='f'"})
+    )
+
     def clean(self):
         cd = super().clean()
         if cd['first_name'].lower().startswith("john") and cd['last_name'].lower().startswith("doe"):
@@ -205,7 +212,9 @@ class PersonForm(forms.Form):
         return cd
 
 
-class SelectForm(forms.Form):
+class SelectForm(Fieldset):
+    legend = "Demo of a Selectize Widget"
+
     choice = fields.ChoiceField(
         label="Classic Select",
         choices=[
@@ -231,19 +240,19 @@ class SelectForm(forms.Form):
 
 class DoubleFormCollection(FormCollection):
     extra_siblings = 1
-    max_siblings = 5
+    max_siblings = 8
 
     persona = PersonForm()
 
-    upload = UploadForm()
+    # upload = UploadForm()
 
 
 class TripleFormCollection(FormCollection):
     min_siblings = 1
 
-    double = DoubleFormCollection(initial=[{'persona': sample_persona_data}, {'persona': sample_personb_data}])
+    double = DoubleFormCollection()# initial=[{'persona': sample_personb_data}])
 
-    select = SelectForm(initial=sample_selectize_data)
+    select = SelectForm(initial=sample_selectize_data, hide_if='..double.0.persona.first_name=="John"')
 
 
 class ConfirmForm(forms.Form):

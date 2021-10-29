@@ -1,6 +1,6 @@
 form {
-	padding: 1rem;
-	border: 2px solid grey;
+	padding: 0.5rem;
+	border: 1px dotted grey;
 	min-height: 1em;
 	}
 	form:valid {
@@ -8,6 +8,10 @@ form {
 	}
 	form:invalid {
 		border-color: red;
+	}
+
+fieldset {
+	margin: -0.5rem;
 	}
 
 select:disabled {
