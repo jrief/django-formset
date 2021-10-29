@@ -39,7 +39,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Build Parser
       run: |
-        npm run pegjs
+        npm run tag-attributes
     - name: Build Client
       run: |
         npm run build
