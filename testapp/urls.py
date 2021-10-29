@@ -5,12 +5,14 @@ from django.template.loader import get_template
 from django.urls import get_resolver, path, reverse_lazy
 from django.utils.module_loading import import_string
 
-from formset.views import FormCollectionView
+from formset.views import FormCollectionView, FormView
 from formset.utils import FormMixin
 
-from testapp.forms import (SubscribeForm, UploadForm, PersonForm, SelectForm, DoubleFormCollection,
-                           TripleFormCollection, NestedCollection, MultipleCollection)
-from testapp.views import SubscribeFormView
+from testapp.forms.opinion import OpinionForm
+from testapp.forms.person import PersonForm
+from testapp.forms.subscribe import SubscribeForm
+from testapp.forms.upload import UploadForm
+from testapp.forms.collections import DoubleFormCollection, TripleFormCollection, NestedCollection, MultipleCollection
 
 
 framework_contexts = {
@@ -39,6 +41,10 @@ def render_startpage(request):
     return HttpResponse(template.render(context))
 
 
+class DemoFormView(FormView):
+    success_url = reverse_lazy('form_data_valid')
+
+
 urlpatterns = [
     path('', render_startpage),
     path('success', lambda request: HttpResponse('<h1>Form data succesfully submitted</h1>'), name='form_data_valid'),
@@ -65,32 +71,32 @@ for framework, attrs in framework_contexts.items():
         MultipleCollectionClass = MultipleCollection
 
     urlpatterns.extend([
-        path(f'{urlprefix}subscribe.native-form', SubscribeFormView.as_view(
+        path(f'{urlprefix}subscribe.native-form', DemoFormView.as_view(
             form_class=SubscribeForm,
             template_name='testapp/native-form.html',
             extra_context=extra_context,
         )),
-        path(f'{urlprefix}subscribe.extended-form', SubscribeFormView.as_view(
+        path(f'{urlprefix}subscribe.extended-form', DemoFormView.as_view(
             form_class=SubscribeFormExtended,
             template_name='testapp/extended-form.html',
             extra_context={'framework': framework},
         )),
-        path(f'{urlprefix}subscribe.field-by-field', SubscribeFormView.as_view(
+        path(f'{urlprefix}subscribe.field-by-field', DemoFormView.as_view(
             template_name='testapp/field-by-field.html',
             extra_context=extra_context,
         )),
-        path(f'{urlprefix}upload', SubscribeFormView.as_view(
+        path(f'{urlprefix}upload', DemoFormView.as_view(
             form_class=UploadForm,
             template_name='testapp/native-form.html',
             extra_context=extra_context,
         )),
-        path(f'{urlprefix}persona', SubscribeFormView.as_view(
+        path(f'{urlprefix}persona', DemoFormView.as_view(
             form_class=PersonForm,
             template_name='testapp/native-form.html',
             extra_context=extra_context,
         )),
-        path(f'{urlprefix}selectize', SubscribeFormView.as_view(
-            form_class=SelectForm,
+        path(f'{urlprefix}selectize', DemoFormView.as_view(
+            form_class=OpinionForm,
             template_name='testapp/native-form.html',
             extra_context=extra_context,
         )),
@@ -127,7 +133,7 @@ for framework, attrs in framework_contexts.items():
     ])
 urlpatterns.append(
     path('bootstrap/subscribe.form-rows',
-        SubscribeFormView.as_view(form_class=SubscribeForm,
+        DemoFormView.as_view(form_class=SubscribeForm,
         template_name='bootstrap/form-rows.html',
     ))
 )

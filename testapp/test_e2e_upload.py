@@ -5,33 +5,23 @@ import re
 from time import sleep
 
 from django.core.signing import get_cookie_signer
-from django.forms import fields, Form
 from django.urls import path
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 from formset.views import FormView
-from formset.widgets import UploadedFileInput
 
-
-class UploadForm(Form):
-    name = 'upload'
-
-    file = fields.FileField(
-        label="Choose file",
-        widget=UploadedFileInput,
-        required=True,
-    )
+from .forms.upload import UploadForm
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class SampleFormView(FormView):
+class TestFormView(FormView):
     template_name = 'testapp/native-form.html'
     form_class=UploadForm
     success_url = '/success'
 
 
-urlpatterns = [path('upload', SampleFormView.as_view(), name='upload')]
+urlpatterns = [path('upload', TestFormView.as_view(), name='upload')]
 
 
 @pytest.mark.urls(__name__)
@@ -41,7 +31,7 @@ def test_upload_image(page, mocker):
     assert choose_file_button is not None  # that button would open the file selector
     dropbox = page.query_selector('django-formset form ul.dj-dropbox')
     assert dropbox.inner_html() == '<li class="dj-empty-item">Drag file here</li>'
-    page.set_input_files('#upload_id_file', 'testapp/assets/python-django.png')
+    page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
     file_picture = page.wait_for_selector('li.dj-file-picture')
     assert file_picture is not None
     img_src = file_picture.query_selector('img').get_attribute('src')
@@ -67,10 +57,10 @@ def test_upload_image(page, mocker):
     assert button is not None
     assert button.get_attribute('download') == 'python-django.png'
     assert button.get_attribute('href') == download_url
-    spy = mocker.spy(SampleFormView, 'post')
+    spy = mocker.spy(TestFormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
-    file = request['formset_data']['file'][0]
+    file = request['formset_data']['avatar'][0]
     signer = get_cookie_signer(salt='formset')
     upload_temp_name = signer.unsign(file['upload_temp_name'])
     assert os.path.exists(f'media/{upload_temp_name}')
@@ -85,7 +75,7 @@ def test_upload_image(page, mocker):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_pdf(page):
-    page.set_input_files('#upload_id_file', 'testapp/assets/dummy.pdf')
+    page.set_input_files('#id_avatar', 'testapp/assets/dummy.pdf')
     file_picture = page.wait_for_selector('django-formset form django-field-group li.dj-file-picture')
     assert file_picture is not None
     img_src = file_picture.query_selector('img').get_attribute('src')
@@ -95,7 +85,7 @@ def test_upload_pdf(page):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_broken_image(page):
-    page.set_input_files('#upload_id_file', 'testapp/assets/broken-image.jpg')
+    page.set_input_files('#id_avatar', 'testapp/assets/broken-image.jpg')
     file_picture = page.wait_for_selector('li.dj-file-picture')
     assert file_picture is not None
     img_src = file_picture.query_selector('img').get_attribute('src')
@@ -114,7 +104,7 @@ def test_upload_required(page):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_delete_uploaded_file(page):
-    page.set_input_files('#upload_id_file', 'testapp/assets/python-django.png')
+    page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
     page.wait_for_selector('ul.dj-dropbox li.dj-file-picture')
     delete_button = page.wait_for_selector('ul.dj-dropbox li.dj-file-caption a.dj-delete-file')
     delete_button.click()
@@ -135,7 +125,7 @@ def test_upload_progressbar(page):
         'latency': 20
     }
     client.send('Network.emulateNetworkConditions', network_conditions)
-    page.set_input_files('#upload_id_file', 'testapp/assets/python-django.png')
+    page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
     progress_bar = field_group.wait_for_selector('.dj-progress-bar')
     assert progress_bar is not None
     progress_div = progress_bar.wait_for_selector('div')
@@ -162,7 +152,7 @@ def test_upload_in_progress(page):
         'latency': 20
     }
     client.send('Network.emulateNetworkConditions', network_conditions)
-    page.set_input_files('#upload_id_file', 'testapp/assets/python-django.png')
+    page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
     sleep(0.02)
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     error_placeholder = field_group.wait_for_selector('.dj-errorlist .dj-placeholder')
@@ -178,7 +168,7 @@ def test_interupt_upload(page):
 
     field_group = page.query_selector('django-formset django-field-group')
     page.context.route('/upload', handle_route)
-    page.set_input_files('#upload_id_file', 'testapp/assets/python-django.png')
+    page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
     sleep(0.02)
     error_placeholder = field_group.wait_for_selector('.dj-errorlist .dj-placeholder')
     assert error_placeholder.inner_html() == "File upload failed."

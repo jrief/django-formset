@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import PayloadModel
-from .forms import SubscribeForm
+from .forms.subscribe import SubscribeForm
 
 
 # @admin.register(DummyModel)

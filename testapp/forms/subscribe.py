@@ -1,13 +1,13 @@
+from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from django.core.exceptions import ValidationError
-from django.forms import forms, fields, widgets, models
+from django.forms import fields, forms, widgets
+from django.utils.timezone import datetime
 
-from formset.collection import FormCollection
-from formset.fieldset import Fieldset
-from formset.widgets import Selectize, UploadedFileInput
 
-from testapp.models import PayloadModel, OpinionModel
-from testapp.sampledata import sample_persona_data, sample_personb_data, sample_selectize_data
-from testapp.validators import validate_password
+def validate_password(value):
+    pwhasher = PBKDF2PasswordHasher()
+    if not pwhasher.verify(value, 'pbkdf2_sha256$216000$salt$NBY9WN4TPwv2NZJE57BRxccYp0FpyOu82J7RmaYNgQM='):
+        raise ValidationError("The password is wrong.")
 
 
 class SubscribeForm(forms.Form):
@@ -51,12 +51,6 @@ class SubscribeForm(forms.Form):
         help_text="Please enter a valid email address",
     )
 
-    avatar = fields.FileField(
-        label="Avatar",
-        widget=UploadedFileInput,
-        required=True,
-    )
-
     subscribe = fields.BooleanField(
         label="Subscribe Newsletter",
         initial=False,
@@ -67,7 +61,7 @@ class SubscribeForm(forms.Form):
         r'^\+?[0-9 .-]{4,25}$',
         label="Phone number",
         error_messages={'invalid': "Phone number have 4-25 digits and may start with '+'."},
-        widget=fields.TextInput(attrs={'show-if': 'subscribe'})
+        widget=fields.TextInput(attrs={'hide-if': 'subscribe'})
     )
 
     birth_date = fields.DateField(
@@ -82,13 +76,6 @@ class SubscribeForm(forms.Form):
         required=True,
         initial='',
         error_messages={'invalid_choice': "Please select your continent."},
-    )
-
-    opinion = models.ModelChoiceField(
-        queryset=OpinionModel.objects.filter(tenant=1),
-        label="Opinion",
-        empty_label="Your opinion",
-        widget=Selectize(search_lookup='label__icontains'),
     )
 
     weight = fields.IntegerField(
@@ -160,113 +147,23 @@ class SubscribeForm(forms.Form):
         initial='hidden value',
     )
 
-    class Meta:
-        model = PayloadModel
-        exclude = ['payload']
-        entangled_fields = {'payload': ['last_name', 'first_name', 'sex', 'email', 'subscribe',
-            'phone', 'birth_date', 'continent', 'weight', 'height', 'used_transportation',
-            'preferred_transportation', 'available_transportation', 'notifyme', 'annotation',
-            'agree', 'password', 'confirmation_key']}
 
-
-class UploadForm(forms.Form):
-    file = fields.FileField(
-        label="Choose file",
-        widget=UploadedFileInput,
-        required=True,
-    )
-
-
-class PersonForm(forms.Form):
-    first_name = fields.RegexField(
-        r'^[A-Z][a-z -]+$',
-        label="First name",
-        error_messages={'invalid': "A first name must start in upper case."},
-        help_text="Must start in upper case followed by one or more lowercase characters.",
-    )
-
-    last_name = fields.CharField(
-        label="Last name",
-        min_length=2,
-        max_length=50,
-        help_text="Please enter at least two, but no more than 50 characters.",
-    )
-
-    gender = fields.ChoiceField(
-        label="Gender",
-        choices=[('m', "Male"), ('f', "Female")],
-        widget=widgets.RadioSelect,
-        error_messages={'invalid_choice': "Please select your gender."},
-    )
-
-    pregnat = fields.BooleanField(
-        label="Are you pregnat?",
-        required=False,
-        widget=widgets.CheckboxInput(attrs={'disable-if': ".gender!='f'"})
-    )
-
-    def clean(self):
-        cd = super().clean()
-        if cd['first_name'].lower().startswith("john") and cd['last_name'].lower().startswith("doe"):
-            raise ValidationError(f"{cd['first_name']} {cd['last_name']} is persona non grata here!")
-        return cd
-
-
-class SelectForm(Fieldset):
-    legend = "Demo of a Selectize Widget"
-
-    choice = fields.ChoiceField(
-        label="Classic Select",
-        choices=[
-            (None, "Select an option"),
-            (1, "One"),
-            (2, "Two"),
-            (3, "Three"),
-        ],
-    )
-
-    opinion = models.ModelChoiceField(
-        label="Opinion",
-        queryset=OpinionModel.objects.filter(tenant=1),
-        widget=Selectize(search_lookup='label__icontains', placeholder="Select my option"),
-        required=True,
-    )
-
-    annotation = fields.CharField(
-        label="Annotation",
-        widget=widgets.TextInput(attrs={'placeholder': "Start typing ..."}),
-    )
-
-
-class DoubleFormCollection(FormCollection):
-    extra_siblings = 1
-    max_siblings = 8
-
-    persona = PersonForm()
-
-    # upload = UploadForm()
-
-
-class TripleFormCollection(FormCollection):
-    min_siblings = 1
-
-    double = DoubleFormCollection()# initial=[{'persona': sample_personb_data}])
-
-    select = SelectForm(initial=sample_selectize_data, disable_if='..double.0.persona.first_name=="John"')
-
-
-class ConfirmForm(forms.Form):
-    accept = fields.BooleanField(
-        label="Accept terms and conditions",
-        initial=False,
-    )
-
-
-class NestedCollection(FormCollection):
-    triple = TripleFormCollection()
-
-    confirm = ConfirmForm()
-
-
-class MultipleCollection(FormCollection):
-    double = DoubleFormCollection(initial=[{'persona': sample_persona_data}])
+sample_subscribe_data = {
+    'first_name': "John",
+    'last_name': "Doe",
+    'gender': 'm',
+    'email': 'john.doe@example.org',
+    'subscribe': True,
+    'phone': '+1 234 567 8900',
+    'birth_date': datetime(year=2000, month=5, day=18),
+    'continent': 'eu',
+    'available_transportation': ['foot', 'taxi'],
+    'preferred_transportation': 'car',
+    'used_transportation': ['foot', 'bike', 'car', 'train'],
+    'height': 1.82,
+    'weight': 81,
+    'traveling': ['bike', 'train'],
+    'notifyme': ['email', 'sms'],
+    'annotation': "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    'password': 'secret',
+}
