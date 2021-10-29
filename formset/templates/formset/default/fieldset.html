@@ -1,0 +1,8 @@
+{% extends "formset/default/form.html" %}
+
+{% block fields %}
+<fieldset{% if show_if %} show-if="{{ show_if }}"{% endif %}{% if hide_if %} hide-if="{{ hide_if }}"{% endif %}>
+	{% if legend %}<legend>{{ legend }}</legend>{% endif %}
+	{{ block.super }}
+</fieldset>
+{% endblock %}

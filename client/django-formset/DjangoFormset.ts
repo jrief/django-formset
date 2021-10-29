@@ -129,7 +129,7 @@ class FieldGroup {
 		}
 		this.pristineValue = new BoundValue(this.aggregateValue());
 		this.updateVisibility = this.evalVisibility('show-if', true) ?? this.evalVisibility('hide-if', false) ?? function() {};
-		this.updateDisabled = this.evalDisable() ?? function() {};
+		this.updateDisabled = this.evalDisable();
 		this.untouch();
 		this.setPristine();
 	}
@@ -194,10 +194,10 @@ class FieldGroup {
 		}
 	}
 
-	private evalDisable(): Function | null {
+	private evalDisable(): Function {
 		const attrValue = this.inputElements[0].getAttribute('disable-if');
 		if (typeof attrValue !== 'string')
-			return null;
+			return () => {};
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
 			return () => {
@@ -209,7 +209,7 @@ class FieldGroup {
 		}
 	}
 
-	getDataValue(path: string) {
+	getDataValue(path: Array<string>) {
 		return this.form.getDataValue(path);
 	}
 
@@ -687,11 +687,65 @@ class DjangoButton {
 }
 
 
+class DjangoFieldset {
+	public readonly form: DjangoForm;
+	private readonly element: HTMLFieldSetElement;
+	private readonly updateVisibility: Function;
+	private readonly updateDisabled: Function;
+
+	constructor(form: DjangoForm, element: HTMLFieldSetElement) {
+		this.form = form;
+		this.element = element;
+		this.updateVisibility = this.evalVisibility('show-if', true) ?? this.evalVisibility('hide-if', false) ?? function() {};
+		this.updateDisabled = this.evalDisable();
+	}
+
+	private evalVisibility(attribute: string, visible: boolean): Function | null {
+		const attrValue = this.element.getAttribute(attribute);
+		if (typeof attrValue !== 'string')
+			return null;
+		try {
+			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
+			if (visible) {
+				return () => this.element.toggleAttribute('hidden', !evalExpression.call(this));
+			} else {
+				return () => this.element.toggleAttribute('hidden', evalExpression.call(this));
+			}
+		} catch (error) {
+			throw new Error(`Error while parsing <fieldset show-if/hide-if="${attrValue}">: ${error}.`);
+		}
+	}
+
+	private evalDisable(): Function {
+		const attrValue = this.element.getAttribute('disable-if');
+		if (typeof attrValue !== 'string')
+			return () => {};
+		try {
+			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
+			return () => this.element.disabled = evalExpression.call(this);
+		} catch (error) {
+			throw new Error(`Error while parsing <fieldset disable-if="${attrValue}">: ${error}.`);
+		}
+	}
+
+	private getDataValue(path: Array<string>) {
+		return this.form.getDataValue(path);
+	}
+
+	updateOperability() {
+		this.updateVisibility();
+		this.updateDisabled();
+	}
+}
+
+
 class DjangoForm {
 	public readonly formId: string | null;
 	public readonly name: string | null;
+	private readonly path: Array<string> | null;
 	public readonly formset: DjangoFormset;
 	public readonly element: HTMLFormElement;
+	public readonly fieldset?: DjangoFieldset;
 	private readonly errorList: Element | null;
 	private readonly errorPlaceholder: Element | null;
 	public readonly fieldGroups = Array<FieldGroup>(0);
@@ -701,8 +755,13 @@ class DjangoForm {
 	constructor(formset: DjangoFormset, element: HTMLFormElement) {
 		this.formId = element.getAttribute('id');
 		this.name = element.getAttribute('name') ?? null;
+		this.path = this.name?.split('.') ?? null;
 		this.formset = formset;
 		this.element = element;
+		const fieldsetElement = element.querySelector('fieldset');
+		if (fieldsetElement) {
+			this.fieldset = new DjangoFieldset(this, fieldsetElement);
+		}
 		const formError = element.querySelector('.dj-form-errors');
 		const placeholder = formError ? formError.querySelector('.dj-errorlist > .dj-placeholder') : null;
 		if (placeholder) {
@@ -725,13 +784,22 @@ class DjangoForm {
 		return data;
 	}
 
-	getDataValue(path: string) {
-		const propertyPath = this.name ? this.name.split('.') : [];
-		propertyPath.push(...path.split('.'));
-		return this.formset.getDataValue(propertyPath);
+	getDataValue(path: Array<string>) {
+		const absPath = [];
+		if (this.path && path[0] === '') {
+			absPath.push(...this.path);
+			const relPath = path.filter(part => part !== '');
+			const delta = path.length - relPath.length;
+			absPath.splice(absPath.length - delta + 1);
+			absPath.push(...relPath);
+		} else {
+			absPath.push(...path);
+		}
+		return this.formset.getDataValue(absPath);
 	}
 
 	updateOperability() {
+		this.fieldset?.updateOperability();
 		for (const fieldGroup of this.fieldGroups) {
 			fieldGroup.updateOperability();
 		}
@@ -1264,10 +1332,10 @@ export class DjangoFormset {
 		}
 	}
 
-	public getDataValue(path: string | Array<string>) : string | null{
-		const propertyPath = ['formset_data'];
-		propertyPath.push(...(path instanceof Array ? path : path.split('.')));
-		return getDataValue(this.data, propertyPath, null);
+	public getDataValue(path: Array<string>) : string | null {
+		const absPath = ['formset_data'];
+		absPath.push(...path);
+		return getDataValue(this.data, absPath, null);
 	}
 
 	findFirstErrorReport() : Element | null {

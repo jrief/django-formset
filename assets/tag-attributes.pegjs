@@ -42,7 +42,8 @@ Factor
 
 getDataValue
   = path:PATH {
-    return 'this.getDataValue(\'' + path + '\')';
+      const parts = path.split('.').map(part => '\'' + part + '\'');
+      return 'this.getDataValue([' + parts.join(',') + '])';
   }
 
 
@@ -221,12 +222,17 @@ NULL = 'null'
 // ----- 8. Variables -----
 
 PATH
-  = head:VARIABLE tail:('.' VARIABLE)* {
+  = head:VAR_PREFIX tail:('.' (VARIABLE / DIGIT+))* {
       return tail.reduce(function(result, element) {
           return result + '.' + element[1];
       }, head);
   }
 
+VAR_PREFIX
+  = prefix:('...' / '..' / '.') variable:VARIABLE {
+      return prefix + variable;
+  }
+ / VARIABLE
 
 VARIABLE
 = var_starter:VAR_STARTER var_remainder:VAR_REMAINDER {
