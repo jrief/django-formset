@@ -1,3 +1,5 @@
+import copy
+
 from django.forms.utils import ErrorList
 from django.utils.functional import cached_property
 
@@ -26,7 +28,21 @@ class FormsetErrorList(ErrorList):
         }
 
 
-class FormMixin:
+class HolderMixin:
+    def __call__(self, data=None, initial=None, prefix=None, renderer=None):
+        holder = copy.copy(self)
+        if data:
+            holder.data = data
+        if initial:
+            holder.initial = initial
+        if prefix:
+            holder.prefix = prefix
+        if renderer:
+            holder.renderer = renderer
+        return holder
+
+
+class FormMixin(HolderMixin):
     def __init__(self, error_class=FormsetErrorList, renderer=None, **kwargs):
         kwargs['error_class'] = error_class
         if renderer is None:

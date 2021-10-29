@@ -10,8 +10,8 @@ class FormRenderer(DjangoTemplates):
     _template_mapping = {
         'django/forms/errors/list/default.html': 'formset/default/field_errors.html',
         'django/forms/default.html': 'formset/default/form.html',
-        'django/forms/widgets/radio.html': 'formset/default/widgets/multiple_input.html',
         'django/forms/widgets/file.html': 'formset/default/widgets/file.html',
+        'django/forms/widgets/radio.html': 'formset/default/widgets/multiple_input.html',
         'django/forms/widgets/checkbox_select.html': 'formset/default/widgets/multiple_input.html',
     }
 

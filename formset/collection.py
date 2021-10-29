@@ -6,7 +6,7 @@ from django.utils.datastructures import MultiValueDict
 
 from formset.exceptions import FormCollectionError
 from formset.renderers.default import FormRenderer
-from formset.utils import FormMixin
+from formset.utils import HolderMixin, FormMixin, FormsetErrorList
 
 
 MARKED_FOR_REMOVAL = '_marked_for_removal_'
@@ -25,6 +25,7 @@ class FormCollectionMeta(MediaDefiningClass):
                 setattr(value, '_name', key)
                 if isinstance(value, BaseForm) and not isinstance(value, FormMixin):
                     value.__class__ = type(value.__class__.__name__, (FormMixin, value.__class__), {})
+                    value.error_class = FormsetErrorList
                 attrs['declared_holders'][key] = value
 
         new_class = super().__new__(cls, name, bases, attrs)
@@ -46,7 +47,7 @@ class FormCollectionMeta(MediaDefiningClass):
         return new_class
 
 
-class BaseFormCollection(RenderableMixin):
+class BaseFormCollection(HolderMixin, RenderableMixin):
     """
     The main implementation of all the FormCollection logic.
     """
@@ -92,7 +93,7 @@ class BaseFormCollection(RenderableMixin):
                 initial = self.initial.get(name)
             if initial is None:
                 initial = declared_holder.initial
-            holder = declared_holder.__class__(initial=initial, prefix=prefix, renderer=self.renderer)
+            holder = declared_holder(initial=initial, prefix=prefix, renderer=self.renderer)
             holder.is_single = True
             yield holder
 
@@ -115,7 +116,7 @@ class BaseFormCollection(RenderableMixin):
                     initial = self.initial[position].get(name)
                 if initial is None:
                     initial = declared_holder.initial
-                holder = declared_holder.__class__(initial=initial, prefix=prefix, renderer=self.renderer)
+                holder = declared_holder(initial=initial, prefix=prefix, renderer=self.renderer)
                 holder.position = position
                 if item_num == first:
                     holder.is_first = True
@@ -133,7 +134,7 @@ class BaseFormCollection(RenderableMixin):
             else:
                 position = '${position}'
                 prefix = f'${{position}}.{name}'
-            holder = declared_holder.__class__(prefix=prefix, renderer=self.renderer)
+            holder = declared_holder(prefix=prefix, renderer=self.renderer)
             holder.is_template = True
             holder.position = position
             if item_num == first:
@@ -173,7 +174,7 @@ class BaseFormCollection(RenderableMixin):
                     continue
                 cleaned_data = {}
                 for name, declared_holder in self.declared_holders.items():
-                    holder = declared_holder.__class__(data=data.get(name))
+                    holder = declared_holder(data=data.get(name))
                     if holder.is_valid():
                         cleaned_data[name] = holder.cleaned_data
                     else:
@@ -190,7 +191,7 @@ class BaseFormCollection(RenderableMixin):
             self.cleaned_data = {}
             self._errors = ErrorDict()
             for name, declared_holder in self.declared_holders.items():
-                holder = declared_holder.__class__(data=self.data.get(name))
+                holder = declared_holder(data=self.data.get(name))
                 if holder.is_valid():
                     self.cleaned_data[name] = holder.cleaned_data
                 else:
