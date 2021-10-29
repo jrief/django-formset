@@ -252,7 +252,7 @@ class TripleFormCollection(FormCollection):
 
     double = DoubleFormCollection()# initial=[{'persona': sample_personb_data}])
 
-    select = SelectForm(initial=sample_selectize_data, hide_if='..double.0.persona.first_name=="John"')
+    select = SelectForm(initial=sample_selectize_data, disable_if='..double.0.persona.first_name=="John"')
 
 
 class ConfirmForm(forms.Form):
