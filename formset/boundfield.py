@@ -64,6 +64,11 @@ class BoundField(boundfield.BoundField):
 
         # field_css_classes is an optional member of a FormRenderer optimized for django-formset
         field_css_classes = getattr(self.form.renderer, 'field_css_classes', None)
+        if isinstance(field_css_classes, dict):
+            try:
+                field_css_classes = field_css_classes[self.name]
+            except KeyError:
+                field_css_classes = field_css_classes.get('*')
         if hasattr(field_css_classes, 'split'):
             extra_classes.update(field_css_classes.split())
         elif isinstance(field_css_classes, (list, tuple)):
