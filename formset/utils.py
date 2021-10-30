@@ -29,17 +29,22 @@ class FormsetErrorList(ErrorList):
 
 
 class HolderMixin:
-    def __call__(self, data=None, initial=None, prefix=None, renderer=None):
-        holder = copy.copy(self)
+    def replicate(self, data=None, initial=None, prefix=None, renderer=None):
+        replica = copy.copy(self)
         if data:
-            holder.data = data
+            replica.data = data
         if initial:
-            holder.initial = initial
+            replica.initial = initial
         if prefix:
-            holder.prefix = prefix
-        if renderer:
-            holder.renderer = renderer
-        return holder
+            replica.prefix = prefix
+        if self.default_renderer:
+            if isinstance(self.default_renderer, type):
+                replica.renderer = self.default_renderer()
+            else:
+                replica.renderer = self.default_renderer
+        elif renderer:
+            replica.renderer = renderer
+        return replica
 
 
 class FormMixin(HolderMixin):
