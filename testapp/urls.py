@@ -9,7 +9,7 @@ from formset.views import FormCollectionView, FormView
 from formset.utils import FormMixin
 
 from testapp.forms.opinion import OpinionForm
-from testapp.forms.person import PersonForm
+from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.subscribe import SubscribeForm
 from testapp.forms.upload import UploadForm
 from testapp.forms.collections import DoubleFormCollection, TripleFormCollection, NestedCollection, MultipleCollection
@@ -55,7 +55,6 @@ for framework, attrs in framework_contexts.items():
         extra_context = dict(attrs, framework=framework)
         renderer = import_string(f'formset.renderers.{framework}.FormRenderer')(**attrs)
         SubscribeFormExtended = type('SubscribeForm', (FormMixin, SubscribeForm), {'default_renderer': renderer})
-        # PersonFormCollectionClass = type('PersonFormCollection', (PersonFormCollection,), {'default_renderer': renderer})
         DoubleFormCollectionClass = type('DoubleFormCollection', (DoubleFormCollection,), {'default_renderer': renderer})
         TripleFormCollectionClass = type('TripleFormCollection', (TripleFormCollection,), {'default_renderer': renderer})
         NestedCollectionClass = type('NestedCollection', (NestedCollection,), {'default_renderer': renderer})
@@ -64,7 +63,6 @@ for framework, attrs in framework_contexts.items():
         urlprefix = ''
         extra_context = None
         SubscribeFormExtended = type('SubscribeForm', (FormMixin, SubscribeForm), {})
-        # PersonFormCollectionClass = PersonFormCollection
         DoubleFormCollectionClass = DoubleFormCollection
         TripleFormCollectionClass = TripleFormCollection
         NestedCollectionClass = NestedCollection
@@ -90,8 +88,8 @@ for framework, attrs in framework_contexts.items():
             template_name='testapp/native-form.html',
             extra_context=extra_context,
         )),
-        path(f'{urlprefix}persona', DemoFormView.as_view(
-            form_class=PersonForm,
+        path(f'{urlprefix}questionnaire', DemoFormView.as_view(
+            form_class=QuestionnaireForm,
             template_name='testapp/native-form.html',
             extra_context=extra_context,
         )),
@@ -100,18 +98,13 @@ for framework, attrs in framework_contexts.items():
             template_name='testapp/native-form.html',
             extra_context=extra_context,
         )),
+
         path(f'{urlprefix}double', FormCollectionView.as_view(
             collection_class=DoubleFormCollectionClass,
             success_url=reverse_lazy('form_data_valid'),
             template_name='testapp/form-collection.html',
             extra_context=extra_context,
         )),
-        # path(f'{urlprefix}personc', FormCollectionView.as_view(
-        #     collection_class=PersonFormCollection,
-        #     success_url=reverse_lazy('form_data_valid'),
-        #     template_name='testapp/form-collection.html',
-        #     extra_context=extra_context,
-        # )),
         path(f'{urlprefix}triple', FormCollectionView.as_view(
             collection_class=TripleFormCollectionClass,
             success_url=reverse_lazy('form_data_valid'),

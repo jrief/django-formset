@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.forms import fields, forms, widgets
 
 
-class PersonForm(forms.Form):
+class QuestionnaireForm(forms.Form):
     first_name = fields.RegexField(
         r'^[A-Z][a-z -]+$',
         label="First name",
