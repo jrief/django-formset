@@ -2,6 +2,10 @@ from formset.renderers.default import FormRenderer as DefaultFormRenderer
 
 
 class FormRenderer(DefaultFormRenderer):
+    def __init__(self, **kwargs):
+        kwargs.setdefault('label_css_classes', 'label')
+        super().__init__(**kwargs)
+
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
         'django/forms/default.html': 'formset/bulma/form.html',
         'django/forms/widgets/checkbox.html': 'formset/bulma/widgets/checkbox.html',
@@ -17,15 +21,7 @@ class FormRenderer(DefaultFormRenderer):
         return context
 
     def _amend_label(self, context):
-        context = super()._amend_label(context, hide_checkbox_label=True)
-        if not isinstance(context['attrs'], dict):
-            context['attrs'] = {}
-        css_classes = []
-        if css_class := context['attrs'].pop('class', None):
-            css_classes.append(css_class)
-        css_classes.append('label')
-        context['attrs']['class'] = ' '.join(css_classes)
-        return context
+        return super()._amend_label(context, hide_checkbox_label=True)
 
     def _amend_multiple_input(self, context, css_class):
         context = super()._amend_multiple_input(context)

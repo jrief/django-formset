@@ -2,6 +2,10 @@ from formset.renderers.default import FormRenderer as DefaultFormRenderer
 
 
 class FormRenderer(DefaultFormRenderer):
+    def __init__(self, **kwargs):
+        kwargs.setdefault('label_css_classes', 'formset-label')
+        super().__init__(**kwargs)
+
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
         'django/forms/default.html': 'formset/tailwind/form.html',
         'django/forms/widgets/checkbox.html': 'formset/tailwind/widgets/checkbox.html',
@@ -11,15 +15,7 @@ class FormRenderer(DefaultFormRenderer):
     })
 
     def _amend_label(self, context):
-        context = super()._amend_label(context, hide_checkbox_label=True)
-        if not isinstance(context['attrs'], dict):
-            context['attrs'] = {}
-        css_classes = []
-        if css_class := context['attrs'].pop('class', None):
-            css_classes.append(css_class)
-        css_classes.append('formset-label')
-        context['attrs']['class'] = ' '.join(css_classes)
-        return context
+        return super()._amend_label(context, hide_checkbox_label=True)
 
     def _amend_text_input(self, context):
         context['widget']['attrs']['class'] = 'formset-text-input'
