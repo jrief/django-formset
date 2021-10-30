@@ -742,10 +742,10 @@ class DjangoFieldset {
 class DjangoForm {
 	public readonly formId: string | null;
 	public readonly name: string | null;
-	private readonly path: Array<string> | null;
+	private readonly path: Array<string>;
 	public readonly formset: DjangoFormset;
 	public readonly element: HTMLFormElement;
-	public readonly fieldset?: DjangoFieldset;
+	public readonly fieldset: DjangoFieldset | null;
 	private readonly errorList: Element | null;
 	private readonly errorPlaceholder: Element | null;
 	public readonly fieldGroups = Array<FieldGroup>(0);
@@ -755,13 +755,11 @@ class DjangoForm {
 	constructor(formset: DjangoFormset, element: HTMLFormElement) {
 		this.formId = element.getAttribute('id');
 		this.name = element.getAttribute('name') ?? null;
-		this.path = this.name?.split('.') ?? null;
+		this.path = this.name?.split('.') ?? [];
 		this.formset = formset;
 		this.element = element;
 		const fieldsetElement = element.querySelector('fieldset');
-		if (fieldsetElement) {
-			this.fieldset = new DjangoFieldset(this, fieldsetElement);
-		}
+		this.fieldset = fieldsetElement ? new DjangoFieldset(this, fieldsetElement) : null;
 		const formError = element.querySelector('.dj-form-errors');
 		const placeholder = formError ? formError.querySelector('.dj-errorlist > .dj-placeholder') : null;
 		if (placeholder) {
@@ -786,7 +784,8 @@ class DjangoForm {
 
 	getDataValue(path: Array<string>) {
 		const absPath = [];
-		if (this.path && path[0] === '') {
+		if (path[0] === '') {
+			// path is relative, so concatenate it to the form's path
 			absPath.push(...this.path);
 			const relPath = path.filter(part => part !== '');
 			const delta = path.length - relPath.length;
