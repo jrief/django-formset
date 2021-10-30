@@ -8,6 +8,7 @@ from django.utils.module_loading import import_string
 from formset.views import FormCollectionView, FormView
 from formset.utils import FormMixin
 
+from testapp.forms.contact import PersonForm, SimpleContactCollection, ContactCollection
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.subscribe import SubscribeForm
@@ -41,8 +42,10 @@ def render_startpage(request):
     return HttpResponse(template.render(context))
 
 
+success_url = reverse_lazy('form_data_valid'),
+
 class DemoFormView(FormView):
-    success_url = reverse_lazy('form_data_valid')
+    success_url = success_url
 
 
 urlpatterns = [
@@ -101,35 +104,47 @@ for framework, attrs in framework_contexts.items():
 
         path(f'{urlprefix}double', FormCollectionView.as_view(
             collection_class=DoubleFormCollectionClass,
-            success_url=reverse_lazy('form_data_valid'),
+            success_url=success_url,
             template_name='testapp/form-collection.html',
             extra_context=extra_context,
         )),
         path(f'{urlprefix}triple', FormCollectionView.as_view(
             collection_class=TripleFormCollectionClass,
-            success_url=reverse_lazy('form_data_valid'),
+            success_url=success_url,
             template_name='testapp/form-collection.html',
             extra_context=extra_context,
         )),
         path(f'{urlprefix}nested', FormCollectionView.as_view(
             collection_class=NestedCollectionClass,
-            success_url=reverse_lazy('form_data_valid'),
+            success_url=success_url,
             template_name='testapp/form-collection.html',
             extra_context=extra_context,
         )),
         path(f'{urlprefix}multiple', FormCollectionView.as_view(
             collection_class=MultipleCollectionClass,
-            success_url=reverse_lazy('form_data_valid'),
+            success_url=success_url,
             template_name='testapp/form-collection.html',
             extra_context=extra_context,
         )),
     ])
-urlpatterns.append(
-    path('bootstrap/subscribe.form-rows',
-        DemoFormView.as_view(form_class=SubscribeForm,
+urlpatterns.extend([
+    path('bootstrap/subscribe.form-rows', DemoFormView.as_view(
+        form_class=SubscribeForm,
         template_name='bootstrap/form-rows.html',
-    ))
-)
+    )),
+    path('bootstrap/person', DemoFormView.as_view(
+        form_class=PersonForm,
+        template_name='bootstrap/form-fields.html',
+    )),
+    path('bootstrap/simplecontact', FormCollectionView.as_view(
+        collection_class=SimpleContactCollection,
+        template_name='bootstrap/form-collection.html',
+    )),
+    path('bootstrap/contact', FormCollectionView.as_view(
+        collection_class=ContactCollection,
+        template_name='bootstrap/form-collection.html',
+    )),
+])
 urlpatterns.extend(static(
     settings.MEDIA_URL,
     document_root=settings.MEDIA_ROOT
