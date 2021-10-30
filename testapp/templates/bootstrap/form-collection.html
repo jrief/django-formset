@@ -1,0 +1,8 @@
+{% extends "./base.html" %}
+
+{% block "main-content" %}
+<django-formset endpoint="{{ request.path }}">
+	{{ form_collection }}
+	{% include "./buttons.html" %}
+</django-formset>
+{% endblock %}

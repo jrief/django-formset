@@ -37,7 +37,7 @@ class QuestionnaireForm(forms.Form):
         return cd
 
 
-sample_person_data = {
+sample_questionnaire_data = {
     'first_name': "John",
     'last_name': "Doe",
     'gender': 'm',
