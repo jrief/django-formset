@@ -51,7 +51,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     """
     The main implementation of all the FormCollection logic.
     """
-    default_renderer = FormRenderer
+    default_renderer = None
     prefix = None
     template_name = 'formset/default/collection.html'
     min_siblings = None
@@ -206,6 +206,14 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         Returns True if current FormCollection manages a list of sibling forms/(sub-)collections.
         """
         return not (self.min_siblings is None and self.max_siblings is None and self.extra_siblings is None)
+
+    def render(self, template_name=None, context=None, renderer=None):
+        if not (renderer or self.renderer):
+            renderer = FormRenderer()
+        return super().render(template_name, context, renderer)
+
+    __str__ = render
+    __html__ = render
 
 
 class FormCollection(BaseFormCollection, metaclass=FormCollectionMeta):

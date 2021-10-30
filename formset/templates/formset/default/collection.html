@@ -1,4 +1,3 @@
-{% load i18n %}
 {% for holder in collection %}
 	{% if holder.is_single %}
 <django-form-collection>
@@ -12,11 +11,11 @@
 	{% if holder.is_single %}
 </django-form-collection>
 	{% elif holder.is_last %}
-	<button class="remove-collection">{% trans "Remove" %}</button>
+		{% include remove_collection_button %}
 </django-form-collection>
 		{% if holder.is_template %}
 </template>
-<button class="add-collection">{% trans "Add" %}</button>
+			{% include add_collection_button %}
 		{% endif %}
 	{% endif %}
 {% endfor %}

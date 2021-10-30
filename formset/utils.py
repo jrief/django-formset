@@ -44,6 +44,8 @@ class HolderMixin:
                 replica.renderer = self.default_renderer
         elif renderer:
             replica.renderer = renderer
+        else:
+            replica.renderer = FormRenderer()
         return replica
 
 

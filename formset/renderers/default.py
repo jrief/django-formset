@@ -60,11 +60,17 @@ class FormRenderer(DjangoTemplates):
         context['widget']['inlined_options'] = max_options <= self.max_options_per_line
         return context
 
+    def _amend_collection(self, context):
+        context['add_collection_button'] = 'formset/default/buttons/add_collection.html'
+        context['remove_collection_button'] = 'formset/default/buttons/remove_collection.html'
+        return context
+
     _context_modifiers = {
         'django/forms/default.html': _amend_form,
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
+        'formset/default/collection.html': _amend_collection,
     }
 
     def render(self, template_name, context, request=None):

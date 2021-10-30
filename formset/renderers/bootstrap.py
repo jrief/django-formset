@@ -40,6 +40,11 @@ class FormRenderer(DefaultFormRenderer):
                 option['template_name'] = 'formset/bootstrap/widgets/input_option.html'
         return context
 
+    def _amend_collection(self, context):
+        context['add_collection_button'] = 'formset/bootstrap/buttons/add_collection.html'
+        context['remove_collection_button'] = 'formset/bootstrap/buttons/remove_collection.html'
+        return context
+
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_input,
@@ -54,4 +59,5 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/radio.html': _amend_multiple_input,
         'formset/default/widgets/file.html': _amend_file,
         'formset/default/widgets/selectize.html': _amend_select,
+        'formset/default/collection.html': _amend_collection,
     })
