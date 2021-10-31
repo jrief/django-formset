@@ -172,7 +172,8 @@ class FormCollectionViewMixin(ContextMixin):
     def _handle_form_data(self, body):
         form_collection = self.collection_class(data=body.get('formset_data'))
         if form_collection.is_valid():
-            return JsonResponse({'success_url': force_str(self.success_url)})
+            response_data = {'success_url': force_str(self.success_url)} if self.success_url else {}
+            return JsonResponse(response_data)
         else:
             return JsonResponse(form_collection.errors.data, status=422, safe=False)
 

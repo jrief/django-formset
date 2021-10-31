@@ -31,8 +31,8 @@ class FormsetErrorList(ErrorList):
 class HolderMixin:
     def replicate(self, data=None, initial=None, prefix=None, renderer=None):
         replica = copy.copy(self)
-        if data:
-            replica.data = data
+        replica.data = data
+        replica.is_bound = data is not None
         if initial:
             replica.initial = initial
         if prefix:

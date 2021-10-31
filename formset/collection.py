@@ -182,11 +182,11 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                         self._errors.append({name: holder.errors.data})
                 self.cleaned_data.append(cleaned_data)
             if len(self.cleaned_data) < self.min_siblings:
-                # this can only happen, if the client bypasses the browser control
-                self._errors.update({NON_FIELD_ERRORS: "Too few siblings."})
-            if len(self.cleaned_data) > self.min_siblings:
-                # this can only happen, if the client bypasses the browser control
-                self._errors.update({NON_FIELD_ERRORS: "Too many siblings."})
+                # this can only happen, if the client bypasses browser control
+                self._errors.append({NON_FIELD_ERRORS: "Too few siblings."})
+            if self.max_siblings and len(self.cleaned_data) > self.max_siblings:
+                # this can only happen, if the client bypasses browser control
+                self._errors.append({NON_FIELD_ERRORS: "Too many siblings."})
         else:
             self.cleaned_data = {}
             self._errors = ErrorDict()
