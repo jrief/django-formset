@@ -45,7 +45,7 @@ class PersonForm(forms.Form):
 sample_person_data = {
     'first_name': "John",
     'last_name': "Doe",
-    'email': 'john.doe@example.com',
+    'email': "john.doe@example.com",
 }
 
 

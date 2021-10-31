@@ -20,10 +20,6 @@ from .forms.subscribe import SubscribeForm, sample_subscribe_data
 http_request = RequestFactory().get('/')
 
 
-class SubscribeFormView(FormView):
-    success_url = '/success'
-
-
 @pytest.fixture(scope='session', params=[None, 'bootstrap', 'bulma', 'foundation', 'tailwind', 'uikit'])
 def framework(request):
     return request.param
@@ -36,11 +32,12 @@ def initial(request):
 
 @pytest.fixture(scope='session')
 def native_view(framework, initial):
-    return SubscribeFormView.as_view(
+    return FormView.as_view(
         template_name='testapp/native-form.html',
         form_class=SubscribeForm,
         initial=initial,
-        extra_context={'framework': framework}
+        extra_context={'framework': framework},
+        success_url = '/success',
     )
 
 
@@ -49,10 +46,11 @@ def native_view(framework, initial):
     TailwindFormRenderer, UIKitFormRenderer])
 def extended_view(request, initial):
     form_class = type(SubscribeForm.__name__, (FormMixin, SubscribeForm), {'default_renderer': request.param})
-    return SubscribeFormView.as_view(
+    return FormView.as_view(
         template_name='testapp/extended-form.html',
         form_class=form_class,
         initial=initial,
+        success_url='/success',
     )
 
 
