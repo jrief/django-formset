@@ -136,13 +136,16 @@ def test_button_scroll_to_error(page):
     input_elem.evaluate('elem => elem.blur()')
     button_elem = page.query_selector('django-formset button')
     assert button_elem is not None
+    success_chain, reject_chain = button_elem.get_attribute('click').split('!~')
+    assert 'submit' in success_chain
+    assert 'scrollToError' in reject_chain
     window_handle = page.evaluate_handle('() => Promise.resolve(window)');
     assert window_handle.get_property('scrollY').json_value() == 0
     button_elem.evaluate('elem => elem.setAttribute("style", "margin-top: 1500px;")')
     button_elem.scroll_into_view_if_needed()
     assert window_handle.get_property('scrollY').json_value() > 500
     page.wait_for_selector('django-formset button').click()
-    sleep(0.25)  # because scrollToError uses behavior='smooth'
+    sleep(0.5)  # because `scrollToError` applies behavior='smooth'
     assert window_handle.get_property('scrollY').json_value() < 50
 
 

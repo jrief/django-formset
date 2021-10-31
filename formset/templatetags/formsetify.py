@@ -15,15 +15,16 @@ def _formsetify(form, *args, **kwargs):
     if not isinstance(form, FormMixin):
         form.__class__ = type(form.__class__.__name__, (FormMixin, form.__class__), {})
 
-    renderer_kwargs = {
-        'field_css_classes': kwargs.pop('field_classes', None),
-        'label_css_classes': kwargs.pop('label_classes', None),
-        'control_css_classes': kwargs.pop('control_classes', None),
-        'form_css_classes': kwargs.pop('form_classes', None),
-        'max_options_per_line': kwargs.pop('max_options_per_line', None),
-    }
+    renderer_args = [
+        ('field_css_classes', kwargs.pop('field_classes', None)),
+        ('label_css_classes', kwargs.pop('label_classes', None)),
+        ('control_css_classes', kwargs.pop('control_classes', None)),
+        ('form_css_classes', kwargs.pop('form_classes', None)),
+        ('max_options_per_line', kwargs.pop('max_options_per_line', None)),
+    ]
     if len(kwargs):
         raise TemplateSyntaxError(f"Unknown argument '{kwargs.popitem()[0]}' in formsetify.")
+    renderer_kwargs = {key: value for key, value in renderer_args if value is not None}
 
     if len(args) == 1 and args[0]:
         framework = args[0].lower()

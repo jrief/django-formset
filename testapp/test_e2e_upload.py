@@ -6,22 +6,19 @@ from time import sleep
 
 from django.core.signing import get_cookie_signer
 from django.urls import path
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 
 from formset.views import FormView
 
 from .forms.upload import UploadForm
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class TestFormView(FormView):
+class DemoFormView(FormView):
     template_name = 'testapp/native-form.html'
     form_class=UploadForm
     success_url = '/success'
 
 
-urlpatterns = [path('upload', TestFormView.as_view(), name='upload')]
+urlpatterns = [path('upload', DemoFormView.as_view(), name='upload')]
 
 
 @pytest.mark.urls(__name__)
@@ -57,7 +54,7 @@ def test_upload_image(page, mocker):
     assert button is not None
     assert button.get_attribute('download') == 'python-django.png'
     assert button.get_attribute('href') == download_url
-    spy = mocker.spy(TestFormView, 'post')
+    spy = mocker.spy(DemoFormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     file = request['formset_data']['avatar'][0]

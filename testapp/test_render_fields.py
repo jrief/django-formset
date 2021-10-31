@@ -45,7 +45,8 @@ def native_view(framework, initial):
 
 
 @pytest.fixture(scope='session', params=[
-    DefaultFormRenderer, BootstrapFormRenderer, BulmaFormRenderer, FoundationFormRenderer, TailwindFormRenderer, UIKitFormRenderer])
+    DefaultFormRenderer, BootstrapFormRenderer, BulmaFormRenderer, FoundationFormRenderer,
+    TailwindFormRenderer, UIKitFormRenderer])
 def extended_view(request, initial):
     form_class = type(SubscribeForm.__name__, (FormMixin, SubscribeForm), {'default_renderer': request.param})
     return SubscribeFormView.as_view(
