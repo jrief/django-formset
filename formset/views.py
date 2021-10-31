@@ -120,16 +120,19 @@ class FileUploadMixin:
 
 class FormViewMixin:
     def post(self, request, **kwargs):
-        if request.content_type == 'application/json':
-            return self._handle_form_data(json.loads(request.body))
-        return super().post(request, **kwargs)
-
-    def _handle_form_data(self, body):
-        form = self.form_class(data=body.get('formset_data'))
+        form = self.get_form()
         if form.is_valid():
-            return JsonResponse({'success_url': force_str(self.success_url)})
+            response_data = {'success_url': force_str(self.success_url)} if self.success_url else {}
+            return JsonResponse(response_data)
         else:
-            return JsonResponse(form.errors.data, status=422)
+            return JsonResponse(form.errors.data, status=422, safe=False)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if self.request.content_type == 'application/json':
+            body = json.loads(self.request.body)
+            kwargs['data'] = body.get('formset_data')
+        return kwargs
 
     def get_field(self, path):
         field_name = path.split('.')[-1]
@@ -145,37 +148,47 @@ class FormView(SelectizeResponseMixin, FileUploadMixin, FormViewMixin, GenericFo
 class FormCollectionViewMixin(ContextMixin):
     collection_class = None
     success_url = None
+    initial = {}
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if self.collection_class:
-            self.form_collection = self.collection_class()
 
     def get(self, request, *args, **kwargs):
-        """Handle GET requests: instantiate a blank version of the form."""
+        """Handle GET requests: instantiate blank versions of the forms in the collection."""
         return self.render_to_response(self.get_context_data())
 
     def post(self, request, **kwargs):
-        """Handle POST requests: validate for with POST data."""
-        if request.content_type == 'application/json':
-            return self._handle_form_data(json.loads(request.body))
-        return self.render_to_response(self.get_context_data())
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form_collection'] = self.form_collection
-        return context
-
-    def get_field(self, path):
-        return self.form_collection.get_field(path)
-
-    def _handle_form_data(self, body):
-        form_collection = self.collection_class(data=body.get('formset_data'))
+        form_collection = self.get_form_collection()
         if form_collection.is_valid():
             response_data = {'success_url': force_str(self.success_url)} if self.success_url else {}
             return JsonResponse(response_data)
         else:
             return JsonResponse(form_collection.errors.data, status=422, safe=False)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_collection'] = self.get_form_collection()
+        return context
+
+    def get_field(self, path):
+        return self.form_collection.get_field(path)
+
+    def get_form_collection(self):
+        collection_class = self.get_collection_class()
+        kwargs = {
+            'initial': self.get_initial(),
+        }
+        if self.request.method in ('POST', 'PUT') and self.request.content_type == 'application/json':
+            body = json.loads(self.request.body)
+            kwargs.update(data=body.get('formset_data'))
+        return collection_class(**kwargs)
+
+    def get_collection_class(self):
+        return self.collection_class
+
+    def get_initial(self):
+        """Return the initial data to use for collections of forms on this view."""
+        return self.initial.copy()
 
 
 class FormCollectionView(SelectizeResponseMixin, FileUploadMixin, FormCollectionViewMixin, TemplateResponseMixin, View):
