@@ -107,17 +107,16 @@ class PhoneNumberForm(forms.Form):
 
 
 class PhoneNumberCollection(FormCollection):
-    min_siblings = 1
+    min_siblings = 2
+    max_siblings = 6
     extra_siblings = 1
 
-    number = PhoneNumberForm(initial={'phone_number': '+123456789'})
+    number = PhoneNumberForm()
 
 
 class ContactCollection(FormCollection):
     default_renderer = BootstrapFormRenderer
 
-    person = PersonForm(initial=sample_person_data)
-
-    # profession = ProfessionForm()
+    person = PersonForm()
 
     numbers = PhoneNumberCollection()

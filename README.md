@@ -1,9 +1,30 @@
 # django-formset – Better UX for Django Forms 
 
 `<django-formset>` is a [Webcomponent](https://developer.mozilla.org/en-US/docs/Web/Web_Components)
-used to wrap one or more Django Forms and/or ModelForms.
+to wrap one or more Django Forms. This webcomponent is installed together with the Django app
+**django-formset**.
 
-## Example
+
+## Installation
+
+Install **django-formset** using
+
+```shell
+pip install django-formset
+```
+
+change `settings.py` to
+
+```python
+INSTALLED_APPS = [
+    ...
+    'formset',
+    ...
+]
+```
+
+
+## Usage
 
 Say, we have a standard Django Form:
 
@@ -20,16 +41,53 @@ class SubscribeForm(forms.Form):
     # ... more fields
 ```
 
-then when rendering to HTML, we can wrap that Form into our special Webcomponent:
+when rendering to HTML, we can wrap that Form into our special Webcomponent:
 
 ```html
-{% load render_form from formsetify %}
-
-<django-formset endpoint="{{ request.path }}">
-  {% render_form form "bootstrap" field_classes="mb-2" %}
-  <button type="button" click="disable -> submit -> proceed !~ scrollToError" class="btn">Submit</button>
-</django-formset>
+{% load static formsetify %}
+<html>
+  <head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script type="module" src="{% static 'formset/js/django-formset.min.js' %}"></script>
+  </head>
+  <body>
+    <!-- other stuff -->
+    <django-formset endpoint="{{ request.path }}">
+      {% render_form form "bootstrap" field_classes="mb-2" %}
+      <button type="button" click="disable -> submit -> proceed !~ scrollToError" class="btn">Submit</button>
+    </django-formset>
+    <!-- other stuff -->
+  </body>
+</html>
 ```
+
+in our `urls.py` we now wire everything together:
+
+```python
+from django.urls import path
+from formset.views import FormView
+
+from .myforms import SubscribeForm
+
+
+urlpatterns = [
+    ...
+    path('subscribe', FormView.as_view(
+        form_class=SubscribeForm,
+        template_name='testapp/extended-form.html',
+        success_url='/success',
+    )),
+    ...
+]
+```
+
+This renders our Subscribe Form with a much better User Experience. We get immediate feedback if
+input entered into a field is not valid. Moreover, when this form is submitted but rejected by the
+server-side validation, errors are shown immediatly and without reloading the page. Only on success,
+a new new page is loaded.
+
+
+## Motivation
 
 Instead of using a `<form>`-tag and include all its fields, here we wrap the complete form
 inside the special Webcomponent `<django-formset>`. This allows us to communicate via Ajax with

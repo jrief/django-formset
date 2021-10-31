@@ -6,7 +6,7 @@ from copy import copy
 from django.test import RequestFactory
 from formset.views import FormView, FormCollectionView
 
-from .forms.contact import SimpleContactCollection, PersonForm, sample_person_data
+from .forms.contact import SimpleContactCollection, PersonForm, sample_person_data, ContactCollection
 
 
 def test_person_form_get():
@@ -119,3 +119,133 @@ def test_simple_collection_post():
     assert response.status_code == 200
     body = json.loads(response.content)
     assert body == {'success_url': '/success'}
+
+
+def test_collection_get():
+    view = FormCollectionView.as_view(
+        collection_class=ContactCollection,
+        template_name='bootstrap/form-collection.html',
+        initial={'person': sample_person_data},
+    )
+    response = view(RequestFactory().get('/'))
+    response.render()
+    soup = BeautifulSoup(response.content, 'html.parser')
+    formset_elem = soup.find('django-formset')
+    assert formset_elem is not None
+
+    collection_elems = formset_elem.find_all('django-form-collection', recursive=False)
+    assert len(collection_elems) == 2
+    form_elem = collection_elems[0].find('form')
+    assert form_elem is not None
+    assert form_elem.attrs['name'] == 'person'
+    assert collection_elems[0].find('django-form-collection') is None
+
+    collection_sibling_elems = collection_elems[1].find_all('django-form-collection', recursive=False)
+    assert len(collection_sibling_elems) == 3
+    for counter, collection_sibling_elem in enumerate(collection_sibling_elems):
+        assert collection_sibling_elem.attrs['sibling-position'] == str(counter)
+        assert collection_sibling_elem.attrs['min-siblings'] == '3'
+        form_elem = collection_sibling_elem.find('form')
+        assert form_elem.attrs['name'] == f'numbers.{counter}.number'
+        assert form_elem.attrs['id'] == f'id_numbers.{counter}.number'
+        button_elem = form_elem.find_next_sibling('button', class_='remove-collection')
+        assert button_elem is not None
+    template_elem = collection_sibling_elems[2].find_next_sibling('template', class_='empty-collection')
+    assert template_elem is not None
+    empty_collection_sibling = template_elem.find('django-form-collection')
+    empty_collection_sibling is not None
+    assert empty_collection_sibling.attrs['sibling-position'] == '${position}'
+    assert empty_collection_sibling.attrs['min-siblings'] == '3'
+    form_elem = empty_collection_sibling.find('form')
+    assert form_elem.attrs['name'] == 'numbers.${position}.number'
+    assert form_elem.attrs['id'] == 'id_numbers.${position}.number'
+    button_elem = form_elem.find_next_sibling('button', class_='remove-collection')
+    assert button_elem is not None
+    input_elem = empty_collection_sibling.find('input')
+    assert input_elem is not None
+    assert input_elem.attrs['name'] == 'phone_number'
+    assert input_elem.attrs['form'] == 'id_numbers.${position}.number'
+    assert input_elem.attrs['id'] == 'id_numbers.${position}.number.phone_number'
+
+
+collection_formset_data = [{
+    'person': dict(sample_person_data, email_label='home'),
+    'numbers': [{
+        'number': {
+            'phone_number': '+18007006000',
+            'label': 'work',
+        }
+    }],
+}, {
+    'person': dict(sample_person_data, email_label='home'),
+    'numbers': 7 * [{
+        'number': {
+            'phone_number': '+18007006000',
+            'label': 'work',
+        }
+    }],
+}, {
+    'person': dict(sample_person_data, email_label='home'),
+    'numbers': [{
+        'number': {
+            'phone_number': '+18007006000',
+            'label': 'work',
+        }
+    }, {
+        'number': {
+            'phone_number': '+123456789',
+            'label': 'work',
+        }
+    }],
+}, {
+    'person': dict(sample_person_data, email_label='home'),
+    'numbers': [{
+        'number': {
+            'phone_number': '+18007006000',
+        }
+    }, {
+        'number': {
+            'phone_number': '+1200300400',
+            'label': 'work',
+        }
+    }],
+}, {
+    'person': dict(sample_person_data, email_label='home'),
+    'numbers': [{
+        'number': {
+            'phone_number': '+18007006000',
+            'label': 'home',
+        }
+    }, {
+        'number': {
+            'phone_number': '+1200300400',
+            'label': 'work',
+        }
+    }],
+}]
+
+@pytest.mark.parametrize('counter,formset_data', enumerate(collection_formset_data))
+def test_collection_post(counter, formset_data):
+    view = FormCollectionView.as_view(
+        collection_class=ContactCollection,
+        success_url='/success',
+        template_name='bootstrap/form-collection.html',
+    )
+    http_request = RequestFactory().post('/', data={'formset_data': formset_data}, content_type='application/json')
+    response = view(http_request)
+    body = json.loads(response.content)
+    if counter == 0:
+        assert response.status_code == 422
+        assert body['numbers'][0]['__all__'] == ["Too few siblings."]
+    if counter == 1:
+        assert response.status_code == 422
+        assert body['numbers'][0]['__all__'] == ["Too many siblings."]
+    if counter == 2:
+        assert response.status_code == 422
+        assert body['numbers'][1]['number']['phone_number'] == ["Are you kidding me?"]
+    if counter == 3:
+        assert response.status_code == 422
+        assert body['numbers'][0]['number']['label'] == ["This field is required."]
+    if counter == 4:
+        assert response.status_code == 200
+        assert body['success_url'] == '/success'
