@@ -748,7 +748,7 @@ class DjangoFieldset {
 class DjangoForm {
 	public readonly formId: string | null;
 	public readonly name: string | null;
-	private readonly path: Array<string>;
+	public readonly path: Array<string>;
 	public readonly formset: DjangoFormset;
 	public readonly element: HTMLFormElement;
 	public readonly fieldset: DjangoFieldset | null;
@@ -1245,52 +1245,52 @@ export class DjangoFormset {
 	}
 
 	private buildBody(extraData?: Object) : Object {
+		let dataValue: any;
+		// Build `body`-Object recursively.
+		// deliberately ignore type-checking, because `body` must be build as POJO to be JSON serializable.
+		// If it would have been build as a `Map<string, Object>`, the `body` would additionally have to be
+		// converted to a POJO by a second recursive function.
+		function extendBody(entry: any, relPath: Array<string>) {
+			if (relPath.length === 1) {
+				// the leaf object
+				if (dataValue === MARKED_FOR_REMOVAL) {
+					entry[MARKED_FOR_REMOVAL] = MARKED_FOR_REMOVAL;
+				} else if (Array.isArray(entry)) {
+					entry.push(dataValue);
+				} else {
+					entry[relPath[0]] = dataValue;
+				}
+				return;
+			}
+			if (isNaN(parseInt(relPath[1]))) {
+				let innerObject;
+				if (Array.isArray(entry)) {
+					innerObject = {};
+					entry.push(innerObject)
+				} else {
+					innerObject = entry[relPath[0]] ?? {};
+					Object.isExtensible(innerObject);
+					entry[relPath[0]] = innerObject;
+				}
+				extendBody(innerObject, relPath.slice(1));
+			} else {
+				if (Array.isArray(entry))
+					throw new Error("Invalid form name: Contains nested arrays.");
+				const innerArray = entry[relPath[0]] ?? [];
+				entry[relPath[0]] = innerArray;
+				extendBody(innerArray, relPath.slice(1));
+			}
+		}
+
 		const body = {};
 		for (const form of this.forms) {
 			if (!form.name)  // only a single form doesn't have a name
 				return Object.assign({}, this.data, {_extra: extraData});
 
-			const parts = ['formset_data'];
-			parts.push(...form.name.split('.'));
-			const dataValue = form.markedForRemoval ? MARKED_FOR_REMOVAL : getDataValue(this.data, parts);
-
-			// Build `body`-Object recursively.
-			// deliberately ignore type-checking, because `body` must be build as POJO to be JSON serializable.
-			// If it would have been build as a `Map<string, Object>`, the `body` would additionally have to be
-			// converted to a POJO by a second recursive function.
-			function extendBody(depth: number, entry: any) {
-				if (depth === parts.length - 1) {
-					if (dataValue === MARKED_FOR_REMOVAL) {
-						entry[dataValue] = dataValue;
-					} else if (Array.isArray(entry)) {
-						entry.push(dataValue);
-					} else {
-						entry[parts[depth]] = dataValue;
-					}
-					return;
-				}
-				if (isNaN(parseInt(parts[depth + 1]))) {
-					let innerObject;
-					if (Array.isArray(entry)) {
-						innerObject = {};
-						entry.push(innerObject)
-					} else {
-						innerObject = (entry as any)[depth] ?? {};
-						entry[parts[depth]] = innerObject;
-					}
-					extendBody(depth + 1, innerObject);
-				} else {
-					if (Array.isArray(entry))
-						throw new Error(`Invalid form name: ${form.name}. Contains nested arrays.`);
-					const innerArray = entry[parts[depth]] ?? [];
-					entry[parts[depth]] = innerArray;
-					extendBody(depth + 1, innerArray);
-				}
-			}
-
-			extendBody(0, body);
+			const absPath = ['formset_data', ...form.path];
+			dataValue = form.markedForRemoval ? MARKED_FOR_REMOVAL : getDataValue(this.data, absPath);
+			extendBody(body, absPath);
 		}
-
 		return Object.assign({}, body, {_extra: extraData});
 	}
 
