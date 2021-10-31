@@ -42,7 +42,7 @@ def render_startpage(request):
     return HttpResponse(template.render(context))
 
 
-success_url = reverse_lazy('form_data_valid'),
+success_url = reverse_lazy('form_data_valid')
 
 class DemoFormView(FormView):
     success_url = success_url
@@ -54,7 +54,7 @@ urlpatterns = [
 ]
 for framework, attrs in framework_contexts.items():
     if framework:
-        urlprefix = f'{framework}/'
+        urlprefix = f'{framework}'
         extra_context = dict(attrs, framework=framework)
         renderer = import_string(f'formset.renderers.{framework}.FormRenderer')(**attrs)
         SubscribeFormExtended = type('SubscribeForm', (FormMixin, SubscribeForm), {'default_renderer': renderer})
@@ -63,7 +63,7 @@ for framework, attrs in framework_contexts.items():
         NestedCollectionClass = type('NestedCollection', (NestedCollection,), {'default_renderer': renderer})
         MultipleCollectionClass = type('MultipleCollection', (MultipleCollection,), {'default_renderer': renderer})
     else:
-        urlprefix = ''
+        urlprefix = 'default'
         extra_context = None
         SubscribeFormExtended = type('SubscribeForm', (FormMixin, SubscribeForm), {})
         DoubleFormCollectionClass = DoubleFormCollection
@@ -72,55 +72,55 @@ for framework, attrs in framework_contexts.items():
         MultipleCollectionClass = MultipleCollection
 
     urlpatterns.extend([
-        path(f'{urlprefix}subscribe.native-form', DemoFormView.as_view(
+        path(f'{urlprefix}/subscribe.native-form', DemoFormView.as_view(
             form_class=SubscribeForm,
             template_name='testapp/native-form.html',
             extra_context=extra_context,
         )),
-        path(f'{urlprefix}subscribe.extended-form', DemoFormView.as_view(
+        path(f'{urlprefix}/subscribe.extended-form', DemoFormView.as_view(
             form_class=SubscribeFormExtended,
             template_name='testapp/extended-form.html',
             extra_context={'framework': framework},
         )),
-        path(f'{urlprefix}subscribe.field-by-field', DemoFormView.as_view(
+        path(f'{urlprefix}/subscribe.field-by-field', DemoFormView.as_view(
             template_name='testapp/field-by-field.html',
             extra_context=extra_context,
         )),
-        path(f'{urlprefix}upload', DemoFormView.as_view(
+        path(f'{urlprefix}/upload', DemoFormView.as_view(
             form_class=UploadForm,
             template_name='testapp/native-form.html',
             extra_context=extra_context,
         )),
-        path(f'{urlprefix}questionnaire', DemoFormView.as_view(
+        path(f'{urlprefix}/questionnaire', DemoFormView.as_view(
             form_class=QuestionnaireForm,
             template_name='testapp/native-form.html',
             extra_context=extra_context,
         )),
-        path(f'{urlprefix}selectize', DemoFormView.as_view(
+        path(f'{urlprefix}/selectize', DemoFormView.as_view(
             form_class=OpinionForm,
             template_name='testapp/native-form.html',
             extra_context=extra_context,
         )),
 
-        path(f'{urlprefix}double', FormCollectionView.as_view(
+        path(f'{urlprefix}/double', FormCollectionView.as_view(
             collection_class=DoubleFormCollectionClass,
             success_url=success_url,
             template_name='testapp/form-collection.html',
             extra_context=extra_context,
         )),
-        path(f'{urlprefix}triple', FormCollectionView.as_view(
+        path(f'{urlprefix}/triple', FormCollectionView.as_view(
             collection_class=TripleFormCollectionClass,
             success_url=success_url,
             template_name='testapp/form-collection.html',
             extra_context=extra_context,
         )),
-        path(f'{urlprefix}nested', FormCollectionView.as_view(
+        path(f'{urlprefix}/nested', FormCollectionView.as_view(
             collection_class=NestedCollectionClass,
             success_url=success_url,
             template_name='testapp/form-collection.html',
             extra_context=extra_context,
         )),
-        path(f'{urlprefix}multiple', FormCollectionView.as_view(
+        path(f'{urlprefix}/multiple', FormCollectionView.as_view(
             collection_class=MultipleCollectionClass,
             success_url=success_url,
             template_name='testapp/form-collection.html',
@@ -135,14 +135,17 @@ urlpatterns.extend([
     path('bootstrap/person', DemoFormView.as_view(
         form_class=PersonForm,
         template_name='bootstrap/form-fields.html',
+        success_url=success_url,
     )),
     path('bootstrap/simplecontact', FormCollectionView.as_view(
         collection_class=SimpleContactCollection,
         template_name='bootstrap/form-collection.html',
+        success_url=success_url,
     )),
     path('bootstrap/contact', FormCollectionView.as_view(
         collection_class=ContactCollection,
         template_name='bootstrap/form-collection.html',
+        success_url=success_url,
     )),
 ])
 urlpatterns.extend(static(

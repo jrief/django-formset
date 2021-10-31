@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.forms import fields, forms
 
 from formset.collection import FormCollection
@@ -98,18 +99,24 @@ class PhoneNumberForm(forms.Form):
         ],
     )
 
+    def clean_phone_number(self):
+        value = self.cleaned_data['phone_number']
+        if value.replace(' ', '') == '+123456789':
+            raise ValidationError("Are you kidding me?")
+        return value
+
 
 class PhoneNumberCollection(FormCollection):
     min_siblings = 1
     extra_siblings = 1
 
-    numbers = PhoneNumberForm()
+    number = PhoneNumberForm(initial={'phone_number': '+123456789'})
 
 
 class ContactCollection(FormCollection):
     default_renderer = BootstrapFormRenderer
 
-    person = PersonForm()
+    person = PersonForm(initial=sample_person_data)
 
     # profession = ProfessionForm()
 
