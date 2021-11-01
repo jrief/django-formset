@@ -3,12 +3,14 @@
 <html dir="ltr" lang="en">
 
 <head>
+	{% block "head" %}
 	<meta charset="utf-8"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0"/>
 	<title>Django-Formset Demo</title>
 	<link rel="icon" href="data:,">
 	<link href="{% static 'node_modules/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
 	<script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
+	{% endblock %}
 </head>
 
 <body>

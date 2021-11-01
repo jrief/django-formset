@@ -8,7 +8,8 @@ from django.utils.module_loading import import_string
 from formset.views import FormCollectionView, FormView
 from formset.utils import FormMixin
 
-from testapp.forms.contact import PersonForm, SimpleContactCollection, ContactCollection, sample_person_data
+from testapp.forms.contact import (PersonForm, SimpleContactCollection, ContactCollection, ContactCollectionList,
+    DefaultContactCollection, sample_person_data)
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.subscribe import SubscribeForm
@@ -146,6 +147,16 @@ urlpatterns.extend([
     path('bootstrap/contact', FormCollectionView.as_view(
         collection_class=ContactCollection,
         template_name='bootstrap/form-collection.html',
+        success_url=success_url,
+    )),
+    path('bootstrap/contacts', FormCollectionView.as_view(
+        collection_class=ContactCollectionList,
+        template_name='bootstrap/form-collection.html',
+        success_url=success_url,
+    )),
+    path('default/contactlist', FormCollectionView.as_view(
+        collection_class=ContactCollectionList,
+        template_name='testapp/form-collection.html',
         success_url=success_url,
     )),
 ])

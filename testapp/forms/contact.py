@@ -3,6 +3,7 @@ from django.forms import fields, forms
 
 from formset.collection import FormCollection
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
+from formset.renderers.default import FormRenderer as DefaultFormRenderer
 
 
 class PersonForm(forms.Form):
@@ -75,6 +76,15 @@ class SimpleContactCollection(FormCollection):
     profession = ProfessionForm()
 
 
+class DefaultContactCollection(FormCollection):
+    """
+    Used to check, if the renderer can be overridden again.
+    """
+    person = PersonForm(renderer=DefaultFormRenderer())
+
+    profession = ProfessionForm()
+
+
 class PhoneNumberForm(forms.Form):
     default_renderer = BootstrapFormRenderer(
         form_css_classes='row',
@@ -120,3 +130,13 @@ class ContactCollection(FormCollection):
     person = PersonForm()
 
     numbers = PhoneNumberCollection()
+
+
+class ContactCollectionList(FormCollection):
+    default_renderer = BootstrapFormRenderer
+    min_siblings = 0
+    extra_siblings = 1
+
+    person = PersonForm()
+
+    numbers = PhoneNumberCollection(min_siblings=0)
