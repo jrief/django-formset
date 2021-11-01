@@ -1,23 +1,23 @@
 from django.forms import forms, fields
 from formset.collection import FormCollection
 
-from .person import PersonForm, sample_person_data
+from .contact import PersonForm, sample_person_data
 from .opinion import OpinionForm, sample_opinion_data
 
 
 class DoubleFormCollection(FormCollection):
-    extra_siblings = 1
+    min_siblings = 2
     max_siblings = 8
 
-    persona = PersonForm()
+    persona = PersonForm(initial=sample_person_data)
 
     # upload = UploadForm()
 
 
 class TripleFormCollection(FormCollection):
-    min_siblings = 0
+    min_siblings = 2
 
-    double = DoubleFormCollection()# initial=[{'persona': sample_personb_data}])
+    double = DoubleFormCollection(initial=[{'persona': sample_person_data}, {'persona': sample_person_data}])
 
     opinion = OpinionForm(initial=sample_opinion_data)
 
@@ -36,4 +36,4 @@ class NestedCollection(FormCollection):
 
 
 class MultipleCollection(FormCollection):
-    double = DoubleFormCollection(initial=[{'persona': sample_person_data}])
+    double = DoubleFormCollection()
