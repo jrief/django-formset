@@ -134,13 +134,17 @@ to the way Django handles Forms, Models and Views.
   submitted data is provided as a nested Python dictionary.
 * Such a Form-Collection can be declared to have many Form entities of the same kind. This allows to
   create siblings of Forms, similar the Django's Admin Inline Forms. However, each of these siblings
-  can contain other Form-Collections, which themselves can also be declared as siblings. Those list
+  can contain other Form-Collections, which themselves can also be declared as siblings. This list
   of siblings can be extended or reduced using one "Add" and multiple "Remove" buttons.
+* By using the special attributes `show-if="condition"`, `hide-if="condition"` or
+  `disable-if="condition"` on input fields or fieldsets, one can hide or disable these marked
+  fields. This `condition` can evaluate all field values of the current Formset by a Boolean
+  expression.
 * The client part, has no dependencies to any JavaScript-framework. It is written in pure TypeScript
   and compiles to a single, portable JS-file.
 
 [^1]: Tailwind is special here, since it doesn't include purpose-built form control classes out of
-      the box. Instead **django-formset** adds an opinionated set of CSS classes suitable for
+      the box. Instead **django-formset** offers an opinionated set of CSS classes suitable for
       Tailwind.
 
 
