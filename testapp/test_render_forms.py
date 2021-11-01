@@ -141,21 +141,21 @@ def test_collection_get():
     assert collection_elems[0].find('django-form-collection') is None
 
     collection_sibling_elems = collection_elems[1].find_all('django-form-collection', recursive=False)
-    assert len(collection_sibling_elems) == 3
+    assert len(collection_sibling_elems) == 2
     for counter, collection_sibling_elem in enumerate(collection_sibling_elems):
         assert collection_sibling_elem.attrs['sibling-position'] == str(counter)
-        assert collection_sibling_elem.attrs['min-siblings'] == '3'
+        assert collection_sibling_elem.attrs['min-siblings'] == '2'
         form_elem = collection_sibling_elem.find('form')
         assert form_elem.attrs['name'] == f'numbers.{counter}.number'
         assert form_elem.attrs['id'] == f'id_numbers.{counter}.number'
         button_elem = form_elem.find_next_sibling('button', class_='remove-collection')
         assert button_elem is not None
-    template_elem = collection_sibling_elems[2].find_next_sibling('template', class_='empty-collection')
+    template_elem = collection_sibling_elems[1].find_next_sibling('template', class_='empty-collection')
     assert template_elem is not None
     empty_collection_sibling = template_elem.find('django-form-collection')
     empty_collection_sibling is not None
     assert empty_collection_sibling.attrs['sibling-position'] == '${position}'
-    assert empty_collection_sibling.attrs['min-siblings'] == '3'
+    assert empty_collection_sibling.attrs['min-siblings'] == '2'
     form_elem = empty_collection_sibling.find('form')
     assert form_elem.attrs['name'] == 'numbers.${position}.number'
     assert form_elem.attrs['id'] == 'id_numbers.${position}.number'
