@@ -70,7 +70,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         if max_siblings is not None:
             self.max_siblings = max_siblings
         if extra_siblings is not None:
-            self.extra_siblings = max_siblings
+            self.extra_siblings = extra_siblings
         if self.has_many:
             if self.min_siblings is None:
                 self.min_siblings = 1
