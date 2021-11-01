@@ -2,12 +2,11 @@ import TomSelect from 'tom-select/src/tom-select';
 import { TomSettings } from 'tom-select/src/types/settings';
 import { TomInput } from 'tom-select/src/types';
 import template from 'lodash.template';
-
 import styles from 'sass:./DjangoSelectize.scss';
-import {escape_html} from "tom-select/src/utils";
+import { escape_html } from "tom-select/src/utils";
 
 type Renderer = {
-	[key:string]: (data:any, escape:typeof escape_html) => string|HTMLElement
+	[key:string]: (data:any, escape:typeof escape_html) => string | HTMLElement;
 }
 
 class DjangoSelectize {
