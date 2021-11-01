@@ -853,6 +853,7 @@ class DjangoForm {
 		this.markedForRemoval = remove;
 		for (const fieldGroup of this.fieldGroups) {
 			if (remove) {
+				fieldGroup.resetToInitial();
 				fieldGroup.disableAllFields();
 			} else {
 				fieldGroup.reenableAllFields();
