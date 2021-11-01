@@ -37,6 +37,8 @@ class HolderMixin:
             replica.initial = initial
         if prefix:
             replica.prefix = prefix
+        if isinstance(replica.renderer, FormRenderer):
+            return replica
         if self.default_renderer:
             if isinstance(self.default_renderer, type):
                 replica.renderer = self.default_renderer()
