@@ -4,8 +4,6 @@ import pytest
 
 from django.forms import fields, Form, widgets
 from django.urls import path
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 
 from formset.views import FormView
 
@@ -17,7 +15,6 @@ def snake2camel(string):
     return ''.join(s.capitalize() for s in string.split('_'))
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class NativeFormView(FormView):
     template_name = 'testapp/native-form.html'
     success_url = '/success'

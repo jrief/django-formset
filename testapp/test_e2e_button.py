@@ -5,8 +5,6 @@ from time import sleep
 from django.core.exceptions import ValidationError
 from django.forms import fields, Form
 from django.urls import path
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 
 from formset.views import FormView
 
@@ -21,7 +19,6 @@ class SampleForm(Form):
         return cd
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class NativeFormView(FormView):
     template_name = 'testapp/native-form.html'
     form_class = SampleForm

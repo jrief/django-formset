@@ -4,8 +4,6 @@ from time import sleep
 
 from django.forms import Field, Form, models
 from django.urls import path
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 
 from formset.views import FormView
 from formset.widgets import Selectize
@@ -13,7 +11,6 @@ from formset.widgets import Selectize
 from testapp.models import OpinionModel
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class NativeFormView(FormView):
     template_name = 'testapp/native-form.html'
     success_url = '/success'
