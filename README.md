@@ -4,6 +4,12 @@
 to wrap one or more Django Forms. This webcomponent is installed together with the Django app
 **django-formset**.
 
+[![Build Status](https://github.com/jrief/django-formset/actions/workflows/pythonpackage.yml/badge.svg)]()
+[![PyPI version](https://img.shields.io/pypi/v/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
+[![Django versions](https://img.shields.io/pypi/djversions/django-formset)](https://pypi.python.org/pypi/django-formset)
+[![Python versions](https://img.shields.io/pypi/pyversions/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
+[![Software license](https://img.shields.io/pypi/l/django-formset.svg)](https://github.com/jrief/django-formset/blob/master/LICENSE)
+
 
 ## Installation
 
@@ -41,7 +47,9 @@ class SubscribeForm(forms.Form):
     # ... more fields
 ```
 
-when rendering to HTML, we can wrap that Form into our special Webcomponent:
+when rendering to HTML and using the
+[Bootstrap 5 framework](https://getbootstrap.com/docs/5.0/getting-started/introduction/), we wrap
+that Form into the special Webcomponent `<django-formset ...>`:
 
 ```html
 {% load static formsetify %}
@@ -81,10 +89,10 @@ urlpatterns = [
 ]
 ```
 
-This renders our Subscribe Form with a much better User Experience. We get immediate feedback if
-input entered into a field is not valid. Moreover, when this form is submitted but rejected by the
-server-side validation, errors are shown immediatly and without reloading the page. Only on success,
-a new new page is loaded.
+This renders `SubscribeForm` with as a form with a much better User Experience. We get immediate
+feedback if input entered into a field is not valid. Moreover, when this form is submitted but
+rejected by the server-side validation checker, errors are shown immediatly and without reloading
+the page. Only on success, a new new page is loaded.
 
 
 ## Motivation
@@ -151,15 +159,3 @@ to the way Django handles Forms, Models and Views.
 ## Documentation
 
 Not deployed on RTD, but some documentation can be found in the `docs` folder.
-
-
-## Motivation
-
-This library shall replace the Form-validation framework in django-angular.
-
-
-[![Build Status](https://github.com/jrief/django-formset/actions/workflows/pythonpackage.yml/badge.svg)]()
-[![PyPI version](https://img.shields.io/pypi/v/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
-[![Django versions](https://img.shields.io/pypi/djversions/django-formset)](https://pypi.python.org/pypi/django-formset)
-[![Python versions](https://img.shields.io/pypi/pyversions/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
-[![Software license](https://img.shields.io/pypi/l/django-formset.svg)](https://github.com/jrief/django-formset/blob/master/LICENSE)

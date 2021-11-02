@@ -117,8 +117,8 @@ class PhoneNumberForm(forms.Form):
 
 
 class PhoneNumberCollection(FormCollection):
-    min_siblings = 2
-    max_siblings = 6
+    min_siblings = 1
+    max_siblings = 5
     extra_siblings = 1
 
     number = PhoneNumberForm()
@@ -139,4 +139,8 @@ class ContactCollectionList(FormCollection):
 
     person = PersonForm()
 
-    numbers = PhoneNumberCollection(min_siblings=0)
+    numbers = PhoneNumberCollection(
+        min_siblings=1,
+        max_siblings=5,
+        extra_siblings=1,
+    )
