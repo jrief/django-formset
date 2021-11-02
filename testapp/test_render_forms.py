@@ -4,9 +4,19 @@ import json
 from bs4 import BeautifulSoup
 from copy import copy
 from django.test import RequestFactory
+from formset.collection import FormCollection
+from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
 from formset.views import FormView, FormCollectionView
 
-from .forms.contact import SimpleContactCollection, PersonForm, sample_person_data, ContactCollection
+from .forms.contact import SimpleContactCollection, PersonForm, sample_person_data, PhoneNumberCollection
+
+
+class ContactCollection(FormCollection):
+    default_renderer = BootstrapFormRenderer
+
+    person = PersonForm()
+
+    numbers = PhoneNumberCollection(min_siblings=2)
 
 
 def test_person_form_get():
