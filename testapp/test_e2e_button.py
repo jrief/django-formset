@@ -142,7 +142,7 @@ def test_button_scroll_to_error(page):
     button_elem.scroll_into_view_if_needed()
     assert window_handle.get_property('scrollY').json_value() > 500
     page.wait_for_selector('django-formset button').click()
-    sleep(0.5)  # because `scrollToError` applies behavior='smooth'
+    sleep(1)  # because `scrollToError` applies behavior='smooth'
     assert window_handle.get_property('scrollY').json_value() < 50
 
 
