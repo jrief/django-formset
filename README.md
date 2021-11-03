@@ -135,8 +135,9 @@ to the way Django handles Forms, Models and Views.
   multiple checkboxes with options.
 * File uploads are handled asynchronously. When the user opens the file dialog or drags a file into
   the form, this file then is uploaded immediately to a temporary folder on the server. On successful
-  file upload, a unique handle is returned together with a thumbnail of that file. On form
+  file upload, a unique signed handle is returned together with a thumbnail of that file. On form
   submission, this handle then is used to access that file and move it to its final destination.
+  No extra endpoint is required for this feature.
 * Select boxes with too many entries, can be filtered by the server using a search query. No extra
   endpoint is required for this feature.
 * Radio buttons and multiple checkboxes with only a few fields can be rendered inlined rather than
