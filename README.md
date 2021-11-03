@@ -164,13 +164,21 @@ to the way Django handles Forms, Models and Views.
 
 ## Running the Demo
 
+Make sure you have a recent version of Python and npm.
+
 To get a first impression of **django-formset**, run the demo site.
 
 ```shell
+git clone https://github.com/jrief/django-formset.git
+cd django-formset
 python -m venv .venv
 source .venv/bin/activate
 pip install -r testapp/requirements.txt
 pip install --no-deps -e .
+npm install
+npm run tag-attributes
+npm run tailwindcss
+npm run build
 testapp/manage.py migrate
 testapp/manage.py runserver
 ```
@@ -180,7 +188,10 @@ Open http://localhost:8000/ in your browser. There is a long list of forms for a
 
 ### Running the tests
 
-First you must initialize Playwright:
+Since there is a lot of interaction between the browser and the server, the client is tested using
+[pytest](https://pytest-django.readthedocs.io/en/latest/) together with
+[Playwright](https://playwright.dev/python/docs/intro/) in order to run end-to-end tests.
+
 
 ```shell
 playwright install
@@ -195,4 +206,5 @@ pytest testapp
 
 ## Documentation
 
-Not deployed on RTD yet, but some documentation can be found in the `docs` folder.
+Documentation has to be written and is not yet deployed on RTD, but something can be found in the
+`docs` folder.
