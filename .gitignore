@@ -11,10 +11,10 @@ log.txt
 *.sublime-workspace
 *.egg-info
 
-.stencil/
 .idea/
 .vscode/
 .sass-cache/
+.venv/
 .versions/
 __pycache__/
 node_modules/
