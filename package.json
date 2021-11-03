@@ -6,8 +6,8 @@
     "build": "node client/build.cjs",
     "build:watch": "node client/build.cjs --watch",
     "minify": "jsmin -o formset/static/formset/js/django-formset.min.js formset/static/formset/js/django-formset.js",
-    "tag-attributes": "peggy -o client/django-formset/tag-attributes.ts --extra-options-file pegjsconf.json --plugin ./node_modules/ts-pegjs/src/tspegjs.js assets/tag-attributes.pegjs",
-    "tailwindcss": "tailwindcss build assets/tailwind-styles.css -o formset/static/formset/css/tailwind.css",
+    "tag-attributes": "peggy -o client/django-formset/tag-attributes.ts --extra-options-file assets/pegjsconf.json --plugin ./node_modules/ts-pegjs/src/tspegjs.js assets/tag-attributes.pegjs",
+    "tailwindcss": "tailwindcss build assets/tailwind-styles.css --config assets/tailwind.config.js --output formset/static/formset/css/tailwind.css",
     "uglify": "uglifyjs formset/static/formset/js/django-formset.js --compress --mangle -o formset/static/formset/js/django-formset.min.js"
   },
   "license": "MIT",
