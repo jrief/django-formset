@@ -117,8 +117,8 @@ to the way Django handles Forms, Models and Views.
 * Server side validation errors are sent back to the browser, and rendered near the offending
   Form Field.
 * Non-field validation errors are renderer together with the form.
-* CSRF-tokens are handlet trough a Cookie, hence there is no need to add that token to each form.
-* Forms can be rendered for different CSS frameworks using their specific styleguides for arranging
+* CSRF-tokens are handled through a Cookie, hence there is no need to add that token to each form.
+* Forms can be rendered for different CSS frameworks using their specific style-guides for arranging
   HTML. Currently **django-formset** includes renderers for:
 
   * [Bootstrap 5](https://getbootstrap.com/docs/5.0/forms/overview/),
@@ -133,8 +133,8 @@ to the way Django handles Forms, Models and Views.
   part is written in pure TypeScript and compiles to a single, portable JS-file.
 * Support for all standard widgets Django currently offers. This also includes radio buttons and
   multiple checkboxes with options.
-* File uploads are handled asynchrounosly. When the user opens the file dialog or drags a file into
-  the form, this file then is uploaded immediatly to a temporary folder on the server. On successful
+* File uploads are handled asynchronously. When the user opens the file dialog or drags a file into
+  the form, this file then is uploaded immediately to a temporary folder on the server. On successful
   file upload, a unique handle is returned together with a thumbnail of that file. On form
   submission, this handle then is used to access that file and move it to its final destination.
 * Select boxes with too many entries, can be filtered by the server using a search query. No extra
