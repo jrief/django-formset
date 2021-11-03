@@ -68,7 +68,6 @@ def test_submit_data(page, mocker):
     page.type('#id_0\\.person\\.email', "john@example.com")
     page.type('#id_0\\.numbers\\.0\\.number\\.phone_number', "+1200300400")
     page.select_option('#id_0\\.numbers\\.0\\.number\\.label', 'work')
-    page.screenshot(path='screenshot1.png')
     spy = mocker.spy(FormCollectionView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     response = json.loads(spy.call_args.args[1].body)
