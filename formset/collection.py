@@ -179,7 +179,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                         cleaned_data[name] = holder.cleaned_data
                     else:
                         self._errors.extend([{}] * (index - len(self._errors)))
-                        self._errors.append({name: holder.errors.data})
+                        self._errors.append({name: holder.errors})
                 self.cleaned_data.append(cleaned_data)
             if len(self.cleaned_data) < self.min_siblings:
                 # can only happen, if the client bypasses browser control
@@ -197,7 +197,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 if holder.is_valid():
                     self.cleaned_data[name] = holder.cleaned_data
                 else:
-                    self._errors.update({name: holder.errors.data})
+                    self._errors.update({name: holder.errors})
 
     def clean(self):
         return self.cleaned_data

@@ -125,7 +125,7 @@ class FormViewMixin:
             response_data = {'success_url': force_str(self.success_url)} if self.success_url else {}
             return JsonResponse(response_data)
         else:
-            return JsonResponse(form.errors.data, status=422, safe=False)
+            return JsonResponse(form.errors, status=422, safe=False)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -163,7 +163,7 @@ class FormCollectionViewMixin(ContextMixin):
             response_data = {'success_url': force_str(self.success_url)} if self.success_url else {}
             return JsonResponse(response_data)
         else:
-            return JsonResponse(form_collection.errors.data, status=422, safe=False)
+            return JsonResponse(form_collection.errors, status=422, safe=False)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

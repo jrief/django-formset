@@ -162,6 +162,22 @@ to the way Django handles Forms, Models and Views.
       Tailwind.
 
 
+## Running the Demo
+
+To get a first impression of **django-formset**, run the demo site.
+
+```shell
+cd testapp
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+./manage.py migrate
+./manage.py runserver
+```
+
+Open http://localhost:8000/ in your browser. There is a list of forms for all kind of purposes.
+
+
 ## Documentation
 
 Not deployed on RTD, but some documentation can be found in the `docs` folder.
