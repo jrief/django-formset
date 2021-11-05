@@ -1,17 +1,14 @@
-.. _styling:
+.. _renderers:
 
 **To be documented**
 
-Styling the Forms
-=================
+Form Renderers
+==============
 
 
 Usage
 =====
 
-When designing this library, the main goal was to keep the programming interface a near as possible
-to the way Django handles Forms, Models and Views. It therefore is possible to reuse existing Django
-Form declarations, such as
 
 .. code-block:: python
 

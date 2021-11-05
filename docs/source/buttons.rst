@@ -1,4 +1,4 @@
-.. _button:
+.. _buttons:
 
 **To be documented**
 
