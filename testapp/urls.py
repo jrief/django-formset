@@ -84,6 +84,7 @@ for framework, attrs in framework_contexts.items():
             extra_context={'framework': framework},
         )),
         path(f'{urlprefix}/subscribe.field-by-field', DemoFormView.as_view(
+            form_class=SubscribeForm,
             template_name='testapp/field-by-field.html',
             extra_context=extra_context,
         )),
