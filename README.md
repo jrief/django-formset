@@ -207,5 +207,5 @@ pytest testapp
 
 ## Documentation
 
-Documentation has to be written and is not yet deployed on RTD, but something can be found in the
-`docs` folder.
+Documentation has to be written. A draft in progress can be found on
+[Read The Docs](https://django-formset.readthedocs.io/en/latest/index.html).

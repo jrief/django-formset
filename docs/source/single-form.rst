@@ -25,6 +25,8 @@ Using an Extended Django Form
 Render a Django Form Field-by-Field
 -----------------------------------
 
+**Documentation below is outdated**
+
 
 * Rendering the form using the special template tag ``render_groups``.
 * Using the special mixin class ``FormMixin`` from which the form declaration inherits. 
@@ -111,20 +113,19 @@ gender using two radio input fields and a mandatory checkbox input to accept the
 conditions.
 
 
-Templatetag ``render_groups``
------------------------------
+Templatetag ``render_form``
+---------------------------
 
 This probably is the simplest recipe to render to above form. Here we use the templatetag
-``{% render_groups form %}`` to render all fields wrapped inside their field-groups.
+``{% render_form form %}`` to render all fields wrapped inside their field-groups.
 
 .. code-block:: django
 
-	{% load django_formset %}
+	{% load formsetify %}
 
-	<django-formset endpoint="/path/to/endpoint">
-	   <form name="{{ form.name }}">
-	      {% csrf_token %}
-	      {% render_groups form %}
+	<django-formset endpoint="{{ request.path }}">
+	   <form>
+	      {% render_form form %}
 	   </form>
 	   <button type="button" click="submit">Submit</button>
 	</django-formset>
@@ -140,26 +141,28 @@ Always remember to add
 anywhere inside the ``<head>``-element of the page.
 
 
-Filter ``formsetify`` with templatetag ``render_group``
--------------------------------------------------------
 
 If we need more fine grained control over how individual fields are rendered, then this recipe
 suits best:
 
 .. code-block:: django
 
-	{% load django_formset %}
+	{% load formsetify %}
 	
 	{% block "main-content" %}
-	<django-formset endpoint="/path/to/endpoint">
-	   <form name="{{ form.name }}">
-	      {% csrf_token %}
-	      {% include "formset/non_field_errors.html" %}
-	      {% for field in form|formsetify %}
-	      {% render_group field %}
-	      {% endfor %}
-	   </form>
-	   <button type="button" click="submit">Submit</button>
+	<django-formset endpoint="{{ request.path }}">
+	  {% formsetify form %}
+	  <form>
+	    {% include "formset/non_field_errors.html" %}
+	    {% for field in form %}
+	      {% if field.is_hidden %}
+	        {{ field }}
+	      {% else %}
+	        {% include "formset/default/field_group.html" %}
+	      {% endif %}
+	    {% endfor %}
+	  </form>
+	  <button type="button" click="submit">Submit</button>
 	</django-formset>
 	{% endblock %}
 
@@ -194,8 +197,7 @@ The template to render this view then looks like as we use it in classic templat
 .. code-block:: django
 
 	<django-formset endpoint="/path/to/endpoint">
-	   <form name="{{ form.name }}">
-	      {% csrf_token %}
+	   <form>
 	      {{ form }}
 	   </form>
 	   <button type="button" click="submit">Submit</button>
