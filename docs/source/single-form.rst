@@ -1,11 +1,30 @@
-.. _usage:
+.. _single-form:
 
-====================
+**To be documented**
+
 Using django-formset
 ====================
 
 **django-formset** ships with three types of renderers, suitable for most uses. Say, we have defined
 a Django form, then we would have these options on how to render it:
+
+.. _native_form:
+
+Using a Native Django Form
+--------------------------
+
+
+.. _extended_form:
+
+Using an Extended Django Form
+-----------------------------
+
+
+.. _field_by_field:
+
+Render a Django Form Field-by-Field
+-----------------------------------
+
 
 * Rendering the form using the special template tag ``render_groups``.
 * Using the special mixin class ``FormMixin`` from which the form declaration inherits. 

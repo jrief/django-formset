@@ -2,8 +2,8 @@ Welcome to ``<django-formset>``'s documentation!
 ================================================
 
 Let the browser pre-validate one or more Django ``Form``-s using the special HTML element
-``<django-formset>``. This wrapper also collects data that can easily be processed and sent to the
-server's endpoint.
+``<django-formset>``. This web component also collects data that can easily be processed and sent
+to the server's endpoint.
 
 
 .. toctree::
@@ -13,8 +13,9 @@ server's endpoint.
 
 	intro
 	installation
-	usage
-
+	single-form
+	button
+	styling
 
 Indices and tables
 ==================

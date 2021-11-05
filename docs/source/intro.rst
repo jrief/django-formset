@@ -1,7 +1,40 @@
 .. _intro:
 
+Django-4.0 introduced a long awaited feature to render form fields using a template. Until version
+3.2 this was left to the infamous function ``BaseForm._html_output()``, which rendered the form
+fields hard-coded in HTML and hence there was little scope for modification. This new feature now
+makes it possible to write special renderers to add functionality as implemented by this library.
+
+
 Introduction
 ============
+
+**django-formset** tries to solve a problem, which occurs in almost every project based on the
+Django framework: The way forms are handled, is not contemporary anymore compared to the solutions
+most modern JavaScript frameworks offer nowadays. Therefore, Django developers often use a
+combination of one of these client frameworks together with the `Django REST framework`_, which then
+indeed provides a much better User eXperience. However, those JavaScript frameworks impose their
+way of getting stuff done and usually don't share the same mindset. For instance, in Django, we
+distinguish between `bound and unbound forms`_. This concept however is unknown in JavaScript
+frameworks. Therefore, often we must work arround those problems, which leeds to cumbersome and
+un-`DRY`_ solutions.
+
+.. _Django REST framework: https://www.django-rest-framework.org/
+.. _bound and unbound forms: https://docs.djangoproject.com/en/stable/ref/forms/api/#bound-and-unbound-forms
+.. _DRY: https://www.artima.com/articles/orthogonality-and-the-dry-principle
+
+With **django-formset** we get a `Web Component`_ explicitly optimized to handle Django forms and
+collections of forms (hence "formset") with the User eXperience of modern JavaScript frameworks.
+This means that fields are validated by the client, giving immediate feedback and the form's content
+is sent to the server without having to reload the page. The nice thing about this approach is,
+that we can reuse all of our current Django forms (unaltered), can use our Django views (with a
+small modification), but we don't have to add any extra endpoints to our URL routing.
+
+.. _Web Component: https://developer.mozilla.org/en-US/docs/Web/Web_Components
+
+
+Example
+-------
 
 Consider having a standard Django Form instance, say 
 
@@ -9,55 +42,97 @@ Consider having a standard Django Form instance, say
 
 	from django.forms import forms, fields
 	
-	class SomeForm(forms.Form):
-	    name = 'person'
-	
-	    some_field = fields.CharField(...)
+	class RegisterForm(forms.Form):
+	    first_name = fields.RegexField(
+	        r'^[A-Z][a-z -]+$',
+	        label="First name",
+	        error_messages={'invalid': "A first name must start in upper case."},
+	        help_text="Must start in upper case followed by one or more lowercase characters.",
+	    )
+
+	    last_name = fields.CharField(
+	        label="Last name",
+	        min_length=2,
+	        max_length=50,
+	        help_text="Please enter at least two, but no more than 50 characters.",
+	    )
+
+	    def clean(self):
+	        """
+	        Raise a ValidationError for undesirable persons.
+	        """
+	        ...
 
 In Django, we typically render an instance of the above form using a template rendered by a
 FormView_. With this approach, data entered into the form fields must be send to the server for
-validation. If one or more of those fields fail to validate, the form is re-rendered, annotating
-the fields containing invalid data. The latter requires to fully reload the whole page.
-Looking at modern JavaScript frameworks, it is obvious that this approach isn't contemporary
-anymore.
+validation. If one or more of those fields fail to validate, the form is re-rendered, annotating the
+fields containing invalid data with some error messages. The latter would require to fully reload
+the whole page. Looking at modern JavaScript frameworks, it is obvious that this approach isn't
+contemporary anymore.
 
-The solution we typically use nowadays, is to send the form's data to the server using an
-XMLHttpRequest_ (Ajax), validate it and if that fails, display the validation errors nearby the
-offending fields. This can be done without reloading the page.
+.. figure:: _static/person-form.png
+	:width: 650px
 
-By using Django's REST framework and some third party JavaScript tools, we can already evolve our
-input forms into such a behaviour. This however requires to rewrite our forms as DRF serializers,
-giving up many of the nice features we are used to, when using the Django form framework.
+	Interacting with that form, shows validation errors immediatly.
 
-With **django-formset** instead we can use the above Django form and render it using a slightly
-modified template, such as:
+With the Web Component ``<django-formset>`` we instead can use the above Django Form and render it
+using a slightly modified Django view and a template such as
 
 .. code-block:: django
 
-	{% load django_formset %}
+	{% load formsetify %}
 
 	<django-formset endpoint="{{ request.path }}">
-	    <form name="{{ form.name }}">
-	        {% csrf_token %}
-	        {% render_groups form %}
-	    </form>
-	    <button type="button" click="submit">Submit</button>
+	  <form>
+	    {% render_form form %}
+	  </form>
+	  <button type="button" click="submit">Submit</button>
+	  <button type="button" click="reset">Reset to initial</button>
 	</django-formset>
 
 There are a few things, which admittedly, may seem unusual to us:
 
+* What is that ``<django-formset>`` HTML element?
 * The ``<form>`` tag neither contains a ``method`` nor an ``action`` attribute.
-* The submit button is located outside the form.
+* The "Submit" and "Reset" buttons are located outside of the ``<form>`` element.
 
-Instead we wrap the form(s) into a HTML element named ``<django-formset>``. This is because this
-special webcomponent_ can wrap one or more forms into such a "formset". The content of those forms 
-then is submitted to a central endpoint provided by our Django application. When using Django's
-internal formset_, the field names have to be prefixed with identifiers to distinguish their form
-affiliation. This is cumbersome and difficult to understand. By using **django-formset**, we can
-keep the field names, since our wrapper groups into plain JavaScript objects for each submitted
-form.
+In this template we wrap the form into a special HTML element named ``<django-formset>``. This
+Web Component then is used to embed one or more ``<form>`` elements. The content of those form
+fields then is submitted to the same endpoint in our Django application, which is responsible for
+rendering that form.
 
-The JavaScript classes behind this component now handles the following functions:
+.. note:: When using Django's internal formset_, the field names have to be prefixed with
+	identifiers to distinguish their form affiliation. This is cumbersome and difficult to debug.
+	By using **django-formset**, we can keep the field names, since our wrapper groups them into
+	plain JavaScript objects.
+
+In this example, the form is rendered by the special templatetag ``{% render_form form %}``. That
+templatetag can be parametrized to use the correct style-guide for each of the supported CSS
+frameworks. It can also be used to pass in our own CSS classes for labels, fields and field groups.
+More on this can be found in section :ref:`native_form`.
+
+It also is possible to render the form using the classic approach with mustaches, ie. ``{{form}}``.
+Then however the form object can't be a native Django form. Instead it has to be transformed using a
+special mixin class. More on this can be found in section :ref:`extended_form`.
+
+Another approach is to render the form field-by-field. Here we gain full control over how each field
+is rendered, since we render them individually. More on this can be found in section
+:ref:`field_by_field`.
+
+
+What are Web Components?
+------------------------
+
+According to `webcomponents.org`_, Web Components are a set of web platform APIs that allow you to
+create new custom, reusable, encapsulated HTML tags to use in web pages and web apps. Custom
+components and widgets build on the Web Component standards, will work across modern browsers, and
+can be used with any JavaScript library or framework that works with HTML.
+
+Web components are based on existing web standards. Features to support web components are currently
+being added to the HTML and DOM specs, letting web developers easily extend HTML with new elements
+with encapsulated styling and custom behavior.
+
+The JavaScript behind this component now handles the following functions:
 
 * Client-side validaton of our form fields using the constraints defined by our form.
 * Serializes the data entered into our form fields.
@@ -67,23 +142,14 @@ The JavaScript classes behind this component now handles the following functions
 * Handles various actions after the user clicked on the button. This is useful to make the button
   behave more interactively.
 
-
-Interacting with that form, shows validation errors immediatly:
-
-.. image:: _static/person-form.gif
-  :width: 560
-  :alt: Person Form
-
-Form data submitted by the webcomponent ``<django-formset>`` is not send using the default enctype_
-``application/x-www-form-urlencoded``. Instead the data from all forms is packed together into a
-JavaScript object and submitted to the server using the enctype ``application/json``. This means
-that our receiving form view, requires a slightly different handler. The easyest way is to add
-the mixin class :class:`formset.views.FormsetViewMixin` to the existing view class handling our
-forms.
-
+.. note:: Form data submitted by the webcomponent ``<django-formset>`` is not send using the default
+	enctype_ ``application/x-www-form-urlencoded``. Instead the data from all forms is packed
+	together into a JavaScript object and submitted to the server using the enctype
+	``application/json``. This means that our Django view receiving the form data, must be able to
+	process that data using a slightly modified handler.
 
 .. _FormView: https://docs.djangoproject.com/en/stable/topics/class-based-views/generic-editing/
 .. _XMLHttpRequest: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
-.. _webcomponent: https://www.webcomponents.org/introduction
+.. _webcomponents.org: https://www.webcomponents.org/introduction
 .. _formset: https://docs.djangoproject.com/en/stable/topics/forms/formsets/#formsets
 .. _enctype: https://developer.mozilla.org/en-US/docs/Learn/Forms/Sending_and_retrieving_form_data#the_enctype_attribute

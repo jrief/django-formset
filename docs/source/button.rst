@@ -1,5 +1,7 @@
 .. _button:
 
+**To be documented**
+
 ======================
 Submit Button Controls
 ======================
