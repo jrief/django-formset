@@ -176,7 +176,7 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r testapp/requirements.txt
 pip install --no-deps -e .
-npm install
+npm install --also=dev
 npm run tag-attributes
 npm run tailwindcss
 npm run build
