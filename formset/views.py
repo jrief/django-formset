@@ -141,7 +141,30 @@ class FormViewMixin:
 
 class FormView(SelectizeResponseMixin, FileUploadMixin, FormViewMixin, GenericFormView):
     """
-    FormView to be used for handling a single form.
+    FormView class used as controller for handling a single Django Form. The purpose of this View
+    is to render the provided Form, when invoked as a standard GET-request using the provided Django
+    Template.
+    This View also acts as endpoint for POST-requests submitting files, as endpoint for GET-requests
+    querying for autocomplete Select-Fields and as endpoint for Form submissions.
+
+    It can be used directly inside the URL routing:
+
+    .. code-block:: python
+
+        from django.urls import path
+        from formset.views import FormView
+
+        ...
+        urlpatterns = [
+            ...
+            path('my-uri', FormView.as_view(
+                form_class=MyForm,
+                template_name='my-form.html',
+                success_url='/success',
+            )),
+            ...
+        ]
+
     """
 
 
