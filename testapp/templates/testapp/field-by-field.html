@@ -1,9 +1,10 @@
 {% extends "./base.html" %}
-{% load form_attrs from formsetify %}
+{% load formsetify %}
 
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}">
-	<form{% form_attrs form framework %}>
+	{% formsetify form %}
+	<form>
 		{% include "formset/non_field_errors.html" %}
 		{% for field in form %}
 			{% if field.is_hidden %}

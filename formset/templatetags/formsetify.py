@@ -38,24 +38,18 @@ def _formsetify(form, *args, **kwargs):
     return form
 
 
-def _form_attrs(context, form, *args, **kwargs):
+def formsetify(context, form, *args, **kwargs):
     get_token(context['request'])  # ensures that the CSRF-Cookie is set
-    form = _formsetify(form, *args, **kwargs)
-    attrs = []
-    form_name = getattr(form, 'name', None)
-    if form_name:
-        attrs.append(('name', form_name))
-    if form.form_id:
-        attrs.append(('id', form.form_id))
-    return format_html_join('', ' {0}="{1}"', attrs)
+    _formsetify(form, *args, **kwargs)
+    return ''
 
 
-def _render_form(context, form, *args, **kwargs):
+def render_form(context, form, *args, **kwargs):
     get_token(context['request'])  # ensures that the CSRF-Cookie is set
     form = _formsetify(form, *args, **kwargs)
     return str(form)
 
 
 register = template.Library()
-register.simple_tag(_form_attrs, name='form_attrs', takes_context=True)
-register.simple_tag(_render_form, name='render_form', takes_context=True)
+register.simple_tag(formsetify, name='formsetify', takes_context=True)
+register.simple_tag(render_form, name='render_form', takes_context=True)
