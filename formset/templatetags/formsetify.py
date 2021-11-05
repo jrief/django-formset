@@ -20,6 +20,7 @@ def _formsetify(form, *args, **kwargs):
         ('label_css_classes', kwargs.pop('label_classes', None)),
         ('control_css_classes', kwargs.pop('control_classes', None)),
         ('form_css_classes', kwargs.pop('form_classes', None)),
+        ('collection_css_classes', kwargs.pop('collection_classes', None)),
         ('max_options_per_line', kwargs.pop('max_options_per_line', None)),
     ]
     if len(kwargs):

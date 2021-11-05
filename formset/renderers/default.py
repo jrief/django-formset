@@ -16,11 +16,12 @@ class FormRenderer(DjangoTemplates):
     }
 
     def __init__(self, field_css_classes=None, label_css_classes=None, control_css_classes=None,
-                 form_css_classes=None, max_options_per_line=None):
+                 form_css_classes=None, collection_css_classes=None, max_options_per_line=None):
         self.field_css_classes = field_css_classes
         self.label_css_classes = label_css_classes
         self.control_css_classes = control_css_classes
         self.form_css_classes = form_css_classes
+        self.collection_css_classes = collection_css_classes
         if max_options_per_line is not None:
             self.max_options_per_line = max_options_per_line
         super().__init__()
@@ -61,8 +62,11 @@ class FormRenderer(DjangoTemplates):
         return context
 
     def _amend_collection(self, context):
-        context['add_collection_button'] = 'formset/default/buttons/add_collection.html'
-        context['remove_collection_button'] = 'formset/default/buttons/remove_collection.html'
+        context.update({
+            'add_collection_button': 'formset/default/buttons/add_collection.html',
+            'remove_collection_button': 'formset/default/buttons/remove_collection.html',
+            'css_classes': self.collection_css_classes,
+        })
         return context
 
     _context_modifiers = {

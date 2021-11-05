@@ -41,8 +41,11 @@ class FormRenderer(DefaultFormRenderer):
         return context
 
     def _amend_collection(self, context):
-        context['add_collection_button'] = 'formset/bootstrap/buttons/add_collection.html'
-        context['remove_collection_button'] = 'formset/bootstrap/buttons/remove_collection.html'
+        context.update({
+            'add_collection_button': 'formset/bootstrap/buttons/add_collection.html',
+            'remove_collection_button': 'formset/bootstrap/buttons/remove_collection.html',
+            'css_classes': self.collection_css_classes,
+        })
         return context
 
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
