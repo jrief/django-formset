@@ -4,7 +4,7 @@
 to wrap one or more Django Forms. This webcomponent is installed together with the Django app
 **django-formset**.
 
-[![Build Status](https://github.com/jrief/django-formset/actions/workflows/pythonpackage.yml/badge.svg)]()
+[![Build Status](https://github.com/jrief/django-formset/actions/workflows/pythonpackage.yml/badge.svg)](https://github.com/jrief/django-formset/actions)
 [![PyPI version](https://img.shields.io/pypi/v/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
 [![Django versions](https://img.shields.io/pypi/djversions/django-formset)](https://pypi.python.org/pypi/django-formset)
 [![Python versions](https://img.shields.io/pypi/pyversions/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
@@ -176,7 +176,7 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r testapp/requirements.txt
 pip install --no-deps -e .
-npm install
+npm install --also=dev
 npm run tag-attributes
 npm run tailwindcss
 npm run build
