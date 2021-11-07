@@ -2,7 +2,6 @@ from django import template
 from django.forms import BaseForm
 from django.middleware.csrf import get_token
 from django.template.exceptions import TemplateSyntaxError
-from django.utils.html import format_html_join
 from django.utils.module_loading import import_string
 
 from formset.utils import FormMixin, FormsetErrorList

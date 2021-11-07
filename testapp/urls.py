@@ -9,7 +9,7 @@ from formset.views import FormCollectionView, FormView
 from formset.utils import FormMixin
 
 from testapp.forms.contact import (PersonForm, SimpleContactCollection, ContactCollection, ContactCollectionList,
-    DefaultContactCollection, sample_person_data)
+    sample_person_data)
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.subscribe import SubscribeForm
