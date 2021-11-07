@@ -52,6 +52,9 @@ class HolderMixin:
 
 
 class FormMixin(HolderMixin):
+    """
+    Mixin class to be added to a native Django Form. This is required to add
+    """
     def __init__(self, error_class=FormsetErrorList, renderer=None, **kwargs):
         kwargs['error_class'] = error_class
         if renderer is None:
@@ -86,6 +89,10 @@ class FormMixin(HolderMixin):
         return f'{self.prefix}.{field_name}' if self.prefix else field_name
 
     def get_context(self):
+        """
+        This simplified method just returns the ``form``, but not the ``fields``, ``hidden_fields``
+        and ``errors``, since they are rendered by the included ``form.html`` template.
+        """
         return {
             'form': self,
         }
