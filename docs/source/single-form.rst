@@ -162,8 +162,8 @@ make more sense. Please also check the section about :ref:`renderes`_.
 
 .. _field_by_field:
 
-Render a Django Form Field-by-Field
------------------------------------
+Rendering a Django Form Field-by-Field
+--------------------------------------
 
 In some occasions, we need an even more fine grained control over how fields shall be rendered. Here
 we iterate over the form fields ourself. This way we can render field by field and depending on the
@@ -190,10 +190,15 @@ field's name, we could render it in a different manner. Let's have a look at suc
 	  <button type="button" click="submit -> proceed">Submit</button>
 	</django-formset>
 
-At the beginning we see, that we have to "formsetify" our form. This means to change the signature
-of the form class as described in the previous section. If the form instance inherits already from
-:class:`formset.utils.FormMixin`, then this step can be skipped.
+At the beginning we see, that we have to "formsetify" our form. This is required in order to change
+the signature of the form class as described in the previous section. If the form instance inherits
+already from :class:`formset.utils.FormMixin`, then this step can be skipped.
 
 We then iterate over all form fields. Hidden fields shall not be wrapped inside a field-group, in
 contrast to visible fields. Here we can use our own rendering logic, depending on which field we
-want to render. 
+want to render.
+
+Rendering a form field-by-field shall only be used as last resort, because it inhibits the reusage
+of the rendering templates. If fields have to be styled explicitly, for instance to place the input
+field for the postal code on the same line as the input field for the "city", then a better approach
+is to adopt the :ref:renderers_.

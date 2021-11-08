@@ -5,9 +5,11 @@ from django.template.loader import get_template
 from django.urls import get_resolver, path, reverse_lazy
 from django.utils.module_loading import import_string
 
+from formset.renderers.default import FormRenderer
 from formset.views import FormCollectionView, FormView
 from formset.utils import FormMixin
 
+from testapp.forms.address import AddressForm
 from testapp.forms.contact import (PersonForm, SimpleContactCollection, ContactCollection, ContactCollectionList,
     sample_person_data)
 from testapp.forms.opinion import OpinionForm
@@ -130,6 +132,10 @@ for framework, attrs in framework_contexts.items():
         )),
     ])
 urlpatterns.extend([
+    path('bootstrap/address', DemoFormView.as_view(
+        form_class=AddressForm,
+        template_name='bootstrap/form-fields.html',
+    )),
     path('bootstrap/subscribe.form-rows', DemoFormView.as_view(
         form_class=SubscribeForm,
         template_name='bootstrap/form-rows.html',
@@ -154,6 +160,10 @@ urlpatterns.extend([
         collection_class=ContactCollectionList,
         template_name='bootstrap/form-collection.html',
         success_url=success_url,
+    )),
+    path('default/address', DemoFormView.as_view(
+        form_class=type('AddressForm', (AddressForm,), {'default_renderer': FormRenderer}),
+        template_name='testapp/native-form.html',
     )),
     path('default/contactlist', FormCollectionView.as_view(
         collection_class=ContactCollectionList,

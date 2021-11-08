@@ -8,7 +8,7 @@ When a form is rendered using a Django template, we must wrap it inside the webc
 validation, submission, error handling and many other features.
 
 A mandatory attribute of each web component ``<django-formset>`` is its ``endpoint``. This is the
-URL pointing onto a Django view and is where the the client-part communicate with the server.
+URL pointing onto a Django view and is where the client-part communicate with the server.
 Typically that endpoint is connected to a :class:`formset.views.FormView`. We can either
 inherit from that class and specialize into our own view class
 
