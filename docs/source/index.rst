@@ -15,6 +15,7 @@ to a server's endpoint.
 	installation
 	single-form
 	django-formset
+	styling
 	buttons
 	fieldsets
 	collections

@@ -100,12 +100,13 @@ another web component, it just is a non-visual HTML element, which acts as detec
 input elements together. Remember that in HTML radios and multiple checkboxes have more than one
 input element, but in Django they are considered as a single field.
 
-Moreover, CSS frameworks such as Bootstrap require to
-`group<https://getbootstrap.com/docs/5.0/forms/form-control/>`_ the label and their input fields
+Moreover, CSS frameworks such as Bootstrap require to `group`_ the label and their input fields
 into one HTML element, typically a ``<div>``. This is what the ``<django-field-group>`` does, in
 addition to group the input elements. When adding the parameter ``field_classes="mb-5"`` to the
 templatetag ``render_form``, that CSS class is added to each instance of the group, ie. it then is
 rendered as ``<django-field-group class="mb-5">``.
+
+.. _group: https://getbootstrap.com/docs/5.0/forms/form-control/
 
 Another unknown HTML-element in the rendered form is ``<django-error-messages ...>``. This element
 simply keeps all the potential error messages, in case a field does not validate on the client.
@@ -154,10 +155,10 @@ of its members. This is what ``csrf_token.0`` does.
 
 Having setup the form's template this way allows us to write the form as a string. This is what
 ``{{ form }}`` does. On the first sight, this may seem more cumbersome that the solution
-:ref:`native_form`_. In some situations however, it might be simpler to change the signature of the
+:ref:`native_form`. In some situations however, it might be simpler to change the signature of the
 form class in Python code, rather than in a template. Another use case would be to, when many forms
 with renderers, each configured different, shall be rendered by the same form. Then this setup might
-make more sense. Please also check the section about :ref:`renderes`_. 
+make more sense. Please also check the section about :ref:`renderers`.
 
 
 .. _field_by_field:
@@ -201,4 +202,4 @@ want to render.
 Rendering a form field-by-field shall only be used as last resort, because it inhibits the reusage
 of the rendering templates. If fields have to be styled explicitly, for instance to place the input
 field for the postal code on the same line as the input field for the "city", then a better approach
-is to adopt the :ref:renderers_.
+is to adopt the :ref:`renderers`.

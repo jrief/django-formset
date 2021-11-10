@@ -1,7 +1,5 @@
 .. _renderers:
 
-**To be documented**
-
 Form Renderers
 ==============
 
@@ -12,8 +10,8 @@ replace the form renderer with an alternative one.
 
 .. _renderer: https://docs.djangoproject.com/en/4.0/ref/forms/renderers/#the-low-level-render-api
 
-Example
--------
+Form Grid Example
+-----------------
 
 Say, we have a form to ask for the reciepient's address:
 
@@ -56,7 +54,7 @@ with the Bootstrap framework, we therefore want to use the `form grid`_ for form
 require multiple columns, varied widths, and additional alignment options.
 We therefore have to add the CSS classes ``row`` and ``col-XX`` to the wrapping elements, while
 rendering the form. One possibility would be to create a template and style each fields
-individually; this is the method described in :ref:field-by-field_. This however requires to create
+individually; this is the method described in :ref:`field_by_field`. This however requires to create
 a template for each form, which contradicts the DRY-principle.
 
 .. _form grid: https://getbootstrap.com/docs/5.0/forms/layout/#form-grid
@@ -79,7 +77,7 @@ We now can add that renderer to the above form class and parametrize it as follo
 
 	    # form fields as above
 
-When rendered in a Bootstrap-5 environment, that form may look like
+When rendered in a Bootstrap-5 environment, that form will look like
 
 .. image:: _static/address-form.png
   :width: 560
@@ -91,3 +89,42 @@ groups. If this is a string, the given CSS classes are applied to each field. If
 then we can apply those CSS classes to each field individually, by using the field's name as
 dictionary key. The key ``*`` stands for the fallback and its value is applied to all fields which
 are not explicilty listed in that dictionary.
+
+
+Inline Form Example
+-------------------
+
+By using slightly different parameters, a form can be rendered with labels and input fields side
+by side, rather than beneeth each other. This can simply be achieved by replacing the form renderer
+using these parameters.
+
+.. code-block:: python
+
+	from formset.renderers.bootstrap import FormRenderer
+
+	class AddressForm(forms.Form):
+	    default_renderer = FormRenderer(
+	        field_css_classes='row mb-3',
+	        label_css_classes='col-sm-3',
+	        control_css_classes='col-sm-9',
+	    )
+
+	    # form fields as above
+
+When rendered in a Bootstrap-5 environment, that form will look like
+
+.. image:: _static/bootstrap-inline.png
+  :width: 560
+  :alt: Inlined Form
+
+The same effect can be achieved by rendering this form, parametrizing our well known templatetag:
+
+.. code-block:: django
+
+	<django-formset endpoint="{{ request.path }}">
+	  {% render_form form "bootstrap" field_classes="row mb-3" label_classes="col-sm-3" control_classes="col-sm-9" %}
+	  <div class="offset-sm-3">
+	    <button type="button" click="submit -> proceed" class="btn btn-primary">Submit</button>
+	    <button type="button" click="reset" class="ms-2 btn btn-warning">Reset to initial</button>
+	  </div>
+	</django-formset>
