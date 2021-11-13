@@ -59,10 +59,10 @@ views = {
         form_class=type(snake2camel(f'{tpl.name}_form'), (Form,), {'name': tpl.name, 'something': tpl.field}),
         extra_context=tpl.extra_context,
     )
-    for ctr, tpl in enumerate(FieldTuple(name, field, {'force_submission': fs, 'withhold_messages': wm})
+    for ctr, tpl in enumerate(FieldTuple(name, field, {'force_submission': fs, 'withhold_feedback': wf})
         for name, field in test_fields.items()
         for fs in [False, True]
-        for wm in [False, True]
+        for wf in ['', 'messages']
     )
 }
 
@@ -128,26 +128,26 @@ def test_touch_and_blur_input_field(page, view, form):
     input_elem.evaluate('elem => elem.blur()')
     input_elem_valid = page.query_selector(f'django-formset form input[name="{name}"]:valid')
     input_elem_invalid = page.query_selector(f'django-formset form input[name="{name}"]:invalid')
-    withhold_messages = view.view_initkwargs['extra_context']['withhold_messages']
+    withhold_feedback = view.view_initkwargs['extra_context']['withhold_feedback']
     placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
     if form.name in ['empty_valid', 'prefilled_valid', 'regex_valid', 'email_valid']:
         assert placeholder_text == ''
         assert input_elem_valid is not None
         assert input_elem_invalid is None
     elif form.name == 'empty_invalid':
-        assert placeholder_text == "" if withhold_messages else "This field is required."
+        assert placeholder_text == "" if 'messages' in withhold_feedback else "This field is required."
         assert input_elem_valid is None
         assert input_elem_invalid is not None
     elif form.name == 'prefilled_invalid':
-        assert placeholder_text == "" if withhold_messages else "Ensure this value has at least 2 characters."
+        assert placeholder_text == "" if 'messages' in withhold_feedback else "Ensure this value has at least 2 characters."
         assert input_elem_valid is None
         assert input_elem_invalid is not None
     elif form.name == 'regex_invalid':
-        assert placeholder_text == "" if withhold_messages else "All letters must be in upper case."
+        assert placeholder_text == "" if 'messages' in withhold_feedback else "All letters must be in upper case."
         assert input_elem_valid is None
         assert input_elem_invalid is not None
     elif form.name == 'email_invalid':
-        assert placeholder_text == "" if withhold_messages else "Enter a valid email address."
+        assert placeholder_text == "" if 'messages' in withhold_feedback else "Enter a valid email address."
         assert input_elem_valid is None
         assert input_elem_invalid is not None
     else:

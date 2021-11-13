@@ -40,20 +40,40 @@ rendering templates reusable, we'd rather write
 
 .. code-block:: django
 
-	<django-formset endpoint="{{ request.path }}" force-submission="..." withhold-messages="...">
+	<django-formset endpoint="{{ request.path }}" force-submission withhold-feedback="...">
 	  ...
 	</django-formset>
 
 We can do this, because the endpoint is located on the same URL as the view rendering the form.
 
-An optional attribute to our web component ``<django-formset>`` is ``force-submission``. By setting
-this to ``true``, we can force a submission to the server, even if the form did not validate on the
-client side. This attribute defaults to ``false``, meaning that forms, which did not validate
-can not be submitted to the server.
+An optional attribute to our web component ``<django-formset>`` is ``force-submission``. By adding
+this attribute, we can force a submission to the server, even if the form did not validate on the
+client side. The default is to always validate all forms on the client, and only if that succeeds,
+proceed with the submission to the server.
 
-Another optional attribute to our web component ``<django-formset>`` is ``withhold-messages``. By
-setting this to ``true``, we can withhold validation error messages until the user submits the form.
-This attribute defaults to ``false``, meaning that a field validation error message is shown
-immediatly after the user blurs a field containig invalid data.
+Another optional attribute to our web component ``<django-formset>`` is ``withhold-feedback``. By
+setting this to ``messages``, ``errors``, ``warnings``, ``success``, or any combination of thereof,
+we can withhold the feedback immediatly shown after the user types into a field or whenever a field
+looses focus.
+
+Adding ``messages`` to ``withhold-feedback="..."`` means, that the error messages below the field
+will not be rendered when the user blurs a field with invalid data. 
+
+Adding ``errors`` to ``withhold-feedback="..."`` means, that the border does not change color
+(usually red) and the field does not show an alert symbol, when the user blurs a field with invalid
+data. 
+
+Adding ``warning`` to ``withhold-feedback="..."`` means, that the field does not show a warning
+symbol (usually orange), when a field has focus, but its content does not contain valid data. If
+only ``errors`` has been added to ``withhold-feedback="..."``, then the warning symbol will remain
+even if the field looses focus.
+
+Adding ``success`` to ``withhold-feedback="..."`` means, that the border does not change color
+(usually green) and the field does not show an success symbol, when the user blurs a field with
+valid data. 
+
+The attribute ``withhold-feedback="..."`` only has effect while editing the form fields. Whenever
+the user clicks onto the submit button of a form containing invalid data, then all fields which
+did not validate will show their error message and set a red border.
 
 Non-field errors need more logic and are always computed on the server.

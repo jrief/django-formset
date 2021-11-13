@@ -263,7 +263,6 @@ class FieldGroup {
 	}
 
 	private touch() {
-		this.element.classList.remove('dj-submitted');
 		this.element.classList.remove('dj-untouched');
 		this.element.classList.remove('dj-validated');
 		this.element.classList.add('dj-touched');
@@ -275,6 +274,7 @@ class FieldGroup {
 	}
 
 	private setDirty() {
+		this.element.classList.remove('dj-submitted');
 		this.element.classList.remove('dj-pristine');
 		this.element.classList.add('dj-dirty');
 	}
@@ -297,14 +297,14 @@ class FieldGroup {
 		if (element && !element.validity.valid) {
 			for (const [key, message] of this.errorMessages) {
 				if (element.validity[key as keyof ValidityState]) {
-					if (!this.form.formset.withholdMessages && this.errorPlaceholder) {
+					if (this.form.formset.showFeedbackMessages && this.errorPlaceholder) {
 						this.errorPlaceholder.innerHTML = message;
 					}
 					element = null;
 					break;
 				}
 			}
-			if (!this.form.formset.withholdMessages && element instanceof HTMLInputElement) {
+			if (this.form.formset.showFeedbackMessages && element instanceof HTMLInputElement) {
 				this.validateInput(element);
 			}
 		}
@@ -326,7 +326,7 @@ class FieldGroup {
 			for (const inputElement of this.inputElements) {
 				inputElement.setCustomValidity('');
 			}
-		} else if (this.pristineValue !== undefined && !this.form.formset.withholdMessages && this.errorPlaceholder) {
+		} else if (this.pristineValue !== undefined && this.errorPlaceholder && this.form.formset.showFeedbackMessages) {
 			this.errorPlaceholder.innerHTML = this.errorMessages.get('customError') ?? '';
 		}
 		this.form.validate();
@@ -1103,23 +1103,47 @@ export class DjangoFormset {
 	private readonly forms = Array<DjangoForm>(0);
 	public readonly formCollections = Array<DjangoFormCollection>(0);
 	public formCollectionTemplate?: DjangoFormCollectionTemplate;
+	public readonly showFeedbackMessages: boolean;
 	private readonly abortController = new AbortController;
 	private data = {};
 
 	constructor(formset: DjangoFormsetElement) {
 		this.element = formset;
+		this.showFeedbackMessages = this.parseWithholdFeedback();
 	}
 
 	public get endpoint(): string {
 		return this.element.getAttribute('endpoint') ?? '';
 	}
 
-	public get withholdMessages(): Boolean {
-		return Boolean(JSON.parse(this.element.getAttribute('withhold-messages') ?? 'false'));
+	public get forceSubmission(): Boolean {
+		return this.element.hasAttribute('force-submission');
 	}
 
-	public get forceSubmission(): Boolean {
-		return Boolean(JSON.parse(this.element.getAttribute('force-submission') ?? 'false'));
+	private parseWithholdFeedback(): boolean {
+		let showFeedbackMessages = true;
+		const withholdFeedback = this.element.getAttribute('withhold-feedback')?.split(' ') ?? [];
+		const feedbackClasses = new Set(['dj-feedback-errors', 'dj-feedback-warnings', 'dj-feedback-success']);
+		for (const wf of withholdFeedback) {
+			switch (wf.toLowerCase()) {
+				case 'messages':
+					showFeedbackMessages = false;
+					break;
+				case 'errors':
+					feedbackClasses.delete('dj-feedback-errors');
+					break;
+				case 'warnings':
+					feedbackClasses.delete('dj-feedback-warnings');
+					break;
+				case 'success':
+					feedbackClasses.delete('dj-feedback-success');
+					break;
+				default:
+					throw new Error(`Unknown value in <django-formset withhold-feedback="${wf}">.`);
+			}
+		}
+		feedbackClasses.forEach(feedbackClass => this.element.classList.add(feedbackClass));
+		return showFeedbackMessages;
 	}
 
 	public assignFieldsToForms(parentElement?: Element) {
@@ -1297,12 +1321,12 @@ export class DjangoFormset {
 
 	public async submit(extraData?: Object): Promise<Response | undefined> {
 		let formsAreValid = true;
+		this.setSubmitted();
 		if (!this.forceSubmission) {
 			for (const form of this.forms) {
 				formsAreValid = (form.markedForRemoval || form.isValid()) && formsAreValid;
 			}
 		}
-		this.setSubmitted();
 		if (formsAreValid) {
 			if (!this.endpoint)
 				throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");

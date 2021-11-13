@@ -2,7 +2,7 @@
 {% load render_form from formsetify %}
 
 {% block "main-content" %}
-<django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}">
+<django-formset endpoint="{{ request.path }}"{% if force_submission %} force-submission{% endif %}{% if withhold_feedback %} withhold-feedback="{{ withhold_feedback }}"{% endif %}>
 	{% render_form form framework field_classes=field_css_classes %}
 	{% include framework|default:"testapp"|add:"/buttons.html" %}
 </django-formset>
