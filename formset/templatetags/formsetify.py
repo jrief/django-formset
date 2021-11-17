@@ -15,6 +15,7 @@ def _formsetify(form, *args, **kwargs):
         form.__class__ = type(form.__class__.__name__, (FormMixin, form.__class__), {})
 
     renderer_args = [
+        ('form_css_classes', kwargs.pop('form_classes', None)),
         ('field_css_classes', kwargs.pop('field_classes', None)),
         ('label_css_classes', kwargs.pop('label_classes', None)),
         ('control_css_classes', kwargs.pop('control_classes', None)),
