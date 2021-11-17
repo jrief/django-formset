@@ -2,6 +2,8 @@ from formset.renderers.default import FormRenderer as DefaultFormRenderer
 
 
 class FormRenderer(DefaultFormRenderer):
+    max_options_per_line = 4
+
     def __init__(self, **kwargs):
         kwargs.setdefault('label_css_classes', 'formset-label')
         super().__init__(**kwargs)

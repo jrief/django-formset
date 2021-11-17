@@ -5,7 +5,7 @@ from django.forms.renderers import DjangoTemplates
 
 
 class FormRenderer(DjangoTemplates):
-    max_options_per_line = 4
+    max_options_per_line = 0
 
     _template_mapping = {
         'django/forms/errors/list/default.html': 'formset/default/field_errors.html',
