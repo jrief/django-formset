@@ -43,9 +43,11 @@ class FormRenderer(DjangoTemplates):
                 context['attrs'] = {}
             context['attrs']['class'] = self.label_css_classes
         if hide_checkbox_label and context['field'].widget_type == 'checkbox':
-            # label is rendered by {{ field }}, so remove it to prevent double rendering
-            context['use_tag'] = False
+            # `<label>Label:</label>` is rendered by `{{ field }}`, so remove it to
+            # prevent double rendering.
             context.pop('label', None)
+            context['attrs'].pop('for', None)
+            context['use_tag'] = bool(self.control_css_classes)
         return context
 
     def _amend_multiple_input(self, context):
