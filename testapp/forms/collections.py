@@ -1,8 +1,9 @@
 from django.forms import forms, fields
 from formset.collection import FormCollection
 
-from .contact import PersonForm, sample_person_data
+from .contact import PersonForm
 from .opinion import OpinionForm, sample_opinion_data
+from .person import sample_person_data
 
 
 class DoubleFormCollection(FormCollection):

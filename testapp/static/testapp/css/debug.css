@@ -27,9 +27,6 @@ django-form-collection {
 	django-form-collection:first-of-type {
 		border-top: 2px solid grey;
 		}
-	django-form-collection:not(:first-of-type) {
-		margin-top: -0.5rem;
-	}
 	django-form-collection:last-of-type {
 		border-bottom: 2px solid grey;
 		margin-bottom: 0.5rem;

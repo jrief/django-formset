@@ -14,13 +14,14 @@
 	<div class="container">
 		<div class="row">
 			<div class="col col-md-8 mx-auto my-5">
+				{{ request }}
 				<h1>Django Formset Demo</h1>
-				<h3>For CSS framework {{ framework.capitalize }}</h3>
 				<p>Here is a list of forms to demonstrate the features <a href="https://github.com/jrief/django-formset/">django-formset</a>
 				currently offers.</p>
+				<h4>Choose CSS framework</h4>
 				<ul>
-				{% for url in all_urls %}
-					<li><a href="{{ url }}">{{ request.url }}{{ url }}</a></li>
+				{% for url in frameworks %}
+					<li><a href="{{ url }}">{{ url }}</a></li>
 				{% endfor %}
 				</ul>
 			</div>
