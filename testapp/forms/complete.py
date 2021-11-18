@@ -10,7 +10,10 @@ def validate_password(value):
         raise ValidationError("The password is wrong.")
 
 
-class SubscribeForm(forms.Form):
+class CompleteForm(forms.Form):
+    """
+    This form contains all standard widgets, Django provides out of the box.
+    """
     CONTINENT_CHOICES = [
         ('', "––– please select –––"), ('am', "America"), ('eu', "Europe"), ('as', "Asia"),
         ('af', "Africa"), ('au', "Australia"), ('oc', "Oceania"), ('an', 'Antartica'),
@@ -148,7 +151,7 @@ class SubscribeForm(forms.Form):
     )
 
 
-sample_subscribe_data = {
+sample_complete_data = {
     'first_name': "John",
     'last_name': "Doe",
     'gender': 'm',

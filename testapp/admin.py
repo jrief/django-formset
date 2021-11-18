@@ -1,10 +1,10 @@
 from django.contrib import admin
 
 from .models import PayloadModel
-from .forms.subscribe import SubscribeForm
+from .forms.complete import CompleteForm
 
 
 # @admin.register(DummyModel)
 class DummyAdmin(admin.ModelAdmin):
-    form = SubscribeForm
+    form = CompleteForm
     change_form_template = 'admin/formset/change_form.html'
