@@ -24,9 +24,6 @@ class ProfessionForm(forms.Form):
 
 
 class SimpleContactCollection(FormCollection):
-    default_renderer = BootstrapFormRenderer(
-    )
-
     person = PersonForm()
 
     profession = ProfessionForm()

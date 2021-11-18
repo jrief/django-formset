@@ -14,7 +14,7 @@ from formset.renderers.uikit import FormRenderer as UIKitFormRenderer
 from formset.utils import FormMixin
 from formset.views import FormView
 
-from .forms.subscribe import SubscribeForm, sample_subscribe_data
+from .forms.complete import CompleteForm, sample_complete_data
 
 
 http_request = RequestFactory().get('/')
@@ -25,7 +25,7 @@ def framework(request):
     return request.param
 
 
-@pytest.fixture(scope='session', params=[{}, sample_subscribe_data])
+@pytest.fixture(scope='session', params=[{}, sample_complete_data])
 def initial(request):
     return request.param
 
@@ -34,7 +34,7 @@ def initial(request):
 def native_view(framework, initial):
     return FormView.as_view(
         template_name='testapp/native-form.html',
-        form_class=SubscribeForm,
+        form_class=CompleteForm,
         initial=initial,
         extra_context={'framework': framework},
         success_url = '/success',
@@ -45,7 +45,7 @@ def native_view(framework, initial):
     DefaultFormRenderer, BootstrapFormRenderer, BulmaFormRenderer, FoundationFormRenderer,
     TailwindFormRenderer, UIKitFormRenderer])
 def extended_view(request, initial):
-    form_class = type(SubscribeForm.__name__, (FormMixin, SubscribeForm), {'default_renderer': request.param})
+    form_class = type(CompleteForm.__name__, (FormMixin, CompleteForm), {'default_renderer': request.param})
     return FormView.as_view(
         template_name='testapp/extended-form.html',
         form_class=form_class,
@@ -250,7 +250,7 @@ def extended_soup(extended_view):
     return form_class, soup, initial
 
 
-@pytest.mark.parametrize('field_name', SubscribeForm.base_fields.keys())
+@pytest.mark.parametrize('field_name', CompleteForm.base_fields.keys())
 def test_field_from_native_form(native_soup, field_name):
     framework, form_class, soup, initial = native_soup
     assert not issubclass(form_class, FormMixin)
@@ -258,7 +258,7 @@ def test_field_from_native_form(native_soup, field_name):
     check_field(framework, form, field_name, soup, initial)
 
 
-@pytest.mark.parametrize('field_name', SubscribeForm.base_fields.keys())
+@pytest.mark.parametrize('field_name', CompleteForm.base_fields.keys())
 def test_field_from_extended_form(extended_soup, field_name):
     form_class, soup, initial = extended_soup
     assert issubclass(form_class, FormMixin)
