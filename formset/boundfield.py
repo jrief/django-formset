@@ -66,7 +66,8 @@ class BoundField(boundfield.BoundField):
         field_css_classes = getattr(self.form.renderer, 'field_css_classes', None)
         if isinstance(field_css_classes, dict):
             try:
-                field_css_classes = field_css_classes[self.name]
+                prefix = f'{self.form.prefix}.{self.name}' if self.form.prefix else self.name
+                field_css_classes = field_css_classes[prefix]
             except KeyError:
                 field_css_classes = field_css_classes.get('*')
         if hasattr(field_css_classes, 'split'):
