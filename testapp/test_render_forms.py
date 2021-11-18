@@ -149,7 +149,7 @@ def test_simple_collection_post():
 def test_collection_get():
     view = FormCollectionView.as_view(
         collection_class=ContactCollection,
-        template_name='bootstrap/form-collection.html',
+        template_name='testapp/form-collection.html',
         initial={'person': sample_person_data},
     )
     response = view(RequestFactory().get('/'))
