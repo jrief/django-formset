@@ -74,6 +74,7 @@ valid data.
 
 The attribute ``withhold-feedback="..."`` only has effect while editing the form fields. Whenever
 the user clicks onto the submit button of a form containing invalid data, then all fields which
-did not validate will show their error message and set a red border.
+did not validate, will show their error message together with an alert symbol and an alert border
+(usually red).
 
-Non-field errors need more logic and are always computed on the server.
+Non-field errors need more logic and therefore are always computed on the server.

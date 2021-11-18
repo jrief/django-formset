@@ -80,7 +80,7 @@ least two, but no more than 50 characters. Additionally the user has to choose h
 two radio input fields and a mandatory checkbox input to accept the terms and conditions.
 
 .. image:: _static/unstyled-form.png
-  :width: 500
+  :width: 560
   :alt: Unstyled Form
 
 Styling this form now is up you. Use this as a starting point, if you edit the CSS of your project
@@ -113,12 +113,12 @@ In the template from above, we simply replace the templatetag against
 
 .. code-block:: django
 
-	  {% render_form form "bootstrap" field_classes="mb-2" %}
+	{% render_form form "bootstrap" field_classes="mb-2" %}
 
 and get a much nicer looking form
 
 .. image:: _static/bootstrap-form.png
-  :width: 500
+  :width: 560
   :alt: Bootstrap Form
 
 Compared to the unstyled form shown in the previous section, we notice that the radio fields
@@ -127,6 +127,33 @@ are inlined and that the checkbox is positioned before its label. This behaviour
 According to the Bootstrap's usage guide, checkboxes shall be placed on the left side of their
 label. Django can't handle this by itself, because it does not distinguish between checkbox input
 fields and other types of fields.
+
+
+Inlining Form Fields
+....................
+
+By using slightly different parameters, a form can be rendered with labels and input fields side
+by side, rather than beneeth each other. This can be achieved by applying these CSS classes
+to the templatetag
+
+.. code-block:: django
+
+	<django-formset endpoint="{{ request.path }}">
+	  {% render_form form "bootstrap" field_classes="row mb-3" label_classes="col-sm-3" control_classes="col-sm-9" %}
+	  <div class="offset-sm-3">
+	    <button type="button" click="submit -> proceed">Submit</button>
+	  </div>
+	</django-formset>
+
+and we get a form rendered as
+
+.. image:: _static/styling-bootstrap-inline.png
+  :width: 560
+  :alt: Bootstrap Form
+
+
+Inlining Radio Buttons and Multiple Checkboxes
+..............................................
 
 In **django-formset**, radio buttons and multiple checkboxes can be inlined, if there are only a
 few of them. The default threshold is 4 and can be modified with the parameter
@@ -140,4 +167,7 @@ few of them. The default threshold is 4 and can be modified with the parameter
 Bulma
 -----
 
-Not documented yet.
+Bulma is another popular CSS framework nowadays, and **django-formset** offers a renderer, which
+renders all its input fields as proposed by `Bulma's form control usage guide`_.
+
+.. _Bulma's form control usage guide: https://bulma.io/documentation/form/general/

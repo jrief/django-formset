@@ -14,26 +14,28 @@ existing Django Form declarations with a minimal modification to existing code.
 Introduction
 ============
 
-**django-formset** tries to solve a problem, which occurs in almost every project based on the
-Django framework: The way forms are handled, is not contemporary anymore compared to the solutions
-most modern JavaScript frameworks offer nowadays. Therefore, Django developers often use a
-combination of one of these client frameworks together with the `Django REST framework`_, which then
-indeed provides a much better User eXperience. However, those JavaScript frameworks impose their
-own way of getting stuff done and usually don't share the same mindset. For instance, in Django, we
-distinguish between `bound and unbound forms`_. This concept however is unknown in most JavaScript
-frameworks. Therefore, often we must work around those problems, which leeds to cumbersome and
-un-`DRY`_ solutions.
+**django-formset** tries to solve a problem, which occurs in almost every project using the
+Django framework: The way forms are handled. Compared to the solutions most modern JavaScript
+frameworks offer nowadays, having to reload a page if a form does not validate, is *not*
+contemporary anymore. Therefore, Django developers often use a combination of one of these client
+frameworks together with the `Django REST framework`_, which then indeed provides a much better User
+eXperience. However, those JavaScript frameworks impose their own way of getting stuff done and
+usually don't share the same mindset. For instance, in Django, we distinguish between
+`bound and unbound forms`_. This concept however doesn't make sense in most JavaScript
+frameworks, and hence is not implemented. We therefore often must work around those problems, which
+leeds to cumbersome and un-`DRY`_ solutions.
 
 .. _Django REST framework: https://www.django-rest-framework.org/
 .. _bound and unbound forms: https://docs.djangoproject.com/en/stable/ref/forms/api/#bound-and-unbound-forms
 .. _DRY: https://www.artima.com/articles/orthogonality-and-the-dry-principle
 
 With **django-formset** we get a `Web Component`_ explicitly written to handle Django forms and
-collections of forms (hence "formset") with the User eXperience of modern JavaScript frameworks.
-This means that fields are validated by the client, giving immediate feedback and the form's content
-is sent to the server without having to reload the page. The nice thing about this approach is,
-that we can reuse all of our current Django forms (unaltered), can use our Django views (with a
-small modification), but we don't have to add any extra code and endpoints to our URL routing.
+collections of forms (hence "formset") *with* the User eXperience modern JavaScript frameworks
+can offer. This means that fields are validated by the client, giving immediate feedback and the
+form's content is sent to the server without having to reload the page. The nice thing about this
+approach is, that we can reuse all of our current Django forms (unaltered), can use our Django views
+(with a small modification), but we don't have to add any extra code and endpoints to our URL
+routing.
 
 .. _Web Component: https://developer.mozilla.org/en-US/docs/Web/Web_Components
 
