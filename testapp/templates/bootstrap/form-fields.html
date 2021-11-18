@@ -1,9 +1,0 @@
-{% extends "./base.html" %}
-{% load render_form from formsetify %}
-
-{% block "main-content" %}
-<django-formset endpoint="{{ request.path }}"{% if force_submission %} force-submission{% endif %}{% if withhold_feedback %} withhold-feedback="{{ withhold_feedback }}"{% endif %}>
-	{% render_form form %}
-	{% include "./buttons.html" %}
-</django-formset>
-{% endblock %}

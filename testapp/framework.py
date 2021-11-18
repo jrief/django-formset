@@ -155,10 +155,6 @@ urlpatterns = [
     path('opinion', DemoFormView.as_view(
         form_class=OpinionForm,
     ), name='opinion'),
-    path('person', DemoFormView.as_view(
-        form_class=SimplePersonForm,
-        initial=sample_person_data,
-    )),
     path('questionnaire', DemoFormView.as_view(
         form_class=QuestionnaireForm,
     ), name='questionnaire'),
