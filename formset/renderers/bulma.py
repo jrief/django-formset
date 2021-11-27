@@ -46,6 +46,14 @@ class FormRenderer(DefaultFormRenderer):
         context['widget']['attrs']['class'] = 'textarea'
         return context
 
+    def _amend_collection(self, context):
+        context.update({
+            'add_collection_button': 'formset/bulma/buttons/add_collection.html',
+            'remove_collection_button': 'formset/bulma/buttons/remove_collection.html',
+            'css_classes': self.collection_css_classes,
+        })
+        return context
+
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_input,
@@ -56,4 +64,5 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox_select.html': _amend_checkbox_select,
         'django/forms/widgets/textarea.html': _amend_textarea,
         'django/forms/widgets/radio.html': _amend_radio,
+        'formset/default/collection.html': _amend_collection,
     })

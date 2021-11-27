@@ -1,0 +1,14 @@
+@import "../../node_modules/foundation-sites/dist/css/foundation.min.css";
+@import "../../formset/css/collections.css";
+
+django-formset django-field-group .dj-errorlist {
+	margin-top: -0.75rem;
+	margin-bottom: 0.75rem;
+	}
+
+django-formset django-form-collection[sibling-position] {
+	margin-top: 0.75rem;
+	padding-top: 0.75rem;
+	padding-top: 0.75rem;
+	border-top: 1px solid var(--bs-gray-400);
+	}

@@ -40,7 +40,7 @@ class DemoViewMixin:
             return self.request.resolver_match.url_name.split('.')[-1]
 
     def get_css_classes(self):
-        css_classes = dict(demo_css_classes[self.framework]['*'])
+        css_classes = dict(demo_css_classes[self.framework].get('*', {}))
         css_classes.update(demo_css_classes[self.framework].get(self.mode, {}))
         return css_classes
 

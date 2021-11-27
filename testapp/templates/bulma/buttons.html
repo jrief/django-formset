@@ -1,2 +1,4 @@
-<button type="button" click="{{ click_actions|default:'disable -> submit -> proceed' }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="button is-primary">Submit</button>
-<button type="button" click="reset" class="button is-warning ml-2">Reset to initial</button>
+<div class="mt-3">
+	<button type="button" click="{{ click_actions|default:'disable -> submit -> proceed' }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="button is-primary">Submit</button>
+	<button type="button" click="reset" class="button is-warning ml-2">Reset to initial</button>
+</div>

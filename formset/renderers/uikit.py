@@ -38,6 +38,14 @@ class FormRenderer(DefaultFormRenderer):
                 option['template_name'] = 'formset/uikit/widgets/input_option.html'
         return context
 
+    def _amend_collection(self, context):
+        context.update({
+            'add_collection_button': 'formset/uikit/buttons/add_collection.html',
+            'remove_collection_button': 'formset/uikit/buttons/remove_collection.html',
+            'css_classes': self.collection_css_classes,
+        })
+        return context
+
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_input,
@@ -50,4 +58,5 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
         'formset/default/widgets/selectize.html': _amend_select,
+        'formset/default/collection.html': _amend_collection,
     })

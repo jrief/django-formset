@@ -1,0 +1,9 @@
+@import "../../node_modules/bootstrap/dist/css/bootstrap.min.css";
+@import "../../formset/css/collections.css";
+
+django-form-collection[sibling-position] {
+	margin-top: 0.75rem;
+	padding-top: 0.75rem;
+	padding-top: 0.75rem;
+	border-top: 1px solid var(--bs-gray-400);
+	}

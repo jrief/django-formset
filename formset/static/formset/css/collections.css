@@ -1,0 +1,19 @@
+django-form-collection {
+	position: relative;
+	display: block;
+	}
+	django-form-collection.dj-marked-for-removal {
+		color: gray;
+		background-color: lightgray;
+		background-image: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,.5) 4px, rgba(255,255,255,.5) 8px);
+		background-size: contain;
+		}
+	django-form-collection[sibling-position] > .remove-collection {
+		position: absolute;
+		top: 0.5rem;
+		right: 0.5rem;
+		visibility: hidden;
+		}
+	django-form-collection[sibling-position]:hover > .remove-collection {
+		visibility: visible;
+		}
