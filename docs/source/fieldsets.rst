@@ -1,4 +1,4 @@
-.. _selectize:
+.. _fieldsets:
 
 **To be documented**
 

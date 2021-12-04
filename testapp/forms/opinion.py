@@ -16,8 +16,14 @@ class OpinionForm(forms.Form):
         ],
     )
 
-    opinion = models.ModelChoiceField(
-        label="Opinion",
+    static_opinion = fields.ChoiceField(
+        label="Static Opinion",
+        choices=lambda: OpinionModel.objects.filter(tenant=1).values_list('id', 'label')[:500],
+        widget = Selectize,
+    )
+
+    dynamic_opinion = models.ModelChoiceField(
+        label="Dynamic Opinion",
         queryset=OpinionModel.objects.filter(tenant=1),
         widget=Selectize(search_lookup='label__icontains', placeholder="Select my opinion"),
         required=True,
@@ -33,6 +39,7 @@ class OpinionForm(forms.Form):
 
 sample_opinion_data = {
     'choice': 2,
-    'opinion': lambda: OpinionModel.objects.filter(tenant=1)[6],
+    'static_opinion': lambda: OpinionModel.objects.filter(tenant=1)[6],
+    'dynamic_opinion': lambda: OpinionModel.objects.filter(tenant=1)[9],
     'annotation': "Lorem ipsum dolor est",
 }

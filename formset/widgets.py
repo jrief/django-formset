@@ -53,15 +53,18 @@ class Selectize(Select):
             if first_option and not isinstance(first_option[0], ModelChoiceIteratorValue):
                 self.choices = itertools.filterfalse(lambda c: c == first_option, self.choices)
             self.choices = itertools.chain([('', self.placeholder)], self.choices)
+            self.optgroups = self.optgroups_limited
         context = super().get_context(name, value, attrs)
         options = context['widget'].pop('optgroups')
         context['widget']['options'] = options
         return context
 
     def optgroups(self, name, value, attrs=None):
+        return [{'value': str(v), 'label': l, 'selected': str(v) in value} for v, l in self.choices]
+
+    def optgroups_limited(self, name, value, attrs=None):
         choices = zip(self.choices, range(self.max_prefetch_choices))
-        options = [{'value': str(v), 'label': l, 'selected': str(v) in value} for (v, l), _ in choices]
-        return options
+        return [{'value': str(v), 'label': l, 'selected': str(v) in value} for (v, l), _ in choices]
 
 
 class UploadedFileInput(FileInput):

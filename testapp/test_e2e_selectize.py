@@ -2,7 +2,7 @@ import pytest
 import json
 from time import sleep
 
-from django.forms import Field, Form, models
+from django.forms import Field, Form, fields, models
 from django.urls import path
 
 from formset.views import FormView
@@ -57,6 +57,11 @@ test_fields = dict(
         required=True,
         initial=get_initial_opinion,
     ),
+    static_selection=fields.ChoiceField(
+        choices=lambda: OpinionModel.objects.filter(tenant=1).values_list('id', 'label')[:100],
+        widget=Selectize,
+        required=True,
+    ),
 )
 
 views = {
@@ -97,8 +102,10 @@ def test_initial_value(page, form, initial_opinion):
     select_element = page.query_selector('django-formset select[is="django-selectize"]')
     assert select_element is not None
     value = select_element.evaluate('elem => elem.value')
-    if 'initialized' in form.name:
+    if form.name in ['selection_initialized', 'selection_required_initialized']:
         assert value == str(initial_opinion.id)
+    elif form.name == 'static_selection':
+        assert value == str(next(iter(form.fields['model_choice'].choices))[0])
     else:
         assert value == ''
 
@@ -223,7 +230,7 @@ def test_submit_invalid(page, mocker, view, form, initial_opinion):
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['selectize0', 'selectize2'])
+@pytest.mark.parametrize('viewname', ['selectize0', 'selectize2', 'selectize4'])
 def test_reset_formset(page, view, form):
     select_element = page.query_selector('django-formset select[is="django-selectize"]')
     assert select_element is not None
