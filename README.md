@@ -92,15 +92,15 @@ urlpatterns = [
 This renders `SubscribeForm` with a much better User Experience. We get immediate feedback if input
 entered into a field is not valid. Moreover, when this form is submitted but rejected by the
 server-side validation checker, errors are shown immediatly and without reloading the page. Only on
-success, a new new page is loaded (or another alternative action is performed).
+success, a new page is loaded (or another alternative action is performed).
 
 
 ## Motivation
 
-Instead of using a `<form>`-tag and include all its fields, here we wrap the complete form
-inside the special Webcomponent `<django-formset>`. This allows us to communicate via Ajax with
-our Django view, using the named endpoint. This means, that we can wrap multiple `<form>`-elements
-into our Formset. It also means, that we now can place the Submit `<button>`-element outside of the
+Instead of using a `<form>`-tag and include all its fields, here we wrap the complete form inside
+the special Webcomponent `<django-formset>`. This allows us to communicate via Ajax with our Django
+view, using the named endpoint. This means, that we can wrap multiple `<form>`-elements into our
+Formset. It also means, that we now can place the Submit `<button>`-element outside of the
 `<form>`-element. By doing so, we can decouple the Form's business-logic from its technical
 constraint, of transferring a group of fields from and to the server. 
 
@@ -184,7 +184,8 @@ testapp/manage.py migrate
 testapp/manage.py runserver
 ```
 
-Open http://localhost:8000/ in your browser. There is a long list of forms for all kind of purposes.
+Open http://localhost:8000/ in your browser. There is a link for each of the supported CSS
+frameworks. For each of them, there is a long list of forms for all kind of purposes.
 
 
 ### Running the tests
