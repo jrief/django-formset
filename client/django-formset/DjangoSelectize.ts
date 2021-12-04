@@ -56,7 +56,7 @@ class DjangoSelectize {
 		this.observer.observe(this.tomInput, {attributes: true});
 		this.initialValue = this.tomSelect.getValue();
 		this.shadowRoot = this.wrapInShadowRoot();
-		this.transferStyles(tomInput as unknown as HTMLElement, nativeStyles);
+		this.transferStyles(tomInput, nativeStyles);
 		this.validateInput(this.initialValue as string);
 		form.onreset = (event: Event) => this.formResetted(event);
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
@@ -81,9 +81,9 @@ class DjangoSelectize {
 
 	private validateInput(value: String) {
 		if (this.tomSelect.isRequired) {
-			this.tomInput.setCustomValidity(value ? "": "Value is missing.");
+			(this.tomInput as HTMLSelectElement).setCustomValidity(value ? "": "Value is missing.");
 		}
-		const inputElem = this.shadowRoot.querySelector('.ts-control .ts-input');
+		const inputElem = this.shadowRoot.querySelector('.ts-wrapper .ts-control');
 		if (inputElem) {
 			inputElem.classList.toggle('invalid', !this.tomInput.checkValidity());
 		}
@@ -100,52 +100,52 @@ class DjangoSelectize {
 			let extraStyles: string;
 			const optionElement = tomInput.querySelector('option');
 			switch (cssRule.selectorText) {
-				case '.ts-control':
+				case '.ts-wrapper':
 					extraStyles = this.extractStyles(tomInput, [
 						'font-family', 'font-size', 'font-strech', 'font-style', 'font-weight',
 						'letter-spacing', 'white-space']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.ts-control .ts-input':
+				case '.ts-wrapper .ts-control':
 					extraStyles = this.extractStyles(tomInput, [
 						'background-color', 'border', 'border-radius', 'box-shadow', 'color',
 						'padding']).concat(`width: ${nativeStyles['width']}; height: ${nativeStyles['height']};`);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.ts-control .ts-input > input':
-				case '.ts-control .ts-input > div':
+				case '.ts-wrapper .ts-control > input':
+				case '.ts-wrapper .ts-control > div':
 					if (optionElement) {
 						extraStyles = this.extractStyles(optionElement, ['padding-left']);
 						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					}
 					break;
-				case '.ts-control .ts-input > input::placeholder':
+				case '.ts-wrapper .ts-control > input::placeholder':
 					tomInput.classList.add('-placeholder-');
 					extraStyles = this.extractStyles(tomInput, ['background-color', 'color'])
 					tomInput.classList.remove('-placeholder-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.ts-control .ts-input.focus':
+				case '.ts-wrapper .ts-control.focus':
 					tomInput.classList.add('-focus-');
 					extraStyles = this.extractStyles(tomInput, [
 							'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'])
 					tomInput.classList.remove('-focus-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.ts-control .ts-input.disabled':
+				case '.ts-wrapper .ts-control.disabled':
 					tomInput.classList.add('-disabled-');
 					extraStyles = this.extractStyles(tomInput, [
 							'background-color', 'border', 'box-shadow', 'color', 'opacity', 'outline', 'transition'])
 					tomInput.classList.remove('-disabled-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.ts-control .ts-dropdown':
+				case '.ts-wrapper .ts-dropdown':
 					extraStyles = this.extractStyles(tomInput, [
 						'border-right', 'border-bottom', 'border-left', 'color', 'padding-left'])
 						.concat(parseFloat(lineHeight) > 0 ? `line-height: calc(${lineHeight} * 1.2);` : 'line-height: 1.2em;');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.ts-control .ts-dropdown .ts-dropdown-content':
+				case '.ts-wrapper .ts-dropdown .ts-dropdown-content':
 					if (parseFloat(lineHeight) > 0) {
 						extraStyles =  `max-height: calc(${lineHeight} * 1.2 * ${this.numOptions});`;
 					} else {
@@ -265,6 +265,6 @@ export class DjangoSelectizeElement extends HTMLSelectElement {
 	private [DS]: DjangoSelectize;  // hides internal implementation
 
 	private connectedCallback() {
-		this[DS] = new DjangoSelectize(this as unknown as TomInput);
+		this[DS] = new DjangoSelectize(this);
 	}
 }

@@ -3,10 +3,10 @@
 $select-color-highlight: rgba(255, 237, 40, 0.4);
 $select-color-dropdown: rgb(244, 244, 244);
 
-.ts-control {
+.ts-wrapper {
 	position: relative;
 
-	.ts-input {
+	.ts-control {
 		overflow: hidden;
 		box-sizing: border-box;
 		display: flex;
@@ -55,7 +55,7 @@ $select-color-dropdown: rgb(244, 244, 244);
 	// Hide input, while retaining its focus, and maintain layout so users can still click on the
 	// space to bring the display back.
 	// Setting `visibility: hidden;` can prevent the input from receiving focus.
-	&.input-hidden .ts-input > input, .ts-input.full > input {
+	&.input-hidden .ts-control > input, .ts-control.full > input {
 		opacity: 0;
 		position: absolute;
 		left: -10000px;
@@ -93,12 +93,12 @@ $select-color-dropdown: rgb(244, 244, 244);
 	}
 }
 
-:host-context(django-field-group.dj-dirty) .ts-control {
-	.ts-input.has-items {
+:host-context(django-field-group.dj-dirty) .ts-wrapper {
+	.ts-control.has-items {
 		border-color: var(--django-formset-color-valid);
 	}
 
-	.ts-input.invalid {
+	.ts-control.invalid {
 		border-color: var(--django-formset-color-invalid);
 	}
 }
