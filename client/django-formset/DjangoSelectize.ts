@@ -125,14 +125,16 @@ class DjangoSelectize {
 					tomInput.classList.remove('-placeholder-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.ts-wrapper .ts-control.focus':
+				case '.ts-wrapper.focus .ts-control':
+					tomInput.style.transition = 'none';
 					tomInput.classList.add('-focus-');
 					extraStyles = this.extractStyles(tomInput, [
-							'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'])
+						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'])
 					tomInput.classList.remove('-focus-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					tomInput.style.transition = '';
 					break;
-				case '.ts-wrapper .ts-control.disabled':
+				case '.ts-wrapper.disabled .ts-control':
 					tomInput.classList.add('-disabled-');
 					extraStyles = this.extractStyles(tomInput, [
 							'background-color', 'border', 'box-shadow', 'color', 'opacity', 'outline', 'transition'])
@@ -216,30 +218,43 @@ class DjangoSelectize {
 		const numStyleSheets = document.styleSheets.length;
 		const styleElement = document.createElement('style');
 		document.head.appendChild(styleElement);
-		const extraCSSStyleSheet = styleElement.sheet as CSSStyleSheet;
 		for (let index = 0; index < numStyleSheets; index++) {
 			const sheet = document.styleSheets[index];
 			for (let k = 0; k < sheet.cssRules.length; k++) {
-				const cssRule = sheet.cssRules.item(k) as CSSStyleRule;
-				if (!cssRule.selectorText)
-					continue;
-				const newSelectorText = cssRule.selectorText.
-					replaceAll(':focus', '.-focus-').
-					replaceAll(':focus-visible', '.-focus-visible-').
-					replaceAll(':hover', '.-hover-').
-					replaceAll(':disabled', '.-disabled-').
-					replaceAll(':invalid', '.-invalid-').
-					replaceAll(':valid', '.-valid-').
-					replaceAll('::placeholder-shown', '.-placeholder-shown').
-					replaceAll(':placeholder-shown', '.-placeholder-shown').
-					replaceAll('::placeholder', '.-placeholder-').
-					replaceAll(':placeholder', '.-placeholder-');
-				if (newSelectorText !== cssRule.selectorText) {
-					extraCSSStyleSheet.insertRule(`${newSelectorText}{${cssRule.style.cssText}}`);
+				const cssRule = sheet.cssRules.item(k);
+				if (cssRule) {
+					this.traverseStyles(cssRule, styleElement.sheet as CSSStyleSheet);
 				}
 			}
 		}
 		return styleElement;
+	}
+
+	private traverseStyles(cssRule: CSSRule, extraCSSStyleSheet: CSSStyleSheet) {
+		if (cssRule instanceof CSSImportRule) {
+			if (!cssRule.styleSheet)
+				return;
+			for (let subRule of cssRule.styleSheet.cssRules) {
+				this.traverseStyles(subRule, extraCSSStyleSheet);
+			}
+		} else if (cssRule instanceof CSSStyleRule) {
+			if (!cssRule.selectorText)
+				return;
+			const newSelectorText = cssRule.selectorText.
+				replaceAll(':focus', '.-focus-').
+				replaceAll(':focus-visible', '.-focus-visible-').
+				replaceAll(':hover', '.-hover-').
+				replaceAll(':disabled', '.-disabled-').
+				replaceAll(':invalid', '.-invalid-').
+				replaceAll(':valid', '.-valid-').
+				replaceAll('::placeholder-shown', '.-placeholder-shown').
+				replaceAll(':placeholder-shown', '.-placeholder-shown').
+				replaceAll('::placeholder', '.-placeholder-').
+				replaceAll(':placeholder', '.-placeholder-');
+			if (newSelectorText !== cssRule.selectorText) {
+				extraCSSStyleSheet.insertRule(`${newSelectorText}{${cssRule.style.cssText}}`);
+			}
+		} // else handle other CSSRule types
 	}
 
 	private attributesChanged(mutationsList: Array<MutationRecord>) {

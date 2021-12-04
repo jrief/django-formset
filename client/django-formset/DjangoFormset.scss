@@ -17,7 +17,7 @@ $django-formset-color-valid: 'rgb(' + #{color.red($django-formset-success), colo
 select::placeholder {
 	color: rgb(128, 128, 128);
 }
-select[hidden="hidden"] {
+select.ts-hidden-accessible {
 	display: none;
 }
 
