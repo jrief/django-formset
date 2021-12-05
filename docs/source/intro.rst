@@ -6,10 +6,6 @@ fields hard-coded in HTML and hence there was little scope for modification. Thi
 makes it possible to write special renderers for adding functionality as implemented by this
 library.
 
-When designing this library, one of the main goals was to keep the programming interface a near as
-possible to the way Django handles Forms, Models and Views. It therefore is possible to reuse
-existing Django Form declarations with a minimal modification to existing code.
-
 
 Introduction
 ============
@@ -20,7 +16,7 @@ frameworks offer nowadays, having to reload a page if a form does not validate, 
 contemporary anymore. Therefore, Django developers often use a combination of one of these client
 frameworks together with the `Django REST framework`_, which then indeed provides a much better User
 eXperience. However, those JavaScript frameworks impose their own way of getting stuff done and
-usually don't share the same mindset. For instance, in Django, we distinguish between
+usually don't share the same mindset with Django. For instance, in Django, we distinguish between
 `bound and unbound forms`_. This concept however doesn't make sense in most JavaScript
 frameworks, and hence is not implemented. We therefore often must work around those problems, which
 leeds to cumbersome and un-`DRY`_ solutions.
@@ -38,6 +34,30 @@ approach is, that we can reuse all of our current Django forms (unaltered), can 
 routing.
 
 .. _Web Component: https://developer.mozilla.org/en-US/docs/Web/Web_Components
+
+.. _forms_as_logical_entities:
+
+Use Forms as Logical Entities
+-----------------------------
+
+The **django-formset**-library separates the logical layer of a form from their physical one. Now,
+what does that mean? In Django we can define a form as a group of fields with certain data-types.
+Often these forms are derived from existing models in the database. On the client, this form then is
+rendered, can be filled with data and resubmitted back to the server.
+
+Typically there is one form per page, because the HTML standard does not allow to submit more than
+one form in one submission. With the introduction of FormSets_, Django provides a workaround for
+this use-case. It however relies on prefixing each field from different Django Forms with a unique
+identifier, so that those Django Forms can be wrapped into one HTML ``<form>``-element. This makes
+the handling of mutiple forms per page cumbersome and difficult to understand.
+
+By using **django-formset** on the other hand, each Django Form corresponds to its own ``<form>``
+-element. Inside each form, all field names remain unmodified and on submission, each form
+introduces its own namespace, so that the form data is submitted as a dictionary of
+field-value-pairs. By doing so, we can even nest forms deeply, something currently impossible with
+Django FormSets_.
+
+.. _FormSets: https://docs.djangoproject.com/en/stable/ref/formsets/...
 
 
 Example
@@ -160,3 +180,11 @@ The JavaScript behind this component now handles the following functions:
 .. _webcomponents.org: https://www.webcomponents.org/introduction
 .. _formset: https://docs.djangoproject.com/en/stable/topics/forms/formsets/#formsets
 .. _enctype: https://developer.mozilla.org/en-US/docs/Learn/Forms/Sending_and_retrieving_form_data#the_enctype_attribute
+
+
+Annotation
+----------
+
+When designing this library, one of the main goals was to keep the programming interface a near as
+possible to the way Django handles Forms, Models and Views. It therefore is possible to reuse
+existing Django Form declarations with a minimal modification to existing code.

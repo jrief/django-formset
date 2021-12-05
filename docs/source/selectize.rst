@@ -99,10 +99,10 @@ a view inheriting from :class:`formset.views.SelectizeResponseMixin`.
 Implementation Details
 ----------------------
 
-The client part of the ``Selectize`` widget relies on the Tom-Select_-library, which itself is a
-fork of `Selectize.js`_ rewritten in pure TypeScript without any external dependencies. This made
-it suitable for the client part of **django-formset**, which itself is a self-contained JavaScript
-library compiled out of TypeScript.
+The client part of the ``Selectize`` widget relies on Tom-Select_ which itself is a fork of the
+popular `Selectize.js`_-library, rewritten in pure TypeScript and without any external dependencies.
+This made it suitable for the client part of **django-formset**, which itself is a self-contained
+JavaScript library compiled out of TypeScript.
 
 .. _Tom-Select: https://tom-select.js.org/
 .. _Selectize.js: https://selectize.dev/
