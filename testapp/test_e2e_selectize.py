@@ -113,7 +113,7 @@ def test_initial_value(page, form, initial_opinion):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_changing_value(page, form, initial_opinion):
-    input_element = page.query_selector('django-formset .shadow-wrapper .ts-input input[type="select-one"]')
+    input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
     assert input_element is not None
     assert input_element.is_visible()
     assert input_element.get_attribute('placeholder') == 'Select'
@@ -137,7 +137,7 @@ def test_changing_value(page, form, initial_opinion):
     assert 'dj-dirty' in field_group_element.get_attribute('class')
     assert dropdown_element.is_hidden()
     assert page.query_selector('django-formset form:valid') is not None
-    selected_item_element = page.query_selector('django-formset .shadow-wrapper .ts-input div.item')
+    selected_item_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control div.item')
     assert selected_item_element is not None
     assert selected_item_element.get_attribute('data-value') == str(initial_opinion.id)
     assert selected_item_element.inner_text() == initial_opinion.label
@@ -157,7 +157,7 @@ def test_changing_value(page, form, initial_opinion):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_lookup_value(page, mocker, form):
-    input_element = page.query_selector('django-formset .shadow-wrapper .ts-input input[type="select-one"]')
+    input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
     assert input_element is not None
     input_element.click()
     spy = mocker.spy(FormView, 'get')
@@ -185,10 +185,10 @@ def test_submit_missing(page, view, form):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_submit_value(page, mocker, view, form, initial_opinion):
-    input_element = page.query_selector('django-formset .shadow-wrapper .ts-input input[type="select-one"]')
+    input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
     assert input_element is not None
     input_element.click()
-    dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-dropdown.single')
+    dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-dropdown.single')
     assert dropdown_element is not None
     pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(9)')
     assert pseudo_option is not None
@@ -205,10 +205,10 @@ def test_submit_value(page, mocker, view, form, initial_opinion):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_submit_invalid(page, mocker, view, form, initial_opinion):
-    input_element = page.query_selector('django-formset .shadow-wrapper .ts-input input[type="select-one"]')
+    input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
     assert input_element is not None
     input_element.click()
-    dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-dropdown.single')
+    dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper  .ts-dropdown.single')
     assert dropdown_element is not None
     pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(9)')
     assert pseudo_option is not None
@@ -234,20 +234,20 @@ def test_submit_invalid(page, mocker, view, form, initial_opinion):
 def test_reset_formset(page, view, form):
     select_element = page.query_selector('django-formset select[is="django-selectize"]')
     assert select_element is not None
-    initial_value = select_element.evaluate('elem => elem.value')
-    input_element = page.query_selector('django-formset .shadow-wrapper .ts-input input[type="select-one"]')
+    initial_value = select_element.evaluate('elem => elem.getValue()')
+    input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
     assert input_element.is_visible()
     if form.name == 'selection':
         input_element.click()
-        dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-dropdown.single')
+        dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-dropdown.single')
         assert dropdown_element.is_visible()
         page.wait_for_selector('div[data-selectable]:nth-child(7)').click()
     else:
         input_element.focus()
         page.keyboard.press('Backspace')
     input_element.evaluate('elem => elem.blur()')
-    value = select_element.evaluate('elem => elem.value')
+    value = select_element.evaluate('elem => elem.getValue()')
     assert value != initial_value
     page.wait_for_selector('django-formset').evaluate('elem => elem.reset()')
-    value = select_element.evaluate('elem => elem.value')
+    value = select_element.evaluate('elem => elem.getValue()')
     assert value == initial_value

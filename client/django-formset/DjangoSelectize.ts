@@ -272,6 +272,10 @@ class DjangoSelectize {
 			}
 		}
 	}
+
+	public get value() : string | string[] {
+		return this.tomSelect.getValue();
+	}
 }
 
 const DS = Symbol('DjangoSelectize');
@@ -281,5 +285,9 @@ export class DjangoSelectizeElement extends HTMLSelectElement {
 
 	private connectedCallback() {
 		this[DS] = new DjangoSelectize(this);
+	}
+
+	public async getValue() {
+		return this[DS].value;
 	}
 }
