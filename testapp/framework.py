@@ -11,6 +11,7 @@ from formset.views import FormView, FormCollectionView
 from testapp.forms.address import AddressForm
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import SimpleContactCollection, ContactCollection, ContactCollectionList
+from testapp.forms.customer import CustomerCollection
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import SimplePersonForm, sample_person_data
 from testapp.forms.questionnaire import QuestionnaireForm
@@ -151,6 +152,9 @@ urlpatterns = [
     path('contactlist', DemoFormCollectionView.as_view(
         collection_class=ContactCollectionList,
     ), name='contactlist'),
+    path('customer', DemoFormCollectionView.as_view(
+        collection_class=CustomerCollection,
+    ), name='customer'),
     path('opinion', DemoFormView.as_view(
         form_class=OpinionForm,
     ), name='opinion'),
