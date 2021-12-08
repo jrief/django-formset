@@ -55,16 +55,8 @@ class FormMixin(HolderMixin):
     """
     Mixin class to be added to a native Django Form. This is required to add
     """
-    def __init__(self, error_class=FormsetErrorList, renderer=None, **kwargs):
+    def __init__(self, error_class=FormsetErrorList, **kwargs):
         kwargs['error_class'] = error_class
-        if renderer is None:
-            if self.default_renderer is None:
-                renderer = FormRenderer()
-            else:
-                renderer = self.default_renderer
-        if isinstance(renderer, type):
-            renderer = renderer()
-        kwargs['renderer'] = renderer
         super().__init__(**kwargs)
 
     def __getitem__(self, name):
