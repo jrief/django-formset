@@ -46,10 +46,9 @@ class DemoViewMixin:
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
-        if self.framework == 'default':
-            context_data.update(**self.get_css_classes())
-        else:
-            context_data.update(framework=self.framework, **self.get_css_classes())
+        if self.framework != 'default':
+            context_data.update(framework=self.framework)
+        context_data.update(**self.get_css_classes())
         return context_data
 
 

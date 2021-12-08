@@ -16,7 +16,7 @@ class FieldsetMixin(FormMixin):
         hide_if = kwargs.pop('hide_if', None)
         disable_if = kwargs.pop('disable_if', None)
         if show_if and hide_if:
-            raise ImproperlyConfigured("class FieldSet can accept either `show_if` or `hide_if`, but not both.")
+            raise ImproperlyConfigured(f"class {self.__class__} can accept either `show_if` or `hide_if`, but not both.")
         if show_if:
             self.show_if = show_if
         elif hide_if:
@@ -45,8 +45,8 @@ class Fieldset(FieldsetMixin, forms.Form):
     be used as such. Its purpose is to add visual elements to a `<form>`. Remember, a Form is just a
     data-abstraction layer, has no display properties and is not intended to be styled or anotated.
     On the other side, a <fieldset> may offer a `<legend>`, a border and the possibility to
-    show/hide or disable a set of fields. A HTMLFieldSetElement however does not has any validation
-    functionality, this is left to the HTMLFormElement.
+    show/hide or disable a set of fields. A `HTMLFieldSetElement` however does not has any field
+    validation functionality, this is left to the `HTMLFormElement`.
     """
     def __repr__(self):
-        return f'<Fieldset legend={self.legend} template_name={self.template_name}>'
+        return f'<{self.__class__.__name__} legend="{self.legend}" template_name="{self.template_name}">'

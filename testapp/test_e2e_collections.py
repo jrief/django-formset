@@ -1,11 +1,9 @@
 import json
 import pytest
-from time import sleep
 
 from django.forms import fields, forms
 from django.urls import path
 
-from formset.renderers.default import FormRenderer
 from formset.collection import FormCollection
 from formset.views import FormCollectionView
 
@@ -41,7 +39,6 @@ class ContactCollectionList(FormCollection):
     person = PersonForm()
 
     numbers = PhoneNumberCollection(
-        renderer=FormRenderer(),
         min_siblings=1,
         max_siblings=5,
         extra_siblings=1,

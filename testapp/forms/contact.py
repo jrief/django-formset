@@ -2,7 +2,6 @@ from django.core.exceptions import ValidationError
 from django.forms import fields, forms
 
 from formset.collection import FormCollection
-from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
 
 from .person import PersonForm
@@ -79,7 +78,6 @@ class ContactCollection(FormCollection):
 
 
 class ContactCollectionList(FormCollection):
-    default_renderer = BootstrapFormRenderer
     min_siblings = 0
     extra_siblings = 1
 
