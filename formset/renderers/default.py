@@ -16,11 +16,13 @@ class FormRenderer(DjangoTemplates):
     }
 
     def __init__(self, field_css_classes=None, label_css_classes=None, control_css_classes=None,
-                 form_css_classes=None, collection_css_classes=None, max_options_per_line=None):
+                 form_css_classes=None, fieldset_css_classes=None, collection_css_classes=None,
+                 max_options_per_line=None):
         self.field_css_classes = field_css_classes
         self.label_css_classes = label_css_classes
         self.control_css_classes = control_css_classes
         self.form_css_classes = form_css_classes
+        self.fieldset_css_classes = fieldset_css_classes
         self.collection_css_classes = collection_css_classes
         if max_options_per_line is not None:
             self.max_options_per_line = max_options_per_line
@@ -34,6 +36,12 @@ class FormRenderer(DjangoTemplates):
         context.update(
             control_css_classes=self.control_css_classes,
             form_css_classes=self.form_css_classes,
+        )
+        return context
+
+    def _amend_fieldset(self, context):
+        context.update(
+            css_classes=self.fieldset_css_classes,
         )
         return context
 
@@ -76,6 +84,7 @@ class FormRenderer(DjangoTemplates):
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
+        'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/collection.html': _amend_collection,
     }
 

@@ -16,6 +16,7 @@ def _formsetify(form, *args, **kwargs):
 
     renderer_args = [
         ('form_css_classes', kwargs.pop('form_classes', None)),
+        ('fieldset_css_classes', kwargs.pop('fieldset_classes', None)),
         ('field_css_classes', kwargs.pop('field_classes', None)),
         ('label_css_classes', kwargs.pop('label_classes', None)),
         ('control_css_classes', kwargs.pop('control_classes', None)),

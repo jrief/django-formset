@@ -83,6 +83,7 @@ demo_css_classes = {
     'bootstrap': {
         '*': {
             'field_css_classes': 'mb-2',
+            'fieldset_css_classes': 'border p-3',
             'button_css_classes': 'mt-2',
         },
         'address': {
