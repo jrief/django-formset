@@ -34,6 +34,8 @@ class DjangoSelectize {
 			labelField: 'label',
 			searchField: ['label'],
 			render: this.setupRender(tomInput),
+			onBlur: () => this.blurred(),
+			onType: (evt: Event) => this.inputted(evt),
 		};
 		if (!tomInput.getAttribute('multiple')) {
 			config.maxItems = 1;
@@ -79,14 +81,25 @@ class DjangoSelectize {
 		return shadowRoot;
 	}
 
+	private blurred() {
+		const wrapper = this.shadowRoot.querySelector('.ts-wrapper');
+		wrapper?.classList.remove('dirty');
+	}
+
+	private inputted(event: Event) {
+		const value = event as unknown as string;
+		const wrapper = this.shadowRoot.querySelector('.ts-wrapper');
+		wrapper?.classList.toggle('dirty', value.length > 0);
+	}
+
 	private validateInput(value: String) {
+		const wrapper = this.shadowRoot.querySelector('.ts-wrapper');
+		wrapper?.classList.remove('dirty');
 		if (this.tomSelect.isRequired) {
 			(this.tomInput as HTMLSelectElement).setCustomValidity(value ? "": "Value is missing.");
 		}
 		const inputElem = this.shadowRoot.querySelector('.ts-wrapper .ts-control');
-		if (inputElem) {
-			inputElem.classList.toggle('invalid', !this.tomInput.checkValidity());
-		}
+		inputElem?.classList.toggle('invalid', !this.tomInput.checkValidity());
 		this.tomInput.value = value as string;
 	}
 

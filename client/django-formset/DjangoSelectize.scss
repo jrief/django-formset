@@ -55,12 +55,16 @@ $select-color-dropdown: rgb(244, 244, 244);
 	// Hide input, while retaining its focus, and maintain layout so users can still click on the
 	// space to bring the display back.
 	// Setting `visibility: hidden;` can prevent the input from receiving focus.
-	&.input-hidden, &.full {
+	&.input-hidden, &.full:not(.dirty) {
 		.ts-control > input {
 			opacity: 0;
 			position: absolute;
 			left: -10000px;
 		}
+	}
+
+	&.dirty.focus .ts-control .item {
+		display: none;
 	}
 
 	.ts-dropdown {
