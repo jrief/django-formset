@@ -40,7 +40,8 @@ routing.
 Use Forms as Logical Entities
 -----------------------------
 
-The **django-formset**-library separates the logical layer of a form from their physical one. Now,
+The **django-formset**-library separates the logical layer of a Django Form_ from their physical one
+as an HTML ``<form>``. Now,
 what does that mean? In Django we can define a form as a group of fields with certain data-types.
 Often these forms are derived from existing models in the database. On the client, this form then is
 rendered, can be filled with data and resubmitted back to the server.
@@ -57,7 +58,8 @@ introduces its own namespace, so that the form data is submitted as a dictionary
 field-value-pairs. By doing so, we can even nest forms deeply, something currently impossible with
 Django FormSets_.
 
-.. _FormSets: https://docs.djangoproject.com/en/stable/ref/formsets/...
+.. _Form: https://docs.djangoproject.com/en/stable/topics/forms/
+.. _FormSets: https://docs.djangoproject.com/en/stable/topics/forms/formsets/
 
 
 Example
