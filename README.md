@@ -30,6 +30,11 @@ INSTALLED_APPS = [
 ```
 
 
+## Documentation
+
+Reference documentation can be found on [Read The Docs](https://django-formset.readthedocs.io/en/latest/index.html).
+
+
 ## Usage
 
 Say, we have a standard Django Form:
@@ -204,9 +209,3 @@ Then run the testsuite
 ```shell
 pytest testapp
 ```
-
-
-## Documentation
-
-Documentation has to be written. A draft in progress can be found on
-[Read The Docs](https://django-formset.readthedocs.io/en/latest/index.html).
