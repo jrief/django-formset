@@ -77,6 +77,28 @@ Collections with Siblings
 
 If a Form Collection contains one of the attributes ``min_siblings``, ``max_siblings`` or
 ``extra_siblings``, it is considered as a Collection with siblings. They then behave similar to
-what we already know from Django Admin's StackedInlines or TabularInlines. The difference though
-is, that we can now use this feature outside of the Admin, and that we can nest Collections with
-siblings into each other.
+what we already know from Django's `InlineModelAdmin objects`_. The difference though is, that we
+can now use this feature outside of the Admin, and that we can nest Collections into each other
+recursively.
+
+.. _InlineModelAdmin objects: https://docs.djangoproject.com/en/4.0/ref/contrib/admin/#inlinemodeladmin-objects
+
+Whenever a Collection is declared to have siblings, its member forms are rendered from zero, once or
+multiple times. For each collection with siblings there is one "Add" button, and for each of the
+child forms/collections there is a "Remove" button. To avoid having too many "Remove" buttons, they
+become only visible when moving the cursor over that form/collection.
+
+The parameter ``min_siblings`` tells us how many forms/collections the parent collection shall must
+contain as minimum. If unset, it defaults to 1.
+
+The parameter ``max_siblings`` tells us how many forms/collections the parent collection may contain
+as maximum. If unset, there is no upper limit.
+
+The parameter ``extra_siblings`` tells us how many empty forms/collections the parent collection
+starts with. If unset, it defaults to 0, which means that the user explicitly must add it.
+
+Note that a Collection with siblings behaves differently, when deleting forms/collections which
+either were initialized, or were just added. In the former case such forms/collections are marked
+for deletion, while in the latter case they are removed immediatly. This is because for initialized
+forms/collections we have to keep a placeholder in order to tell the server how to change the
+underlying model.
