@@ -23,8 +23,17 @@ class FormRenderer(DefaultFormRenderer):
                     option['template_name'] = 'formset/foundation/widgets/inlined_input_option.html'
         return context
 
+    def _amend_collection(self, context):
+        context.update({
+            'add_collection_button': 'formset/foundation/buttons/add_collection.html',
+            'remove_collection_button': 'formset/foundation/buttons/remove_collection.html',
+            'css_classes': self.collection_css_classes,
+        })
+        return context
+
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
+        'formset/default/collection.html': _amend_collection,
     })
