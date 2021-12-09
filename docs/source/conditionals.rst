@@ -57,3 +57,13 @@ evaluated.
 Example Fieldset
 ----------------
 
+Conditionals can also be used on a Fieldset element. For example by using
+
+.. code-block:: python
+
+	class CustomerForm(Fieldset):
+	    legend = "Customer"
+	    hide_if = 'register.no_customer'
+
+we can use the value of another field, here ``register.no_customer`` to hide the whole fieldset if
+that value evaluates to true.

@@ -35,9 +35,11 @@ Setting up the Tests
 --------------------
 
 Since there is a lot of interaction between the browser and the server, the client is tested using
-[pytest](https://pytest-django.readthedocs.io/en/latest/) together with
-[Playwright](https://playwright.dev/python/docs/intro/) in order to run end-to-end tests. Playwright
-is a test-runner using a headless browser. It must be initialized using:
+pytest_ together with Playwright_ in order to run end-to-end tests. Playwright is a test-runner
+using a headless browser. It must be initialized using:
+
+.. _pytest: https://pytest-django.readthedocs.io/en/latest/
+.. _Playwright: https://playwright.dev/python/docs/intro/
 
 .. code-block:: shell
 

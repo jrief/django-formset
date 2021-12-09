@@ -14,8 +14,8 @@ independent.
 .. _Select2: https://select2.org/
 
 
-Usage with fix Number of Choices
---------------------------------
+Usage with fixed Number of Choices
+----------------------------------
 
 Assume, we have an address form defining a ChoiceField_ to choose from a city. If this number of
 cities exceeds say 25, we should consider to render the select box using the special widget
