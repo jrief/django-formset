@@ -48,6 +48,7 @@ def test_person_form_post():
     view = FormView.as_view(
         form_class=AddressForm,
         template_name='testapp/native-form.html',
+        success_url='/success',
     )
     formset_data = {'recipient': "Max Sampleman", 'postal_code': "ZIP123"}
     http_request = RequestFactory().post('/', data={'formset_data': formset_data}, content_type='application/json')
@@ -62,7 +63,7 @@ def test_person_form_post():
     response = view(http_request)
     assert response.status_code == 200
     body = json.loads(response.content)
-    assert body == {}  # no success URL given
+    assert body == {'success_url': '/success'}
 
 
 @pytest.mark.parametrize('initial', [{}, {'person': sample_person_data}])
