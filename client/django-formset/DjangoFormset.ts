@@ -1,10 +1,10 @@
-import { parse } from './tag-attributes';
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
 import zip from 'lodash.zip';
 import template from 'lodash.template';
 
 import { FileUploadWidget } from './FileUploadWidget';
+import { parse } from './tag-attributes';
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FieldValue = string | Array<string | Object>;
