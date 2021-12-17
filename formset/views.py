@@ -122,6 +122,7 @@ class FormViewMixin:
     def post(self, request, **kwargs):
         form = self.get_form()
         if form.is_valid():
+            self.form_valid(form)
             response_data = {'success_url': force_str(self.success_url)} if self.success_url else {}
             return JsonResponse(response_data)
         else:

@@ -1,5 +1,9 @@
 from django.core.exceptions import ValidationError
-from django.forms import fields, forms
+from django.forms import fields, forms, models, widgets
+
+from formset.widgets import Selectize
+
+from testapp.models import PersonModel
 
 
 class SimplePersonForm(forms.Form):
@@ -31,3 +35,13 @@ sample_person_data = {
     'first_name': "John",
     'last_name': "Doe",
 }
+
+
+class ModelPersonForm(models.ModelForm):
+    class Meta:
+        model = PersonModel
+        fields = '__all__'
+        widgets = {
+            'gender': widgets.RadioSelect,
+            'opinion': Selectize,
+        }

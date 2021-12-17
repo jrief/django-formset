@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import get_resolver, path, reverse_lazy
 from django.utils.module_loading import import_string
+from django.views.generic.edit import ModelFormMixin
 
 from formset.utils import FormMixin
 from formset.views import FormView, FormCollectionView
@@ -13,7 +14,7 @@ from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import SimpleContactCollection, ContactCollection, ContactCollectionList
 from testapp.forms.customer import CustomerCollection
 from testapp.forms.opinion import OpinionForm
-from testapp.forms.person import SimplePersonForm, sample_person_data
+from testapp.forms.person import SimplePersonForm, sample_person_data, ModelPersonForm
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.upload import UploadForm
 
@@ -65,6 +66,11 @@ class DemoFormView(DemoViewMixin, FormView):
         if self.mode != 'native':
             form_class = type(form_class.__name__, (FormMixin, form_class), {'default_renderer': renderer})
         return form_class
+
+
+class DemoModelFormView(ModelFormMixin, DemoFormView):
+    template_name = 'testapp/native-form.html'
+    object = None
 
 
 class DemoFormCollectionView(DemoViewMixin, FormCollectionView):
@@ -159,6 +165,9 @@ urlpatterns = [
     path('opinion', DemoFormView.as_view(
         form_class=OpinionForm,
     ), name='opinion'),
+    path('person', DemoModelFormView.as_view(
+        form_class=ModelPersonForm,
+    ), name='person'),
     path('questionnaire', DemoFormView.as_view(
         form_class=QuestionnaireForm,
     ), name='questionnaire'),

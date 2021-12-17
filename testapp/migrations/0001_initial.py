@@ -1,4 +1,6 @@
 from django.db import migrations, models
+import django.db.models.deletion
+
 
 def initialize_opinions(apps, schema_editor):
     OpinionModel = apps.get_model('testapp', 'OpinionModel')
@@ -16,13 +18,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='PayloadModel',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('data', models.JSONField()),
-            ],
-        ),
-        migrations.CreateModel(
             name='OpinionModel',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -32,6 +27,24 @@ class Migration(migrations.Migration):
             options={
                 'unique_together': {('tenant', 'label')},
             },
+        ),
+        migrations.CreateModel(
+            name='PayloadModel',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('data', models.JSONField()),
+            ],
+        ),
+        migrations.CreateModel(
+            name='PersonModel',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('full_name', models.CharField(max_length=50, verbose_name='Full Name')),
+                ('gender', models.CharField(choices=[('female', 'Female'), ('male', 'Male'), ('na', 'Not Applicable')], max_length=10, verbose_name='Gender')),
+                ('birth_date', models.DateField(verbose_name='Birth Date')),
+                ('continent', models.IntegerField(choices=[(1, 'America'), (2, 'Europe'), (3, 'Asia'), (4, 'Africa'), (5, 'Australia'), (6, 'Oceania'), (7, 'Antartica')], verbose_name='Continent')),
+                ('opinion', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='testapp.opinionmodel', verbose_name='Opinion')),
+            ],
         ),
         migrations.RunPython(initialize_opinions, reverse_code=migrations.RunPython.noop),
     ]
