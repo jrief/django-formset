@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.forms import fields, forms, models, widgets
 
-from formset.widgets import Selectize
+from formset.widgets import Selectize, UploadedFileInput
 
 from testapp.models import PersonModel
 
@@ -42,6 +42,7 @@ class ModelPersonForm(models.ModelForm):
         model = PersonModel
         fields = '__all__'
         widgets = {
+            'avatar': UploadedFileInput,
             'gender': widgets.RadioSelect,
             'opinion': Selectize,
         }

@@ -26,6 +26,10 @@ class PersonModel(models.Model):
         max_length=50,
     )
 
+    avatar = models.FileField(
+        upload_to='images',
+    )
+
     class Gender(models.TextChoices):
         Female = 'female'
         Male = 'male'
