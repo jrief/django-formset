@@ -1,5 +1,7 @@
 from django.core import validators
+from django.core.exceptions import ImproperlyConfigured
 from django.forms import boundfield
+from django.forms.fields import FileField
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
@@ -118,7 +120,19 @@ class BoundField(boundfield.BoundField):
                 validator_code = getattr(validator, 'code', None)
                 if validator_code == 'invalid':
                     client_messages['type_mismatch'] = validator.message
-        if getattr(self.field, 'max_length', None) is not None:
+        if isinstance(self.field, FileField):
+            if not isinstance(self.field.widget, UploadedFileInput):
+                raise ImproperlyConfigured(
+                    f"Field of type {self.field.__class__} must use widget inheriting from {UploadedFileInput}"
+                )
+            # abuse built-in client errors for failed file upload messages
+            data = {'max_length': self.field.max_length}
+            client_messages.update(
+                type_mismatch=_("File upload still in progress."),
+                bad_input=_("File upload failed."),
+                too_long=_("Ensure this filename has at most %(max_length)d characters.") % data,
+            )
+        elif getattr(self.field, 'max_length', None) is not None:
             data = {'max_length': self.field.max_length}
             max_length_message = _("Ensure this value has at most %(max_length)s characters.")
             client_messages['too_long'] = server_messages.get('max_length', max_length_message) % data
@@ -140,10 +154,4 @@ class BoundField(boundfield.BoundField):
             data = {'step_value': step_value}
             client_messages['step_mismatch'] = _("Input value must be a multiple of {step_value}.").format(**data)
         client_messages['bad_input'] = validators.ProhibitNullCharactersValidator.message
-        if isinstance(self.field.widget, UploadedFileInput):
-            # abuse built-in client errors for failed file upload messages
-            client_messages.update(
-                type_mismatch=_("File upload still in progress."),
-                bad_input=_("File upload failed."),
-            )
         return client_messages
