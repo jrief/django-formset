@@ -83,7 +83,7 @@ class UploadedFileInput(FileInput):
         signer = get_cookie_signer(salt='formset')
         if handle := next(iter(data.get(name, ())), None):
             upload_temp_name = signer.unsign(handle['upload_temp_name'])
-            file = open(default_storage.path(upload_temp_name))
+            file = open(default_storage.path(upload_temp_name), 'rb')
             file.seek(0, os.SEEK_END)
             size = file.tell()
             file.seek(0)
