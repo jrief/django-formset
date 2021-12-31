@@ -62,11 +62,11 @@ def test_render_file_field(native_soup):
     assert figures[0].figcaption is not None
     assert figures[0].figcaption.string == "Name:"
     assert figures[0].p is not None
-    assert figures[0].p.text is not "${name}"
+    assert figures[0].p.text != "${name}"
     assert figures[1].figcaption is not None
     assert figures[1].figcaption.string == "Content-Type (Size):"
     assert figures[1].p is not None
-    assert figures[1].p.text is not "${content_type} (${size})"
+    assert figures[1].p.text != "${content_type} (${size})"
 
 
 @pytest.mark.django_db
