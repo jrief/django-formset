@@ -1,9 +1,10 @@
-Welcome to ``<django-formset>``'s documentation!
-================================================
+Documentation of ``<django-formset>``
+=====================================
 
-Let the browser pre-validate one or more Django ``Form``-s using the special HTML element
-``<django-formset>``. This web component also collects data that can easily be processed and sent
-to a server's endpoint.
+**Building beautiful Forms in Django with a contemporary User eXperience has never been easier.**
+
+``<django-formset>`` is a web component to let the browser pre-validate one or more standard
+Django ``Form``-s.
 
 
 .. toctree::
