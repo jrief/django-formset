@@ -1,11 +1,13 @@
 from django.core import validators
 from django.core.exceptions import ImproperlyConfigured
+from django.db.models.fields.files import FieldFile
 from django.forms import boundfield
 from django.forms.fields import FileField
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 from formset.widgets import UploadedFileInput
+from formset.upload import get_file_info
 
 
 class CheckboxInputMixin:
@@ -96,6 +98,12 @@ class BoundField(boundfield.BoundField):
         elif auto_id:
             return self.html_name
         return ''
+
+    def value(self):
+        value = super().value()
+        if isinstance(value, FieldFile):
+            return get_file_info(value)
+        return value
 
     def _get_client_messages(self):
         """

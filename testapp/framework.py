@@ -17,6 +17,7 @@ from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import SimplePersonForm, sample_person_data, ModelPersonForm
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.upload import UploadForm
+from testapp.models import PersonModel
 
 
 def render_suburls(request):
@@ -167,6 +168,7 @@ urlpatterns = [
     ), name='opinion'),
     path('person', DemoModelFormView.as_view(
         form_class=ModelPersonForm,
+        # object=PersonModel.objects.last(),
     ), name='person'),
     path('questionnaire', DemoFormView.as_view(
         form_class=QuestionnaireForm,

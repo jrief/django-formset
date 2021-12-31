@@ -38,7 +38,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
 ]
 
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'testapp.urls'
 
 STATICFILES_DIRS = [
     ('node_modules', BASE_DIR / 'node_modules'),

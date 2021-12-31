@@ -240,12 +240,12 @@ class FieldGroup {
 	}
 
 	public resetToInitial() {
+		if (this.fileUploader) {
+			this.fileUploader.resetToInitial();
+		}
 		this.untouch();
 		this.setPristine();
 		this.resetCustomError();
-		if (this.fileUploader) {
-			return this.fileUploader.fileRemove();
-		}
 	}
 
 	public disableAllFields() {
@@ -262,7 +262,7 @@ class FieldGroup {
 		}
 	}
 
-	private touch() {
+	public touch() {
 		this.element.classList.remove('dj-untouched');
 		this.element.classList.remove('dj-validated');
 		this.element.classList.add('dj-touched');

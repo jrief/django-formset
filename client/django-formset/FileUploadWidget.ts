@@ -12,6 +12,7 @@ interface DjangoForm {
 interface FieldGroup {
 	form: DjangoForm;
 	element: HTMLElement;
+	touch(): void;
 	validate(): void;
 	reportFailedUpload(): void;
 	inputted(): void;
@@ -27,6 +28,7 @@ export class FileUploadWidget {
 	private readonly dropboxItemTemplate: Function;
 	private readonly defaultDropboxItem: HTMLLIElement;
 	private readonly observer: MutationObserver;
+	private readonly initialData: Array<Object>;
 	public uploadedFiles: Array<Object>;
 
 	constructor(fieldGroup: FieldGroup, inputElement: HTMLInputElement) {
@@ -58,37 +60,45 @@ export class FileUploadWidget {
 
 		const initialData = document.getElementById(`initial_${inputElement.id}`);
 		if (initialData?.textContent) {
-			this.uploadedFiles = [JSON.parse(initialData.textContent)];
+			this.uploadedFiles = this.initialData = [JSON.parse(initialData.textContent)];
 			this.renderDropbox();
 		} else {
-			this.uploadedFiles = [];
+			this.uploadedFiles = this.initialData = [];
 		}
 		this.dropbox.addEventListener('dragenter', this.swallowEvent);
 		this.dropbox.addEventListener('dragover', this.swallowEvent);
 		this.dropbox.addEventListener('drop', this.fileDrop);
 		this.chooseFileButton.addEventListener('click', () => inputElement.click());
 		inputElement.addEventListener('change', () => this.uploadFiles(this.inputElement.files).then(() => {
+			this.field.inputted();
 			this.field.validate();
 		}).catch(() => {
 			this.field.reportFailedUpload();
-		}));
+		}).finally(() => this.field.touch()));
 	}
 
 	private fileDrop = (event: DragEvent) => {
 		this.swallowEvent(event);
 		if (event.dataTransfer) {
+			this.field.touch();
 			this.inputElement.files = event.dataTransfer.files;
-			this.uploadFiles(this.inputElement.files).then(() => this.field.validate());
+			this.uploadFiles(this.inputElement.files).then(() => {
+				this.field.inputted();
+				this.field.validate();
+			});
 		}
 	}
 
-	public fileRemove = () => {
+	private fileRemove = () => {
 		this.inputElement.value = '';  // used to clear readonly `this.inputElement.files`
-		this.uploadedFiles = [];
+		this.uploadedFiles = this.initialData.length > 0 ? [{}] : [];
 		while (this.dropbox.firstChild) {
 			this.dropbox.removeChild(this.dropbox.firstChild);
 		}
 		this.dropbox.appendChild(this.defaultDropboxItem);
+		this.field.touch();
+		this.field.inputted();
+		this.field.validate();
 	}
 
 	private swallowEvent = (event: Event) => {
@@ -186,5 +196,10 @@ export class FileUploadWidget {
 
 	public inProgress(): boolean {
 		return !!this.inputElement.files && this.inputElement.files.length > this.uploadedFiles.length;
+	}
+
+	public resetToInitial() {
+		this.uploadedFiles = this.initialData;
+		this.renderDropbox();
 	}
 }

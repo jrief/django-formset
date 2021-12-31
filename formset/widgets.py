@@ -1,7 +1,9 @@
+from base64 import b16encode
 from functools import reduce
 import itertools
 from operator import or_
 import os
+import struct
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.uploadedfile import UploadedFile
@@ -11,6 +13,7 @@ from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
 from django.forms.widgets import FileInput, Select
 from django.utils.translation import gettext_lazy as _
+from django.utils.timezone import now, datetime, utc
 
 
 class Selectize(Select):
@@ -80,15 +83,22 @@ class UploadedFileInput(FileInput):
         return value
 
     def value_from_datadict(self, data, files, name):
+        epoch = datetime(2022, 1, 1, tzinfo=utc)
         signer = get_cookie_signer(salt='formset')
-        if handle := next(iter(data.get(name, ())), None):
+        handle = next(iter(data.get(name, ())), None)
+        if isinstance(handle, dict):
+            if 'upload_temp_name' not in handle:
+                return False
             upload_temp_name = signer.unsign(handle['upload_temp_name'])
             file = open(default_storage.path(upload_temp_name), 'rb')
             file.seek(0, os.SEEK_END)
             size = file.tell()
             file.seek(0)
+            # create pseudo unique prefix to avoid file name collisions
+            prefix = b16encode(struct.pack('f', (now() - epoch).total_seconds())).decode('utf-8')
+            filename = '.'.join((prefix, handle['name']))
             files[name] = UploadedFile(
-                file=file, name=handle['name'], size=size, content_type=handle['content_type'],
+                file=file, name=filename, size=size, content_type=handle['content_type'],
                 content_type_extra=handle['content_type_extra'],
             )
         return files.get(name)

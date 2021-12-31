@@ -32,7 +32,7 @@ def test_upload_image(page, mocker):
     file_picture = page.wait_for_selector('li.dj-file-picture')
     assert file_picture is not None
     img_src = file_picture.query_selector('img').get_attribute('src')
-    match = re.match(r'^/((media/upload_temp/python-django\.[a-z0-9_]+?)_154x128(.png))$', img_src)
+    match = re.match(r'^/((media/upload_temp/python-django\.[a-z0-9_]+?)_h128(.png))$', img_src)
     assert match is not None
     thumbnail_url = match.group(1)
     assert os.path.exists(thumbnail_url)  # the thumbnail

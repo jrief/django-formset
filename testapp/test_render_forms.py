@@ -44,7 +44,7 @@ def test_person_form_get():
     assert 'col-8' in field_group_elems[2].attrs['class']
 
 
-def test_person_form_post():
+def test_address_form_post():
     view = FormView.as_view(
         form_class=AddressForm,
         template_name='testapp/native-form.html',

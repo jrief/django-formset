@@ -23,12 +23,12 @@ def render_landing(request):
 urlpatterns = [
     path('', render_landing),
     path('success', lambda request: HttpResponse('<h1>Form data succesfully submitted</h1>'), name='form_data_valid'),
-    path('default/', include(('framework', 'default'))),
-    path('bootstrap/', include(('framework', 'bootstrap'))),
-    path('bulma/', include(('framework', 'bulma'))),
-    path('foundation/', include(('framework', 'foundation'))),
-    path('tailwind/', include(('framework', 'tailwind'))),
-    path('uikit/', include(('framework', 'uikit'))),
+    path('default/', include(('testapp.framework', 'default'))),
+    path('bootstrap/', include(('testapp.framework', 'bootstrap'))),
+    path('bulma/', include(('testapp.framework', 'bulma'))),
+    path('foundation/', include(('testapp.framework', 'foundation'))),
+    path('tailwind/', include(('testapp.framework', 'tailwind'))),
+    path('uikit/', include(('testapp.framework', 'uikit'))),
 ]
 urlpatterns.extend(static(
     settings.MEDIA_URL,

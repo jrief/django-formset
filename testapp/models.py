@@ -28,6 +28,7 @@ class PersonModel(models.Model):
 
     avatar = models.FileField(
         upload_to='images',
+        blank=True,
     )
 
     class Gender(models.TextChoices):
