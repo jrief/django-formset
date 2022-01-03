@@ -87,8 +87,10 @@ class UploadedFileInput(FileInput):
         signer = get_cookie_signer(salt='formset')
         handle = next(iter(data.get(name, ())), None)
         if isinstance(handle, dict):
+            if not handle:
+                return False  # marked as deleted
             if 'upload_temp_name' not in handle:
-                return False
+                return
             upload_temp_name = signer.unsign(handle['upload_temp_name'])
             file = open(default_storage.path(upload_temp_name), 'rb')
             file.seek(0, os.SEEK_END)
