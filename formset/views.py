@@ -54,7 +54,7 @@ class FormViewMixin:
 
     def get_field(self, path):
         field_name = path.split('.')[-1]
-        return self.form_class.declared_fields[field_name]
+        return self.form_class.base_fields[field_name]
 
 
 class FormView(SelectizeResponseMixin, FileUploadMixin, FormViewMixin, GenericFormView):

@@ -39,8 +39,38 @@ $select-color-dropdown: rgb(244, 244, 244);
 		}
 
 		> div {
-			flex: 1 1 auto;
+			flex: 0 1 auto;
 			box-sizing: border-box;
+		}
+	}
+
+	&.multi {
+		.ts-control {
+			> div {
+				border: 1px solid rgba(0, 0, 0, 0.15);
+				border-radius: 3px;
+				margin-right: 3px;
+				margin-bottom: 3px;
+
+				.remove {
+					text-decoration: none;
+					color: rgba(0, 0, 0, 0.15);
+					border-left: 1px solid rgba(0, 0, 0, 0.15);
+					padding-left: 2px;
+					margin-left: 2px;
+
+					&:hover {
+						color: inherit;
+					}
+				}
+
+				&.active {
+					background-color: rgba(0, 0, 0, 0.15);
+				}
+			}
+		}
+		&.full .ts-control > input {
+			visibility: hidden;
 		}
 	}
 
@@ -55,7 +85,7 @@ $select-color-dropdown: rgb(244, 244, 244);
 	// Hide input, while retaining its focus, and maintain layout so users can still click on the
 	// space to bring the display back.
 	// Setting `visibility: hidden;` can prevent the input from receiving focus.
-	&.input-hidden, &.full:not(.dirty) {
+	&.input-hidden, &.has-items:not(.dirty) {
 		.ts-control > input {
 			opacity: 0;
 			position: absolute;
@@ -63,7 +93,7 @@ $select-color-dropdown: rgb(244, 244, 244);
 		}
 	}
 
-	&.dirty.focus .ts-control .item {
+	&:not(.multi).dirty.focus .ts-control .item {
 		display: none;
 	}
 

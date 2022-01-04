@@ -1,6 +1,5 @@
 from base64 import b16encode
 from functools import reduce
-import itertools
 from operator import or_
 import os
 import struct
@@ -49,25 +48,56 @@ class Selectize(Select):
 
     def get_context(self, name, value, attrs):
         if isinstance(self.choices, ModelChoiceIterator):
+            self.optgroups = self._optgroups_model_choice
             if self.choices.queryset.count() > self.max_prefetch_choices:
                 attrs = dict(attrs, uncomplete=True)
-            # if first option is the "Select ..." element, replace it by the widget's placeholder
-            first_option = next(iter(self.choices))
-            if first_option and not isinstance(first_option[0], ModelChoiceIteratorValue):
-                self.choices = itertools.filterfalse(lambda c: c == first_option, self.choices)
-            self.choices = itertools.chain([('', self.placeholder)], self.choices)
-            self.optgroups = self.optgroups_limited
+        else:
+            self.optgroups = self._optgroups_static_choice
         context = super().get_context(name, value, attrs)
         options = context['widget'].pop('optgroups')
         context['widget']['options'] = options
         return context
 
-    def optgroups(self, name, value, attrs=None):
-        return [{'value': str(v), 'label': l, 'selected': str(v) in value} for v, l in self.choices]
+    def _optgroups_static_choice(self, name, values, attrs=None):
+        options = [{'value': '', 'label': self.placeholder}]
+        for val, label in self.choices:
+            val = str(val)
+            if val in values:
+                options.append({'value': val, 'label': label, 'selected': True})
+            else:
+                options.append({'value': val, 'label': label})
+        return options
 
-    def optgroups_limited(self, name, value, attrs=None):
-        choices = zip(self.choices, range(self.max_prefetch_choices))
-        return [{'value': str(v), 'label': l, 'selected': str(v) in value} for (v, l), _ in choices]
+    def _optgroups_model_choice(self, name, values, attrs=None):
+        options = [{'value': '', 'label': self.placeholder}]
+        values = set(values)
+        for counter, (val, label) in enumerate(self.choices):
+            if not isinstance(val, ModelChoiceIteratorValue):
+                continue
+            val = str(val)
+            if val in values:
+                options.append({'value': val, 'label': label, 'selected': True})
+                values.remove(val)
+            elif counter < self.max_prefetch_choices:
+                options.append({'value': val, 'label': label})
+            elif not values:
+                break
+        return options
+
+
+class SelectizeMultiple(Selectize):
+    allow_multiple_selected = True
+    max_items = 5
+
+    def __init__(self, max_items=None, **kwargs):
+        super().__init__(**kwargs)
+        if max_items:
+            self.max_items = max_items
+
+    def build_attrs(self, base_attrs, extra_attrs):
+        attrs = super().build_attrs(base_attrs, extra_attrs)
+        attrs['max_items'] = self.max_items
+        return attrs
 
 
 class UploadedFileInput(FileInput):

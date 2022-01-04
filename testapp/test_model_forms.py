@@ -120,12 +120,14 @@ def update_view():
 
 @pytest.mark.django_db
 def test_modify_person(create_view, update_view):
+    opinions = OpinionModel.objects.order_by('?').values_list('id', flat=True)
     form_data = {
         'full_name': "John Doe",
         'avatar': '',  # Django test client doesn't support this
         'gender': 'male',
         'birth_date': '1981-12-28',
-        'opinion': '1',
+        'opinion': opinions[0],
+        'opinions': opinions[10:15],
         'continent': '2',
     }
     request = RequestFactory().post('/default/person', form_data)
@@ -137,13 +139,18 @@ def test_modify_person(create_view, update_view):
     assert person.full_name == "John Doe"
     assert person.gender == 'male'
     assert person.birth_date == datetime(1981, 12, 28).date()
-    assert person.opinion == OpinionModel.objects.get(pk=1)
+    assert person.opinion.id == form_data['opinion']
+    assert person.opinions.filter(id__in=list(form_data['opinions'])).count() == 5
+    assert person.opinions.exclude(id__in=list(form_data['opinions'])).count() == 0
     assert person.continent == 2
 
     form_data.update({
         'full_name': "Jane Doe",
         'gender': 'female',
         'birth_date': '1984-03-15',
+        'opinion': opinions[100],
+        'opinions': opinions[190:201],
+        'continent': '1',
     })
     request = RequestFactory().post('/default/person', form_data)
     response = update_view(request, pk=person.pk)
@@ -154,8 +161,10 @@ def test_modify_person(create_view, update_view):
     assert person.full_name == "Jane Doe"
     assert person.gender == 'female'
     assert person.birth_date == datetime(1984, 3, 15).date()
-    assert person.opinion == OpinionModel.objects.get(pk=1)
-    assert person.continent == 2
+    assert person.opinion.id == form_data['opinion']
+    assert person.opinions.filter(id__in=list(form_data['opinions'])).count() == 11
+    assert person.opinions.exclude(id__in=list(form_data['opinions'])).count() == 0
+    assert person.continent == 1
 
     request = RequestFactory().get('/default/person')
     response = update_view(request, pk=person.pk)
@@ -166,5 +175,13 @@ def test_modify_person(create_view, update_view):
     assert django_formset is not None
     input_field = django_formset.find(id='id_full_name')
     assert input_field.attrs['value'] == "Jane Doe"
+    select_option = django_formset.find(id='id_opinion').find('option', {'selected': True})
+    assert select_option.attrs['value'] == str(form_data['opinion'])
+    script_options = json.loads(django_formset.find(id='id_opinions_initial').contents[0])
+    script_options = list(map(int, script_options))
+    script_options.sort()
+    form_options = list(form_data['opinions'])
+    form_options.sort()
+    assert script_options == form_options
     select_option = django_formset.find(id='id_continent').find('option', {'selected': True})
-    assert select_option.attrs['value'] == '2'
+    assert select_option.attrs['value'] == '1'

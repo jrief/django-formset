@@ -6,7 +6,7 @@ from django.forms import Field, Form, fields, models
 from django.urls import path
 
 from formset.views import FormView
-from formset.widgets import Selectize
+from formset.widgets import Selectize, SelectizeMultiple
 
 from testapp.models import OpinionModel
 
@@ -28,10 +28,8 @@ def get_initial_opinion():
     return OpinionModel.objects.filter(tenant=1)[8]
 
 
-@pytest.fixture
-@pytest.mark.django_db
-def initial_opinion():
-    yield get_initial_opinion()
+def get_initial_opinions():
+    return OpinionModel.objects.filter(tenant=1)[48:52]
 
 
 test_fields = dict(
@@ -62,6 +60,17 @@ test_fields = dict(
         widget=Selectize,
         required=True,
     ),
+    multi_selection=models.ModelMultipleChoiceField(
+        queryset=OpinionModel.objects.filter(tenant=1),
+        widget=SelectizeMultiple(search_lookup='label__icontains', placeholder="Select any"),
+        required=True,
+    ),
+    multi_selection_initialized=models.ModelMultipleChoiceField(
+        queryset=OpinionModel.objects.filter(tenant=1),
+        widget=SelectizeMultiple(search_lookup='label__icontains', placeholder="Select any"),
+        required=False,
+        initial=get_initial_opinions,
+    ),
 )
 
 views = {
@@ -88,7 +97,7 @@ def form(view):
 @pytest.mark.parametrize('viewname', views.keys())
 def test_form_validated(page, form):
     assert page.query_selector('django-formset form') is not None
-    if form.name == 'selection_required':
+    if form.name in ['selection_required', 'static_selection', 'multi_selection']:
         assert page.query_selector('django-formset form:valid') is None
         assert page.query_selector('django-formset form:invalid') is not None
     else:
@@ -98,21 +107,21 @@ def test_form_validated(page, form):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', views.keys())
-def test_initial_value(page, form, initial_opinion):
+def test_initial_value(page, form):
     select_element = page.query_selector('django-formset select[is="django-selectize"]')
     assert select_element is not None
-    value = select_element.evaluate('elem => elem.value')
+    value = select_element.evaluate('elem => elem.getValue()')
     if form.name in ['selection_initialized', 'selection_required_initialized']:
-        assert value == str(initial_opinion.id)
-    elif form.name == 'static_selection':
-        assert value == str(next(iter(form.fields['model_choice'].choices))[0])
+        assert value == str(get_initial_opinion().id)
+    elif form.name in ['multi_selection_initialized']:
+        assert set(value) == set(str(k) for k in get_initial_opinions().values_list('id', flat=True))
     else:
-        assert value == ''
+        assert not value
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
-def test_changing_value(page, form, initial_opinion):
+def test_changing_value(page, form):
     input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
     assert input_element is not None
     assert input_element.is_visible()
@@ -130,6 +139,7 @@ def test_changing_value(page, form, initial_opinion):
     assert page.query_selector('django-formset form:invalid') is not None
     pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(9)')
     assert pseudo_option.is_visible()
+    initial_opinion = get_initial_opinion()
     assert pseudo_option.get_attribute('data-value') == str(initial_opinion.id)
     assert pseudo_option.inner_text() == initial_opinion.label
     pseudo_option.click()
@@ -152,6 +162,52 @@ def test_changing_value(page, form, initial_opinion):
     assert page.query_selector('django-formset form:invalid') is not None
     value = select_element.evaluate('elem => elem.value')
     assert value == ''
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['selectize5'])
+def test_add_multiple(page, form):
+    input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-multiple"]')
+    assert input_element is not None
+    assert input_element.is_visible()
+    assert input_element.get_attribute('placeholder') == 'Select any'
+    assert input_element.evaluate('elem => elem.value') == ''
+    field_group_element = page.query_selector('django-formset django-field-group')
+    assert field_group_element is not None
+    assert 'dj-pristine' in field_group_element.get_attribute('class')
+    assert 'dj-untouched' in field_group_element.get_attribute('class')
+    assert 'dj-dirty' not in field_group_element.get_attribute('class')
+    dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-dropdown.multi')
+    assert dropdown_element is not None
+    assert dropdown_element.is_hidden()
+    input_element.click()
+    assert dropdown_element.is_visible()
+    selected_ids = []
+    pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(3)')
+    selected_ids.append(pseudo_option.get_attribute('data-value'))
+    pseudo_option.click()
+    pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(3)')
+    pseudo_option.click()
+    selected_ids.append(pseudo_option.get_attribute('data-value'))
+    pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(3)')
+    pseudo_option.click()
+    selected_ids.append(pseudo_option.get_attribute('data-value'))
+    assert dropdown_element.is_visible()
+    input_element.evaluate('elem => elem.blur()')
+    assert dropdown_element.is_hidden()
+    selected_item_elements = page.query_selector_all('django-formset .shadow-wrapper .ts-wrapper .ts-control div.item')
+    assert len(selected_item_elements) == 3
+    assert selected_item_elements[1].get_attribute('data-value') == selected_ids[1]
+    remove_selected_item_element = page.query_selector(f'django-formset .shadow-wrapper .ts-wrapper .ts-control div[data-value="{selected_ids[1]}"].item .remove')
+    assert remove_selected_item_element is not None
+    remove_selected_item_element.click()
+    selected_ids.pop(1)
+    selected_item_elements = page.query_selector_all('django-formset .shadow-wrapper .ts-wrapper .ts-control div.item')
+    assert len(selected_item_elements) == 2
+    select_element = page.query_selector('django-formset select[is="django-selectize"]')
+    assert select_element is not None
+    value = select_element.evaluate('elem => elem.getValue()')
+    assert value == selected_ids
 
 
 @pytest.mark.urls(__name__)
@@ -184,7 +240,7 @@ def test_submit_missing(page, view, form):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
-def test_submit_value(page, mocker, view, form, initial_opinion):
+def test_submit_value(page, mocker, view, form):
     input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
     assert input_element is not None
     input_element.click()
@@ -196,7 +252,7 @@ def test_submit_value(page, mocker, view, form, initial_opinion):
     spy = mocker.spy(view.view_class, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
-    assert request['formset_data']['model_choice'] == str(initial_opinion.id)
+    assert request['formset_data']['model_choice'] == str(get_initial_opinion().id)
     assert spy.spy_return.status_code == 200
     response = json.loads(spy.spy_return.content)
     assert response['success_url'] == view.view_class.success_url
@@ -204,7 +260,7 @@ def test_submit_value(page, mocker, view, form, initial_opinion):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
-def test_submit_invalid(page, mocker, view, form, initial_opinion):
+def test_submit_invalid(page, mocker, view, form):
     input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
     assert input_element is not None
     input_element.click()
@@ -213,6 +269,7 @@ def test_submit_invalid(page, mocker, view, form, initial_opinion):
     pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(9)')
     assert pseudo_option is not None
     pseudo_option.click()
+    initial_opinion = get_initial_opinion()
     initial_opinion.tenant = 2  # this makes the selected option invalid
     initial_opinion.save(update_fields=['tenant'])
     spy = mocker.spy(view.view_class, 'post')
@@ -237,7 +294,7 @@ def test_reset_formset(page, view, form):
     initial_value = select_element.evaluate('elem => elem.getValue()')
     input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
     assert input_element.is_visible()
-    if form.name == 'selection':
+    if form.name in ['selection', 'static_selection']:
         input_element.click()
         dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-dropdown.single')
         assert dropdown_element.is_visible()

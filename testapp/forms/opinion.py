@@ -1,6 +1,6 @@
 from django.forms import fields, forms, models, widgets
 
-from formset.widgets import Selectize
+from formset.widgets import Selectize, SelectizeMultiple
 
 from testapp.models import OpinionModel
 
@@ -25,8 +25,14 @@ class OpinionForm(forms.Form):
     dynamic_opinion = models.ModelChoiceField(
         label="Dynamic Opinion",
         queryset=OpinionModel.objects.filter(tenant=1),
-        widget=Selectize(search_lookup='label__icontains', placeholder="Select my opinion"),
+        widget=Selectize(search_lookup='label__icontains', placeholder="Select opinion dynamically"),
         required=True,
+    )
+
+    multiple_opinions = models.ModelMultipleChoiceField(
+        label="Multiple Opinions",
+        queryset=OpinionModel.objects.filter(tenant=1),
+        widget=SelectizeMultiple(search_lookup='label__icontains', placeholder="Select any opinion", max_items=15),
     )
 
     annotation = fields.CharField(

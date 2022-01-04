@@ -7,8 +7,15 @@
 	{% endfor %}
 </select>
 {% endblock %}
+{% if widget.attrs.multiple %}{% with script_id=widget.attrs.id|add:"_initial" %}
+{{ widget.value|json_script:script_id }}
+{% endwith %}{% endif %}
 {% block "selectize-no-results" %}
 <template class="selectize-no-results">
 	<div class="no-results">{% trans "No results found for '${input}'" %}</div>
 </template>
-{% endblock %}{% endspaceless %}
+{% endblock %}
+{% block "selectize-remove-item" %}
+<template class="selectize-remove-item">{% trans "Remove item" %}</template>
+{% endblock %}
+{% endspaceless %}

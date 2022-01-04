@@ -1,9 +1,12 @@
 import TomSelect from 'tom-select/src/tom-select';
 import { TomSettings } from 'tom-select/src/types/settings';
 import { TomInput } from 'tom-select/src/types';
+import TomSelect_remove_button from 'tom-select/src/plugins/remove_button/plugin';
+import { escape_html } from 'tom-select/src/utils';
 import template from 'lodash.template';
 import styles from 'sass:./DjangoSelectize.scss';
-import { escape_html } from "tom-select/src/utils";
+
+TomSelect.define('remove_button', TomSelect_remove_button);
 
 type Renderer = {
 	[key:string]: (data:any, escape:typeof escape_html) => string | HTMLElement;
@@ -32,27 +35,40 @@ class DjangoSelectize {
 			create: false,
 			valueField: 'id',
 			labelField: 'label',
+			maxItems: 1,
 			searchField: ['label'],
 			render: this.setupRender(tomInput),
 			onBlur: () => this.blurred(),
 			onType: (evt: Event) => this.inputted(evt),
 		};
-		if (!tomInput.getAttribute('multiple')) {
-			config.maxItems = 1;
+		let isMultiple = false;
+		if (tomInput.hasAttribute('multiple')) {
+			config.maxItems = parseInt(tomInput.getAttribute('max_items') ?? '3');
+			const translation = tomInput.parentElement?.querySelector('template.selectize-remove-item');
+			if (translation) {
+				config.plugins = {remove_button: {title: translation.innerHTML}};
+			}
+			// tom-select has some issues to initialize items using the original input element
+			const scriptId = `${tomInput.getAttribute('id')}_initial`;
+			config.items = JSON.parse(document.getElementById(scriptId)?.textContent ?? '[]');
+
+			// We want to use the CSS styles for <select> without multiple
+			tomInput.removeAttribute('multiple');
+			isMultiple = true;
+		}
+		const nativeStyles = {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
+		if (isMultiple) {
+			// revert the above
+			tomInput.setAttribute('multiple', 'multiple');
 		}
 		if (tomInput.hasAttribute('uncomplete')) {
 			// select fields marked as "uncomplete" will fetch additional data from their backend
-			const formName = form.getAttribute('name') || '__default__';
-			this.endpoint = formset.getAttribute('endpoint') || '';
+			const formName = form.getAttribute('name') ?? '__default__';
+			this.endpoint = formset.getAttribute('endpoint') ?? '';
 			this.fieldName = `${formName}.${tomInput.getAttribute('name')}`;
 			config.load = (query: string, callback: Function) => this.loadOptions(query, callback);
 		}
-		const numOptions = tomInput.getAttribute('options');
-		if (numOptions) {
-			this.numOptions = parseInt(numOptions);
-		}
-		const nativeStyles = {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
-
+		this.numOptions = parseInt(tomInput.getAttribute('options') ?? this.numOptions.toString());
 		this.tomSelect = new TomSelect(tomInput, config);
 		this.observer = new MutationObserver(mutationsList => this.attributesChanged(mutationsList));
 		this.observer.observe(this.tomInput, {attributes: true});
@@ -92,15 +108,23 @@ class DjangoSelectize {
 		wrapper?.classList.toggle('dirty', value.length > 0);
 	}
 
-	private validateInput(value: String) {
+	private validateInput(value: String | Array<string>) {
 		const wrapper = this.shadowRoot.querySelector('.ts-wrapper');
 		wrapper?.classList.remove('dirty');
+		const selectElem = this.tomInput as HTMLSelectElement;
 		if (this.tomSelect.isRequired) {
-			(this.tomInput as HTMLSelectElement).setCustomValidity(value ? "": "Value is missing.");
+			selectElem.setCustomValidity(value ? "": "Value is missing.");
 		}
-		const inputElem = this.shadowRoot.querySelector('.ts-wrapper .ts-control');
-		inputElem?.classList.toggle('invalid', !this.tomInput.checkValidity());
-		this.tomInput.value = value as string;
+		if (selectElem.multiple) {
+			for (let k = 0; k < selectElem.options.length; k++) {
+				const option = selectElem.options.item(k);
+				if (option) {
+					option.selected = value.indexOf(option.value) >= 0;
+				}
+			}
+		} else {
+			this.tomInput.value = value as string;
+		}
 	}
 
 	private transferStyles(tomInput: HTMLElement, nativeStyles: CSSStyleDeclaration) {
@@ -122,13 +146,13 @@ class DjangoSelectize {
 				case '.ts-wrapper .ts-control':
 					extraStyles = this.extractStyles(tomInput, [
 						'background-color', 'border', 'border-radius', 'box-shadow', 'color',
-						'padding']).concat(`width: ${nativeStyles['width']}; height: ${nativeStyles['height']};`);
+						'padding']).concat(`width: ${nativeStyles['width']}; min-height: ${nativeStyles['height']};`);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case '.ts-wrapper .ts-control > input':
 				case '.ts-wrapper .ts-control > div':
 					if (optionElement) {
-						extraStyles = this.extractStyles(optionElement, ['padding-left']);
+						extraStyles = this.extractStyles(optionElement, ['padding-left', 'padding-right']);
 						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					}
 					break;
@@ -185,11 +209,9 @@ class DjangoSelectize {
 
 	private setupRender(tomInput: TomInput): Renderer {
 		const templ = tomInput.parentElement?.querySelector('template.selectize-no-results');
-		if (!templ)
-			return {};
-		return {
+		return templ ? {
 			no_results: (data: any, escape: Function) => template(templ.innerHTML)(data),
-		};
+		} : {};
 	}
 
 	private async loadOptions(query: string, callback: Function) {
