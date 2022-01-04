@@ -15,7 +15,7 @@
 		<figcaption>{% trans 'Content-Type (Size)' %}:</figcaption>
 		<p>${content_type} (${size})</p>
 	</figure>
-	<a class="dj-delete-file button alert tiny">{% trans "Delete" %}</a>
-	<a class="dj-download-file button tiny" href="${download_url}" download="${name}">{% trans "Download" %}</a>
+	<a class="dj-delete-file button alert tiny" style="margin-bottom:0;">{% trans "Delete" %}</a>
+	<a class="dj-download-file button tiny" href="${download_url}" download="${name}" style="margin-bottom:0;">{% trans "Download" %}</a>
 </li>
 {% endblock %}
