@@ -45,7 +45,7 @@ asynchronous file uploads, simply by replacing the widget.
 Remember, the Django View accepting the form data, must inherit from
 :class:`formset.views.FileUploadMixin`. No extra endpoint is required to activate this feature.
 
-.. image:: _static/upload-bootstrap.gif
+.. image:: _static/bootstrap-upload.gif
   :width: 760
   :alt: File Upload
 

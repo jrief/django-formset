@@ -7,7 +7,7 @@ Rendering choice fields using a ``<select>``-element becomes quite impractical w
 many options to select from. For this purpose, the Django admin backend offers so called
 `auto complete fields`_, which loads a filtered set options from the server as soon as the user
 starts typing into the input field. This widget is based on the Select2_ plugin, which itself
-depends upon jQuery, and hence it is not suitable for **django-formset**, which aims to be Framework
+depends upon jQuery, and hence it is not suitable for **django-formset** which aims to be framework
 independent.
 
 .. _auto complete fields: https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.autocomplete_fields
@@ -32,14 +32,14 @@ cities exceeds say 25, we should consider to render the select box using the spe
 	    # other fields
 
 	    city = fields.ChoiceField(
-	        choice=[(1, "London"), (2, "New York"), (3, "Tokyo"), (4, "Sidney"), (5, "Vienna")]
+	        choice=[(1, "London"), (2, "New York"), (3, "Tokyo"), (4, "Sidney"), (5, "Vienna")],
 	        widget=Selectize,
 	    )
 
 This widget waits for the user to type some characters into the input field for city. If the entered
 string matches the name of one or more cities (event partially), then a list of options is generated
 containing the matching cities. By adding more characters to the input field, that list will shrink
-to only a few or event no entry. This makes the selection simple and comfortable.
+to only a few or eventually no entry. This makes the selection simple and comfortable.
 
 
 Usage with dynamic Number of Choices
@@ -106,3 +106,65 @@ JavaScript library compiled out of TypeScript.
 
 .. _Tom-Select: https://tom-select.js.org/
 .. _Selectize.js: https://selectize.dev/
+
+
+The SelectizeMultiple Widget
+============================
+
+If the form field for ``city`` is shall accept more than one selection, in Django we replace it by a
+:class:`django.forms.fields.MultipleChoiceField`. The widget then used to handle such an input field
+also must be replaced. **django-formset** offers the special widget
+:class:`formset.widgets.SelectizeMultiple` to handle more than one option to select from. From a
+functional point of view it behaves similar to the Selectize widget described before. But instead
+of replacing a choosen option by another one, selected options are lined up to build a set of
+options.
+
+.. image:: _static/selectize-multiple.png
+  :width: 760
+  :alt: SelectizeMultiple widget
+
+By default a ``SelectizeMultiple`` widget accepts 5 different options. This limit can be adjusted by
+parametrizing it using ``max_items``.
+
+
+Handling ForeignKey and ManyToManyField
+=======================================  
+
+If we create a Form out of a Django Model, we explicitly have to tell it to either use the
+``Selectize`` or the ``SelectizeMultiple`` widget. Say that we have an address model using 
+a foreign key to existing cities
+
+.. code-block:: python
+
+	from django.db import models
+
+	class AddressModel(models.Model):
+	    # other fields
+	
+	    city = models.ForeignKey(
+	        CityModel,
+	        verbose_name="City",
+	        on_delete=models.CASCADE,
+	    )
+
+then when creating the corresponding Django Form, we must specify our special widget:
+
+.. code-block:: python
+
+	from django.forms import models
+	from formset.widgets import Selectize
+
+	class AddressForm(models.ModelForm):
+	    class Meta:
+	        model = AddressModel
+	        fields = '__all__'
+	        widgets = {
+	            # other fields
+	            'city': Selectize(search_lookup='label__icontains'),
+	        }
+
+The parameter ``search_lookup`` is used to build the search query, if the number of cities
+exceeds 50 in model ``AddressModel``.
+
+If we replace the ``ForeignKey`` for our city field against a ``ManyToManyField``, then we also have
+to replace the ``Selectize`` widget against ``SelectizeMultiple``.
