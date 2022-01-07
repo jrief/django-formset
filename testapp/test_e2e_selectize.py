@@ -211,6 +211,28 @@ def test_add_multiple(page, form):
 
 
 @pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['selectize6'])
+def test_change_multiple(page, form):
+    formset_element = page.query_selector('django-formset')
+    select_element = page.query_selector('django-formset select[is="django-selectize"]')
+    assert select_element is not None
+    value = select_element.evaluate('elem => elem.getValue()')
+    assert len(value) == 4
+    assert set(value) == set(str(i) for i in get_initial_opinions().values_list('id', flat=True))
+    field_group_element = page.query_selector('django-formset django-field-group')
+    assert field_group_element is not None
+    assert 'dj-pristine' in field_group_element.get_attribute('class')
+    assert 'dj-untouched' in field_group_element.get_attribute('class')
+    assert 'dj-dirty' not in field_group_element.get_attribute('class')
+    remove_selected_item_element = formset_element.query_selector(f'.shadow-wrapper .ts-wrapper .ts-control div[data-value="{value[1]}"].item .remove')
+    assert remove_selected_item_element is not None
+    remove_selected_item_element.click()
+    item_elements = formset_element.query_selector_all(f'.shadow-wrapper .ts-wrapper .ts-control div.item')
+    assert len(item_elements) == 3
+    assert 'dj-dirty' in field_group_element.get_attribute('class')
+
+
+@pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_lookup_value(page, mocker, form):
     input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
