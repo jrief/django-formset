@@ -1,5 +1,13 @@
 ## Changes
 
+- 0.7
+  * Add widget `SelectizeMultiple` which accepts multiple values and is the form field counterpart
+    to Django's `ManyToManyField`.
+  * Bugfix in UploadWidget: Do not delete existing file on form update.
+
+- 0.6
+  * Content from `FileUploadWidget` can be transfered to a Django model and vice versa.
+
 - 0.4
   * It is possible to control every aspect of the feedback, given to the user while he fills the
     input fields.
