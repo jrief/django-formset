@@ -46,11 +46,11 @@ $select-color-dropdown: rgb(244, 244, 244);
 
 	&.multi {
 		.ts-control {
+			padding: 0 6px 3px 10px;
 			> div {
 				border: 1px solid rgba(0, 0, 0, 0.15);
 				border-radius: 3px;
-				margin-right: 3px;
-				margin-bottom: 3px;
+				margin: 3px 3px 0 0;
 
 				.remove {
 					text-decoration: none;
