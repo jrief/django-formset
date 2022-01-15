@@ -19,7 +19,7 @@ class NativeFormView(FormView):
 @pytest.fixture(scope='function')
 def django_db_setup(django_db_blocker):
     with django_db_blocker.unblock():
-        for counter in range(1, 100):
+        for counter in range(1, 200):
             label = f"Opinion {counter}"
             OpinionModel.objects.update_or_create(tenant=1, label=label)
 
@@ -239,13 +239,15 @@ def test_lookup_value(page, mocker, form):
     assert input_element is not None
     input_element.click()
     spy = mocker.spy(FormView, 'get')
-    page.keyboard.press('9')
+    page.keyboard.press('1')
+    page.keyboard.press('5')
     page.keyboard.press('9')
     sleep(1)  # because TomSelect delays the lookup
+    assert spy.called is True
     assert spy.spy_return.status_code == 200
     content = json.loads(spy.spy_return.content)
     assert content['count'] == 1
-    assert content['items'][0]['label'] == "Opinion 99"
+    assert content['items'][0]['label'] == "Opinion 159"
     dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-dropdown.single')
     pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(1)')
     assert pseudo_option is not None
