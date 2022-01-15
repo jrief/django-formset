@@ -1,6 +1,6 @@
 from django.forms import fields, forms, models, widgets
 
-from formset.widgets import Selectize, SelectizeMultiple
+from formset.widgets import Selectize, DualSelector, SelectizeMultiple
 
 from testapp.models import OpinionModel
 
@@ -29,10 +29,17 @@ class OpinionForm(forms.Form):
         required=True,
     )
 
-    multiple_opinions = models.ModelMultipleChoiceField(
-        label="Multiple Opinions",
+    few_opinions = models.ModelMultipleChoiceField(
+        label="Few Opinions",
         queryset=OpinionModel.objects.filter(tenant=1),
         widget=SelectizeMultiple(search_lookup='label__icontains', placeholder="Select any opinion", max_items=15),
+        #widget=DualSelector(search_lookup='label__icontains'),
+    )
+
+    many_opinions = models.ModelMultipleChoiceField(
+        label="Many Opinions",
+        queryset=OpinionModel.objects.filter(tenant=1),
+        widget=DualSelector(search_lookup='label__icontains'),
     )
 
     annotation = fields.CharField(

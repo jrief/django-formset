@@ -73,16 +73,9 @@ class FieldGroup {
 		this.errorPlaceholder = element.querySelector('.dj-errorlist > .dj-placeholder');
 		this.errorMessages = new ErrorMessages(this);
 		const requiredAny = element.classList.contains('dj-required-any');
-		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(e => e.type !== 'hidden');
+		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(e => e.name && e.type !== 'hidden');
 		for (const element of inputElements) {
-			if (element.getAttribute('is') === 'django-selectize') {
-				element.addEventListener('focus', () => this.touch());
-				element.addEventListener('change', () => {
-					this.setDirty();
-					this.resetCustomError();
-					this.validate()
-				});
-			} else switch (element.type) {
+			switch (element.type) {
 				case 'checkbox':
 				case 'radio':
 					element.addEventListener('input', () => {
@@ -103,7 +96,7 @@ class FieldGroup {
 					break;
 			}
 		}
-		const selectElements = Array.from(element.getElementsByTagName('SELECT')) as Array<HTMLSelectElement>;
+		const selectElements = (Array.from(element.getElementsByTagName('SELECT')) as Array<HTMLSelectElement>).filter(e => e.name);
 		for (const element of selectElements) {
 			element.addEventListener('focus', () => this.touch());
 			element.addEventListener('change', () => {

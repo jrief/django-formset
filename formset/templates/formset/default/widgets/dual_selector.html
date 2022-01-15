@@ -1,0 +1,47 @@
+{% load i18n %}
+{% spaceless %}
+<select is="django-dual-selector" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %} hidden>
+	{% for option in widget.options %}
+	<option value="{{ option.value|stringformat:'s' }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>
+	{% endfor %}
+</select>
+{% block "select-no-results" %}
+<template class="select-no-results">{% trans "No results found for '${input}'" %}</template>
+{% endblock %}
+<div class="row">
+	<div class="col-5">
+		<input type="text" class="dj-exempt-feedback form-control" placeholder="{% translate 'Search …' %}" />
+		<select multiple class="dj-exempt-feedback form-select" size="8"></select>
+	</div>
+	<div class="col-2 d-flex align-items-center justify-content-center">
+		<div class="btn-group-vertical">
+			<button type="button" class="btn btn-outline-secondary btn-sm dj-move-all-right">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-double-right" viewBox="0 0 16 16">
+					<path fill-rule="evenodd" d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8 3.646 2.354a.5.5 0 0 1 0-.708z"/>
+					<path fill-rule="evenodd" d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8 7.646 2.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</button>
+			<button type="button" class="btn btn-outline-secondary btn-sm dj-move-selected-right">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+					<path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</button>
+			<button type="button" class="btn btn-outline-secondary btn-sm dj-move-selected-left">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+					<path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+				</svg>
+			</button>
+			<button type="button" class="btn btn-outline-secondary btn-sm dj-move-all-left">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-double-left" viewBox="0 0 16 16">
+					<path fill-rule="evenodd" d="M8.354 1.646a.5.5 0 0 1 0 .708L2.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+					<path fill-rule="evenodd" d="M12.354 1.646a.5.5 0 0 1 0 .708L6.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+				</svg>
+			</button>
+		</div>
+	</div>
+	<div class="col-5">
+		<input type="text" class="dj-exempt-feedback form-control" placeholder="{% translate 'Search …' %}" />
+		<select multiple class="dj-exempt-feedback form-select" size="8"></select>
+	</div>
+</div>
+{% endspaceless %}

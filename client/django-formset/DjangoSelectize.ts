@@ -3,6 +3,7 @@ import { TomSettings } from 'tom-select/src/types/settings';
 import { TomInput } from 'tom-select/src/types';
 import TomSelect_remove_button from 'tom-select/src/plugins/remove_button/plugin';
 import { escape_html } from 'tom-select/src/utils';
+import { IncompleteSelect } from './IncompleteSelect';
 import template from 'lodash.template';
 import styles from 'sass:./DjangoSelectize.scss';
 
@@ -12,9 +13,7 @@ type Renderer = {
 	[key:string]: (data:any, escape:typeof escape_html) => string | HTMLElement;
 }
 
-class DjangoSelectize {
-	private readonly endpoint?: string;
-	private readonly fieldName?: string;
+class DjangoSelectize extends IncompleteSelect {
 	private readonly numOptions: number = 12;
 	private readonly tomInput: TomInput;
 	private readonly tomSelect: TomSelect;
@@ -23,13 +22,9 @@ class DjangoSelectize {
 	private readonly initialValue: string | string[];
 
 	constructor(tomInput: TomInput) {
+		super(tomInput);
 		const pseudoStylesElement = this.convertPseudoClasses();
 		this.tomInput = tomInput;
-		const fieldGroup = tomInput.closest('django-field-group');
-		const form = tomInput.closest('form');
-		const formset = tomInput.closest('django-formset');
-		if (!fieldGroup || !form || !formset)
-			throw new Error("Attempt to initialize <django-selectize> outside <django-formset>")
 		// @ts-ignore
 		const config: TomSettings = {
 			create: false,
@@ -41,6 +36,9 @@ class DjangoSelectize {
 			onBlur: () => this.blurred(),
 			onType: (evt: Event) => this.inputted(evt),
 		};
+		if (this.isIncomplete) {
+			config.load = (query: string, callback: Function) => this.loadOptions(`query=${encodeURIComponent(query)}`, callback);
+		}
 		let isMultiple = false;
 		if (tomInput.hasAttribute('multiple')) {
 			config.maxItems = parseInt(tomInput.getAttribute('max_items') ?? '3');
@@ -61,13 +59,6 @@ class DjangoSelectize {
 			// revert the above
 			tomInput.setAttribute('multiple', 'multiple');
 		}
-		if (tomInput.hasAttribute('uncomplete')) {
-			// select fields marked as "uncomplete" will fetch additional data from their backend
-			const formName = form.getAttribute('name') ?? '__default__';
-			this.endpoint = formset.getAttribute('endpoint') ?? '';
-			this.fieldName = `${formName}.${tomInput.getAttribute('name')}`;
-			config.load = (query: string, callback: Function) => this.loadOptions(query, callback);
-		}
 		this.numOptions = parseInt(tomInput.getAttribute('options') ?? this.numOptions.toString());
 		this.tomSelect = new TomSelect(tomInput, config);
 		this.observer = new MutationObserver(mutationsList => this.attributesChanged(mutationsList));
@@ -76,12 +67,11 @@ class DjangoSelectize {
 		this.shadowRoot = this.wrapInShadowRoot();
 		this.transferStyles(tomInput, nativeStyles);
 		this.validateInput(this.initialValue as string);
-		form.onreset = (event: Event) => this.formResetted(event);
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
 		pseudoStylesElement.remove();
 	}
 
-	private formResetted(event: Event) {
+	formResetted(event: Event) {
 		this.tomSelect.setValue(this.initialValue);
 	}
 
@@ -207,41 +197,11 @@ class DjangoSelectize {
 		return styles.join('; ').concat('; ');
 	}
 
-	private setupRender(tomInput: TomInput): Renderer {
-		const templ = tomInput.parentElement?.querySelector('template.selectize-no-results');
+	private setupRender(tomInput: TomInput) : Renderer {
+		const templ = tomInput.parentElement?.querySelector('template.select-no-results');
 		return templ ? {
 			no_results: (data: any, escape: Function) => template(templ.innerHTML)(data),
 		} : {};
-	}
-
-	private async loadOptions(query: string, callback: Function) {
-		const headers = new Headers();
-		headers.append('Accept', 'application/json');
-		const csrfToken = this.CSRFToken;
-		if (csrfToken) {
-			headers.append('X-CSRFToken', csrfToken);
-		}
-		const url = `${this.endpoint}?field=${this.fieldName}&query=${encodeURIComponent(query)}`;
-		const response = await fetch(url, {
-			method: 'GET',
-			headers: headers,
-		});
-		if (response.status === 200) {
-			response.json().then(data => {
-				callback(data.items);
-			});
-		} else {
-			console.error(`Failed to fetch from ${url}`);
-		}
-	}
-
-	private get CSRFToken(): string | undefined {
-		const value = `; ${document.cookie}`;
-		const parts = value.split('; csrftoken=');
-
-		if (parts.length === 2) {
-			return parts[1].split(';').shift();
-		}
 	}
 
 	private convertPseudoClasses() : HTMLStyleElement {

@@ -6,13 +6,14 @@ from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
 from django.views.generic.edit import FormView as GenericFormView
 
 from formset.upload import FileUploadMixin
-from formset.widgets import Selectize
+from formset.widgets import Selectize, DualSelector
 
 
-class SelectizeResponseMixin:
+class IncompleSelectResponseMixin:
     def get(self, request, **kwargs):
-        if request.accepts('application/json') and 'field' in request.GET and 'query' in request.GET:
-            return self._fetch_options(request)
+        if request.accepts('application/json') and 'field' in request.GET:
+            if 'query' in request.GET or 'offset' in request.GET:
+                return self._fetch_options(request)
         return super().get(request, **kwargs)
 
     def _fetch_options(self, request):
@@ -21,17 +22,20 @@ class SelectizeResponseMixin:
             field = self.get_field(field_path)
         except KeyError:
             return HttpResponseBadRequest(f"No such field: {field_path}")
-        assert isinstance(field.widget, Selectize)
-        query = request.GET.get('query')
-        filtered_qs = field.widget.search(query).order_by('-id')[:field.widget.max_prefetch_choices]
+        assert isinstance(field.widget, (Selectize, DualSelector))
+        if query := request.GET.get('query'):
+            data = {'query': query}
+            queryset = field.widget.search(query)
+        else:
+            data = {}
+            queryset = field.widget.limited_choices(request.GET.get('offset'))
         to_field_name = field.to_field_name if field.to_field_name else 'pk'
-        items = [{'id': getattr(item, to_field_name), 'label': str(item)} for item in filtered_qs]
-        data = {
-            'query': query,
-            'count': filtered_qs.count(),
-            'total_count': field.widget.choices.queryset.count(),
-            'items': items,
-        }
+        items = [{'id': getattr(item, to_field_name), 'label': str(item)} for item in queryset]
+        data.update(
+            count=queryset.count(),
+            total_count=field.widget.choices.queryset.count(),
+            items=items,
+        )
         return JsonResponse(data)
 
 
@@ -57,7 +61,7 @@ class FormViewMixin:
         return self.form_class.base_fields[field_name]
 
 
-class FormView(SelectizeResponseMixin, FileUploadMixin, FormViewMixin, GenericFormView):
+class FormView(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin, GenericFormView):
     """
     FormView class used as controller for handling a single Django Form. The purpose of this View
     is to render the provided Form, when invoked as a standard GET-request using the provided Django
@@ -132,5 +136,5 @@ class FormCollectionViewMixin(ContextMixin):
         return self.initial.copy()
 
 
-class FormCollectionView(SelectizeResponseMixin, FileUploadMixin, FormCollectionViewMixin, TemplateResponseMixin, View):
+class FormCollectionView(IncompleSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, TemplateResponseMixin, View):
     pass

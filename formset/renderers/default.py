@@ -39,12 +39,6 @@ class FormRenderer(DjangoTemplates):
         )
         return context
 
-    def _amend_fieldset(self, context):
-        context.update(
-            css_classes=self.fieldset_css_classes,
-        )
-        return context
-
     def _amend_label(self, context, hide_checkbox_label=False):
         if self.label_css_classes:
             if not isinstance(context['attrs'], dict):
@@ -69,6 +63,12 @@ class FormRenderer(DjangoTemplates):
                 break
             max_options = max(max_options, len(options))
         context['widget']['inlined_options'] = max_options <= self.max_options_per_line
+        return context
+
+    def _amend_fieldset(self, context):
+        context.update(
+            css_classes=self.fieldset_css_classes,
+        )
         return context
 
     def _amend_collection(self, context):

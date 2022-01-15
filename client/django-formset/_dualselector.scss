@@ -1,0 +1,15 @@
+@mixin DualSelector {
+
+	.dj-dual-selector {
+		input {
+			border-color: inherit !important;
+		}
+		select option {
+
+
+			&:checked {
+				background-color: purple;
+			}
+		}
+	}
+}
