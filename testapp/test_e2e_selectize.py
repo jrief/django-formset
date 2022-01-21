@@ -74,10 +74,10 @@ test_fields = dict(
 )
 
 views = {
-    f'selectize{ctr}': NativeFormView.as_view(
-        form_class=type(f'{tpl[0]}_form', (Form,), {'name': tpl[0], 'model_choice': tpl[1]}),
+    f'selectize{counter}': NativeFormView.as_view(
+        form_class=type(f'{name}_form', (Form,), {'name': name, 'model_choice': field}),
     )
-    for ctr, tpl in enumerate(test_fields.items())
+    for counter, (name, field) in enumerate(test_fields.items())
 }
 
 urlpatterns = [path(name, view, name=name) for name, view in views.items()]

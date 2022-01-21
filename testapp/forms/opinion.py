@@ -18,8 +18,8 @@ class OpinionForm(forms.Form):
 
     static_opinion = fields.ChoiceField(
         label="Static Opinion",
-        choices=lambda: OpinionModel.objects.filter(tenant=1).values_list('id', 'label')[:500],
-        widget = Selectize,
+        choices=lambda: OpinionModel.objects.filter(tenant=1).values_list('id', 'label')[:99],
+        widget=Selectize,
     )
 
     dynamic_opinion = models.ModelChoiceField(
@@ -33,7 +33,6 @@ class OpinionForm(forms.Form):
         label="Few Opinions",
         queryset=OpinionModel.objects.filter(tenant=1),
         widget=SelectizeMultiple(search_lookup='label__icontains', placeholder="Select any opinion", max_items=15),
-        #widget=DualSelector(search_lookup='label__icontains'),
     )
 
     many_opinions = models.ModelMultipleChoiceField(

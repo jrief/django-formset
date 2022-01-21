@@ -2,7 +2,7 @@
 export abstract class IncompleteSelect {
 	private readonly endpoint?: string;
 	private readonly fieldName?: string;
-	protected readonly isIncomplete: boolean;
+	protected isIncomplete: boolean;
 	protected readonly fieldGroup: Element;
 
 	constructor(element: HTMLElement) {
@@ -19,10 +19,13 @@ export abstract class IncompleteSelect {
 			this.endpoint = formset.getAttribute('endpoint') ?? '';
 			this.fieldName = `${formName}.${element.getAttribute('name')}`;
 		}
-		form.onreset = (event: Event) => this.formResetted(event);
+		form.addEventListener('reset', (event: Event) => this.formResetted(event));
+		form.addEventListener('submit', (event: Event) => this.formSubmitted(event));
 	}
 
 	abstract formResetted(event: Event) : void;
+
+	abstract formSubmitted(event: Event) : void;
 
 	protected get CSRFToken(): string | undefined {
 		const value = `; ${document.cookie}`;
@@ -47,6 +50,9 @@ export abstract class IncompleteSelect {
 		});
 		if (response.status === 200) {
 			response.json().then(data => {
+				if (typeof data.incomplete === 'boolean') {
+					this.isIncomplete = data.incomplete;
+				}
 				callback(data.items);
 			});
 		} else {

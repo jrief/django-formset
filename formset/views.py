@@ -26,14 +26,16 @@ class IncompleSelectResponseMixin:
         if query := request.GET.get('query'):
             data = {'query': query}
             queryset = field.widget.search(query)
+            incomplete = None  # incomplete state unknown
         else:
             data = {}
-            queryset = field.widget.limited_choices(request.GET.get('offset'))
+            queryset, incomplete = field.widget.limited_choices(request.GET.get('offset'))
         to_field_name = field.to_field_name if field.to_field_name else 'pk'
         items = [{'id': getattr(item, to_field_name), 'label': str(item)} for item in queryset]
         data.update(
             count=queryset.count(),
             total_count=field.widget.choices.queryset.count(),
+            incomplete=incomplete,
             items=items,
         )
         return JsonResponse(data)

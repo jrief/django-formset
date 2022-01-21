@@ -32,7 +32,9 @@ class IncompleteSelectMixin:
             offset = int(offset)
         except TypeError:
             offset = 0
-        return self.choices.queryset.all()[offset:offset + self.max_prefetch_choices]
+        queryset = self.choices.queryset
+        incomplete = queryset.all()[offset:].count() > self.max_prefetch_choices
+        return queryset.all()[offset:offset + self.max_prefetch_choices], incomplete
 
     def get_context(self, name, value, attrs):
         if isinstance(self.choices, ModelChoiceIterator):
@@ -59,7 +61,8 @@ class IncompleteSelectMixin:
     def _optgroups_model_choice(self, name, values, attrs=None):
         options = []
         values = set(values)
-        for counter, (val, label) in enumerate(self.choices):
+        counter = 0
+        for val, label in self.choices:
             if not isinstance(val, ModelChoiceIteratorValue):
                 continue
             val = str(val)
@@ -70,6 +73,7 @@ class IncompleteSelectMixin:
                 options.append({'value': val, 'label': label})
             elif not values:
                 break
+            counter += 1
         return options
 
 

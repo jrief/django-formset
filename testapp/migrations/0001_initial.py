@@ -4,7 +4,7 @@ import django.db.models.deletion
 
 def initialize_opinions(apps, schema_editor):
     OpinionModel = apps.get_model('testapp', 'OpinionModel')
-    for counter in range(999):
+    for counter in range(1000):
         label = f"Opinion {counter + 100}"
         OpinionModel.objects.create(tenant=1, label=label)
 

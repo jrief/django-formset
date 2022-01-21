@@ -1,15 +1,24 @@
 @mixin DualSelector {
-
 	.dj-dual-selector {
-		input {
-			border-color: inherit !important;
+		display: flex;
+
+		.left-column, .right-column, .control-column, .control-panel {
+			display: flex;
+			flex-direction: column;
 		}
-		select option {
-
-
-			&:checked {
-				background-color: purple;
-			}
+		.control-column {
+			justify-content: center;
+			align-items: center;
+		}
+		.control-panel {
+			padding: 1rem 0.5rem;
+		}
+		select {
+			height: 100%;
+			width: 10rem;
+		}
+		button svg {
+			vertical-align: middle;
 		}
 	}
 }

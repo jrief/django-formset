@@ -1312,7 +1312,7 @@ export class DjangoFormset {
 		return Object.assign({}, body, {_extra: extraData});
 	}
 
-	public async submit(extraData?: Object): Promise<Response | undefined> {
+	async submit(extraData?: Object): Promise<Response | undefined> {
 		let formsAreValid = true;
 		this.setSubmitted();
 		if (!this.forceSubmission) {
@@ -1336,17 +1336,27 @@ export class DjangoFormset {
 				body: JSON.stringify(this.buildBody(extraData)),
 				signal: this.abortController.signal,
 			});
-			if (response.status === 422) {
-				const body = await response.json();
-				for (const form of this.forms) {
-					const errors = form.name ? getDataValue(body, form.name.split('.'), null) : body;
-					if (errors) {
-						form.reportCustomErrors(new Map(Object.entries(errors)));
-						form.reportValidity();
-					} else {
-						form.resetCustomError();
+			switch (response.status) {
+				case 200:
+					for (const form of this.forms) {
+						form.element.dispatchEvent(new Event('submit'));
 					}
-				}
+					break;
+				case 422:
+					const body = await response.json();
+					for (const form of this.forms) {
+						const errors = form.name ? getDataValue(body, form.name.split('.'), null) : body;
+						if (errors) {
+							form.reportCustomErrors(new Map(Object.entries(errors)));
+							form.reportValidity();
+						} else {
+							form.resetCustomError();
+						}
+					}
+					break;
+				default:
+					console.warn(`Unknown response status: ${response.status}`);
+					break;
 			}
 			return response;
 		} else {

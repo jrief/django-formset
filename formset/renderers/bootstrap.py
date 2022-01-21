@@ -28,6 +28,19 @@ class FormRenderer(DefaultFormRenderer):
         context['widget']['attrs']['class'] = 'form-select'
         return context
 
+    def _amend_dual_selector(self, context):
+        context.update(
+            wrapper_classes='row',
+            column_left_classes='col-5',
+            column_center_classes='col-2 d-flex align-items-center justify-content-center',
+            column_right_classes='col-5',
+            select_classes='form-select',
+            lookup_field_classes='form-control',
+            control_panel_classes='btn-group-vertical flex-fill px-4',
+            button_classes='btn btn-outline-secondary btn-sm',
+        )
+        return context
+
     def _amend_file(self, context):
         return context  # intentionally noop
 
@@ -64,5 +77,6 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/radio.html': _amend_multiple_input,
         'formset/default/widgets/file.html': _amend_file,
         'formset/default/widgets/selectize.html': _amend_select,
+        'formset/default/widgets/dual_selector.html': _amend_dual_selector,
         'formset/default/collection.html': _amend_collection,
     })
