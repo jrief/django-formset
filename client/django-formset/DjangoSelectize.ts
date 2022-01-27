@@ -34,6 +34,7 @@ class DjangoSelectize extends IncompleteSelect {
 			searchField: ['label'],
 			render: this.setupRender(tomInput),
 			onBlur: () => this.blurred(),
+			onChange: () => this.changed(),
 			onType: (evt: Event) => this.inputted(evt),
 		};
 		if (this.isIncomplete) {
@@ -92,6 +93,13 @@ class DjangoSelectize extends IncompleteSelect {
 	private blurred() {
 		const wrapper = this.shadowRoot.querySelector('.ts-wrapper');
 		wrapper?.classList.remove('dirty');
+	}
+
+	private changed() {
+		this.tomSelect.setTextboxValue('');
+		if (this.tomSelect.dropdown_content.childElementCount <= 1) {
+			this.tomSelect.close();
+		}
 	}
 
 	private inputted(event: Event) {

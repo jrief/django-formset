@@ -2,6 +2,8 @@
 // Changes in here do not affect HTML elements outside of this realm.
 $select-color-highlight: rgba(255, 237, 40, 0.4);
 $select-color-dropdown: rgb(244, 244, 244);
+$selected-items-border-color: rgba(0, 0, 0, 0.15);
+$active-items-background-color: rgba(0, 0, 0, 0.05);
 
 .ts-wrapper {
 	position: relative;
@@ -24,6 +26,7 @@ $select-color-dropdown: rgb(244, 244, 244);
 			font-weight: inherit;
 			font-style: inherit;
 			font-family: inherit;
+			caret-color: $selected-items-border-color;
 
 			&::placeholder {
 				opacity: 1;
@@ -48,14 +51,14 @@ $select-color-dropdown: rgb(244, 244, 244);
 		.ts-control {
 			padding: 0 6px 3px 10px;
 			> div {
-				border: 1px solid rgba(0, 0, 0, 0.15);
+				border: 1px solid $selected-items-border-color;
 				border-radius: 3px;
 				margin: 3px 3px 0 0;
 
 				.remove {
 					text-decoration: none;
-					color: rgba(0, 0, 0, 0.15);
-					border-left: 1px solid rgba(0, 0, 0, 0.15);
+					color: $selected-items-border-color;
+					border-left: 1px solid $selected-items-border-color;
 					padding-left: 2px;
 					margin-left: 2px;
 
@@ -65,12 +68,19 @@ $select-color-dropdown: rgb(244, 244, 244);
 				}
 
 				&.active {
-					background-color: rgba(0, 0, 0, 0.15);
+					background-color: $active-items-background-color;
 				}
 			}
 		}
 		&.full .ts-control > input {
 			visibility: hidden;
+		}
+		&.has-items:not(.dirty) {
+			.ts-control > input {
+				&::placeholder {
+					opacity: 0;
+				}
+			}
 		}
 	}
 
@@ -85,7 +95,7 @@ $select-color-dropdown: rgb(244, 244, 244);
 	// Hide input, while retaining its focus, and maintain layout so users can still click on the
 	// space to bring the display back.
 	// Setting `visibility: hidden;` can prevent the input from receiving focus.
-	&.input-hidden, &.has-items:not(.dirty) {
+	&.input-hidden {
 		.ts-control > input {
 			opacity: 0;
 			position: absolute;
