@@ -13,9 +13,10 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox.html': 'formset/bulma/widgets/checkbox.html',
         'django/forms/widgets/radio.html': 'formset/bulma/widgets/multiple_input.html',
         'django/forms/widgets/select.html': 'formset/bulma/widgets/select.html',
+        'django/forms/widgets/checkbox_select.html': 'formset/bulma/widgets/multiple_input.html',
         'formset/default/widgets/selectize.html': 'formset/bulma/widgets/select.html',
         'formset/default/widgets/file.html': 'formset/bulma/widgets/file.html',
-        'django/forms/widgets/checkbox_select.html': 'formset/bulma/widgets/multiple_input.html',
+        'formset/default/widgets/dual_selector.html': 'formset/bulma/widgets/dual_selector.html',
     })
 
     def _amend_input(self, context):

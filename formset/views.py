@@ -23,17 +23,23 @@ class IncompleSelectResponseMixin:
         except KeyError:
             return HttpResponseBadRequest(f"No such field: {field_path}")
         assert isinstance(field.widget, (Selectize, DualSelector))
+        try:
+            offset = int(request.GET.get('offset'))
+        except TypeError:
+            offset = 0
         if query := request.GET.get('query'):
             data = {'query': query}
             queryset = field.widget.search(query)
             incomplete = None  # incomplete state unknown
         else:
             data = {}
-            queryset, incomplete = field.widget.limited_choices(request.GET.get('offset'))
+            queryset = field.widget.choices.queryset
+            incomplete = queryset.count() - offset > field.widget.max_prefetch_choices
+        limited_qs = queryset[offset:offset + field.widget.max_prefetch_choices]
         to_field_name = field.to_field_name if field.to_field_name else 'pk'
-        items = [{'id': getattr(item, to_field_name), 'label': str(item)} for item in queryset]
+        items = [{'id': getattr(item, to_field_name), 'label': str(item)} for item in limited_qs]
         data.update(
-            count=queryset.count(),
+            count=len(items),
             total_count=field.widget.choices.queryset.count(),
             incomplete=incomplete,
             items=items,

@@ -1,6 +1,5 @@
 import pytest
 import json
-from time import sleep
 
 from django.forms import Field, Form, models
 from django.urls import path
@@ -19,8 +18,8 @@ class NativeFormView(FormView):
 @pytest.fixture(scope='function')
 def django_db_setup(django_db_blocker):
     with django_db_blocker.unblock():
-        for counter in range(1, 250):
-            label = f"Opinion {counter}"
+        for counter in range(1, 1000):
+            label = f"Opinion {counter:04}"
             OpinionModel.objects.update_or_create(tenant=1, label=label)
 
 
@@ -39,7 +38,7 @@ test_fields = dict(
         required=False,
     ),
     selector_complete=models.ModelChoiceField(
-        queryset=OpinionModel.objects.filter(tenant=1)[:50],
+        queryset=OpinionModel.objects.filter(tenant=1)[:100],
         widget=DualSelector(search_lookup='label__icontains'),
     ),
     selector_required=models.ModelChoiceField(
@@ -139,3 +138,67 @@ def test_move_all_right(page, mocker, form):
             assert len(selector_element.query_selector_all('option')) < content['total_count']
         else:
             assert len(selector_element.query_selector_all('option')) == content['total_count']
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['selector0', 'selector3'])
+def test_move_selected_right(page, mocker, form):
+    select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
+    assert select_left_element is not None
+    left_option_values = set()
+    for option in select_left_element.query_selector_all('option')[30:39]:
+        left_option_values.add(option.get_attribute('value'))
+        option.click(modifiers=['Shift'])
+    select_right_element = page.query_selector('django-formset .dj-dual-selector .right-column select')
+    assert select_right_element is not None
+    if form.name == 'selector_initialized':
+        assert len(select_right_element.query_selector_all('option')) == len(get_initial_opinions())
+        left_option_values.update(o.get_attribute('value') for o in select_right_element.query_selector_all('option'))
+    else:
+        assert len(select_right_element.query_selector_all('option')) == 0
+    button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-move-selected-right')
+    assert button is not None
+    button.click()
+    right_option_values = set(o.get_attribute('value') for o in select_right_element.query_selector_all('option'))
+    assert left_option_values == right_option_values
+    option = select_right_element.query_selector_all('option')[5]
+    option.click()
+    button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-move-selected-left')
+    assert button is not None
+    button.click()
+    left_option_values = set(o.get_attribute('value') for o in select_left_element.query_selector_all('option'))
+    right_option_values = set(o.get_attribute('value') for o in select_right_element.query_selector_all('option'))
+    assert option.get_attribute('value') in left_option_values
+    assert option.get_attribute('value') not in right_option_values
+    spy = mocker.spy(FormView, 'post')
+    page.wait_for_selector('django-formset > p button').click()
+    assert spy.called is True
+    request = json.loads(spy.call_args.args[1].body)
+    assert set(request['formset_data']['model_choice']) == right_option_values
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['selector0'])
+def test_infinite_scroll(page, mocker, form):
+    selector_element = page.query_selector('django-formset select[is="django-dual-selector"]')
+    select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
+    assert select_left_element is not None
+    left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option')]
+    assert len(left_option_values) == DualSelector.max_prefetch_choices
+    select_left_element.focus()
+    spy = mocker.spy(FormView, 'get')
+    select_left_element.select_option(left_option_values[DualSelector.max_prefetch_choices - 2])
+    assert spy.called is False
+    assert len(select_left_element.query_selector_all('option')) == DualSelector.max_prefetch_choices
+    page.keyboard.press('ArrowDown')
+    assert spy.called is True
+    field_name = selector_element.get_attribute('name')
+    params = spy.call_args.args[1].GET
+    assert params['field'] == f'__default__.{field_name}'
+    assert int(params['offset']) == DualSelector.max_prefetch_choices
+    assert len(select_left_element.query_selector_all('option')) == 2 * DualSelector.max_prefetch_choices
+    response = json.loads(spy.spy_return.content)
+    assert response['count'] == DualSelector.max_prefetch_choices
+    assert response['incomplete'] is True
+    assert isinstance(response['items'], list)
+    assert len(response['items']) == response['count']

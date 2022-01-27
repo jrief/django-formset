@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load translate from i18n %}
 {% spaceless %}
 <select is="django-dual-selector" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %} hidden>
 	{% for option in widget.options %}
@@ -6,17 +6,20 @@
 	{% endfor %}
 </select>
 {% block "select-no-results" %}
-<template class="select-no-results">{% trans "No results found for '${input}'" %}</template>
+<template class="select-no-results">{% translate "No results found for '${input}'" %}</template>
 {% endblock %}
+{% block "select-extra-styles" %}{% endblock %}
 {% with select_size=widget.attrs.size|default:8 %}
-<div class="{{ wrapper_classes }}">
-	<div class="{{ column_left_classes }}">
-		<input type="text" class="dj-exempt-feedback {{ lookup_field_classes }}" placeholder="{% translate 'Search …' %}" />
-		<select multiple class="dj-exempt-feedback {{ select_classes }}" size="{{ select_size }}"></select>
+<div class="{% block "wrapper_classes" %}dj-dual-selector{% endblock %}">
+{% block "left-column" %}
+	<div class="{% block "column_left_classes" %}left-column{% endblock %}">
+		<input type="text" class="dj-exempt-feedback{% if lookup_field_classes %} {{ lookup_field_classes }}{% endif %}" placeholder="{% translate 'Search …' %}" />
+		<select multiple class="dj-exempt-feedback{% if select_classes %} {{ select_classes }}{% endif %}" size="{{ select_size }}"></select>
 	</div>
+{% endblock %}
 {% block "control-panel" %}
-	<div class="{{ column_center_classes }}">
-		<div class="{{ control_panel_classes }}">
+	<div class="control-column">
+		<div class="control-panel">
 			{% include "formset/default/buttons/move_all_right.html" %}
 			{% include "formset/default/buttons/move_selected_right.html" %}
 			{% include "formset/default/buttons/move_selected_left.html" %}
@@ -26,10 +29,12 @@
 		</div>
 	</div>
 {% endblock %}
-	<div class="{{ column_right_classes }}">
-		<input type="text" class="dj-exempt-feedback {{ lookup_field_classes }}" placeholder="{% translate 'Search …' %}" />
-		<select multiple class="dj-exempt-feedback {{ select_classes }}" size="{{ select_size }}"></select>
+{% block "right-column" %}
+	<div class="{% block "column_right_classes" %}right-column{% endblock %}">
+		<input type="text" class="dj-exempt-feedback{% if lookup_field_classes %} {{ lookup_field_classes }}{% endif %}" placeholder="{% translate 'Search …' %}" />
+		<select multiple class="dj-exempt-feedback{% if select_classes %} {{ select_classes }}{% endif %}" size="{{ select_size }}"></select>
 	</div>
+{% endblock %}
 </div>
 {% endwith %}
 {% endspaceless %}

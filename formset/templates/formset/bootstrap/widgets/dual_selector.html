@@ -1,0 +1,39 @@
+{% extends "formset/default/widgets/dual_selector.html" %}
+
+{% block "wrapper_classes" %}row{% endblock %}
+{% block "column_left_classes" %}col-sm-5{% endblock %}
+{% block "select-extra-styles" %}
+<style>
+	@media (max-width: 575.98px) {
+		.dj-move-all-right svg {
+			transform: rotate(90deg);
+		}
+		.dj-move-selected-right svg {
+			transform: rotate(90deg);
+		}
+		.dj-move-all-left svg {
+			transform: rotate(90deg);
+		}
+		.dj-move-selected-left svg {
+			transform: rotate(90deg);
+		}
+	}
+</style>
+{% endblock %}
+{% block "control-panel" %}
+<div class="col-sm-2 d-flex align-items-center justify-content-center">
+	<div class="btn-group-vertical flex-fill px-4 py-2">
+	{% with button_classes="btn btn-outline-secondary btn-sm" %}
+		{% include "formset/default/buttons/move_all_right.html" %}
+		{% include "formset/default/buttons/move_selected_right.html" %}
+		{% include "formset/default/buttons/move_selected_left.html" %}
+		{% include "formset/default/buttons/move_all_left.html" %}
+		{% include "formset/default/buttons/undo_selected.html" %}
+		{% include "formset/default/buttons/redo_selected.html" %}
+	{% endwith %}
+	</div>
+</div>
+{% endblock %}
+{% block "column_right_classes" %}col-sm-5{% endblock %}
+
+

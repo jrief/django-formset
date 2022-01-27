@@ -7,11 +7,15 @@ class DualSelector extends IncompleteSelect {
 	private readonly searchRightInput?: HTMLInputElement;
 	private readonly selectLeftElement: HTMLSelectElement;
 	private readonly selectRightElement: HTMLSelectElement;
+	private readonly moveAllRightButton: HTMLButtonElement;
+	private readonly moveSelectedRightButton: HTMLButtonElement;
+	private readonly moveAllLeftButton: HTMLButtonElement;
+	private readonly moveSelectedLeftButton: HTMLButtonElement;
 	private readonly undoButton?: HTMLButtonElement;
 	private readonly redoButton?: HTMLButtonElement;
-	private loadingMore = false;
 	private historicalValues: string[][] = [];
 	private historyCursor: number = 0;
+	private lastRemoteQuery?: string;
 	private readonly renderNoResults: Function;
 
 	constructor(selectorElement: HTMLSelectElement) {
@@ -33,17 +37,26 @@ class DualSelector extends IncompleteSelect {
 		this.selectLeftElement.addEventListener('scroll', evt => this.selectLeftScrolled());
 		this.selectRightElement = selectors[1] as HTMLSelectElement;
 		this.selectRightElement.addEventListener('dblclick', evt => this.moveOptionLeft(evt.target));
-		this.fieldGroup.querySelector('button.dj-move-all-right')?.addEventListener('click', evt => this.moveAllOptionsRight());
-		this.fieldGroup.querySelector('button.dj-move-selected-right')?.addEventListener('click', evt => this.moveSelectedOptionsRight());
-		this.fieldGroup.querySelector('button.dj-move-selected-left')?.addEventListener('click', evt => this.moveSelectedOptionsLeft());
-		this.fieldGroup.querySelector('button.dj-move-all-left')?.addEventListener('click', evt => this.moveAllOptionsLeft());
-		this.undoButton = this.fieldGroup.querySelector('button.dj-undo-selected') as HTMLButtonElement ?? null;
-		this.undoButton?.addEventListener('click', evt => this.unOrRedo(-1));
-		this.redoButton = this.fieldGroup.querySelector('button.dj-redo-selected') as HTMLButtonElement ?? null;
-		this.redoButton?.addEventListener('click', evt => this.unOrRedo(+1));
+		this.moveAllRightButton = this.fieldGroup.querySelector('button.dj-move-all-right') as HTMLButtonElement;
+		this.moveSelectedRightButton = this.fieldGroup.querySelector('button.dj-move-selected-right') as HTMLButtonElement;
+		this.moveSelectedLeftButton = this.fieldGroup.querySelector('button.dj-move-selected-left') as HTMLButtonElement;
+		this.moveAllLeftButton = this.fieldGroup.querySelector('button.dj-move-all-left') as HTMLButtonElement;
+		this.undoButton = this.fieldGroup.querySelector('button.dj-undo-selected') as HTMLButtonElement;
+		this.redoButton = this.fieldGroup.querySelector('button.dj-redo-selected') as HTMLButtonElement;
 		const templ = selectorElement.parentElement?.querySelector('template.select-no-results');
 		this.renderNoResults = (data: any) => templ ? template(templ.innerHTML)(data) : "No results";
+		this.installEventHandlers();
 		this.initialize();
+		this.setButtonsState();
+	}
+
+	private installEventHandlers() {
+		this.moveAllRightButton?.addEventListener('click', evt => this.moveAllOptionsRight());
+		this.moveSelectedRightButton?.addEventListener('click', evt => this.moveSelectedOptionsRight());
+		this.moveSelectedLeftButton?.addEventListener('click', evt => this.moveSelectedOptionsLeft());
+		this.moveAllLeftButton?.addEventListener('click', evt => this.moveAllOptionsLeft());
+		this.undoButton?.addEventListener('click', evt => this.unOrRedo(-1));
+		this.redoButton?.addEventListener('click', evt => this.unOrRedo(+1));
 	}
 
 	private getOptions(selectElement: HTMLSelectElement) : Array<HTMLOptionElement> {
@@ -90,19 +103,31 @@ class DualSelector extends IncompleteSelect {
 		}
 	}
 
-	private selectLeftScrolled() {
-		if (!this.isIncomplete || this.loadingMore)
+	private async selectLeftScrolled() {
+		if (!this.isIncomplete)
 			return;
 		const selectLeftScroll = this.selectLeftElement.scrollHeight - this.selectLeftElement.scrollTop;
 		if (selectLeftScroll <= this.selectLeftElement.offsetHeight) {
 			// triggers whenever the last <option>-element becomes visible inside its parent <select>
-			this.loadingMore = true;  // prevent reentrancy
-			const offset = this.getOptions(this.selectorElement).length;
-			this.loadOptions(`offset=${offset}`, (items: any) => {
-				this.addMoreOptions(items);
-				this.loadingMore = false;
-			});
+			await this.remoteLookup();
 		}
+	}
+
+	private async remoteLookup() {
+		let query: string;
+		const searchString = this.searchLeftInput?.value;
+		if (searchString) {
+			const offset = this.getOptions(this.selectLeftElement).filter(o => !o.hidden).length;
+			query = `query=${searchString}&offset=${offset}`;
+		} else {
+			query = `offset=${this.selectorElement.childElementCount}`;
+		}
+		if (this.lastRemoteQuery === query)
+			return;
+		this.lastRemoteQuery = query;
+		await this.loadOptions(query, (items: Array<any>) => {
+			this.addMoreOptions(items);
+		});
 	}
 
 	private selectorChanged() {
@@ -111,12 +136,26 @@ class DualSelector extends IncompleteSelect {
 		for (let option of selectorOptions) {
 			option.selected = rightOptions.filter(o => o.value === option.value).length === 1;
 		}
-		this.selectLeftScrolled();
+		this.setButtonsState();
 		this.selectorElement.dispatchEvent(new Event('change'));
 	}
 
+	private setButtonsState() {
+		let disabled = this.getOptions(this.selectLeftElement).filter(o => !o.hidden).length === 0;
+		this.moveAllRightButton.disabled = disabled;
+		this.moveSelectedRightButton.disabled = disabled;
+		disabled = this.getOptions(this.selectRightElement).filter(o => !o.hidden).length === 0;
+		this.moveAllLeftButton.disabled = disabled;
+		this.moveSelectedLeftButton.disabled = disabled;
+	}
+
 	private clearSearchFields() {
-		this.searchLeftInput!.value = this.searchRightInput!.value = '';
+		if (this.searchLeftInput) {
+			this.searchLeftInput.value = '';
+		}
+		if (this.searchRightInput) {
+			this.searchRightInput.value = '';
+		}
 		this.prepareOptions(this.selectLeftElement).forEach(o => o.hidden = false);
 		this.prepareOptions(this.selectRightElement).forEach(o => o.hidden = false);
 	}
@@ -129,34 +168,34 @@ class DualSelector extends IncompleteSelect {
 		this.selectorChanged();
 	}
 
-	private moveOptionRight(target: EventTarget | null) {
+	private async moveOptionRight(target: EventTarget | null) {
 		if (target instanceof HTMLOptionElement) {
 			this.selectRightElement.add(target);
+			await this.selectLeftScrolled();
 			this.optionsMoved();
 		}
 	}
 
-	private moveAllOptionsRight() {
+	private async moveAllOptionsRight() {
+		this.getOptions(this.selectLeftElement).filter(o => !o.hidden).forEach(o => this.selectRightElement.add(o));
 		this.clearSearchFields();
-		this.getOptions(this.selectLeftElement).forEach(o => this.selectRightElement.add(o));
+		await this.selectLeftScrolled();
 		this.optionsMoved();
 	}
 
 	private moveSelectedOptionsRight() {
-		this.clearSearchFields();
 		this.getOptions(this.selectLeftElement).filter(o => o.selected).forEach(o => this.selectRightElement.add(o));
 		this.optionsMoved();
 	}
 
 	private moveSelectedOptionsLeft() {
-		this.clearSearchFields();
 		this.getOptions(this.selectRightElement).filter(o => o.selected).forEach(o => this.selectLeftElement.add(o));
 		this.optionsMoved();
 	}
 
 	private moveAllOptionsLeft() {
+		this.getOptions(this.selectRightElement).filter(o => !o.hidden).forEach(o => this.selectLeftElement.add(o));
 		this.clearSearchFields();
-		this.getOptions(this.selectRightElement).forEach(o => this.selectLeftElement.add(o));
 		this.optionsMoved();
 	}
 
@@ -167,20 +206,18 @@ class DualSelector extends IncompleteSelect {
 		}
 	}
 
-	private leftLookup() {
+	private async leftLookup() {
 		const query = this.searchLeftInput?.value ?? '';
-		const numFoundOptions = this.lookup(this.prepareOptions(this.selectLeftElement), query);
+		let numFoundOptions = this.lookup(this.prepareOptions(this.selectLeftElement), query);
 		// first we lookup for matching options ...
 		if (this.isIncomplete && numFoundOptions < this.selectLeftElement.size) {
 			// if we find less options than the <select> element can depict,
 			// query for additional matching options from the server.
-			this.loadOptions(`query=${query}`, (items: any) => {
-				this.addMoreOptions(items);
-				if (this.lookup(this.prepareOptions(this.selectLeftElement), query) === 0) {
-					this.addNoResultsOption(this.selectLeftElement, query);
-				}
-			});
-		} else if (numFoundOptions === 0) {
+			await this.remoteLookup();
+			numFoundOptions = this.lookup(this.getOptions(this.selectLeftElement), query);
+		}
+		this.setButtonsState();
+		if (numFoundOptions === 0) {
 			this.addNoResultsOption(this.selectLeftElement, query);
 		}
 	}

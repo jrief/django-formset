@@ -106,7 +106,7 @@ export class FileUploadWidget {
 		event.preventDefault();
 	}
 
-	private async uploadFiles(files: FileList | null): Promise<void> {
+	private async uploadFiles(files: FileList | null) : Promise<void> {
 		if (!files || files.length === 0)
 			return Promise.reject();
 		return new Promise<void>((resolve, reject) => {

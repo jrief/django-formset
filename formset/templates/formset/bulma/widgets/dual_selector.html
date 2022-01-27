@@ -1,0 +1,37 @@
+{% extends "formset/default/widgets/dual_selector.html" %}
+{% load translate from i18n %}
+
+{% block "left-column" %}
+<div class="left-column">
+	<input type="text" class="dj-exempt-feedback input" placeholder="{% translate 'Search …' %}" />
+	<div class="select is-multiple">
+		<select multiple class="dj-exempt-feedback" size="{{ select_size }}"></select>
+	</div>
+</div>
+{% endblock %}
+
+{% block "control-panel" %}
+<div class="control-column">
+	<div class="control-panel">
+	{% with button_classes="btn btn-outline-secondary btn-sm" %}
+		{% include "formset/default/buttons/move_all_right.html" %}
+		{% include "formset/default/buttons/move_selected_right.html" %}
+		{% include "formset/default/buttons/move_selected_left.html" %}
+		{% include "formset/default/buttons/move_all_left.html" %}
+		{% include "formset/default/buttons/undo_selected.html" %}
+		{% include "formset/default/buttons/redo_selected.html" %}
+	{% endwith %}
+	</div>
+</div>
+{% endblock %}
+
+{% block "right-column" %}
+<div class="right-column">
+	<input type="text" class="dj-exempt-feedback input" placeholder="{% translate 'Search …' %}" />
+	<div class="select is-multiple">
+		<select multiple class="dj-exempt-feedback" size="{{ select_size }}"></select>
+	</div>
+</div>
+{% endblock %}
+
+

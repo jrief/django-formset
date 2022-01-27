@@ -17,7 +17,7 @@ from django.utils.timezone import now, datetime, utc
 
 class IncompleteSelectMixin:
     choices = ()
-    max_prefetch_choices = 100
+    max_prefetch_choices = 250
     search_lookup = None
 
     def search(self, search_term):
@@ -25,16 +25,7 @@ class IncompleteSelectMixin:
             query = reduce(or_, (Q(**{sl: search_term}) for sl in self.search_lookup))
         except TypeError:
             raise ImproperlyConfigured(f"Invalid attribute 'search_lookup' in {self.__class__}.")
-        return self.choices.queryset.filter(query)[:self.max_prefetch_choices]
-
-    def limited_choices(self, offset=None):
-        try:
-            offset = int(offset)
-        except TypeError:
-            offset = 0
-        queryset = self.choices.queryset
-        incomplete = queryset.all()[offset:].count() > self.max_prefetch_choices
-        return queryset.all()[offset:offset + self.max_prefetch_choices], incomplete
+        return self.choices.queryset.filter(query)
 
     def get_context(self, name, value, attrs):
         if isinstance(self.choices, ModelChoiceIterator):

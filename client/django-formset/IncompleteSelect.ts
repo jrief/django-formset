@@ -36,7 +36,7 @@ export abstract class IncompleteSelect {
 		}
 	}
 
-	protected async loadOptions(query: string, callback: Function) {
+	protected async loadOptions(query: string, successCallback: Function) {
 		const headers = new Headers();
 		headers.append('Accept', 'application/json');
 		const csrfToken = this.CSRFToken;
@@ -49,12 +49,11 @@ export abstract class IncompleteSelect {
 			headers: headers,
 		});
 		if (response.status === 200) {
-			response.json().then(data => {
-				if (typeof data.incomplete === 'boolean') {
-					this.isIncomplete = data.incomplete;
-				}
-				callback(data.items);
-			});
+			const data = await response.json();
+			if (typeof data.incomplete === 'boolean') {
+				this.isIncomplete = data.incomplete;
+			}
+			successCallback(data.items);
 		} else {
 			console.error(`Failed to fetch from ${url}`);
 		}

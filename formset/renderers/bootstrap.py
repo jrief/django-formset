@@ -12,8 +12,9 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/default.html': 'formset/bootstrap/form.html',
         'django/forms/widgets/checkbox.html': 'formset/bootstrap/widgets/checkbox.html',
         'django/forms/widgets/radio.html': 'formset/bootstrap/widgets/multiple_input.html',
-        'formset/default/widgets/file.html': 'formset/bootstrap/widgets/file.html',
         'django/forms/widgets/checkbox_select.html': 'formset/bootstrap/widgets/multiple_input.html',
+        'formset/default/widgets/dual_selector.html': 'formset/bootstrap/widgets/dual_selector.html',
+        'formset/default/widgets/file.html': 'formset/bootstrap/widgets/file.html',
     })
 
     def _amend_input(self, context):
@@ -30,14 +31,8 @@ class FormRenderer(DefaultFormRenderer):
 
     def _amend_dual_selector(self, context):
         context.update(
-            wrapper_classes='row',
-            column_left_classes='col-5',
-            column_center_classes='col-2 d-flex align-items-center justify-content-center',
-            column_right_classes='col-5',
             select_classes='form-select',
             lookup_field_classes='form-control',
-            control_panel_classes='btn-group-vertical flex-fill px-4',
-            button_classes='btn btn-outline-secondary btn-sm',
         )
         return context
 
