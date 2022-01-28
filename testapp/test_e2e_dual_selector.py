@@ -196,6 +196,7 @@ def test_infinite_scroll(page, mocker, form):
     assert spy.called is False
     assert len(select_left_element.query_selector_all('option')) == DualSelector.max_prefetch_choices
     page.keyboard.press('ArrowDown')
+    sleep(0.1)
     assert spy.called is True
     field_name = selector_element.get_attribute('name')
     params = spy.call_args.args[1].GET
