@@ -1,5 +1,6 @@
 @import "../../node_modules/bootstrap/dist/css/bootstrap.min.css";
 @import "../../formset/css/collections.css";
+@import "../../formset/css/bootstrap5-extra.css";
 
 django-form-collection[sibling-position] {
 	margin-top: 0.75rem;

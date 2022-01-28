@@ -1,14 +1,14 @@
 .. _selectize:
 
-The Selectize Widget
-====================
+Selectize Widget
+================
 
 Rendering choice fields using a ``<select>``-element becomes quite impractical when there are too
 many options to select from. For this purpose, the Django admin backend offers so called
 `auto complete fields`_, which loads a filtered set options from the server as soon as the user
 starts typing into the input field. This widget is based on the Select2_ plugin, which itself
-depends upon jQuery, and hence it is not suitable for **django-formset** which aims to be framework
-independent.
+depends upon jQuery, and hence it is not suitable for **django-formset** which aims to be JavaScript
+framework agnostic.
 
 .. _auto complete fields: https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.autocomplete_fields
 .. _Select2: https://select2.org/
@@ -107,9 +107,10 @@ JavaScript library compiled out of TypeScript.
 .. _Tom-Select: https://tom-select.js.org/
 .. _Selectize.js: https://selectize.dev/
 
+.. _selectize-multiple:
 
-The SelectizeMultiple Widget
-============================
+SelectizeMultiple Widget
+========================
 
 If the form field for ``city`` is shall accept more than one selection, in Django we replace it by a
 :class:`django.forms.fields.MultipleChoiceField`. The widget then used to handle such an input field

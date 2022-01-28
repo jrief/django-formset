@@ -39,6 +39,7 @@ class OpinionForm(forms.Form):
         label="Many Opinions",
         queryset=OpinionModel.objects.filter(tenant=1),
         widget=DualSelector(search_lookup='label__icontains'),
+        #initial=[104, 208, 377, 499]
     )
 
     annotation = fields.CharField(

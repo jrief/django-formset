@@ -19,8 +19,8 @@ class NativeFormView(FormView):
 @pytest.fixture(scope='function')
 def django_db_setup(django_db_blocker):
     with django_db_blocker.unblock():
-        for counter in range(1, 200):
-            label = f"Opinion {counter}"
+        for counter in range(1, 1000):
+            label = f"Opinion {counter:04}"
             OpinionModel.objects.update_or_create(tenant=1, label=label)
 
 
@@ -247,7 +247,7 @@ def test_lookup_value(page, mocker, form):
     assert spy.spy_return.status_code == 200
     content = json.loads(spy.spy_return.content)
     assert content['count'] == 1
-    assert content['items'][0]['label'] == "Opinion 159"
+    assert content['items'][0]['label'] == "Opinion 0159"
     dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-dropdown.single')
     pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(1)')
     assert pseudo_option is not None
@@ -312,7 +312,7 @@ def test_submit_invalid(page, mocker, view, form):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize0', 'selectize2', 'selectize4'])
-def test_reset_formset(page, view, form):
+def test_reset_selectize(page, view, form):
     select_element = page.query_selector('django-formset select[is="django-selectize"]')
     assert select_element is not None
     initial_value = select_element.evaluate('elem => elem.getValue()')
@@ -332,3 +332,27 @@ def test_reset_formset(page, view, form):
     page.wait_for_selector('django-formset').evaluate('elem => elem.reset()')
     value = select_element.evaluate('elem => elem.getValue()')
     assert value == initial_value
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['selectize0'])
+def test_touch_selectize(page, form):
+    field_group = page.query_selector('django-formset django-field-group')
+    assert 'dj-untouched' in field_group.get_attribute('class')
+    assert 'dj-pristine' in field_group.get_attribute('class')
+    assert 'dj-touched' not in field_group.get_attribute('class')
+    assert 'dj-dirty' not in field_group.get_attribute('class')
+    placeholder = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder')
+    assert placeholder.inner_text() == ''
+    input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
+    assert input_element is not None
+    input_element.focus()
+    assert 'dj-touched' in field_group.get_attribute('class')
+    assert 'dj-pristine' in field_group.get_attribute('class')
+    assert 'dj-untouched' not in field_group.get_attribute('class')
+    assert 'dj-dirty' not in field_group.get_attribute('class')
+    page.wait_for_selector('django-formset').evaluate('elem => elem.reset()')
+    assert 'dj-untouched' in field_group.get_attribute('class')
+    assert 'dj-pristine' in field_group.get_attribute('class')
+    assert 'dj-touched' not in field_group.get_attribute('class')
+    assert 'dj-dirty' not in field_group.get_attribute('class')

@@ -33,6 +33,7 @@ class DjangoSelectize extends IncompleteSelect {
 			maxItems: 1,
 			searchField: ['label'],
 			render: this.setupRender(tomInput),
+			onFocus: () => this.touch(),
 			onBlur: () => this.blurred(),
 			onChange: () => this.changed(),
 			onType: (evt: Event) => this.inputted(evt),

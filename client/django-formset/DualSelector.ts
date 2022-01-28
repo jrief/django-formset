@@ -33,10 +33,7 @@ class DualSelector extends IncompleteSelect {
 		if (selectors.length !== 2)
 			throw new Error("<select is=\"django-dual-selector\"> requires two <select>-elements");
 		this.selectLeftElement = selectors[0] as HTMLSelectElement;
-		this.selectLeftElement.addEventListener('dblclick', evt => this.moveOptionRight(evt.target));
-		this.selectLeftElement.addEventListener('scroll', evt => this.selectLeftScrolled());
 		this.selectRightElement = selectors[1] as HTMLSelectElement;
-		this.selectRightElement.addEventListener('dblclick', evt => this.moveOptionLeft(evt.target));
 		this.moveAllRightButton = this.fieldGroup.querySelector('button.dj-move-all-right') as HTMLButtonElement;
 		this.moveSelectedRightButton = this.fieldGroup.querySelector('button.dj-move-selected-right') as HTMLButtonElement;
 		this.moveSelectedLeftButton = this.fieldGroup.querySelector('button.dj-move-selected-left') as HTMLButtonElement;
@@ -51,6 +48,11 @@ class DualSelector extends IncompleteSelect {
 	}
 
 	private installEventHandlers() {
+		this.selectLeftElement.addEventListener('focus', () => this.touch());
+		this.selectLeftElement.addEventListener('dblclick', evt => this.moveOptionRight(evt.target));
+		this.selectLeftElement.addEventListener('scroll', evt => this.selectLeftScrolled());
+		this.selectRightElement.addEventListener('focus', () => this.touch());
+		this.selectRightElement.addEventListener('dblclick', evt => this.moveOptionLeft(evt.target));
 		this.moveAllRightButton?.addEventListener('click', evt => this.moveAllOptionsRight());
 		this.moveSelectedRightButton?.addEventListener('click', evt => this.moveSelectedOptionsRight());
 		this.moveSelectedLeftButton?.addEventListener('click', evt => this.moveSelectedOptionsLeft());

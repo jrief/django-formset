@@ -32,7 +32,7 @@ class FormRenderer(DefaultFormRenderer):
     def _amend_dual_selector(self, context):
         context.update(
             select_classes='form-select',
-            lookup_field_classes='form-control',
+            lookup_field_classes='form-control form-control-sm',
         )
         return context
 

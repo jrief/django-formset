@@ -27,6 +27,12 @@ export abstract class IncompleteSelect {
 
 	abstract formSubmitted(event: Event) : void;
 
+	protected touch() {
+		this.fieldGroup.classList.remove('dj-untouched');
+		this.fieldGroup.classList.remove('dj-validated');
+		this.fieldGroup.classList.add('dj-touched');
+	}
+
 	protected get CSRFToken(): string | undefined {
 		const value = `; ${document.cookie}`;
 		const parts = value.split('; csrftoken=');

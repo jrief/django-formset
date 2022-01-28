@@ -1,0 +1,25 @@
+@media (max-width: 575.98px) {
+	select[is="django-dual-selector"] ~ .row .dj-move-all-right svg {
+		transform: rotate(90deg);
+	}
+	select[is="django-dual-selector"] ~ .row .dj-move-selected-right svg {
+		transform: rotate(90deg);
+	}
+	select[is="django-dual-selector"] ~ .row .dj-move-all-left svg {
+		transform: rotate(90deg);
+	}
+	select[is="django-dual-selector"] ~ .row .dj-move-selected-left svg {
+		transform: rotate(90deg);
+	}
+}
+
+select[is="django-dual-selector"] ~ .row input {
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+select[is="django-dual-selector"] ~ .row select {
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+	margin-top: -1px;
+}

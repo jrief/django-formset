@@ -24,6 +24,7 @@ Django ``Form``-s.
 	conditionals
 	uploading
 	selectize
+	dual-selector
 	development
 
 Indices and tables

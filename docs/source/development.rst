@@ -39,11 +39,8 @@ Setting up the Tests
 --------------------
 
 Since there is a lot of interaction between the browser and the server, the client is tested using
-pytest_ together with Playwright_ in order to run end-to-end tests. Playwright is a test-runner
-using a headless browser. It must be initialized using:
-
-.. _pytest: https://pytest-django.readthedocs.io/en/latest/
-.. _Playwright: https://playwright.dev/python/docs/intro/
+pytest_ together with Playwright_. The latter is a testing framework to run end-to-end tests using a
+headless browser. It must be initialized using:
 
 .. code-block:: shell
 
@@ -55,6 +52,9 @@ Then run the testsuite
 
 	pytest testapp
 
+
+.. _pytest: https://pytest-django.readthedocs.io/en/latest/
+.. _Playwright: https://playwright.dev/python/docs/intro/
 
 Building the Parser
 -------------------
@@ -83,6 +83,6 @@ Running the Django Test App
 ---------------------------
 
 The unit tests and the application used to test the functionality, share a lot of code. In my
-opinion this is really important, because when when writing code for end users, manual testing is
-mandatory. Therefore all unit tests provided with this application have been manually tried out.
+opinion this is really important, because when writing code for end users, manual testing is
+mandatory. Therefore all unit tests provided with this application have been manually verified.
 Otherwise I could not guarantee a user experience which feels right.
