@@ -1,5 +1,9 @@
 ## Changes
 
+- 0.8
+  * Add widget `DualSelector` which accepts multiple values and is the form field counterpart
+    to Django's `ManyToManyField`. This is an alternative widget to `SelectizeMultiple`.
+
 - 0.7
   * Add widget `SelectizeMultiple` which accepts multiple values and is the form field counterpart
     to Django's `ManyToManyField`.
