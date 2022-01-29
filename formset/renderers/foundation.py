@@ -9,6 +9,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox.html': 'formset/foundation/widgets/checkbox.html',
         'django/forms/widgets/radio.html': 'formset/foundation/widgets/multiple_input.html',
         'formset/default/widgets/file.html': 'formset/foundation/widgets/file.html',
+        'formset/default/widgets/dual_selector.html': 'formset/foundation/widgets/dual_selector.html',
         'django/forms/widgets/checkbox_select.html': 'formset/foundation/widgets/multiple_input.html',
     })
 

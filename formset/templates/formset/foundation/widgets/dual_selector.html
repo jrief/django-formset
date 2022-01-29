@@ -1,0 +1,21 @@
+{% extends "formset/default/widgets/dual_selector.html" %}
+
+{% block "wrapper_classes" %}grid-x{% endblock %}
+{% block "column_left_classes" %}cell small-5{% endblock %}
+{% block "control-panel" %}
+<div class="cell small-2">
+	<div class="grid-y">
+	{% with button_classes="hollow button tiny" %}
+		{% include "formset/default/buttons/move_all_right.html" %}
+		{% include "formset/default/buttons/move_selected_right.html" %}
+		{% include "formset/default/buttons/move_selected_left.html" %}
+		{% include "formset/default/buttons/move_all_left.html" %}
+		{% include "formset/default/buttons/undo_selected.html" %}
+		{% include "formset/default/buttons/redo_selected.html" %}
+	{% endwith %}
+	</div>
+</div>
+{% endblock %}
+{% block "column_right_classes" %}cell small-5{% endblock %}
+
+
