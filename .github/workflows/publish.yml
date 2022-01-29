@@ -32,7 +32,7 @@ jobs:
       run: |
         npm install --also=dev
         python -m pip install --upgrade pip
-        pip install build --user
+        python -m pip install build --user
     - name: Build Parser
       run: npm run tag-attributes
     - name: Build Tailwind CSS
@@ -42,7 +42,7 @@ jobs:
         npm run build
         npm run uglify
     - name: Build 🐍 Python 📦 Package
-      run: build --sdist --wheel --outdir dist/
+      run: python -m build --sdist --wheel --outdir dist/
     - name: Publish 🐍 Python 📦 Package to PyPI
       if: startsWith(github.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
