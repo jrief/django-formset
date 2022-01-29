@@ -125,7 +125,9 @@ options.
   :alt: SelectizeMultiple widget
 
 By default a ``SelectizeMultiple`` widget accepts 5 different options. This limit can be adjusted by
-parametrizing it using ``max_items``.
+parametrizing it using ``max_items``. This number however shall not exceed more than say 15 items,
+otherwise the input field might become unmanagable. If you need a multiple select field able to
+accept dozens of items, consider to use the :ref:`dual-selector` widget.
 
 
 Handling ForeignKey and ManyToManyField
@@ -165,7 +167,7 @@ then when creating the corresponding Django Form, we must specify our special wi
 	        }
 
 The parameter ``search_lookup`` is used to build the search query, if the number of cities
-exceeds 50 in model ``AddressModel``.
+exceeds 250 in model ``AddressModel``.
 
 If we replace the ``ForeignKey`` for our city field against a ``ManyToManyField``, then we also have
 to replace the ``Selectize`` widget against ``SelectizeMultiple``.
