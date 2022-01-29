@@ -1,0 +1,38 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  publish:
+    name: "Publish release"
+    runs-on: "ubuntu-latest"
+
+    environment:
+       name: deploy
+
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: "actions/setup-python@v1"
+        with:
+          python-version: 3.9
+      - uses: "actions/setup-node@v2"
+        with:
+          node-version: 14
+      - name: Install Python dependencies
+        run: "pip install -r testapp/requirements.txt && pip install --no-deps -e ."
+      - name: Install Node dependencies
+        run: "npm install --also=dev"
+      - name: Build Parser
+        run: "npm run tag-attributes"
+      - name: Build Tailwind CSS
+        run: "npm run tailwindcss"
+      - name: Build Formset Client
+        run: "npm run build && npm run uglify"
+      - name: Publish distribution to PyPI
+        if: startsWith(github.ref, 'refs/tags')
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN_FORMSET }}
