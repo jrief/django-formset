@@ -1,4 +1,4 @@
-name: django-formset
+name: Test django-formset
 
 on:
   push:
