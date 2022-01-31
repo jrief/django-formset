@@ -381,3 +381,52 @@ def test_right_selector_lookup(page, form):
     assert option.get_attribute('value') in left_option_values
     right_option_values = [o.get_attribute('value') for o in select_right_element.query_selector_all('option')]
     assert option.get_attribute('value') not in right_option_values
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['selector0', 'selector3'])
+def test_undo_redo(page, view, form):
+    selector_element = page.query_selector('django-formset select[is="django-dual-selector"]')
+    assert selector_element is not None
+    initial_values = selector_element.evaluate('elem => elem.getValue()')
+    undo_button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-undo-selected')
+    assert undo_button is not None
+    assert undo_button.is_disabled()
+    redo_button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-redo-selected')
+    assert redo_button is not None
+    assert redo_button.is_disabled()
+    select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
+    assert select_left_element is not None
+    left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option')]
+    select_left_element.focus()
+    select_left_element.select_option(left_option_values[68:83])
+    move_button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-move-selected-right')
+    assert move_button is not None
+    move_button.click()
+    assert not undo_button.is_disabled()
+    assert redo_button.is_disabled()
+    select_right_element = page.query_selector('django-formset .dj-dual-selector .right-column select')
+    assert select_right_element is not None
+    select_right_element.query_selector('option[value="{}"]'.format(left_option_values[70])).dblclick()
+    assert len(select_right_element.query_selector_all('option')) == 14 + len(initial_values)
+    undo_button.click()
+    assert not undo_button.is_disabled()
+    assert not redo_button.is_disabled()
+    right_option_values = [o.get_attribute('value') for o in select_right_element.query_selector_all('option')]
+    assert left_option_values[70] in right_option_values
+    undo_button.click()
+    assert undo_button.is_disabled()
+    assert not redo_button.is_disabled()
+    right_option_values = [o.get_attribute('value') for o in select_right_element.query_selector_all('option')]
+    assert left_option_values[70] not in right_option_values
+    assert set(right_option_values) == set(initial_values)
+    redo_button.click()
+    assert not undo_button.is_disabled()
+    assert not redo_button.is_disabled()
+    right_option_values = [o.get_attribute('value') for o in select_right_element.query_selector_all('option')]
+    assert left_option_values[70] in right_option_values
+    redo_button.click()
+    assert not undo_button.is_disabled()
+    assert redo_button.is_disabled()
+    right_option_values = [o.get_attribute('value') for o in select_right_element.query_selector_all('option')]
+    assert left_option_values[70] not in right_option_values
