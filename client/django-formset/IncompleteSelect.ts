@@ -45,9 +45,8 @@ export abstract class IncompleteSelect {
 	protected async loadOptions(query: string, successCallback: Function) {
 		const headers = new Headers();
 		headers.append('Accept', 'application/json');
-		const csrfToken = this.CSRFToken;
-		if (csrfToken) {
-			headers.append('X-CSRFToken', csrfToken);
+		if (this.CSRFToken) {
+			headers.append('X-CSRFToken', this.CSRFToken);
 		}
 		const url = `${this.endpoint}?field=${this.fieldName}&${query}`;
 		const response = await fetch(url, {
