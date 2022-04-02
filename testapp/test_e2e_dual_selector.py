@@ -351,7 +351,9 @@ def test_left_selector_lookup(page, mocker, form):
     assert set(filtered) == set(left_option_values)
     spy.reset_mock()
     page.keyboard.press('5')
+    sleep(0.1)
     page.keyboard.press('3')
+    sleep(0.1)
     assert spy.called is True
     option = select_left_element.query_selector('option:not([hidden])')
     assert option.text_content() == "Opinion 0653"
