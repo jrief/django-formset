@@ -26,20 +26,22 @@ view class. This view class then is connected to our URL router:
 	]
 
 When we navigate to the given URL, our form will be rendered by the class ``FormView``. Until here,
-there is no difference to the classic way how Django renders a form. In case your project already
-defines a proprietary form view class which can not be refactored, **django-formset** provides a
-special mixin class ``FormViewMixin`` to be inherited by that view.
+there is no difference on how Django renders a form. In case your project already defined a
+proprietary class inheriting from FormView_ which can not be refactored, **django-formset** provides
+a special mixin class named :class:`formset.views.FormViewMixin` to be inherited by that view.
+
+.. _FormView: https://docs.djangoproject.com/en/stable/ref/class-based-views/generic-editing/#django.views.generic.edit.FormView
 
 The difference to a classic Django form appears when the view receives data sent by a POST request.
 First of all, received data now is encoded as ``application/json``, instead of
-``multipart/form-data``, as with default form submissions. And secondly, the response of that
+``multipart/form-data``, as with standard form submissions. And secondly, the response of that
 processed view is neither an HTTP redirect nor a HTML page, but just a data object, again encoded in
-JSON. If the form validates, that response object just contains the success URL with a status code
-of 200. If on the other side the form does not validate, then that response object contains the
-error messages of the fields submitting invalid data, indexed by their field names. The status code
-of that response then is 422, which stands for "`Unprocessable Entity`_". Having the server respond
-with a status code indication an error, makes it easier for the client to distinguish between
-validated and invalid forms.
+JSON. If that form validates successfully, that response object just contains the success URL with a
+status code of 200. On the other side, if the form does not validate, then that response object
+contains the error messages of the fields submitting invalid data, indexed by their field names. The
+status code of that response then is 422, which stands for "`Unprocessable Entity`_". Having the
+server respond with a status code indication an error, makes it easier for the client to distinguish
+between validated and invalid forms.
 
 .. _Unprocessable Entity: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422
 
@@ -49,10 +51,10 @@ element into an invalid state, so that it can not be re-submitted before editing
 The response on validated forms can be used to update the database or do other processing before
 telling the browser where to go next. Instead of sending a HTTP redirect, the server now sends the
 success URL wrapped in a JavaScript object. When receiving this, the browser just loads the page
-with that URL. This also prevents that users can accidently submit the form data twice, if they
+with that URL. This also prevents that users can accidently submit the form data twice, in case they
 click on the browser's reload button.
 
-Form using **django-formset** can be rendered using three different methods:
+A Django Form using **django-formset** can be rendered using three different methods:
 
 .. _native_form:
 
@@ -60,8 +62,8 @@ Using a Native Django Form
 --------------------------
 
 Working with a native Django Form, presumably is the most frequent use case. Here we add an
-instantiation of that form to the rendering context. Then that form is rendered using the special
-template tag ``render_form``. The template responsible for rendering shall be written as:
+instantiation of that form to the rendering context. Then that form instance is rendered using the
+special template tag ``render_form``. The template responsible for rendering shall be written as:
 
 .. code-block:: django
 
@@ -72,9 +74,9 @@ template tag ``render_form``. The template responsible for rendering shall be wr
 	  <button type="button" click="submit -> proceed">Submit</button>
 	</django-formset>
 
-Here we see, that in addition to the form object, we pass a few CSS classes to the renderer. These
-are named ``field_classes`` and ``form_classes``. Let's explain how we can use them to style our
-form. When rendered, the above form will roughly turn into HTML such as:
+What we see here is, that in addition to the form object, we pass a few CSS classes to the renderer.
+These are named ``field_classes`` and ``form_classes``. Let's explain how we can use them to style
+our form. When rendered, the above form will roughly turn into HTML such as:
 
 .. code-block:: html
 
@@ -94,11 +96,12 @@ form. When rendered, the above form will roughly turn into HTML such as:
 	  <button type="button" click="submit -> proceed">Submit</button>
 	</django-formset>
 
-Compared to the way Django renders forms, we see a few differences here. The most ovious one is,
-that each input field is wrapped into a ``<django-field-group>``. Event tough it may look like
-another web component, it just is a non-visual HTML element, which acts as detector group the
-input elements together. Remember that in HTML radios and multiple checkboxes have more than one
-input element, but in Django they are considered as a single field.
+Compared to the way the native Django form renderer works, we see a few differences here: The most
+ovious one is, that each input field is wrapped into a ``<django-field-group>``. Event tough this
+tag may look like another web component, it just is a non-visual HTML element. Its purpose is to
+group one or more input elements belonging to one field together. Remember that in HTML radios and
+multiple checkboxes have more than one input element, but in Django they are considered as a single
+form field.
 
 Moreover, CSS frameworks such as Bootstrap require to `group`_ the label and their input fields
 into one HTML element, typically a ``<div>``. This is what the ``<django-field-group>`` does, in
@@ -109,9 +112,9 @@ rendered as ``<django-field-group class="mb-5">``.
 .. _group: https://getbootstrap.com/docs/5.0/forms/form-control/
 
 Another unknown HTML-element in the rendered form is ``<django-error-messages ...>``. This element
-simply keeps all the potential error messages, in case a field does not validate on the client.
+simply keeps all the potential error messages, in case a field validation fails on the client.
 Remember that HTML5 introduced a bunch of `form controls`_ which are mapped to their Django
-counterparts. If for instance the pattern of an input field of type text does not match the
+counterparts. If for instance, the pattern of an input field of ``type="text"`` does not match the
 specified regular expression, then the text from attribute ``type_mismatch`` is shown as error below
 that field.
 
@@ -122,11 +125,12 @@ that field.
 Using an Extended Django Form
 -----------------------------
 
-One of the tasks the the templatetag ``render_form`` must do, is to modify the signature of the
-given form class. This is required, because the layout of the rendered HTML differs substantially
-from the default by Django itself. Sometimes however, we may prefer to render the form element using
-its built-in ``__str__()``-method. In this use case, our form class has to additionally inherit from
-:class:`formset.utils.FormMixin`. Such a form could for instance be defined as:
+One of the tasks the templatetag ``render_form`` must do, is to modify the signature of the given
+form class. This is required, because the layout of the rendered HTML differs substantially from the
+default by the Django form field renderers. Sometimes however, we may prefer to render the complete
+form instance using its built-in ``__str__()``-method. In this use case, our form class has to
+additionally inherit from :class:`formset.utils.FormMixin`. Such a form could for instance be
+defined as:
 
 .. code-block:: python
 
@@ -147,18 +151,21 @@ The template required to render such a form then shall look like:
 	  <button type="button" click="submit -> proceed">Submit</button>
 	</django-formset>
 
+Let's discuss these lines of HTML code step by step:
+
 Since the JavaScript implementing web component ``<django-formset>`` communicates via Ajax with the
 server, having a hidden field containing the CSRF-token doesn't make sense. Instead we use a Cookie
 which by default is named ``csrftoken`` in Django. By default, that token is available in the
 rendering context, but it is a lazy object. We therefore have to evaluate it once by accessing one
 of its members. This is what ``csrf_token.0`` does.
 
-Having setup the form's template this way allows us to write the form as a string. This is what
-``{{ form }}`` does. On the first sight, this may seem more cumbersome that the solution
-:ref:`native_form`. In some situations however, it might be simpler to change the signature of the
-form class in Python code, rather than in a template. Another use case would be to, when many forms
-with renderers, each configured different, shall be rendered by the same form. Then this setup might
-make more sense. Please also check the section about :ref:`renderers`.
+Having setup the form's template this way, allows us to render the form instance as a string. This
+is what ``{{ form }}`` does. On the first sight, this may seem more cumbersome that the solution
+shown before when :ref:`native_form`. In some situations however, it might be simpler to change the
+signature of the form class in Python code, rather than changing the template code. Another use case
+would be to, when many forms with renderers, each configured different, shall be rendered by the
+same form. Then this setup might make more sense. Please also check the section about
+:ref:`renderers`.
 
 
 .. _field_by_field:
@@ -168,7 +175,8 @@ Rendering a Django Form Field-by-Field
 
 In some occasions, we need an even more fine grained control over how fields shall be rendered. Here
 we iterate over the form fields ourself. This way we can render field by field and depending on the
-field's name, we could render it in a different manner. Let's have a look at such a template:
+field's name or type, we could render it in a different manner. Let's have a look at such a
+template:
 
 .. code-block:: django
 
@@ -191,13 +199,15 @@ field's name, we could render it in a different manner. Let's have a look at suc
 	  <button type="button" click="submit -> proceed">Submit</button>
 	</django-formset>
 
-At the beginning we see, that we have to "formsetify" our form. This is required in order to change
-the signature of the form class as described in the previous section. If the form instance inherits
-already from :class:`formset.utils.FormMixin`, then this step can be skipped.
+Let's discuss these lines of HTML code step by step:
 
-We then iterate over all form fields. Hidden fields shall not be wrapped inside a field-group, in
-contrast to visible fields. Here we can use our own rendering logic, depending on which field we
-want to render.
+First we have to "formsetify" our form. This is required in order to change the signature of the
+form class as described in the previous section. If the form instance already inherits from
+:class:`formset.utils.FormMixin`, then this step can be skipped.
+
+We then iterate over all form fields. Here we must distinguish between hidden and visible fields.
+While the latter shall be wrapped inside a ``<django-field-group>`` each, the former shall not.
+We can then further specialize our rendering logic, depending on which field we want to render.
 
 Rendering a form field-by-field shall only be used as last resort, because it inhibits the reusage
 of the rendering templates. If fields have to be styled explicitly, for instance to place the input

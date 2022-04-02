@@ -4,24 +4,28 @@ Styling Forms with django-formset
 =================================
 
 **django-formset** ships with renderers, each one specialzed to render all possible Django form
-widgets for different CSS frameworks.
+widgets, for five different CSS frameworks.
 
 * Input fields of type text, with validation for minimum and maximun input length.
 * Input fields of type text with pattern matching.
-* Input fields of type number, with validation for its input range.
+* Input fields of type number, with validation on their input range.
 * Input fields of type date. This currently uses the default date widget from the browser, but
   future versions will offer their own native date widget.
-* Checkboxes for a single input. They can be styled reversing label and input field.
-* Radio buttons with support for option groups. They can be arranged to align horizontally.
-* Multiple checkboxes with support for option groups. They can be arranged to align horizontally.
-* Select boxes with predefined options.
-* Select boxes with autocomplete behaviour.
+* Checkboxes for a single input. They can be styled reversing the label with its input field.
+* Radio buttons with support for option groups. They can be arranged to align either horizontally
+  or vertically.
+* Multiple checkboxes with support for option groups. They can be arranged to align either
+  horizontally or vertically.
+* Select widgets with predefined options.
+* Select widgets with autocomplete behaviour.
+* Select widgets with allowing a limited number of multiple selections.
+* Select widgets with a source and target field, allowing a large number of multiple selections.
+  This widget usually is used for fields mapping a many-to-many relation.
 * Textarea fields.
-* File upload fields with asynchronous upload and drag & drop support. 
+* File upload fields with asynchronous upload and drag & drop support.
 
 Currently not supported widgets:
 
-* Multiple selects with source and target boxes.
 * Geospacial fields.
 
 
@@ -30,7 +34,7 @@ Default Styling
 
 The default **django-formset** styling intentionally renders all the fields as the browser would by
 default. This admiditly looks very rough and we only use it, if we want to style every aspect of our
-web site. This requires to write the CSS ourselfs. If we use one of the known CSS frameworks, then
+web site. This requires to write the CSS ourselves. If we use one of the known CSS frameworks, then
 instead we will proceed with one of the specialized renderes. The concept for rendering a form
 remains to same, independently of the CSS framework.
 
@@ -96,7 +100,7 @@ Always remember to add
 
 .. code-block:: django
 
-	<script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
+	<script type="module" src="{% static 'formset/js/django-formset.min.js' %}"></script>
 
 anywhere inside the ``<head>``-element of the page.
 
@@ -115,7 +119,7 @@ In the template from above, we simply replace the templatetag against
 
 	{% render_form form "bootstrap" field_classes="mb-2" %}
 
-and get a much nicer looking form
+and get the same form instance rendered in a much nicer looking way:
 
 .. image:: _static/bootstrap-form.png
   :width: 560

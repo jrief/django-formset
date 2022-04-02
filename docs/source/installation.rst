@@ -53,8 +53,8 @@ Include JavaScript
 ------------------
 
 Many components from Bootstrap require their own JavaScript. This can optionally be included in a
-very similar way as shown for the CSS above. One JavaScript file wich is has to be included in any
-case it that one, providing the functionality of our web component:
+very similar way as shown for the CSS above. One JavaScript file which always must be included is
+that one, providing the functionality of our web component:
 
 .. code-block:: django
 
