@@ -1,7 +1,7 @@
 {
   "name": "django-formset",
-  "version": "0.7.0",
-  "description": "Django-Formset",
+  "license": "MIT",
+  "private": true,
   "scripts": {
     "build": "node client/build.cjs",
     "minify": "jsmin -o formset/static/formset/js/django-formset.min.js formset/static/formset/js/django-formset.js",
@@ -9,7 +9,6 @@
     "tailwindcss": "tailwindcss build assets/tailwind-styles.css --config assets/tailwind.config.js --output formset/static/formset/css/tailwind.css",
     "uglify": "uglifyjs formset/static/formset/js/django-formset.js --compress --mangle -o formset/static/formset/js/django-formset.min.js"
   },
-  "license": "MIT",
   "devDependencies": {
     "@tailwindcss/forms": "^0.2.1",
     "@types/lodash.get": "^4.4.6",
