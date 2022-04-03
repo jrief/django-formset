@@ -12,6 +12,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/default.html': 'formset/tailwind/form.html',
         'django/forms/widgets/checkbox.html': 'formset/tailwind/widgets/checkbox.html',
         'django/forms/widgets/radio.html': 'formset/tailwind/widgets/multiple_input.html',
+        'formset/default/widgets/dual_selector.html': 'formset/tailwind/widgets/dual_selector.html',
         'formset/default/widgets/file.html': 'formset/tailwind/widgets/file.html',
         'django/forms/widgets/checkbox_select.html': 'formset/tailwind/widgets/multiple_input.html',
     })
@@ -48,6 +49,13 @@ class FormRenderer(DefaultFormRenderer):
             context['widget']['attrs']['class'] = 'formset-select-multiple'
         else:
             context['widget']['attrs']['class'] = 'formset-select'
+        return context
+
+    def _amend_dual_selector(self, context):
+        context.update(
+            select_classes='formset-dual-selector-select',
+            lookup_field_classes='formset-dual-selector-lookup',
+        )
         return context
 
     def _amend_checkbox(self, context):
@@ -89,5 +97,6 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox_select.html': _amend_checkbox_select,
         'django/forms/widgets/radio.html': _amend_radio,
         'formset/default/widgets/selectize.html': _amend_select,
+        'formset/default/widgets/dual_selector.html': _amend_dual_selector,
         'formset/default/collection.html': _amend_collection,
     })

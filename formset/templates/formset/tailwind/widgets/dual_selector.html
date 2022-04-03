@@ -1,0 +1,19 @@
+{% extends "formset/default/widgets/dual_selector.html" %}
+
+{% block "wrapper_classes" %}flex flex-row{% endblock %}
+{% block "column_left_classes" %}basis-1/2{% endblock %}
+{% block "control-panel" %}
+<div class="basis-12 pt-11">
+	<div class="flex flex-col">
+	{% with button_classes="bg-gray-100 hover:bg-gray-500 py-1 px-3 my-0.5 mx-2 rounded" %}
+		{% include "formset/default/buttons/move_all_right.html" %}
+		{% include "formset/default/buttons/move_selected_right.html" %}
+		{% include "formset/default/buttons/move_selected_left.html" %}
+		{% include "formset/default/buttons/move_all_left.html" %}
+		{% include "formset/default/buttons/undo_selected.html" %}
+		{% include "formset/default/buttons/redo_selected.html" %}
+	{% endwith %}
+	</div>
+</div>
+{% endblock %}
+{% block "column_right_classes" %}basis-1/2{% endblock %}

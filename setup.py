@@ -33,6 +33,9 @@ setup(
     install_requires=[
         'django>=4.0',
     ],
+    extra_requires={
+        'thumbnail': ['Pillow'],
+    },
     license='MIT',
     platforms=['OS Independent'],
     keywords=['Django Forms', 'webcomponent'],

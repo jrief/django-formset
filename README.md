@@ -179,6 +179,7 @@ git clone https://github.com/jrief/django-formset.git
 cd django-formset
 python -m venv .venv
 source .venv/bin/activate
+pip install Django
 pip install -r testapp/requirements.txt
 pip install --no-deps -e .
 npm install --also=dev

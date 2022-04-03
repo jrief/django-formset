@@ -1,7 +1,9 @@
-// build with `npx tailwindcss build assets/tailwind-styles.css -o formset/static/formset/css/tailwind.css`
+// build with `npx tailwindcss --input assets/tailwind-styles.css --config assets/tailwind.config.js --output formset/static/formset/css/tailwind.css`
 module.exports = {
-  purge: [],
-  darkMode: false, // or 'media' or 'class'
+  content: [
+    'formset/templates/formset/tailwind/**/*.html',
+    'testapp/templates/tailwind/*.html',
+  ],
   theme: {
     extend: {},
   },
@@ -9,6 +11,6 @@ module.exports = {
     extend: {},
   },
   plugins: [
-    require('@tailwindcss/forms')
+    require('@tailwindcss/forms'),
   ],
 }
