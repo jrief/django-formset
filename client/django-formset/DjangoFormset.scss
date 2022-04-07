@@ -134,6 +134,12 @@ django-formset {
 			height: 0 !important;
 		}
 
+		&.dj-touched input[type="date"] {
+			&::-webkit-calendar-picker-indicator {
+				opacity: 0;
+			}
+		}
+
 		.dj-control-panel {
 			display: flex;
 			> div {
