@@ -11,7 +11,7 @@ from django.http.response import HttpResponseBadRequest, JsonResponse
 
 THUMBNAIL_MAX_HEIGHT = 200
 THUMBNAIL_MAX_WIDTH = 350
-UPLOAD_TEMP_DIR = default_storage.base_location / 'upload_temp'
+UPLOAD_TEMP_DIR = Path(default_storage.base_location) / 'upload_temp'
 
 
 def get_thumbnail_path(image_path, image_height=THUMBNAIL_MAX_HEIGHT):
