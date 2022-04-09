@@ -48,14 +48,15 @@ class IncompleSelectResponseMixin:
 
 
 class FormViewMixin:
-    def post(self, request, **kwargs):
-        form = self.get_form()
-        if form.is_valid():
-            self.form_valid(form)
-            response_data = {'success_url': force_str(self.success_url)} if self.success_url else {}
-            return JsonResponse(response_data)
-        else:
-            return JsonResponse(form.errors, status=422, safe=False)
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        assert response.status_code == 302
+        response_data = {'success_url': force_str(response.url)} if response.url else {}
+        return JsonResponse(response_data)
+
+    def form_invalid(self, form):
+        super().form_invalid(form)
+        return JsonResponse(form.errors, status=422, safe=False)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
