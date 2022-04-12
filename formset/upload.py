@@ -81,7 +81,7 @@ def get_file_info(field_file):
 
 
 class FileUploadMixin:
-    filename_max_length = 50
+    filename_max_length = 250
 
     def post(self, request, **kwargs):
         if request.content_type == 'multipart/form-data' and 'temp_file' in request.FILES and 'image_height' in request.POST:
