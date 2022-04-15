@@ -16,6 +16,7 @@ pytest-cov = "*"
 flake8 = "*"
 sphinx = "*"
 beautifulsoup4 = "*"
+docutils = "*"
 
 [requires]
 python_version = "3.8"

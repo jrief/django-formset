@@ -10,6 +10,12 @@
 	<script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
 </head>
 <body>
+	<div>
+		<a href="/">{% include "testapp/house.svg" %}</a>
+		/ <a href="/default">Default</a>
+		/ <strong>{{ leaf_name }}</strong>
+	</div>
+	{{ doc }}
 	{% block "main-content" %}{% endblock %}
 </body>
 </html>

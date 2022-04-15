@@ -16,12 +16,12 @@
 			<div class="col col-md-8 mx-auto my-5">
 				{{ request }}
 				<h1>Django Formset Demo</h1>
-				<p>Here is a list of forms to demonstrate the features <a href="https://github.com/jrief/django-formset/">django-formset</a>
-				currently offers.</p>
+				<p>Here is a list of forms and form collections to demonstrate the features
+				<a href="https://github.com/jrief/django-formset/">django-formset</a> currently offers.</p>
 				<h4>Choose CSS framework</h4>
 				<ul>
 				{% for url in frameworks %}
-					<li><a href="{{ url }}">{{ url }}</a></li>
+					<li><a href="{{ url }}">{{ url.capitalize }}</a></li>
 				{% endfor %}
 				</ul>
 			</div>

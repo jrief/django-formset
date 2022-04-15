@@ -16,6 +16,16 @@
 		<div class="container mx-auto">
 			<div class="max-w-2xl mx-auto my-5 bg-white p-5 rounded-md shadow-sm">
 				<div class="m-7">
+					<nav class="rounded-md w-full mb-4">
+						<ol class="list-reset flex">
+							<li><a href="/" class="text-blue-600 hover:text-blue-700">{% include "testapp/house.svg" %}</a></li>
+					    <li><span class="text-gray-500 mx-2">/</span></li>
+					    <li><a href="/{{ framework }}" class="text-blue-600 hover:text-blue-700">{{ framework.capitalize }}</a></li>
+					    <li><span class="text-gray-500 mx-2">/</span></li>
+					    <li class="text-gray-500 font-bold">{{ leaf_name }}</li>
+					  </ol>
+					</nav>
+					<div class="my-4">{{ doc }}</div>
 					{% block "main-content" %}{% endblock %}
 				</div>
 			</div>

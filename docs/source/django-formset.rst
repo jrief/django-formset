@@ -75,13 +75,14 @@ Withholding Feedback
 An optional attribute to this web component is ``withhold-feedback``. By setting this to
 ``messages``, ``errors``, ``warnings``, ``success``, or any combination of thereof, we can withhold
 the feedback immediatly shown after the user types into a field or whenever a field looses focus.
+When combining two or more of those values, separate them by spaces.
 
 Adding ``messages`` to ``withhold-feedback="..."`` means, that the error messages below the field
 will not be rendered when the user blurs a field with invalid data. 
 
 Adding ``errors`` to ``withhold-feedback="..."`` means, that the border does not change color
 (usually red) and the field does not show an alert symbol, when the user blurs a field with invalid
-data. 
+data.
 
 Adding ``warning`` to ``withhold-feedback="..."`` means, that the field does not show a warning
 symbol (usually orange), when a field has focus, but its content does not contain valid data (yet).
@@ -90,7 +91,7 @@ remain even if the field looses focus.
 
 Adding ``success`` to ``withhold-feedback="..."`` means, that the border does not change color
 (usually green) and the field does not show a success symbol, when the user blurs a field with
-valid data. 
+valid data.
 
 The attribute ``withhold-feedback="..."`` only has effect while editing the form fields. Whenever
 the user clicks onto the submit button of a form containing invalid data, then all fields which

@@ -23,6 +23,13 @@ class ProfessionForm(forms.Form):
 
 
 class SimpleContactCollection(FormCollection):
+    """
+    This Form Collection shows how to combine two independend forms into one collection.
+
+    Such a collection behaves similar to a single form in the sense, that those two child
+    forms, ``PersonForm`` and ``ProfessionForm``, can be validated and submitted altogether.
+    """
+
     person = PersonForm()
 
     profession = ProfessionForm()
@@ -72,6 +79,13 @@ class PhoneNumberCollection(FormCollection):
 
 
 class ContactCollection(FormCollection):
+    """
+    This Form Collection shows how to combine two independend forms into one collection.
+
+    Such a collection behaves similar to a single form in the sense, that those two child
+    forms, ``PersonForm`` and ``PhoneNumberCollection`` can be submitted altogether.
+    """
+
     person = PersonForm()
 
     numbers = PhoneNumberCollection()

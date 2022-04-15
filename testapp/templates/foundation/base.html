@@ -14,6 +14,16 @@
 <body>
 	<div class="grid-container">
 		<div class="grid-x align-center">
+			<nav aria-label="breadcrumbs margin-top-3" role="navigation">
+				<ul class="breadcrumbs">
+					<li><a href="/">{% include "testapp/house.svg" %}</a></li>
+					<li><a href="/{{ framework }}">{{ framework.capitalize }}</a></li>
+					<li><strong>{{ leaf_name }}</strong></li>
+				</ul>
+			</nav>
+		</div>
+		{{ doc }}
+		<div class="grid-x align-center">
 			{% block "main-content" %}{% endblock %}
 		</div>
 	</div>

@@ -4,7 +4,14 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import get_resolver, path, reverse_lazy
 from django.utils.module_loading import import_string
+from django.utils.safestring import mark_safe
 from django.views.generic.edit import ModelFormMixin
+
+from docutils.frontend import OptionParser
+from docutils.io import StringOutput
+from docutils.utils import new_document
+from docutils.parsers.rst import Parser
+from docutils.writers import get_writer_class, Writer
 
 from formset.utils import FormMixin
 from formset.views import FormView, FormCollectionView
@@ -17,7 +24,9 @@ from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import SimplePersonForm, sample_person_data, ModelPersonForm
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.upload import UploadForm
-from testapp.models import PersonModel
+
+
+parser = Parser()
 
 
 def render_suburls(request):
@@ -51,12 +60,36 @@ class DemoViewMixin:
         context_data = super().get_context_data(**kwargs)
         if self.framework != 'default':
             context_data.update(framework=self.framework)
-        context_data.update(**self.get_css_classes())
+        holder_class = self.collection_class if isinstance(self, FormCollectionView) else self.form_class
+        context_data.update(
+            leaf_name=holder_class.__name__,
+            **self.get_css_classes(),
+        )
+        if holder_class.__doc__:
+            writer = get_writer_class('html5')()
+            settings = OptionParser(components=(Parser, writer), defaults={'template': 'templates/docutils.txt'}).get_default_values()
+            settings.template = 'templates/docutils.txt'
+            document = new_document('rst-doc', settings=settings)
+            unindent = min(len(l) - len(l.lstrip()) for l in holder_class.__doc__.splitlines() if l)
+            docstring = [l[unindent:] for l in holder_class.__doc__.splitlines()]
+            if self.extra_doc:
+                docstring.append('\n')
+                docstring.extend(self.extra_doc.splitlines())
+            docstring.extend(['', '------'])
+            parser.parse('\n'.join(docstring), document)
+            destination = StringOutput(encoding='utf-8')
+            writer.write(document, destination)
+            context_data['doc'] = mark_safe(destination.destination.decode('utf-8'))
+
         return context_data
+
+    def extract_docstring(self):
+        pass
 
 
 class DemoFormView(DemoViewMixin, FormView):
     template_name = 'testapp/native-form.html'
+    extra_doc = None
 
     def get_form_class(self):
         form_class = super().get_form_class()
@@ -76,6 +109,7 @@ class DemoModelFormView(ModelFormMixin, DemoFormView):
 
 class DemoFormCollectionView(DemoViewMixin, FormCollectionView):
     template_name = 'testapp/form-collection.html'
+    extra_doc = None
 
     def get_collection_class(self):
         collection_class = super().get_collection_class()
@@ -130,6 +164,91 @@ demo_css_classes = {
     },
 }
 
+extra_doc_native = """
+Here we use a native Django Form instance to render the form suitable for the ``<django-formset>``-widget.
+
+Then that form instance is rendered using the special template tag ``render_form``. The template responsible for
+rendering shall be written as:
+
+.. code-block:: django
+
+	{% load render_form from formsetify %}
+
+	<django-formset endpoint="{{ request.path }}">
+	  {% render_form form field_classes=... form_classes=... fieldset_classes=... label_classes=... control_classes=... %}
+	</django-formset>
+"""
+
+
+extra_doc_extended = """
+Here we use a Django Form instance with a overridden render method suitable for the ``<django-formset>``-widget.
+
+This allows us to use the built-in ``__str__()``-method and hence render the form using ``{{ form }}`` inside the
+template. In this use case, our Form class must additionally inherit from ``formset.utils.FormMixin``.
+
+Such a form could for instance be defined as:
+
+.. code-block:: python
+
+	from django.forms import forms, fields
+	from formset.utils import FormMixin
+
+	class RegisterPersonForm(FormMixin, forms.Form):
+	    first_field = ...
+
+The template required to render such a form then shall look like:
+
+.. code-block:: django
+
+	{% with dummy=csrf_token.0 %}{% endwith %}
+	...
+	<django-formset endpoint="{{ request.path }}">
+	  {{ form }}
+	  ...
+	</django-formset>
+"""
+
+
+extra_doc_field_by_field = """
+By rendering field-by-field, we get an even more fine grained control over how each field is rendered.
+
+This way we can render each field in a different manner depending on its name or type. Such a template
+might look like:
+
+.. code-block:: django
+
+	{% load formsetify %}
+	...
+	{% formsetify form %}
+	<django-formset endpoint="{{ request.path }}">
+	  <form>
+	    {% include "formset/non_field_errors.html" %}
+	    {% for field in form %}
+	      {% if field.is_hidden %}
+	        {{ field }}
+	      {% elif field.name == "my_special_field" %}
+	        {% include "myproject/my_special_field.html" %}
+	      {% else %}
+	        {% include "formset/default/field_group.html" %}
+	      {% endif %}
+	    {% endfor %}
+	  </form>
+	  <button type="button" click="submit -> proceed">Submit</button>
+	</django-formset>
+"""
+
+
+extra_doc_horizontal = """
+Here we render a Django Form instance using the template tag with different CSS classes:
+
+.. code-block:: django
+
+	{% render_form form "bootstrap" field_css_classes="row mb-3" label_css_classes="col-sm-3" control_css_classes="col-sm-9" %}
+
+When using the Bootstrap framework, they align the label and the field on the same row rather
+than placing them below each other.
+"""
+
 
 urlpatterns = [
     path('', render_suburls),
@@ -138,17 +257,21 @@ urlpatterns = [
     ), name='address'),
     path('complete.native', DemoFormView.as_view(
         form_class=CompleteForm,
+        extra_doc=extra_doc_native,
     ), name='complete.native'),
     path('complete.extended', DemoFormView.as_view(
         form_class=CompleteForm,
         template_name='testapp/extended-form.html',
+        extra_doc=extra_doc_extended,
     ), name='complete.extended'),
     path('complete.field-by-field', DemoFormView.as_view(
         form_class=CompleteForm,
         template_name='testapp/field-by-field.html',
+        extra_doc=extra_doc_field_by_field,
     ), name='complete.field-by-field'),
     path('complete.horizontal', DemoFormView.as_view(
         form_class=CompleteForm,
+        extra_doc=extra_doc_horizontal,
     ), name='complete.horizontal'),
     path('simplecontact', DemoFormCollectionView.as_view(
         collection_class=SimpleContactCollection,
@@ -180,12 +303,29 @@ urlpatterns = [
 
 # this creates permutations of forms to show how to withhold which feedback
 withhold_feedbacks = ['messages', 'errors', 'warnings', 'success']
+extra_doc_withhold = {
+    'messages': "that error messages below the field will not be rendered when the user blurs a field with "
+                "invalid data.",
+    'errors': "that the border does not change color (usually red) and the field does not show an alert symbol, "
+              "when the user blurs a field with invalid data.",
+    'warnings': "that the field does not show a warning symbol (usually orange), when a field has focus, "
+                "but its content does not contain valid data (yet). If only ``errors`` has been added to "
+                "``withhold-feedback=\"...\"``, then the warning symbol will remain even if the field looses focus.",
+    'success': "that the border does not change color (usually green) and the field does not show a success symbol,"
+               "when the user blurs a field with valid data.",
+}
 for length in range(len(withhold_feedbacks) + 1):
     for withhold_feedback in itertools.combinations(withhold_feedbacks, length):
         suffix = '.' + ''.join(w[0] for w in withhold_feedback) if length else ''
+        if withhold_feedback:
+            extra_docs = ['Using ``withhold-feedback="{}"`` means:'.format(' '.join(withhold_feedback)), '']
+        else:
+            extra_docs = []
+        extra_docs.extend([f'* {extra_doc_withhold[w]}' for w in withhold_feedback])
         urlpatterns.append(
             path(f'withhold{suffix}', DemoFormView.as_view(
                 form_class=SimplePersonForm,
                 extra_context={'withhold_feedback': ' '.join(withhold_feedback)},
+                extra_doc='\n'.join(extra_docs),
             ))
         )

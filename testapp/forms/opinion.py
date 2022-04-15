@@ -6,6 +6,37 @@ from testapp.models import OpinionModel
 
 
 class OpinionForm(forms.Form):
+    """
+    Fields with Single and Multiple Choices
+    ---------------------------------------
+
+    This form shows the usage of different choices fields.
+
+    The **Classic Select** uses a Django ``ChoiceField`` using the classic ``<select>`` widget.
+    This is the default and shall only be used for fields with a very few choices, say less than 10.
+
+    The **Static Opinion** uses a Django ``ChoiceField`` using the new ``Selectize`` widget with a
+    fixed set of choices. It shall be used when the number of choices exceeds 10 but is also well
+    suitable for less.
+
+    The **Dynamic Opinion** field shows a ``ModelChoiceField`` using the ``Selectize`` widget
+    configured to query from the associated model. While typing into this field, the number of
+    choices narrows down to those matching the search string.
+
+    The **Few Opinions** field shows a ``ModelMultipleChoiceField`` using the ``SelectizeMultiple``
+    widget configured to query from the associated model. It behaves similar to the ``Selectize``
+    widget, but allows to choose one or more choices. It shall be used if the number of selected
+    choices does not exceed more than say 10.
+
+    The **Many Opinions** field shows a ``ModelMultipleChoiceField`` using the ``DualSelector``
+    widget configured to query from the associated model. It shows two ``<select multiple>``
+    elements, the left to show available choices and the right to keep the selected choices.
+    It shall be used if the number of selected choices may exceed 10 or more.
+
+    The **Annotation** field is just added as a reference to compare the feedback from the
+    ``Selectize`` widget with a standard input field.
+    """
+
     choice = fields.ChoiceField(
         label="Classic Select",
         choices=[
@@ -39,7 +70,6 @@ class OpinionForm(forms.Form):
         label="Many Opinions",
         queryset=OpinionModel.objects.filter(tenant=1),
         widget=DualSelector(search_lookup='label__icontains'),
-        #initial=[104, 208, 377, 499]
     )
 
     annotation = fields.CharField(

@@ -7,6 +7,11 @@ from testapp.models import PersonModel
 
 
 class SimplePersonForm(forms.Form):
+    """
+    This is a simple form used to show how to withhold various feedback messages nearby the
+    offending fields. This is done by adding the attribute ``withhold-feedback="..."`` with one
+    or a combination of those values: ``messages``, ``errors``, ``warnings`` and/or ``success``.
+    """
     last_name = fields.CharField(
         label="Last name",
         min_length=2,
@@ -26,7 +31,7 @@ class SimplePersonForm(forms.Form):
 class PersonForm(SimplePersonForm):
     def clean(self):
         cd = super().clean()
-        if cd['first_name'].lower().startswith("john") and cd['last_name'].lower().startswith("doe"):
+        if cd.get('first_name', '').lower().startswith("john") and cd.get('last_name', '').lower().startswith("doe"):
             raise ValidationError(f"{cd['first_name']} {cd['last_name']} is persona non grata here!")
         return cd
 
