@@ -2,6 +2,7 @@ import json
 
 from django.http.response import HttpResponseBadRequest, JsonResponse
 from django.utils.encoding import force_str
+from django.utils.functional import cached_property
 from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
 from django.views.generic.edit import FormView as GenericFormView
 
@@ -48,25 +49,38 @@ class IncompleSelectResponseMixin:
 
 
 class FormViewMixin:
-    def post(self, request, **kwargs):
-        form = self.get_form()
-        if form.is_valid():
-            self.form_valid(form)
-            response_data = {'success_url': force_str(self.success_url)} if self.success_url else {}
-            return JsonResponse(response_data)
-        else:
-            return JsonResponse(form.errors, status=422, safe=False)
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        assert response.status_code == 302
+        response_data = {'success_url': force_str(response.url)} if response.url else {}
+        return JsonResponse(response_data)
+
+    def form_invalid(self, form):
+        super().form_invalid(form)
+        return JsonResponse(form.errors, status=422, safe=False)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        if self.request.content_type == 'application/json':
-            body = json.loads(self.request.body)
-            kwargs['data'] = body.get('formset_data')
+        if self._request_body:
+            kwargs['data'] = self._request_body.get('formset_data')
         return kwargs
 
     def get_field(self, path):
         field_name = path.split('.')[-1]
         return self.form_class.base_fields[field_name]
+
+    def get_extra_data(self):
+        """
+        When submitting a form, one can additionally add extra parameters via the button's ``submit()`` action.
+        Use this method to access that extra data.
+        """
+        if self._request_body:
+            return self._request_body.get('_extra')
+
+    @cached_property
+    def _request_body(self):
+        if self.request.content_type == 'application/json':
+            return json.loads(self.request.body)
 
 
 class FormView(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin, GenericFormView):

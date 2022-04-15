@@ -21,6 +21,7 @@ insert_final_newline = false
 
 [*.{md,rst}]
 trim_trailing_whitespace = false
+max_line_length = 100
 
 [*.{html,scss,css}]
 indent_size = 2
