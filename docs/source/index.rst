@@ -20,6 +20,7 @@ Django ``Form``-s.
 	buttons
 	fieldsets
 	collections
+	model-form
 	renderers
 	conditionals
 	uploading

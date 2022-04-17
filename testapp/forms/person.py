@@ -43,6 +43,32 @@ sample_person_data = {
 
 
 class ModelPersonForm(models.ModelForm):
+    """
+    This form is created by Django's helper functions that creates a Form class out of a Django model.
+
+    The only caveat is that some of the default widgets must or shall be overridden by counterparts from the
+    **django-formset** library. For model fields of type ``django.db.models.FileField`` and
+    ``django.db.models.ImageField`` the widget **must** be replaced by ``formset.widgets.UploadedFileInput``.
+
+    Input fields for selecting one or more options can be replaced by widgets of type ``formset.widgets.Selectize``,
+    ``formset.widgets.SelectizeMutiple`` or ``formset.widgets.DualSelector``.
+
+    To adopt the widgets, specify a dictionary inside the form's ``Meta`` class, for instance
+
+    .. code-block:: python
+
+        class ModelPersonForm(models.ModelForm):
+            class Meta:
+                model = PersonModel
+                fields = '__all__'
+                widgets = {
+                    'avatar': UploadedFileInput,
+                    'gender': widgets.RadioSelect,
+                    'opinion': Selectize(search_lookup='label__icontains'),
+                    'opinions': SelectizeMultiple(search_lookup='label__icontains', max_items=15),
+                }
+    """
+
     class Meta:
         model = PersonModel
         fields = '__all__'

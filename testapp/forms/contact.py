@@ -84,6 +84,9 @@ class ContactCollection(FormCollection):
 
     Such a collection behaves similar to a single form in the sense, that those two child
     forms, ``PersonForm`` and ``PhoneNumberCollection`` can be submitted altogether.
+
+    The ``PhoneNumberCollection`` is a collection of another form, containg a phone number field
+    and a label field. That collection can contain one up to five phone numbers.
     """
 
     person = PersonForm()
