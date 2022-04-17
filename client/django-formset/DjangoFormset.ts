@@ -178,7 +178,7 @@ class FieldGroup {
 	}
 
 	private evalVisibility(attribute: string, visible: boolean): Function | null {
-		const attrValue = this.inputElements[0].getAttribute(attribute);
+		const attrValue = this.inputElements[0]?.getAttribute(attribute);
 		if (typeof attrValue !== 'string')
 			return null;
 		try {
@@ -194,7 +194,7 @@ class FieldGroup {
 	}
 
 	private evalDisable(): Function {
-		const attrValue = this.inputElements[0].getAttribute('disable-if');
+		const attrValue = this.inputElements[0]?.getAttribute('disable-if');
 		if (typeof attrValue !== 'string')
 			return () => {};
 		try {
