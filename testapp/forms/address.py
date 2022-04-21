@@ -6,9 +6,10 @@ class AddressForm(forms.Form):
     Address Form
     ------------
 
-    Sometimes it is desirable to align certain input fields inside the same row. For this purpose
-    the Bootstrap framework offers special CSS classes. To make use of that, we can add a dictionary
-    to our Form class such as
+    Sometimes it is desirable to align certain input fields in the same row. To achieve this, the Bootstrap
+    framework offers special CSS classes, in order to style the input groups into columns of different size.
+
+    We can use this feature, by adding a dictionary to our Form class:
 
     .. code-block:: python
 

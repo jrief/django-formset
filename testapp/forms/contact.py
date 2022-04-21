@@ -28,6 +28,14 @@ class SimpleContactCollection(FormCollection):
 
     Such a collection behaves similar to a single form in the sense, that those two child
     forms, ``PersonForm`` and ``ProfessionForm``, can be validated and submitted altogether.
+
+    Such a simple collection looks like:
+
+    .. code-block:: python
+
+        class SimpleContactCollection(FormCollection):
+            person = PersonForm()
+            profession = ProfessionForm()
     """
 
     person = PersonForm()
@@ -87,6 +95,22 @@ class ContactCollection(FormCollection):
 
     The ``PhoneNumberCollection`` is a collection of another form, containg a phone number field
     and a label field. That collection can contain one up to five phone numbers.
+
+    Such a nested collection looks like:
+
+    .. code-block:: python
+
+        class PhoneNumberCollection(FormCollection):
+            min_siblings = 1
+            max_siblings = 5
+            extra_siblings = 1
+
+            number = PhoneNumberForm()
+
+        class ContactCollection(FormCollection):
+            person = PersonForm()
+            numbers = PhoneNumberCollection()
+
     """
 
     person = PersonForm()
