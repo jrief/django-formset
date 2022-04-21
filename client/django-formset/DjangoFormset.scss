@@ -145,16 +145,9 @@ django-formset {
 			> div {
 				height: fit-content;
 				margin-left: 0.5rem;
-				.dj-progress-bar {
+				progress {
 					width: 100%;
-					border: 1px solid black;
-					border-radius: 0.25rem;
-					margin-top: 0.5rem;
-					> div {
-						background-color: darkgray;
-						height: 0.25rem;
-						width: 0;
-					}
+					margin-top: 0.25rem;
 				}
 			}
 		}

@@ -123,13 +123,13 @@ def test_upload_progressbar(page):
     }
     client.send('Network.emulateNetworkConditions', network_conditions)
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
-    progress_bar = field_group.wait_for_selector('.dj-progress-bar')
+    progress_bar = field_group.wait_for_selector('progress')
     assert progress_bar is not None
-    progress_div = progress_bar.wait_for_selector('div')
-    assert progress_div is not None
-    styles = dict(s.split(':') for s in progress_div.get_attribute('style').split(';') if ':' in s)
-    width = int(styles['width'].rstrip('%'))
-    assert width > 0 and width <= 100
+    progress_value = float(progress_bar.get_attribute('value'))
+    assert progress_value >= 0.0 and progress_value < 1.0
+    sleep(0.2)
+    progress_value = float(progress_bar.get_attribute('value'))
+    assert progress_value > 0.0 and progress_value <= 1.0
     network_conditions.update(uploadThroughput=999999)
     client.send('Network.emulateNetworkConditions', network_conditions)
     file_picture = page.wait_for_selector('li.dj-file-picture')

@@ -24,7 +24,7 @@ export class FileUploadWidget {
 	private readonly inputElement: HTMLInputElement;
 	private readonly dropbox: HTMLUListElement;
 	private readonly chooseFileButton: HTMLButtonElement;
-	private readonly progressBar: HTMLDivElement | null = null;
+	private readonly progressBar: HTMLProgressElement | null = null;
 	private readonly dropboxItemTemplate: Function;
 	private readonly defaultDropboxItem: HTMLLIElement;
 	private readonly observer: MutationObserver;
@@ -43,7 +43,7 @@ export class FileUploadWidget {
 		if (!this.chooseFileButton)
 			throw new Error('Element <input type="file"> requires sibling element <button class="dj-choose-file"></button>');
 
-		this.progressBar = this.field.element.querySelector('div.dj-progress-bar') as HTMLDivElement;
+		this.progressBar = this.field.element.querySelector('progress') as HTMLProgressElement;
 		if (this.progressBar) {
 			this.progressBar.style.visibility = 'hidden';
 		}
@@ -134,10 +134,7 @@ export class FileUploadWidget {
 			const complete = event.lengthComputable ? event.loaded / event.total : 0;
 			if (self.progressBar) {
 				self.progressBar.style.visibility = 'visible';
-				const divElement = self.progressBar.querySelector('div');
-				if (divElement) {
-					divElement.style.width = `${complete * 100}%`;
-				}
+				self.progressBar.value = complete;
 			}
 		}
 
