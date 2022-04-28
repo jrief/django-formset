@@ -16,9 +16,20 @@ from django.utils.timezone import now, datetime, utc
 
 
 class IncompleteSelectMixin:
+    """
+    Extra interfaces for widgets not loading the complete set of choices.
+    """
+
     choices = ()
     max_prefetch_choices = 250
     search_lookup = None
+
+    def __init__(self, attrs=None, choices=(), search_lookup=None):
+        if search_lookup:
+            self.search_lookup = search_lookup
+        if isinstance(self.search_lookup, str):
+            self.search_lookup = [self.search_lookup]
+        super().__init__(attrs, choices)
 
     def search(self, search_term):
         try:
@@ -76,13 +87,9 @@ class Selectize(IncompleteSelectMixin, Select):
     placeholder = _("Select")
 
     def __init__(self, attrs=None, choices=(), search_lookup=None, placeholder=None):
-        if search_lookup:
-            self.search_lookup = search_lookup
-        if isinstance(self.search_lookup, str):
-            self.search_lookup = [self.search_lookup]
+        super().__init__(attrs, choices, search_lookup)
         if placeholder is not None:
             self.placeholder = placeholder
-        super().__init__(attrs, choices)
 
     def build_attrs(self, base_attrs, extra_attrs):
         attrs = super().build_attrs(base_attrs, extra_attrs)
@@ -121,32 +128,16 @@ class DualSelector(IncompleteSelectMixin, SelectMultiple):
     Render widget suitable for the <select is="django-dual-selector"> widget
     """
     template_name = 'formset/default/widgets/dual_selector.html'
-    webcomponent = 'django-dual-selector'
-
-    def __init__(self, attrs=None, choices=(), search_lookup=None):
-        if search_lookup:
-            self.search_lookup = search_lookup
-        if isinstance(self.search_lookup, str):
-            self.search_lookup = [self.search_lookup]
-        super().__init__(attrs, choices)
-    def get_context(self, name, value, attrs):
-        context = super().get_context(name, value, attrs)
-        context['webcomponent'] = self.webcomponent
-        return context
 
 
 class DualSortableSelector(DualSelector):
     """
     Render widget suitable for the <select is="django-dual-sortable-selector"> widget
     """
-    webcomponent = 'django-dual-sortable-selector'
-
-    def Xget_context(self, name, value, attrs):
-        assert isinstance(self.choices, ModelChoiceIterator), \
-            f"<{self.__class__.__name__}> must use choices of type ModelChoiceIterator"
-        assert len(self.choices.queryset.model._meta.ordering) > 0, \
-            f"<{self.choices.queryset.model.__class__.__name__}> must specify one ordering field"
-        return super().get_context(name, value, attrs)
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context['is_sortable'] = True
+        return context
 
 
 class UploadedFileInput(FileInput):

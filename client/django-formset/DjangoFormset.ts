@@ -5,6 +5,7 @@ import template from 'lodash.template';
 
 import { FileUploadWidget } from './FileUploadWidget';
 import { parse } from './tag-attributes';
+import styles from 'sass:./DjangoFormset.scss';
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FieldValue = string | Array<string | Object>;
@@ -12,6 +13,10 @@ type ErrorKey = keyof ValidityState;
 
 const NON_FIELD_ERRORS = '__all__';
 const MARKED_FOR_REMOVAL = '_marked_for_removal_';
+
+const style = document.createElement('style');
+style.innerText = styles;
+document.head.appendChild(style);
 
 
 function assert(condition: any) {
