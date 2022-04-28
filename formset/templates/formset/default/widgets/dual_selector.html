@@ -32,7 +32,11 @@
 {% block "right-column" %}
 	<div class="{% block "column_right_classes" %}right-column{% endblock %}">
 		<input type="text" class="dj-exempt-feedback{% if lookup_field_classes %} {{ lookup_field_classes }}{% endif %}" placeholder="{% translate 'Search …' %}" />
+	{% if webcomponent == "django-dual-sortable-selector" %}
+		<django-sortable-select{% if select_classes %} class="{{ select_classes }}"{% endif %} size="{{ select_size }}"></django-sortable-select>
+	{% else %}
 		<select multiple class="dj-exempt-feedback{% if select_classes %} {{ select_classes }}{% endif %}" size="{{ select_size }}"></select>
+	{% endif %}
 	</div>
 {% endblock %}
 </div>

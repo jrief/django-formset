@@ -60,6 +60,12 @@ class PersonModel(models.Model):
         related_name='person_groups',
     )
 
+    weighted_opinions = models.ManyToManyField(
+        OpinionModel,
+        through='testapp.WeightedOpinion',
+        verbose_name="Weighted Opinions",
+    )
+
     class Continent(models.IntegerChoices):
         America = 1
         Europe = 2
@@ -72,4 +78,21 @@ class PersonModel(models.Model):
     continent = models.IntegerField(
         verbose_name="Continent",
         choices=Continent.choices,
+    )
+
+
+class WeightedOpinion(models.Model):
+    person = models.ForeignKey(
+        PersonModel,
+        on_delete=models.CASCADE,
+    )
+
+    opinion = models.ForeignKey(
+        OpinionModel,
+        on_delete=models.CASCADE,
+    )
+
+    weight = models.BigIntegerField(
+        "Weighted Opinion",
+        default=0,
     )

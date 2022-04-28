@@ -48,5 +48,23 @@ class Migration(migrations.Migration):
                 ('opinions', models.ManyToManyField(related_name='person_groups', to='testapp.OpinionModel', verbose_name='Opinions')),
             ],
         ),
+        migrations.CreateModel(
+            name='WeightedOpinion',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('weight', models.BigIntegerField(default=0, verbose_name='Weighted Opinion')),
+                ('opinion', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='testapp.opinionmodel')),
+            ],
+        ),
+        migrations.AddField(
+            model_name='personmodel',
+            name='weighted_opinions',
+            field=models.ManyToManyField(through='testapp.WeightedOpinion', to='testapp.OpinionModel', verbose_name='Weighted Opinions'),
+        ),
+        migrations.AddField(
+            model_name='weightedopinion',
+            name='person',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='testapp.personmodel'),
+        ),
         migrations.RunPython(initialize_opinions, reverse_code=migrations.RunPython.noop),
     ]

@@ -121,6 +121,7 @@ class DualSelector(IncompleteSelectMixin, SelectMultiple):
     Render widget suitable for the <select is="django-dual-selector"> widget
     """
     template_name = 'formset/default/widgets/dual_selector.html'
+    webcomponent = 'django-dual-selector'
 
     def __init__(self, attrs=None, choices=(), search_lookup=None):
         if search_lookup:
@@ -128,6 +129,24 @@ class DualSelector(IncompleteSelectMixin, SelectMultiple):
         if isinstance(self.search_lookup, str):
             self.search_lookup = [self.search_lookup]
         super().__init__(attrs, choices)
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context['webcomponent'] = self.webcomponent
+        return context
+
+
+class DualSortableSelector(DualSelector):
+    """
+    Render widget suitable for the <select is="django-dual-sortable-selector"> widget
+    """
+    webcomponent = 'django-dual-sortable-selector'
+
+    def Xget_context(self, name, value, attrs):
+        assert isinstance(self.choices, ModelChoiceIterator), \
+            f"<{self.__class__.__name__}> must use choices of type ModelChoiceIterator"
+        assert len(self.choices.queryset.model._meta.ordering) > 0, \
+            f"<{self.choices.queryset.model.__class__.__name__}> must specify one ordering field"
+        return super().get_context(name, value, attrs)
 
 
 class UploadedFileInput(FileInput):
