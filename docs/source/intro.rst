@@ -16,7 +16,7 @@ frameworks offer nowadays, having to reload a page if a form does not validate, 
 contemporary anymore. Therefore, Django developers often use a combination of one of these client
 frameworks together with the `Django REST framework`_, which then indeed provides a much better User
 eXperience. However, those JavaScript frameworks impose their own way of getting stuff done and
-usually don't share the same mindset with Django. For instance, in Django, we distinguish between
+usually don't share the same mindset with Django. For instance, in Django we distinguish between
 `bound and unbound forms`_. This concept however doesn't make sense in most JavaScript
 frameworks, and hence is not implemented. We therefore often must work around those problems, which
 leeds to cumbersome and un-`DRY`_ solutions.
