@@ -20,6 +20,13 @@ class IncompleteSelectMixin:
     max_prefetch_choices = 250
     search_lookup = None
 
+    def __init__(self, attrs=None, choices=(), search_lookup=None):
+        if search_lookup:
+            self.search_lookup = search_lookup
+        if isinstance(self.search_lookup, str):
+            self.search_lookup = [self.search_lookup]
+        super().__init__(attrs, choices)
+
     def search(self, search_term):
         try:
             query = reduce(or_, (Q(**{sl: search_term}) for sl in self.search_lookup))
@@ -76,13 +83,9 @@ class Selectize(IncompleteSelectMixin, Select):
     placeholder = _("Select")
 
     def __init__(self, attrs=None, choices=(), search_lookup=None, placeholder=None):
-        if search_lookup:
-            self.search_lookup = search_lookup
-        if isinstance(self.search_lookup, str):
-            self.search_lookup = [self.search_lookup]
+        super().__init__(attrs, choices, search_lookup)
         if placeholder is not None:
             self.placeholder = placeholder
-        super().__init__(attrs, choices)
 
     def build_attrs(self, base_attrs, extra_attrs):
         attrs = super().build_attrs(base_attrs, extra_attrs)
@@ -121,13 +124,6 @@ class DualSelector(IncompleteSelectMixin, SelectMultiple):
     Render widget suitable for the <select is="django-dual-selector"> widget
     """
     template_name = 'formset/default/widgets/dual_selector.html'
-
-    def __init__(self, attrs=None, choices=(), search_lookup=None):
-        if search_lookup:
-            self.search_lookup = search_lookup
-        if isinstance(self.search_lookup, str):
-            self.search_lookup = [self.search_lookup]
-        super().__init__(attrs, choices)
 
 
 class UploadedFileInput(FileInput):
