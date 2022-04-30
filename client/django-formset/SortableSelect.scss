@@ -3,5 +3,8 @@ django-sortable-select {
 
 	> option {
 		line-height: normal;
+		&:checked, &.sortable-chosen {
+			background-color: #4ac1f7;
+		}
 	}
 }

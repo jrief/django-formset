@@ -63,6 +63,7 @@ export class DualSelector extends IncompleteSelect {
 		this.selectLeftElement.addEventListener('scroll', evt => this.selectLeftScrolled());
 		this.selectRightElement.addEventListener('focus', () => this.touch());
 		this.selectRightElement.addEventListener('dblclick', evt => this.moveOptionLeft(evt.target));
+		this.selectRightElement.addEventListener('options-sorted', evt => this.optionsSorted());
 		this.moveAllRightButton?.addEventListener('click', evt => this.moveAllOptionsRight());
 		this.moveSelectedRightButton?.addEventListener('click', evt => this.moveSelectedOptionsRight());
 		this.moveSelectedLeftButton?.addEventListener('click', evt => this.moveSelectedOptionsLeft());
@@ -178,6 +179,16 @@ export class DualSelector extends IncompleteSelect {
 		this.historicalValues.push(rightOptions.map(o => o.value));
 		this.setHistoryCursor(this.historicalValues.length - 1);
 		this.selectorChanged();
+	}
+
+	private optionsSorted() {
+		this.getOptions(this.selectorElement).filter(o => o.selected).forEach(o => o.remove());
+		this.getOptions(this.selectRightElement).forEach(o => {
+			const clone = o.cloneNode() as HTMLOptionElement;
+			clone.selected = true;
+			this.selectorElement.add(clone);
+		});
+		this.selectorElement.dispatchEvent(new Event('change'));
 	}
 
 	private async moveOptionRight(target: EventTarget | null) {
