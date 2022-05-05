@@ -4,7 +4,18 @@ django-sortable-select {
 	> option {
 		line-height: normal;
 		&:checked, &.sortable-chosen {
-			background-color: #4ac1f7;
+			background-color: rgb(206, 206, 206);
+		}
+	}
+
+	&.has-focus {
+		border-color: #86b7fe;
+		outline: 0;
+		box-shadow: 0 0 0 0.25rem rgb(13 110 253 / 25%);
+		> option {
+			&:checked, &.sortable-chosen {
+				background-color: rgb(179, 215, 255) !important;
+			}
 		}
 	}
 }

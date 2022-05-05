@@ -21,7 +21,7 @@ export class SortableSelectElement extends HTMLElement {
 		});
 
 		this.addEventListener('click', event => this.optionSelected(event));
-		document.body.addEventListener('click', event => this.deselectAllOptions());
+		document.addEventListener('click', event => this.elementFocus(event));
 	}
 
 	private onEnd(event: SortableEvent) {
@@ -32,6 +32,14 @@ export class SortableSelectElement extends HTMLElement {
 			composed: false
 		});
 		this.dispatchEvent(sortedEvent);
+	}
+
+	private elementFocus(event: Event) {
+		if (event.target instanceof HTMLElement && this.contains(event.target)) {
+			this.classList.add('has-focus');
+		} else {
+			this.classList.remove('has-focus');
+		}
 	}
 
 	private optionSelected(event: Event) {
