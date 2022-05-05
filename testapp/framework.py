@@ -22,6 +22,7 @@ from testapp.forms.contact import SimpleContactCollection, ContactCollection, Co
 from testapp.forms.customer import CustomerCollection
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import SimplePersonForm, sample_person_data, ModelPersonForm
+from testapp.forms.poll import ModelPollForm
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.upload import UploadForm
 
@@ -293,6 +294,9 @@ urlpatterns = [
         form_class=ModelPersonForm,
         # object=PersonModel.objects.last(),
     ), name='person'),
+    path('poll', DemoModelFormView.as_view(
+        form_class=ModelPollForm,
+    ), name='poll'),
     path('questionnaire', DemoFormView.as_view(
         form_class=QuestionnaireForm,
     ), name='questionnaire'),

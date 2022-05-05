@@ -1,5 +1,7 @@
 from django.db import models
 
+from formset.fields import SortableManyToManyField
+
 
 class PayloadModel(models.Model):
     data = models.JSONField()
@@ -60,12 +62,6 @@ class PersonModel(models.Model):
         related_name='person_groups',
     )
 
-    weighted_opinions = models.ManyToManyField(
-        OpinionModel,
-        through='testapp.WeightedOpinion',
-        verbose_name="Weighted Opinions",
-    )
-
     class Continent(models.IntegerChoices):
         America = 1
         Europe = 2
@@ -81,9 +77,18 @@ class PersonModel(models.Model):
     )
 
 
+class PollModel(models.Model):
+    weighted_opinions = SortableManyToManyField(
+        OpinionModel,
+        through='testapp.WeightedOpinion',
+        verbose_name="Weighted Opinions",
+        # default=[2,1,5,3,4,6],
+    )
+
+
 class WeightedOpinion(models.Model):
-    person = models.ForeignKey(
-        PersonModel,
+    poll = models.ForeignKey(
+        PollModel,
         on_delete=models.CASCADE,
     )
 
@@ -96,3 +101,6 @@ class WeightedOpinion(models.Model):
         "Weighted Opinion",
         default=0,
     )
+
+    class Meta:
+        ordering = ['weight']
