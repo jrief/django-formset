@@ -82,7 +82,7 @@ class PollModel(models.Model):
         OpinionModel,
         through='testapp.WeightedOpinion',
         verbose_name="Weighted Opinions",
-        # default=[2,1,5,3,4,6],
+        default=[2,11,5,99,4,6],
     )
 
 
