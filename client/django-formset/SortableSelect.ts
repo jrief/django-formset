@@ -21,7 +21,7 @@ export class SortableSelectElement extends HTMLElement {
 		});
 
 		this.addEventListener('click', event => this.optionSelected(event));
-		document.addEventListener('click', event => this.elementFocus(event));
+		window.addEventListener('click', event => this.elementFocus(event));
 	}
 
 	private onEnd(event: SortableEvent) {
@@ -98,7 +98,7 @@ export class SortableSelectElement extends HTMLElement {
 	}
 
 	public add(option: HTMLOptionElement) {
-		console.log('add option');
 		this.appendChild(option);
+		Sortable.utils.select(option);
 	}
 }
