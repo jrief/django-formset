@@ -1,6 +1,8 @@
 from django.core import checks
 from django.db.models.fields.related import ManyToManyField
 
+from formset.widgets import DualSortableSelector
+
 
 class SortableMultipleChoiceMixin:
     def clean(self, value):
@@ -41,6 +43,11 @@ class SortableManyToManyField(ManyToManyField):
 
     def formfield(self, **kwargs):
         form_field = super().formfield(**kwargs)
-        class_name = form_field.__class__.__name__
-        form_field.__class__ = type(class_name, (SortableMultipleChoiceMixin, form_field.__class__), {})
+        form_field.__class__ = type(
+            form_field.__class__.__name__,
+            (SortableMultipleChoiceMixin, form_field.__class__),
+            {}
+        )
+        if not isinstance(form_field.widget, DualSortableSelector):
+            form_field.widget = DualSortableSelector()
         return form_field
