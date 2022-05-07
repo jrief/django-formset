@@ -1,4 +1,4 @@
-.. dual-selector:
+.. _dual-selector:
 
 Dual Selector Widget
 ====================

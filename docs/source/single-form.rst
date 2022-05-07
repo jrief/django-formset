@@ -30,8 +30,6 @@ there is no difference on how Django renders a form. In case your project alread
 proprietary class inheriting from FormView_ which can not be refactored, **django-formset** provides
 a special mixin class named :class:`formset.views.FormViewMixin` to be inherited by that view.
 
-.. _FormView: https://docs.djangoproject.com/en/stable/ref/class-based-views/generic-editing/#django.views.generic.edit.FormView
-
 The difference to a classic Django form appears when the view receives data sent by a POST request.
 First of all, received data now is encoded as ``application/json``, instead of
 ``multipart/form-data``, as with standard form submissions. And secondly, the response of that
