@@ -1,5 +1,15 @@
 ## Changes
 
+- 0.8.1
+  * Adopt `DualSelector` for Tailwind.css.
+  * Hide `calendar-picker-indicator` in touched input date fields.
+  * Fix: Expecting path for base location as Path object.
+  * Fix: Updating of existing object failed.
+  * Add method `get_extra_data` to class `FormView`.
+  * Increase max filename length to 250 characters.
+  * Fix: Abort silently if input field is missing.
+  * Replace `<div>`-based progress bar against proper HTML element `<progress>`.
+
 - 0.8
   * Add widget `DualSelector` which accepts multiple values and is the form field counterpart
     to Django's `ManyToManyField`. This is an alternative widget to `SelectizeMultiple`.
