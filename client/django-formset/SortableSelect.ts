@@ -5,23 +5,25 @@ Sortable.mount(new MultiDrag());
 
 
 export class SortableSelectElement extends HTMLElement {
-	private readonly sortable: Sortable;
 	private lastSelected: HTMLOptionElement | null = null;
 
-	private constructor() {
+	public constructor() {
 		super();
 		const style = document.createElement('style');
 		style.innerText = styles;
 		document.head.appendChild(style)
-		this.sortable = Sortable.create(this, {
+
+		this.addEventListener('click', event => this.optionSelected(event));
+		window.addEventListener('click', event => this.elementFocus(event));
+	}
+
+	public initialize() {
+		Sortable.create(this, {
 			animation: 150,
 			fallbackOnBody: true,
 			multiDrag: true,
 			onEnd: event => this.onEnd(event),
-		});
-
-		this.addEventListener('click', event => this.optionSelected(event));
-		window.addEventListener('click', event => this.elementFocus(event));
+		})
 	}
 
 	private onEnd(event: SortableEvent) {

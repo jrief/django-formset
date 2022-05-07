@@ -91,6 +91,9 @@ export class DualSelector extends IncompleteSelect {
 		}
 		this.historicalValues.push(initialValues);
 		this.setHistoryCursor(0);
+		if (this.selectRightElement instanceof SortableSelectElement) {
+			this.selectRightElement.initialize();
+		}
 	}
 
 	private addNoResultsOption(selectElement: HTMLSelectElement | SortableSelectElement, query: string) {
