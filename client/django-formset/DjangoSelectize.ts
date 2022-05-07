@@ -5,7 +5,7 @@ import TomSelect_remove_button from 'tom-select/src/plugins/remove_button/plugin
 import { escape_html } from 'tom-select/src/utils';
 import { IncompleteSelect } from './IncompleteSelect';
 import template from 'lodash.template';
-import { Styling } from './styling';
+import { StyleHelpers } from './helpers';
 import styles from 'sass:./DjangoSelectize.scss';
 
 TomSelect.define('remove_button', TomSelect_remove_button);
@@ -130,21 +130,21 @@ class DjangoSelectize extends IncompleteSelect {
 	private transferStyles(tomInput: HTMLElement, nativeStyles: CSSStyleDeclaration) {
 		const wrapperStyle = (this.shadowRoot.host as HTMLElement).style;
 		wrapperStyle.setProperty('display', nativeStyles.display);
-		const sheet = this.shadowRoot.styleSheets[0];
-		for (let index = 0; index < sheet.cssRules.length; index++) {
+		const lineHeight = window.getComputedStyle(tomInput).getPropertyValue('line-height');
+		const optionElement = tomInput.querySelector('option');
+		const sheet = this.shadowRoot.styleSheets.item(0);
+		for (let index = 0; sheet && index < sheet.cssRules.length; index++) {
 			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
-			const lineHeight = window.getComputedStyle(tomInput).getPropertyValue('line-height');
 			let extraStyles: string;
-			const optionElement = tomInput.querySelector('option');
 			switch (cssRule.selectorText) {
 				case '.ts-wrapper':
-					extraStyles = Styling.extractStyles(tomInput, [
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'font-family', 'font-size', 'font-strech', 'font-style', 'font-weight',
 						'letter-spacing', 'white-space']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case '.ts-wrapper .ts-control':
-					extraStyles = Styling.extractStyles(tomInput, [
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'background-color', 'border', 'border-radius', 'box-shadow', 'color',
 						'padding']).concat(`width: ${nativeStyles['width']}; min-height: ${nativeStyles['height']};`);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
@@ -152,20 +152,20 @@ class DjangoSelectize extends IncompleteSelect {
 				case '.ts-wrapper .ts-control > input':
 				case '.ts-wrapper .ts-control > div':
 					if (optionElement) {
-						extraStyles = Styling.extractStyles(optionElement, ['padding-left', 'padding-right']);
+						extraStyles = StyleHelpers.extractStyles(optionElement, ['padding-left', 'padding-right']);
 						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					}
 					break;
 				case '.ts-wrapper .ts-control > input::placeholder':
 					tomInput.classList.add('-placeholder-');
-					extraStyles = Styling.extractStyles(tomInput, ['background-color', 'color'])
+					extraStyles = StyleHelpers.extractStyles(tomInput, ['background-color', 'color'])
 					tomInput.classList.remove('-placeholder-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case '.ts-wrapper.focus .ts-control':
 					tomInput.style.transition = 'none';
 					tomInput.classList.add('-focus-');
-					extraStyles = Styling.extractStyles(tomInput, [
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'])
 					tomInput.classList.remove('-focus-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
@@ -173,13 +173,13 @@ class DjangoSelectize extends IncompleteSelect {
 					break;
 				case '.ts-wrapper.disabled .ts-control':
 					tomInput.classList.add('-disabled-');
-					extraStyles = Styling.extractStyles(tomInput, [
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 							'background-color', 'border', 'box-shadow', 'color', 'opacity', 'outline', 'transition'])
 					tomInput.classList.remove('-disabled-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case '.ts-wrapper .ts-dropdown':
-					extraStyles = Styling.extractStyles(tomInput, [
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'border-right', 'border-bottom', 'border-left', 'color', 'padding-left'])
 						.concat(parseFloat(lineHeight) > 0 ? `line-height: calc(${lineHeight} * 1.2);` : 'line-height: 1.2em;');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);

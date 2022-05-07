@@ -1,22 +1,22 @@
 django-sortable-select {
-	overflow: hidden scroll;
-	border: 1px solid rgb(118, 118, 118);
+	opacity: 1;
 
-	> option {
-		line-height: normal;
-		&:checked, &.sortable-chosen {
-			background-color: rgb(206, 206, 206);
+	&.focus {
+		opacity: 1;
+
+		> option {
+
+			&.sortable-chosen, &.sortable-selected {
+				opacity: 1;
+			}
 		}
 	}
 
-	&.has-focus {
-		border-color: #86b7fe;
-		outline: 0;
-		box-shadow: 0 0 0 0.25rem rgb(13 110 253 / 25%);
-		> option {
-			&:checked, &.sortable-chosen {
-				background-color: rgb(179, 215, 255) !important;
-			}
+	> option {
+		line-height: normal;
+
+		&.sortable-chosen, &.sortable-selected {
+			opacity: 1;
 		}
 	}
 }

@@ -1,29 +1,32 @@
 import Sortable, { MultiDrag, SortableEvent } from 'sortablejs';
 import styles from 'sass:./SortableSelect.scss';
+import { StyleHelpers } from './helpers';
 
 Sortable.mount(new MultiDrag());
 
 
 export class SortableSelectElement extends HTMLElement {
+	private readonly declaredStyles: HTMLStyleElement;
 	private lastSelected: HTMLOptionElement | null = null;
 
 	public constructor() {
 		super();
-		const style = document.createElement('style');
-		style.innerText = styles;
-		document.head.appendChild(style)
+		this.declaredStyles = document.createElement('style');
+		this.declaredStyles.innerText = styles;
+		document.head.appendChild(this.declaredStyles);
 
 		this.addEventListener('click', event => this.optionSelected(event));
 		window.addEventListener('click', event => this.elementFocus(event));
 	}
 
-	public initialize() {
+	public initialize(selectElement: HTMLSelectElement) {
+		this.transferStyles(selectElement);
 		Sortable.create(this, {
 			animation: 150,
 			fallbackOnBody: true,
 			multiDrag: true,
 			onEnd: event => this.onEnd(event),
-		})
+		});
 	}
 
 	private onEnd(event: SortableEvent) {
@@ -38,9 +41,9 @@ export class SortableSelectElement extends HTMLElement {
 
 	private elementFocus(event: Event) {
 		if (event.target instanceof HTMLElement && this.contains(event.target)) {
-			this.classList.add('has-focus');
+			this.classList.add('focus');
 		} else {
-			this.classList.remove('has-focus');
+			this.classList.remove('focus');
 		}
 	}
 
@@ -84,18 +87,52 @@ export class SortableSelectElement extends HTMLElement {
 		}
 	}
 
-	public transferStyles(selectElement: HTMLSelectElement) {
-		const nativeStyles = window.getComputedStyle(selectElement);
-		console.log(nativeStyles);
-		//for (let k = 0; k < nativeStyles.length; ++k) {
-		//	const key = nativeStyles.item(k);
-		//	this.style.setProperty(key, nativeStyles.getPropertyValue(key));
-		//}
-		this.style.setProperty('height', nativeStyles.getPropertyValue('height'));
+	private transferStyles(selectElement: HTMLSelectElement) {
+		const sheet = this.declaredStyles.sheet;
 		const optionElement = selectElement.querySelector('option');
-		if (optionElement) {
-			const nativeStyles = window.getComputedStyle(optionElement);
-			console.log(nativeStyles.getPropertyValue('background-color'));
+		for (let index = 0; sheet && index < sheet.cssRules.length; index++) {
+			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
+			let extraStyles: string;
+			switch (cssRule.selectorText) {
+				case 'django-sortable-select':
+					extraStyles = StyleHelpers.extractStyles(selectElement, [
+						'display', 'width', 'height', 'border', 'box-shadow', 'outline', 'overflow',
+						'font-family', 'font-size', 'font-strech', 'font-style', 'font-weight',
+						'letter-spacing', 'white-space', 'line-height']);
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case 'django-sortable-select.focus':
+					selectElement.style.transition = 'none';
+					selectElement.focus();
+					extraStyles = StyleHelpers.extractStyles(selectElement, [
+						'border', 'box-shadow', 'outline']);
+					selectElement.blur();
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					selectElement.style.transition = '';
+					break;
+				case 'django-sortable-select > option.sortable-chosen, django-sortable-select > option.sortable-selected':
+					if (optionElement) {
+						optionElement.selected = true;
+						extraStyles = StyleHelpers.extractStyles(optionElement, [
+							'color', 'background-color']);
+						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+						optionElement.selected = false;
+					}
+					break;
+				case 'django-sortable-select.focus > option.sortable-chosen, django-sortable-select.focus > option.sortable-selected':
+					selectElement.focus();
+					if (optionElement) {
+						optionElement.selected = true;
+						extraStyles = StyleHelpers.extractStyles(optionElement, [
+							'color', 'background-color']);
+						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+						optionElement.selected = false;
+					}
+					selectElement.blur();
+					break;
+				default:
+					break;
+			}
 		}
 	}
 

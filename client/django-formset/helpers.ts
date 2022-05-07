@@ -1,4 +1,4 @@
-export namespace Styling {
+export namespace StyleHelpers {
 	export function extractStyles(element: Element, properties: Array<string>): string {
 		let styles = Array<string>();
 		const style = window.getComputedStyle(element);

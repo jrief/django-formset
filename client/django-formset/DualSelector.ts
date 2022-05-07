@@ -39,7 +39,6 @@ export class DualSelector extends IncompleteSelect {
 			} else {
 				const selector = this.fieldGroup.querySelector('django-sortable-select');
 				this.selectRightElement = selector as SortableSelectElement;
-				this.selectRightElement.transferStyles(this.selectLeftElement);
 			}
 		} else {
 			throw new Error(`<select is="${name}"> requires two <select>-elements`);
@@ -92,7 +91,7 @@ export class DualSelector extends IncompleteSelect {
 		this.historicalValues.push(initialValues);
 		this.setHistoryCursor(0);
 		if (this.selectRightElement instanceof SortableSelectElement) {
-			this.selectRightElement.initialize();
+			this.selectRightElement.initialize(this.selectLeftElement);
 		}
 	}
 
