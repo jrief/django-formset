@@ -1,5 +1,6 @@
 .. _selectize:
 
+================
 Selectize Widget
 ================
 

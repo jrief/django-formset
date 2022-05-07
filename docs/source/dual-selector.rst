@@ -1,5 +1,6 @@
 .. dual-selector:
 
+====================
 Dual Selector Widget
 ====================
 
@@ -7,7 +8,7 @@ This widget usually is used to control the mapping of a many-to-many relation. I
 HTML elements of type ``<select multiple ...>`` placed side by side. The left part contains the
 available options to select from, while the right part contains the already selected options.
 Between those two select fields, six buttons are located. With the first four, one can move selected
-options from left to right and vice versa. The last two buttons can be used to undo and redo a
+options from left to right and vice versa. The last two buttons can be used to undo and/or redo a
 missed assignment.
 
 .. image:: _static/dual-selector.png
@@ -15,15 +16,26 @@ missed assignment.
   :alt: DualSelector widget
 
 
+Features
+========
+
+The **DualSelector** widget is well known to Django admin users. There it is named
+filter_horizontal_ which is a somehow misleading name. In **django-formset**, this widget however
+offers many more features than its Django's counterpart.
+
+.. _https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_horizontal
+
+
 Asynchronous loading
 --------------------
 
 While assigning options, the Django model used to map from, can be huge and contain millions of
-entries. In such a situation it would take a lot of resources to load all the options once.
+entries. In such a situation it would take a lot of resources to load all the options at once.
 Therefore **django-formset** only loads a small portion of the available options. By scrolling to
-the end of the select element, another chunk of options will be loaded from the server. Therefore,
-in case the mapping table contains too many options, it is advisable to use the search field located
-on top of the select element rather than scrolling down.
+the end of the select element, another chunk of options will be loaded from the server. So in case
+the mapping table contains too many options, it is advisable to use the search field located on top
+of the select element rather than scrolling down and waiting for the next chunk of options to be
+loaded from the server.
 
 
 Search Fields
@@ -31,8 +43,8 @@ Search Fields
 
 On top of the left- and right select fields, there is one search input field each. While typing,
 **django-formset** narrows down the number of available options. Here the left input field sends the
-string typed into the server, performing a remote lookup. Using the database to search for an entry
-is much more effitient, rather than doing this using JavaScript inside the browser.
+string typed into, to the server performing a remote lookup. Using the database to search for an
+entry is much more efficient, rather than doing this using JavaScript inside the browser.
 
 
 Undo and Redo Buttons

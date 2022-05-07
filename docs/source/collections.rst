@@ -1,5 +1,6 @@
 .. _collections:
 
+================
 Form Collections
 ================
 
