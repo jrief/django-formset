@@ -1,6 +1,7 @@
 .. _model-form:
 
-Creating forms from models
+==========================
+Creating Forms from Models
 ==========================
 
 Just as in Django, forms can be created from models and rendered by **django-formset**.  
@@ -15,7 +16,7 @@ then we use that model to create a form class, for example:
 	        model = Article
 	        fields = ['pub_date', 'headline', 'content', 'reporter']
 
-There is however a caveat here: **django-formset** offers some widgets, which greatly enhance the
+There however is a caveat here: **django-formset** offers some widgets, which greatly enhance the
 functionality of some input elements, compared to their pure HTML counterpart.
 
 
@@ -39,7 +40,7 @@ form's ``Meta`` class:
 	            ...
 	        }
 
-Please read the sections :ref:`selectize` and :ref:`dual-selector` for details about the enhancing
+Please read the sections :ref:`selectize` and :ref:`dual-selector` for details about enhancing
 the ``<select>`` and ``<select multiple="multiple">`` widgets.
 
 
@@ -48,17 +49,17 @@ the ``<select>`` and ``<select multiple="multiple">`` widgets.
 In case we want to map a model field of type ``django.db.models.FileField`` or
 ``django.db.models.ImageField``, we **must** replace the default input widget by
 ``formset.widgets.UploadedFileInput``. This is required because in **django-formset** files are
-uploaded before form submission. Please read the section :ref:`uploading` for details about file
+*uploaded before* form submission. Please read the section :ref:`uploading` for details about file
 uploading.
 
 
 Detail View for ModelForm
 =========================
 
-In a CRUD_ application, we usually add a view to add, update and delete an instance of our model.
-Instead of `createing one view class`_ for each of those operations, with **django-formset** we
-usually can combine them into one view class. This is because we can add extra context data to the
-form control buttons, which then is sumbitted together with the form data. An example:
+In a CRUD_ application, we usually add a Django View to add, update and delete an instance of our
+model. Instead of `createing one view class`_ for each of those operations, with **django-formset**
+we usually can combine them into one view class. This is because we can add extra context data to
+the form control buttons, which then is sumbitted together with the form data. An example:
 
 .. _CRUD: https://en.wikipedia.org/wiki/Create,_read,_update_and_delete
 .. _createing one view class: https://docs.djangoproject.com/en/stable/ref/class-based-views/generic-editing/#generic-editing-views
