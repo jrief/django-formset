@@ -7,6 +7,7 @@ makes it possible to write special renderers for adding functionality as impleme
 library.
 
 
+============
 Introduction
 ============
 
@@ -38,7 +39,7 @@ routing.
 .. _forms_as_logical_entities:
 
 Use Forms as Logical Entities
------------------------------
+=============================
 
 The **django-formset**-library separates the logical layer of a Django Form_ from their physical one
 as an HTML ``<form>``. Now,
@@ -62,8 +63,7 @@ Django FormSets_.
 .. _FormSets: https://docs.djangoproject.com/en/stable/topics/forms/formsets/
 
 
-Example
--------
+.. rubric:: Example
 
 Consider having a standard Django Form instance, say 
 
@@ -150,7 +150,7 @@ is rendered, since we render them individually. More on this can be found in sec
 
 
 What are Web Components?
-------------------------
+========================
 
 According to `webcomponents.org`_, Web Components are a set of web platform APIs that allow you to
 create new custom, reusable, encapsulated HTML tags to use in web pages and web apps. Custom
@@ -185,7 +185,7 @@ The JavaScript behind this component now handles the following functions:
 
 
 Annotation
-----------
+==========
 
 When designing this library, one of the main goals was to keep the programming interface a near as
 possible to the way Django handles Forms, Models and Views. It therefore is possible to reuse

@@ -19,8 +19,7 @@ There is however a caveat here: **django-formset** offers some widgets, which gr
 functionality of some input elements, compared to their pure HTML counterpart.
 
 
-Replacing Widgets for Choice Fields
------------------------------------
+.. rubric:: Replacing Widgets for Choice Fields
 
 These widgets are the :class:`formset.widget.Selectize`, :class:`formset.widget.SelectizeMultiple`,
 and :class:`formset.widget.DualSelector`. They shall be used as a replacement to default widgets
@@ -44,8 +43,7 @@ Please read the sections :ref:`selectize` and :ref:`dual-selector` for details a
 the ``<select>`` and ``<select multiple="multiple">`` widgets.
 
 
-Replacing Widgets for File- and Image Fields
---------------------------------------------
+.. rubric:: Replacing Widgets for File- and Image Fields
 
 In case we want to map a model field of type ``django.db.models.FileField`` or
 ``django.db.models.ImageField``, we **must** replace the default input widget by
