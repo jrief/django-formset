@@ -1,5 +1,8 @@
 ## Changes
 
+- next
+  * Fix: Set empty dropbox item on upload widget during form reset.
+
 - 0.8.1
   * Adopt `DualSelector` for Tailwind.css.
   * Hide `calendar-picker-indicator` in touched input date fields.
