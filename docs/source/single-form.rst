@@ -58,7 +58,7 @@ A Django Form using **django-formset** can be rendered using three different met
 .. _native_form:
 
 Using a Native Django Form
---------------------------
+==========================
 
 Working with a native Django Form, presumably is the most frequent use case. Here we add an
 instantiation of that form to the rendering context. Then that form instance is rendered using the
@@ -122,7 +122,7 @@ that field.
 .. _extended_form:
 
 Using an Extended Django Form
------------------------------
+=============================
 
 One of the tasks the templatetag ``render_form`` must do, is to modify the signature of the given
 form class. This is required, because the layout of the rendered HTML differs substantially from the
@@ -170,7 +170,7 @@ same form. Then this setup might make more sense. Please also check the section 
 .. _field_by_field:
 
 Rendering a Django Form Field-by-Field
---------------------------------------
+======================================
 
 In some occasions, we need an even more fine grained control over how fields shall be rendered. Here
 we iterate over the form fields ourself. This way we can render field by field and depending on the

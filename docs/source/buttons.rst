@@ -4,8 +4,8 @@
 Submit Button Controls
 ======================
 
-In HTML each form must be submitted through a user defined action. This usually is done using either
-an input field, or a button with type submit. This button must be placed inside the form. 
+In HTML each form must be submitted through a user defined action. This normally is done using
+either an input field, or a button with type submit. This button must be placed inside the form. 
 
 **django-formset** has a different approach. Submit buttons shall be able to do much more than just
 triggering an event, which then proceeds with an action on the form. They can perform a whole chain
@@ -31,9 +31,9 @@ into details:
   on successful form submission. This allows web designers to specify that URL like a link, rather
   than having to rely on the server's response.
 
-An submission which did not validate on the server is considered as failed and the response status
-code is 422, rather than 200. This is where the ``!~`` comes into play. This acts as a
-catch-statement and everything afterwards is executed on submission failure.
+A submission which did not validate on the server is considered as failed and the response status
+code is 422, rather than 200. This is where the ``!~`` comes into play. It acts similar to a
+catch-statement and everything after that symbol is executed on submission failure.
 
 * In ``scrollToError`` the browser scrolls to the first field, which was marked to contain invalid
   input data.

@@ -44,5 +44,3 @@ class AddressForm(forms.Form):
         label="City",
         max_length=50,
     )
-
-

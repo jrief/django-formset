@@ -99,7 +99,7 @@ fields containing invalid data with some error messages. The latter would requir
 the whole page. Looking at modern JavaScript frameworks, it is obvious that this approach isn't
 contemporary anymore.
 
-.. figure:: _static/person-form.png
+.. figure:: _static/animated-person-form.png
 	:width: 650px
 
 	Interacting with that form, shows validation errors immediatly.

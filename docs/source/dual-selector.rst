@@ -23,7 +23,7 @@ The **DualSelector** widget is well known to Django admin users. There it is nam
 filter_horizontal_ which is a somehow misleading name. In **django-formset**, this widget however
 offers many more features than its Django's counterpart.
 
-.. _https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_horizontal
+.. _filter_horizontal: https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_horizontal
 
 
 Asynchronous loading
