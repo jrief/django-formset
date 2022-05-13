@@ -1,4 +1,4 @@
 <div class="{{ button_css_classes }}">
-	<button type="button" click="{{ click_actions|default:'disable -> submit -> proceed !~ scrollToError' }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="btn btn-primary">Submit <span class="dj-button-decorator"><i class="dj-icon">{% include "formset/icons/send.svg" %}</i></span></button>
-	<button type="button" click="reset" class="ms-2 btn btn-warning">Reset to initial <span class="dj-button-decorator"><i class="dj-icon">{% include "formset/icons/backspace.svg" %}</i></button>
+	<button type="button" click="{{ click_actions|default:'disable -> submit -> proceed !~ scrollToError' }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="btn btn-primary">Submit<span class="ms-2 dj-button-decorator"><i class="dj-icon">{% include "formset/icons/send.svg" %}</i></span></button>
+	<button type="button" click="reset" class="ms-2 btn btn-warning">Reset to initial<span class="ms-2 dj-button-decorator"><i class="dj-icon">{% include "formset/icons/backspace.svg" %}</i></button>
 </div>
