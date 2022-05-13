@@ -2,7 +2,7 @@ import itertools
 
 from django.http import HttpResponse
 from django.template.loader import get_template
-from django.urls import get_resolver, path, reverse_lazy
+from django.urls import get_resolver, path, reverse
 from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
 from django.views.generic.edit import ModelFormMixin
@@ -30,18 +30,30 @@ from testapp.models import PersonModel
 parser = Parser()
 
 
-def render_suburls(request):
+def render_suburls(request, extra_context=None):
     all_urls = set(filter(lambda url: url, (v[0][0][0] for v in get_resolver(__name__).reverse_dict.values())))
+    all_urls.remove('success')
     context = {
         'framework': request.resolver_match.app_name,
         'all_urls': sorted(all_urls),
     }
+    if extra_context:
+        context.update(extra_context)
     template = get_template('index.html')
     return HttpResponse(template.render(context))
 
 
+def render_success(request):
+    extra_context = {
+        'subheading': mark_safe("<h2>Form data succesfully submitted</h2>"),
+    }
+    return render_suburls(request, extra_context)
+
+
 class DemoViewMixin:
-    success_url = reverse_lazy('form_data_valid')
+    def get_success_url(self):
+        success_url = reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
+        return success_url
 
     @property
     def framework(self):
@@ -253,6 +265,7 @@ than placing them below each other.
 
 urlpatterns = [
     path('', render_suburls),
+    path('success', render_success, name='form_data_valid'),
     path('address', DemoFormView.as_view(
         form_class=AddressForm,
     ), name='address'),
@@ -300,11 +313,11 @@ urlpatterns = [
     path('upload', DemoFormView.as_view(
         form_class=UploadForm,
     ), name='upload'),
-    path('button', DemoFormView.as_view(
+    path('button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',
         extra_context={'click_actions': 'disable -> spinner -> submit -> enable -> okay -> delay(1500) -> proceed !~ enable -> bummer -> delay(9999)'},
-    ), name='button'),
+    ), name='button-actions'),
 ]
 
 # this creates permutations of forms to show how to withhold which feedback

@@ -21,6 +21,7 @@
 						<li class="breadcrumb-item">{{ framework.capitalize }}</li>
 					</ol>
 				</nav>
+				{% if subheading %}{{ subheading }}{% endif %}
 				<h3>For CSS framework {{ framework.capitalize }}</h3>
 				<p>Here is a list of forms to demonstrate the features <a href="https://github.com/jrief/django-formset/">django-formset</a>
 				currently offers.</p>
