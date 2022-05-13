@@ -1,0 +1,9 @@
+{% extends framework|default:"testapp"|add:"/base.html" %}
+{% load render_form from formsetify %}
+
+{% block "main-content" %}
+<django-formset endpoint="{{ request.path }}"{% if force_submission %} force-submission{% endif %}{% if withhold_feedback %} withhold-feedback="{{ withhold_feedback }}"{% endif %}>
+	{% render_form form framework form_classes=form_css_classes field_classes=field_css_classes fieldset_classes=fieldset_css_classes label_classes=label_css_classes|default:None control_classes=control_css_classes %}
+	{% include framework|default:"testapp"|add:"/buttons.html" %}
+</django-formset>
+{% endblock %}

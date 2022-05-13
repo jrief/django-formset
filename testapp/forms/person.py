@@ -1,3 +1,5 @@
+from time import sleep
+
 from django.core.exceptions import ValidationError
 from django.forms import fields, forms, models, widgets
 
@@ -34,6 +36,36 @@ class PersonForm(SimplePersonForm):
         if cd.get('first_name', '').lower().startswith("john") and cd.get('last_name', '').lower().startswith("doe"):
             raise ValidationError(f"{cd['first_name']} {cd['last_name']} is persona non grata here!")
         return cd
+
+
+class ButtonActionsForm(forms.Form):
+    """
+    This is a simple form used to show how to use button actions. On each button in a
+    **django-formset**, we can use the event handler ``click="..."``. This attribute then contains
+    a list of chained actions. A minimal configuration shall at least contain the following
+    actions:
+
+    .. code-block:: html
+
+        <button click="submit -> proceed">Submit</button>
+    """
+    full_name = fields.CharField(
+        label="Full name",
+        min_length=2,
+        max_length=100,
+        help_text="Please enter at least two characters",
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        sleep(2.5)
+        parts = cleaned_data['full_name'].split()
+        if len(parts) < 2:
+            raise ValidationError("A valid full name consists of at least a first- and a last name.")
+        for part in parts:
+            if not part[0].isupper() or not part[1:].islower():
+                raise ValidationError("Names have invalid capitalization.")
+        return cleaned_data
 
 
 sample_person_data = {

@@ -21,9 +21,10 @@ from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import SimpleContactCollection, ContactCollection, ContactCollectionList
 from testapp.forms.customer import CustomerCollection
 from testapp.forms.opinion import OpinionForm
-from testapp.forms.person import SimplePersonForm, sample_person_data, ModelPersonForm
+from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.upload import UploadForm
+from testapp.models import PersonModel
 
 
 parser = Parser()
@@ -299,6 +300,11 @@ urlpatterns = [
     path('upload', DemoFormView.as_view(
         form_class=UploadForm,
     ), name='upload'),
+    path('button', DemoFormView.as_view(
+        form_class=ButtonActionsForm,
+        template_name='testapp/button-actions.html',
+        extra_context={'click_actions': 'disable -> spinner -> submit -> enable -> okay -> delay(1500) -> proceed !~ enable -> bummer -> delay(9999)'},
+    ), name='button'),
 ]
 
 # this creates permutations of forms to show how to withhold which feedback

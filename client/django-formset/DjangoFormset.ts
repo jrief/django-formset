@@ -1,11 +1,14 @@
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
-import zip from 'lodash.zip';
 import template from 'lodash.template';
+import zip from 'lodash.zip';
 
 import { FileUploadWidget } from './FileUploadWidget';
 import { parse } from './tag-attributes';
 import styles from 'sass:./DjangoFormset.scss';
+import spinnerIcon from './spinner.svg';
+import okayIcon from './okay.svg';
+import bummerIcon from './bummer.svg';
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FieldValue = string | Array<string | Object>;
@@ -429,6 +432,11 @@ class DjangoButton {
 	private readonly isAutoDisabled: boolean;
 	private readonly successActions = Array<ButtonAction>(0);
 	private readonly rejectActions = Array<ButtonAction>(0);
+	private readonly decoratorElement: HTMLElement | null;
+	private readonly spinnerElement: HTMLElement;
+	private readonly okayElement: HTMLElement;
+	private readonly bummerElement: HTMLElement;
+	private originalDecorator?: Node;
 	private timeoutHandler?: number;
 
 	constructor(formset: DjangoFormset, element: HTMLButtonElement) {
@@ -436,6 +444,17 @@ class DjangoButton {
 		this.element = element;
 		this.initialClass = element.getAttribute('class') ?? '';
 		this.isAutoDisabled = !!JSON.parse((element.getAttribute('auto-disable') ?? 'false').toLowerCase());
+		this.decoratorElement = element.querySelector('.dj-button-decorator');
+		this.originalDecorator = this.decoratorElement?.cloneNode(true);
+		this.spinnerElement = document.createElement('i');
+		this.spinnerElement.classList.add('dj-icon', 'dj-spinner');
+		this.spinnerElement.innerHTML = spinnerIcon;
+		this.okayElement = document.createElement('i');
+		this.okayElement.classList.add('dj-icon', 'dj-okay');
+		this.okayElement.innerHTML = okayIcon;
+		this.bummerElement = document.createElement('i');
+		this.bummerElement.classList.add('dj-icon', 'dj-bummer');
+		this.bummerElement.innerHTML = bummerIcon;
 		this.parseActionsQueue(element.getAttribute('click'));
 		element.addEventListener('click', () => this.clicked());
 	}
@@ -518,6 +537,14 @@ class DjangoButton {
 		};
 	}
 
+	// @ts-ignore
+	private reload() {
+		return (response: Response) => {
+			location.reload();
+			return Promise.resolve(response);
+		};
+	}
+
 	/**
 	 * Proceed to a given URL, if the response object returns status code 200.
 	 * If the response object contains an element `success_url`, proceed to that URL,
@@ -532,11 +559,11 @@ class DjangoButton {
 			if (response instanceof Response && response.status === 200) {
 				response.json().then(body => {
 					if ('success_url' in body) {
-						window.location.href = body.success_url;
+						location.href = body.success_url;
 					}
 				});
 				if (typeof fallbackUrl === 'string') {
-					window.location.href = fallbackUrl;
+					location.href = fallbackUrl;
 				}
 			}
 			return Promise.resolve(response);
@@ -554,6 +581,39 @@ class DjangoButton {
 			this.timeoutHandler = undefined;
 			resolve(response);
 		}, ms));
+	}
+
+	/**
+	 * Replace the button's decorator against a spinner icon.
+	 */
+	// @ts-ignore
+	private spinner() {
+		return (response: Response) => {
+			this.decoratorElement?.replaceChildren(this.spinnerElement);
+			return Promise.resolve(response);
+		};
+	}
+
+	/**
+	 * Replace the button's decorator against an okay animation.
+	 */
+	// @ts-ignore
+	private okay() {
+		return (response: Response) => {
+			this.decoratorElement?.replaceChildren(this.okayElement);
+			return Promise.resolve(response);
+		};
+	}
+
+	/**
+	 * Replace the button's decorator against a bummer animation.
+	 */
+	// @ts-ignore
+	private bummer() {
+		return (response: Response) => {
+			this.decoratorElement?.replaceChildren(this.bummerElement);
+			return Promise.resolve(response);
+		};
 	}
 
 	public abortAction() {
@@ -655,10 +715,14 @@ class DjangoButton {
 		}
 	}
 
+	// @ts-ignore
 	private restore() {
 		return () => {
-			this.element.setAttribute('class', this.initialClass);
 			this.element.disabled = false;
+			this.element.setAttribute('class', this.initialClass);
+			if (this.originalDecorator) {
+				this.decoratorElement?.replaceChildren(...this.originalDecorator.cloneNode(true).childNodes);
+			}
 		}
 	}
 
