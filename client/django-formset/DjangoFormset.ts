@@ -109,7 +109,7 @@ class FieldGroup {
 			element.addEventListener('focus', () => this.touch());
 			element.addEventListener('change', () => {
 				this.setDirty();
-				this.resetCustomError();
+				this.clearCustomError();
 				this.validate()
 			});
 		}
@@ -226,11 +226,11 @@ class FieldGroup {
 		} else {
 			this.setDirty();
 		}
-		this.resetCustomError();
+		this.clearCustomError();
 	}
 
-	private resetCustomError() {
-		this.form.resetCustomError();
+	private clearCustomError() {
+		this.form.clearCustomErrors();
 		if (this.errorPlaceholder) {
 			this.errorPlaceholder.innerHTML = '';
 		}
@@ -246,7 +246,7 @@ class FieldGroup {
 		}
 		this.untouch();
 		this.setPristine();
-		this.resetCustomError();
+		this.clearCustomError();
 	}
 
 	public disableAllFields() {
@@ -693,6 +693,17 @@ class DjangoButton {
 	}
 
 	/**
+	 * Clear all errors in the current django-formset.
+ 	 */
+	// @ts-ignore
+	private clearErrors() {
+		return (response: Response) => {
+			this.formset.clearErrors();
+			return Promise.resolve(response);
+		}
+	}
+
+	/**
 	 * Scroll to first element reporting an error.
  	 */
 	// @ts-ignore
@@ -898,7 +909,7 @@ class DjangoForm {
 		this.element.reportValidity();
 	}
 
-	resetCustomError() {
+	clearCustomErrors() {
 		while (this.errorList && this.errorList.lastChild) {
 			this.errorList.removeChild(this.errorList.lastChild);
 		}
@@ -924,7 +935,7 @@ class DjangoForm {
 	}
 
 	reportCustomErrors(errors: Map<string, Array<string>>) {
-		this.resetCustomError();
+		this.clearCustomErrors();
 		const nonFieldErrors = errors.get(NON_FIELD_ERRORS);
 		if (this.errorList && nonFieldErrors instanceof Array && this.errorPlaceholder) {
 			for (const message of nonFieldErrors) {
@@ -1419,7 +1430,7 @@ export class DjangoFormset {
 							form.reportCustomErrors(new Map(Object.entries(errors)));
 							form.reportValidity();
 						} else {
-							form.resetCustomError();
+							form.clearCustomErrors();
 						}
 					}
 					break;
@@ -1470,6 +1481,12 @@ export class DjangoFormset {
 				return errorReportElement;
 		}
 		return null;
+	}
+
+	clearErrors() {
+		for (const form of this.forms) {
+			form.clearCustomErrors();
+		}
 	}
 }
 
