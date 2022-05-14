@@ -316,7 +316,7 @@ urlpatterns = [
     path('button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',
-        extra_context={'click_actions': 'disable -> spinner -> submit -> enable -> okay -> delay(1500) -> proceed !~ enable -> bummer -> delay(9999)'},
+        extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay -> delay(1500) -> proceed !~ enable -> bummer -> delay(9999)'},
     ), name='button-actions'),
 ]
 
@@ -341,10 +341,14 @@ for length in range(len(withhold_feedbacks) + 1):
         else:
             extra_docs = []
         extra_docs.extend([f'* {extra_doc_withhold[w]}' for w in withhold_feedback])
+        force_submission = suffix == '.mews'  # just for testing
         urlpatterns.append(
             path(f'withhold{suffix}', DemoFormView.as_view(
                 form_class=SimplePersonForm,
-                extra_context={'withhold_feedback': ' '.join(withhold_feedback)},
+                extra_context={
+                    'withhold_feedback': ' '.join(withhold_feedback),
+                    'force_submission': force_submission,
+                },
                 extra_doc='\n'.join(extra_docs),
             ))
         )

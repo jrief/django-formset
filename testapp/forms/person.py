@@ -41,13 +41,18 @@ class PersonForm(SimplePersonForm):
 class ButtonActionsForm(forms.Form):
     """
     This is a simple form used to show how to use button actions. On each button in a
-    **django-formset**, we can use the event handler ``click="..."``. This attribute then contains
-    a list of chained actions. A minimal configuration shall at least contain the following
-    actions:
+    **django-formset**, we can use the event handler ``<button click="...">``. This attribute
+    then contains a list of chained actions, whose most notables are ``submit -> proceed``.
+
+    This example attempts to mimick a form which takes a few seconds for processing. To improve
+    the user experience, the button shall somehow tell its caller, that this action may take some
+    time by displaying a spinner. On succeeded submission, the button displays an okay tick for
+    1.5 seconds before proceeding. On failed submission, the button displays a bummer symbol to
+    signalize a failure.
 
     .. code-block:: html
 
-        <button click="submit -> proceed">Submit</button>
+        <button click="clearErrors -> disable -> spinner -> submit -> okay -> delay(1500) -> proceed !~ bummer -> enable -> delay(9999)">Submit</button>
     """
     full_name = fields.CharField(
         label="Full name",
