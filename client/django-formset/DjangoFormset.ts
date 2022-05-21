@@ -1361,22 +1361,22 @@ export class DjangoFormset {
 				return;
 			}
 			if (isNaN(parseInt(relPath[1]))) {
-				let innerObject;
+				const innerObject = entry[relPath[0]] ?? {};
+				extendBody(innerObject, relPath.slice(1));
 				if (Array.isArray(entry)) {
-					innerObject = {};
-					entry.push(innerObject)
+					const index = parseInt(relPath[0]);
+					if (isNaN(index))
+						throw new Error("Array without matching index.");
+					entry[index] = {...entry[index], ...innerObject};
 				} else {
-					innerObject = entry[relPath[0]] ?? {};
-					Object.isExtensible(innerObject);
 					entry[relPath[0]] = innerObject;
 				}
-				extendBody(innerObject, relPath.slice(1));
 			} else {
 				if (Array.isArray(entry))
 					throw new Error("Invalid form name: Contains nested arrays.");
 				const innerArray = entry[relPath[0]] ?? [];
-				entry[relPath[0]] = innerArray;
 				extendBody(innerArray, relPath.slice(1));
+				entry[relPath[0]] = innerArray;
 			}
 		}
 
