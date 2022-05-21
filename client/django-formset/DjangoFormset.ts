@@ -22,9 +22,11 @@ style.innerText = styles;
 document.head.appendChild(style);
 
 
-function assert(condition: any) {
-	if (!condition)
-		throw new Error("Assertion failed");
+function assert(condition: any, message?: string) {
+	if (!condition) {
+		message = message ? `Assertion failed: ${message}` : "Assertion failed";
+		throw new Error(message);
+	}
 }
 
 
@@ -1005,7 +1007,7 @@ class DjangoFormCollection {
 	}
 
 	public updateRemoveButtonAttrs() {
-		assert(this.removeButton === null);
+		assert(this.removeButton === null, "Remove Button not removed");
 	}
 
 	toggleForRemoval(remove: boolean) {
@@ -1154,7 +1156,7 @@ class DjangoFormCollectionTemplate {
 		const siblings = this.parent?.children ?? this.formset.formCollections;
 		if (siblings.length === 0)
 			return;
-		assert(siblings[0] instanceof DjangoFormCollectionSibling);
+		assert(siblings[0] instanceof DjangoFormCollectionSibling, "Expected an instance of DjangoFormCollectionSibling");
 		const maxSiblings = (siblings[0] as DjangoFormCollectionSibling).maxSiblings;
 		const numActiveSiblings = siblings.filter(s => !s.markedForRemoval).length;
 		this.addButton.disabled = maxSiblings === null ? false : numActiveSiblings >= maxSiblings;
