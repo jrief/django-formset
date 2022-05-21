@@ -558,13 +558,14 @@ class DjangoButton {
 		return (response: Response) => {
 			if (response instanceof Response && response.status === 200) {
 				response.json().then(body => {
-					if ('success_url' in body) {
+					if (body.success_url) {
 						location.href = body.success_url;
 					}
 				});
 				if (typeof fallbackUrl === 'string') {
 					location.href = fallbackUrl;
 				}
+				console.warn("Neither a success-, nor a fallback-URL is given to proceed.");
 			}
 			return Promise.resolve(response);
 		}
