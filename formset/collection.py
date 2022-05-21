@@ -10,6 +10,7 @@ from formset.utils import HolderMixin, FormMixin, FormsetErrorList
 
 
 MARKED_FOR_REMOVAL = '_marked_for_removal_'
+COLLECTION_ERRORS = '_collection_errors_'
 
 
 class FormCollectionMeta(MediaDefiningClass):
@@ -174,30 +175,39 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     continue
                 cleaned_data = {}
                 for name, declared_holder in self.declared_holders.items():
-                    holder = declared_holder.replicate(data=data.get(name))
-                    if holder.is_valid():
-                        cleaned_data[name] = holder.cleaned_data
+                    if name in data:
+                        holder = declared_holder.replicate(data=data[name])
+                        if holder.is_valid():
+                            cleaned_data[name] = holder.cleaned_data
+                        else:
+                            self._errors.extend([{}] * (index - len(self._errors)))
+                            self._errors.append({name: holder.errors})
                     else:
+                        # can only happen, if client bypasses browser control
                         self._errors.extend([{}] * (index - len(self._errors)))
-                        self._errors.append({name: holder.errors})
+                        self._errors.append({name: {NON_FIELD_ERRORS: ["Form data is missing."]}})
                 self.cleaned_data.append(cleaned_data)
             if len(self.cleaned_data) < self.min_siblings:
-                # can only happen, if the client bypasses browser control
+                # can only happen, if client bypasses browser control
                 self._errors.clear()
-                self._errors.append({NON_FIELD_ERRORS: ["Too few siblings."]})
+                self._errors.append({COLLECTION_ERRORS: ["Too few siblings."]})
             if self.max_siblings and len(self.cleaned_data) > self.max_siblings:
-                # can only happen, if the client bypasses browser control
+                # can only happen, if client bypasses browser control
                 self._errors.clear()
-                self._errors.append({NON_FIELD_ERRORS: ["Too many siblings."]})
+                self._errors.append({COLLECTION_ERRORS: ["Too many siblings."]})
         else:
             self.cleaned_data = {}
             self._errors = ErrorDict()
             for name, declared_holder in self.declared_holders.items():
-                holder = declared_holder.replicate(data=self.data.get(name))
-                if holder.is_valid():
-                    self.cleaned_data[name] = holder.cleaned_data
+                if name in self.data:
+                    holder = declared_holder.replicate(data=self.data[name])
+                    if holder.is_valid():
+                        self.cleaned_data[name] = holder.cleaned_data
+                    else:
+                        self._errors.update({name: holder.errors})
                 else:
-                    self._errors.update({name: holder.errors})
+                    # can only happen, if client bypasses browser control
+                    self._errors.update({name: {NON_FIELD_ERRORS: ["Form data is missing."]}})
 
     def clean(self):
         return self.cleaned_data

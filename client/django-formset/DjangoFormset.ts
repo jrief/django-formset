@@ -16,6 +16,7 @@ type ErrorKey = keyof ValidityState;
 
 const NON_FIELD_ERRORS = '__all__';
 const MARKED_FOR_REMOVAL = '_marked_for_removal_';
+const COLLECTION_ERRORS = '_collection_errors_';
 
 const style = document.createElement('style');
 style.innerText = styles;
@@ -1175,6 +1176,7 @@ export class DjangoFormset {
 	private readonly buttons = Array<DjangoButton>(0);
 	private readonly forms = Array<DjangoForm>(0);
 	public readonly formCollections = Array<DjangoFormCollection>(0);
+	public readonly collectionErrorsList = new Map<string, HTMLUListElement>();
 	public formCollectionTemplate?: DjangoFormCollectionTemplate;
 	public readonly showFeedbackMessages: boolean;
 	private readonly abortController = new AbortController;
@@ -1298,6 +1300,15 @@ export class DjangoFormset {
 			sibling.updateRemoveButtonAttrs();
 		}
 		this.formCollectionTemplate = DjangoFormCollectionTemplate.findFormCollectionTemplate(this, this.element);
+	}
+
+	private findCollectionErrorsList() {
+		// find all elements <div class="dj-collection-errors"> belonging to the current <django-formset>
+		for (const element of this.element.getElementsByClassName('dj-collection-errors')) {
+			const prefix = element.getAttribute('prefix') ?? '';
+			const ulElement = element.querySelector('ul.dj-errorlist') as HTMLUListElement;
+			this.collectionErrorsList.set(prefix, ulElement);
+		}
 	}
 
 	private findButtons() {
@@ -1428,20 +1439,22 @@ export class DjangoFormset {
 			});
 			switch (response.status) {
 				case 200:
+					this.clearErrors();
 					for (const form of this.forms) {
 						form.element.dispatchEvent(new Event('submit'));
 					}
-					break;
+					return response;
 				case 422:
+					this.clearErrors();
 					const body = await response.json();
 					this.reportErrors(body);
-					break;
+					return response;
 				default:
 					console.warn(`Unknown response status: ${response.status}`);
 					break;
 			}
-			return response;
 		} else {
+			this.clearErrors();
 			for (const form of this.forms) {
 				form.reportValidity();
 			}
@@ -1456,6 +1469,16 @@ export class DjangoFormset {
 				form.reportValidity();
 			} else {
 				form.clearCustomErrors();
+			}
+		}
+		for (const [prefix, ulElement] of this.collectionErrorsList) {
+			let path = prefix ? prefix.split('.') : [];
+			path = [...path, '0', COLLECTION_ERRORS];
+			for (const errorText of getDataValue(body, path, [])) {
+				const placeholder = document.createElement('li');
+				placeholder.classList.add('dj-placeholder');
+				placeholder.innerText = errorText;
+				ulElement.appendChild(placeholder);
 			}
 		}
 	}
@@ -1500,6 +1523,11 @@ export class DjangoFormset {
 	clearErrors() {
 		for (const form of this.forms) {
 			form.clearCustomErrors();
+		}
+		for (const ulElement of this.collectionErrorsList.values()) {
+			while (ulElement.firstElementChild) {
+				ulElement.removeChild(ulElement.firstElementChild);
+			}
 		}
 	}
 }

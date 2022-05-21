@@ -1,3 +1,4 @@
+<div class="dj-collection-errors"{% if collection.prefix %} prefix="{{ collection.prefix }}"{% endif %}><ul class="dj-errorlist"></ul></div>
 {% for holder in collection %}
 	{% if holder.is_single %}
 <django-form-collection{% if css_classes %} class="{{ css_classes }}"{% endif %}>
