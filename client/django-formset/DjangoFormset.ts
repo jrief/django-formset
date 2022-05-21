@@ -1185,11 +1185,21 @@ export class DjangoFormset {
 		this.showFeedbackMessages = this.parseWithholdFeedback();
 	}
 
-	public get endpoint(): string {
+	connectedCallback() {
+		this.findButtons();
+		this.findForms();
+		this.findFormCollections();
+		this.findCollectionErrorsList();
+		this.assignFieldsToForms();
+		this.assignFormsToCollections();
+		window.setTimeout(() => this.validate(), 0);
+	}
+
+	get endpoint(): string {
 		return this.element.getAttribute('endpoint') ?? '';
 	}
 
-	public get forceSubmission(): Boolean {
+	get forceSubmission(): Boolean {
 		return this.element.hasAttribute('force-submission');
 	}
 
@@ -1276,7 +1286,7 @@ export class DjangoFormset {
 		}
 	}
 
-	public findFormCollections() {
+	private findFormCollections() {
 		// find all immediate elements <django-form-collection sibling-position="..."> belonging to the current <django-formset>
 		for (const element of this.element.querySelectorAll(':scope > django-form-collection')) {
 			this.formCollections.push(element.hasAttribute('sibling-position')
@@ -1290,7 +1300,7 @@ export class DjangoFormset {
 		this.formCollectionTemplate = DjangoFormCollectionTemplate.findFormCollectionTemplate(this, this.element);
 	}
 
-	public findButtons() {
+	private findButtons() {
 		this.buttons.length = 0;
 		for (const element of this.element.getElementsByTagName('BUTTON')) {
 			if (element.hasAttribute('click')) {
@@ -1510,12 +1520,7 @@ export class DjangoFormsetElement extends HTMLElement {
 	}
 
 	private connectedCallback() {
-		this[FS].findButtons();
-		this[FS].findForms();
-		this[FS].findFormCollections();
-		this[FS].assignFieldsToForms();
-		this[FS].assignFormsToCollections();
-		window.setTimeout(() => this[FS].validate(), 0);
+		this[FS].connectedCallback();
 	}
 
 	public async submit(data: Object | undefined): Promise<Response | undefined> {
