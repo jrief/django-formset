@@ -1424,15 +1424,7 @@ export class DjangoFormset {
 					break;
 				case 422:
 					const body = await response.json();
-					for (const form of this.forms) {
-						const errors = form.name ? getDataValue(body, form.name.split('.'), null) : body;
-						if (errors) {
-							form.reportCustomErrors(new Map(Object.entries(errors)));
-							form.reportValidity();
-						} else {
-							form.clearCustomErrors();
-						}
-					}
+					this.reportErrors(body);
 					break;
 				default:
 					console.warn(`Unknown response status: ${response.status}`);
@@ -1442,6 +1434,18 @@ export class DjangoFormset {
 		} else {
 			for (const form of this.forms) {
 				form.reportValidity();
+			}
+		}
+	}
+
+	private reportErrors(body: any) {
+		for (const form of this.forms) {
+			const errors = form.name ? getDataValue(body, form.name.split('.'), null) : body;
+			if (errors) {
+				form.reportCustomErrors(new Map(Object.entries(errors)));
+				form.reportValidity();
+			} else {
+				form.clearCustomErrors();
 			}
 		}
 	}
