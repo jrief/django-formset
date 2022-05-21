@@ -1,7 +1,6 @@
 from base64 import b16encode
 from functools import reduce
 from operator import or_
-import datetime
 import os
 import struct
 
@@ -13,6 +12,7 @@ from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
 from django.forms.widgets import FileInput, Select, SelectMultiple
 from django.utils.translation import gettext_lazy as _
+from django.utils.timezone import now, datetime, utc
 
 
 class IncompleteSelectMixin:
@@ -139,7 +139,7 @@ class UploadedFileInput(FileInput):
         return value
 
     def value_from_datadict(self, data, files, name):
-        epoch = datetime(2022, 1, 1, tzinfo=datetime.timezone.utc)
+        epoch = datetime(2022, 1, 1, tzinfo=utc)
         signer = get_cookie_signer(salt='formset')
         handle = next(iter(data.get(name, ())), None)
         if isinstance(handle, dict):
@@ -153,7 +153,7 @@ class UploadedFileInput(FileInput):
             size = file.tell()
             file.seek(0)
             # create pseudo unique prefix to avoid file name collisions
-            prefix = b16encode(struct.pack('f', (datetime.now() - epoch).total_seconds())).decode('utf-8')
+            prefix = b16encode(struct.pack('f', (now() - epoch).total_seconds())).decode('utf-8')
             filename = '.'.join((prefix, handle['name']))
             files[name] = UploadedFile(
                 file=file, name=filename, size=size, content_type=handle['content_type'],
