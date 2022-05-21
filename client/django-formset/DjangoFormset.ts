@@ -47,7 +47,7 @@ class BoundValue {
 }
 
 
-class ErrorMessages extends Map<ErrorKey, string>{
+class FieldErrorMessages extends Map<ErrorKey, string>{
 	constructor(fieldGroup: FieldGroup) {
 		super();
 		const element = fieldGroup.element.querySelector('django-error-messages');
@@ -72,7 +72,7 @@ class FieldGroup {
 	private readonly inputElements: Array<FieldElement>;
 	private readonly initialDisabled: Array<Boolean>;
 	public readonly errorPlaceholder: Element | null;
-	private readonly errorMessages: ErrorMessages;
+	private readonly errorMessages: FieldErrorMessages;
 	private readonly fileUploader: FileUploadWidget | null = null;
 	private readonly updateVisibility: Function;
 	private readonly updateDisabled: Function;
@@ -81,7 +81,7 @@ class FieldGroup {
 		this.form = form;
 		this.element = element;
 		this.errorPlaceholder = element.querySelector('.dj-errorlist > .dj-placeholder');
-		this.errorMessages = new ErrorMessages(this);
+		this.errorMessages = new FieldErrorMessages(this);
 		const requiredAny = element.classList.contains('dj-required-any');
 		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(e => e.name && e.type !== 'hidden');
 		for (const element of inputElements) {
