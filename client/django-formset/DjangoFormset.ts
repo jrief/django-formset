@@ -828,27 +828,24 @@ class DjangoForm {
 	public readonly formset: DjangoFormset;
 	public readonly element: HTMLFormElement;
 	public readonly fieldset: DjangoFieldset | null;
-	private readonly errorList: Element | null;
-	private readonly errorPlaceholder: Element | null;
+	private readonly errorList: Element | null = null;
+	private readonly errorPlaceholder: Element | null = null;
 	public readonly fieldGroups = Array<FieldGroup>(0);
 	public readonly hiddenInputFields = Array<HTMLInputElement>(0);
 	public markedForRemoval = false;
 
 	constructor(formset: DjangoFormset, element: HTMLFormElement) {
 		this.formId = element.getAttribute('id');
-		this.name = element.getAttribute('name') ?? null;
+		this.name = element.getAttribute('name');
 		this.path = this.name?.split('.') ?? [];
 		this.formset = formset;
 		this.element = element;
 		const fieldsetElement = element.querySelector('fieldset');
 		this.fieldset = fieldsetElement ? new DjangoFieldset(this, fieldsetElement) : null;
-		const formError = element.querySelector('.dj-form-errors');
-		const placeholder = formError ? formError.querySelector('.dj-errorlist > .dj-placeholder') : null;
+		const placeholder = element.querySelector('.dj-form-errors > .dj-errorlist > .dj-placeholder');
 		if (placeholder) {
 			this.errorList = placeholder.parentElement;
-			this.errorPlaceholder = this.errorList ? this.errorList.removeChild(placeholder) : null;
-		} else {
-			this.errorList = this.errorPlaceholder = null;
+			this.errorPlaceholder = this.errorList!.removeChild(placeholder);
 		}
 	}
 
