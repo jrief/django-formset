@@ -1,7 +1,6 @@
 import json
 
 from django.http.response import HttpResponseBadRequest, JsonResponse
-from django.utils.encoding import force_str
 from django.utils.functional import cached_property
 from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
 from django.views.generic.edit import FormView as GenericFormView
@@ -49,11 +48,16 @@ class IncompleSelectResponseMixin:
 
 
 class FormViewMixin:
+    def get_success_url(self):
+        """
+        In **django-formset**, the success_url may be None and set inside the templates.
+        """
+        return str(self.success_url) if self.success_url else None
+
     def form_valid(self, form):
         response = super().form_valid(form)
         assert response.status_code == 302
-        response_data = {'success_url': force_str(response.url)} if response.url else {}
-        return JsonResponse(response_data)
+        return JsonResponse({'success_url': self.get_success_url()})
 
     def form_invalid(self, form):
         super().form_invalid(form)
@@ -127,10 +131,9 @@ class FormCollectionViewMixin(ContextMixin):
     def post(self, request, **kwargs):
         form_collection = self.get_form_collection()
         if form_collection.is_valid():
-            response_data = {'success_url': force_str(self.success_url)} if self.success_url else {}
-            return JsonResponse(response_data)
+            return self.form_collection_valid(form_collection)
         else:
-            return JsonResponse(form_collection.errors, status=422, safe=False)
+            return self.form_collection_invalid(form_collection)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -156,6 +159,15 @@ class FormCollectionViewMixin(ContextMixin):
     def get_initial(self):
         """Return the initial data to use for collections of forms on this view."""
         return self.initial.copy()
+
+    def get_success_url(self):
+        return str(self.success_url) if self.success_url else None
+
+    def form_collection_valid(self, form_collection):
+        return JsonResponse({'success_url': self.get_success_url()})
+
+    def form_collection_invalid(self, form_collection):
+        return JsonResponse(form_collection.errors, status=422, safe=False)
 
 
 class FormCollectionView(IncompleSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, TemplateResponseMixin, View):
