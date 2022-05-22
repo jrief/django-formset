@@ -1,10 +1,12 @@
 import itertools
+import json
 
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import get_resolver, path, reverse
 from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
+from django.views.generic import TemplateView
 from django.views.generic.edit import ModelFormMixin
 
 from docutils.frontend import OptionParser
@@ -43,11 +45,18 @@ def render_suburls(request, extra_context=None):
     return HttpResponse(template.render(context))
 
 
-def render_success(request):
-    extra_context = {
-        'subheading': mark_safe("<h2>Form data succesfully submitted</h2>"),
-    }
-    return render_suburls(request, extra_context)
+class SuccessView(TemplateView):
+    template_name = 'success.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        valid_formset_data = self.request.session.get('valid_formset_data', {})
+        context.update({
+            'framework': self.request.resolver_match.app_name,
+            'leaf_breadcrumb': "Success",
+            'valid_formset_data': mark_safe(json.dumps(valid_formset_data, indent=2, ensure_ascii=False)),
+        })
+        return context
 
 
 class DemoViewMixin:
@@ -104,6 +113,10 @@ class DemoFormView(DemoViewMixin, FormView):
     template_name = 'testapp/native-form.html'
     extra_doc = None
 
+    def form_valid(self, form):
+        self.request.session['valid_formset_data'] = form.cleaned_data
+        return super().form_valid(form)
+
     def get_form_class(self):
         form_class = super().get_form_class()
         assert not issubclass(form_class, FormMixin)
@@ -130,6 +143,10 @@ class DemoFormCollectionView(DemoViewMixin, FormCollectionView):
         attrs.pop('button_css_classes', None)
         collection_class.default_renderer = import_string(f'formset.renderers.{self.framework}.FormRenderer')(**attrs)
         return collection_class
+
+    def form_collection_valid(self, form_collection):
+        self.request.session['valid_formset_data'] = form_collection.cleaned_data
+        return super().form_collection_valid(form_collection)
 
 
 demo_css_classes = {
@@ -265,7 +282,7 @@ than placing them below each other.
 
 urlpatterns = [
     path('', render_suburls),
-    path('success', render_success, name='form_data_valid'),
+    path('success', SuccessView.as_view(), name='form_data_valid'),
     path('address', DemoFormView.as_view(
         form_class=AddressForm,
     ), name='address'),
