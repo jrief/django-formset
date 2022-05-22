@@ -1,7 +1,14 @@
 ## Changes
 
-- next
+- 0.8.2
   * Fix: Set empty dropbox item on upload widget during form reset.
+  * Fix: Collections with siblings on root level generated invalid form data.
+  * Add special placeholder to render errors for collections with siblings.
+  * Add additional actions to button: Spinner, Okay, Bummer and Reload.
+  * In Button's proceed action, print a warning, if neither a success-, nor a
+    fallback-URL is given to proceed.
+  * In `FormCollectionView` handle response of posting formsets analogous to the way
+    Django handles forms.
 
 - 0.8.1
   * Adopt `DualSelector` for Tailwind.css.
