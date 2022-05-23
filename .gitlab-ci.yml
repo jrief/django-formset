@@ -1,0 +1,47 @@
+image: docker:19.03.2
+
+stages:
+  - build
+  - deploy
+
+variables:
+  DOCKER_TLS_CERTDIR: "/root/.docker"
+  DOCKER_TLS_VERIFY: "1"
+
+before_script:
+  - mkdir -p $DOCKER_TLS_CERTDIR
+  - echo "$CA" > $DOCKER_TLS_CERTDIR/ca.pem
+  - echo "$CLIENT_CERT" > $DOCKER_TLS_CERTDIR/cert.pem
+  - echo "$CLIENT_KEY" > $DOCKER_TLS_CERTDIR/key.pem
+
+build_webapp:
+  stage: build
+  variables:
+    DOCKER_HOST: "tcp://ciwbt2.uibk.ac.at:2376"
+  script:
+    - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -f .docker-files/webapp.dockerfile -t $CI_REGISTRY_IMAGE .
+    - docker push $CI_REGISTRY_IMAGE
+  only:
+    - master
+  except:
+    changes:
+      - "*.md"
+
+deploy_production:
+  stage: deploy
+  variables:
+    DOCKER_HOST: "tcp://138.232.16.180:2376"
+    TRAEFIK_HOST: "Host(`django-formset.awesto.com`)"
+  environment:
+    name: production
+    url: https://django-formset.awesto.com
+  script:
+    - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker stack deploy -c .docker-files/compose.yml django-formset
+  when: manual
+  only:
+    - master
+  except:
+    changes:
+      - "*.md"

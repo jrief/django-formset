@@ -1,0 +1,68 @@
+version: '3'
+
+services:
+  postgresdb:
+    image: postgres:14.3
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    env_file:
+      - databases.environ
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - djangonet
+
+  webapp:
+    image: $CI_REGISTRY_IMAGE
+    labels:
+      - traefik.http.routers.django-formset.rule=$TRAEFIK_HOST
+      - traefik.http.routers.django-formset.tls.certresolver=letsencrypt
+      - traefik.http.routers.django-formset.entrypoints=websecure
+      - traefik.http.services.django-formset.loadbalancer.server.port=9019
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 3
+        window: 120s
+    env_file:
+      - databases.environ
+    environment:
+      ENVIRONMENT_NAME: $CI_ENVIRONMENT_NAME
+      DJANGO_SETTINGS_MODULE: testapp.settings
+      DJANGO_SECRET_KEY: $DJANGO_SECRET_KEY
+    volumes:
+      - djangomedia:/web/workdir
+    command: uwsgi --ini /etc/uwsgi.ini
+    depends_on:
+      - postgresdb
+      - redishost
+    networks:
+      - djangonet
+      - Traefik_default
+
+  redishost:
+    image: redis
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    volumes:
+      - 'redisdata:/data'
+    networks:
+      - djangonet
+
+networks:
+  djangonet:
+  Traefik_default:
+    external:
+      name: Traefik_default
+
+volumes:
+  pgdata:
+  redisdata:
+  djangomedia:
