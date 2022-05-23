@@ -23,12 +23,12 @@ build_webapp:
     - docker build -f .docker-files/webapp.dockerfile -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
   only:
-    - master
+    - gitlab-demo
   except:
     changes:
       - "*.md"
 
-deploy_production:
+deploy:
   stage: deploy
   variables:
     DOCKER_HOST: "tcp://138.232.16.180:2376"
@@ -41,7 +41,7 @@ deploy_production:
     - docker stack deploy -c .docker-files/compose.yml django-formset
   when: manual
   only:
-    - master
+    - gitlab-demo
   except:
     changes:
       - "*.md"
