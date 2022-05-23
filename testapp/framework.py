@@ -1,6 +1,9 @@
 import itertools
 import json
 
+from django.core.files.uploadedfile import UploadedFile
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Model, QuerySet
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import get_resolver, path, reverse
@@ -32,6 +35,17 @@ from testapp.models import PersonModel
 parser = Parser()
 
 
+class JSONEncoder(DjangoJSONEncoder):
+    def default(self, o):
+        if isinstance(o, UploadedFile):
+            return o.name
+        if isinstance(o, Model):
+            return str(o)
+        if isinstance(o, QuerySet):
+            return [str(i) for i in o]
+        return super().default(o)
+
+
 def render_suburls(request, extra_context=None):
     all_urls = set(filter(lambda url: url, (v[0][0][0] for v in get_resolver(__name__).reverse_dict.values())))
     all_urls.remove('success')
@@ -50,11 +64,10 @@ class SuccessView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        valid_formset_data = self.request.session.get('valid_formset_data', {})
         context.update({
             'framework': self.request.resolver_match.app_name,
             'leaf_breadcrumb': "Success",
-            'valid_formset_data': mark_safe(json.dumps(valid_formset_data, indent=2, ensure_ascii=False)),
+            'valid_formset_data': self.request.session.get('valid_formset_data'),
         })
         return context
 
@@ -114,7 +127,9 @@ class DemoFormView(DemoViewMixin, FormView):
     extra_doc = None
 
     def form_valid(self, form):
-        self.request.session['valid_formset_data'] = form.cleaned_data
+        self.request.session['valid_formset_data'] = json.dumps(
+            form.cleaned_data, cls=JSONEncoder, indent=2, ensure_ascii=False
+        )
         return super().form_valid(form)
 
     def get_form_class(self):
@@ -145,7 +160,9 @@ class DemoFormCollectionView(DemoViewMixin, FormCollectionView):
         return collection_class
 
     def form_collection_valid(self, form_collection):
-        self.request.session['valid_formset_data'] = form_collection.cleaned_data
+        self.request.session['valid_formset_data'] = json.dumps(
+            form_collection.cleaned_data, cls=JSONEncoder, indent=2, ensure_ascii=False
+        )
         return super().form_collection_valid(form_collection)
 
 
