@@ -22,7 +22,7 @@ ENV DJANGO_STATIC_ROOT=$DJANGO_STATIC_ROOT
 ENV DJANGO_WORKDIR=$DJANGO_WORKDIR
 ENV DJANGO_SECRET_KEY=dummy_secret_key
 RUN mkdir -p $DJANGO_STATIC_ROOT
-RUN ./manage.py collectstatic --noinput
+RUN ./testapp/manage.py collectstatic --noinput
 
 # handle permissions
 RUN useradd -M -d /web -s /bin/bash django
