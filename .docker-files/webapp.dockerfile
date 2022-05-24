@@ -22,7 +22,6 @@ RUN pip install django Pillow django-formset
 
 # copy project relevant files into container
 ADD testapp /web/testapp
-ADD node_modules /web/node_modules
 COPY .docker-files/uwsgi.ini /etc/uwsgi.ini
 COPY .docker-files/entrypoint.sh /web/entrypoint.sh
 
