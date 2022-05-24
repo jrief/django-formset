@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-echo "=== Starting django-formset testapp in environment: $CI_ENVIRONMENT_NAME ==="
+echo "=== Starting django-formset testapp ==="
 
 [[ -z "$DJANGO_WORKDIR" ]] && echo >&2 "Missing environment variable: DJANGO_WORKDIR" && exit 1
 
@@ -9,6 +9,12 @@ if [[ ! -d "$DJANGO_WORKDIR/media" ]] || [[ ! $(ls -A "$DJANGO_WORKDIR/media") ]
 	mkdir --parents "$DJANGO_WORKDIR"
 	chown -R django.django "$DJANGO_WORKDIR"
 fi
+
+pwd
+ls -lR
+echo "X$1"
+echo "Y$PYTHONPATH"
+export PYTHONPATH="/web"
 
 case "X$1" in
 	Xuwsgi)
