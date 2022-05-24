@@ -1,4 +1,5 @@
-image: docker:19.03.2
+image:
+  name: "$CI_REGISTRY/zid/webinfo/docker-in-docker:latest"
 
 stages:
   - build
