@@ -12,9 +12,13 @@ RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get install -y nodejs
 RUN pip install --upgrade pip
 
-# install project specific requirements
-RUN pip install django Pillow django-formset
+# install Node specific requirements
+COPY package.json /web/package.json
+COPY package-lock.json /web/package-lock.json
 RUN npm ci
+
+# install Python specific requirements
+RUN pip install django Pillow django-formset
 
 # copy project relevant files into container
 ADD testapp /web/testapp
