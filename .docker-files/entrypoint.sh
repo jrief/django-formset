@@ -10,8 +10,6 @@ if [[ ! -d "$DJANGO_WORKDIR/media" ]] || [[ ! $(ls -A "$DJANGO_WORKDIR/media") ]
 	chown -R django.django "$DJANGO_WORKDIR"
 fi
 
-pwd
-ls -lR
 echo "X$1"
 echo "Y$PYTHONPATH"
 export PYTHONPATH="/web"
