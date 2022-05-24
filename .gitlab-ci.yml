@@ -8,6 +8,8 @@ stages:
 variables:
   DOCKER_TLS_CERTDIR: "/root/.docker"
   DOCKER_TLS_VERIFY: "1"
+  DOCKER_HOST: "tcp://138.232.16.180:2376"
+  TRAEFIK_HOST: "Host(`django-formset.awesto.com`)"
 
 before_script:
   - mkdir -p $DOCKER_TLS_CERTDIR
@@ -37,11 +39,6 @@ build_webapp:
 
 deploy_webapp:
   stage: deploy
-  variables:
-    DOCKER_TLS_CERTDIR: "/root/.docker"
-    DOCKER_TLS_VERIFY: "1"
-    DOCKER_HOST: "tcp://138.232.16.180:2376"
-    TRAEFIK_HOST: "Host(`django-formset.awesto.com`)"
   environment:
     name: production
     url: https://django-formset.awesto.com
