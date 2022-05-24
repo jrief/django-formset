@@ -18,7 +18,7 @@ COPY package-lock.json /web/package-lock.json
 RUN npm ci
 
 # install Python specific requirements
-RUN pip install django psycopg2-binary Pillow uWSGI docutils django-formset
+RUN pip install django psycopg2-binary Pillow uWSGI docutils Pygments django-formset
 
 # copy project relevant files into container
 ADD testapp /web/testapp
@@ -29,6 +29,7 @@ COPY .docker-files/entrypoint.sh /web/entrypoint.sh
 ENV DJANGO_STATIC_ROOT=$DJANGO_STATIC_ROOT
 ENV DJANGO_WORKDIR=$DJANGO_WORKDIR
 ENV DJANGO_SECRET_KEY=dummy_secret_key
+ENV PYTHONPATH=/web
 RUN mkdir -p $DJANGO_STATIC_ROOT
 RUN ./testapp/manage.py collectstatic --noinput
 
