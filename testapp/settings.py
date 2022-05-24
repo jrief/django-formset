@@ -45,9 +45,11 @@ STATICFILES_DIRS = [
     ('node_modules', BASE_DIR / 'node_modules'),
 ]
 
+STATIC_ROOT = os.getenv('DJANGO_STATIC_ROOT', BASE_DIR / 'staticfiles')
+
 STATIC_URL = '/static/'
 
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.getenv('DJANGO_WORKDIR', BASE_DIR / 'workdir') / 'media'
 
 MEDIA_URL = '/media/'
 
