@@ -10,14 +10,10 @@ if [[ ! -d "$DJANGO_WORKDIR/media" ]] || [[ ! $(ls -A "$DJANGO_WORKDIR/media") ]
 	chown -R django.django "$DJANGO_WORKDIR"
 fi
 
-echo "X$1"
-echo "Y$PYTHONPATH"
-export PYTHONPATH="/web"
-
 case "X$1" in
 	Xuwsgi)
 		su django -c "python /web/testapp/manage.py migrate"
-		exec "$@" --ini uwsgi.ini
+		exec "$@" --ini /etc/uwsgi.ini
 		;;
 	*)
 		su django -c "python /web/testapp/manage.py $@"
