@@ -7,13 +7,16 @@ ARG DJANGO_STATIC_ROOT=/web/staticfiles
 
 # install packages outside of PyPI
 RUN apt-get upgrade -y
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN pip install --upgrade pip
 
 # install project specific requirements
 RUN pip install django Pillow django-formset
+RUN npm ci
 
 # copy project relevant files into container
 ADD testapp /web/testapp
+ADD node_modules /web/node_modules
 COPY .docker-files/uwsgi.ini /etc/uwsgi.ini
 COPY .docker-files/entrypoint.sh /web/entrypoint.sh
 
