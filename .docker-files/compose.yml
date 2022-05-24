@@ -48,7 +48,7 @@ services:
       DJANGO_SECRET_KEY: $DJANGO_SECRET_KEY
     volumes:
       - djangomedia:/web/workdir
-    command: uwsgi --ini /etc/uwsgi.ini
+    command: uwsgi
     depends_on:
       - postgresdb
       - redishost
