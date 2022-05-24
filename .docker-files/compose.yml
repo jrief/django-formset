@@ -2,7 +2,7 @@ version: '3'
 
 services:
   postgresdb:
-    image: postgres:14.3
+    image: postgres:13.3-buster
     deploy:
       restart_policy:
         condition: on-failure
@@ -12,6 +12,18 @@ services:
       - databases.environ
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - djangonet
+
+  redishost:
+    image: redis
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    volumes:
+      - 'redisdata:/data'
     networks:
       - djangonet
 
@@ -43,18 +55,6 @@ services:
     networks:
       - djangonet
       - Traefik_default
-
-  redishost:
-    image: redis
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-    volumes:
-      - 'redisdata:/data'
-    networks:
-      - djangonet
 
 networks:
   djangonet:
