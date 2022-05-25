@@ -7,7 +7,7 @@ ARG DJANGO_STATIC_ROOT=/web/staticfiles
 
 # install packages outside of PyPI
 RUN apt-get upgrade -y
-RUN apt-get install -y curl
+RUN apt-get install -y curl apt-utils
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get install -y nodejs
 RUN pip install --upgrade pip
