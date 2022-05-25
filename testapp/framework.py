@@ -157,7 +157,8 @@ class DemoFormCollectionView(DemoViewMixin, FormCollectionView):
         collection_class = super().get_collection_class()
         attrs = self.get_css_classes()
         attrs.pop('button_css_classes', None)
-        collection_class.default_renderer = import_string(f'formset.renderers.{self.framework}.FormRenderer')(**attrs)
+        renderer = import_string(f'formset.renderers.{self.framework}.FormRenderer')(**attrs)
+        collection_class.default_renderer = renderer
         return collection_class
 
     def form_collection_valid(self, form_collection):
@@ -215,8 +216,8 @@ demo_css_classes = {
 extra_doc_native = """
 Here we use a native Django Form instance to render the form suitable for the ``<django-formset>``-widget.
 
-Then that form instance is rendered using the special template tag ``render_form``. The template responsible for
-rendering shall be written as:
+Then that form instance is rendered using the special template tag ``render_form``. The template used to
+render such a form shall be written as:
 
 .. code-block:: django
 
@@ -231,10 +232,10 @@ rendering shall be written as:
 extra_doc_extended = """
 Here we use a Django Form instance with a overridden render method suitable for the ``<django-formset>``-widget.
 
-This allows us to use the built-in ``__str__()``-method and hence render the form using ``{{ form }}`` inside the
+This allows us to use the built-in ``__str__()``-method and hence render the form using ``{{ form }}`` inside a
 template. In this use case, our Form class must additionally inherit from ``formset.utils.FormMixin``.
 
-Such a form could for instance be defined as:
+Such a Form class can for instance be defined as:
 
 .. code-block:: python
 
@@ -244,7 +245,8 @@ Such a form could for instance be defined as:
 	class RegisterPersonForm(FormMixin, forms.Form):
 	    first_field = ...
 
-The template required to render such a form then shall look like:
+An instantiated Form object then can be rendered by a template using Django's variable expansion instead of a special
+templatetag:
 
 .. code-block:: django
 
