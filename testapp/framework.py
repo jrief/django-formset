@@ -1,6 +1,7 @@
 import itertools
 import json
 
+from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Model, QuerySet
@@ -101,10 +102,10 @@ class DemoViewMixin:
             **self.get_css_classes(),
         )
         if holder_class.__doc__:
+            template = settings.BASE_DIR / 'testapp/templates/docutils.txt'
             writer = get_writer_class('html5')()
-            settings = OptionParser(components=(Parser, writer), defaults={'template': 'templates/docutils.txt'}).get_default_values()
-            settings.template = 'templates/docutils.txt'
-            document = new_document('rst-doc', settings=settings)
+            docsettings = OptionParser(components=(Parser, writer), defaults={'template': template}).get_default_values()
+            document = new_document('rst-doc', settings=docsettings)
             unindent = min(len(l) - len(l.lstrip()) for l in holder_class.__doc__.splitlines() if l)
             docstring = [l[unindent:] for l in holder_class.__doc__.splitlines()]
             if self.extra_doc:
