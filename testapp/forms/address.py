@@ -13,21 +13,24 @@ class AddressForm(forms.Form):
 
     .. code-block:: python
 
+        from formset.renderers.bootstrap import FormRenderer
+
         class AddressForm(...):
             ...
-            css_classes = {
-                'form_css_classes': 'row',
-                'field_css_classes': {
-                    '*': 'mb-2 col-12',
+            default_renderer = FormRenderer(
+                form_css_classes='row',
+                field_css_classes={
                     'postal_code': 'mb-2 col-4',
                     'city': 'mb-2 col-8',
+                    '*': 'mb-2 col-12',
                 },
-            }
+            })
             ...
 
-    This modifies the rendering of the form by wrapping the named fields ``postal_code`` and ``city``
-    into a ``<django-field-group class="...">`` using the named classes. The key value ``'*'`` is used
-    as a wildcard matching all other field names.
+    This overwrites the renderer for this Form class. Here the CSS classes for the named fields ``postal_code`` and
+    ``city`` replace the given defaults in the HTML element wrapping the input field(s),
+    ie. ``<django-field-group class="...">``. The key value ``'*'`` is used as a wildcard matching all other field
+    names.
     """
 
     recipient = fields.CharField(
