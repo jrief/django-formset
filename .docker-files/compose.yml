@@ -15,18 +15,6 @@ services:
     networks:
       - djangonet
 
-  redishost:
-    image: redis
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-    volumes:
-      - 'redisdata:/data'
-    networks:
-      - djangonet
-
   webapp:
     image: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
     labels:
@@ -52,7 +40,6 @@ services:
     command: uwsgi
     depends_on:
       - postgresdb
-      - redishost
     networks:
       - djangonet
       - Traefik_default
@@ -65,5 +52,4 @@ networks:
 
 volumes:
   pgdata:
-  redisdata:
   djangomedia:
