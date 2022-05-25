@@ -46,7 +46,7 @@ services:
       ENVIRONMENT_NAME: $CI_ENVIRONMENT_NAME
       DJANGO_SETTINGS_MODULE: settings
       DJANGO_SECRET_KEY: $DJANGO_SECRET_KEY
-      DJANGO_DEBUG: true
+      DJANGO_DEBUG: "true"
     volumes:
       - djangomedia:/web/workdir
     command: uwsgi
