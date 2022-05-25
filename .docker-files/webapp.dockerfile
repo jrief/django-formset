@@ -1,4 +1,4 @@
-FROM docker.uibk.ac.at:443/zid/webinfo/python:latest
+FROM python:3.10.4
 LABEL Description="django-formset testapp" Maintainer="Jacob Rief"
 RUN mkdir /web
 WORKDIR /web
