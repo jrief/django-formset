@@ -21,7 +21,9 @@ build_webapp:
   stage: build
   script:
     - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -f .docker-files/webapp.dockerfile -t $CI_REGISTRY_IMAGE
+    - docker build --squash
+        --file .docker-files/webapp.dockerfile
+        --tag $CI_REGISTRY_IMAGE
         --build-arg HTTP_PROXY --build-arg http_proxy
         --build-arg HTTPS_PROXY --build-arg https_proxy
         --build-arg NO_PROXY --build-arg no_proxy .
