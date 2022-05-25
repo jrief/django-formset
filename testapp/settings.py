@@ -20,14 +20,7 @@ INSTALLED_APPS = [
     'testapp',
 ]
 
-if DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': Path(__file__).parent / 'test.db',  # live_server requires a file rather than :memory:
-        }
-    }
-else:
+if os.getenv('DATABASE_ENGINE') == 'postgres':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -37,6 +30,13 @@ else:
             'HOST': os.getenv('POSTGRES_HOST'),
             'PORT': os.getenv('POSTGRES_PORT', 5432),
             'CONN_MAX_AGE': 900,
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': Path(__file__).parent / 'test.db',  # live_server requires a file rather than :memory:
         }
     }
 
