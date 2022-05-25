@@ -5,11 +5,11 @@ stages:
   - build
   - deploy
 
-variables:
-  DOCKER_TLS_CERTDIR: "/root/.docker"
-  DOCKER_TLS_VERIFY: "1"
-  DOCKER_HOST: "tcp://138.232.16.180:2376"
-  TRAEFIK_HOST: "Host(`django-formset.awesto.com`)"
+#variables:
+#   DOCKER_TLS_CERTDIR: "/root/.docker"
+#   DOCKER_TLS_VERIFY: "1"
+#   DOCKER_HOST: "tcp://138.232.16.180:2376"
+#  TRAEFIK_HOST: "Host(`django-formset.awesto.com`)"
 
 before_script:
   - mkdir -p $DOCKER_TLS_CERTDIR
@@ -44,6 +44,9 @@ deploy_webapp:
   environment:
     name: production
     url: https://django-formset.awesto.com
+  variables:
+    DOCKER_HOST: "tcp://138.232.16.180:2376"
+    TRAEFIK_HOST: "Host(`django-formset.awesto.com`)"
   script:
     - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker stack deploy
