@@ -29,7 +29,6 @@ COPY .docker-files/entrypoint.sh /web/entrypoint.sh
 ENV DJANGO_STATIC_ROOT=$DJANGO_STATIC_ROOT
 ENV DJANGO_WORKDIR=$DJANGO_WORKDIR
 ENV DJANGO_SECRET_KEY=dummy_secret_key
-ENV DJANGO_DEBUG=true
 ENV PYTHONPATH=/web
 RUN mkdir -p $DJANGO_STATIC_ROOT
 RUN ./testapp/manage.py collectstatic --noinput

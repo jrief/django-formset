@@ -5,18 +5,6 @@ stages:
   - build
   - deploy
 
-#variables:
-#   DOCKER_TLS_CERTDIR: "/root/.docker"
-#   DOCKER_TLS_VERIFY: "1"
-#   DOCKER_HOST: "tcp://138.232.16.180:2376"
-#  TRAEFIK_HOST: "Host(`django-formset.awesto.com`)"
-
-#before_script:
-#  - mkdir -p $DOCKER_TLS_CERTDIR
-#  - echo "$CA" > $DOCKER_TLS_CERTDIR/ca.pem
-#  - echo "$CLIENT_CERT" > $DOCKER_TLS_CERTDIR/cert.pem
-#  - echo "$CLIENT_KEY" > $DOCKER_TLS_CERTDIR/key.pem
-
 build_webapp:
   stage: build
   script:
@@ -60,6 +48,9 @@ deploy_webapp:
         --compose-file .docker-files/compose.yml
         --with-registry-auth
         django-formset
+  after_script:
+    - echo "Run after deploy at $(date)"
+    - docker system prune -af
   when: manual
   only:
     - gitlab-demo
