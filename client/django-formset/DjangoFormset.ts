@@ -563,12 +563,12 @@ class DjangoButton {
 				response.json().then(body => {
 					if (body.success_url) {
 						location.href = body.success_url;
+					} else if (typeof fallbackUrl === 'string') {
+						location.href = fallbackUrl;
+					} else {
+						console.warn("Neither a success-, nor a fallback-URL is given to proceed.");
 					}
 				});
-				if (typeof fallbackUrl === 'string') {
-					location.href = fallbackUrl;
-				}
-				console.warn("Neither a success-, nor a fallback-URL is given to proceed.");
 			}
 			return Promise.resolve(response);
 		}

@@ -1,5 +1,8 @@
 ## Changes
 
+- 0.8.3
+  * Fix: For ``field_css_classes``, fall back to form name rather than its prefix.
+
 - 0.8.2
   * Fix: Set empty dropbox item on upload widget during form reset.
   * Fix: Collections with siblings on root level generated invalid form data.
