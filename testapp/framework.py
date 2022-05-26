@@ -3,6 +3,7 @@ import json
 
 from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
+from django.forms.renderers import get_default_renderer
 from django.db.models import Model, QuerySet
 from django.http import HttpResponse
 from django.template.loader import get_template
@@ -161,6 +162,26 @@ class DemoFormCollectionView(DemoViewMixin, FormCollectionView):
         collection_class.default_renderer = renderer_class(**attrs)
         return collection_class
 
+    def get_form_collection(self):
+        """
+        This method replaces the form renderer by a specialized version is specified in css_classes.
+        Used to show how to style forms nested inside collections.
+        """
+        def traverse_holders(declared_holders, path=None):
+            for name, holder in declared_holders.items():
+                key = f'{path}.{name}' if path else name
+                if hasattr(holder, 'declared_holders'):
+                    traverse_holders(holder.declared_holders, key)
+                elif key in css_classes:
+                    holder.renderer = form_collection.default_renderer.__class__(**css_classes[key])
+                else:
+                    holder.renderer = get_default_renderer()
+
+        css_classes = demo_css_classes[self.framework]
+        form_collection = super().get_form_collection()
+        traverse_holders(form_collection.declared_holders)
+        return form_collection
+
     def form_collection_valid(self, form_collection):
         self.request.session['valid_formset_data'] = json.dumps(
             form_collection.cleaned_data, cls=JSONEncoder, indent=2, ensure_ascii=False
@@ -198,6 +219,14 @@ demo_css_classes = {
                 'profession.job_title': 'col-6 mb-2',
             },
         },
+        'numbers.number': {
+            'form_css_classes': 'row',
+            'field_css_classes': {
+                'phone_number': 'mb-2 col-8',
+                'label': 'mb-2 col-4',
+                '*': 'mb-2 col-12',
+            },
+        }
     },
     'bulma': {
         '*': {
