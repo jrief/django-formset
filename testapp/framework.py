@@ -137,8 +137,9 @@ class DemoFormView(DemoViewMixin, FormView):
         assert not issubclass(form_class, FormMixin)
         attrs = self.get_css_classes()
         attrs.pop('button_css_classes', None)
-        renderer = import_string(f'formset.renderers.{self.framework}.FormRenderer')(**attrs)
+        renderer_class = import_string(f'formset.renderers.{self.framework}.FormRenderer')
         if self.mode != 'native':
+            renderer = renderer_class(**attrs)
             form_class = type(form_class.__name__, (FormMixin, form_class), {'default_renderer': renderer})
         return form_class
 
@@ -156,8 +157,8 @@ class DemoFormCollectionView(DemoViewMixin, FormCollectionView):
         collection_class = super().get_collection_class()
         attrs = self.get_css_classes()
         attrs.pop('button_css_classes', None)
-        renderer = import_string(f'formset.renderers.{self.framework}.FormRenderer')(**attrs)
-        collection_class.default_renderer = renderer
+        renderer_class = import_string(f'formset.renderers.{self.framework}.FormRenderer')
+        collection_class.default_renderer = renderer_class(**attrs)
         return collection_class
 
     def form_collection_valid(self, form_collection):
