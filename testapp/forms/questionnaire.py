@@ -3,9 +3,32 @@ from django.forms import fields, forms, widgets
 
 class QuestionnaireForm(forms.Form):
     """
-    This Form shows how to use the tag attribute ``show-if=".gender=='f'"``. Here it is added to
-    the field ``pregnant``, which only is visible if field **Gender** is set to *Female*. This
-    can be used to simplify forms by not asking irrelevant questions.
+    This Form shows how to use the tag attribute ``show-if="…"``.
+
+    .. code-block:: python
+
+        class QuestionnaireForm(forms.Form):
+            full_name = fields.CharField(…)
+
+            gender = fields.ChoiceField(
+                label="Gender",
+                choices=[('m', "Male"), ('f', "Female"), ('x', "Inapplicable")],
+                widget=widgets.RadioSelect,
+            )
+
+            pregnant = fields.BooleanField(
+                label="Are you pregnant?",
+                required=False,
+                widget=widgets.CheckboxInput(attrs={'show-if': ".gender=='f'"})
+            )
+
+    Here the Boolean field ``pregnant`` uses the tag attribute ``show-if=".gender=='f'"``. This
+    hides that field whenever the value of the field named **Gender** is not set to *Female*.
+    Using these conditions can simplify forms by not asking irrelevant questions.
+
+    An alternative to ``show-if`` is ``hide-if="…"``. It just reverses the hiding logic.
+
+    In case we don't want to hide another field but just disable it, we can use ``disable-if="…"``.
     """
 
     full_name = fields.RegexField(
@@ -19,7 +42,7 @@ class QuestionnaireForm(forms.Form):
 
     gender = fields.ChoiceField(
         label="Gender",
-        choices=[('m', "Male"), ('f', "Female")],
+        choices=[('m', "Male"), ('f', "Female"), ('x', "Inapplicable")],
         widget=widgets.RadioSelect,
         error_messages={'invalid_choice': "Please select your gender."},
     )

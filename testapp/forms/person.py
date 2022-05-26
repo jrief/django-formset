@@ -40,15 +40,18 @@ class PersonForm(SimplePersonForm):
 
 class ButtonActionsForm(forms.Form):
     """
-    This is a simple form used to show how to use button actions. On each button in a
-    **django-formset**, we can use the event handler ``<button click="...">``. This attribute
-    then contains a list of chained actions, whose most notables are ``submit -> proceed``.
+    This is a simple Django Form with just one input field. It is used to show how to use
+    "button actions". On each button inside a ``<django-formset>``, we can attach the event handler
+    ``<button click="...">`` to a chain of actions. This attribute then contains a list of actions,
+    whose most notables are ``submit -> proceed``.
 
-    This example attempts to mimick a form which takes a few seconds for processing. To improve
-    the user experience, the button shall somehow tell its caller, that this action may take some
-    time by displaying a spinner. On succeeded submission, the button displays an okay tick for
-    1.5 seconds before proceeding. On failed submission, the button displays a bummer symbol to
-    signalize a failure.
+    This example mimicks a form which takes a few seconds for processing. For time-consuming form
+    submission, it is good practice to improve the user experience by giving feedback. Here, the
+    button tells its caller, that this action may take some time by displaying a spinner.
+
+    On succeeded submission, the button displays an okay tick for 1.5 seconds before proceeding.
+
+    On failed submission, the button displays a bummer symbol to signalize a failure.
 
     .. code-block:: html
 
@@ -81,18 +84,25 @@ sample_person_data = {
 
 class ModelPersonForm(models.ModelForm):
     """
-    This form is created by Django's helper functions that creates a Form class out of a Django model.
-
-    The only caveat is that some of the default widgets must or shall be overridden by counterparts from the
-    **django-formset** library. For model fields of type ``django.db.models.FileField`` and
-    ``django.db.models.ImageField`` the widget **must** be replaced by ``formset.widgets.UploadedFileInput``.
-
-    Input fields for selecting one or more options can be replaced by widgets of type ``formset.widgets.Selectize``,
-    ``formset.widgets.SelectizeMutiple`` or ``formset.widgets.DualSelector``.
-
-    To adopt the widgets, specify a dictionary inside the form's ``Meta`` class, for instance
+    This form is created by Django's helper functions that creates a Form class out of a Django
+    model. Say we have a Django model such as:
 
     .. code-block:: python
+
+        class PersonModel(models.Model):
+            full_name = models.CharField(…)
+            avatar = models.FileField(…)
+            gender = models.CharField(choices=…, …)
+            birth_date = models.DateField(…)
+            opinion = models.ForeignKey(OpinionModel, …)
+            opinions = models.ManyToManyField(OpinionModel, …)
+            continent = models.IntegerField(choices=…, …)
+
+    and want to create a form out of it, such as
+
+    .. code-block:: python
+
+        from formset.widgets import Selectize, SelectizeMultiple, UploadedFileInput, DualSelector
 
         class ModelPersonForm(models.ModelForm):
             class Meta:
@@ -103,7 +113,26 @@ class ModelPersonForm(models.ModelForm):
                     'gender': widgets.RadioSelect,
                     'opinion': Selectize(search_lookup='label__icontains'),
                     'opinions': SelectizeMultiple(search_lookup='label__icontains', max_items=15),
+                           # or DualSelector(search_lookup='label__icontains'),
                 }
+
+    here the only caveat is that some of the default widgets must or shall be overridden by
+    counterparts from the **django-formset** library. We do this by specifying a dictionary inside
+    the form's ``Meta`` class, as shown above.
+
+    For model fields of type ``django.db.models.FileField`` and ``django.db.models.ImageField`` the
+    widget **must** be replaced by ``formset.widgets.UploadedFileInput`` as discussed in the
+    previous example.
+
+    Input fields for selecting *one option* out of many, shall be replaced by a widget of type
+    ``formset.widgets.Selectize``. This replaces the HTML ``<select>`` element by a more
+    user-friendly version.
+
+    Input fields for selecting *many options* out of many, shall be replaced by a widget of either
+    type ``formset.widgets.SelectizeMutiple`` or ``formset.widgets.DualSelector``.
+    The ``SelectizeMutiple`` widget is suitable for input fields holding only a few selected
+    choices, while the ``DualSelector`` widget is intended for input fields holding many selected
+    options.
     """
 
     class Meta:
