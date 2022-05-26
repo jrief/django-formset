@@ -60,7 +60,7 @@ export abstract class IncompleteSelect {
 			}
 			successCallback(data.items);
 		} else {
-			console.error(`Failed to fetch from ${url}`);
+			console.error(`Failed to fetch from ${url} (status=${response.status})`);
 		}
 	}
 }
