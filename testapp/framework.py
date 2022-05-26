@@ -333,54 +333,54 @@ than placing them below each other.
 urlpatterns = [
     path('', render_suburls),
     path('success', SuccessView.as_view(), name='form_data_valid'),
-    path('address', DemoFormView.as_view(
-        form_class=AddressForm,
-    ), name='address'),
-    path('complete.native', DemoFormView.as_view(
+    path('01-complete.native', DemoFormView.as_view(
         form_class=CompleteForm,
         extra_doc=extra_doc_native,
     ), name='complete.native'),
-    path('complete.extended', DemoFormView.as_view(
+    path('02-complete.extended', DemoFormView.as_view(
         form_class=CompleteForm,
         template_name='testapp/extended-form.html',
         extra_doc=extra_doc_extended,
     ), name='complete.extended'),
-    path('complete.field-by-field', DemoFormView.as_view(
+    path('03-complete.field-by-field', DemoFormView.as_view(
         form_class=CompleteForm,
         template_name='testapp/field-by-field.html',
         extra_doc=extra_doc_field_by_field,
     ), name='complete.field-by-field'),
-    path('complete.horizontal', DemoFormView.as_view(
+    path('04-complete.horizontal', DemoFormView.as_view(
         form_class=CompleteForm,
         extra_doc=extra_doc_horizontal,
     ), name='complete.horizontal'),
-    path('simplecontact', DemoFormCollectionView.as_view(
+    path('05-address', DemoFormView.as_view(
+        form_class=AddressForm,
+    ), name='address'),
+    path('06-opinion', DemoFormView.as_view(
+        form_class=OpinionForm,
+    ), name='opinion'),
+    path('07-questionnaire', DemoFormView.as_view(
+        form_class=QuestionnaireForm,
+    ), name='questionnaire'),
+    path('08-simplecontact', DemoFormCollectionView.as_view(
         collection_class=SimpleContactCollection,
         initial={'person': sample_person_data},
     ), name='simplecontact'),
-    path('contact', DemoFormCollectionView.as_view(
-        collection_class=ContactCollection,
-    ), name='contact'),
-    path('contactlist', DemoFormCollectionView.as_view(
-        collection_class=ContactCollectionList,
-    ), name='contactlist'),
-    path('customer', DemoFormCollectionView.as_view(
+    path('09-customer', DemoFormCollectionView.as_view(
         collection_class=CustomerCollection,
     ), name='customer'),
-    path('opinion', DemoFormView.as_view(
-        form_class=OpinionForm,
-    ), name='opinion'),
-    path('person', DemoModelFormView.as_view(
+    path('10-contact', DemoFormCollectionView.as_view(
+        collection_class=ContactCollection,
+    ), name='contact'),
+    path('11-contactlist', DemoFormCollectionView.as_view(
+        collection_class=ContactCollectionList,
+    ), name='contactlist'),
+    path('12-upload', DemoFormView.as_view(
+        form_class=UploadForm,
+    ), name='upload'),
+    path('13-person', DemoModelFormView.as_view(
         form_class=ModelPersonForm,
         # object=PersonModel.objects.last(),
     ), name='person'),
-    path('questionnaire', DemoFormView.as_view(
-        form_class=QuestionnaireForm,
-    ), name='questionnaire'),
-    path('upload', DemoFormView.as_view(
-        form_class=UploadForm,
-    ), name='upload'),
-    path('button-actions', DemoFormView.as_view(
+    path('14-button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',
         extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay -> delay(1500) -> proceed !~ enable -> bummer -> delay(9999)'},
@@ -410,7 +410,7 @@ for length in range(len(withhold_feedbacks) + 1):
         extra_docs.extend([f'* {extra_doc_withhold[w]}' for w in withhold_feedback])
         force_submission = suffix == '.mews'  # just for testing
         urlpatterns.append(
-            path(f'withhold{suffix}', DemoFormView.as_view(
+            path(f'15-withhold{suffix}', DemoFormView.as_view(
                 form_class=SimplePersonForm,
                 extra_context={
                     'withhold_feedback': ' '.join(withhold_feedback),
