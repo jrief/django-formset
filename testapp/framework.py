@@ -260,8 +260,6 @@ demo_css_classes = {
 }
 
 extra_doc_native = """
-------
-
 Here we use a native Django Form instance to render the form suitable for the ``<django-formset>``-widget.
 
 Then that form instance is rendered using the special template tag ``render_form``. The template used to
@@ -278,8 +276,6 @@ render such a form shall be written as:
 
 
 extra_doc_extended = """
-------
-
 Here we use a Django Form instance with a overridden render method suitable for the ``<django-formset>``-widget.
 
 This allows us to use the built-in ``__str__()``-method and hence render the form using ``{{ form }}`` inside a
@@ -310,8 +306,6 @@ templatetag:
 
 
 extra_doc_field_by_field = """
-------
-
 By rendering field-by-field, we get an even more fine grained control over how each field is rendered.
 
 This way we can render each field in a different manner depending on its name or type. Such a template
@@ -426,7 +420,7 @@ for length in range(len(withhold_feedbacks) + 1):
     for withhold_feedback in itertools.combinations(withhold_feedbacks, length):
         suffix = '.' + ''.join(w[0] for w in withhold_feedback) if length else ''
         if withhold_feedback:
-            extra_docs = ['Using ``withhold-feedback="{}"`` means:'.format(' '.join(withhold_feedback)), '']
+            extra_docs = ['------', '', 'Using ``withhold-feedback="{}"`` means:'.format(' '.join(withhold_feedback)), '']
         else:
             extra_docs = []
         extra_docs.extend([f'* {extra_doc_withhold[w]}' for w in withhold_feedback])
