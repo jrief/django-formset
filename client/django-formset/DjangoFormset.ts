@@ -1014,7 +1014,7 @@ class DjangoFormCollection {
 		assert(this.removeButton === null, "Remove Button not removed");
 	}
 
-	toggleForRemoval(remove: boolean) {
+	protected toggleForRemoval(remove: boolean) {
 		this.markedForRemoval = remove;
 		for (const form of this.forms) {
 			form.toggleForRemoval(remove);
@@ -1030,6 +1030,13 @@ class DjangoFormCollection {
 			this.removeButton.disabled = remove;
 		}
 		this.element.classList.toggle('dj-marked-for-removal', this.markedForRemoval);
+	}
+
+	public resetToInitial() {
+		this.toggleForRemoval(false);
+		for (const collection of this.children) {
+			collection.resetToInitial();
+		}
 	}
 }
 
@@ -1085,6 +1092,14 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 			}
 		} else {
 			this.removeButton.disabled = numActiveSiblings <= this.minSiblings;
+		}
+	}
+
+	public resetToInitial() {
+		if (this.justAdded) {
+			this.removeCollection();
+		} else {
+			super.resetToInitial();
 		}
 	}
 }
@@ -1490,6 +1505,9 @@ export class DjangoFormset {
 	}
 
 	public resetToInitial() {
+		for (const collection of this.formCollections) {
+			collection.resetToInitial();
+		}
 		for (const form of this.forms) {
 			form.resetToInitial();
 		}
