@@ -4,6 +4,9 @@ module.exports = {
     'formset/templates/formset/tailwind/**/*.html',
     'testapp/templates/tailwind/*.html',
   ],
+  safelist: [
+    'flex', 'flex-wrap', '-mx-3', 'w-full', 'px-3', 'w-1/4', 'w-3/4', 'w-2/5', 'w-3/5',
+  ],
   theme: {
     extend: {},
   },
