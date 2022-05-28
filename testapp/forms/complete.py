@@ -37,9 +37,14 @@ class CompleteForm(forms.Form):
             password = fields.CharField(widget=widgets.PasswordInput, …)
             confirmation_key = fields.CharField(widget=widgets.HiddenInput(), …)
 
-    Instances of this form can be rendered using different recepies, by templatetag ``render_form …``,
-    by adding ``formset.utils.FormMixin`` to the form class or by rendering the form fields,
-    field-by-field.
+    Instances of this form can be rendered using different recepies:
+
+    * by using the templatetag ``render_form …`` (recommended)
+    * by adding ``formset.utils.FormMixin`` to the form class
+    * by rendering the form fields, field-by-field
+
+    ------
+
     """
     CONTINENT_CHOICES = [
         ('', "––– please select –––"), ('am', "America"), ('eu', "Europe"), ('as', "Asia"),

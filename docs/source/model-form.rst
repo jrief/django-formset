@@ -57,13 +57,15 @@ Detail View for ModelForm
 =========================
 
 In a CRUD_ application, we usually add a Django View to add, update and delete an instance of our
-model. Instead of `createing one view class`_ for each of those operations, with **django-formset**
-we usually can combine them into one view class. This is because we can add extra context data to
-the form control buttons, which then is sumbitted together with the form data. An example:
+model. The Django documentation proposes to `create one view for each of these tasks`_, a
+``CreateView``, an ``UpdateView`` and a ``DeleteView``.
 
 .. _CRUD: https://en.wikipedia.org/wiki/Create,_read,_update_and_delete
-.. _createing one view class: https://docs.djangoproject.com/en/stable/ref/class-based-views/generic-editing/#generic-editing-views
+.. _create one view for each of these tasks: https://docs.djangoproject.com/en/stable/ref/class-based-views/generic-editing/#generic-editing-views
 
+With **django-formset** we instead can combine them into one view class. This is because we can add
+extra context data to the form control buttons, which then is sumbitted together with the form data.
+An example:
 
 .. code-block:: python
 
