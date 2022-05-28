@@ -55,7 +55,7 @@ class ButtonActionsForm(forms.Form):
 
     .. code-block:: html
 
-        <button click="clearErrors -> disable -> spinner -> submit -> okay -> delay(1500) -> proceed !~ bummer -> enable -> delay(9999)">Submit</button>
+        <button click="clearErrors -> disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)">Submit</button>
     """
     full_name = fields.CharField(
         label="Full name",

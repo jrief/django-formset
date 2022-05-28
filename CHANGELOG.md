@@ -1,5 +1,8 @@
 ## Changes
 
+- 0.8.4
+  * Add optional argument for delay in milliseconds to button actions `okay` and `bummer`. 
+
 - 0.8.3
   * Fix: For ``field_css_classes``, fall back to form name rather than its prefix.
 

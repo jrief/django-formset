@@ -602,29 +602,16 @@ class DjangoButton {
 	 * Replace the button's decorator against an okay animation.
 	 */
 	// @ts-ignore
-	private okay() {
-		return (response: Response) => {
-			this.decoratorElement?.replaceChildren(this.okayElement);
-			return Promise.resolve(response);
-		};
+	private okay(ms: number | undefined) {
+		return this.decorate(this.okayElement, ms);
 	}
 
 	/**
 	 * Replace the button's decorator against a bummer animation.
 	 */
 	// @ts-ignore
-	private bummer() {
-		return (response: Response) => {
-			this.decoratorElement?.replaceChildren(this.bummerElement);
-			return Promise.resolve(response);
-		};
-	}
-
-	public abortAction() {
-		if (this.timeoutHandler) {
-			clearTimeout(this.timeoutHandler);
-			this.timeoutHandler = undefined;
-		}
+	private bummer(ms: number | undefined) {
+		return this.decorate(this.bummerElement, ms);
 	}
 
 	/**
@@ -741,6 +728,18 @@ class DjangoButton {
 		}
 	}
 
+	private decorate(decorator: HTMLElement, ms: number | undefined) {
+		return (response: Response) => {
+			this.decoratorElement?.replaceChildren(decorator);
+			if (typeof ms !== 'number')
+				return Promise.resolve(response);
+			return new Promise(resolve => this.timeoutHandler = window.setTimeout(() => {
+				this.timeoutHandler = undefined;
+				resolve(response);
+			}, ms));
+		}
+	}
+
 	private parseActionsQueue(actionsQueue: string | null) {
 		if (!actionsQueue)
 			return;
@@ -765,6 +764,13 @@ class DjangoButton {
 			createActions(this.rejectActions, ast.rejectChain);
 		} catch (error) {
 			throw new Error(`Error while parsing <button click="${actionsQueue}">: ${error}.`);
+		}
+	}
+
+	public abortAction() {
+		if (this.timeoutHandler) {
+			clearTimeout(this.timeoutHandler);
+			this.timeoutHandler = undefined;
 		}
 	}
 }
