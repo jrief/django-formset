@@ -389,7 +389,7 @@ urlpatterns = [
     path('14-button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',
-        extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay -> delay(1500) -> proceed !~ enable -> bummer -> delay(9999)'},
+        extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)'},
     ), name='button-actions'),
 ]
 
