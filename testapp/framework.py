@@ -385,6 +385,7 @@ urlpatterns = [
     ), name='customer'),
     path('10-contact', DemoFormCollectionView.as_view(
         collection_class=ContactCollection,
+        initial={'person': sample_person_data, 'numbers': [{'number': {'phone_number': "+1 234 567 8900"}}]},
     ), name='contact'),
     path('11-contactlist', DemoFormCollectionView.as_view(
         collection_class=ContactCollectionList,
