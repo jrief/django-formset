@@ -93,7 +93,7 @@ Consider having a standard Django Form instance, say
 	        ...
 
 In Django, we typically render an instance of the above form using a template rendered by a
-FormView_. With this approach, data entered into the form fields must be send to the server for
+FormView_. With this approach, data entered into the form fields must be sent to the server for
 validation. If one or more of those fields fail to validate, the form is re-rendered, annotating the
 fields containing invalid data with some error messages. The latter would require to fully reload
 the whole page. Looking at modern JavaScript frameworks, it is obvious that this approach isn't
