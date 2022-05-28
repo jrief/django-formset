@@ -1302,8 +1302,8 @@ export class DjangoFormset {
 				: new DjangoFormCollection(this, element)
 			);
 		}
-		for (const sibling of this.formCollections) {
-			sibling.updateRemoveButtonAttrs();
+		for (const collection of this.formCollections) {
+			collection.updateRemoveButtonAttrs();
 		}
 		this.formCollectionTemplate = DjangoFormCollectionTemplate.findFormCollectionTemplate(this, this.element);
 	}
@@ -1327,8 +1327,8 @@ export class DjangoFormset {
 	}
 
 	public assignFormsToCollections() {
-		for (const sibling of this.formCollections) {
-			sibling.assignForms(this.forms);
+		for (const collection of this.formCollections) {
+			collection.assignForms(this.forms);
 		}
 	}
 
