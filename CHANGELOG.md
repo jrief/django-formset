@@ -6,6 +6,7 @@
     collections for removal.
   * Fields beeing hidden on the client using `show-if`/`hide-if` also are disabled to prevent
     validation – which wouldn't make sense anyway.
+  * Add parameter `legend` to Form Collection so that a collection can have an optional title.
 
 - 0.8.3
   * Fix: For ``field_css_classes``, fall back to form name rather than its prefix.
