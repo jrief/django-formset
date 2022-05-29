@@ -89,11 +89,27 @@ multiple times. For each collection with siblings there is one "Add" button, and
 child forms/collections there is a "Remove" button. To avoid having too many "Remove" buttons, they
 become only visible when moving the cursor over that form/collection.
 
+
+.. rubric:: Legend
+
+Just as HTML-elements of type``<fieldset>`` can contain a legend, also a Form Collection may
+optionally contain a  ``<legend>…</legend>``-element. It is placed on top of the collection and
+shall be specified as parameter ``legend = "…"`` inside classes inheriting from
+:class:`formset.collection.FormCollection`.
+
+
+.. rubric:: Minimum Number of Siblings
+
 The parameter ``min_siblings`` tells us how many forms/collections the parent collection shall must
 contain as minimum. If unset, it defaults to 1.
 
+
+.. rubric:: Maximum Number of Siblings
+
 The parameter ``max_siblings`` tells us how many forms/collections the parent collection may contain
 as maximum. If unset, there is no upper limit.
+
+.. rubric:: Extra Siblings
 
 The parameter ``extra_siblings`` tells us how many empty forms/collections the parent collection
 starts with. If unset, it defaults to 0, which means that the user must explicitly add a new sibling

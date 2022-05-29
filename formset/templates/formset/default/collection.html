@@ -1,3 +1,4 @@
+{% if collection.legend %}<legend>{{ collection.legend }}</legend>{% endif %}
 {% if collection.has_many %}
 <div class="dj-collection-errors"{% if collection.prefix %} prefix="{{ collection.prefix }}"{% endif %}><ul class="dj-errorlist"></ul></div>
 {% endif %}

@@ -1,7 +1,6 @@
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
 import template from 'lodash.template';
-import zip from 'lodash.zip';
 
 import { FileUploadWidget } from './FileUploadWidget';
 import { parse } from './tag-attributes';
@@ -71,7 +70,7 @@ class FieldGroup {
 	public readonly element: HTMLElement;
 	private readonly pristineValue: BoundValue;
 	private readonly inputElements: Array<FieldElement>;
-	private readonly initialDisabled: Array<Boolean>;
+	private readonly initialDisabled: Array<boolean>;
 	public readonly errorPlaceholder: Element | null;
 	private readonly errorMessages: FieldErrorMessages;
 	private readonly fileUploader: FileUploadWidget | null = null;
@@ -194,11 +193,13 @@ class FieldGroup {
 			return null;
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
-			if (visible) {
-				return () => this.element.toggleAttribute('hidden', !evalExpression.call(this));
-			} else {
-				return () => this.element.toggleAttribute('hidden', evalExpression.call(this));
-			}
+			return () => {
+				const isHidden = visible != Boolean(evalExpression.call(this));
+				if (this.element.hasAttribute('hidden') !== isHidden) {
+					this.inputElements.forEach((elem, index) => elem.disabled = isHidden || this.initialDisabled[index]);
+					this.element.toggleAttribute('hidden', isHidden);
+				}
+			};
 		} catch (error) {
 			throw new Error(`Error while parsing <... show-if/hide-if="${attrValue}">: ${error}.`);
 		}
@@ -212,7 +213,7 @@ class FieldGroup {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
 			return () => {
 				const disable = evalExpression.call(this);
-				this.inputElements.forEach(elem => elem.disabled = disable);
+				this.inputElements.forEach((elem, index) => elem.disabled = disable || this.initialDisabled[index]);
 			}
 		} catch (error) {
 			throw new Error(`Error while parsing <... disable-if="${attrValue}">: ${error}.`);
@@ -253,17 +254,11 @@ class FieldGroup {
 	}
 
 	public disableAllFields() {
-		for (const element of this.inputElements) {
-			element.disabled = true;
-		}
+		this.inputElements.forEach(elem => elem.disabled = true);
 	}
 
 	public reenableAllFields() {
-		for (const [element, disabled] of zip(this.inputElements, this.initialDisabled)) {
-			if (element && typeof disabled === 'boolean') {
-				element.disabled = disabled;
-			}
-		}
+		this.inputElements.forEach((elem, index) => elem.disabled = this.initialDisabled[index]);
 	}
 
 	public touch() {
@@ -795,10 +790,11 @@ class DjangoFieldset {
 			return null;
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
-			if (visible) {
-				return () => this.element.toggleAttribute('hidden', !evalExpression.call(this));
-			} else {
-				return () => this.element.toggleAttribute('hidden', evalExpression.call(this));
+			return () => {
+				const isHidden = visible != Boolean(evalExpression.call(this));
+				if (this.element.hasAttribute('hidden') !== isHidden) {
+					this.element.toggleAttribute('hidden', isHidden);
+				}
 			}
 		} catch (error) {
 			throw new Error(`Error while parsing <fieldset show-if/hide-if="${attrValue}">: ${error}.`);

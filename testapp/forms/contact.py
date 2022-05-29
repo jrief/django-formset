@@ -89,13 +89,14 @@ class PhoneNumberForm(forms.Form):
     )
 
     def clean_phone_number(self):
-        value = self.cleaned_data['phone_number']
-        if value.replace(' ', '') == '+123456789':
+        value = self.cleaned_data['phone_number'].replace(' ', '').replace('-', '').replace('.', '')
+        if value == '+123456789':
             raise ValidationError("Are you kidding me?")
         return value
 
 
 class PhoneNumberCollection(FormCollection):
+    legend = "List of Phone Numbers"
     min_siblings = 1
     max_siblings = 5
     extra_siblings = 1
@@ -144,6 +145,7 @@ class ContactCollection(FormCollection):
             # … other fields
 
         class ContactCollection(FormCollection):
+            legend = "Contact"
             person = PersonForm()
             numbers = PhoneNumberCollection()
 
@@ -155,6 +157,7 @@ class ContactCollection(FormCollection):
     The framework always keeps track on the minimum and maximum number of siblings and
     wouldn't let us add or remove any sibling outside the allowed range.
     """
+    legend = "Contact"
 
     person = PersonForm()
 
@@ -174,6 +177,7 @@ class ContactCollectionList(FormCollection):
         from formset.collection import FormCollection
 
         class ContactCollectionList(FormCollection):
+            legend = "List of Contacts"
             min_siblings = 0
             extra_siblings = 1
 
@@ -187,6 +191,7 @@ class ContactCollectionList(FormCollection):
     By passing in other values to the collection's constructor, we can respecify the
     number of mininimum, maximum and extra siblings.
     """
+    legend = "List of Contacts"
     min_siblings = 0
     extra_siblings = 1
 

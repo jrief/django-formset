@@ -76,8 +76,7 @@ class SuccessView(TemplateView):
 
 class DemoViewMixin:
     def get_success_url(self):
-        success_url = reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
-        return success_url
+        return reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
 
     @property
     def framework(self):
@@ -124,7 +123,7 @@ class DemoViewMixin:
         pass
 
 
-class DemoFormView(DemoViewMixin, FormView):
+class DemoFormViewMixin(DemoViewMixin):
     template_name = 'testapp/native-form.html'
     extra_doc = None
 
@@ -146,8 +145,11 @@ class DemoFormView(DemoViewMixin, FormView):
         return form_class
 
 
-class DemoModelFormView(ModelFormMixin, DemoFormView):
-    template_name = 'testapp/native-form.html'
+class DemoFormView(DemoFormViewMixin, FormView):
+    pass
+
+
+class DemoModelFormView(DemoFormViewMixin, ModelFormMixin, FormView):
     object = None
 
 
@@ -236,21 +238,21 @@ demo_css_classes = {
     },
     'foundation': {},
     'tailwind': {
-        '*': {'field_css_classes': 'mb-5'},
+        '*': {'field_css_classes': 'mb-4'},
         'address': {
             'form_css_classes': 'flex flex-wrap -mx-3',
             'field_css_classes': {
-                '*': 'mb-5 px-3 w-full',
-                'postal_code': 'mb-5 px-3 w-2/5',
-                'city': 'mb-5 px-3 w-3/5',
+                '*': 'mb-4 px-3 w-full',
+                'postal_code': 'mb-4 px-3 w-2/5',
+                'city': 'mb-4 px-3 w-3/5',
             },
         },
         'numbers.number': {
             'form_css_classes': 'flex flex-wrap -mx-3',
             'field_css_classes': {
-                '*': 'mb-5 px-3 w-full',
-                'phone_number': 'mb-5 px-3 w-3/4',
-                'label': 'mb-5 px-3 w-1/4',
+                '*': 'mb-4 px-3 w-full',
+                'phone_number': 'mb-4 px-3 w-3/4',
+                'label': 'mb-4 px-3 w-1/4',
             },
         }
     },
