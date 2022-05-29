@@ -89,8 +89,8 @@ class PhoneNumberForm(forms.Form):
     )
 
     def clean_phone_number(self):
-        value = self.cleaned_data['phone_number']
-        if value.replace(' ', '') == '+123456789':
+        value = self.cleaned_data['phone_number'].replace(' ', '').replace('-', '').replace('.', '')
+        if value == '+123456789':
             raise ValidationError("Are you kidding me?")
         return value
 
