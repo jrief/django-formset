@@ -4,6 +4,8 @@
   * Add optional argument for delay in milliseconds to button actions `okay` and `bummer`. 
   * Resetting a django-formset removes all just added sibling collections and unmarks all
     collections for removal.
+  * Fields beeing hidden on the client using `show-if`/`hide-if` also are disabled to prevent
+    validation – which wouldn't make sense anyway.
 
 - 0.8.3
   * Fix: For ``field_css_classes``, fall back to form name rather than its prefix.
