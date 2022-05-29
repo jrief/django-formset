@@ -8,8 +8,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0"/>
 	<title>Django-Formset Demo</title>
 	<link rel="icon" href="data:,">
-	<link href="{% static 'testapp/css/bootstrap.css' %}" rel="stylesheet" type="text/css">
-	<link href="{% static 'testapp/css/docutils.css' %}" rel="stylesheet" type="text/css">
+	<link href="{% static 'testapp/css/bootstrap.css' %}" rel="stylesheet" type="text/css" media="screen">
+	<link href="{% static 'testapp/css/docutils.css' %}" rel="stylesheet" type="text/css" media="screen">
 	<script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
 	{% endblock %}
 </head>
@@ -17,7 +17,7 @@
 <body>
 	<div class="container">
 		<div class="row">
-			<div class="col col-md-8 mx-auto my-1">
+			<div class="col col-md-8 mx-auto my-3">
 				<nav aria-label="breadcrumb mb-5">
 					<ol class="breadcrumb">
 						<li class="breadcrumb-item"><a href="/">{% include "testapp/house.svg" %}</a></li>
