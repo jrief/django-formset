@@ -96,7 +96,7 @@ class CompleteForm(forms.Form):
         r'^\+?[0-9 .-]{4,25}$',
         label="Phone number",
         error_messages={'invalid': "Phone number have 4-25 digits and may start with '+'."},
-        widget=fields.TextInput(attrs={'hide-if': 'subscribe'})
+        required=False,
     )
 
     birth_date = fields.DateField(

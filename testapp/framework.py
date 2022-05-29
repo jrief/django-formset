@@ -75,8 +75,7 @@ class SuccessView(TemplateView):
 
 class DemoViewMixin:
     def get_success_url(self):
-        success_url = reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
-        return success_url
+        return reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
 
     @property
     def framework(self):
@@ -123,7 +122,7 @@ class DemoViewMixin:
         pass
 
 
-class DemoFormView(DemoViewMixin, FormView):
+class DemoFormViewMixin(DemoViewMixin):
     template_name = 'testapp/native-form.html'
     extra_doc = None
 
@@ -145,8 +144,11 @@ class DemoFormView(DemoViewMixin, FormView):
         return form_class
 
 
-class DemoModelFormView(ModelFormMixin, DemoFormView):
-    template_name = 'testapp/native-form.html'
+class DemoFormView(DemoFormViewMixin, FormView):
+    pass
+
+
+class DemoModelFormView(DemoFormViewMixin, ModelFormMixin, FormView):
     object = None
 
 
