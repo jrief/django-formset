@@ -237,21 +237,21 @@ demo_css_classes = {
     },
     'foundation': {},
     'tailwind': {
-        '*': {'field_css_classes': 'mb-5'},
+        '*': {'field_css_classes': 'mb-4'},
         'address': {
             'form_css_classes': 'flex flex-wrap -mx-3',
             'field_css_classes': {
-                '*': 'mb-5 px-3 w-full',
-                'postal_code': 'mb-5 px-3 w-2/5',
-                'city': 'mb-5 px-3 w-3/5',
+                '*': 'mb-4 px-3 w-full',
+                'postal_code': 'mb-4 px-3 w-2/5',
+                'city': 'mb-4 px-3 w-3/5',
             },
         },
         'numbers.number': {
             'form_css_classes': 'flex flex-wrap -mx-3',
             'field_css_classes': {
-                '*': 'mb-5 px-3 w-full',
-                'phone_number': 'mb-5 px-3 w-3/4',
-                'label': 'mb-5 px-3 w-1/4',
+                '*': 'mb-4 px-3 w-full',
+                'phone_number': 'mb-4 px-3 w-3/4',
+                'label': 'mb-4 px-3 w-1/4',
             },
         }
     },

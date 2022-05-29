@@ -6,7 +6,7 @@ module.exports = {
   ],
   safelist: [
     // CSS classes referenced in Python code, hence unreachable by Tailwind's HTML parser
-    'flex', 'flex-wrap', 'mb-5', '-mx-3', 'w-full', 'px-3', 'w-1/4', 'w-3/4', 'w-2/5', 'w-3/5',
+    'flex', 'flex-wrap', 'mb-4', '-mx-3', 'w-full', 'px-3', 'w-1/4', 'w-3/4', 'w-2/5', 'w-3/5',
   ],
   theme: {
     extend: {},
