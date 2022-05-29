@@ -49,7 +49,7 @@ rendering templates reusable, we'd rather write
 We can do this, because the endpoint is located on the same URL as the view rendering the form.
 
 
-.. :: rubric: Enforcing Form Submission
+.. rubric:: Enforcing Form Submission
 
 .. code-block:: django
 
@@ -63,7 +63,7 @@ is to always validate all form fields on the client, and only if all of them val
 the submission to the server.
 
 
-.. :: rubric: Withholding Feedback
+.. rubric:: Withholding Feedback
 
 .. code-block:: django
 
