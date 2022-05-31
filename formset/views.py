@@ -10,6 +10,12 @@ from formset.widgets import Selectize, DualSelector
 
 
 class IncompleSelectResponseMixin:
+    """
+    Add this mixin class to views classes using forms with incomplete fields. These fields
+    usually are of type ChoiceField referring to a foreign model and using one of the widgets
+    :class:`formset.widgets.Selectize`, :class:`formset.widgets.SelectizeMultiple` or
+    :class:`formset.widgets.DualSelector`.
+    """
     def get(self, request, **kwargs):
         if request.accepts('application/json') and 'field' in request.GET:
             if 'query' in request.GET or 'offset' in request.GET:
