@@ -5,13 +5,13 @@ from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.renderers import get_default_renderer
 from django.db.models import Model, QuerySet
+from django.db.models.fields.files import FieldFile
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import get_resolver, path, reverse
 from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
-from django.views.generic import TemplateView
-from django.views.generic.edit import ModelFormMixin
+from django.views.generic import FormView, TemplateView, UpdateView
 
 from docutils.frontend import OptionParser
 from docutils.io import StringOutput
@@ -20,7 +20,7 @@ from docutils.parsers.rst import Parser
 from docutils.writers import get_writer_class
 
 from formset.utils import FormMixin
-from formset.views import FormView, FormCollectionView
+from formset.views import FileUploadMixin, IncompleSelectResponseMixin, FormCollectionView, FormViewMixin
 
 from testapp.forms.address import AddressForm
 from testapp.forms.complete import CompleteForm
@@ -38,7 +38,7 @@ parser = Parser()
 
 class JSONEncoder(DjangoJSONEncoder):
     def default(self, o):
-        if isinstance(o, UploadedFile):
+        if isinstance(o, (UploadedFile, FieldFile)):
             return o.name
         if isinstance(o, Model):
             return str(o)
@@ -73,7 +73,7 @@ class SuccessView(TemplateView):
         return context
 
 
-class DemoViewMixin:
+class DemoViewMixin(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin):
     def get_success_url(self):
         return reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
 
@@ -148,8 +148,26 @@ class DemoFormView(DemoFormViewMixin, FormView):
     pass
 
 
-class DemoModelFormView(DemoFormViewMixin, ModelFormMixin, FormView):
-    object = None
+class DemoModelFormView(DemoFormViewMixin, UpdateView):
+    model = PersonModel
+    form_class = ModelPersonForm
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(created_by=self.request.session.session_key)
+
+    def get_object(self, queryset=None):
+        if queryset is None:
+            queryset = self.get_queryset()
+        return queryset.last()
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if not self.request.session.session_key:
+            self.request.session.cycle_key()
+        form.instance.created_by = self.request.session.session_key
+        form.instance.save(update_fields=['created_by'])
+        return response
 
 
 class DemoFormCollectionView(DemoViewMixin, FormCollectionView):
@@ -396,7 +414,7 @@ urlpatterns = [
     ), name='upload'),
     path('13-person', DemoModelFormView.as_view(
         form_class=ModelPersonForm,
-        # object=PersonModel.objects.last(),
+        model=PersonModel,
     ), name='person'),
     path('14-button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,

@@ -73,3 +73,14 @@ class PersonModel(models.Model):
         verbose_name="Continent",
         choices=Continent.choices,
     )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        editable=False,
+    )
+
+    created_by = models.CharField(
+        editable=False,
+        max_length=40,
+        db_index=True,
+    )

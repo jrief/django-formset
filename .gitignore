@@ -34,4 +34,4 @@ build/
 dist/
 docs/build/
 media/
-testapp/test.db
+testapp/*.sqlite3
