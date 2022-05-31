@@ -39,16 +39,6 @@ class FormRenderer(DjangoTemplates):
         )
         return context
 
-    def X_amend_dual_selector(self, context):
-        context.update(
-            wrapper_classes='dj-dual-selector',
-            column_left_classes='left-column',
-            column_center_classes='control-column',
-            control_panel_classes='control-panel',
-            column_right_classes='right-column',
-        )
-        return context
-
     def _amend_label(self, context, hide_checkbox_label=False):
         if self.label_css_classes:
             if not isinstance(context['attrs'], dict):
@@ -96,7 +86,6 @@ class FormRenderer(DjangoTemplates):
         'django/forms/widgets/radio.html': _amend_multiple_input,
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/collection.html': _amend_collection,
-        #'formset/default/widgets/dual_selector.html': _amend_dual_selector,
     }
 
     def render(self, template_name, context, request=None):
