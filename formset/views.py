@@ -122,13 +122,10 @@ class FormView(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin, Gene
     """
 
 
-class FormCollectionViewMixin(ContextMixin):
+class FormCollectionViewMixin:
     collection_class = None
     success_url = None
     initial = {}
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
     def get(self, request, *args, **kwargs):
         """Handle GET requests: instantiate blank versions of the forms in the collection."""
@@ -176,5 +173,5 @@ class FormCollectionViewMixin(ContextMixin):
         return JsonResponse(form_collection.errors, status=422, safe=False)
 
 
-class FormCollectionView(IncompleSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, TemplateResponseMixin, View):
+class FormCollectionView(IncompleSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin, TemplateResponseMixin, View):
     pass
