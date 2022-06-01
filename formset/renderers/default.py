@@ -88,8 +88,22 @@ class FormRenderer(DjangoTemplates):
         'formset/default/collection.html': _amend_collection,
     }
 
+    @classmethod
+    def _copy_context(cls, context):
+        """"
+        Make a semi-deep copy of context. This is required since the amend-methods
+        modify the context before rendering. Python's copy.deepcopy doesn't work here
+        because File fields _io.BufferedReader can't be pickled.
+        """
+        replica = context.copy()
+        if 'attrs' in context:
+            replica['attrs'] = copy.deepcopy(context['attrs'])
+        if 'widget' in context:
+            replica['widget'] = copy.deepcopy(context['widget'])
+        return replica
+
     def render(self, template_name, context, request=None):
-        context = copy.deepcopy(context)
+        context = self._copy_context(context)
         context_modifier = self._context_modifiers.get(template_name)
         if callable(context_modifier):
             context = types.MethodType(context_modifier, self)(context)
