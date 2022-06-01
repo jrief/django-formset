@@ -74,6 +74,7 @@ def get_file_info(field_file):
     return {
             'content_type': content_type,
             'name': name,
+            'path': field_file.name,
             'download_url': download_url,
             'thumbnail_url': thumbnail_url,
             'size': file_size,
