@@ -53,7 +53,22 @@ class IncompleSelectResponseMixin:
         return JsonResponse(data)
 
 
-class FormViewMixin:
+class FormsetResponseMixin:
+    @cached_property
+    def _request_body(self):
+        if self.request.content_type == 'application/json':
+            return json.loads(self.request.body)
+
+    def get_extra_data(self):
+        """
+        When submitting a form, one can additionally add extra parameters via the button's ``submit()`` action.
+        Use this method to access that extra data.
+        """
+        if self._request_body:
+            return self._request_body.get('_extra')
+
+
+class FormViewMixin(FormsetResponseMixin):
     def get_success_url(self):
         """
         In **django-formset**, the success_url may be None and set inside the templates.
@@ -78,19 +93,6 @@ class FormViewMixin:
     def get_field(self, path):
         field_name = path.split('.')[-1]
         return self.form_class.base_fields[field_name]
-
-    def get_extra_data(self):
-        """
-        When submitting a form, one can additionally add extra parameters via the button's ``submit()`` action.
-        Use this method to access that extra data.
-        """
-        if self._request_body:
-            return self._request_body.get('_extra')
-
-    @cached_property
-    def _request_body(self):
-        if self.request.content_type == 'application/json':
-            return json.loads(self.request.body)
 
 
 class FormView(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin, GenericFormView):
@@ -122,7 +124,7 @@ class FormView(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin, Gene
     """
 
 
-class FormCollectionViewMixin:
+class FormCollectionViewMixin(FormsetResponseMixin):
     collection_class = None
     success_url = None
     initial = {}
