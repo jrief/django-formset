@@ -1,7 +1,7 @@
 {% load i18n %}{% spaceless %}
 <div class="dj-control-panel">
 	<input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
-	{% if widget.value != None %}
+	{% if widget.value is not None %}
 		{% with script_id='initial_'|add:widget.attrs.id %}
 		{{ widget.value|json_script:script_id }}
 		{% endwith %}
