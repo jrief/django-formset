@@ -147,6 +147,7 @@ class UploadedFileInput(FileInput):
                 return False  # marked as deleted
             if 'upload_temp_name' not in handle:
                 return
+            # file has just been uploaded
             upload_temp_name = signer.unsign(handle['upload_temp_name'])
             file = open(default_storage.path(upload_temp_name), 'rb')
             file.seek(0, os.SEEK_END)

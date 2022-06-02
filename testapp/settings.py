@@ -36,7 +36,13 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': Path(__file__).parent / 'test.db',  # live_server requires a file rather than :memory:
+            'NAME': Path(__file__).parent / 'demo.sqlite3',
+            'TEST': {
+                'NAME': Path(__file__).parent / 'test.sqlite3',  # live_server requires a file rather than :memory:
+                'OPTIONS': {
+                    'timeout': 20,
+                },
+            },
         }
     }
 

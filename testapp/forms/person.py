@@ -141,6 +141,7 @@ class ModelPersonForm(models.ModelForm):
         widgets = {
             'avatar': UploadedFileInput,
             'gender': widgets.RadioSelect,
+            'birth_date': widgets.DateInput,
             'opinion': Selectize(search_lookup='label__icontains'),
             'opinions': SelectizeMultiple(search_lookup='label__icontains', max_items=15),
             #'opinions': DualSelector(search_lookup='label__icontains'),

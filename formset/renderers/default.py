@@ -39,16 +39,6 @@ class FormRenderer(DjangoTemplates):
         )
         return context
 
-    def X_amend_dual_selector(self, context):
-        context.update(
-            wrapper_classes='dj-dual-selector',
-            column_left_classes='left-column',
-            column_center_classes='control-column',
-            control_panel_classes='control-panel',
-            column_right_classes='right-column',
-        )
-        return context
-
     def _amend_label(self, context, hide_checkbox_label=False):
         if self.label_css_classes:
             if not isinstance(context['attrs'], dict):
@@ -96,11 +86,24 @@ class FormRenderer(DjangoTemplates):
         'django/forms/widgets/radio.html': _amend_multiple_input,
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/collection.html': _amend_collection,
-        #'formset/default/widgets/dual_selector.html': _amend_dual_selector,
     }
 
+    @classmethod
+    def _copy_context(cls, context):
+        """"
+        Make a semi-deep copy of context. This is required since the amend-methods
+        modify the context before rendering. Python's copy.deepcopy doesn't work here
+        because File fields _io.BufferedReader can't be pickled.
+        """
+        replica = context.copy()
+        if 'attrs' in context:
+            replica['attrs'] = copy.deepcopy(context['attrs'])
+        if 'widget' in context:
+            replica['widget'] = copy.deepcopy(context['widget'])
+        return replica
+
     def render(self, template_name, context, request=None):
-        context = copy.deepcopy(context)
+        context = self._copy_context(context)
         context_modifier = self._context_modifiers.get(template_name)
         if callable(context_modifier):
             context = types.MethodType(context_modifier, self)(context)

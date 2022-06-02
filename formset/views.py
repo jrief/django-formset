@@ -10,6 +10,12 @@ from formset.widgets import Selectize, DualSelector
 
 
 class IncompleSelectResponseMixin:
+    """
+    Add this mixin class to views classes using forms with incomplete fields. These fields
+    usually are of type ChoiceField referring to a foreign model and using one of the widgets
+    :class:`formset.widgets.Selectize`, :class:`formset.widgets.SelectizeMultiple` or
+    :class:`formset.widgets.DualSelector`.
+    """
     def get(self, request, **kwargs):
         if request.accepts('application/json') and 'field' in request.GET:
             if 'query' in request.GET or 'offset' in request.GET:
@@ -47,7 +53,22 @@ class IncompleSelectResponseMixin:
         return JsonResponse(data)
 
 
-class FormViewMixin:
+class FormsetResponseMixin:
+    @cached_property
+    def _request_body(self):
+        if self.request.content_type == 'application/json':
+            return json.loads(self.request.body)
+
+    def get_extra_data(self):
+        """
+        When submitting a form, one can additionally add extra parameters via the button's ``submit()`` action.
+        Use this method to access that extra data.
+        """
+        if self._request_body:
+            return self._request_body.get('_extra')
+
+
+class FormViewMixin(FormsetResponseMixin):
     def get_success_url(self):
         """
         In **django-formset**, the success_url may be None and set inside the templates.
@@ -72,19 +93,6 @@ class FormViewMixin:
     def get_field(self, path):
         field_name = path.split('.')[-1]
         return self.form_class.base_fields[field_name]
-
-    def get_extra_data(self):
-        """
-        When submitting a form, one can additionally add extra parameters via the button's ``submit()`` action.
-        Use this method to access that extra data.
-        """
-        if self._request_body:
-            return self._request_body.get('_extra')
-
-    @cached_property
-    def _request_body(self):
-        if self.request.content_type == 'application/json':
-            return json.loads(self.request.body)
 
 
 class FormView(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin, GenericFormView):
@@ -116,13 +124,10 @@ class FormView(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin, Gene
     """
 
 
-class FormCollectionViewMixin(ContextMixin):
+class FormCollectionViewMixin(FormsetResponseMixin):
     collection_class = None
     success_url = None
     initial = {}
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
     def get(self, request, *args, **kwargs):
         """Handle GET requests: instantiate blank versions of the forms in the collection."""
@@ -170,5 +175,5 @@ class FormCollectionViewMixin(ContextMixin):
         return JsonResponse(form_collection.errors, status=422, safe=False)
 
 
-class FormCollectionView(IncompleSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, TemplateResponseMixin, View):
+class FormCollectionView(IncompleSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin, TemplateResponseMixin, View):
     pass
