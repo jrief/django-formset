@@ -1,5 +1,8 @@
 ## Changes
 
+- 0.8.5
+  * Fix: Form collections with empty siblings, on submission now create an empty array.
+
 - 0.8.4
   * Add optional argument for delay in milliseconds to button actions `okay` and `bummer`. 
   * Resetting a django-formset removes all just added sibling collections and unmarks all
