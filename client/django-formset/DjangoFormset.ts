@@ -1443,7 +1443,7 @@ export class DjangoFormset {
 			extendBody(body, absPath);
 		}
 
-		// 3. Extend body with extra data, for instance from buttons
+		// 3. Extend data structure with extra data, for instance from buttons
 		return Object.assign({}, body, {_extra: extraData});
 	}
 
