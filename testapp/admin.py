@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-from .models import PayloadModel
 from .forms.complete import CompleteForm
 
 
