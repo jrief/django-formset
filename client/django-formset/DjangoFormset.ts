@@ -1426,14 +1426,14 @@ export class DjangoFormset {
 		// Build a nested data structure (body) reflecting the shape of collections and forms
 		const body = {};
 
-		// 1. Extend body with empty arrays from Form Collections with siblings
+		// Extend body with empty arrays from Form Collections with siblings
 		for (const path of this.emptyCollectionPathes) {
 			const absPath = ['formset_data', ...path];
 			dataValue = getDataValue(body, absPath) ?? [];
 			extendBody(body, absPath);
 		}
 
-		// 2. Iterate over all forms and fill the data structure with content
+		// Iterate over all forms and fill the data structure with content
 		for (const form of this.forms) {
 			if (!form.name)  // only a single form doesn't have a name
 				return Object.assign({}, this.data, {_extra: extraData});
@@ -1443,7 +1443,7 @@ export class DjangoFormset {
 			extendBody(body, absPath);
 		}
 
-		// 3. Extend data structure with extra data, for instance from buttons
+		// Extend data structure with extra data, for instance from buttons
 		return Object.assign({}, body, {_extra: extraData});
 	}
 
