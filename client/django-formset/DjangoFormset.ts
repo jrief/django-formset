@@ -1419,6 +1419,7 @@ export class DjangoFormset {
 				if (!Array.isArray(innerArray))
 					throw new Error("Invalid form structure: Inner array is missing.");
 				extendBody(innerArray, relPath.slice(1));
+				entry[relPath[0]] = innerArray;
 			}
 		}
 
