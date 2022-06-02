@@ -4,6 +4,7 @@ from django.http.response import HttpResponseBadRequest, JsonResponse
 from django.utils.functional import cached_property
 from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
 from django.views.generic.edit import FormView as GenericFormView
+from django.views.generic.detail import SingleObjectMixin
 
 from formset.upload import FileUploadMixin
 from formset.widgets import Selectize, DualSelector
@@ -177,3 +178,24 @@ class FormCollectionViewMixin(FormsetResponseMixin):
 
 class FormCollectionView(IncompleSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin, TemplateResponseMixin, View):
     pass
+
+
+class EditCollectionView(IncompleSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, SingleObjectMixin, TemplateResponseMixin, View):
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.object:
+            collection_class = self.get_collection_class()
+            initial.update(collection_class().model_to_dict(self.object))
+        return initial
+
+    def form_collection_valid(self, form_collection):
+        form_collection.construct_instance(self.object, form_collection.cleaned_data)
+        return super().form_collection_valid(form_collection)
