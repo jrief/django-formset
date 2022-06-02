@@ -1182,6 +1182,8 @@ class DjangoFormCollectionTemplate {
 		if (templateElement) {
 			const formCollectionTemplate = new DjangoFormCollectionTemplate(formset, templateElement as HTMLTemplateElement, formCollection);
 			formCollectionTemplate.updateAddButtonAttrs();
+			const prefix = templateElement.getAttribute('prefix');
+			formset.emptyCollectionPathes.push(prefix ? prefix.split('.') : []);
 			return formCollectionTemplate;
 		}
 	}
@@ -1194,6 +1196,7 @@ export class DjangoFormset {
 	private readonly forms = Array<DjangoForm>(0);
 	public readonly formCollections = Array<DjangoFormCollection>(0);
 	public readonly collectionErrorsList = new Map<string, HTMLUListElement>();
+	public readonly emptyCollectionPathes = Array<Array<string>>(0);
 	public formCollectionTemplate?: DjangoFormCollectionTemplate;
 	public readonly showFeedbackMessages: boolean;
 	private readonly abortController = new AbortController;
@@ -1411,14 +1414,25 @@ export class DjangoFormset {
 				}
 			} else {
 				if (Array.isArray(entry))
-					throw new Error("Invalid form name: Contains nested arrays.");
-				const innerArray = entry[relPath[0]] ?? [];
+					throw new Error("Invalid form structure: Contains nested arrays.");
+				const innerArray = entry[relPath[0]];
+				if (!Array.isArray(innerArray))
+					throw new Error("Invalid form structure: Inner array is missing.");
 				extendBody(innerArray, relPath.slice(1));
-				entry[relPath[0]] = innerArray;
 			}
 		}
 
+		// build a nested data structure (body) reflecting the shape of collections and forms
 		const body = {};
+
+		// 1. extend body with empty arrays from Form Collections with siblings
+		for (const path of this.emptyCollectionPathes) {
+			const absPath = ['formset_data', ...path];
+			dataValue = [];
+			extendBody(body, absPath);
+		}
+
+		// 2. iterate over all forms and fill the data structure with content
 		for (const form of this.forms) {
 			if (!form.name)  // only a single form doesn't have a name
 				return Object.assign({}, this.data, {_extra: extraData});
