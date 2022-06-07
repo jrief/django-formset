@@ -14,7 +14,6 @@ type FieldValue = string | Array<string | Object>;
 type ErrorKey = keyof ValidityState;
 
 const NON_FIELD_ERRORS = '__all__';
-const MARKED_FOR_REMOVAL = '_marked_for_removal_';
 const COLLECTION_ERRORS = '_collection_errors_';
 
 const style = document.createElement('style');
@@ -1390,9 +1389,7 @@ export class DjangoFormset {
 		function extendBody(entry: any, relPath: Array<string>) {
 			if (relPath.length === 1) {
 				// the leaf object
-				if (dataValue === MARKED_FOR_REMOVAL) {
-					entry[MARKED_FOR_REMOVAL] = MARKED_FOR_REMOVAL;
-				} else if (Array.isArray(entry)) {
+				if (Array.isArray(entry)) {
 					entry.push(dataValue);
 				} else {
 					entry[relPath[0]] = dataValue;
@@ -1436,9 +1433,11 @@ export class DjangoFormset {
 			if (!form.name)  // only a single form doesn't have a name
 				return Object.assign({}, this.data, {_extra: extraData});
 
-			const absPath = ['formset_data', ...form.path];
-			dataValue = form.markedForRemoval ? MARKED_FOR_REMOVAL : getDataValue(this.data, absPath);
-			extendBody(body, absPath);
+			if (!form.markedForRemoval) {
+				const absPath = ['formset_data', ...form.path];
+				dataValue = getDataValue(this.data, absPath);
+				extendBody(body, absPath);
+			}
 		}
 		return Object.assign({}, body, {_extra: extraData});
 	}

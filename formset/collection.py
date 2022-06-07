@@ -9,8 +9,6 @@ from formset.exceptions import FormCollectionError
 from formset.renderers.default import FormRenderer
 from formset.utils import HolderMixin, FormMixin, FormsetErrorList
 
-
-MARKED_FOR_REMOVAL = '_marked_for_removal_'
 COLLECTION_ERRORS = '_collection_errors_'
 
 
@@ -172,7 +170,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             self.cleaned_data = []
             self._errors = ErrorList()
             for index, data in enumerate(self.data):
-                if MARKED_FOR_REMOVAL in data:
+                if data is None:
+                    # collection has been marked for removal
                     continue
                 cleaned_data = {}
                 for name, declared_holder in self.declared_holders.items():
