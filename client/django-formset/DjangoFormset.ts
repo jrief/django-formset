@@ -1386,9 +1386,7 @@ export class DjangoFormset {
 	private buildBody(extraData?: Object) : Object {
 		let dataValue: any;
 		// Build `body`-Object recursively.
-		// deliberately ignore type-checking, because `body` must be build as POJO to be JSON serializable.
-		// If it would have been build as a `Map<string, Object>`, the `body` would additionally have to be
-		// converted to a POJO by a second recursive function.
+		// Deliberately ignore type-checking, because `body` must be build as POJO to be JSON serializable.
 		function extendBody(entry: any, relPath: Array<string>) {
 			if (relPath.length === 1) {
 				// the leaf object
