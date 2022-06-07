@@ -106,8 +106,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             if not isinstance(self.initial, list):
                 errmsg = "{class_name} is declared to have siblings, but provided argument `{argument}` is not a list"
                 raise FormCollectionError(errmsg.format(class_name=self.__class__.__name__, argument='initial'))
-            num_siblings = max(num_siblings, len(self.initial))
-            num_siblings += self.extra_siblings
+            num_siblings = min(self.max_siblings, max(num_siblings, len(self.initial)) + self.extra_siblings)
 
         first, last = 0, len(self.declared_holders.items()) - 1
         # add initialized collections/forms
