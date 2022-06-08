@@ -160,4 +160,4 @@ class UploadedFileInput(FileInput):
                 file=file, name=filename, size=size, content_type=handle['content_type'],
                 content_type_extra=handle['content_type_extra'],
             )
-            return files.get(name)
+        return files.get(name)

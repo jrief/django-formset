@@ -38,6 +38,8 @@ class HolderMixin:
             delattr(replica, 'cleaned_data')
         except AttributeError:
             pass
+        if hasattr(replica, 'files'):
+            replica.files.clear()
         if initial:
             replica.initial = initial
         if prefix:
