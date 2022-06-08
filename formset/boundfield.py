@@ -30,7 +30,7 @@ class BoundField(boundfield.BoundField):
 
     def as_widget(self, widget=None, attrs=None, only_initial=False):
         widget = widget or self.field.widget
-        if self.widget_type == 'checkbox':
+        if self.widget_type == 'checkbox' and not isinstance(widget, CheckboxInputMixin):
             widget.__class__ = type(widget.__class__.__name__, (CheckboxInputMixin, widget.__class__), {'label': self.label})
         if self.field.localize:
             widget.is_localized = True
