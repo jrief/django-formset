@@ -131,7 +131,7 @@ def test_upload_progressbar(page):
     progress_bar = field_group.wait_for_selector('progress')
     assert progress_bar is not None
     progress_value = float(progress_bar.get_attribute('value'))
-    assert progress_value >= 0.0 and progress_value < 1.0
+    assert progress_value >= 0.0 and progress_value <= 1.0
     sleep(0.2)
     progress_value = float(progress_bar.get_attribute('value'))
     assert progress_value > 0.0 and progress_value <= 1.0
