@@ -29,7 +29,7 @@ jobs:
       run: |
         npm install --also=dev
         python -m pip install --upgrade pip
-        python -m pip install "Django==${{ matrix.django-version }}.*"
+        python -m pip install "Django==${{ matrix.django-version }}*"
         pip install -r testapp/requirements.txt
         playwright install
     - name: Lint with flake8
