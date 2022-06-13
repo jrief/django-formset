@@ -1470,7 +1470,7 @@ export class DjangoFormset {
 				case 200:
 					this.clearErrors();
 					for (const form of this.forms) {
-						form.element.dispatchEvent(new Event('submit'));
+						form.element.dispatchEvent(new Event('submitted'));
 					}
 					return response;
 				case 422:
