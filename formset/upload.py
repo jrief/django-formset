@@ -31,7 +31,7 @@ def thumbnail_image(storage, image_path, image_height=THUMBNAIL_MAX_HEIGHT):
         height = int(image_height)
         width = int(round(image.width * height / image.height))
         width, height = min(width, THUMBNAIL_MAX_WIDTH), min(height, THUMBNAIL_MAX_HEIGHT)
-        thumb = ImageOps.fit(image, (width, height))
+        thumb = ImageOps.fit(ImageOps.exif_transpose(image), (width, height))
         thumbnail_path = get_thumbnail_path(image_path, image_height)
         thumb.save(thumbnail_path)
         return storage.url(thumbnail_path.relative_to(storage.location))
