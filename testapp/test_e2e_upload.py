@@ -1,7 +1,7 @@
 import json
-import os
 import pytest
 import re
+from pathlib import Path
 from time import sleep
 
 from django.core.signing import get_cookie_signer
@@ -35,10 +35,10 @@ def test_upload_image(page, mocker):
     match = re.match(r'^/((media/upload_temp/python-django\.[a-z0-9_]+?)_h128(.png))$', img_src)
     assert match is not None
     thumbnail_url = match.group(1)
-    assert os.path.exists(thumbnail_url)  # the thumbnail
+    assert Path(thumbnail_url).exists()  # the thumbnail
     thumbnail_url = f'/{thumbnail_url}'
     download_url = match.group(2) + match.group(3)
-    assert os.path.exists(download_url)  # the uploaded file
+    assert Path(download_url).exists()  # the uploaded file
     download_url = f'/{download_url}'
     file_caption = dropbox.query_selector('li.dj-file-caption')
     assert file_caption is not None
@@ -60,7 +60,7 @@ def test_upload_image(page, mocker):
     file = request['formset_data']['avatar'][0]
     signer = get_cookie_signer(salt='formset')
     upload_temp_name = signer.unsign(file['upload_temp_name'])
-    assert os.path.exists(f'media/{upload_temp_name}')
+    assert (Path('media') / upload_temp_name).exists()
     assert file['name'] == 'python-django.png'
     assert file['download_url'] == download_url
     assert file['thumbnail_url'] == thumbnail_url
@@ -118,21 +118,25 @@ def test_upload_progressbar(page):
     network_conditions = {
         'offline': False,
         'downloadThroughput': 999999,
-        'uploadThroughput': 512,
+        'uploadThroughput': 9999,
         'latency': 20
     }
     client.send('Network.emulateNetworkConditions', network_conditions)
-    page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
+    test_image_path = Path('testapp/assets/python-django.png')
+    assert test_image_path.exists()
+    assert test_image_path.stat().st_size == 16001
+    file_uploader = field_group.query_selector('#id_avatar')
+    assert file_uploader is not None
+    file_uploader.set_input_files([test_image_path])
     progress_bar = field_group.wait_for_selector('progress')
     assert progress_bar is not None
     progress_value = float(progress_bar.get_attribute('value'))
-    assert progress_value >= 0.0 and progress_value < 1.0
+    assert progress_value >= 0.0 and progress_value <= 1.0
     sleep(0.2)
     progress_value = float(progress_bar.get_attribute('value'))
     assert progress_value > 0.0 and progress_value <= 1.0
-    network_conditions.update(uploadThroughput=999999)
-    client.send('Network.emulateNetworkConditions', network_conditions)
-    file_picture = page.wait_for_selector('li.dj-file-picture')
+    # thumbnailing image takes some time
+    file_picture = field_group.wait_for_selector('li.dj-file-picture')
     assert file_picture is not None
 
 
