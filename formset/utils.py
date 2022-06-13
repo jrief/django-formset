@@ -31,14 +31,15 @@ class FormsetErrorList(ErrorList):
 class HolderMixin:
     def replicate(self, data=None, initial=None, prefix=None, renderer=None):
         replica = copy.copy(self)
-        # TODO: check if neccessary
-        # if hasattr(self, 'declared_holders'):
-        #     replica.declared_holders = {
-        #         name: holder.replicate(data, initial, prefix, renderer) for name, holder in self.declared_holders
-        #     }
         replica.data = data
         replica.is_bound = data is not None
         replica._errors = None
+        try:
+            delattr(replica, 'cleaned_data')
+        except AttributeError:
+            pass
+        if hasattr(replica, 'files'):
+            replica.files.clear()
         if initial:
             replica.initial = initial
         if prefix:
@@ -61,6 +62,7 @@ class FormMixin(HolderMixin):
     """
     Mixin class to be added to a native Django Form. This is required to add
     """
+
     def __init__(self, error_class=FormsetErrorList, **kwargs):
         kwargs['error_class'] = error_class
         super().__init__(**kwargs)

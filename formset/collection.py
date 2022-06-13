@@ -9,8 +9,6 @@ from formset.exceptions import FormCollectionError
 from formset.renderers.default import FormRenderer
 from formset.utils import HolderMixin, FormMixin, FormsetErrorList
 
-
-MARKED_FOR_REMOVAL = '_marked_for_removal_'
 COLLECTION_ERRORS = '_collection_errors_'
 
 
@@ -106,8 +104,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             if not isinstance(self.initial, list):
                 errmsg = "{class_name} is declared to have siblings, but provided argument `{argument}` is not a list"
                 raise FormCollectionError(errmsg.format(class_name=self.__class__.__name__, argument='initial'))
-            num_siblings = max(num_siblings, len(self.initial))
-            num_siblings += self.extra_siblings
+            num_siblings = min(self.max_siblings, max(num_siblings, len(self.initial)) + self.extra_siblings)
 
         first, last = 0, len(self.declared_holders.items()) - 1
         # add initialized collections/forms
@@ -173,7 +170,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             self.cleaned_data = []
             self._errors = ErrorList()
             for index, data in enumerate(self.data):
-                if MARKED_FOR_REMOVAL in data:
+                if data is None:
+                    # collection has been marked for removal
                     continue
                 cleaned_data = {}
                 for name, declared_holder in self.declared_holders.items():

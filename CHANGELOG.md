@@ -1,5 +1,12 @@
 ## Changes
 
+- 0.8.6
+  * Fix: Files uploaded into collections with siblings, are not duplicated anymore.
+  * Fix: Clear `cleaned_data` during form validation to prevent duplicate content.
+  * Fix occasionally occuring MRO-TypeError when instantiating checkbox widget.
+  * Remove tag "_marked_for_removal_" while submitting form. Use Array with holes instead.
+  * In Collections with siblings, do not extend number of siblings, if maximum is reached.
+
 - 0.8.5
   * Fix: Form collections with empty siblings, on submission now create an empty array.
 
