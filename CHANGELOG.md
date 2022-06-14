@@ -4,8 +4,7 @@
   * Fix: If an uploaded image has an EXIF orientation tag, that image that is transposed accordingly.
   * On file upload, fill the progressbar to only 90%. The remaining 10% of the progressbar are
     filled after successful image transformation.
-  * Rename Event submit -> submitted, because otherwise FF triggers a page reload.
-    Also rename the event listeners: submit -> submitted,  reset -> resetted
+  * Rename Event "submit" to "submitted", because otherwise FireFox triggers a page reload.
 
 - 0.8.6
   * Fix: Files uploaded into collections with siblings, are not duplicated anymore.
