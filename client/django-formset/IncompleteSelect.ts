@@ -19,7 +19,7 @@ export abstract class IncompleteSelect {
 			this.endpoint = formset.getAttribute('endpoint') ?? '';
 			this.fieldName = `${formName}.${element.getAttribute('name')}`;
 		}
-		form.addEventListener('resetted', event => this.formResetted(event));
+		form.addEventListener('reset', event => this.formResetted(event));
 		form.addEventListener('submitted', event => this.formSubmitted(event));
 	}
 
