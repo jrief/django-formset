@@ -18,7 +18,8 @@ COPY package-lock.json /web/package-lock.json
 RUN npm ci
 
 # install Python specific requirements
-RUN pip install django psycopg2-binary Pillow uWSGI docutils Pygments django-formset==0.8.5
+RUN pip install django psycopg2-binary Pillow uWSGI docutils Pygments
+RUN pip install django-formset==0.8.8
 
 # copy project relevant files into container
 ADD testapp /web/testapp
