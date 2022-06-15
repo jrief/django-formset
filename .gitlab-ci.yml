@@ -21,10 +21,7 @@ build_webapp:
     - docker push $CI_REGISTRY_IMAGE
     - docker tag $CI_REGISTRY_IMAGE $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
-  only:
-    refs:
-      - api
-      - web
+  when: always
   except:
     changes:
       - "*.md"
@@ -54,10 +51,3 @@ deploy_webapp:
     - echo "Run after deploy at $(date)"
     - docker system prune -af
   when: manual
-  only:
-    refs:
-      - api
-      - web
-  except:
-    changes:
-      - "*.md"
