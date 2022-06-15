@@ -1,5 +1,8 @@
 ## Changes
 
+- 0.8.8
+  * Use a simpler and semantically more correct HTML representation for the file uploader widget.
+
 - 0.8.7
   * Fix: If an uploaded image has an EXIF orientation tag, that image that is transposed accordingly.
   * On file upload, fill the progressbar to only 90%. The remaining 10% of the progressbar are
