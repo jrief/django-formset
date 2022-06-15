@@ -1,5 +1,6 @@
 @mixin Dropbox {
-	.dj-dropbox {
+	figure.dj-dropbox {
+		all: unset;
 		display: inline-flex;
 		align-items: center;
 		justify-content: space-between;
@@ -7,42 +8,35 @@
 		margin: 0 0 0.25rem 0.25rem;
 		padding: 0;
 		list-style: none;
-		height: 128px;
-		min-width: 128px;
+		height: 8rem;
+		min-width: 8rem;
 		outline: grey thin dotted;
 
-		li {
+		> div.dj-empty-item {
 			flex-grow: 1;
+			text-align: center;
+			height: auto;
+		}
+
+		> img {
+			all: unset;
+			flex-grow: 1;
+			display: block;
 			height: inherit;
+		}
 
-			&.dj-empty-item {
-				text-align: center;
-				height: auto;
-			}
+		> figcaption {
+			all: unset;
+			padding: 0.25rem 0.5rem;
+			background-color: white;
+			overflow-x: hidden;
 
-			&.dj-file-picture {
-				img {
-					display: block;
-					height: inherit;
-				}
-			}
+			dl {
+				font-size: small;
+				margin: 0 0 0.25rem 0;
 
-			&.dj-file-caption {
-				padding: 0.25rem 0.5rem;
-				background-color: white;
-				overflow-x: hidden;
-
-				figure {
-					font-size: small;
-					margin: 0 0 0.25rem 0;
-
-					figcaption {
-						font-weight: bold;
-					}
-
-					p {
-						margin: 0;
-					}
+				dd {
+					margin: 0;
 				}
 			}
 
@@ -61,6 +55,7 @@
 				margin-left: 1rem;
 				float: right;
 			}
+
 		}
 	}
 }
