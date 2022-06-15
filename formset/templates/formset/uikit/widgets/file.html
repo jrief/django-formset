@@ -6,16 +6,16 @@
 {% endblock %}
 
 {% block "file-caption" %}
-<li class="dj-file-caption">
-	<figure>
-		<figcaption>{% trans 'Name' %}:</figcaption>
-		<p>${name}</p>
-	</figure>
-	<figure>
-		<figcaption>{% trans 'Content-Type (Size)' %}:</figcaption>
-		<p>${content_type} (${size})</p>
-	</figure>
+<figcaption>
+	<dl>
+		<dt>{% trans 'Name' %}:</dt>
+		<dd>${name}</dd>
+	</dl>
+	<dl>
+		<dt>{% trans 'Content-Type (Size)' %}:</dt>
+		<dd>${content_type} (${size})</dd>
+	</dl>
 	<a class="dj-delete-file uk-button uk-button-danger uk-button-small">{% trans "Delete" %}</a>
 	<a class="dj-download-file uk-button uk-button-primary uk-button-small" href="${download_url}" download="${name}">{% trans "Download" %}</a>
-</li>
+</figcaption>
 {% endblock %}

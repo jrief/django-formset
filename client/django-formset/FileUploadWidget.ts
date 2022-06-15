@@ -22,11 +22,11 @@ interface FieldGroup {
 export class FileUploadWidget {
 	private readonly field: FieldGroup;
 	private readonly inputElement: HTMLInputElement;
-	private readonly dropbox: HTMLUListElement;
+	private readonly dropbox: HTMLElement;
 	private readonly chooseFileButton: HTMLButtonElement;
 	private readonly progressBar: HTMLProgressElement | null = null;
 	private readonly dropboxItemTemplate: Function;
-	private readonly emptyDropboxItem: HTMLLIElement;
+	private readonly emptyDropboxItem: HTMLDivElement;
 	private readonly observer: MutationObserver;
 	private readonly initialData: Array<Object>;
 	public uploadedFiles: Array<Object>;
@@ -35,9 +35,9 @@ export class FileUploadWidget {
 		this.field = fieldGroup;
 		this.inputElement = inputElement;
 
-		this.dropbox = this.field.element.querySelector('ul.dj-dropbox') as HTMLUListElement;
+		this.dropbox = this.field.element.querySelector('figure.dj-dropbox') as HTMLElement;
 		if (!this.dropbox)
-			throw new Error('Element <input type="file"> requires sibling element <ul class="dj-dropbox"></ul>');
+			throw new Error('Element <input type="file"> requires sibling element <figure class="dj-dropbox"></figure>');
 
 		this.chooseFileButton = this.field.element.querySelector('button.dj-choose-file') as HTMLButtonElement;
 		if (!this.chooseFileButton)
@@ -48,7 +48,10 @@ export class FileUploadWidget {
 			this.progressBar.style.visibility = 'hidden';
 		}
 
-		this.emptyDropboxItem = this.dropbox.querySelector('li') as HTMLLIElement;
+		this.emptyDropboxItem = this.dropbox.querySelector('div.dj-empty-item') as HTMLDivElement;
+		if (!this.emptyDropboxItem)
+			throw new Error('Element <input type="file"> requires sibling element <figure><div class="dj-empty-item"></div></figure>');
+
 		const dropboxItemTemplate = this.field.element.querySelector('.dj-dropbox-items');
 		if (!dropboxItemTemplate)
 			throw new Error('Element <input type="file"> requires sibling element <template class="dj-dropbox-items"></template>');
