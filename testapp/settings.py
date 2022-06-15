@@ -29,7 +29,7 @@ if os.getenv('DATABASE_ENGINE') == 'postgres':
             'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
             'HOST': os.getenv('POSTGRES_HOST'),
             'PORT': os.getenv('POSTGRES_PORT', 5432),
-            'CONN_MAX_AGE': 900,
+            # 'CONN_MAX_AGE': 900,
         }
     }
 else:
