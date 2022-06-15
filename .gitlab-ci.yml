@@ -22,7 +22,9 @@ build_webapp:
     - docker tag $CI_REGISTRY_IMAGE $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
   only:
-    - gitlab-demo
+    refs:
+      - api
+      - web
   except:
     changes:
       - "*.md"
@@ -53,7 +55,9 @@ deploy_webapp:
     - docker system prune -af
   when: manual
   only:
-    - gitlab-demo
+    refs:
+      - api
+      - web
   except:
     changes:
       - "*.md"
