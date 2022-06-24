@@ -46,16 +46,16 @@ class ContactCollectionList(FormCollection):
 
 
 urlpatterns = [
-    path('contacts', FormCollectionView.as_view(
+    path('contactlist', FormCollectionView.as_view(
         collection_class=ContactCollectionList,
         template_name='testapp/form-collection.html',
         success_url='/success',
-    ), name='contacts'),
+    ), name='contactlist'),
 ]
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['contacts'])
+@pytest.mark.parametrize('viewname', ['contactlist'])
 def test_submit_data(page, mocker):
     contact_collections = page.query_selector_all('django-formset > django-form-collection')
     assert len(contact_collections) == 1
@@ -69,15 +69,13 @@ def test_submit_data(page, mocker):
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     response = json.loads(spy.call_args.args[1].body)
     assert response == {'formset_data': [{
-            'person': {'full_name': 'John Doe', 'email': 'john@example.com'}
-        }, {
-            'numbers': [{'number': {'phone_number': '+1200300400', 'label': 'work'}}]
-        }]
-    }
+        'person': {'full_name': 'John Doe', 'email': 'john@example.com'},
+        'numbers': [{'number': {'phone_number': '+1200300400', 'label': 'work'}}],
+    }]}
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['contacts'])
+@pytest.mark.parametrize('viewname', ['contactlist'])
 def test_add_inner_collection(page):
     formset = page.query_selector('django-formset')
     assert len(formset.query_selector_all('django-form-collection > django-form-collection')) == 1
@@ -103,7 +101,7 @@ def test_add_inner_collection(page):
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['contacts'])
+@pytest.mark.parametrize('viewname', ['contactlist'])
 def test_add_outer_collection(page):
     formset = page.query_selector('django-formset')
     assert len(formset.query_selector_all('django-form-collection')) == 2
@@ -124,7 +122,7 @@ def test_add_outer_collection(page):
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['contacts'])
+@pytest.mark.parametrize('viewname', ['contactlist'])
 def test_expand_collection_template(page):
     formset = page.query_selector('django-formset')
     assert len(formset.query_selector_all(':scope > django-form-collection')) == 1

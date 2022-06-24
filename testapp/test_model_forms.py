@@ -47,26 +47,30 @@ def test_render_file_field(native_soup):
     assert django_formset is not None
     input_field = django_formset.find(id='id_avatar')
     assert input_field is not None
-    dropbox = input_field.find_next_sibling('ul', class_='dj-dropbox')
-    drag_item = dropbox.find('li')
+    dropbox = input_field.find_next_sibling('figure', class_='dj-dropbox')
+    drag_item = dropbox.find('div')
     assert drag_item.text == "Drag file here"
     template = input_field.parent.find_next_sibling('template', class_='dj-dropbox-items')
-    list_items = template.find_all('li')
-    assert len(list_items) == 2
-    assert list_items[0].img is not None
-    assert list_items[0].img.attrs['src'] == '${thumbnail_url}'
-    figures = list_items[1].find_all('figure')
+    img_element = template.find('img')
+    assert img_element is not None
+    assert img_element.attrs['src'] == '${thumbnail_url}'
+    figcaption = template.find('figcaption')
+    assert figcaption is not None
+    description_lists = figcaption.find_all('dl')
     if framework is None:
-        return
-    assert len(figures) == 2
-    assert figures[0].figcaption is not None
-    assert figures[0].figcaption.string == "Name:"
-    assert figures[0].p is not None
-    assert figures[0].p.text != "${name}"
-    assert figures[1].figcaption is not None
-    assert figures[1].figcaption.string == "Content-Type (Size):"
-    assert figures[1].p is not None
-    assert figures[1].p.text != "${content_type} (${size})"
+        assert len(description_lists) == 3
+        assert description_lists[0].find('dt').string == "Name:"
+        assert description_lists[0].find('dd').string == "${name}"
+        assert description_lists[1].find('dt').string == "Content-Type:"
+        assert description_lists[1].find('dd').string == "${content_type}"
+        assert description_lists[2].find('dt').string == "Size:"
+        assert description_lists[2].find('dd').string == "${size}"
+    else:
+        assert len(description_lists) == 2
+        assert description_lists[0].find('dt').string == "Name:"
+        assert description_lists[0].find('dd').string == "${name}"
+        assert description_lists[1].find('dt').string == "Content-Type (Size):"
+        assert description_lists[1].find('dd').string == "${content_type} (${size})"
 
 
 @pytest.mark.django_db

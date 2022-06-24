@@ -16,7 +16,7 @@ Collection, in order to build a nested data structure.
 
 
 Simple Collection
------------------
+=================
 
 We use this kind of collection, if we just want to group two or more forms together.
 
@@ -63,43 +63,68 @@ Finally add a route to the View:
 
 
 Nested Collection
------------------
+=================
 
 A Form Collection can not only contain other Django Forms, but also other Form Collections. This
 means, that we can nest collections into each other up to currently 10 levels (this limit can be
 increased if required).
 
 Just as with simple collections, form data sent by the client is already structured using the same
-hierarchie as the collection themselves.
+hierarchy as the collection themselves.
 
 
 Collections with Siblings
--------------------------
+=========================
 
 If a Form Collection contains one of the attributes ``min_siblings``, ``max_siblings`` or
-``extra_siblings``, it is considered as a Collection with siblings. They then behave similar to
+``extra_siblings``, it is considered as a collection with siblings. They then behave similar to
 what we already know from Django's `InlineModelAdmin objects`_. The difference though is, that we
-can now use this feature outside of the Admin, and that we can nest Collections into each other
-recursively.
+can now use this feature outside of the Django-Admin, and that we can nest collections into each
+other recursively.
 
-.. _InlineModelAdmin objects: https://docs.djangoproject.com/en/4.0/ref/contrib/admin/#inlinemodeladmin-objects
+.. _InlineModelAdmin objects: https://docs.djangoproject.com/en/stable/ref/contrib/admin/#inlinemodeladmin-objects
 
-Whenever a Collection is declared to have siblings, its member forms are rendered from zero, once or
+Whenever a collection is declared to have siblings, its member forms are rendered from zero, once or
 multiple times. For each collection with siblings there is one "Add" button, and for each of the
 child forms/collections there is a "Remove" button. To avoid having too many "Remove" buttons, they
 become only visible when moving the cursor over that form/collection.
 
+
+.. rubric:: Legend
+
+Just as HTML-elements of type``<fieldset>`` can contain a legend, also a Form Collection may
+optionally contain a  ``<legend>…</legend>``-element. It is placed on top of the collection and
+shall be specified as parameter ``legend = "…"`` inside classes inheriting from
+:class:`formset.collection.FormCollection`.
+
+
+.. rubric:: Minimum Number of Siblings
+
 The parameter ``min_siblings`` tells us how many forms/collections the parent collection shall must
 contain as minimum. If unset, it defaults to 1.
+
+
+.. rubric:: Maximum Number of Siblings
 
 The parameter ``max_siblings`` tells us how many forms/collections the parent collection may contain
 as maximum. If unset, there is no upper limit.
 
-The parameter ``extra_siblings`` tells us how many empty forms/collections the parent collection
-starts with. If unset, it defaults to 0, which means that the user explicitly must add it.
+.. rubric:: Extra Siblings
 
-Note that a Collection with siblings behaves differently, when deleting forms/collections which
-either were initialized, or were just added. In the former case such forms/collections are marked
-for deletion, while in the latter case they are removed immediatly. This is because for initialized
-forms/collections we have to keep a placeholder in order to tell the server how to change the
-underlying model.
+The parameter ``extra_siblings`` tells us how many empty forms/collections the parent collection
+starts with. If unset, it defaults to 0, which means that the user must explicitly add a new sibling
+by clicking on the "Add" button below the last sibling.
+
+Note that a collection with siblings behaves differently, when deleting forms/collections which
+either were initialized and thus loaded from the server, or were just added by clicking on the "Add"
+button below the last sibling. In the former case, such forms/collections are marked for deletion.
+This renders the form with a streaked background pattern, which signalizes to be removed on
+submission.
+
+.. image:: _static/tailwind-marked-for-deletion.png
+  :width: 672
+  :alt: Marked for deletion
+
+If on the other side, a sibling collection just has been added, it can be removed immediatly again.
+This is because for initialized forms/collections we have to keep a placeholder in order to tell the
+server how to change the underlying model.

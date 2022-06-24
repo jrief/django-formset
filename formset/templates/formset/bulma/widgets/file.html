@@ -6,16 +6,18 @@
 {% endblock %}
 
 {% block "file-caption" %}
-<li class="dj-file-caption">
-	<figure>
-		<figcaption>{% trans 'Name' %}:</figcaption>
-		<p>${name}</p>
-	</figure>
-	<figure>
-		<figcaption>{% trans 'Content-Type (Size)' %}:</figcaption>
-		<p>${content_type} (${size})</p>
-	</figure>
-	<a class="dj-delete-file button is-warning is-small">{% trans "Delete" %}</a>
-	<a class="dj-download-file button is-light is-small" href="${download_url}" download="${name}">{% trans "Download" %}</a>
-</li>
+<figcaption>
+	<dl>
+		<dt>{% trans 'Name' %}:</dt>
+		<dd>${name}</dd>
+	</dl>
+	<dl>
+		<dt>{% trans 'Content-Type (Size)' %}:</dt>
+		<dd>${content_type} (${size})</dd>
+	</dl>
+	<div class="buttons are-small">
+		<a class="dj-delete-file button is-warning is-small">{% trans "Delete" %}</a>
+		<a class="dj-download-file button is-light is-small" href="${download_url}" download="${name}">{% trans "Download" %}</a>
+	</div>
+</figcaption>
 {% endblock %}

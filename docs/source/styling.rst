@@ -31,7 +31,7 @@ Currently not supported widgets:
 
 
 Default Styling
----------------
+===============
 
 The default **django-formset** styling intentionally renders all the fields as the browser would by
 default. This admiditly looks very rough and we only use it, if we want to style every aspect of our
@@ -107,7 +107,7 @@ anywhere inside the ``<head>``-element of the page.
 
 
 Bootstrap
----------
+=========
 
 Bootstrap is probably the most popular CSS framework nowadays, and **django-formset** offers a
 renderer, which renders all its input fields as proposed by the `Boostrap's form usage guide`_.
@@ -135,7 +135,7 @@ fields and other types of fields.
 
 
 Inlining Form Fields
-....................
+--------------------
 
 By using slightly different parameters, a form can be rendered with labels and input fields side
 by side, rather than beneeth each other. This can be achieved by applying these CSS classes
@@ -158,7 +158,7 @@ and we get a form rendered as
 
 
 Inlining Radio Buttons and Multiple Checkboxes
-..............................................
+----------------------------------------------
 
 In **django-formset**, radio buttons and multiple checkboxes can be inlined, if there are only a
 few of them. The default threshold is 4 and can be modified with the parameter
@@ -170,9 +170,107 @@ few of them. The default threshold is 4 and can be modified with the parameter
 
 
 Bulma
------
+=====
 
 Bulma is another popular CSS framework nowadays, and **django-formset** offers a renderer, which
 renders all its input fields as proposed by `Bulma's form control usage guide`_.
 
 .. _Bulma's form control usage guide: https://bulma.io/documentation/form/general/
+
+In the template from above, we simply replace the templatetag against
+
+.. code-block:: django
+
+	{% render_form form "bulma" field_classes="mb-2" %}
+
+and get the form instance rendered as:
+
+.. image:: _static/bulma-person-form.png
+  :width: 560
+  :alt: Bulma Form
+
+
+Foundation
+==========
+
+Foundation claims to be the most advanced responsive front-end framework in the world.
+**django-formset** offers a renderer, which renders all its input fields as proposed by
+`Foundation's form control usage guide`_.
+
+.. _Foundation's form control usage guide: https://get.foundation/sites/docs/forms.html
+
+In the template from above, we simply replace the templatetag against
+
+.. code-block:: django
+
+	{% render_form form "foundation" %}
+
+and get the form instance rendered as:
+
+.. image:: _static/foundation-person-form.png
+  :width: 560
+  :alt: Foundation Form
+
+.. note:: Foundation currently does not get full support.
+
+
+Tailwind
+========
+
+`Tailwind CSS`_ has attracted a lot of attention in the near past. It probably is the second most
+popular CSS framework after Bootstrap these days. The way Tailwind handles primitive elements such
+as input fields, requires an opinionated set of CSS classes as provided with a sample file for this
+project. Since Tailwind does not provide a form control usage guide, it's up to the developers to
+define those classes for their project.
+
+.. _Tailwind CSS: https://tailwindcss.com/
+
+In the template from above, we must include the opinionated style definitions for our form elements
+or replace them against against our individually styled ones. The form then is rendered with
+
+.. code-block:: django
+
+	...
+	<link href="/static/testapp/css/tailwind.css" rel="stylesheet" type="text/css">
+	...
+	{% render_form form "tailwind" %}
+
+and looks as expected 
+
+.. image:: _static/tailwind-person-form.png
+  :width: 560
+  :alt: Tailwind Form
+
+To adopt the form element styles, **django-formset** provides these CSS classes:
+
+* ``formset-label``: Styling for the input label.
+* ``formset-text-input``, ``formset-email-input``, ``formset-date-input``, ``formset-select``,
+  ``formset-select-multiple``, ``formset-number-input``, ``formset-textarea``,
+  ``formset-password-input``: Styling the input field of the corresponding type.
+* ``formset-dual-selector-select``: Styling of the two ``<select multiple>`` fields.
+* ``formset-dual-selector-lookup``: Styling of the two ``<input>`` fields used for option lookup.
+* ``formset-checkbox``, ``formset-checkbox-multiple``: Styling of the checkbox input fields.
+* ``formset-radio-select``: Styling of the radio input fields.
+* ``formset-inlined``: Styling for the wrapper of inlined checkbox and/or radio input fields.
+* ``formset-help-text``: Styling of the ``<span>`` element with a help text below input fields.
+* ``dj-choose-file``: Styling of the button to open the file browser.
+* ``dj-delete-file``: Styling of the button to delete a selected file.
+* ``dj-download-file``: Styling of the button to download a selected file.
+
+
+UIKit
+=====
+
+UIKit claims to be a lightweight and modular front-end framework for developing fast and powerful
+web interfaces. It has been added for completenes to test the form rendering capabilities of
+**django-formset** when working with exotic CSS frameworks. It offers a renderer, which renders all
+input fields as proposed by `UIKit's form rendering guide`_.
+
+.. _UIKit's form rendering guide: https://getuikit.com/docs/form
+
+Unless there is a strong community interest, it might be that support for this framework will be
+removed in the future, since I do not see any benefit using UIKit compared to any of the much more
+popular frameworks.
+
+
+

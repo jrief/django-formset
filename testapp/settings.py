@@ -6,7 +6,7 @@ SECRET_KEY = 'secret_key'
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'django.contrib.auth',
@@ -22,7 +22,13 @@ INSTALLED_APPS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': Path(__file__).parent / 'test.db',  # live_server requires a file rather than :memory:
+        'NAME': Path(__file__).parent / 'demo.sqlite3',
+        'TEST': {
+            'NAME': Path(__file__).parent / 'test.sqlite3',  # live_server requires a file rather than :memory:
+            'OPTIONS': {
+                'timeout': 20,
+            },
+        },
     }
 }
 

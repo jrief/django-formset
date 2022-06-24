@@ -31,14 +31,20 @@ def thumbnail_image(storage, image_path, image_height=THUMBNAIL_MAX_HEIGHT):
         height = int(image_height)
         width = int(round(image.width * height / image.height))
         width, height = min(width, THUMBNAIL_MAX_WIDTH), min(height, THUMBNAIL_MAX_HEIGHT)
-        thumb = ImageOps.fit(image, (width, height))
+        thumb = ImageOps.fit(ImageOps.exif_transpose(image), (width, height))
         thumbnail_path = get_thumbnail_path(image_path, image_height)
         thumb.save(thumbnail_path)
         return storage.url(thumbnail_path.relative_to(storage.location))
 
 
-def file_icon_url(content_type):
-    mime_type, sub_type = content_type.split('/')
+def split_mime_type(content_type):
+    try:
+        return content_type.split('/')
+    except (AttributeError, ValueError):
+        return "application", "octet-stream"
+
+
+def file_icon_url(mime_type, sub_type):
     if mime_type in ['audio', 'font', 'video']:
         return staticfiles_storage.url(f'formset/icons/file-{mime_type}.svg')
     if mime_type == 'application' and sub_type in ['zip', 'pdf']:
@@ -51,7 +57,7 @@ def get_file_info(field_file):
         return None
     file_path = Path(field_file.path)
     content_type, _ = mimetypes.guess_type(file_path)
-    mime_type, sub_type = content_type.split('/')
+    mime_type, sub_type = split_mime_type(content_type)
     if mime_type == 'image':
         if sub_type == 'svg+xml':
             thumbnail_url = field_file.url
@@ -62,7 +68,7 @@ def get_file_info(field_file):
             else:
                 thumbnail_url = thumbnail_image(field_file.storage, file_path)
     else:
-        thumbnail_url = file_icon_url(mime_type)
+        thumbnail_url = file_icon_url(mime_type, sub_type)
     name = '.'.join(file_path.name.split('.')[1:])
     if file_path.is_file():
         download_url = field_file.url
@@ -72,15 +78,20 @@ def get_file_info(field_file):
         thumbnail_url = staticfiles_storage.url('formset/icons/file-missing.svg')
         file_size = '–'
     return {
-            'content_type': content_type,
-            'name': name,
-            'download_url': download_url,
-            'thumbnail_url': thumbnail_url,
-            'size': file_size,
-        }
+        'content_type': content_type,
+        'name': name,
+        'path': field_file.name,
+        'download_url': download_url,
+        'thumbnail_url': thumbnail_url,
+        'size': file_size,
+    }
 
 
 class FileUploadMixin:
+    """
+    Add this mixin class to views classes using forms which accept file uploads through
+    the provided widget :class:`formset.widgets.UploadedFileInput`.
+    """
     filename_max_length = 250
 
     def post(self, request, **kwargs):
@@ -108,17 +119,17 @@ class FileUploadMixin:
         download_url = default_storage.url(relative_path)
 
         # dict returned by the form on submission
-        mime_type, sub_type = file_obj.content_type.split('/')
+        mime_type, sub_type = split_mime_type(file_obj.content_type)
         if mime_type == 'image':
             if sub_type == 'svg+xml':
                 thumbnail_url = download_url
             else:
                 thumbnail_url = thumbnail_image(default_storage, temp_path, image_height=image_height)
         else:
-            thumbnail_url = file_icon_url(file_obj.content_type)
+            thumbnail_url = file_icon_url(mime_type, sub_type)
         file_handle = {
             'upload_temp_name': signer.sign(relative_path),
-            'content_type': file_obj.content_type,
+            'content_type': f'{mime_type}/{sub_type}',
             'content_type_extra': file_obj.content_type_extra,
             'name': file_obj.name[:self.filename_max_length],
             'download_url': download_url,

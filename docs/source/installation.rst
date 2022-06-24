@@ -21,8 +21,7 @@ and add this app to the project's ``settings.py``:
 	]
 
 
-Include Stylesheets
--------------------
+.. rubric:: Include Stylesheets
 
 If the CSS framework to be used is installed via ``npm``, I would suggest to configure the lookup
 path as
@@ -50,8 +49,7 @@ any CSS files. This is because it relies on the styling definitions of the under
 Only one JavaScript file has to be included into the head or body of the main template:
 
 
-Include JavaScript
-------------------
+.. rubric:: Include JavaScript
 
 Many components from Bootstrap require their own JavaScript. This can optionally be included in a
 very similar way as shown for the CSS above. One JavaScript file which always must be included is

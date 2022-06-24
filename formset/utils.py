@@ -33,6 +33,13 @@ class HolderMixin:
         replica = copy.copy(self)
         replica.data = data
         replica.is_bound = data is not None
+        replica._errors = None
+        try:
+            delattr(replica, 'cleaned_data')
+        except AttributeError:
+            pass
+        if hasattr(replica, 'files'):
+            replica.files.clear()
         if initial:
             replica.initial = initial
         if prefix:
@@ -55,6 +62,7 @@ class FormMixin(HolderMixin):
     """
     Mixin class to be added to a native Django Form. This is required to add
     """
+
     def __init__(self, error_class=FormsetErrorList, **kwargs):
         kwargs['error_class'] = error_class
         super().__init__(**kwargs)

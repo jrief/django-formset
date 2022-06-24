@@ -1,27 +1,31 @@
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
-import zip from 'lodash.zip';
 import template from 'lodash.template';
 
 import { FileUploadWidget } from './FileUploadWidget';
 import { parse } from './tag-attributes';
 import styles from 'sass:./DjangoFormset.scss';
+import spinnerIcon from './spinner.svg';
+import okayIcon from './okay.svg';
+import bummerIcon from './bummer.svg';
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FieldValue = string | Array<string | Object>;
 type ErrorKey = keyof ValidityState;
 
 const NON_FIELD_ERRORS = '__all__';
-const MARKED_FOR_REMOVAL = '_marked_for_removal_';
+const COLLECTION_ERRORS = '_collection_errors_';
 
 const style = document.createElement('style');
 style.innerText = styles;
 document.head.appendChild(style);
 
 
-function assert(condition: any) {
-	if (!condition)
-		throw new Error("Assertion failed");
+function assert(condition: any, message?: string) {
+	if (!condition) {
+		message = message ? `Assertion failed: ${message}` : "Assertion failed";
+		throw new Error(message);
+	}
 }
 
 
@@ -42,7 +46,7 @@ class BoundValue {
 }
 
 
-class ErrorMessages extends Map<ErrorKey, string>{
+class FieldErrorMessages extends Map<ErrorKey, string>{
 	constructor(fieldGroup: FieldGroup) {
 		super();
 		const element = fieldGroup.element.querySelector('django-error-messages');
@@ -65,9 +69,9 @@ class FieldGroup {
 	public readonly element: HTMLElement;
 	private readonly pristineValue: BoundValue;
 	private readonly inputElements: Array<FieldElement>;
-	private readonly initialDisabled: Array<Boolean>;
+	private readonly initialDisabled: Array<boolean>;
 	public readonly errorPlaceholder: Element | null;
-	private readonly errorMessages: ErrorMessages;
+	private readonly errorMessages: FieldErrorMessages;
 	private readonly fileUploader: FileUploadWidget | null = null;
 	private readonly updateVisibility: Function;
 	private readonly updateDisabled: Function;
@@ -76,7 +80,7 @@ class FieldGroup {
 		this.form = form;
 		this.element = element;
 		this.errorPlaceholder = element.querySelector('.dj-errorlist > .dj-placeholder');
-		this.errorMessages = new ErrorMessages(this);
+		this.errorMessages = new FieldErrorMessages(this);
 		const requiredAny = element.classList.contains('dj-required-any');
 		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(e => e.name && e.type !== 'hidden');
 		for (const element of inputElements) {
@@ -106,7 +110,7 @@ class FieldGroup {
 			element.addEventListener('focus', () => this.touch());
 			element.addEventListener('change', () => {
 				this.setDirty();
-				this.resetCustomError();
+				this.clearCustomError();
 				this.validate()
 			});
 		}
@@ -188,11 +192,13 @@ class FieldGroup {
 			return null;
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
-			if (visible) {
-				return () => this.element.toggleAttribute('hidden', !evalExpression.call(this));
-			} else {
-				return () => this.element.toggleAttribute('hidden', evalExpression.call(this));
-			}
+			return () => {
+				const isHidden = visible != Boolean(evalExpression.call(this));
+				if (this.element.hasAttribute('hidden') !== isHidden) {
+					this.inputElements.forEach((elem, index) => elem.disabled = isHidden || this.initialDisabled[index]);
+					this.element.toggleAttribute('hidden', isHidden);
+				}
+			};
 		} catch (error) {
 			throw new Error(`Error while parsing <... show-if/hide-if="${attrValue}">: ${error}.`);
 		}
@@ -206,7 +212,7 @@ class FieldGroup {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
 			return () => {
 				const disable = evalExpression.call(this);
-				this.inputElements.forEach(elem => elem.disabled = disable);
+				this.inputElements.forEach((elem, index) => elem.disabled = disable || this.initialDisabled[index]);
 			}
 		} catch (error) {
 			throw new Error(`Error while parsing <... disable-if="${attrValue}">: ${error}.`);
@@ -223,11 +229,11 @@ class FieldGroup {
 		} else {
 			this.setDirty();
 		}
-		this.resetCustomError();
+		this.clearCustomError();
 	}
 
-	private resetCustomError() {
-		this.form.resetCustomError();
+	private clearCustomError() {
+		this.form.clearCustomErrors();
 		if (this.errorPlaceholder) {
 			this.errorPlaceholder.innerHTML = '';
 		}
@@ -243,21 +249,15 @@ class FieldGroup {
 		}
 		this.untouch();
 		this.setPristine();
-		this.resetCustomError();
+		this.clearCustomError();
 	}
 
 	public disableAllFields() {
-		for (const element of this.inputElements) {
-			element.disabled = true;
-		}
+		this.inputElements.forEach(elem => elem.disabled = true);
 	}
 
 	public reenableAllFields() {
-		for (const [element, disabled] of zip(this.inputElements, this.initialDisabled)) {
-			if (element && typeof disabled === 'boolean') {
-				element.disabled = disabled;
-			}
-		}
+		this.inputElements.forEach((elem, index) => elem.disabled = this.initialDisabled[index]);
 	}
 
 	public touch() {
@@ -429,6 +429,11 @@ class DjangoButton {
 	private readonly isAutoDisabled: boolean;
 	private readonly successActions = Array<ButtonAction>(0);
 	private readonly rejectActions = Array<ButtonAction>(0);
+	private readonly decoratorElement: HTMLElement | null;
+	private readonly spinnerElement: HTMLElement;
+	private readonly okayElement: HTMLElement;
+	private readonly bummerElement: HTMLElement;
+	private originalDecorator?: Node;
 	private timeoutHandler?: number;
 
 	constructor(formset: DjangoFormset, element: HTMLButtonElement) {
@@ -436,6 +441,17 @@ class DjangoButton {
 		this.element = element;
 		this.initialClass = element.getAttribute('class') ?? '';
 		this.isAutoDisabled = !!JSON.parse((element.getAttribute('auto-disable') ?? 'false').toLowerCase());
+		this.decoratorElement = element.querySelector('.dj-button-decorator');
+		this.originalDecorator = this.decoratorElement?.cloneNode(true);
+		this.spinnerElement = document.createElement('i');
+		this.spinnerElement.classList.add('dj-icon', 'dj-spinner');
+		this.spinnerElement.innerHTML = spinnerIcon;
+		this.okayElement = document.createElement('i');
+		this.okayElement.classList.add('dj-icon', 'dj-okay');
+		this.okayElement.innerHTML = okayIcon;
+		this.bummerElement = document.createElement('i');
+		this.bummerElement.classList.add('dj-icon', 'dj-bummer');
+		this.bummerElement.innerHTML = bummerIcon;
 		this.parseActionsQueue(element.getAttribute('click'));
 		element.addEventListener('click', () => this.clicked());
 	}
@@ -518,6 +534,14 @@ class DjangoButton {
 		};
 	}
 
+	// @ts-ignore
+	private reload() {
+		return (response: Response) => {
+			location.reload();
+			return Promise.resolve(response);
+		};
+	}
+
 	/**
 	 * Proceed to a given URL, if the response object returns status code 200.
 	 * If the response object contains an element `success_url`, proceed to that URL,
@@ -531,13 +555,14 @@ class DjangoButton {
 		return (response: Response) => {
 			if (response instanceof Response && response.status === 200) {
 				response.json().then(body => {
-					if ('success_url' in body) {
-						window.location.href = body.success_url;
+					if (body.success_url) {
+						location.href = body.success_url;
+					} else if (typeof fallbackUrl === 'string') {
+						location.href = fallbackUrl;
+					} else {
+						console.warn("Neither a success-, nor a fallback-URL is given to proceed.");
 					}
 				});
-				if (typeof fallbackUrl === 'string') {
-					window.location.href = fallbackUrl;
-				}
 			}
 			return Promise.resolve(response);
 		}
@@ -556,11 +581,31 @@ class DjangoButton {
 		}, ms));
 	}
 
-	public abortAction() {
-		if (this.timeoutHandler) {
-			clearTimeout(this.timeoutHandler);
-			this.timeoutHandler = undefined;
-		}
+	/**
+	 * Replace the button's decorator against a spinner icon.
+	 */
+	// @ts-ignore
+	private spinner() {
+		return (response: Response) => {
+			this.decoratorElement?.replaceChildren(this.spinnerElement);
+			return Promise.resolve(response);
+		};
+	}
+
+	/**
+	 * Replace the button's decorator against an okay animation.
+	 */
+	// @ts-ignore
+	private okay(ms: number | undefined) {
+		return this.decorate(this.okayElement, ms);
+	}
+
+	/**
+	 * Replace the button's decorator against a bummer animation.
+	 */
+	// @ts-ignore
+	private bummer(ms: number | undefined) {
+		return this.decorate(this.bummerElement, ms);
 	}
 
 	/**
@@ -633,6 +678,17 @@ class DjangoButton {
 	}
 
 	/**
+	 * Clear all errors in the current django-formset.
+ 	 */
+	// @ts-ignore
+	private clearErrors() {
+		return (response: Response) => {
+			this.formset.clearErrors();
+			return Promise.resolve(response);
+		}
+	}
+
+	/**
 	 * Scroll to first element reporting an error.
  	 */
 	// @ts-ignore
@@ -655,10 +711,26 @@ class DjangoButton {
 		}
 	}
 
+	// @ts-ignore
 	private restore() {
 		return () => {
-			this.element.setAttribute('class', this.initialClass);
 			this.element.disabled = false;
+			this.element.setAttribute('class', this.initialClass);
+			if (this.originalDecorator) {
+				this.decoratorElement?.replaceChildren(...this.originalDecorator.cloneNode(true).childNodes);
+			}
+		}
+	}
+
+	private decorate(decorator: HTMLElement, ms: number | undefined) {
+		return (response: Response) => {
+			this.decoratorElement?.replaceChildren(decorator);
+			if (typeof ms !== 'number')
+				return Promise.resolve(response);
+			return new Promise(resolve => this.timeoutHandler = window.setTimeout(() => {
+				this.timeoutHandler = undefined;
+				resolve(response);
+			}, ms));
 		}
 	}
 
@@ -688,6 +760,13 @@ class DjangoButton {
 			throw new Error(`Error while parsing <button click="${actionsQueue}">: ${error}.`);
 		}
 	}
+
+	public abortAction() {
+		if (this.timeoutHandler) {
+			clearTimeout(this.timeoutHandler);
+			this.timeoutHandler = undefined;
+		}
+	}
 }
 
 
@@ -710,10 +789,11 @@ class DjangoFieldset {
 			return null;
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
-			if (visible) {
-				return () => this.element.toggleAttribute('hidden', !evalExpression.call(this));
-			} else {
-				return () => this.element.toggleAttribute('hidden', evalExpression.call(this));
+			return () => {
+				const isHidden = visible != Boolean(evalExpression.call(this));
+				if (this.element.hasAttribute('hidden') !== isHidden) {
+					this.element.toggleAttribute('hidden', isHidden);
+				}
 			}
 		} catch (error) {
 			throw new Error(`Error while parsing <fieldset show-if/hide-if="${attrValue}">: ${error}.`);
@@ -750,27 +830,24 @@ class DjangoForm {
 	public readonly formset: DjangoFormset;
 	public readonly element: HTMLFormElement;
 	public readonly fieldset: DjangoFieldset | null;
-	private readonly errorList: Element | null;
-	private readonly errorPlaceholder: Element | null;
+	private readonly errorList: Element | null = null;
+	private readonly errorPlaceholder: Element | null = null;
 	public readonly fieldGroups = Array<FieldGroup>(0);
 	public readonly hiddenInputFields = Array<HTMLInputElement>(0);
 	public markedForRemoval = false;
 
 	constructor(formset: DjangoFormset, element: HTMLFormElement) {
 		this.formId = element.getAttribute('id');
-		this.name = element.getAttribute('name') ?? null;
+		this.name = element.getAttribute('name');
 		this.path = this.name?.split('.') ?? [];
 		this.formset = formset;
 		this.element = element;
 		const fieldsetElement = element.querySelector('fieldset');
 		this.fieldset = fieldsetElement ? new DjangoFieldset(this, fieldsetElement) : null;
-		const formError = element.querySelector('.dj-form-errors');
-		const placeholder = formError ? formError.querySelector('.dj-errorlist > .dj-placeholder') : null;
+		const placeholder = element.querySelector('.dj-form-errors > .dj-errorlist > .dj-placeholder');
 		if (placeholder) {
 			this.errorList = placeholder.parentElement;
-			this.errorPlaceholder = this.errorList ? this.errorList.removeChild(placeholder) : null;
-		} else {
-			this.errorList = this.errorPlaceholder = null;
+			this.errorPlaceholder = this.errorList!.removeChild(placeholder);
 		}
 	}
 
@@ -834,7 +911,7 @@ class DjangoForm {
 		this.element.reportValidity();
 	}
 
-	resetCustomError() {
+	clearCustomErrors() {
 		while (this.errorList && this.errorList.lastChild) {
 			this.errorList.removeChild(this.errorList.lastChild);
 		}
@@ -860,7 +937,7 @@ class DjangoForm {
 	}
 
 	reportCustomErrors(errors: Map<string, Array<string>>) {
-		this.resetCustomError();
+		this.clearCustomErrors();
 		const nonFieldErrors = errors.get(NON_FIELD_ERRORS);
 		if (this.errorList && nonFieldErrors instanceof Array && this.errorPlaceholder) {
 			for (const message of nonFieldErrors) {
@@ -929,10 +1006,10 @@ class DjangoFormCollection {
 	}
 
 	public updateRemoveButtonAttrs() {
-		assert(this.removeButton === null);
+		assert(this.removeButton === null, "Remove Button not removed");
 	}
 
-	toggleForRemoval(remove: boolean) {
+	protected toggleForRemoval(remove: boolean) {
 		this.markedForRemoval = remove;
 		for (const form of this.forms) {
 			form.toggleForRemoval(remove);
@@ -948,6 +1025,13 @@ class DjangoFormCollection {
 			this.removeButton.disabled = remove;
 		}
 		this.element.classList.toggle('dj-marked-for-removal', this.markedForRemoval);
+	}
+
+	public resetToInitial() {
+		this.toggleForRemoval(false);
+		for (const collection of this.children) {
+			collection.resetToInitial();
+		}
 	}
 }
 
@@ -1003,6 +1087,14 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 			}
 		} else {
 			this.removeButton.disabled = numActiveSiblings <= this.minSiblings;
+		}
+	}
+
+	public resetToInitial() {
+		if (this.justAdded) {
+			this.removeCollection();
+		} else {
+			super.resetToInitial();
 		}
 	}
 }
@@ -1078,7 +1170,7 @@ class DjangoFormCollectionTemplate {
 		const siblings = this.parent?.children ?? this.formset.formCollections;
 		if (siblings.length === 0)
 			return;
-		assert(siblings[0] instanceof DjangoFormCollectionSibling);
+		assert(siblings[0] instanceof DjangoFormCollectionSibling, "Expected an instance of DjangoFormCollectionSibling");
 		const maxSiblings = (siblings[0] as DjangoFormCollectionSibling).maxSiblings;
 		const numActiveSiblings = siblings.filter(s => !s.markedForRemoval).length;
 		this.addButton.disabled = maxSiblings === null ? false : numActiveSiblings >= maxSiblings;
@@ -1089,6 +1181,8 @@ class DjangoFormCollectionTemplate {
 		if (templateElement) {
 			const formCollectionTemplate = new DjangoFormCollectionTemplate(formset, templateElement as HTMLTemplateElement, formCollection);
 			formCollectionTemplate.updateAddButtonAttrs();
+			const prefix = templateElement.getAttribute('prefix');
+			formset.emptyCollectionPathes.push(prefix ? prefix.split('.') : []);
 			return formCollectionTemplate;
 		}
 	}
@@ -1100,6 +1194,8 @@ export class DjangoFormset {
 	private readonly buttons = Array<DjangoButton>(0);
 	private readonly forms = Array<DjangoForm>(0);
 	public readonly formCollections = Array<DjangoFormCollection>(0);
+	public readonly collectionErrorsList = new Map<string, HTMLUListElement>();
+	public readonly emptyCollectionPathes = Array<Array<string>>(0);
 	public formCollectionTemplate?: DjangoFormCollectionTemplate;
 	public readonly showFeedbackMessages: boolean;
 	private readonly abortController = new AbortController;
@@ -1110,11 +1206,21 @@ export class DjangoFormset {
 		this.showFeedbackMessages = this.parseWithholdFeedback();
 	}
 
-	public get endpoint(): string {
+	connectedCallback() {
+		this.findButtons();
+		this.findForms();
+		this.findFormCollections();
+		this.findCollectionErrorsList();
+		this.assignFieldsToForms();
+		this.assignFormsToCollections();
+		window.setTimeout(() => this.validate(), 0);
+	}
+
+	get endpoint(): string {
 		return this.element.getAttribute('endpoint') ?? '';
 	}
 
-	public get forceSubmission(): Boolean {
+	get forceSubmission(): Boolean {
 		return this.element.hasAttribute('force-submission');
 	}
 
@@ -1201,7 +1307,7 @@ export class DjangoFormset {
 		}
 	}
 
-	public findFormCollections() {
+	private findFormCollections() {
 		// find all immediate elements <django-form-collection sibling-position="..."> belonging to the current <django-formset>
 		for (const element of this.element.querySelectorAll(':scope > django-form-collection')) {
 			this.formCollections.push(element.hasAttribute('sibling-position')
@@ -1209,13 +1315,22 @@ export class DjangoFormset {
 				: new DjangoFormCollection(this, element)
 			);
 		}
-		for (const sibling of this.formCollections) {
-			sibling.updateRemoveButtonAttrs();
+		for (const collection of this.formCollections) {
+			collection.updateRemoveButtonAttrs();
 		}
 		this.formCollectionTemplate = DjangoFormCollectionTemplate.findFormCollectionTemplate(this, this.element);
 	}
 
-	public findButtons() {
+	private findCollectionErrorsList() {
+		// find all elements <div class="dj-collection-errors"> belonging to the current <django-formset>
+		for (const element of this.element.getElementsByClassName('dj-collection-errors')) {
+			const prefix = element.getAttribute('prefix') ?? '';
+			const ulElement = element.querySelector('ul.dj-errorlist') as HTMLUListElement;
+			this.collectionErrorsList.set(prefix, ulElement);
+		}
+	}
+
+	private findButtons() {
 		this.buttons.length = 0;
 		for (const element of this.element.getElementsByTagName('BUTTON')) {
 			if (element.hasAttribute('click')) {
@@ -1225,8 +1340,8 @@ export class DjangoFormset {
 	}
 
 	public assignFormsToCollections() {
-		for (const sibling of this.formCollections) {
-			sibling.assignForms(this.forms);
+		for (const collection of this.formCollections) {
+			collection.assignForms(this.forms);
 		}
 	}
 
@@ -1270,15 +1385,11 @@ export class DjangoFormset {
 	private buildBody(extraData?: Object) : Object {
 		let dataValue: any;
 		// Build `body`-Object recursively.
-		// deliberately ignore type-checking, because `body` must be build as POJO to be JSON serializable.
-		// If it would have been build as a `Map<string, Object>`, the `body` would additionally have to be
-		// converted to a POJO by a second recursive function.
+		// Deliberately ignore type-checking, because `body` must be build as POJO to be JSON serializable.
 		function extendBody(entry: any, relPath: Array<string>) {
 			if (relPath.length === 1) {
 				// the leaf object
-				if (dataValue === MARKED_FOR_REMOVAL) {
-					entry[MARKED_FOR_REMOVAL] = MARKED_FOR_REMOVAL;
-				} else if (Array.isArray(entry)) {
+				if (Array.isArray(entry)) {
 					entry.push(dataValue);
 				} else {
 					entry[relPath[0]] = dataValue;
@@ -1286,33 +1397,47 @@ export class DjangoFormset {
 				return;
 			}
 			if (isNaN(parseInt(relPath[1]))) {
-				let innerObject;
+				const innerObject = entry[relPath[0]] ?? {};
+				extendBody(innerObject, relPath.slice(1));
 				if (Array.isArray(entry)) {
-					innerObject = {};
-					entry.push(innerObject)
+					const index = parseInt(relPath[0]);
+					if (isNaN(index))
+						throw new Error("Array without matching index.");
+					entry[index] = {...entry[index], ...innerObject};
 				} else {
-					innerObject = entry[relPath[0]] ?? {};
-					Object.isExtensible(innerObject);
 					entry[relPath[0]] = innerObject;
 				}
-				extendBody(innerObject, relPath.slice(1));
 			} else {
 				if (Array.isArray(entry))
-					throw new Error("Invalid form name: Contains nested arrays.");
+					throw new Error("Invalid form structure: Contains nested arrays.");
 				const innerArray = entry[relPath[0]] ?? [];
-				entry[relPath[0]] = innerArray;
+				if (!Array.isArray(innerArray))
+					throw new Error("Invalid form structure: Inner array is missing.");
 				extendBody(innerArray, relPath.slice(1));
+				entry[relPath[0]] = innerArray;
 			}
 		}
 
+		// build a nested data structure (body) reflecting the shape of collections and forms
 		const body = {};
+
+		// 1. extend body with empty arrays from Form Collections with siblings
+		for (const path of this.emptyCollectionPathes) {
+			const absPath = ['formset_data', ...path];
+			dataValue = getDataValue(body, absPath) ?? [];
+			extendBody(body, absPath);
+		}
+
+		// 2. iterate over all forms and fill the data structure with content
 		for (const form of this.forms) {
 			if (!form.name)  // only a single form doesn't have a name
 				return Object.assign({}, this.data, {_extra: extraData});
 
-			const absPath = ['formset_data', ...form.path];
-			dataValue = form.markedForRemoval ? MARKED_FOR_REMOVAL : getDataValue(this.data, absPath);
-			extendBody(body, absPath);
+			if (!form.markedForRemoval) {
+				const absPath = ['formset_data', ...form.path];
+				dataValue = getDataValue(this.data, absPath);
+				extendBody(body, absPath);
+			}
 		}
 		return Object.assign({}, body, {_extra: extraData});
 	}
@@ -1343,35 +1468,54 @@ export class DjangoFormset {
 			});
 			switch (response.status) {
 				case 200:
+					this.clearErrors();
 					for (const form of this.forms) {
-						form.element.dispatchEvent(new Event('submit'));
+						form.element.dispatchEvent(new Event('submitted'));
 					}
-					break;
+					return response;
 				case 422:
+					this.clearErrors();
 					const body = await response.json();
-					for (const form of this.forms) {
-						const errors = form.name ? getDataValue(body, form.name.split('.'), null) : body;
-						if (errors) {
-							form.reportCustomErrors(new Map(Object.entries(errors)));
-							form.reportValidity();
-						} else {
-							form.resetCustomError();
-						}
-					}
-					break;
+					this.reportErrors(body);
+					return response;
 				default:
 					console.warn(`Unknown response status: ${response.status}`);
 					break;
 			}
-			return response;
 		} else {
+			this.clearErrors();
 			for (const form of this.forms) {
 				form.reportValidity();
 			}
 		}
 	}
 
+	private reportErrors(body: any) {
+		for (const form of this.forms) {
+			const errors = form.name ? getDataValue(body, form.name.split('.'), null) : body;
+			if (errors) {
+				form.reportCustomErrors(new Map(Object.entries(errors)));
+				form.reportValidity();
+			} else {
+				form.clearCustomErrors();
+			}
+		}
+		for (const [prefix, ulElement] of this.collectionErrorsList) {
+			let path = prefix ? prefix.split('.') : [];
+			path = [...path, '0', COLLECTION_ERRORS];
+			for (const errorText of getDataValue(body, path, [])) {
+				const placeholder = document.createElement('li');
+				placeholder.classList.add('dj-placeholder');
+				placeholder.innerText = errorText;
+				ulElement.appendChild(placeholder);
+			}
+		}
+	}
+
 	public resetToInitial() {
+		for (const collection of this.formCollections) {
+			collection.resetToInitial();
+		}
 		for (const form of this.forms) {
 			form.resetToInitial();
 		}
@@ -1407,6 +1551,17 @@ export class DjangoFormset {
 		}
 		return null;
 	}
+
+	clearErrors() {
+		for (const form of this.forms) {
+			form.clearCustomErrors();
+		}
+		for (const ulElement of this.collectionErrorsList.values()) {
+			while (ulElement.firstElementChild) {
+				ulElement.removeChild(ulElement.firstElementChild);
+			}
+		}
+	}
 }
 
 
@@ -1425,12 +1580,7 @@ export class DjangoFormsetElement extends HTMLElement {
 	}
 
 	private connectedCallback() {
-		this[FS].findButtons();
-		this[FS].findForms();
-		this[FS].findFormCollections();
-		this[FS].assignFieldsToForms();
-		this[FS].assignFormsToCollections();
-		window.setTimeout(() => this[FS].validate(), 0);
+		this[FS].connectedCallback();
 	}
 
 	public async submit(data: Object | undefined): Promise<Response | undefined> {

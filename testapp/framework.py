@@ -1,47 +1,86 @@
 import itertools
+import json
 
+from django.core.files.uploadedfile import UploadedFile
+from django.core.serializers.json import DjangoJSONEncoder
+from django.forms.renderers import get_default_renderer
+from django.db.models import Model, QuerySet
+from django.db.models.fields.files import FieldFile
 from django.http import HttpResponse
 from django.template.loader import get_template
-from django.urls import get_resolver, path, reverse_lazy
+from django.urls import get_resolver, path, reverse
 from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
-from django.views.generic.edit import ModelFormMixin
+from django.views.generic import FormView, TemplateView, UpdateView
 
 from docutils.frontend import OptionParser
 from docutils.io import StringOutput
 from docutils.utils import new_document
 from docutils.parsers.rst import Parser
-from docutils.writers import get_writer_class, Writer
+from docutils.writers import get_writer_class
 
 from formset.utils import FormMixin
-from formset.views import FormView, FormCollectionView
+from formset.views import FileUploadMixin, IncompleSelectResponseMixin, FormCollectionView, FormViewMixin
 
 from testapp.forms.address import AddressForm
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import SimpleContactCollection, ContactCollection, ContactCollectionList
 from testapp.forms.customer import CustomerCollection
 from testapp.forms.opinion import OpinionForm
+<<<<<<< HEAD
 from testapp.forms.person import SimplePersonForm, sample_person_data, ModelPersonForm
 from testapp.forms.poll import ModelPollForm
+=======
+from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
+>>>>>>> main
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.upload import UploadForm
+from testapp.models import PersonModel
 
 
 parser = Parser()
 
 
-def render_suburls(request):
+class JSONEncoder(DjangoJSONEncoder):
+    def default(self, o):
+        if isinstance(o, (UploadedFile, FieldFile)):
+            return o.name
+        if isinstance(o, Model):
+            return str(o)
+        if isinstance(o, QuerySet):
+            return [str(i) for i in o]
+        return super().default(o)
+
+
+def render_suburls(request, extra_context=None):
     all_urls = set(filter(lambda url: url, (v[0][0][0] for v in get_resolver(__name__).reverse_dict.values())))
+    all_urls.remove('success')
     context = {
         'framework': request.resolver_match.app_name,
         'all_urls': sorted(all_urls),
     }
+    if extra_context:
+        context.update(extra_context)
     template = get_template('index.html')
     return HttpResponse(template.render(context))
 
 
-class DemoViewMixin:
-    success_url = reverse_lazy('form_data_valid')
+class SuccessView(TemplateView):
+    template_name = 'success.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'framework': self.request.resolver_match.app_name,
+            'leaf_breadcrumb': "Success",
+            'valid_formset_data': self.request.session.get('valid_formset_data'),
+        })
+        return context
+
+
+class DemoViewMixin(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin):
+    def get_success_url(self):
+        return reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
 
     @property
     def framework(self):
@@ -88,24 +127,52 @@ class DemoViewMixin:
         pass
 
 
-class DemoFormView(DemoViewMixin, FormView):
+class DemoFormViewMixin(DemoViewMixin):
     template_name = 'testapp/native-form.html'
     extra_doc = None
+
+    def form_valid(self, form):
+        self.request.session['valid_formset_data'] = json.dumps(
+            form.cleaned_data, cls=JSONEncoder, indent=2, ensure_ascii=False
+        )
+        return super().form_valid(form)
 
     def get_form_class(self):
         form_class = super().get_form_class()
         assert not issubclass(form_class, FormMixin)
         attrs = self.get_css_classes()
         attrs.pop('button_css_classes', None)
-        renderer = import_string(f'formset.renderers.{self.framework}.FormRenderer')(**attrs)
+        renderer_class = import_string(f'formset.renderers.{self.framework}.FormRenderer')
         if self.mode != 'native':
+            renderer = renderer_class(**attrs)
             form_class = type(form_class.__name__, (FormMixin, form_class), {'default_renderer': renderer})
         return form_class
 
 
-class DemoModelFormView(ModelFormMixin, DemoFormView):
-    template_name = 'testapp/native-form.html'
-    object = None
+class DemoFormView(DemoFormViewMixin, FormView):
+    pass
+
+
+class DemoModelFormView(DemoFormViewMixin, UpdateView):
+    model = PersonModel
+    form_class = ModelPersonForm
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(created_by=self.request.session.session_key)
+
+    def get_object(self, queryset=None):
+        if queryset is None:
+            queryset = self.get_queryset()
+        return queryset.last()
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if not self.request.session.session_key:
+            self.request.session.cycle_key()
+        form.instance.created_by = self.request.session.session_key
+        form.instance.save(update_fields=['created_by'])
+        return response
 
 
 class DemoFormCollectionView(DemoViewMixin, FormCollectionView):
@@ -116,8 +183,35 @@ class DemoFormCollectionView(DemoViewMixin, FormCollectionView):
         collection_class = super().get_collection_class()
         attrs = self.get_css_classes()
         attrs.pop('button_css_classes', None)
-        collection_class.default_renderer = import_string(f'formset.renderers.{self.framework}.FormRenderer')(**attrs)
+        renderer_class = import_string(f'formset.renderers.{self.framework}.FormRenderer')
+        collection_class.default_renderer = renderer_class(**attrs)
         return collection_class
+
+    def get_form_collection(self):
+        """
+        This method replaces the form renderer by a specialized version is specified in css_classes.
+        Used to show how to style forms nested inside collections.
+        """
+        def traverse_holders(declared_holders, path=None):
+            for name, holder in declared_holders.items():
+                key = f'{path}.{name}' if path else name
+                if hasattr(holder, 'declared_holders'):
+                    traverse_holders(holder.declared_holders, key)
+                elif key in css_classes:
+                    holder.renderer = form_collection.default_renderer.__class__(**css_classes[key])
+                else:
+                    holder.renderer = get_default_renderer()
+
+        css_classes = demo_css_classes[self.framework]
+        form_collection = super().get_form_collection()
+        traverse_holders(form_collection.declared_holders)
+        return form_collection
+
+    def form_collection_valid(self, form_collection):
+        self.request.session['valid_formset_data'] = json.dumps(
+            form_collection.cleaned_data, cls=JSONEncoder, indent=2, ensure_ascii=False
+        )
+        return super().form_collection_valid(form_collection)
 
 
 demo_css_classes = {
@@ -150,6 +244,14 @@ demo_css_classes = {
                 'profession.job_title': 'col-6 mb-2',
             },
         },
+        'numbers.number': {
+            'form_css_classes': 'row',
+            'field_css_classes': {
+                'phone_number': 'mb-2 col-8',
+                'label': 'mb-2 col-4',
+                '*': 'mb-2 col-12',
+            },
+        }
     },
     'bulma': {
         '*': {
@@ -158,7 +260,23 @@ demo_css_classes = {
     },
     'foundation': {},
     'tailwind': {
-        '*': {'field_css_classes': 'mb-5'},
+        '*': {'field_css_classes': 'mb-4'},
+        'address': {
+            'form_css_classes': 'flex flex-wrap -mx-3',
+            'field_css_classes': {
+                '*': 'mb-4 px-3 w-full',
+                'postal_code': 'mb-4 px-3 w-2/5',
+                'city': 'mb-4 px-3 w-3/5',
+            },
+        },
+        'numbers.number': {
+            'form_css_classes': 'flex flex-wrap -mx-3',
+            'field_css_classes': {
+                '*': 'mb-4 px-3 w-full',
+                'phone_number': 'mb-4 px-3 w-3/4',
+                'label': 'mb-4 px-3 w-1/4',
+            },
+        }
     },
     'uikit': {
         '*': {'field_css_classes': 'uk-margin-bottom'},
@@ -168,8 +286,8 @@ demo_css_classes = {
 extra_doc_native = """
 Here we use a native Django Form instance to render the form suitable for the ``<django-formset>``-widget.
 
-Then that form instance is rendered using the special template tag ``render_form``. The template responsible for
-rendering shall be written as:
+Then that form instance is rendered using the special template tag ``render_form``. The template used to
+render such a form shall be written as:
 
 .. code-block:: django
 
@@ -184,20 +302,21 @@ rendering shall be written as:
 extra_doc_extended = """
 Here we use a Django Form instance with a overridden render method suitable for the ``<django-formset>``-widget.
 
-This allows us to use the built-in ``__str__()``-method and hence render the form using ``{{ form }}`` inside the
+This allows us to use the built-in ``__str__()``-method and hence render the form using ``{{ form }}`` inside a
 template. In this use case, our Form class must additionally inherit from ``formset.utils.FormMixin``.
 
-Such a form could for instance be defined as:
+Such a Form class can for instance be defined as:
 
 .. code-block:: python
 
 	from django.forms import forms, fields
 	from formset.utils import FormMixin
 
-	class RegisterPersonForm(FormMixin, forms.Form):
-	    first_field = ...
+	class CompleteForm(FormMixin, forms.Form):
+	    last_name = …
 
-The template required to render such a form then shall look like:
+An instantiated Form object then can be rendered by a template using Django's variable expansion instead of a special
+templatetag:
 
 .. code-block:: django
 
@@ -253,40 +372,42 @@ than placing them below each other.
 
 urlpatterns = [
     path('', render_suburls),
-    path('address', DemoFormView.as_view(
-        form_class=AddressForm,
-    ), name='address'),
-    path('complete.native', DemoFormView.as_view(
+    path('success', SuccessView.as_view(), name='form_data_valid'),
+    path('01-complete.native', DemoFormView.as_view(
         form_class=CompleteForm,
         extra_doc=extra_doc_native,
     ), name='complete.native'),
-    path('complete.extended', DemoFormView.as_view(
+    path('02-complete.extended', DemoFormView.as_view(
         form_class=CompleteForm,
         template_name='testapp/extended-form.html',
         extra_doc=extra_doc_extended,
     ), name='complete.extended'),
-    path('complete.field-by-field', DemoFormView.as_view(
+    path('03-complete.field-by-field', DemoFormView.as_view(
         form_class=CompleteForm,
         template_name='testapp/field-by-field.html',
         extra_doc=extra_doc_field_by_field,
     ), name='complete.field-by-field'),
-    path('complete.horizontal', DemoFormView.as_view(
+    path('04-complete.horizontal', DemoFormView.as_view(
         form_class=CompleteForm,
         extra_doc=extra_doc_horizontal,
     ), name='complete.horizontal'),
-    path('simplecontact', DemoFormCollectionView.as_view(
+    path('05-address', DemoFormView.as_view(
+        form_class=AddressForm,
+    ), name='address'),
+    path('06-opinion', DemoFormView.as_view(
+        form_class=OpinionForm,
+    ), name='opinion'),
+    path('07-questionnaire', DemoFormView.as_view(
+        form_class=QuestionnaireForm,
+    ), name='questionnaire'),
+    path('08-simplecontact', DemoFormCollectionView.as_view(
         collection_class=SimpleContactCollection,
         initial={'person': sample_person_data},
     ), name='simplecontact'),
-    path('contact', DemoFormCollectionView.as_view(
-        collection_class=ContactCollection,
-    ), name='contact'),
-    path('contactlist', DemoFormCollectionView.as_view(
-        collection_class=ContactCollectionList,
-    ), name='contactlist'),
-    path('customer', DemoFormCollectionView.as_view(
+    path('09-customer', DemoFormCollectionView.as_view(
         collection_class=CustomerCollection,
     ), name='customer'),
+<<<<<<< HEAD
     path('opinion', DemoFormView.as_view(
         form_class=OpinionForm,
     ), name='opinion'),
@@ -301,8 +422,27 @@ urlpatterns = [
         form_class=QuestionnaireForm,
     ), name='questionnaire'),
     path('upload', DemoFormView.as_view(
+=======
+    path('10-contact', DemoFormCollectionView.as_view(
+        collection_class=ContactCollection,
+        initial={'person': sample_person_data, 'numbers': [{'number': {'phone_number': "+1 234 567 8900"}}]},
+    ), name='contact'),
+    path('11-contactlist', DemoFormCollectionView.as_view(
+        collection_class=ContactCollectionList,
+    ), name='contactlist'),
+    path('12-upload', DemoFormView.as_view(
+>>>>>>> main
         form_class=UploadForm,
     ), name='upload'),
+    path('13-person', DemoModelFormView.as_view(
+        form_class=ModelPersonForm,
+        model=PersonModel,
+    ), name='person'),
+    path('14-button-actions', DemoFormView.as_view(
+        form_class=ButtonActionsForm,
+        template_name='testapp/button-actions.html',
+        extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)'},
+    ), name='button-actions'),
 ]
 
 # this creates permutations of forms to show how to withhold which feedback
@@ -322,14 +462,18 @@ for length in range(len(withhold_feedbacks) + 1):
     for withhold_feedback in itertools.combinations(withhold_feedbacks, length):
         suffix = '.' + ''.join(w[0] for w in withhold_feedback) if length else ''
         if withhold_feedback:
-            extra_docs = ['Using ``withhold-feedback="{}"`` means:'.format(' '.join(withhold_feedback)), '']
+            extra_docs = ['------', '', 'Using ``withhold-feedback="{}"`` means:'.format(' '.join(withhold_feedback)), '']
         else:
             extra_docs = []
         extra_docs.extend([f'* {extra_doc_withhold[w]}' for w in withhold_feedback])
+        force_submission = suffix == '.mews'  # just for testing
         urlpatterns.append(
-            path(f'withhold{suffix}', DemoFormView.as_view(
+            path(f'15-withhold{suffix}', DemoFormView.as_view(
                 form_class=SimplePersonForm,
-                extra_context={'withhold_feedback': ' '.join(withhold_feedback)},
+                extra_context={
+                    'withhold_feedback': ' '.join(withhold_feedback),
+                    'force_submission': force_submission,
+                },
                 extra_doc='\n'.join(extra_docs),
             ))
         )

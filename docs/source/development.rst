@@ -37,7 +37,7 @@ Open http://localhost:8000/ in your browser. There is a long list of forms for a
 
 
 Setting up the Tests
---------------------
+====================
 
 Since there is a lot of interaction between the browser and the server, the client is tested using
 pytest_ together with Playwright_. The latter is a testing framework to run end-to-end tests using a
@@ -58,7 +58,7 @@ Then run the testsuite
 .. _Playwright: https://playwright.dev/python/docs/intro/
 
 Building the Parser
--------------------
+===================
 
 The content of the button attribute ``click``, and the input field and fieldset attributes
 ``show-if``, ``hide-if`` and ``disable-if`` are parsed before being evaluated by the code
@@ -70,7 +70,7 @@ implementing the Web Component ``client/django-formset/DjangoFormset.ts``.
 
 
 Building the Client
--------------------
+===================
 
 The client part consists of a few TypeScript modules which all are compiled and bundled to a single
 JavaScript file using ``npm run build``. The default TypeScript compiler used in this project is
@@ -81,7 +81,7 @@ TypeScript compilers, they will take longer but might build smaller target modul
 
 
 Running the Django Test App
----------------------------
+===========================
 
 The unit tests and the application used to test the functionality, share a lot of code. In my
 opinion this is really important, because when writing code for end users, manual testing is

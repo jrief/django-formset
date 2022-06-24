@@ -22,11 +22,11 @@ interface FieldGroup {
 export class FileUploadWidget {
 	private readonly field: FieldGroup;
 	private readonly inputElement: HTMLInputElement;
-	private readonly dropbox: HTMLUListElement;
+	private readonly dropbox: HTMLElement;
 	private readonly chooseFileButton: HTMLButtonElement;
 	private readonly progressBar: HTMLProgressElement | null = null;
 	private readonly dropboxItemTemplate: Function;
-	private readonly defaultDropboxItem: HTMLLIElement;
+	private readonly emptyDropboxItem: HTMLDivElement;
 	private readonly observer: MutationObserver;
 	private readonly initialData: Array<Object>;
 	public uploadedFiles: Array<Object>;
@@ -35,9 +35,9 @@ export class FileUploadWidget {
 		this.field = fieldGroup;
 		this.inputElement = inputElement;
 
-		this.dropbox = this.field.element.querySelector('ul.dj-dropbox') as HTMLUListElement;
+		this.dropbox = this.field.element.querySelector('figure.dj-dropbox') as HTMLElement;
 		if (!this.dropbox)
-			throw new Error('Element <input type="file"> requires sibling element <ul class="dj-dropbox"></ul>');
+			throw new Error('Element <input type="file"> requires sibling element <figure class="dj-dropbox"></figure>');
 
 		this.chooseFileButton = this.field.element.querySelector('button.dj-choose-file') as HTMLButtonElement;
 		if (!this.chooseFileButton)
@@ -48,7 +48,10 @@ export class FileUploadWidget {
 			this.progressBar.style.visibility = 'hidden';
 		}
 
-		this.defaultDropboxItem = this.dropbox.querySelector('li') as HTMLLIElement;
+		this.emptyDropboxItem = this.dropbox.querySelector('div.dj-empty-item') as HTMLDivElement;
+		if (!this.emptyDropboxItem)
+			throw new Error('Element <input type="file"> requires sibling element <figure><div class="dj-empty-item"></div></figure>');
+
 		const dropboxItemTemplate = this.field.element.querySelector('.dj-dropbox-items');
 		if (!dropboxItemTemplate)
 			throw new Error('Element <input type="file"> requires sibling element <template class="dj-dropbox-items"></template>');
@@ -95,7 +98,7 @@ export class FileUploadWidget {
 		while (this.dropbox.firstChild) {
 			this.dropbox.removeChild(this.dropbox.firstChild);
 		}
-		this.dropbox.appendChild(this.defaultDropboxItem);
+		this.dropbox.appendChild(this.emptyDropboxItem);
 		this.field.touch();
 		this.field.inputted();
 		this.field.validate();
@@ -134,7 +137,8 @@ export class FileUploadWidget {
 			const complete = event.lengthComputable ? event.loaded / event.total : 0;
 			if (self.progressBar) {
 				self.progressBar.style.visibility = 'visible';
-				self.progressBar.value = complete;
+				// the remaining 10% of the progress bar are reserved for image transformation
+				self.progressBar.value = 0.9 * complete;
 			}
 		}
 
@@ -145,7 +149,8 @@ export class FileUploadWidget {
 		return new Promise<Response>((resolve, reject) => {
 			function transferComplete() {
 				if (self.progressBar) {
-					self.progressBar.style.visibility = 'hidden';
+					self.progressBar.value = 1;
+					window.setTimeout(() => self.progressBar!.style.visibility = 'hidden', 333);
 				}
 				if (request.status === 200) {
 					resolve(request.response);
@@ -175,7 +180,11 @@ export class FileUploadWidget {
 		for (const fileHandle of this.uploadedFiles) {
 			list.push(this.dropboxItemTemplate(fileHandle));
 		}
-		this.dropbox.innerHTML = list.join('');
+		if (list.length > 0) {
+			this.dropbox.innerHTML = list.join('');
+		} else {
+			this.dropbox.replaceChildren(this.emptyDropboxItem);
+		}
 		const button = this.dropbox.querySelector('.dj-delete-file');
 		if (button) {
 			button.addEventListener('click', this.fileRemove, {once: true});

@@ -1,5 +1,6 @@
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.forms.forms import BaseForm
+from django.forms.models import BaseModelForm, construct_instance, model_to_dict
 from django.forms.widgets import MediaDefiningClass
 from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
 from django.utils.datastructures import MultiValueDict
@@ -8,8 +9,7 @@ from formset.exceptions import FormCollectionError
 from formset.renderers.default import FormRenderer
 from formset.utils import HolderMixin, FormMixin, FormsetErrorList
 
-
-MARKED_FOR_REMOVAL = '_marked_for_removal_'
+COLLECTION_ERRORS = '_collection_errors_'
 
 
 class FormCollectionMeta(MediaDefiningClass):
@@ -57,6 +57,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     min_siblings = None
     max_siblings = None
     extra_siblings = None
+    legend = None
 
     def __init__(self, data=None, initial=None, renderer=None, prefix=None, min_siblings=None,
                  max_siblings=None, extra_siblings=None):
@@ -103,8 +104,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             if not isinstance(self.initial, list):
                 errmsg = "{class_name} is declared to have siblings, but provided argument `{argument}` is not a list"
                 raise FormCollectionError(errmsg.format(class_name=self.__class__.__name__, argument='initial'))
-            num_siblings = max(num_siblings, len(self.initial))
-            num_siblings += self.extra_siblings
+            num_siblings = min(self.max_siblings, max(num_siblings, len(self.initial)) + self.extra_siblings)
 
         first, last = 0, len(self.declared_holders.items()) - 1
         # add initialized collections/forms
@@ -170,34 +170,44 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             self.cleaned_data = []
             self._errors = ErrorList()
             for index, data in enumerate(self.data):
-                if MARKED_FOR_REMOVAL in data:
+                if data is None:
+                    # collection has been marked for removal
                     continue
                 cleaned_data = {}
                 for name, declared_holder in self.declared_holders.items():
-                    holder = declared_holder.replicate(data=data.get(name))
-                    if holder.is_valid():
-                        cleaned_data[name] = holder.cleaned_data
+                    if name in data:
+                        holder = declared_holder.replicate(data=data[name])
+                        if holder.is_valid():
+                            cleaned_data[name] = holder.cleaned_data
+                        else:
+                            self._errors.extend([{}] * (index - len(self._errors)))
+                            self._errors.append({name: holder.errors})
                     else:
+                        # can only happen, if client bypasses browser control
                         self._errors.extend([{}] * (index - len(self._errors)))
-                        self._errors.append({name: holder.errors})
+                        self._errors.append({name: {NON_FIELD_ERRORS: ["Form data is missing."]}})
                 self.cleaned_data.append(cleaned_data)
             if len(self.cleaned_data) < self.min_siblings:
-                # can only happen, if the client bypasses browser control
+                # can only happen, if client bypasses browser control
                 self._errors.clear()
-                self._errors.append({NON_FIELD_ERRORS: ["Too few siblings."]})
+                self._errors.append({COLLECTION_ERRORS: ["Too few siblings."]})
             if self.max_siblings and len(self.cleaned_data) > self.max_siblings:
-                # can only happen, if the client bypasses browser control
+                # can only happen, if client bypasses browser control
                 self._errors.clear()
-                self._errors.append({NON_FIELD_ERRORS: ["Too many siblings."]})
+                self._errors.append({COLLECTION_ERRORS: ["Too many siblings."]})
         else:
             self.cleaned_data = {}
             self._errors = ErrorDict()
             for name, declared_holder in self.declared_holders.items():
-                holder = declared_holder.replicate(data=self.data.get(name))
-                if holder.is_valid():
-                    self.cleaned_data[name] = holder.cleaned_data
+                if name in self.data:
+                    holder = declared_holder.replicate(data=self.data[name])
+                    if holder.is_valid():
+                        self.cleaned_data[name] = holder.cleaned_data
+                    else:
+                        self._errors.update({name: holder.errors})
                 else:
-                    self._errors.update({name: holder.errors})
+                    # can only happen, if client bypasses browser control
+                    self._errors.update({name: {NON_FIELD_ERRORS: ["Form data is missing."]}})
 
     def clean(self):
         return self.cleaned_data
@@ -213,6 +223,40 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         if not (renderer or self.renderer):
             renderer = FormRenderer()
         return super().render(template_name, context, renderer)
+
+    def model_to_dict(self, main_object):
+        """
+        Create initial data from a main object. This then is used to fill the initial data from all its child
+        collections and forms.
+        Forms which do not correspond to the model given by the main object, are themselves responsible to
+        access the proper referenced models.
+        """
+        object_data = {}
+        for name, holder in self.declared_holders.items():
+            if callable(getattr(holder, 'model_to_dict', None)):
+                object_data[name] = holder.model_to_dict(main_object)
+            elif isinstance(holder, BaseModelForm):
+                opts = holder._meta
+                object_data[name] = model_to_dict(main_object, opts.fields, opts.exclude)
+            else:
+                object_data[name] = model_to_dict(main_object)
+        return object_data
+
+    def construct_instance(self, main_object, cleaned_data):
+        """
+        Construct the main object and its related objects from the nested dictionary of cleaned data.
+        Forms which do not correspond to the model given by the main object, are responsible themselves
+        to store the corresponding data inside their related models.
+        """
+        for name, holder in self.declared_holders.items():
+            if callable(getattr(holder, 'construct_instance', None)):
+                holder.construct_instance(main_object, self.cleaned_data[name])
+            elif isinstance(holder, BaseModelForm):
+                opts = holder._meta
+                holder.cleaned_data = self.cleaned_data[name]
+                holder.instance = main_object
+                construct_instance(holder, main_object, opts.fields, opts.exclude)
+                holder.save()
 
     __str__ = render
     __html__ = render

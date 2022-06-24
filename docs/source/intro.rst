@@ -39,7 +39,7 @@ routing.
 .. _forms_as_logical_entities:
 
 Use Forms as Logical Entities
------------------------------
+=============================
 
 The **django-formset**-library separates the logical layer of a Django Form_ from their physical one
 as an HTML ``<form>``. Now,
@@ -63,8 +63,7 @@ Django FormSets_.
 .. _FormSets: https://docs.djangoproject.com/en/stable/topics/forms/formsets/
 
 
-Example
--------
+.. rubric:: Example
 
 Consider having a standard Django Form instance, say 
 
@@ -94,13 +93,13 @@ Consider having a standard Django Form instance, say
 	        ...
 
 In Django, we typically render an instance of the above form using a template rendered by a
-FormView_. With this approach, data entered into the form fields must be send to the server for
+FormView_. With this approach, data entered into the form fields must be sent to the server for
 validation. If one or more of those fields fail to validate, the form is re-rendered, annotating the
 fields containing invalid data with some error messages. The latter would require to fully reload
 the whole page. Looking at modern JavaScript frameworks, it is obvious that this approach isn't
 contemporary anymore.
 
-.. figure:: _static/person-form.png
+.. figure:: _static/animated-person-form.png
 	:width: 650px
 
 	Interacting with that form, shows validation errors immediatly.
@@ -151,7 +150,7 @@ is rendered, since we render them individually. More on this can be found in sec
 
 
 What are Web Components?
-------------------------
+========================
 
 According to `webcomponents.org`_, Web Components are a set of web platform APIs that allow you to
 create new custom, reusable, encapsulated HTML tags to use in web pages and web apps. Custom
@@ -186,7 +185,7 @@ The JavaScript behind this component now handles the following functions:
 
 
 Annotation
-----------
+==========
 
 When designing this library, one of the main goals was to keep the programming interface a near as
 possible to the way Django handles Forms, Models and Views. It therefore is possible to reuse

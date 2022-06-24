@@ -7,7 +7,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>Django-Formset Demo</title>
 	<link rel="icon" href="data:,">
-	<link href="{% static 'testapp/css/tailwind.css' %}" rel="stylesheet" type="text/css">
+	<link href="{% static 'testapp/css/tailwind.css' %}" rel="stylesheet" type="text/css" media="screen">
+	<link href="{% static 'testapp/css/docutils.css' %}" rel="stylesheet" type="text/css" media="screen">
 	<script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
 </head>
 
@@ -18,7 +19,7 @@
 				<div class="m-7">
 					<nav class="rounded-md w-full mb-4">
 						<ol class="list-reset flex">
-							<li><a href="/" class="text-blue-600 hover:text-blue-700">{% include "testapp/house.svg" %}</a></li>
+							<li><a href="/" class="text-blue-600 hover:text-blue-700 inline-block mt-1">{% include "testapp/house.svg" %}</a></li>
 					    <li><span class="text-gray-500 mx-2">/</span></li>
 					    <li><a href="/{{ framework }}" class="text-blue-600 hover:text-blue-700">{{ framework.capitalize }}</a></li>
 					    <li><span class="text-gray-500 mx-2">/</span></li>

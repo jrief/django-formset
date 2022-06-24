@@ -16,11 +16,16 @@ hide or disable such a field.
 * ``disable-if="condition"``: The field or fieldset is disabled if the condition evaluates to true.
 
 The ``condition`` can be any logical JavaScript expression. It can contain comparison operators such
-as ``==``, ``<`` or ``!=`` and logical operators such as ``&&``, ``||`` and ``!``. That conditional
-expression also has access to all the values from the ``<django-formset>``. Values from fields in
-the same form can be accessed using a relative path, starting with dot, for instance ``.fieldname``.
-Values from fields in other forms can be accessed by specifying the complete path to that field,
-for instance ``formname.fieldname``. This also works for deeply nested forms.
+as ``==``, ``<`` or ``!=`` and logical operators such as ``&&``, ``||`` and ``!``. This conditional
+expression also has access to all the values inside the complete ``<django-formset>``. Values from
+fields in the same form can be accessed using a relative path, starting with dot, for instance
+``.fieldname``. Values from fields in other forms can be accessed by specifying the complete path to
+that field, for instance ``formname.fieldname``. This also works for deeply nested forms.
+
+.. note:: Fields using the conditionals ``show-if="…"`` or ``hide-if="…"`` shall use the attribute
+	``required=False`` during initialization. This is because otherwise Django's form validation
+	rejects that field as required, meanwhile it has been hidden by the client. In case only visible
+	fields are required, add some validation code to the ``clean()`` method of that form.
 
 
 Example Form

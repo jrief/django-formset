@@ -13,7 +13,40 @@ def validate_password(value):
 class CompleteForm(forms.Form):
     """
     This form contains all standard widgets, Django provides out of the box.
+    Here is a shortened version of that form.
+
+    .. code-block:: python
+
+        class CompleteForm(forms.Form):
+            last_name = fields.CharField(…)
+            first_name = fields.RegexField(r'^[A-Z][a-z -]*$', …)
+            gender = fields.ChoiceField(choices=…, widget=widgets.RadioSelect, …)
+            email = fields.EmailField(…)
+            subscribe = fields.BooleanField(…)
+            phone = fields.RegexField(r'^\+?[0-9 .-]{4,25}$', …)
+            birth_date = fields.DateField(…)
+            continent = fields.ChoiceField(…)
+            weight = fields.IntegerField(min_value=42, max_value=95, …)
+            height = fields.FloatField(min_value=1.45, max_value=1.95, …)
+            used_transportation = fields.MultipleChoiceField(widget=widgets.CheckboxSelectMultiple, …)
+            preferred_transportation = fields.ChoiceField(widget=widgets.RadioSelect, …)
+            available_transportation = fields.MultipleChoiceField(choices=…, …)
+            notifyme = fields.MultipleChoiceField(choices=…, widget=widgets.CheckboxSelectMultiple, …)
+            annotation = fields.CharField(…, widget=widgets.Textarea(attrs={'cols': '80', 'rows': '3'}))
+            agree = fields.BooleanField(…)
+            password = fields.CharField(widget=widgets.PasswordInput, …)
+            confirmation_key = fields.CharField(widget=widgets.HiddenInput(), …)
+
+    Instances of this form can be rendered using different recepies:
+
+    * by using the templatetag ``render_form …`` (recommended)
+    * by adding ``formset.utils.FormMixin`` to the form class
+    * by rendering the form fields, field-by-field
+
+    ------
+
     """
+
     CONTINENT_CHOICES = [
         ('', "––– please select –––"), ('am', "America"), ('eu', "Europe"), ('as', "Asia"),
         ('af', "Africa"), ('au', "Australia"), ('oc', "Oceania"), ('an', 'Antartica'),
@@ -64,7 +97,7 @@ class CompleteForm(forms.Form):
         r'^\+?[0-9 .-]{4,25}$',
         label="Phone number",
         error_messages={'invalid': "Phone number have 4-25 digits and may start with '+'."},
-        widget=fields.TextInput(attrs={'hide-if': 'subscribe'})
+        required=False,
     )
 
     birth_date = fields.DateField(

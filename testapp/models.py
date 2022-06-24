@@ -76,6 +76,7 @@ class PersonModel(models.Model):
         choices=Continent.choices,
     )
 
+<<<<<<< HEAD
 
 class PollModel(models.Model):
     weighted_opinions = SortableManyToManyField(
@@ -104,3 +105,15 @@ class WeightedOpinion(models.Model):
 
     class Meta:
         ordering = ['weight']
+=======
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        editable=False,
+    )
+
+    created_by = models.CharField(
+        editable=False,
+        max_length=40,
+        db_index=True,
+    )
+>>>>>>> main

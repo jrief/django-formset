@@ -30,9 +30,11 @@ INSTALLED_APPS = [
 ```
 
 
-## Documentation
+## Documentation and Demo
 
 Reference documentation can be found on [Read The Docs](https://django-formset.readthedocs.io/en/latest/index.html).
+
+A [demo](https://django-formset.awesto.com/) showing all combinations of fields.
 
 
 ## Usage

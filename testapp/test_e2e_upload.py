@@ -1,9 +1,10 @@
 import json
-import os
 import pytest
 import re
+from pathlib import Path
 from time import sleep
 
+from django.conf import settings
 from django.core.signing import get_cookie_signer
 from django.urls import path
 
@@ -26,31 +27,31 @@ urlpatterns = [path('upload', DemoFormView.as_view(), name='upload')]
 def test_upload_image(page, mocker):
     choose_file_button = page.query_selector('django-formset form button.dj-choose-file')
     assert choose_file_button is not None  # that button would open the file selector
-    dropbox = page.query_selector('django-formset form ul.dj-dropbox')
-    assert dropbox.inner_html() == '<li class="dj-empty-item">Drag file here</li>'
+    dropbox = page.query_selector('django-formset form figure.dj-dropbox')
+    assert dropbox.inner_html() == '<div class="dj-empty-item">Drag file here</div>'
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
-    file_picture = page.wait_for_selector('li.dj-file-picture')
-    assert file_picture is not None
-    img_src = file_picture.query_selector('img').get_attribute('src')
-    match = re.match(r'^/((media/upload_temp/python-django\.[a-z0-9_]+?)_h128(.png))$', img_src)
+    img_element = dropbox.wait_for_selector('img')
+    assert img_element is not None
+    img_src = img_element.get_attribute('src')
+    match = re.match(r'^/media/((upload_temp/python-django\.[a-z0-9_]+?)_h128(.png))$', img_src)
     assert match is not None
     thumbnail_url = match.group(1)
-    assert os.path.exists(thumbnail_url)  # the thumbnail
-    thumbnail_url = f'/{thumbnail_url}'
+    assert (settings.MEDIA_ROOT / thumbnail_url).exists()  # the thumbnail
+    thumbnail_url = f'/media/{thumbnail_url}'
     download_url = match.group(2) + match.group(3)
-    assert os.path.exists(download_url)  # the uploaded file
-    download_url = f'/{download_url}'
-    file_caption = dropbox.query_selector('li.dj-file-caption')
-    assert file_caption is not None
-    figures = file_caption.query_selector_all('figure')
-    assert len(figures) == 3
-    assert figures[0].inner_html() == '<figcaption>Name:</figcaption><p>python-django.png</p>'
-    assert figures[1].inner_html() == '<figcaption>Content-Type:</figcaption><p>image/png</p>'
-    assert figures[2].inner_html() == '<figcaption>Size:</figcaption><p>16001</p>'
-    button = file_caption.query_selector('a.dj-delete-file')
+    assert (settings.MEDIA_ROOT / download_url).exists()  # the uploaded file
+    download_url = f'/media/{download_url}'
+    figcaption = dropbox.query_selector('figcaption')
+    assert figcaption is not None
+    description_lists = figcaption.query_selector_all('dl')
+    assert len(description_lists) == 3
+    assert description_lists[0].inner_html() == '<dt>Name:</dt><dd>python-django.png</dd>'
+    assert description_lists[1].inner_html() == '<dt>Content-Type:</dt><dd>image/png</dd>'
+    assert description_lists[2].inner_html() == '<dt>Size:</dt><dd>16001</dd>'
+    button = dropbox.query_selector('a.dj-delete-file')
     assert button is not None
     assert button.inner_text() == 'Delete'
-    button = file_caption.query_selector('a.dj-download-file')
+    button = dropbox.query_selector('a.dj-download-file')
     assert button is not None
     assert button.get_attribute('download') == 'python-django.png'
     assert button.get_attribute('href') == download_url
@@ -60,7 +61,7 @@ def test_upload_image(page, mocker):
     file = request['formset_data']['avatar'][0]
     signer = get_cookie_signer(salt='formset')
     upload_temp_name = signer.unsign(file['upload_temp_name'])
-    assert os.path.exists(f'media/{upload_temp_name}')
+    assert (settings.MEDIA_ROOT / upload_temp_name).exists()
     assert file['name'] == 'python-django.png'
     assert file['download_url'] == download_url
     assert file['thumbnail_url'] == thumbnail_url
@@ -73,9 +74,9 @@ def test_upload_image(page, mocker):
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_pdf(page):
     page.set_input_files('#id_avatar', 'testapp/assets/dummy.pdf')
-    file_picture = page.wait_for_selector('django-formset form django-field-group li.dj-file-picture')
-    assert file_picture is not None
-    img_src = file_picture.query_selector('img').get_attribute('src')
+    dropbox = page.query_selector('django-formset form django-field-group figure.dj-dropbox')
+    assert dropbox is not None
+    img_src = dropbox.wait_for_selector('img').get_attribute('src')
     assert img_src == '/static/formset/icons/file-pdf.svg'
 
 
@@ -83,9 +84,9 @@ def test_upload_pdf(page):
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_broken_image(page):
     page.set_input_files('#id_avatar', 'testapp/assets/broken-image.jpg')
-    file_picture = page.wait_for_selector('li.dj-file-picture')
-    assert file_picture is not None
-    img_src = file_picture.query_selector('img').get_attribute('src')
+    dropbox = page.query_selector('django-formset form django-field-group figure.dj-dropbox')
+    assert dropbox is not None
+    img_src = dropbox.wait_for_selector('img').get_attribute('src')
     assert img_src == '/static/formset/icons/file-picture.svg'
 
 
@@ -102,11 +103,12 @@ def test_upload_required(page):
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_delete_uploaded_file(page):
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
-    page.wait_for_selector('ul.dj-dropbox li.dj-file-picture')
-    delete_button = page.wait_for_selector('ul.dj-dropbox li.dj-file-caption a.dj-delete-file')
+    dropbox = page.query_selector('django-formset form django-field-group figure.dj-dropbox')
+    dropbox.wait_for_selector('img')
+    delete_button = dropbox.wait_for_selector('figcaption a.dj-delete-file')
     delete_button.click()
-    empty_item = page.wait_for_selector('ul.dj-dropbox li.dj-empty-item')
-    assert empty_item is not None
+    empty_item = dropbox.wait_for_selector('div.dj-empty-item')
+    assert empty_item.inner_html() == "Drag file here"
 
 
 @pytest.mark.urls(__name__)
@@ -118,22 +120,26 @@ def test_upload_progressbar(page):
     network_conditions = {
         'offline': False,
         'downloadThroughput': 999999,
-        'uploadThroughput': 512,
+        'uploadThroughput': 9999,
         'latency': 20
     }
     client.send('Network.emulateNetworkConditions', network_conditions)
-    page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
+    test_image_path = Path('testapp/assets/python-django.png')
+    assert test_image_path.exists()
+    assert test_image_path.stat().st_size == 16001
+    file_uploader = field_group.query_selector('#id_avatar')
+    assert file_uploader is not None
+    file_uploader.set_input_files([test_image_path])
     progress_bar = field_group.wait_for_selector('progress')
     assert progress_bar is not None
     progress_value = float(progress_bar.get_attribute('value'))
-    assert progress_value >= 0.0 and progress_value < 1.0
+    assert progress_value >= 0.0 and progress_value <= 1.0
     sleep(0.2)
     progress_value = float(progress_bar.get_attribute('value'))
     assert progress_value > 0.0 and progress_value <= 1.0
-    network_conditions.update(uploadThroughput=999999)
-    client.send('Network.emulateNetworkConditions', network_conditions)
-    file_picture = page.wait_for_selector('li.dj-file-picture')
-    assert file_picture is not None
+    # thumbnailing image takes some time
+    img_element = field_group.wait_for_selector('figure.dj-dropbox img')
+    assert img_element is not None
 
 
 @pytest.mark.urls(__name__)

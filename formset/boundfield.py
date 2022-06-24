@@ -30,7 +30,7 @@ class BoundField(boundfield.BoundField):
 
     def as_widget(self, widget=None, attrs=None, only_initial=False):
         widget = widget or self.field.widget
-        if self.widget_type == 'checkbox':
+        if self.widget_type == 'checkbox' and not isinstance(widget, CheckboxInputMixin):
             widget.__class__ = type(widget.__class__.__name__, (CheckboxInputMixin, widget.__class__), {'label': self.label})
         if self.field.localize:
             widget.is_localized = True
@@ -70,8 +70,7 @@ class BoundField(boundfield.BoundField):
         field_css_classes = getattr(self.form.renderer, 'field_css_classes', None)
         if isinstance(field_css_classes, dict):
             try:
-                prefix = f'{self.form.prefix}.{self.name}' if self.form.prefix else self.name
-                field_css_classes = field_css_classes[prefix]
+                field_css_classes = field_css_classes[self.name]
             except KeyError:
                 field_css_classes = field_css_classes.get('*')
         if hasattr(field_css_classes, 'split'):

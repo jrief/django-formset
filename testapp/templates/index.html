@@ -1,37 +1,11 @@
-{% load static %}
-<!DOCTYPE html>
-<html dir="ltr" lang="en">
+{% extends "base.html" %}
 
-<head>
-	<meta charset="utf-8"/>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0"/>
-	<title>Django-Formset</title>
-	<link rel="icon" href="data:,">
-	<link href="{% static 'node_modules/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
-</head>
-
-<body>
-	<div class="container">
-		<div class="row">
-			<div class="col col-md-8 mx-auto my-5">
-				<h1>Django Formset Demo</h1>
-				<nav aria-label="breadcrumb mb-5">
-					<ol class="breadcrumb">
-						<li class="breadcrumb-item"><a href="/">{% include "testapp/house.svg" %}</a></li>
-						<li class="breadcrumb-item">{{ framework.capitalize }}</li>
-					</ol>
-				</nav>
-				<h3>For CSS framework {{ framework.capitalize }}</h3>
-				<p>Here is a list of forms to demonstrate the features <a href="https://github.com/jrief/django-formset/">django-formset</a>
-				currently offers.</p>
-				<ul>
-				{% for url in all_urls %}
-					<li><a href="{{ url }}">{{ request.url }}{{ url }}</a></li>
-				{% endfor %}
-				</ul>
-			</div>
-		</div>
-	</div>
-</body>
-
-</html>
+{% block "main-content" %}
+<p>Here is a list of examples to demonstrate the features <a href="https://github.com/jrief/django-formset/">django-formset</a>
+currently offers.</p>
+<ul>
+{% for url in all_urls %}
+	<li><a href="{{ url }}">{{ request.url }}{{ url }}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}
