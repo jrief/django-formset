@@ -88,13 +88,12 @@ def test_add_inner_collection(page):
     formset.wait_for_selector('django-form-collection > django-form-collection[sibling-position="1"] > button.remove-collection').click()
     assert formset.query_selector('django-form-collection > django-form-collection[sibling-position="1"]') is None
     formset.wait_for_selector('django-form-collection > button.add-collection').click()
-    assert formset.query_selector('django-form-collection > django-form-collection[sibling-position="1"]') is None
-    assert formset.query_selector('django-form-collection > django-form-collection[sibling-position="2"]') is not None
+    assert formset.query_selector('django-form-collection > django-form-collection[sibling-position="1"]') is not None
     page.hover('django-form-collection > django-form-collection[sibling-position="0"]')
     formset.wait_for_selector('django-form-collection > django-form-collection[sibling-position="0"] > button.remove-collection').click()
     assert formset.query_selector('django-form-collection > django-form-collection[sibling-position="0"].dj-marked-for-removal') is not None
     assert formset.query_selector('django-form-collection > django-form-collection[sibling-position="0"] > button.remove-collection:not(disabled)') is not None
-    assert formset.query_selector('django-form-collection > django-form-collection[sibling-position="2"] > button.remove-collection:disabled') is not None
+    assert formset.query_selector('django-form-collection > django-form-collection[sibling-position="1"] > button.remove-collection:disabled') is not None
     formset.wait_for_selector('django-form-collection > django-form-collection[sibling-position="0"] > button.remove-collection').click()
     assert formset.query_selector('django-form-collection > django-form-collection[sibling-position="0"]:not(.dj-marked-for-removal)') is not None
     assert len(formset.query_selector_all('django-form-collection > django-form-collection > button.remove-collection:not(disabled)')) == 2
@@ -114,7 +113,7 @@ def test_add_outer_collection(page):
     assert formset.query_selector('django-form-collection[sibling-position="0"] > django-form-collection[sibling-position="0"] > button.remove-collection:not(disabled)') is not None
     assert formset.query_selector('django-form-collection[sibling-position="0"] > django-form-collection[sibling-position="1"] > button.remove-collection:disabled') is not None
     formset.wait_for_selector('django-form-collection[sibling-position="0"] > button.add-collection + button.remove-collection').click()
-    assert formset.query_selector('django-form-collection[sibling-position="0"] > django-form-collection[sibling-position="0"] > button.remove-collection:disabled') is not None
+    assert formset.query_selector('django-form-collection[sibling-position="0"] > django-form-collection[sibling-position="0"] > button.remove-collection:not(disabled)') is not None
     assert formset.query_selector('django-form-collection[sibling-position="0"] > django-form-collection[sibling-position="1"] > button.remove-collection:disabled') is not None
     formset.wait_for_selector('django-form-collection[sibling-position="0"] > button.add-collection + button.remove-collection').click()
     assert formset.query_selector('django-form-collection[sibling-position="0"] > django-form-collection[sibling-position="0"] > button.remove-collection:not(disabled)') is not None

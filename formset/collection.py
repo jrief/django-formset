@@ -7,7 +7,7 @@ from django.utils.datastructures import MultiValueDict
 
 from formset.exceptions import FormCollectionError
 from formset.renderers.default import FormRenderer
-from formset.utils import HolderMixin, FormMixin, FormsetErrorList
+from formset.utils import HolderMixin, FormMixin, FormsetErrorList, MARKED_FOR_REMOVAL
 
 COLLECTION_ERRORS = '_collection_errors_'
 
@@ -58,6 +58,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     max_siblings = None
     extra_siblings = None
     legend = None
+    ignore_marked_for_removal = None
 
     def __init__(self, data=None, initial=None, renderer=None, prefix=None, min_siblings=None,
                  max_siblings=None, extra_siblings=None):
@@ -94,7 +95,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 initial = self.initial.get(name)
             if initial is None:
                 initial = declared_holder.initial
-            holder = declared_holder.replicate(initial=initial, prefix=prefix, renderer=self.renderer)
+            holder = declared_holder.replicate(initial=initial, prefix=prefix, renderer=self.renderer,
+                                               ignore_marked_for_removal=self.ignore_marked_for_removal)
             holder.is_single = True
             yield holder
 
@@ -116,7 +118,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     initial = self.initial[position].get(name)
                 if initial is None:
                     initial = declared_holder.initial
-                holder = declared_holder.replicate(initial=initial, prefix=prefix, renderer=self.renderer)
+                holder = declared_holder.replicate(initial=initial, prefix=prefix, renderer=self.renderer,
+                                                   ignore_marked_for_removal=self.ignore_marked_for_removal)
                 holder.position = position
                 if item_num == first:
                     holder.is_first = True
@@ -134,7 +137,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             else:
                 position = '${position}'
                 prefix = f'${{position}}.{name}'
-            holder = declared_holder.replicate(prefix=prefix, renderer=self.renderer)
+            holder = declared_holder.replicate(prefix=prefix, renderer=self.renderer,
+                                               ignore_marked_for_removal=self.ignore_marked_for_removal)
             holder.is_template = True
             holder.position = position
             if item_num == first:
@@ -170,13 +174,13 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             self.cleaned_data = []
             self._errors = ErrorList()
             for index, data in enumerate(self.data):
-                if data is None:
-                    # collection has been marked for removal
-                    continue
                 cleaned_data = {}
                 for name, declared_holder in self.declared_holders.items():
                     if name in data:
-                        holder = declared_holder.replicate(data=data[name])
+                        holder = declared_holder.replicate(data=data[name],
+                                                           ignore_marked_for_removal=self.ignore_marked_for_removal)
+                        if holder.ignore_marked_for_removal and MARKED_FOR_REMOVAL in holder.data:
+                            break
                         if holder.is_valid():
                             cleaned_data[name] = holder.cleaned_data
                         else:
@@ -186,7 +190,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                         # can only happen, if client bypasses browser control
                         self._errors.extend([{}] * (index - len(self._errors)))
                         self._errors.append({name: {NON_FIELD_ERRORS: ["Form data is missing."]}})
-                self.cleaned_data.append(cleaned_data)
+                else:
+                    self.cleaned_data.append(cleaned_data)
             if len(self.cleaned_data) < self.min_siblings:
                 # can only happen, if client bypasses browser control
                 self._errors.clear()
@@ -200,7 +205,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             self._errors = ErrorDict()
             for name, declared_holder in self.declared_holders.items():
                 if name in self.data:
-                    holder = declared_holder.replicate(data=self.data[name])
+                    holder = declared_holder.replicate(data=self.data[name],
+                                                       ignore_marked_for_removal=self.ignore_marked_for_removal)
                     if holder.is_valid():
                         self.cleaned_data[name] = holder.cleaned_data
                     else:
