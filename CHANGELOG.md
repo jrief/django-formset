@@ -1,5 +1,14 @@
 ## Changes
 
+- 0.9 (next)
+  * Fixed resetting problems in multiple collections with siblings: All just added collections are
+    removed.
+  * Distinguish while removing a collection: A just added collection is removed, while existing
+    collections are marked for removal.
+  * On cleaning post data while processing collections, one can choose whether to keep existig but
+    removed colections for further processing, or ignore them.
+  * Allow extra label to be added inside the "Add collection" button.
+
 - 0.8.8
   * Use a simpler and semantically more correct HTML representation for the file uploader widget.
 
