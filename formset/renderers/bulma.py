@@ -48,10 +48,10 @@ class FormRenderer(DefaultFormRenderer):
         return context
 
     def _amend_collection(self, context):
+        context = super()._amend_collection(context)
         context.update({
             'add_collection_button': 'formset/bulma/buttons/add_collection.html',
             'remove_collection_button': 'formset/bulma/buttons/remove_collection.html',
-            'css_classes': self.collection_css_classes,
         })
         return context
 

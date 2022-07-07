@@ -58,6 +58,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     max_siblings = None
     extra_siblings = None
     legend = None
+    add_label = None
     ignore_marked_for_removal = None
 
     def __init__(self, data=None, initial=None, renderer=None, prefix=None, min_siblings=None,

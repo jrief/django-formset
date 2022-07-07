@@ -1,5 +1,6 @@
 import copy
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorDict, ErrorList
 from django.utils.functional import cached_property
@@ -32,7 +33,7 @@ class FormsetErrorList(ErrorList):
 
 
 class HolderMixin:
-    ignore_marked_for_removal = False
+    ignore_marked_for_removal = getattr(settings, 'FORMSET_IGNORE_MARKED_FOR_REMOVAL', False)
 
     def replicate(self, data=None, initial=None, prefix=None, renderer=None, ignore_marked_for_removal=None):
         replica = copy.copy(self)

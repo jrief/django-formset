@@ -71,3 +71,5 @@ TEMPLATES = [{
 }]
 
 WSGI_APPLICATION = 'wsgi.application'
+
+FORMSET_IGNORE_MARKED_FOR_REMOVAL = False
