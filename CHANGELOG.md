@@ -1,8 +1,8 @@
 ## Changes
 
 - 0.9 (next)
-  * Fixed resetting problems in multiple collections with siblings: All just added collections are
-    removed.
+  * Fixed problems when resetting a formset containing multiple collections with siblings: All just
+    added collections are removed on reset.
   * Distinguish while removing a collection: A just added collection is removed, while existing
     collections are marked for removal.
   * On cleaning post data while processing collections, one can choose whether to keep existig but
