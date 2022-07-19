@@ -275,7 +275,7 @@ def test_integer_field(page):
     placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == "Ensure this value is less than or equal to 4."
     input_elem.click()
-    page.keyboard.press('Home')
+    # page.keyboard.press('Home')
     page.keyboard.press('Delete')
     input_elem.type("1")
     input_elem.evaluate('elem => elem.blur()')
