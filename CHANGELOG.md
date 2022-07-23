@@ -8,6 +8,7 @@
   * On cleaning post data while processing collections, one can choose whether to keep existig but
     removed colections for further processing, or ignore them.
   * Allow extra label to be added inside the "Add collection" button.
+  * Handle CSRF token via attribute to `<django-formset csrf-token="…">` rather than using a cookie.
 
 - 0.8.8
   * Use a simpler and semantically more correct HTML representation for the file uploader widget.

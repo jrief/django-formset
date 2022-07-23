@@ -1240,6 +1240,7 @@ export class DjangoFormset {
 	private readonly element: DjangoFormsetElement;
 	private readonly buttons = Array<DjangoButton>(0);
 	private readonly forms = Array<DjangoForm>(0);
+	public readonly CSRFToken: string;
 	public readonly formCollections = Array<DjangoFormCollection>(0);
 	public readonly collectionErrorsList = new Map<string, HTMLUListElement>();
 	public formCollectionTemplate?: DjangoFormCollectionTemplate;
@@ -1251,6 +1252,10 @@ export class DjangoFormset {
 	constructor(formset: DjangoFormsetElement) {
 		this.element = formset;
 		this.showFeedbackMessages = this.parseWithholdFeedback();
+		const csrftoken = this.element.getAttribute('csrf-token');
+		if (!csrftoken)
+			throw new Error('<django-formset csrf-token="…"> is missing or empty.');
+		this.CSRFToken = csrftoken;
 	}
 
 	connectedCallback() {
@@ -1403,15 +1408,6 @@ export class DjangoFormset {
 
 	public removeForm(form: DjangoForm) {
 		this.forms.splice(this.forms.indexOf(form), 1);
-	}
-
-	public get CSRFToken(): string | undefined {
-		const value = `; ${document.cookie}`;
-		const parts = value.split('; csrftoken=');
-
-		if (parts.length === 2) {
-			return parts[1].split(';').shift();
-		}
 	}
 
 	private aggregateValues() {
