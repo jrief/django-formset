@@ -17,7 +17,7 @@ client can upload to the server must be shared for all of them [1]_, [2]_.
 
 Therefore **django-formset** handles file uploads asynchronously. This means that the payload of a
 file is uploaded to the server as soon as the user opens the file dialog or drags a file into the
-form. While that file is uploading, the user can fill out outher fields. The uploaded file is
+form. While that file is uploading, the user can fill out other fields. The uploaded file is
 stored in a temporary folder on the server. After successful file upload, a unique and signed handle
 is returned to the client. On form submission, this handle then is used to refer to the previously
 uploaded file inside the temporary folder. If the form validated properly, that file then is moved
@@ -51,5 +51,5 @@ Remember, the Django View accepting the form data, must inherit from
   :alt: File Upload
 
 If an uploaded file contains an image renderable by the browser, that image is resized on the server
-and a thumbnailed version is returned to the client. For other file types, a symbolic icon is
+and a thumbnail version is returned to the client. For other file types, a symbolic icon is
 returned.

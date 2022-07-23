@@ -51,7 +51,7 @@ Typically there is one form per page, because the HTML standard does not allow t
 one form in one submission. With the introduction of FormSets_, Django provides a workaround for
 this use-case. It however relies on prefixing each field from different Django Forms with a unique
 identifier, so that those Django Forms can be wrapped into one HTML ``<form>``-element. This makes
-the handling of mutiple forms per page cumbersome and difficult to understand.
+the handling of multiple forms per page cumbersome and difficult to understand.
 
 By using **django-formset** on the other hand, each Django Form corresponds to its own ``<form>``
 -element. Inside each form, all field names remain unmodified and on submission, each form
@@ -102,7 +102,7 @@ contemporary anymore.
 .. figure:: _static/animated-person-form.png
 	:width: 650px
 
-	Interacting with that form, shows validation errors immediatly.
+	Interacting with that form, shows validation errors immediately.
 
 With the Web Component ``<django-formset>`` we instead can use the above Django Form and render it
 using a slightly modified Django view and a template such as
@@ -163,7 +163,7 @@ with encapsulated styling and custom behavior.
 
 The JavaScript behind this component now handles the following functions:
 
-* Client-side validaton of our form fields using the constraints defined by our form.
+* Client-side validation of our form fields using the constraints defined by our form.
 * Serializes the data entered into our form fields.
 * Handles the submission of that data, by sending it to the server's ``endpoint``.
 * Receives server-side validation annotations and marks all fields containing incorrect data.

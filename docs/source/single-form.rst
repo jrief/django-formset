@@ -208,7 +208,7 @@ We then iterate over all form fields. Here we must distinguish between hidden an
 While the latter shall be wrapped inside a ``<django-field-group>`` each, the former shall not.
 We can then further specialize our rendering logic, depending on which field we want to render.
 
-Rendering a form field-by-field shall only be used as last resort, because it inhibits the reusage
+Rendering a form field-by-field shall only be used as last resort, because it inhibits the reuse
 of the rendering templates. If fields have to be styled explicitly, for instance to place the input
 field for the postal code on the same line as the input field for the "city", then a better approach
 is to adopt the :ref:`renderers`.
