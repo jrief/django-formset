@@ -50,7 +50,7 @@ entry is much more efficient, rather than doing this using JavaScript inside the
 Undo and Redo Buttons
 ---------------------
 
-While working with these kinds of widgets, it can easily happen to accidentaly move the wrong
+While working with these kinds of widgets, it can easily happen to accidentally move the wrong
 options. Often the only solution to this is to reset the form and restart over again. By using the
 **DualSelector** widget, one can use the undo and redo buttons to switch to the previous selections.
 
@@ -91,7 +91,7 @@ widget. Both widgets use the same lookup interface and hence can easily be swapp
 other, by changing the widget argument in the choice field. 
 
 From a usability point of view, the **SelectizeMultiple** widget probably is easier to understand,
-especially for unexperienced users. It is best suited when only a few options (say, less than 15)
+especially for inexperienced users. It is best suited when only a few options (say, less than 15)
 shall be selectable together. And since it's much more compact, it shall be used if rendering space
 is a concern.
 

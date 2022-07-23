@@ -4,7 +4,7 @@
 Form Renderers
 ==============
 
-Sicnce Django-4.0 each form can specify its own renderer_. This is important, because it separates
+Since Django-4.0 each form can specify its own renderer_. This is important, because it separates
 the representation layer from the logical layer of forms. And it allows us to render the same form
 for different CSS frameworks without modifying a single field. The only thing we have to do, is to
 replace the form renderer with an alternative one.
@@ -14,7 +14,7 @@ replace the form renderer with an alternative one.
 Form Grid Example
 -----------------
 
-Say, we have a form to ask for the reciepient's address:
+Say, we have a form to ask for the recipient's address:
 
 .. code-block:: python
 
@@ -96,7 +96,7 @@ Inline Form Example
 -------------------
 
 By using slightly different parameters, a form can be rendered with labels and input fields side
-by side, rather than beneeth each other. This can simply be achieved by replacing the form renderer
+by side, rather than beneath each other. This can simply be achieved by replacing the form renderer
 using these parameters.
 
 .. code-block:: python
