@@ -4,10 +4,10 @@
 Styling Forms with django-formset
 =================================
 
-**django-formset** ships with renderers, each one specialzed to render all possible Django form
+**django-formset** ships with renderers, each one specialized to render all possible Django form
 widgets, for five different CSS frameworks.
 
-* Input fields of type text, with validation for minimum and maximun input length.
+* Input fields of type text, with validation for minimum and maximum input length.
 * Input fields of type text with pattern matching.
 * Input fields of type number, with validation on their input range.
 * Input fields of type date. This currently uses the default date widget from the browser, but
@@ -34,9 +34,9 @@ Default Styling
 ===============
 
 The default **django-formset** styling intentionally renders all the fields as the browser would by
-default. This admiditly looks very rough and we only use it, if we want to style every aspect of our
+default. This admittedly looks very rough and we only use it, if we want to style every aspect of our
 web site. This requires to write the CSS ourselves. If we use one of the known CSS frameworks, then
-instead we will proceed with one of the specialized renderes. The concept for rendering a form
+instead we will proceed with one of the specialized renderers. The concept for rendering a form
 remains to same, independently of the CSS framework.
 
 Say we have a typical Django form
@@ -110,9 +110,9 @@ Bootstrap
 =========
 
 Bootstrap is probably the most popular CSS framework nowadays, and **django-formset** offers a
-renderer, which renders all its input fields as proposed by the `Boostrap's form usage guide`_.
+renderer, which renders all its input fields as proposed by the `Bootstrap's form usage guide`_.
 
-.. _Boostrap's form usage guide: https://getbootstrap.com/docs/5.1/forms/overview/
+.. _Bootstrap's form usage guide: https://getbootstrap.com/docs/5.1/forms/overview/
 
 In the template from above, we simply replace the templatetag against
 
@@ -138,7 +138,7 @@ Inlining Form Fields
 --------------------
 
 By using slightly different parameters, a form can be rendered with labels and input fields side
-by side, rather than beneeth each other. This can be achieved by applying these CSS classes
+by side, rather than beneath each other. This can be achieved by applying these CSS classes
 to the templatetag
 
 .. code-block:: django
@@ -262,7 +262,7 @@ UIKit
 =====
 
 UIKit claims to be a lightweight and modular front-end framework for developing fast and powerful
-web interfaces. It has been added for completenes to test the form rendering capabilities of
+web interfaces. It has been added for completeness to test the form rendering capabilities of
 **django-formset** when working with exotic CSS frameworks. It offers a renderer, which renders all
 input fields as proposed by `UIKit's form rendering guide`_.
 

@@ -37,6 +37,10 @@ class HolderMixin:
 
     def replicate(self, data=None, initial=None, prefix=None, renderer=None, ignore_marked_for_removal=None):
         replica = copy.copy(self)
+        if hasattr(self, 'declared_holders'):
+            replica.declared_holders = {
+                key: holder.replicate() for key, holder in self.declared_holders.items()
+            }
         replica.data = data
         replica.is_bound = data is not None
         replica._errors = None

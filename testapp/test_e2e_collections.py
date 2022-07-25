@@ -61,9 +61,9 @@ def test_submit_data(page, mocker):
     assert len(contact_collections) == 1
     number_collections = contact_collections[0].query_selector_all(':scope > django-form-collection')
     assert len(number_collections) == 1
-    page.type('#id_0\\.person\\.full_name', "John Doe")
-    page.type('#id_0\\.person\\.email', "john@example.com")
-    page.type('#id_0\\.numbers\\.0\\.number\\.phone_number', "+1200300400")
+    page.fill('#id_0\\.person\\.full_name', "John Doe")
+    page.fill('#id_0\\.person\\.email', "john@example.com")
+    page.fill('#id_0\\.numbers\\.0\\.number\\.phone_number', "+1200300400")
     page.select_option('#id_0\\.numbers\\.0\\.number\\.label', 'work')
     spy = mocker.spy(FormCollectionView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')

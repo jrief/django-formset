@@ -73,7 +73,7 @@ the submission to the server.
 
 An optional attribute to this web component is ``withhold-feedback``. By setting this to
 ``messages``, ``errors``, ``warnings``, ``success``, or any combination of thereof, we can withhold
-the feedback immediatly shown after the user types into a field or whenever a field looses focus.
+the feedback immediately shown after the user types into a field or whenever a field looses focus.
 When combining two or more of those values, separate them by spaces.
 
 Adding ``messages`` to ``withhold-feedback="..."`` means, that the error messages below the field
