@@ -27,7 +27,7 @@ of other fields.
 Example
 =======
 
-In this example we use two forms nested in a ``FormCollection``. Remeber, a ``Fieldset`` behaves
+In this example we use two forms nested in a ``FormCollection``. Remember, a ``Fieldset`` behaves
 exactly as a ``Form`` instance and can be used as a replacement, although with additional styling
 possibilities.
 
