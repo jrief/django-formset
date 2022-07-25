@@ -1,3 +1,4 @@
+import copy
 import json
 
 from django.http.response import HttpResponseBadRequest, JsonResponse
@@ -128,7 +129,7 @@ class FormView(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin, Gene
 class FormCollectionViewMixin(FormsetResponseMixin):
     collection_class = None
     success_url = None
-    initial = {}
+    initial = None
 
     def get(self, request, *args, **kwargs):
         """Handle GET requests: instantiate blank versions of the forms in the collection."""
@@ -164,7 +165,7 @@ class FormCollectionViewMixin(FormsetResponseMixin):
 
     def get_initial(self):
         """Return the initial data to use for collections of forms on this view."""
-        return self.initial.copy()
+        return copy.copy(self.initial)
 
     def get_success_url(self):
         return str(self.success_url) if self.success_url else None
@@ -191,7 +192,7 @@ class EditCollectionView(IncompleSelectResponseMixin, FileUploadMixin, FormColle
 
     def get_initial(self):
         initial = super().get_initial()
-        if self.object:
+        if isinstance(initial, dict) and self.object:
             collection_class = self.get_collection_class()
             initial.update(collection_class().model_to_dict(self.object))
         return initial
