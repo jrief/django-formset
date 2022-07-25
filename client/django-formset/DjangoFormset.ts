@@ -1240,7 +1240,7 @@ export class DjangoFormset {
 	private readonly element: DjangoFormsetElement;
 	private readonly buttons = Array<DjangoButton>(0);
 	private readonly forms = Array<DjangoForm>(0);
-	public readonly CSRFToken: string;
+	private readonly CSRFToken: string | null;
 	public readonly formCollections = Array<DjangoFormCollection>(0);
 	public readonly collectionErrorsList = new Map<string, HTMLUListElement>();
 	public formCollectionTemplate?: DjangoFormCollectionTemplate;
@@ -1252,10 +1252,7 @@ export class DjangoFormset {
 	constructor(formset: DjangoFormsetElement) {
 		this.element = formset;
 		this.showFeedbackMessages = this.parseWithholdFeedback();
-		const csrftoken = this.element.getAttribute('csrf-token');
-		if (!csrftoken)
-			throw new Error('<django-formset csrf-token="…"> is missing or empty.');
-		this.CSRFToken = csrftoken;
+		this.CSRFToken = this.element.getAttribute('csrf-token');
 	}
 
 	connectedCallback() {
@@ -1513,9 +1510,8 @@ export class DjangoFormset {
 			const headers = new Headers();
 			headers.append('Accept', 'application/json');
 			headers.append('Content-Type', 'application/json');
-			const csrfToken = this.CSRFToken;
-			if (csrfToken) {
-				headers.append('X-CSRFToken', csrfToken);
+			if (this.CSRFToken) {
+				headers.append('X-CSRFToken', this.CSRFToken);
 			}
 			const response = await fetch(this.endpoint, {
 				method: 'POST',

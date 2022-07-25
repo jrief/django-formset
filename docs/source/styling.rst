@@ -73,7 +73,7 @@ When rendered using the view class :class:`formset.views.FormView` together with
 
 	{% load formsetify %}
 
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {% render_form form %}
 	  <button type="button" click="submit -> proceed">Submit</button>
 	</django-formset>
@@ -143,7 +143,7 @@ to the templatetag
 
 .. code-block:: django
 
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {% render_form form "bootstrap" field_classes="row mb-3" label_classes="col-sm-3" control_classes="col-sm-9" %}
 	  <div class="offset-sm-3">
 	    <button type="button" click="submit -> proceed">Submit</button>
