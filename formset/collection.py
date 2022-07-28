@@ -96,8 +96,12 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 initial = self.initial.get(name)
             if initial is None:
                 initial = declared_holder.initial
-            holder = declared_holder.replicate(initial=initial, prefix=prefix, renderer=self.renderer,
-                                               ignore_marked_for_removal=self.ignore_marked_for_removal)
+            holder = declared_holder.replicate(
+                initial=initial,
+                prefix=prefix,
+                renderer=self.renderer,
+                ignore_marked_for_removal=self.ignore_marked_for_removal,
+            )
             holder.is_single = True
             yield holder
 
@@ -119,8 +123,12 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     initial = self.initial[position].get(name)
                 if initial is None:
                     initial = declared_holder.initial
-                holder = declared_holder.replicate(initial=initial, prefix=prefix, renderer=self.renderer,
-                                                   ignore_marked_for_removal=self.ignore_marked_for_removal)
+                holder = declared_holder.replicate(
+                    initial=initial,
+                    prefix=prefix,
+                    renderer=self.renderer,
+                    ignore_marked_for_removal=self.ignore_marked_for_removal,
+                )
                 holder.position = position
                 if item_num == first:
                     holder.is_first = True
@@ -138,8 +146,11 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             else:
                 position = '${position}'
                 prefix = f'${{position}}.{name}'
-            holder = declared_holder.replicate(prefix=prefix, renderer=self.renderer,
-                                               ignore_marked_for_removal=self.ignore_marked_for_removal)
+            holder = declared_holder.replicate(
+                prefix=prefix,
+                renderer=self.renderer,
+                ignore_marked_for_removal=self.ignore_marked_for_removal,
+            )
             holder.is_template = True
             holder.position = position
             if item_num == first:
@@ -178,8 +189,10 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 cleaned_data = {}
                 for name, declared_holder in self.declared_holders.items():
                     if name in data:
-                        holder = declared_holder.replicate(data=data[name],
-                                                           ignore_marked_for_removal=self.ignore_marked_for_removal)
+                        holder = declared_holder.replicate(
+                            data=data[name],
+                            ignore_marked_for_removal=self.ignore_marked_for_removal,
+                        )
                         if holder.ignore_marked_for_removal and MARKED_FOR_REMOVAL in holder.data:
                             break
                         if holder.is_valid():
@@ -206,8 +219,10 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             self._errors = ErrorDict()
             for name, declared_holder in self.declared_holders.items():
                 if name in self.data:
-                    holder = declared_holder.replicate(data=self.data[name],
-                                                       ignore_marked_for_removal=self.ignore_marked_for_removal)
+                    holder = declared_holder.replicate(
+                        data=self.data[name],
+                        ignore_marked_for_removal=self.ignore_marked_for_removal,
+                    )
                     if holder.is_valid():
                         self.cleaned_data[name] = holder.cleaned_data
                     else:
