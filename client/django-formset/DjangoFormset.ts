@@ -1153,9 +1153,9 @@ class DjangoFormCollectionTemplate {
 		this.formset = formset;
 		this.element = element;
 		this.parent = parent;
-		const matches = element.innerHTML.matchAll(/sibling-position="(\$\{([^} ]+)\})"/g);
+		const matches = element.innerHTML.matchAll(/\$\{([^} ]+)\}/g);
 		for (const match of matches) {
-			this.baseContext.set(match[2], match[1]);
+			this.baseContext.set(match[1], match[0]);
 		}
 		const prefix = element.getAttribute('prefix');
 		if (!prefix)
