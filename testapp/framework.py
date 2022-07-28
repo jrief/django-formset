@@ -20,7 +20,7 @@ from docutils.parsers.rst import Parser
 from docutils.writers import get_writer_class
 
 from formset.utils import FormMixin
-from formset.views import FileUploadMixin, IncompleSelectResponseMixin, FormCollectionView, FormViewMixin
+from formset.views import FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormViewMixin
 
 from testapp.forms.address import AddressForm
 from testapp.forms.complete import CompleteForm
@@ -74,7 +74,7 @@ class SuccessView(TemplateView):
         return context
 
 
-class DemoViewMixin(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin):
+class DemoViewMixin(IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin):
     def get_success_url(self):
         return reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
 
