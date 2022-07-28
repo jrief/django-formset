@@ -35,11 +35,18 @@ class FormsetErrorList(ErrorList):
 class HolderMixin:
     ignore_marked_for_removal = getattr(settings, 'FORMSET_IGNORE_MARKED_FOR_REMOVAL', False)
 
+    def __init__(self, **kwargs):
+        self.marked_for_removal = False
+        super().__init__(**kwargs)
+
     def replicate(self, data=None, initial=None, prefix=None, renderer=None, ignore_marked_for_removal=None):
         replica = copy.copy(self)
         if hasattr(self, 'declared_holders'):
             replica.declared_holders = {
-                key: holder.replicate() for key, holder in self.declared_holders.items()
+                key: holder.replicate(
+                    renderer=renderer,
+                    ignore_marked_for_removal=ignore_marked_for_removal,
+                ) for key, holder in self.declared_holders.items()
             }
         replica.data = data
         replica.is_bound = data is not None
@@ -72,7 +79,7 @@ class HolderMixin:
     def _clean_for_removal(self):
         """
         Forms which have been marked for removal, clean their received form data,
-        but they always validate.
+        but always keep them as validated.
         """
         self._errors = ErrorDict()
         self.cleaned_data = {}
