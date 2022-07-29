@@ -1,5 +1,20 @@
 ## Changes
 
+- 0.9
+  * Fixed problems when resetting a formset containing multiple collections with siblings: All just
+    added collections are removed on reset.
+  * Distinguish while removing a collection: A just added collection is removed, while existing
+    collections are marked for removal.
+  * On cleaning post data while processing collections, one can choose whether to keep existig but
+    removed colections for further processing, or ignore them.
+  * Allow extra label to be added inside the "Add collection" button.
+  * Handle CSRF token via attribute to `<django-formset csrf-token="…">` rather than using a cookie.
+  * Fix typo: Rename  `IncompleSelectResponseMixin` -> `IncompleteSelectResponseMixin`.
+  * Fix some issues with `FormCollection`-s: Invoking `replicate` now creates a deep copy of all
+    children.
+  * Fix in widget `FileInput`: On reloading the form, the provided value is kept to its initial
+    state.
+
 - 0.8.8
   * Use a simpler and semantically more correct HTML representation for the file uploader widget.
 

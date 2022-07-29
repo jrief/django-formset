@@ -77,10 +77,10 @@ class FormRenderer(DefaultFormRenderer):
         return self._amend_multiple_input(context, 'formset-radio-select')
 
     def _amend_collection(self, context):
+        context = super()._amend_collection(context)
         context.update({
             'add_collection_button': 'formset/tailwind/buttons/add_collection.html',
             'remove_collection_button': 'formset/tailwind/buttons/remove_collection.html',
-            'css_classes': self.collection_css_classes,
         })
         return context
 

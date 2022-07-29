@@ -76,6 +76,7 @@ class FormRenderer(DjangoTemplates):
             'add_collection_button': 'formset/default/buttons/add_collection.html',
             'remove_collection_button': 'formset/default/buttons/remove_collection.html',
             'css_classes': self.collection_css_classes,
+            'add_collection_label': context['collection'].add_label,
         })
         return context
 

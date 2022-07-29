@@ -31,7 +31,7 @@ export class FileUploadWidget {
 	private readonly initialData: Array<Object>;
 	public uploadedFiles: Array<Object>;
 
-	constructor(fieldGroup: FieldGroup, inputElement: HTMLInputElement) {
+	constructor(fieldGroup: this, inputElement: HTMLInputElement) {
 		this.field = fieldGroup;
 		this.inputElement = inputElement;
 

@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-<django-formset endpoint="{{ request.path }}">
+<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	{{ block.super }}
 </django-formset>
 {% endblock %}

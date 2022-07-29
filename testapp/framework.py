@@ -21,12 +21,13 @@ from docutils.parsers.rst import Parser
 from docutils.writers import get_writer_class
 
 from formset.utils import FormMixin
-from formset.views import FileUploadMixin, IncompleSelectResponseMixin, FormCollectionView, FormViewMixin
+from formset.views import FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormViewMixin
 
 from testapp.forms.address import AddressForm
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import SimpleContactCollection, ContactCollection, ContactCollectionList
 from testapp.forms.customer import CustomerCollection
+from testapp.forms.nested import NestedCollection
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
 from testapp.forms.questionnaire import QuestionnaireForm
@@ -74,7 +75,7 @@ class SuccessView(TemplateView):
         return context
 
 
-class DemoViewMixin(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin):
+class DemoViewMixin(IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin):
     def get_success_url(self):
         return reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
 
@@ -289,7 +290,7 @@ render such a form shall be written as:
 
 	{% load render_form from formsetify %}
 
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {% render_form form field_classes=... form_classes=... fieldset_classes=... label_classes=... control_classes=... %}
 	</django-formset>
 """
@@ -316,9 +317,7 @@ templatetag:
 
 .. code-block:: django
 
-	{% with dummy=csrf_token.0 %}{% endwith %}
-	...
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {{ form }}
 	  ...
 	</django-formset>
@@ -336,7 +335,7 @@ might look like:
 	{% load formsetify %}
 	...
 	{% formsetify form %}
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  <form>
 	    {% include "formset/non_field_errors.html" %}
 	    {% for field in form %}

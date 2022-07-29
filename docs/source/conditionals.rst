@@ -54,7 +54,7 @@ This form uses a conditional where the value of one field influences if another 
 	        widget=widgets.CheckboxInput(attrs={'show-if': ".gender=='f'"})
 	    )
 
-Here we add the conditional ``show-if=".gender=='f'"`` to the checkbox asking for pregancy. Only
+Here we add the conditional ``show-if=".gender=='f'"`` to the checkbox asking for pregnancy. Only
 if the field ``gender`` contains value ``f``, then that checkbox is visible. The path for accessing
 that variable is relative here, if it starts with a dot, then the named field from the same form is
 evaluated. 

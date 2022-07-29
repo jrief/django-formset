@@ -68,7 +68,7 @@ special template tag ``render_form``. The template responsible for rendering sha
 
 	{% load render_form from formsetify %}
 
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {% render_form form field_classes="mb-2" form_classes="rounded-xl" %}
 	  <button type="button" click="submit -> proceed">Submit</button>
 	</django-formset>
@@ -79,7 +79,7 @@ our form. When rendered, the above form will roughly turn into HTML such as:
 
 .. code-block:: html
 
-	<django-formset endpoint="/path/to/form-view">
+	<django-formset endpoint="/path/to/form-view" csrf-token="{{ csrf_token }}">
 	  <form class="rounded-xl">
 	    <div class="dj-form-errors"><ul class="dj-errorlist"></ul></div>
 	    <django-field-group class="mb-5 dj-required">
@@ -143,9 +143,7 @@ The template required to render such a form then shall look like:
 
 .. code-block:: django
 
-	{% with dummy=csrf_token.0 %}{% endwith %}
-	...
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {{ form }}
 	  <button type="button" click="submit -> proceed">Submit</button>
 	</django-formset>
@@ -153,10 +151,9 @@ The template required to render such a form then shall look like:
 Let's discuss these lines of HTML code step by step:
 
 Since the JavaScript implementing web component ``<django-formset>`` communicates via Ajax with the
-server, having a hidden field containing the CSRF-token doesn't make sense. Instead we use a Cookie
-which by default is named ``csrftoken`` in Django. By default, that token is available in the
-rendering context, but it is a lazy object. We therefore have to evaluate it once by accessing one
-of its members. This is what ``csrf_token.0`` does.
+server, having a hidden field containing the CSRF-token doesn't make sense. Instead we pass that
+token value as attribute to the web component ``<django-formset>``. Since that value is available in
+the rendering context, we always add it as ``<django-formset csrf-token="{{ csrf_token }}">``.
 
 Having setup the form's template this way, allows us to render the form instance as a string. This
 is what ``{{ form }}`` does. On the first sight, this may seem more cumbersome that the solution
@@ -182,7 +179,7 @@ template:
 	{% load formsetify %}
 	...
 	{% formsetify form %}
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  <form>
 	    {% include "formset/non_field_errors.html" %}
 	    {% for field in form %}
@@ -208,7 +205,7 @@ We then iterate over all form fields. Here we must distinguish between hidden an
 While the latter shall be wrapped inside a ``<django-field-group>`` each, the former shall not.
 We can then further specialize our rendering logic, depending on which field we want to render.
 
-Rendering a form field-by-field shall only be used as last resort, because it inhibits the reusage
+Rendering a form field-by-field shall only be used as last resort, because it inhibits the reuse
 of the rendering templates. If fields have to be styled explicitly, for instance to place the input
 field for the postal code on the same line as the input field for the "city", then a better approach
 is to adopt the :ref:`renderers`.

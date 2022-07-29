@@ -2,9 +2,12 @@
 @import "../../formset/css/collections.css";
 
 django-form-collection[sibling-position] {
-	margin-top: 0.75rem;
+	padding-top: 0.25rem;
+	margin-bottom: 0.25rem;
+}
+django-form-collection[sibling-position]:not(:last-of-type) {
 	border-bottom: 1px solid rgb(209 213 219);
 }
 django-form-collection[sibling-position] > .remove-collection {
-	top: -0.5rem;
+	top: -0.25rem;
 }
