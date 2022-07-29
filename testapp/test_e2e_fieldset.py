@@ -27,8 +27,8 @@ def test_submit_customer(page, mocker):
     legend = fieldset.query_selector('legend')
     assert legend.text_content() == "Customer"
     assert customer_collections[1].query_selector('fieldset') is None
-    page.type('#id_customer\\.name', "John Doe")
-    page.type('#id_customer\\.address', "123, Lye Street")
+    page.fill('#id_customer\\.name', "John Doe")
+    page.fill('#id_customer\\.address', "123, Lye Street")
     spy = mocker.spy(FormCollectionView, 'post')
     page.query_selector('django-formset button').click()
     response = json.loads(spy.call_args.args[1].body)
