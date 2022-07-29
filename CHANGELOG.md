@@ -1,6 +1,6 @@
 ## Changes
 
-- 0.9 (next)
+- 0.9
   * Fixed problems when resetting a formset containing multiple collections with siblings: All just
     added collections are removed on reset.
   * Distinguish while removing a collection: A just added collection is removed, while existing
