@@ -122,6 +122,16 @@ class FormView(IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin, Ge
             ...
         ]
 
+    or by inheriting from ``FormView`` and overwriting the attributes in that class:
+
+    .. code-block:: python
+
+        from formset.views import FormView
+
+        class MyFormEditView(FormView):
+            form_class = MyForm
+            template_name = 'my-form.html'
+            success_url = '/success'
     """
 
 
