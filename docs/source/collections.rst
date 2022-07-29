@@ -49,15 +49,14 @@ We use this kind of collection, if we just want to group two or more forms toget
 	to the one defined in the example.
 
 Collections must be rendered using the special View class :class:`formset.views.FormCollectionView`:
-The template used to render our Form Collection must ensure that the CSRF-Cookie is set; this is
-done by accessing the CSRF token. Otherwise this View just behaves like an ordinary Form View
-embedded in a **django-formset**.
+The template used to render our Form Collection must ensure that the CSRF-token is set; this is
+done by passing that CSRF token value as attribute to the web component ``<django-formset>``.
+Otherwise this View just behaves like an ordinary Form View embedded in a **django-formset**.
 
 .. code-block:: django
 	:caption: my-collection.html
 
-	<django-formset endpoint="{{ request.path }}">
-	  {% with dummy=csrf_token.0 %}{% endwith %}
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {{ form_collection }}
 	</django-formset>
 

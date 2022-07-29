@@ -1153,9 +1153,9 @@ class DjangoFormCollectionTemplate {
 		this.formset = formset;
 		this.element = element;
 		this.parent = parent;
-		const matches = element.innerHTML.matchAll(/sibling-position="(\$\{([^} ]+)\})"/g);
+		const matches = element.innerHTML.matchAll(/\$\{([^} ]+)\}/g);
 		for (const match of matches) {
-			this.baseContext.set(match[2], match[1]);
+			this.baseContext.set(match[1], match[0]);
 		}
 		const prefix = element.getAttribute('prefix');
 		if (!prefix)
@@ -1240,6 +1240,7 @@ export class DjangoFormset {
 	private readonly element: DjangoFormsetElement;
 	private readonly buttons = Array<DjangoButton>(0);
 	private readonly forms = Array<DjangoForm>(0);
+	private readonly CSRFToken: string | null;
 	public readonly formCollections = Array<DjangoFormCollection>(0);
 	public readonly collectionErrorsList = new Map<string, HTMLUListElement>();
 	public formCollectionTemplate?: DjangoFormCollectionTemplate;
@@ -1251,6 +1252,7 @@ export class DjangoFormset {
 	constructor(formset: DjangoFormsetElement) {
 		this.element = formset;
 		this.showFeedbackMessages = this.parseWithholdFeedback();
+		this.CSRFToken = this.element.getAttribute('csrf-token');
 	}
 
 	connectedCallback() {
@@ -1405,15 +1407,6 @@ export class DjangoFormset {
 		this.forms.splice(this.forms.indexOf(form), 1);
 	}
 
-	public get CSRFToken(): string | undefined {
-		const value = `; ${document.cookie}`;
-		const parts = value.split('; csrftoken=');
-
-		if (parts.length === 2) {
-			return parts[1].split(';').shift();
-		}
-	}
-
 	private aggregateValues() {
 		this.data = {};
 		for (const form of this.forms) {
@@ -1517,9 +1510,8 @@ export class DjangoFormset {
 			const headers = new Headers();
 			headers.append('Accept', 'application/json');
 			headers.append('Content-Type', 'application/json');
-			const csrfToken = this.CSRFToken;
-			if (csrfToken) {
-				headers.append('X-CSRFToken', csrfToken);
+			if (this.CSRFToken) {
+				headers.append('X-CSRFToken', this.CSRFToken);
 			}
 			const response = await fetch(this.endpoint, {
 				method: 'POST',

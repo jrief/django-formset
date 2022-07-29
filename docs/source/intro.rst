@@ -111,7 +111,7 @@ using a slightly modified Django view and a template such as
 
 	{% load formsetify %}
 
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  <form>
 	    {% render_form form %}
 	  </form>

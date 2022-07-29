@@ -76,8 +76,9 @@ as widget to the field's arguments
 	    )
 
 Since this field can perform remote lookups, we must tell it how to look for entries in the
-database. Here we use a simple Django query lookup string. There is no need for a special endpoint,
-but the view handling the form must inherit from :class:`formset.views.IncompleSelectResponseMixin`.
+database. Here we use a simple Django query lookup string. There is no need for a special
+endpoint, but the view handling the form must inherit from
+:class:`formset.views.IncompleteSelectResponseMixin`.
 
 .. _MultipleChoiceField: https://docs.djangoproject.com/en/stable/ref/forms/fields/#multiplechoicefield
 .. _ModelMultipleChoiceField: https://docs.djangoproject.com/en/stable/ref/forms/fields/#django.forms.ModelMultipleChoiceField

@@ -42,7 +42,7 @@ this form, typically be rendered using a template such as
 
 	{% load formsetify %}
 
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {% render_form form %}
 	  <p class="mt-3">
 	    <button type="button" click="submit -> proceed" class="btn btn-primary">Submit</button>
@@ -122,7 +122,7 @@ The same effect can be achieved by rendering this form, parametrizing our well k
 
 .. code-block:: django
 
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {% render_form form "bootstrap" field_classes="row mb-3" label_classes="col-sm-3" control_classes="col-sm-9" %}
 	  <div class="offset-sm-3">
 	    <button type="button" click="submit -> proceed" class="btn btn-primary">Submit</button>

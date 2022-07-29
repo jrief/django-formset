@@ -42,7 +42,7 @@ rendering templates reusable, we'd rather write
 
 .. code-block:: django
 
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  ...
 	</django-formset>
 
@@ -53,7 +53,7 @@ We can do this, because the endpoint is located on the same URL as the view rend
 
 .. code-block:: django
 
-	<django-formset endpoint="{{ request.path }}" force-submission>
+	<django-formset endpoint="{{ request.path }}" force-submission csrf-token="{{ csrf_token }}">
 	  ...
 	</django-formset>
 
@@ -67,7 +67,7 @@ the submission to the server.
 
 .. code-block:: django
 
-	<django-formset endpoint="{{ request.path }}" withhold-feedback="...">
+	<django-formset endpoint="{{ request.path }}" withhold-feedback="..." csrf-token="{{ csrf_token }}">
 	  ...
 	</django-formset>
 
