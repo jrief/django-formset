@@ -33,5 +33,5 @@ formset/static/formset/js/django-formset*
 build/
 dist/
 docs/build/
-media/
+workdir/
 testapp/*.sqlite3

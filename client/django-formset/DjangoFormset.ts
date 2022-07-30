@@ -1471,7 +1471,7 @@ export class DjangoFormset {
 			}
 		}
 
-		// build a nested data structure (body) reflecting the shape of collections and forms
+		// Build a nested data structure (body) reflecting the shape of collections and forms
 		const body = {};
 
 		// 1. extend body with empty arrays from Form Collections with siblings
@@ -1493,6 +1493,8 @@ export class DjangoFormset {
 			}
 			extendBody(body, absPath);
 		}
+
+		// Extend data structure with extra data, for instance from buttons
 		return Object.assign({}, body, {_extra: extraData});
 	}
 
