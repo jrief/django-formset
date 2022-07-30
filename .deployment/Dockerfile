@@ -1,9 +1,7 @@
-FROM docker.uibk.ac.at:443/zid/webinfo/python:latest
+FROM python:3.10
 LABEL Description="django-formset testapp" Maintainer="Jacob Rief"
 RUN mkdir /web
 WORKDIR /web
-ARG DJANGO_WORKDIR=/web/workdir
-ARG DJANGO_STATIC_ROOT=/web/staticfiles
 
 # install packages outside of PyPI
 RUN apt-get upgrade -y
@@ -19,16 +17,17 @@ RUN npm ci
 
 # install Python specific requirements
 RUN pip install django psycopg2-binary Pillow uWSGI docutils Pygments
-RUN pip install django-formset==0.9
+RUN pip install django-formset
 
 # copy project relevant files into container
 ADD testapp /web/testapp
-COPY .docker-files/uwsgi.ini /etc/uwsgi.ini
-COPY .docker-files/entrypoint.sh /web/entrypoint.sh
+COPY .deployment/uwsgi.ini /etc/uwsgi.ini
+COPY .deployment/entrypoint.sh /web/entrypoint.sh
 
 # handle static and media files
-ENV DJANGO_STATIC_ROOT=$DJANGO_STATIC_ROOT
-ENV DJANGO_WORKDIR=$DJANGO_WORKDIR
+ENV DJANGO_STATIC_ROOT=/web/staticfiles
+ENV DJANGO_WORKDIR=/web/workdir
+ENV DJANGO_MEDIA_ROOT=/web/workdir/media
 ENV DJANGO_SECRET_KEY=dummy_secret_key
 ENV PYTHONPATH=/web
 RUN mkdir -p $DJANGO_STATIC_ROOT
@@ -38,10 +37,7 @@ RUN ./testapp/manage.py collectstatic --noinput
 RUN useradd -M -d /web -s /bin/bash django
 RUN chown -R django.django $DJANGO_STATIC_ROOT
 
-EXPOSE 9019
-
-# keep media files in external volume
-VOLUME $DJANGO_WORKDIR
+EXPOSE 8080
 
 ENTRYPOINT ["/web/entrypoint.sh"]
 CMD ["uwsgi"]
