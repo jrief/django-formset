@@ -1,5 +1,9 @@
 ## Changes
 
+- 0.9.1
+  * The optional URL parameter passed into button action `proceed(...)` now takes precedence over
+    the `success_url` returned inside the response object.
+
 - 0.9
   * Fixed problems when resetting a formset containing multiple collections with siblings: All just
     added collections are removed on reset.

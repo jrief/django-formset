@@ -545,23 +545,23 @@ class DjangoButton {
 
 	/**
 	 * Proceed to a given URL, if the response object returns status code 200.
-	 * If the response object contains an element `success_url`, proceed to that URL,
+	 * If the response object contains attribute `success_url`, proceed to that URL,
 	 * otherwise proceed to the given fallback URL.
 	 *
-	 * @param fallbackUrl: The URL to proceed to, for valid response objects without
-	 * given success URL.
+	 * @param proceedUrl (optional): If set, proceed to that URL regardless of the
+	 * response status.
 	 */
 	// @ts-ignore
-	private proceed(fallbackUrl: string | undefined) {
+	private proceed(proceedUrl: string | undefined) {
 		return (response: Response) => {
-			if (response instanceof Response && response.status === 200) {
+			if (typeof proceedUrl === 'string' && proceedUrl.length > 0) {
+				location.href = proceedUrl;
+			} else if (response instanceof Response && response.status === 200) {
 				response.json().then(body => {
 					if (body.success_url) {
 						location.href = body.success_url;
-					} else if (typeof fallbackUrl === 'string') {
-						location.href = fallbackUrl;
 					} else {
-						console.warn("Neither a success-, nor a fallback-URL is given to proceed.");
+						console.warn("Neither a success-, nor a proceed-URL are given.");
 					}
 				});
 			}
