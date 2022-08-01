@@ -3,6 +3,8 @@
 - 0.9.1
   * The optional URL parameter passed into button action `proceed(...)` now takes precedence over
     the `success_url` returned inside the response object.
+  * Allow wrapping HTML elements between a `<django-formset>` and its immediate
+    `<django-form-collection>`-elements.
 
 - 0.9
   * Fixed problems when resetting a formset containing multiple collections with siblings: All just

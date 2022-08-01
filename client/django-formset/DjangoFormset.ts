@@ -984,8 +984,8 @@ class DjangoFormCollection {
 	}
 
 	private findFormCollections() {
-		// find all immediate elements <django-form-collection> of this DjangoFormCollection
-		for (const childElement of this.element.querySelectorAll(':scope > django-form-collection')) {
+		// find all immediate elements <django-form-collection ...> belonging to the current <django-form-collection>
+		for (const childElement of DjangoFormCollection.getChildCollections(this.element)) {
 			this.children.push(childElement.hasAttribute('sibling-position')
 				? new DjangoFormCollectionSibling(this.formset, childElement, this)
 				: new DjangoFormCollection(this.formset, childElement, this)
@@ -1036,6 +1036,12 @@ class DjangoFormCollection {
 	}
 
 	protected repositionSiblings() {}
+
+	static getChildCollections(element: Element) : NodeListOf<Element> | [] {
+		// traverse tree to find first occurrence of a <django-form-collection> and if so, return it with its siblings
+		const wrapper = element.querySelector('django-form-collection')?.parentElement;
+		return wrapper ? wrapper.querySelectorAll(':scope > django-form-collection') : [];
+	}
 
 	static resetCollectionsToInitial(formCollections: Array<DjangoFormCollection>) {
 		const removeCollections = Array<DjangoFormCollection>(0);
@@ -1368,8 +1374,8 @@ export class DjangoFormset {
 	}
 
 	private findFormCollections() {
-		// find all immediate elements <django-form-collection sibling-position="..."> belonging to the current <django-formset>
-		for (const element of this.element.querySelectorAll(':scope > django-form-collection')) {
+		// find all immediate elements <django-form-collection ...> belonging to the current <django-formset>
+		for (const element of DjangoFormCollection.getChildCollections(this.element)) {
 			this.formCollections.push(element.hasAttribute('sibling-position')
 				? new DjangoFormCollectionSibling(this, element)
 				: new DjangoFormCollection(this, element)
