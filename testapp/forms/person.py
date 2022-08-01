@@ -98,7 +98,7 @@ class ModelPersonForm(models.ModelForm):
             opinions = models.ManyToManyField(OpinionModel, …)
             continent = models.IntegerField(choices=…, …)
 
-    and want to create a form out of it, such as
+    and create a Django Form out of it, such as
 
     .. code-block:: python
 
@@ -122,10 +122,10 @@ class ModelPersonForm(models.ModelForm):
 
     For model fields of type ``django.db.models.FileField`` and ``django.db.models.ImageField`` the
     widget **must** be replaced by ``formset.widgets.UploadedFileInput`` as discussed in the
-    previous example.
+    example 12.
 
     Input fields for selecting *one option* out of many, shall be replaced by a widget of type
-    ``formset.widgets.Selectize``. This replaces the HTML ``<select>`` element by a more
+    ``formset.widgets.Selectize``. This replaces the HTML ``<select>`` element against a more
     user-friendly version.
 
     Input fields for selecting *many options* out of many, shall be replaced by a widget of either
@@ -133,6 +133,8 @@ class ModelPersonForm(models.ModelForm):
     The ``SelectizeMutiple`` widget is suitable for input fields holding only a few selected
     choices, while the ``DualSelector`` widget is intended for input fields holding many selected
     options.
+
+    Note that the submitted form data is tight to the current session and thus not visible to other users.
     """
 
     class Meta:
