@@ -97,6 +97,7 @@ class FieldGroup {
 					});
 					break;
 				case 'file':
+					// @ts-ignore
 					this.fileUploader = new FileUploadWidget(this, element);
 					break;
 				default:

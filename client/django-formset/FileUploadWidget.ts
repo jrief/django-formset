@@ -31,7 +31,7 @@ export class FileUploadWidget {
 	private readonly initialData: Array<Object>;
 	public uploadedFiles: Array<Object>;
 
-	constructor(fieldGroup: this, inputElement: HTMLInputElement) {
+	constructor(fieldGroup: FieldGroup, inputElement: HTMLInputElement) {
 		this.field = fieldGroup;
 		this.inputElement = inputElement;
 
@@ -137,8 +137,8 @@ export class FileUploadWidget {
 			const complete = event.lengthComputable ? event.loaded / event.total : 0;
 			if (self.progressBar) {
 				self.progressBar.style.visibility = 'visible';
-				// the remaining 10% of the progress bar are reserved for image transformation
-				self.progressBar.value = 0.9 * complete;
+				// the remaining 5% of the progress bar are reserved for image transformation
+				self.progressBar.value = 0.95 * complete;
 			}
 		}
 
