@@ -33,8 +33,8 @@ urlpatterns = [
             'campum': {'agro': 'aa'},
             'level1': {
                 'campum': {'agro': 'bb'},
-                'campum': {'agro': 'cc'},
                 'level2': {
+                    'campum': {'agro': 'cc'},
                     'level3': [
                         {'campum': {'agro': 'dd'}},
                         {'campum': {'agro': 'ee'}},
@@ -181,3 +181,76 @@ def test_nested_remove_inner_last(page, mocker):
             'campum': {'agro': 'AA'},
         }]
     }
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['nested', 'nested_i'])
+def test_nested_reset(page, mocker, viewname):
+    formset = page.query_selector('django-formset')
+    assert len(formset.query_selector_all('django-form-collection')) == 7
+    spy = mocker.spy(FormCollectionView, 'post')
+    if viewname == 'nested':
+        expected = {
+            'formset_data': [{
+                'level1': {
+                    'level2': {
+                        'level3': [
+                            {'campum': {'agro': ''}},
+                            {'campum': {'agro': ''}},
+                        ],
+                        'campum': {'agro': ''},
+                    },
+                    'campum': {'agro': ''},
+                },
+                'campum': {'agro': ''},
+            }]
+        }
+    else:
+        expected = {
+            'formset_data': [{
+                'level1': {
+                    'level2': {
+                        'level3': [
+                            {'campum': {'agro': 'dd'}},
+                            {'campum': {'agro': 'ee'}},
+                        ],
+                        'campum': {'agro': 'cc'},
+                    },
+                    'campum': {'agro': 'bb'},
+                },
+                'campum': {'agro': 'aa'},
+            }]
+        }
+    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    assert json.loads(spy.call_args.args[1].body) == expected
+    formset = page.query_selector('django-formset')
+
+    page.fill('#id_0\\.level1\\.level2\\.level3\\.1\\.campum\\.agro', "EE")
+    formset.evaluate('elem => elem.reset()')
+    input_value = page.query_selector('#id_0\\.level1\\.level2\\.level3\\.1\\.campum\\.agro').input_value()
+    if viewname == 'nested':
+        assert input_value == ''
+    else:
+        assert input_value == 'ee'
+
+    page.hover('#id_0\\.level1\\.level2\\.level3\\.0\\.campum')
+    page.wait_for_selector('#id_0\\.level1\\.level2\\.level3\\.0\\.campum + button.remove-collection').click()
+    locator = page.locator('django-formset django-form-collection[sibling-position="0"] > django-form-collection:last-of-type > django-form-collection:last-of-type > django-form-collection[sibling-position="0"]')
+    assert locator.get_attribute('class') == 'dj-marked-for-removal'
+    formset.evaluate('elem => elem.reset()')
+    assert locator.get_attribute('class') == ''
+
+    collection = page.query_selector('django-formset > django-form-collection[sibling-position="0"] > django-form-collection:last-of-type > django-form-collection:last-of-type')
+    assert len(collection.query_selector_all('django-form-collection')) == 2
+    collection.query_selector('> button.add-collection').click()
+    assert len(collection.query_selector_all('django-form-collection')) == 3
+    assert len(formset.query_selector_all('django-form-collection')) == 8
+    formset.evaluate('elem => elem.reset()')
+    assert len(collection.query_selector_all('django-form-collection')) == 2
+    assert len(formset.query_selector_all('django-form-collection')) == 7
+
+    formset.query_selector('> button.add-collection').click()
+    expected = 14 if viewname == 'nested' else 13
+    assert len(formset.query_selector_all('django-form-collection')) == expected
+    formset.evaluate('elem => elem.reset()')
+    assert len(formset.query_selector_all('django-form-collection')) == 7

@@ -5,6 +5,9 @@ on:
     tags:
       - '*'
 
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
 jobs:
   publish:
     name: "Publish release"
@@ -48,3 +51,6 @@ jobs:
       uses: pypa/gh-action-pypi-publish@master
       with:
         password: ${{ secrets.PYPI_API_TOKEN_FORMSET }}
+    - name: Deploy testapp to https://django-formset.fly.dev/
+      uses: superfly/flyctl-actions/setup-flyctl@master
+      run: flyctl deploy --remote-only

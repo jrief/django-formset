@@ -1,12 +1,14 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'secret_key'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'secret_key')
 
-DEBUG = True
+DEBUG = bool(os.getenv('DJANGO_DEBUG'))
 
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://django-formset.fly.dev']
 
 INSTALLED_APPS = [
     'django.contrib.auth',
@@ -19,18 +21,31 @@ INSTALLED_APPS = [
     'testapp',
 ]
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': Path(__file__).parent / 'demo.sqlite3',
-        'TEST': {
-            'NAME': Path(__file__).parent / 'test.sqlite3',  # live_server requires a file rather than :memory:
-            'OPTIONS': {
-                'timeout': 20,
-            },
-        },
+if os.getenv('DATABASE_ENGINE') == 'postgres':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('POSTGRES_DB'),
+            'USER': os.getenv('POSTGRES_USER'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+            'HOST': os.getenv('POSTGRES_HOST'),
+            'PORT': os.getenv('POSTGRES_PORT', 5432),
+            # 'CONN_MAX_AGE': 900,
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': Path(os.getenv('DJANGO_WORKDIR', BASE_DIR / 'workdir')) / 'testapp.sqlite3',
+            'TEST': {
+                'NAME': Path(__file__).parent / 'test.sqlite3',  # live_server requires a file rather than :memory:
+                'OPTIONS': {
+                    'timeout': 20,
+                },
+            },
+        }
+    }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -50,9 +65,11 @@ STATICFILES_DIRS = [
     ('node_modules', BASE_DIR / 'node_modules'),
 ]
 
+STATIC_ROOT = Path(os.getenv('DJANGO_STATIC_ROOT', BASE_DIR / 'staticfiles'))
+
 STATIC_URL = '/static/'
 
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = Path(os.getenv('DJANGO_MEDIA_ROOT', BASE_DIR / 'workdir/media'))
 
 MEDIA_URL = '/media/'
 
@@ -71,5 +88,30 @@ TEMPLATES = [{
 }]
 
 WSGI_APPLICATION = 'wsgi.application'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'filters': {'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse'}},
+    'formatters': {
+        'simple': {
+            'format': '[%(asctime)s %(module)s] %(levelname)s: %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
 
 FORMSET_IGNORE_MARKED_FOR_REMOVAL = False

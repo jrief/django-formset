@@ -18,10 +18,11 @@ indent_style = tab
 
 [*.html]
 insert_final_newline = false
+indent_size = 2
 
 [*.{md,rst}]
 trim_trailing_whitespace = false
 max_line_length = 100
 
-[*.{html,scss,css}]
+[*.{scss,css}]
 indent_size = 2
