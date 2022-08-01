@@ -27,7 +27,6 @@ from testapp.forms.address import AddressForm
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import SimpleContactCollection, ContactCollection, ContactCollectionList
 from testapp.forms.customer import CustomerCollection
-from testapp.forms.nested import NestedCollection
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
 from testapp.forms.questionnaire import QuestionnaireForm
