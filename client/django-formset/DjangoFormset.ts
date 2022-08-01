@@ -546,23 +546,23 @@ class DjangoButton {
 
 	/**
 	 * Proceed to a given URL, if the response object returns status code 200.
-	 * If the response object contains an element `success_url`, proceed to that URL,
+	 * If the response object contains attribute `success_url`, proceed to that URL,
 	 * otherwise proceed to the given fallback URL.
 	 *
-	 * @param fallbackUrl: The URL to proceed to, for valid response objects without
-	 * given success URL.
+	 * @param proceedUrl (optional): If set, proceed to that URL regardless of the
+	 * response status.
 	 */
 	// @ts-ignore
-	private proceed(fallbackUrl: string | undefined) {
+	private proceed(proceedUrl: string | undefined) {
 		return (response: Response) => {
-			if (response instanceof Response && response.status === 200) {
+			if (typeof proceedUrl === 'string' && proceedUrl.length > 0) {
+				location.href = proceedUrl;
+			} else if (response instanceof Response && response.status === 200) {
 				response.json().then(body => {
 					if (body.success_url) {
 						location.href = body.success_url;
-					} else if (typeof fallbackUrl === 'string') {
-						location.href = fallbackUrl;
 					} else {
-						console.warn("Neither a success-, nor a fallback-URL is given to proceed.");
+						console.warn("Neither a success-, nor a proceed-URL are given.");
 					}
 				});
 			}
@@ -985,8 +985,8 @@ class DjangoFormCollection {
 	}
 
 	private findFormCollections() {
-		// find all immediate elements <django-form-collection> of this DjangoFormCollection
-		for (const childElement of this.element.querySelectorAll(':scope > django-form-collection')) {
+		// find all immediate elements <django-form-collection ...> belonging to the current <django-form-collection>
+		for (const childElement of DjangoFormCollection.getChildCollections(this.element)) {
 			this.children.push(childElement.hasAttribute('sibling-position')
 				? new DjangoFormCollectionSibling(this.formset, childElement, this)
 				: new DjangoFormCollection(this.formset, childElement, this)
@@ -1037,6 +1037,12 @@ class DjangoFormCollection {
 	}
 
 	protected repositionSiblings() {}
+
+	static getChildCollections(element: Element) : NodeListOf<Element> | [] {
+		// traverse tree to find first occurrence of a <django-form-collection> and if so, return it with its siblings
+		const wrapper = element.querySelector('django-form-collection')?.parentElement;
+		return wrapper ? wrapper.querySelectorAll(':scope > django-form-collection') : [];
+	}
 
 	static resetCollectionsToInitial(formCollections: Array<DjangoFormCollection>) {
 		const removeCollections = Array<DjangoFormCollection>(0);
@@ -1369,8 +1375,8 @@ export class DjangoFormset {
 	}
 
 	private findFormCollections() {
-		// find all immediate elements <django-form-collection sibling-position="..."> belonging to the current <django-formset>
-		for (const element of this.element.querySelectorAll(':scope > django-form-collection')) {
+		// find all immediate elements <django-form-collection ...> belonging to the current <django-formset>
+		for (const element of DjangoFormCollection.getChildCollections(this.element)) {
 			this.formCollections.push(element.hasAttribute('sibling-position')
 				? new DjangoFormCollectionSibling(this, element)
 				: new DjangoFormCollection(this, element)
