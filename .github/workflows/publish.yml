@@ -36,7 +36,7 @@ jobs:
       run: |
         npm install --also=dev
         python -m pip install --upgrade pip
-        python -m pip install build --user
+        python -m pip install build django --user
     - name: Build Parser
       run: npm run tag-attributes
     - name: Build Tailwind CSS
