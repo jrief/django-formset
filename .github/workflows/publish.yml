@@ -45,6 +45,8 @@ jobs:
       run: |
         npm run build
         npm run uglify
+    - name: Translate *.po files
+      run: cd django-formset && django-admin compilemessages
     - name: Build 🐍 Python 📦 Package
       run: python -m build --sdist --wheel --outdir dist/
     - name: Publish 🐍 Python 📦 Package to PyPI

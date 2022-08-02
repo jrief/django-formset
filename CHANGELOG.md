@@ -5,6 +5,7 @@
     the `success_url` returned inside the response object.
   * Allow wrapping HTML elements between a `<django-formset>` and its immediate
     `<django-form-collection>`-elements.
+  * Add German translations.
 
 - 0.9
   * Fixed problems when resetting a formset containing multiple collections with siblings: All just
