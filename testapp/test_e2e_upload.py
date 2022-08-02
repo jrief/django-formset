@@ -28,7 +28,7 @@ def test_upload_image(page, mocker):
     choose_file_button = page.query_selector('django-formset form button.dj-choose-file')
     assert choose_file_button is not None  # that button would open the file selector
     dropbox = page.query_selector('django-formset form figure.dj-dropbox')
-    assert dropbox.inner_html() == '<div class="dj-empty-item">Drag file here</div>'
+    assert dropbox.inner_html() == '<div class="dj-empty-item"><p>Drag file here</p></div>'
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
     img_element = dropbox.wait_for_selector('img')
     assert img_element is not None
@@ -108,7 +108,7 @@ def test_delete_uploaded_file(page):
     delete_button = dropbox.wait_for_selector('figcaption a.dj-delete-file')
     delete_button.click()
     empty_item = dropbox.wait_for_selector('div.dj-empty-item')
-    assert empty_item.inner_html() == "Drag file here"
+    assert empty_item.inner_html() == "<p>Drag file here</p>"
 
 
 @pytest.mark.urls(__name__)
