@@ -30,6 +30,7 @@ from testapp.forms.customer import CustomerCollection
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
 from testapp.forms.questionnaire import QuestionnaireForm
+from testapp.forms.richtext import RichTextForm
 from testapp.forms.upload import UploadForm
 from testapp.models import PersonModel
 
@@ -411,11 +412,14 @@ urlpatterns = [
     path('12-upload', DemoFormView.as_view(
         form_class=UploadForm,
     ), name='upload'),
-    path('13-person', DemoModelFormView.as_view(
+    path('13-richtext', DemoFormView.as_view(
+        form_class=RichTextForm,
+    ), name='upload'),
+    path('14-person', DemoModelFormView.as_view(
         form_class=ModelPersonForm,
         model=PersonModel,
     ), name='person'),
-    path('14-button-actions', DemoFormView.as_view(
+    path('15-button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',
         extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)'},
@@ -445,7 +449,7 @@ for length in range(len(withhold_feedbacks) + 1):
         extra_docs.extend([f'* {extra_doc_withhold[w]}' for w in withhold_feedback])
         force_submission = suffix == '.mews'  # just for testing
         urlpatterns.append(
-            path(f'15-withhold{suffix}', DemoFormView.as_view(
+            path(f'16-withhold{suffix}', DemoFormView.as_view(
                 form_class=SimplePersonForm,
                 extra_context={
                     'withhold_feedback': ' '.join(withhold_feedback),

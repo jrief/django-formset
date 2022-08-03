@@ -10,7 +10,7 @@ from django.core.files.storage import default_storage
 from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
-from django.forms.widgets import FileInput, Select, SelectMultiple
+from django.forms.widgets import FileInput, Select, SelectMultiple, Textarea
 from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import now, datetime, utc
 
@@ -165,3 +165,17 @@ class UploadedFileInput(FileInput):
                 content_type_extra=handle['content_type_extra'],
             )
         return files.get(name)
+
+
+class TiptapArea(Textarea):
+    def __init__(self, attrs=None):
+        default_attrs = {'is': 'tiptap'}
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs)
+
+    def format_value(self, value):
+        return ''
+
+    def build_attrs(self, base_attrs, extra_attrs=None):
+        return super().build_attrs(base_attrs, extra_attrs=extra_attrs)

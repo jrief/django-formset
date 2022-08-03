@@ -3,6 +3,7 @@ import setDataValue from 'lodash.set';
 import template from 'lodash.template';
 
 import { FileUploadWidget } from './FileUploadWidget';
+import { TiptapArea } from './TiptapArea';
 import { parse } from './tag-attributes';
 import styles from 'sass:./DjangoFormset.scss';
 import spinnerIcon from './spinner.svg';
@@ -73,7 +74,8 @@ class FieldGroup {
 	private readonly initialDisabled: Array<boolean>;
 	public readonly errorPlaceholder: Element | null;
 	private readonly errorMessages: FieldErrorMessages;
-	private readonly fileUploader: FileUploadWidget | null = null;
+	private readonly fileUploader?: FileUploadWidget;
+	private readonly tiptapArea?: TiptapArea;
 	private readonly updateVisibility: Function;
 	private readonly updateDisabled: Function;
 
@@ -107,22 +109,33 @@ class FieldGroup {
 					break;
 			}
 		}
-		const selectElements = (Array.from(element.getElementsByTagName('SELECT')) as Array<HTMLSelectElement>).filter(e => e.name);
-		for (const element of selectElements) {
-			element.addEventListener('focus', () => this.touch());
-			element.addEventListener('change', () => {
+		this.inputElements = Array<FieldElement>(0).concat(inputElements);
+
+		// <django-field-group> can contain at most one <select> element
+		const selectElement = element.getElementsByTagName('SELECT').item(0);
+		if (selectElement instanceof HTMLSelectElement && selectElement.name) {
+			selectElement.addEventListener('focus', () => this.touch());
+			selectElement.addEventListener('change', () => {
 				this.setDirty();
 				this.clearCustomError();
 				this.validate()
 			});
+			this.inputElements.push(selectElement);
 		}
-		const textAreaElements = Array.from(element.getElementsByTagName('TEXTAREA')) as Array<HTMLTextAreaElement>;
-		for (const element of textAreaElements) {
-			element.addEventListener('focus', () => this.touch());
-			element.addEventListener('input', () => this.inputted());
-			element.addEventListener('blur', () => this.validate());
+
+		// <django-field-group> can contain at most one <textarea> element
+		const textAreaElement = element.getElementsByTagName('TEXTAREA').item(0);
+		if (textAreaElement instanceof HTMLTextAreaElement) {
+			textAreaElement.addEventListener('focus', () => this.touch());
+			textAreaElement.addEventListener('input', () => this.inputted());
+			textAreaElement.addEventListener('blur', () => this.validate());
+			this.inputElements.push(textAreaElement);
+			if (textAreaElement.getAttribute('is') === 'tiptap') {
+				// @ts-ignore
+				this.tiptapArea = new TiptapArea(this, textAreaElement);
+			}
 		}
-		this.inputElements = Array<FieldElement>(0).concat(inputElements, selectElements, textAreaElements);
+
 		for (const element of this.inputElements) {
 			if (this.name === '__undefined__') {
 				this.name = element.name;
