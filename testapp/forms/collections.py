@@ -6,6 +6,9 @@ from .opinion import OpinionForm, sample_opinion_data
 from .person import sample_person_data
 
 
+raise RuntimeError("Unused code")
+
+
 class DoubleFormCollection(FormCollection):
     min_siblings = 2
     max_siblings = 8
