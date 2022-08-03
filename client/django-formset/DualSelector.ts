@@ -310,13 +310,13 @@ export class DualSelector extends IncompleteSelect {
 const DS = Symbol('DualSelectorElement');
 
 export class DualSelectorElement extends HTMLSelectElement {
-	private [DS]: DualSelector;  // hides internal implementation
+	private [DS]?: DualSelector;  // hides internal implementation
 
 	connectedCallback() {
 		this[DS] = new DualSelector(this, 'django-dual-selector');
 	}
 
 	public async getValue() {
-		return this[DS].value;
+		return this[DS]?.value;
 	}
 }
