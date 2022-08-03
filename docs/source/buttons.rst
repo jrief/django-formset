@@ -36,9 +36,9 @@ into details:
   should be used whenever possible.
 * In ``submit``, the content of the form(s) inside the ``<django-formset>`` is submitted to the
   server through the given endpoint. This function can take extra values which are submitted along
-  with with the form data, for example using ``submit({foo: "bar"})``. That extra submit data then
-  is available in the ``FormView`` object connected to the endpoint, by callig
-  ``self.get_extra_data()``. 
+  with the form data. If for example we use ``submit({foo: "bar"})`` then that extra submit data
+  is available in our View entity connected to the given endpoint. That extra submitted data then
+  can be accessed by calling ``self.get_extra_data()``. 
 * If the submission was successful, ``proceed`` tells the client what to do next. If called without
   parameter, the default is to load the page given by the ``success_url`` in the Django View
   handling the request. If instead we use ``proceed("/path/to/success/page")``, that page is loaded

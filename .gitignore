@@ -30,8 +30,9 @@ coverage/
 client/django-formset/tag-attributes.ts
 formset/static/formset/css/tailwind*
 formset/static/formset/js/django-formset*
+formset/locale/**/*.mo
 build/
 dist/
 docs/build/
-media/
+workdir/
 testapp/*.sqlite3

@@ -6,7 +6,7 @@ Form Collections
 
 A very powerful feature of **django-formset** is the ability to create a collection of forms. In
 Django we quite often create forms out of models and want to edit more than one of those forms on
-the same page and post them in a single summission. By using a prefix on each Django Form, it is
+the same page and post them in a single submission. By using a prefix on each Django Form, it is
 possible to name the fields uniquely and on submission we can reassign the form data back to each
 individual form. This however is limited to one nesting level and is quite cumbersome to handle.
 
@@ -29,16 +29,34 @@ We use this kind of collection, if we just want to group two or more forms toget
 	    form1 = MyForm1()
 	    form2 = MyForm2()
 
+.. note::
+	The above example will render the form with the default style. To render the form with a specific
+	css framework you need to specify the ``default_renderer`` attribute on your ``FormCollection``. 
+	For example :
+
+	.. code-block:: python
+		:caption: my_forms.py
+	
+		from formset.collection import FormCollection
+		from formset.renderers.bootstrap import FormRenderer
+	
+		class MyFormCollection(FormCollection):
+		 	default_renderer = FormRenderer()
+			form1 = MyForm1()
+			form2 = MyForm2()
+	
+	All supported css frameworks define a ``FormRenderer`` that can be imported with a path similar 
+	to the one defined in the example.
+
 Collections must be rendered using the special View class :class:`formset.views.FormCollectionView`:
-The template used to render our Form Collection must ensure that the CSRF-Cookie is set; this is
-done by accessing the CSRF token. Otherwise this View just behaves like an ordinary Form View
-embedded in a **django-formset**.
+The template used to render our Form Collection must ensure that the CSRF-token is set; this is
+done by passing that CSRF token value as attribute to the web component ``<django-formset>``.
+Otherwise this View just behaves like an ordinary Form View embedded in a **django-formset**.
 
 .. code-block:: django
 	:caption: my-collection.html
 
-	<django-formset endpoint="{{ request.path }}">
-	  {% with dummy=csrf_token.0 %}{% endwith %}
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {{ form_collection }}
 	</django-formset>
 
@@ -125,6 +143,6 @@ submission.
   :width: 672
   :alt: Marked for deletion
 
-If on the other side, a sibling collection just has been added, it can be removed immediatly again.
+If on the other side, a sibling collection just has been added, it can be removed immediately again.
 This is because for initialized forms/collections we have to keep a placeholder in order to tell the
 server how to change the underlying model.

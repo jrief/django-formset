@@ -1,6 +1,7 @@
 import itertools
 import json
 
+from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.renderers import get_default_renderer
@@ -20,19 +21,15 @@ from docutils.parsers.rst import Parser
 from docutils.writers import get_writer_class
 
 from formset.utils import FormMixin
-from formset.views import FileUploadMixin, IncompleSelectResponseMixin, FormCollectionView, FormViewMixin
+from formset.views import FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormViewMixin
 
 from testapp.forms.address import AddressForm
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import SimpleContactCollection, ContactCollection, ContactCollectionList
 from testapp.forms.customer import CustomerCollection
 from testapp.forms.opinion import OpinionForm
-<<<<<<< HEAD
-from testapp.forms.person import SimplePersonForm, sample_person_data, ModelPersonForm
-from testapp.forms.poll import ModelPollForm
-=======
 from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
->>>>>>> main
+from testapp.forms.poll import ModelPollForm
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.upload import UploadForm
 from testapp.models import PersonModel
@@ -78,7 +75,7 @@ class SuccessView(TemplateView):
         return context
 
 
-class DemoViewMixin(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin):
+class DemoViewMixin(IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin):
     def get_success_url(self):
         return reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
 
@@ -106,10 +103,10 @@ class DemoViewMixin(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin)
             **self.get_css_classes(),
         )
         if holder_class.__doc__:
+            template = settings.BASE_DIR / 'testapp/templates/docutils.txt'
             writer = get_writer_class('html5')()
-            settings = OptionParser(components=(Parser, writer), defaults={'template': 'templates/docutils.txt'}).get_default_values()
-            settings.template = 'templates/docutils.txt'
-            document = new_document('rst-doc', settings=settings)
+            docsettings = OptionParser(components=(Parser, writer), defaults={'template': template}).get_default_values()
+            document = new_document('rst-doc', settings=docsettings)
             unindent = min(len(l) - len(l.lstrip()) for l in holder_class.__doc__.splitlines() if l)
             docstring = [l[unindent:] for l in holder_class.__doc__.splitlines()]
             if self.extra_doc:
@@ -293,7 +290,7 @@ render such a form shall be written as:
 
 	{% load render_form from formsetify %}
 
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {% render_form form field_classes=... form_classes=... fieldset_classes=... label_classes=... control_classes=... %}
 	</django-formset>
 """
@@ -320,9 +317,7 @@ templatetag:
 
 .. code-block:: django
 
-	{% with dummy=csrf_token.0 %}{% endwith %}
-	...
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {{ form }}
 	  ...
 	</django-formset>
@@ -340,7 +335,7 @@ might look like:
 	{% load formsetify %}
 	...
 	{% formsetify form %}
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  <form>
 	    {% include "formset/non_field_errors.html" %}
 	    {% for field in form %}
@@ -407,22 +402,6 @@ urlpatterns = [
     path('09-customer', DemoFormCollectionView.as_view(
         collection_class=CustomerCollection,
     ), name='customer'),
-<<<<<<< HEAD
-    path('opinion', DemoFormView.as_view(
-        form_class=OpinionForm,
-    ), name='opinion'),
-    path('person', DemoModelFormView.as_view(
-        form_class=ModelPersonForm,
-        # object=PersonModel.objects.last(),
-    ), name='person'),
-    path('poll', DemoModelFormView.as_view(
-        form_class=ModelPollForm,
-    ), name='poll'),
-    path('questionnaire', DemoFormView.as_view(
-        form_class=QuestionnaireForm,
-    ), name='questionnaire'),
-    path('upload', DemoFormView.as_view(
-=======
     path('10-contact', DemoFormCollectionView.as_view(
         collection_class=ContactCollection,
         initial={'person': sample_person_data, 'numbers': [{'number': {'phone_number': "+1 234 567 8900"}}]},
@@ -431,14 +410,16 @@ urlpatterns = [
         collection_class=ContactCollectionList,
     ), name='contactlist'),
     path('12-upload', DemoFormView.as_view(
->>>>>>> main
         form_class=UploadForm,
     ), name='upload'),
     path('13-person', DemoModelFormView.as_view(
         form_class=ModelPersonForm,
         model=PersonModel,
     ), name='person'),
-    path('14-button-actions', DemoFormView.as_view(
+    path('14-poll', DemoModelFormView.as_view(
+        form_class=ModelPollForm,
+    ), name='poll'),
+    path('15-button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',
         extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)'},
@@ -468,7 +449,7 @@ for length in range(len(withhold_feedbacks) + 1):
         extra_docs.extend([f'* {extra_doc_withhold[w]}' for w in withhold_feedback])
         force_submission = suffix == '.mews'  # just for testing
         urlpatterns.append(
-            path(f'15-withhold{suffix}', DemoFormView.as_view(
+            path(f'16-withhold{suffix}', DemoFormView.as_view(
                 form_class=SimplePersonForm,
                 extra_context={
                     'withhold_feedback': ' '.join(withhold_feedback),

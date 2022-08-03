@@ -1,10 +1,14 @@
 import copy
 
-from django.forms.utils import ErrorList
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.forms.utils import ErrorDict, ErrorList
 from django.utils.functional import cached_property
 
 from formset.boundfield import BoundField
 from formset.renderers.default import FormRenderer
+
+MARKED_FOR_REMOVAL = '_marked_for_removal_'
 
 
 class FormsetErrorList(ErrorList):
@@ -29,8 +33,21 @@ class FormsetErrorList(ErrorList):
 
 
 class HolderMixin:
-    def replicate(self, data=None, initial=None, prefix=None, renderer=None):
+    ignore_marked_for_removal = getattr(settings, 'FORMSET_IGNORE_MARKED_FOR_REMOVAL', False)
+
+    def __init__(self, **kwargs):
+        self.marked_for_removal = False
+        super().__init__(**kwargs)
+
+    def replicate(self, data=None, initial=None, prefix=None, renderer=None, ignore_marked_for_removal=None):
         replica = copy.copy(self)
+        if hasattr(self, 'declared_holders'):
+            replica.declared_holders = {
+                key: holder.replicate(
+                    renderer=renderer,
+                    ignore_marked_for_removal=ignore_marked_for_removal,
+                ) for key, holder in self.declared_holders.items()
+            }
         replica.data = data
         replica.is_bound = data is not None
         replica._errors = None
@@ -44,6 +61,8 @@ class HolderMixin:
             replica.initial = initial
         if prefix:
             replica.prefix = prefix
+        if ignore_marked_for_removal is not None:
+            replica.ignore_marked_for_removal = ignore_marked_for_removal
         if isinstance(replica.renderer, FormRenderer):
             return replica
         if self.default_renderer:
@@ -56,6 +75,34 @@ class HolderMixin:
         else:
             replica.renderer = FormRenderer()
         return replica
+
+    def _clean_for_removal(self):
+        """
+        Forms which have been marked for removal, clean their received form data,
+        but always keep them as validated.
+        """
+        self._errors = ErrorDict()
+        self.cleaned_data = {}
+        for name, bf in self._bound_items():
+            field = bf.field
+            value = bf.initial if field.disabled else bf.data
+            try:
+                value = field.clean(value)
+                if hasattr(self, f'clean_{name}'):
+                    self.cleaned_data[name] = value
+                    value = getattr(self, f'clean_{name}')()
+            except ValidationError:
+                pass  # ignore all validation errors for removed forms
+            finally:
+                self.cleaned_data[name] = value
+        self.cleaned_data[MARKED_FOR_REMOVAL] = True
+        self.marked_for_removal = True
+
+    def is_valid(self):
+        if self.is_bound and MARKED_FOR_REMOVAL in self.data:
+            self._clean_for_removal()
+            return True
+        return super().is_valid()
 
 
 class FormMixin(HolderMixin):
