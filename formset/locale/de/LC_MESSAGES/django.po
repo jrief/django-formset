@@ -1,0 +1,159 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-08-02 08:26+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: boundfield.py:115
+msgid "At least one checkbox must be selected."
+msgstr "Mindestens ein Kontrollkästchen muss aktiv sein."
+
+#: boundfield.py:132
+#, python-format
+msgid "Ensure this value has at most %(max_length)s characters."
+msgstr ""
+"Bitte sicherstellen, dass der Wert aus höchstens %(max_length)s Zeichen "
+"besteht."
+
+#: boundfield.py:139
+#, python-format
+msgid "Ensure this value has at least %(min_length)s characters."
+msgstr ""
+"Bitte sicherstellen, dass der Wert aus mindestens %(min_length)s Zeichen "
+"besteht."
+
+#: boundfield.py:153
+#, python-brace-format
+msgid "Input value must be a multiple of {step_value}."
+msgstr "Bitte sicherstellen, dass der Wert aus einem Vielfachen von {step_value} besteht."
+
+#: boundfield.py:162
+msgid "File upload still in progress."
+msgstr "Datei wird noch immer hochgeladen."
+
+#: boundfield.py:163
+msgid "File upload failed."
+msgstr "Datei-Upload ist fehlgeschlagen."
+
+#: templates/formset/bootstrap/widgets/file.html:5
+#: templates/formset/bulma/widgets/file.html:5
+#: templates/formset/default/widgets/file.html:15
+#: templates/formset/foundation/widgets/file.html:5
+#: templates/formset/tailwind/widgets/file.html:5
+#: templates/formset/uikit/widgets/file.html:5
+msgid "Choose file"
+msgstr "Dateiauswahl"
+
+#: templates/formset/bootstrap/widgets/file.html:11
+#: templates/formset/bulma/widgets/file.html:11
+#: templates/formset/default/widgets/file.html:32
+#: templates/formset/foundation/widgets/file.html:11
+#: templates/formset/tailwind/widgets/file.html:11
+#: templates/formset/uikit/widgets/file.html:11
+msgid "Name"
+msgstr "Name"
+
+#: templates/formset/bootstrap/widgets/file.html:15
+#: templates/formset/bulma/widgets/file.html:15
+#: templates/formset/foundation/widgets/file.html:15
+#: templates/formset/tailwind/widgets/file.html:15
+#: templates/formset/uikit/widgets/file.html:15
+msgid "Content-Type (Size)"
+msgstr "Content-Type (Größe)"
+
+#: templates/formset/bootstrap/widgets/file.html:18
+#: templates/formset/bulma/widgets/file.html:19
+#: templates/formset/default/widgets/file.html:43
+#: templates/formset/foundation/widgets/file.html:18
+#: templates/formset/tailwind/widgets/file.html:18
+#: templates/formset/uikit/widgets/file.html:18
+msgid "Delete"
+msgstr "Lösche"
+
+#: templates/formset/bootstrap/widgets/file.html:19
+#: templates/formset/bulma/widgets/file.html:20
+#: templates/formset/default/widgets/file.html:44
+#: templates/formset/foundation/widgets/file.html:19
+#: templates/formset/tailwind/widgets/file.html:19
+#: templates/formset/uikit/widgets/file.html:19
+msgid "Download"
+msgstr "Herunterladen"
+
+#: templates/formset/bulma/widgets/dual_selector.html:6
+#: templates/formset/bulma/widgets/dual_selector.html:30
+#: templates/formset/default/widgets/dual_selector.html:16
+#: templates/formset/default/widgets/dual_selector.html:34
+msgid "Search …"
+msgstr "Suche …"
+
+#: templates/formset/default/buttons/add_collection.html:2
+msgid "Add"
+msgstr "Hinzufügen"
+
+#: templates/formset/default/buttons/move_all_left.html:2
+msgid "Move all left"
+msgstr "Alle nach links verschieben"
+
+#: templates/formset/default/buttons/move_all_right.html:2
+msgid "Move all right"
+msgstr "Alle nach rechts verschieben"
+
+#: templates/formset/default/buttons/move_selected_left.html:2
+msgid "Move selected left"
+msgstr "Auswahl nach links verschieben"
+
+#: templates/formset/default/buttons/move_selected_right.html:2
+msgid "Move selected right"
+msgstr "Auswahl nach rechts verschieben"
+
+#: templates/formset/default/buttons/redo_selected.html:2
+msgid "Redo selected"
+msgstr "Rückgängig machen"
+
+#: templates/formset/default/buttons/remove_collection.html:2
+msgid "Remove"
+msgstr "Entfernen"
+
+#: templates/formset/default/buttons/undo_selected.html:2
+msgid "Undo selected"
+msgstr "Wiederherstellen"
+
+#: templates/formset/default/widgets/dual_selector.html:9
+#: templates/formset/default/widgets/selectize.html:15
+#, python-brace-format
+msgid "No results found for '${input}'"
+msgstr "Keine Ergebnisse für '${input}' gefunden"
+
+#: templates/formset/default/widgets/file.html:10
+msgid "Drag file here"
+msgstr "Datei hierher ziehen"
+
+#: templates/formset/default/widgets/file.html:36
+msgid "Content-Type"
+msgstr "Content-Type"
+
+#: templates/formset/default/widgets/file.html:40
+msgid "Size"
+msgstr "Größe"
+
+#: templates/formset/default/widgets/selectize.html:19
+msgid "Remove item"
+msgstr "Entferne Option"
+
+#: widgets.py:83
+msgid "Select"
+msgstr "Auswählen"

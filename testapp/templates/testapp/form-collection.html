@@ -1,8 +1,7 @@
 {% extends framework|default:"testapp"|add:"/base.html" %}
 
 {% block "main-content" %}
-<django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}">
-	{% with dummy=csrf_token.0 %}{# ensures that the CSRF-Cookie is set #}{% endwith %}
+<django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}" csrf-token="{{ csrf_token }}">
 	{{ form_collection }}
 	{% include framework|default:"testapp"|add:"/buttons.html" %}
 </django-formset>

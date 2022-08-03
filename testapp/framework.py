@@ -1,6 +1,7 @@
 import itertools
 import json
 
+from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.renderers import get_default_renderer
@@ -20,7 +21,7 @@ from docutils.parsers.rst import Parser
 from docutils.writers import get_writer_class
 
 from formset.utils import FormMixin
-from formset.views import FileUploadMixin, IncompleSelectResponseMixin, FormCollectionView, FormViewMixin
+from formset.views import FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormViewMixin
 
 from testapp.forms.address import AddressForm
 from testapp.forms.complete import CompleteForm
@@ -78,7 +79,7 @@ class SuccessView(TemplateView):
         return context
 
 
-class DemoViewMixin(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin):
+class DemoViewMixin(IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin):
     def get_success_url(self):
         return reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
 
@@ -106,10 +107,10 @@ class DemoViewMixin(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin)
             **self.get_css_classes(),
         )
         if holder_class.__doc__:
+            template = settings.BASE_DIR / 'testapp/templates/docutils.txt'
             writer = get_writer_class('html5')()
-            settings = OptionParser(components=(Parser, writer), defaults={'template': 'templates/docutils.txt'}).get_default_values()
-            settings.template = 'templates/docutils.txt'
-            document = new_document('rst-doc', settings=settings)
+            docsettings = OptionParser(components=(Parser, writer), defaults={'template': template}).get_default_values()
+            document = new_document('rst-doc', settings=docsettings)
             unindent = min(len(l) - len(l.lstrip()) for l in holder_class.__doc__.splitlines() if l)
             docstring = [l[unindent:] for l in holder_class.__doc__.splitlines()]
             if self.extra_doc:
@@ -293,7 +294,7 @@ render such a form shall be written as:
 
 	{% load render_form from formsetify %}
 
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {% render_form form field_classes=... form_classes=... fieldset_classes=... label_classes=... control_classes=... %}
 	</django-formset>
 """
@@ -320,9 +321,7 @@ templatetag:
 
 .. code-block:: django
 
-	{% with dummy=csrf_token.0 %}{% endwith %}
-	...
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {{ form }}
 	  ...
 	</django-formset>
@@ -340,7 +339,7 @@ might look like:
 	{% load formsetify %}
 	...
 	{% formsetify form %}
-	<django-formset endpoint="{{ request.path }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  <form>
 	    {% include "formset/non_field_errors.html" %}
 	    {% for field in form %}

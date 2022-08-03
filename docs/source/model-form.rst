@@ -103,14 +103,14 @@ We now must adopt the template used to render the edit form
 
 .. code-block:: django
 
-	<django-formset endpoint="{{ request.path }}">
-	    {% render_form form %}
-	    {% if add %}
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
+	  {% render_form form %}
+	  {% if add %}
 	    <button type="button" click="submit({add: true}) -> proceed">{% trans "Add" %}</button>
-	    {% else %}
+	  {% else %}
 	    <button type="button" click="submit({update: true}) -> proceed">{% trans "Update" %}</button>
 	    <button type="button" click="submit({delete: true}) -> proceed">{% trans "Delete" %}</button>
-	    {% endif %}
+	  {% endif %}
 	</django-formset>
 
 The interesting part here is that we use the context variable ``add`` to distinguish between the

@@ -47,7 +47,7 @@ Usage with dynamic Number of Choices
 ------------------------------------
 
 Sometimes we don't want to handle the choices using a static list. For instance, when we store them
-in a Django model, we point a foreign key onto the choosen entry of that model. The above example
+in a Django model, we point a foreign key onto the chosen entry of that model. The above example
 then can be rewritten by replacing the ChoiceField_ against a ModelChoiceField_. Instead of
 ``choices`` this field requires a ``queryset`` as parameter. For the form we defined above, we
 use a Django model named ``Cities`` with ``name`` as identifier. All cities we can select from,
@@ -118,7 +118,7 @@ If the form field for ``city`` is shall accept more than one selection, in Djang
 also must be replaced. **django-formset** offers the special widget
 :class:`formset.widgets.SelectizeMultiple` to handle more than one option to select from. From a
 functional point of view it behaves similar to the Selectize widget described before. But instead
-of replacing a choosen option by another one, selected options are lined up to build a set of
+of replacing a chosen option by another one, selected options are lined up to build a set of
 options.
 
 .. image:: _static/selectize-multiple.png
@@ -127,7 +127,7 @@ options.
 
 By default a ``SelectizeMultiple`` widget accepts 5 different options. This limit can be adjusted by
 parametrizing it using ``max_items``. This number however shall not exceed more than say 15 items,
-otherwise the input field might become unmanagable. If you need a multiple select field able to
+otherwise the input field might become unmanageable. If you need a multiple select field able to
 accept dozens of items, consider to use the :ref:`dual-selector` widget.
 
 

@@ -2,6 +2,7 @@ include LICENSE
 include README.md
 include setup.py
 recursive-include formset *.py
+recursive-include formset/locale *
 recursive-include formset/static *
 recursive-include formset/templates *
 recursive-exclude testapp *

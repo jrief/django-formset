@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.forms import fields, forms
+from django.utils.translation import gettext_lazy as _
 
 from formset.collection import FormCollection
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
@@ -96,7 +97,8 @@ class PhoneNumberForm(forms.Form):
 
 
 class PhoneNumberCollection(FormCollection):
-    legend = "List of Phone Numbers"
+    legend = _("List of Phone Numbers")
+    add_label = _("Add new Phone Number")
     min_siblings = 1
     max_siblings = 5
     extra_siblings = 1
@@ -158,10 +160,21 @@ class ContactCollection(FormCollection):
     wouldn't let us add or remove any sibling outside the allowed range.
     """
     legend = "Contact"
+    # ignore_marked_for_removal = True
 
     person = PersonForm()
 
     numbers = PhoneNumberCollection()
+
+
+class IntermediateCollection(FormCollection):
+    legend = "Intermediate"
+
+    numbers = PhoneNumberCollection(
+        min_siblings=0,
+        max_siblings=3,
+        extra_siblings=0,
+    )
 
 
 class ContactCollectionList(FormCollection):
@@ -191,7 +204,8 @@ class ContactCollectionList(FormCollection):
     By passing in other values to the collection's constructor, we can respecify the
     number of mininimum, maximum and extra siblings.
     """
-    legend = "List of Contacts"
+    legend = _("List of Contacts")
+    add_label = _("Add new Contact")
     min_siblings = 0
     extra_siblings = 1
 
@@ -202,3 +216,5 @@ class ContactCollectionList(FormCollection):
         max_siblings=3,
         extra_siblings=0,
     )
+
+    # intermediate = IntermediateCollection()

@@ -10,7 +10,7 @@ from formset.upload import FileUploadMixin
 from formset.widgets import Selectize, DualSelector
 
 
-class IncompleSelectResponseMixin:
+class IncompleteSelectResponseMixin:
     """
     Add this mixin class to views classes using forms with incomplete fields. These fields
     usually are of type ChoiceField referring to a foreign model and using one of the widgets
@@ -96,7 +96,7 @@ class FormViewMixin(FormsetResponseMixin):
         return self.form_class.base_fields[field_name]
 
 
-class FormView(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin, GenericFormView):
+class FormView(IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin, GenericFormView):
     """
     FormView class used as controller for handling a single Django Form. The purpose of this View
     is to render the provided Form, when invoked as a standard GET-request using the provided Django
@@ -122,6 +122,16 @@ class FormView(IncompleSelectResponseMixin, FileUploadMixin, FormViewMixin, Gene
             ...
         ]
 
+    or by inheriting from ``FormView`` and overwriting the attributes in that class:
+
+    .. code-block:: python
+
+        from formset.views import FormView
+
+        class MyFormEditView(FormView):
+            form_class = MyForm
+            template_name = 'my-form.html'
+            success_url = '/success'
     """
 
 
@@ -176,11 +186,11 @@ class FormCollectionViewMixin(FormsetResponseMixin):
         return JsonResponse(form_collection.errors, status=422, safe=False)
 
 
-class FormCollectionView(IncompleSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin, TemplateResponseMixin, View):
+class FormCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin, TemplateResponseMixin, View):
     pass
 
 
-class EditCollectionView(IncompleSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, SingleObjectMixin, TemplateResponseMixin, View):
+class EditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, SingleObjectMixin, TemplateResponseMixin, View):
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         return super().get(request, *args, **kwargs)
@@ -191,7 +201,7 @@ class EditCollectionView(IncompleSelectResponseMixin, FileUploadMixin, FormColle
 
     def get_initial(self):
         initial = super().get_initial()
-        if self.object:
+        if isinstance(initial, dict) and self.object:
             collection_class = self.get_collection_class()
             initial.update(collection_class().model_to_dict(self.object))
         return initial

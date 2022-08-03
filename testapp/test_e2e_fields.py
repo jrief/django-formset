@@ -2,6 +2,7 @@ from collections import namedtuple
 import json
 import pytest
 
+from django import VERSION as DJANGO_VERSION
 from django.forms import fields, Form, widgets
 from django.urls import path
 
@@ -264,7 +265,9 @@ def test_integer_field(page):
     assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is not None
     assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is None
     input_elem.click()
-    input_elem.type("1")
+    page.keyboard.press('Backspace')
+    page.keyboard.press('Delete')
+    input_elem.type("5")
     input_elem.evaluate('elem => elem.blur()')
     assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is None
     assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is not None
@@ -273,8 +276,9 @@ def test_integer_field(page):
     placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == "Ensure this value is less than or equal to 4."
     input_elem.click()
-    page.keyboard.press('Home')
+    page.keyboard.press('Backspace')
     page.keyboard.press('Delete')
+    input_elem.type("1")
     input_elem.evaluate('elem => elem.blur()')
     assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is None
     assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is not None

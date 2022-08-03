@@ -7,7 +7,7 @@
 <django-form-collection{% if css_classes %} class="{{ css_classes }}"{% endif %}>
 	{% elif holder.is_first %}
 		{% if holder.is_template %}
-<template class="empty-collection"{% if collection.prefix %} prefix="{{ collection.prefix }}"{% endif %}>
+<template class="empty-collection" prefix="{{ collection.prefix|default_if_none:0 }}">
 		{% endif %}
 <django-form-collection {% if holder.is_sortable %}sortable="sortable" {% endif %}sibling-position="{{ holder.position }}" min-siblings="{{ collection.min_siblings }}"{% if collection.max_siblings %} max-siblings="{{ collection.max_siblings }}"{% endif %}{% if css_classes %} class="{{ css_classes }}"{% endif %}>
 {% if holder.is_sortable %}

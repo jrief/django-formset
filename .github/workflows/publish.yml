@@ -5,6 +5,9 @@ on:
     tags:
       - '*'
 
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
 jobs:
   publish:
     name: "Publish release"
@@ -20,6 +23,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - uses: superfly/flyctl-actions/setup-flyctl@master
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
@@ -30,9 +34,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        sudo apt-get install -y gettext
         npm install --also=dev
         python -m pip install --upgrade pip
-        python -m pip install build --user
+        python -m pip install build django --user
     - name: Build Parser
       run: npm run tag-attributes
     - name: Build Tailwind CSS
@@ -41,6 +46,8 @@ jobs:
       run: |
         npm run build
         npm run uglify
+    - name: Translate *.po files
+      run: cd formset && django-admin compilemessages
     - name: Build 🐍 Python 📦 Package
       run: python -m build --sdist --wheel --outdir dist/
     - name: Publish 🐍 Python 📦 Package to PyPI
@@ -48,3 +55,5 @@ jobs:
       uses: pypa/gh-action-pypi-publish@master
       with:
         password: ${{ secrets.PYPI_API_TOKEN_FORMSET }}
+    - name: Deploy testapp to https://django-formset.fly.dev/
+      run: flyctl deploy --remote-only

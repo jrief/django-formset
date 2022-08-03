@@ -154,21 +154,25 @@ class UploadedFileInput(FileInput):
         return value
 
     def value_from_datadict(self, data, files, name):
-        epoch = datetime(2022, 1, 1, tzinfo=utc)
-        signer = get_cookie_signer(salt='formset')
-        handle = next(iter(data.get(name, ())), None)
+        handle = data.get(name)
+        if isinstance(handle, (UploadedFile, bool)):
+            return handle
+        if hasattr(handle, '__iter__'):
+            handle = next(iter(handle), None)
         if isinstance(handle, dict):
             if not handle:
                 return False  # marked as deleted
             if 'upload_temp_name' not in handle:
                 return
             # file has just been uploaded
+            signer = get_cookie_signer(salt='formset')
             upload_temp_name = signer.unsign(handle['upload_temp_name'])
             file = open(default_storage.path(upload_temp_name), 'rb')
             file.seek(0, os.SEEK_END)
             size = file.tell()
             file.seek(0)
             # create pseudo unique prefix to avoid file name collisions
+            epoch = datetime(2022, 1, 1, tzinfo=utc)
             prefix = b16encode(struct.pack('f', (now() - epoch).total_seconds())).decode('utf-8')
             filename = '.'.join((prefix, handle['name']))
             files[name] = UploadedFile(
