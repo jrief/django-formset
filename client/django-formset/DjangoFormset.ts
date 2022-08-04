@@ -69,11 +69,11 @@ class FieldGroup {
 	public readonly name: string = '__undefined__';
 	public readonly element: HTMLElement;
 	private readonly pristineValue: BoundValue;
-	private readonly inputElements: Array<FieldElement>;
+	private readonly fieldElements: Array<FieldElement>;
 	private readonly initialDisabled: Array<boolean>;
 	public readonly errorPlaceholder: Element | null;
 	private readonly errorMessages: FieldErrorMessages;
-	private readonly fileUploader: FileUploadWidget | null = null;
+	private readonly fileUploader?: FileUploadWidget;
 	private readonly updateVisibility: Function;
 	private readonly updateDisabled: Function;
 
@@ -107,23 +107,30 @@ class FieldGroup {
 					break;
 			}
 		}
-		const selectElements = (Array.from(element.getElementsByTagName('SELECT')) as Array<HTMLSelectElement>).filter(e => e.name);
-		for (const element of selectElements) {
-			element.addEventListener('focus', () => this.touch());
-			element.addEventListener('change', () => {
+		this.fieldElements = Array<FieldElement>(0).concat(inputElements);
+
+		// <django-field-group> can contain at most one <select> element
+		const selectElement = element.getElementsByTagName('SELECT').item(0);
+		if (selectElement instanceof HTMLSelectElement && selectElement.name) {
+			selectElement.addEventListener('focus', () => this.touch());
+			selectElement.addEventListener('change', () => {
 				this.setDirty();
 				this.clearCustomError();
 				this.validate()
 			});
+			this.fieldElements.push(selectElement);
 		}
-		const textAreaElements = Array.from(element.getElementsByTagName('TEXTAREA')) as Array<HTMLTextAreaElement>;
-		for (const element of textAreaElements) {
-			element.addEventListener('focus', () => this.touch());
-			element.addEventListener('input', () => this.inputted());
-			element.addEventListener('blur', () => this.validate());
+
+		// <django-field-group> can contain at most one <textarea> element
+		const textAreaElement = element.getElementsByTagName('TEXTAREA').item(0);
+		if (textAreaElement instanceof HTMLTextAreaElement) {
+			textAreaElement.addEventListener('focus', () => this.touch());
+			textAreaElement.addEventListener('input', () => this.inputted());
+			textAreaElement.addEventListener('blur', () => this.validate());
+			this.fieldElements.push(textAreaElement);
 		}
-		this.inputElements = Array<FieldElement>(0).concat(inputElements, selectElements, textAreaElements);
-		for (const element of this.inputElements) {
+
+		for (const element of this.fieldElements) {
 			if (this.name === '__undefined__') {
 				this.name = element.name;
 			} else {
@@ -131,7 +138,7 @@ class FieldGroup {
 					throw new Error(`Name mismatch on multiple input fields on ${element.name}`);
 			}
 		}
-		this.initialDisabled = this.inputElements.map(element => element.disabled);
+		this.initialDisabled = this.fieldElements.map(element => element.disabled);
 		if (requiredAny) {
 			this.validateCheckboxSelectMultiple();
 		} else {
@@ -145,8 +152,8 @@ class FieldGroup {
 	}
 
 	public aggregateValue(): FieldValue {
-		if (this.inputElements.length === 1) {
-			const element = this.inputElements[0];
+		if (this.fieldElements.length === 1) {
+			const element = this.fieldElements[0];
 			if (element.type === 'checkbox') {
 				return (element as HTMLInputElement).checked ? element.value : '';
 			}
@@ -169,7 +176,7 @@ class FieldGroup {
 			return element.value;
 		} else {
 			const value = [];
-			for (let element of this.inputElements) {
+			for (let element of this.fieldElements) {
 				if (element.type === 'checkbox') {
 					if ((element as HTMLInputElement).checked) {
 						value.push(element.value);
@@ -189,7 +196,7 @@ class FieldGroup {
 	}
 
 	private evalVisibility(attribute: string, visible: boolean): Function | null {
-		const attrValue = this.inputElements[0]?.getAttribute(attribute);
+		const attrValue = this.fieldElements[0]?.getAttribute(attribute);
 		if (typeof attrValue !== 'string')
 			return null;
 		try {
@@ -197,7 +204,7 @@ class FieldGroup {
 			return () => {
 				const isHidden = visible != Boolean(evalExpression.call(this));
 				if (this.element.hasAttribute('hidden') !== isHidden) {
-					this.inputElements.forEach((elem, index) => elem.disabled = isHidden || this.initialDisabled[index]);
+					this.fieldElements.forEach((elem, index) => elem.disabled = isHidden || this.initialDisabled[index]);
 					this.element.toggleAttribute('hidden', isHidden);
 				}
 			};
@@ -207,14 +214,14 @@ class FieldGroup {
 	}
 
 	private evalDisable(): Function {
-		const attrValue = this.inputElements[0]?.getAttribute('disable-if');
+		const attrValue = this.fieldElements[0]?.getAttribute('disable-if');
 		if (typeof attrValue !== 'string')
 			return () => {};
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
 			return () => {
 				const disable = evalExpression.call(this);
-				this.inputElements.forEach((elem, index) => elem.disabled = disable || this.initialDisabled[index]);
+				this.fieldElements.forEach((elem, index) => elem.disabled = disable || this.initialDisabled[index]);
 			}
 		} catch (error) {
 			throw new Error(`Error while parsing <... disable-if="${attrValue}">: ${error}.`);
@@ -239,7 +246,7 @@ class FieldGroup {
 		if (this.errorPlaceholder) {
 			this.errorPlaceholder.innerHTML = '';
 		}
-		for (const element of this.inputElements) {
+		for (const element of this.fieldElements) {
 			if (element.validity.customError)
 				element.setCustomValidity('');
 		}
@@ -255,11 +262,11 @@ class FieldGroup {
 	}
 
 	public disableAllFields() {
-		this.inputElements.forEach(elem => elem.disabled = true);
+		this.fieldElements.forEach(elem => elem.disabled = true);
 	}
 
 	public reenableAllFields() {
-		this.inputElements.forEach((elem, index) => elem.disabled = this.initialDisabled[index]);
+		this.fieldElements.forEach((elem, index) => elem.disabled = this.initialDisabled[index]);
 	}
 
 	public touch() {
@@ -290,7 +297,7 @@ class FieldGroup {
 
 	public validate() {
 		let element: FieldElement | null = null;
-		for (element of this.inputElements) {
+		for (element of this.fieldElements) {
 			if (!element.validity.valid)
 				break;
 		}
@@ -313,7 +320,7 @@ class FieldGroup {
 
 	private validateCheckboxSelectMultiple() {
 		let validity = false;
-		for (const inputElement of this.inputElements) {
+		for (const inputElement of this.fieldElements) {
 			if (inputElement.type !== 'checkbox')
 				throw new Error("Expected input element of type 'checkbox'.");
 			if ((inputElement as HTMLInputElement).checked) {
@@ -323,7 +330,7 @@ class FieldGroup {
 			}
 		}
 		if (validity) {
-			for (const inputElement of this.inputElements) {
+			for (const inputElement of this.fieldElements) {
 				inputElement.setCustomValidity('');
 			}
 		} else if (this.pristineValue !== undefined && this.errorPlaceholder && this.form.formset.showFeedbackMessages) {
@@ -365,9 +372,9 @@ class FieldGroup {
 	private validateBoundField() {
 		// By default, HTML input fields do not validate their bound value regarding their min-
 		// and max-length. Therefore this validation must be performed separately.
-		if (this.inputElements.length !== 1 || !(this.inputElements[0] instanceof HTMLInputElement))
+		if (this.fieldElements.length !== 1 || !(this.fieldElements[0] instanceof HTMLInputElement))
 			return;
-		const inputElement = this.inputElements[0];
+		const inputElement = this.fieldElements[0];
 		if (!inputElement.value)
 			return;
 		if (inputElement.type === 'text') {
@@ -380,7 +387,7 @@ class FieldGroup {
 
 	public setValidationError(): boolean {
 		let element: FieldElement | undefined;
-		for (element of this.inputElements) {
+		for (element of this.fieldElements) {
 			if (!element.validity.valid)
 				break;
 		}
@@ -402,7 +409,7 @@ class FieldGroup {
 		if (this.errorPlaceholder) {
 			this.errorPlaceholder.innerHTML = message;
 		}
-		this.inputElements[0].setCustomValidity(message);
+		this.fieldElements[0].setCustomValidity(message);
 	}
 
 	public reportFailedUpload() {
