@@ -190,7 +190,7 @@ export class DualSelector extends IncompleteSelect {
 			clone.selected = true;
 			this.selectorElement.add(clone);
 		});
-		this.selectorElement.dispatchEvent(new Event('change'));
+		this.optionsMoved();
 	}
 
 	private async moveOptionRight(target: EventTarget | null) {
@@ -272,6 +272,15 @@ export class DualSelector extends IncompleteSelect {
 		const nextValues = this.historicalValues[nextCursor];
 		this.getOptions(this.selectRightElement).filter(o => nextValues.indexOf(o.value) === -1).forEach(o => this.selectLeftElement.add(o));
 		this.getOptions(this.selectLeftElement).filter(o => nextValues.indexOf(o.value) !== -1).forEach(o => this.selectRightElement.add(o));
+		if (this.selectRightElement.tagName === 'DJANGO-SORTABLE-SELECT') {
+			nextValues.forEach(val => {
+				const optionElem = this.selectRightElement.querySelector(`option[value="${val}"]`);
+				if (optionElem) {
+					this.selectRightElement.insertAdjacentElement('beforeend', optionElem);
+				}
+			});
+			this.optionsSorted();
+		}
 		this.setHistoryCursor(nextCursor);
 		this.selectorChanged();
 	}

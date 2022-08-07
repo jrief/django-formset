@@ -15,6 +15,7 @@ class SortableManyToManyField(ManyToManyField):
         return [
             *super().check(**kwargs),
             *self._check_ordering_enabled(**kwargs),
+            *self._check_related_model(**kwargs),
         ]
 
     def _check_ordering_enabled(self, **kwargs):
@@ -28,6 +29,29 @@ class SortableManyToManyField(ManyToManyField):
             ]
         return []
 
+    def _check_related_model(self, **kwargs):
+        try:
+            fields = self.remote_field.through._meta.fields
+            next(iter(f for f in fields if getattr(f, 'related_model', None) is self.related_model))
+        except StopIteration:
+            return [
+                checks.Error(
+                    f"{self.remote_field.through} implementing the many-to-many relation must have a ForeignKey on '{self.related_model}'.",
+                    obj=self,
+                    id="fields.E342",
+                )
+            ]
+        return []
+
+
+    def value_from_object(self, obj):
+        if obj.pk is None:
+            return []
+        # find the field in the M2M relation pointing on our related model ('to' in constructor)
+        through = self.remote_field.through
+        field = next(iter(f for f in through._meta.fields if getattr(f, 'related_model', None) is self.related_model))
+        return [getattr(item, field.name) for item in through._default_manager.select_related(field.name)]
+
     def save_form_data(self, instance, data):
         qs, orig_value = data
         super().save_form_data(instance, qs)
@@ -39,7 +63,7 @@ class SortableManyToManyField(ManyToManyField):
                 mrm.source_field.attname: instance.pk,
                 mrm.target_field.attname: target_pk,
             }
-            mrm.through.objects.filter(**filter_kwargs).update(**{order_field_name: order})
+            mrm.through._default_manager.filter(**filter_kwargs).update(**{order_field_name: order})
 
     def formfield(self, **kwargs):
         form_field = super().formfield(**kwargs)

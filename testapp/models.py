@@ -21,6 +21,9 @@ class OpinionModel(models.Model):
     def __str__(self):
         return self.label
 
+    def __repr__(self):
+        return f'<{self.__class__.__name__}: "{self.label}">'
+
 
 class PersonModel(models.Model):
     full_name = models.CharField(
@@ -93,7 +96,12 @@ class PollModel(models.Model):
         OpinionModel,
         through='testapp.WeightedOpinion',
         verbose_name="Weighted Opinions",
-        default=[2,11,5,99,4,6],
+    )
+
+    created_by = models.CharField(
+        editable=False,
+        max_length=40,
+        db_index=True,
     )
 
 
@@ -111,7 +119,11 @@ class WeightedOpinion(models.Model):
     weight = models.BigIntegerField(
         "Weighted Opinion",
         default=0,
+        db_index=True,
     )
 
     class Meta:
         ordering = ['weight']
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__}: [{self.weight}] "{self.opinion.label}">'
