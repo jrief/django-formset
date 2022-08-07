@@ -872,6 +872,10 @@ class DjangoForm {
 		return data;
 	}
 
+	getAbsPath() : Array<string> {
+		return ['formset_data', ...this.path];
+	}
+
 	getDataValue(path: Array<string>) {
 		const absPath = [];
 		if (path[0] === '') {
@@ -1423,11 +1427,7 @@ export class DjangoFormset {
 	private aggregateValues() {
 		this.data = {};
 		for (const form of this.forms) {
-			const path = ['formset_data']
-			if (form.name) {
-				path.push(...form.name.split('.'));
-			}
-			setDataValue(this.data, path, Object.fromEntries(form.aggregateValues()));
+			setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
 		}
 		for (const form of this.forms) {
 			if (!form.markedForRemoval) {
@@ -1499,7 +1499,7 @@ export class DjangoFormset {
 			if (!form.name)  // only a single form doesn't have a name
 				return Object.assign({}, this.data, {_extra: extraData});
 
-			const absPath = ['formset_data', ...form.path];
+			const absPath = form.getAbsPath();
 			dataValue = getDataValue(this.data, absPath);
 			if (form.markedForRemoval) {
 				dataValue[MARKED_FOR_REMOVAL] = MARKED_FOR_REMOVAL;
