@@ -977,14 +977,14 @@ class DjangoForm {
 
 class DjangoFormCollection {
 	protected readonly formset: DjangoFormset;
-	protected readonly element: Element;
+	protected readonly element: HTMLElement;
 	protected readonly parent?: DjangoFormCollection;
 	protected forms = Array<DjangoForm>(0);
 	public formCollectionTemplate?: DjangoFormCollectionTemplate;
 	public readonly children = Array<DjangoFormCollection>(0);
 	public markedForRemoval = false;
 
-	constructor(formset: DjangoFormset, element: Element, parent?: DjangoFormCollection, justAdded?: boolean) {
+	constructor(formset: DjangoFormset, element: HTMLElement, parent?: DjangoFormCollection, justAdded?: boolean) {
 		this.formset = formset;
 		this.element = element;
 		this.parent = parent;
@@ -1045,7 +1045,7 @@ class DjangoFormCollection {
 
 	protected repositionSiblings() {}
 
-	static getChildCollections(element: Element) : NodeListOf<Element> | [] {
+	static getChildCollections(element: Element) : NodeListOf<HTMLElement> | [] {
 		// traverse tree to find first occurrence of a <django-form-collection> and if so, return it with its siblings
 		const wrapper = element.querySelector('django-form-collection')?.parentElement;
 		return wrapper ? wrapper.querySelectorAll(':scope > django-form-collection') : [];
@@ -1071,7 +1071,7 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 	private readonly removeButton: HTMLButtonElement;
 	private justAdded = false;
 
-	constructor(formset: DjangoFormset, element: Element, parent?: DjangoFormCollection, justAdded?: boolean) {
+	constructor(formset: DjangoFormset, element: HTMLElement, parent?: DjangoFormCollection, justAdded?: boolean) {
 		super(formset, element, parent);
 		this.justAdded = justAdded ?? false;
 		const position = element.getAttribute('sibling-position');
@@ -1115,12 +1115,11 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 
 	protected repositionSiblings() {
 		const siblings = this.parent?.children ?? this.formset.formCollections;
-		siblings.filter(sibling =>
-			sibling instanceof DjangoFormCollectionSibling
-		).forEach((collection, position) => {
-			const sibling = collection as DjangoFormCollectionSibling;
-			sibling.position = position;
-			sibling.element.setAttribute('sibling-position', String(position));
+		siblings.forEach((sibling, position) => {
+			if (sibling instanceof DjangoFormCollectionSibling) {
+				sibling.position = position;
+				sibling.element.setAttribute('sibling-position', String(position));
+			}
 		});
 	}
 
@@ -1200,7 +1199,7 @@ class DjangoFormCollectionTemplate {
 		const renderedHTML = this.renderEmptyCollection(context);
 		this.element.insertAdjacentHTML('beforebegin', renderedHTML);
 		const newCollectionElement = this.element.previousElementSibling;
-		if (!newCollectionElement)
+		if (!(newCollectionElement instanceof HTMLElement))
 			throw new Error("Unable to insert empty <django-form-collection> element.");
 		const siblings = this.parent?.children ?? this.formset.formCollections;
 		siblings.push(new DjangoFormCollectionSibling(this.formset, newCollectionElement, this.parent, true));
@@ -1373,7 +1372,7 @@ export class DjangoFormset {
 		if (this.forms.length > 1) {
 			for (const form of this.forms) {
 				if (!form.name)
-					throw new Error('Multiple <form>-elements in a <django-formset> require a unique name each.');
+					throw new Error("Multiple <form>-elements in a <django-formset> require a unique name each.");
 				if (form.name in formNames)
 					throw new Error(`Detected more than one <form name="${form.name}"> in <django-formset>.`);
 				formNames.push(form.name);
