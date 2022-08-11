@@ -235,21 +235,21 @@ def test_nested_reset(page, mocker, viewname):
 
     page.hover('#id_0\\.level1\\.level2\\.level3\\.0\\.campum')
     page.wait_for_selector('#id_0\\.level1\\.level2\\.level3\\.0\\.campum + button.remove-collection').click()
-    locator = page.locator('django-formset django-form-collection[sibling-position="0"] > django-form-collection:last-of-type > django-form-collection:last-of-type > django-form-collection[sibling-position="0"]')
+    locator = page.locator('django-formset > .dj-wrap-siblings > django-form-collection[sibling-position="0"] > django-form-collection:last-of-type > django-form-collection:last-of-type > .dj-wrap-siblings > django-form-collection[sibling-position="0"]')
     assert locator.get_attribute('class') == 'dj-marked-for-removal'
     formset.evaluate('elem => elem.reset()')
     assert locator.get_attribute('class') == ''
 
-    collection = page.query_selector('django-formset > django-form-collection[sibling-position="0"] > django-form-collection:last-of-type > django-form-collection:last-of-type')
+    collection = page.query_selector('django-formset > .dj-wrap-siblings > django-form-collection[sibling-position="0"] > django-form-collection:last-of-type > django-form-collection:last-of-type')
     assert len(collection.query_selector_all('django-form-collection')) == 2
-    collection.query_selector('> button.add-collection').click()
+    collection.query_selector(':scope > .dj-wrap-siblings > button.add-collection').click()
     assert len(collection.query_selector_all('django-form-collection')) == 3
     assert len(formset.query_selector_all('django-form-collection')) == 8
     formset.evaluate('elem => elem.reset()')
     assert len(collection.query_selector_all('django-form-collection')) == 2
     assert len(formset.query_selector_all('django-form-collection')) == 7
 
-    formset.query_selector('> button.add-collection').click()
+    formset.query_selector(':scope > .dj-wrap-siblings > button.add-collection').click()
     expected = 14 if viewname == 'nested' else 13
     assert len(formset.query_selector_all('django-form-collection')) == expected
     formset.evaluate('elem => elem.reset()')

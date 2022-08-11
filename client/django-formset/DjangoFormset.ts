@@ -1,7 +1,7 @@
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
 import template from 'lodash.template';
-
+import Sortable, { SortableEvent } from 'sortablejs';
 import { FileUploadWidget } from './FileUploadWidget';
 import { parse } from './tag-attributes';
 import styles from 'sass:./DjangoFormset.scss';
@@ -228,7 +228,7 @@ class FieldGroup {
 		}
 	}
 
-	getDataValue(path: Array<string>) {
+	private getDataValue(path: Array<string>) {
 		return this.form.getDataValue(path);
 	}
 
@@ -511,7 +511,7 @@ class DjangoButton {
 	 * Re-enable the button for further submission.
 	 */
 	// @ts-ignore
-	enable() {
+	private enable() {
 		return (response: Response) => {
 			this.element.disabled = false;
 			return Promise.resolve(response);
@@ -825,7 +825,7 @@ class DjangoFieldset {
 		return this.form.getDataValue(path);
 	}
 
-	updateOperability() {
+	public updateOperability() {
 		this.updateVisibility();
 		this.updateDisabled();
 	}
@@ -872,26 +872,24 @@ class DjangoForm {
 		return data;
 	}
 
-	getAbsPath() : Array<string> {
+	public getAbsPath() : Array<string> {
 		return ['formset_data', ...this.path];
 	}
 
-	getDataValue(path: Array<string>) {
-		const absPath = [];
-		if (path[0] === '') {
-			// path is relative, so concatenate it to the form's path
-			absPath.push(...this.path);
-			const relPath = path.filter(part => part !== '');
-			const delta = path.length - relPath.length;
-			absPath.splice(absPath.length - delta + 1);
-			absPath.push(...relPath);
-		} else {
-			absPath.push(...path);
-		}
+	public getDataValue(path: Array<string>) {
+		if (path[0] !== '')
+			return this.formset.getDataValue(path);
+
+		// path is relative, so concatenate it to the form's path
+		const absPath = [...this.path];
+		const relPath = path.filter(part => part !== '');
+		const delta = path.length - relPath.length;
+		absPath.splice(absPath.length - delta + 1);
+		absPath.push(...relPath);
 		return this.formset.getDataValue(absPath);
 	}
 
-	updateOperability() {
+	public updateOperability() {
 		this.fieldset?.updateOperability();
 		for (const fieldGroup of this.fieldGroups) {
 			fieldGroup.updateOperability();
@@ -1047,7 +1045,12 @@ class DjangoFormCollection {
 		return false;
 	}
 
-	protected repositionSiblings() {}
+	public repositionSiblings() {}
+
+	public repositionForms(pathIndex: number, pathPart: number) {
+		this.forms.forEach(form => form.path[pathIndex] = String(pathPart));
+		this.children.forEach(child => child.repositionForms(pathIndex, pathPart));
+	}
 
 	static getChildCollections(element: Element) : NodeListOf<HTMLElement> | [] {
 		// traverse tree to find first occurrence of a <django-form-collection> and if so, return it with its siblings
@@ -1117,7 +1120,7 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 		super.disconnect();
 	}
 
-	protected repositionSiblings() {
+	public repositionSiblings() {
 		const siblings = this.parent?.children ?? this.formset.formCollections;
 		siblings.forEach((sibling, position) => {
 			if (sibling instanceof DjangoFormCollectionSibling) {
@@ -1159,11 +1162,11 @@ class DjangoFormCollectionTemplate {
 	private readonly formset: DjangoFormset;
 	private readonly element: HTMLTemplateElement;
 	private readonly parent?: DjangoFormCollection;
-	private readonly prefix: string;
 	private readonly renderEmptyCollection: Function;
 	private readonly addButton?: HTMLButtonElement;
 	private readonly maxSiblings: number | null = null;
 	private readonly baseContext = new Map<string, string>();
+	public readonly prefix: string;
 	public markedForRemoval = false;
 
 	constructor(formset: DjangoFormset, element: HTMLTemplateElement, parent?: DjangoFormCollection) {
@@ -1188,6 +1191,31 @@ class DjangoFormCollectionTemplate {
 		const maxSiblings = innerCollection?.getAttribute('max-siblings');
 		if (maxSiblings) {
 			this.maxSiblings = parseInt(maxSiblings);
+		}
+		if (element.hasAttribute('sortable')) {
+			new Sortable(element.parentElement!, {
+				animation: 150,
+				handle: 'django-form-collection[sibling-position]:not(.dj-marked-for-removal) > .dj-drag-collection',
+				draggable: 'django-form-collection[sibling-position]',
+				selectedClass: 'selected',
+				onEnd: this.resortSiblings,
+			});
+		}
+	}
+
+	private resortSiblings = (event: SortableEvent) => {
+		const oldIndex = event.oldDraggableIndex ?? NaN;
+		const newIndex = event.newDraggableIndex ?? NaN;
+		if (!isFinite(oldIndex) || !isFinite(newIndex) || oldIndex === newIndex)
+			return;
+		const siblings = this.parent?.children ?? this.formset.formCollections;
+		if (siblings.at(oldIndex) instanceof DjangoFormCollectionSibling) {
+			const extracted = siblings.splice(oldIndex, 1);
+			siblings.splice(newIndex, 0, ...extracted);
+			extracted.at(0)!.repositionSiblings();
+			const pathIndex = this.prefix === '0' ? 0 : this.prefix.split('.').length;
+			siblings.forEach((sibling, position) => sibling.repositionForms(pathIndex, position));
+			this.formset.validate();
 		}
 	}
 
@@ -1243,7 +1271,7 @@ class DjangoFormCollectionTemplate {
 	}
 
 	static findFormCollectionTemplate(formset: DjangoFormset, element: Element, formCollection?: DjangoFormCollection) : DjangoFormCollectionTemplate | undefined {
-		const templateElement = element.querySelector(':scope > template.empty-collection') as HTMLTemplateElement;
+		const templateElement = element.querySelector(':scope > .dj-wrap-siblings > template.empty-collection') as HTMLTemplateElement;
 		if (templateElement) {
 			const formCollectionTemplate = new DjangoFormCollectionTemplate(formset, templateElement as HTMLTemplateElement, formCollection);
 			formCollectionTemplate.updateAddButtonAttrs();
@@ -1397,7 +1425,7 @@ export class DjangoFormset {
 	}
 
 	private findCollectionErrorsList() {
-		// find all elements <div class="dj-collection-errors"> belonging to the current <django-formset>
+		// find all elements <any class="dj-collection-errors"> belonging to the current <django-formset>
 		for (const element of this.element.getElementsByClassName('dj-collection-errors')) {
 			const prefix = element.getAttribute('prefix') ?? '';
 			const ulElement = element.querySelector('ul.dj-errorlist') as HTMLUListElement;
@@ -1603,8 +1631,7 @@ export class DjangoFormset {
 	}
 
 	public getDataValue(path: Array<string>) : string | null {
-		const absPath = ['formset_data'];
-		absPath.push(...path);
+		const absPath = ['formset_data', ...path];
 		return getDataValue(this.data, absPath, null);
 	}
 

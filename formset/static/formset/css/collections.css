@@ -7,6 +7,7 @@ django-form-collection {
 		background-color: lightgray;
 		background-image: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,.5) 4px, rgba(255,255,255,.5) 8px);
 		background-size: contain;
+		cursor: not-allowed;
 		}
 	django-form-collection[sibling-position] > .remove-collection {
 		position: absolute;
@@ -17,13 +18,19 @@ django-form-collection {
 	django-form-collection[sibling-position]:hover > .remove-collection {
 		visibility: visible;
 		}
-	django-form-collection[sortable] > .dj-drag-collection {
-		width: 100%;
-		height: 15px;
-		cursor: ns-resize;
+	django-form-collection[sibling-position] > .dj-drag-collection {
+		width: calc(100% - 3rem);
+		height: 9px;
+		margin-bottom: 0.25rem;
 		opacity: 0.5;
 		background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"%3E%3Ccircle fill="nonzero" cx="32" cy="32" r="16"/%3E%3C/svg%3E');
 		background-repeat: repeat;
 		background-position: 0px 0px;
 		background-size: 3px 3px;
+		}
+	django-form-collection[sibling-position]:not(.dj-marked-for-removal) > .dj-drag-collection {
+		cursor: grab;
+		}
+	django-form-collection[sortable] > django-form-collection[sibling-position] > .dj-drag-collection:active {
+		cursor: grabbing;
 		}

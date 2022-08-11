@@ -5,15 +5,20 @@ django-sortable-select {
 		opacity: 1;
 
 		> option {
-
-			&.sortable-chosen, &.sortable-selected {
+			&.sortable-selected {
 				opacity: 1;
+				cursor: grab;
+			}
+			&.sortable-chosen, &.sortable-ghost {
+				opacity: 1;
+				cursor: grabbing !important;
 			}
 		}
 	}
 
 	> option {
 		line-height: normal;
+		cursor: default;
 
 		&.sortable-chosen, &.sortable-selected {
 			opacity: 1;
