@@ -12,10 +12,10 @@ django-form-collection[sibling-position]:not(:last-of-type) {
 django-form-collection[sibling-position] > .remove-collection {
 	top: 0.25rem;
 }
-django-form-collection[sibling-position] > .dj-drag-collection ~ .remove-collection {
+django-form-collection[sibling-position] > .collection-drag-handle ~ .remove-collection {
 	top: 0.375rem;
 }
-.dj-wrap-siblings {
+.collection-siblings {
 	border-bottom: 1px solid var(--bs-gray-400);
 	margin-bottom: -9px;
 }

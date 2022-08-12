@@ -15,18 +15,18 @@ django-form-collection {
 		right: 0.5rem;
 		visibility: hidden;
 		}
-	django-form-collection[sibling-position] > .dj-drag-collection ~ .remove-collection {
+	django-form-collection[sibling-position] > .collection-drag-handle ~ .remove-collection {
 		right: 1.5rem;
 		}
 	django-form-collection[sibling-position]:hover > .remove-collection {
 		visibility: visible;
 		}
-	django-form-collection[sibling-position] > .dj-drag-collection {
+	django-form-collection[sibling-position] > .collection-drag-handle {
 		display: flex;
 		justify-content: flex-end;
 		margin-bottom: -20px;
 		}
-		django-form-collection[sibling-position] > .dj-drag-collection::after {
+		django-form-collection[sibling-position] > .collection-drag-handle::after {
 			content: " ";
 			width: 9px;
 			height: 27px;
@@ -37,9 +37,9 @@ django-form-collection {
 			background-position: 0px 0px;
 			background-size: 3px 3px;
 		}
-	django-form-collection[sibling-position]:not(.dj-marked-for-removal) > .dj-drag-collection::after {
+	django-form-collection[sibling-position]:not(.dj-marked-for-removal) > .collection-drag-handle::after {
 		cursor: grab;
 		}
-	django-form-collection[sortable] > django-form-collection[sibling-position] > .dj-drag-collection:active::after {
+	django-form-collection[sortable] > django-form-collection[sibling-position] > .collection-drag-handle:active::after {
 		cursor: grabbing;
 		}

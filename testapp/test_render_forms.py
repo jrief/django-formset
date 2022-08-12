@@ -166,7 +166,7 @@ def test_collection_get():
     assert form_elem.attrs['name'] == 'person'
     assert collection_elems[0].find('django-form-collection') is None
 
-    collection_sibling_elems = collection_elems[1].find('div', class_='dj-wrap-siblings').find_all('django-form-collection', recursive=False)
+    collection_sibling_elems = collection_elems[1].find('div', class_='collection-siblings').find_all('django-form-collection', recursive=False)
     assert len(collection_sibling_elems) == 2
     for counter, collection_sibling_elem in enumerate(collection_sibling_elems):
         assert collection_sibling_elem.attrs['sibling-position'] == str(counter)

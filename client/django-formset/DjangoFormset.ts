@@ -1195,7 +1195,7 @@ class DjangoFormCollectionTemplate {
 		if (element.hasAttribute('sortable')) {
 			new Sortable(element.parentElement!, {
 				animation: 150,
-				handle: 'django-form-collection[sibling-position]:not(.dj-marked-for-removal) > .dj-drag-collection',
+				handle: 'django-form-collection[sibling-position]:not(.dj-marked-for-removal) > .collection-drag-handle',
 				draggable: 'django-form-collection[sibling-position]',
 				selectedClass: 'selected',
 				onEnd: this.resortSiblings,
@@ -1271,7 +1271,7 @@ class DjangoFormCollectionTemplate {
 	}
 
 	static findFormCollectionTemplate(formset: DjangoFormset, element: Element, formCollection?: DjangoFormCollection) : DjangoFormCollectionTemplate | undefined {
-		const templateElement = element.querySelector(':scope > .dj-wrap-siblings > template.empty-collection') as HTMLTemplateElement;
+		const templateElement = element.querySelector(':scope > .collection-siblings > template.empty-collection') as HTMLTemplateElement;
 		if (templateElement) {
 			const formCollectionTemplate = new DjangoFormCollectionTemplate(formset, templateElement as HTMLTemplateElement, formCollection);
 			formCollectionTemplate.updateAddButtonAttrs();

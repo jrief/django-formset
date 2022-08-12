@@ -1,7 +1,7 @@
 {% if collection.legend %}<legend>{{ collection.legend }}</legend>{% endif %}
 {% if collection.has_many %}
 <div class="dj-collection-errors"{% if collection.prefix %} prefix="{{ collection.prefix }}"{% endif %}><ul class="dj-errorlist"></ul></div>
-<div class="dj-wrap-siblings">
+<div class="collection-siblings">
 {% endif %}
 {% for holder in collection %}
 	{% if holder.is_single %}
@@ -12,7 +12,7 @@
 		{% endif %}
 	<django-form-collection sibling-position="{{ holder.position }}" min-siblings="{{ collection.min_siblings }}"{% if collection.max_siblings %} max-siblings="{{ collection.max_siblings }}"{% endif %}{% if css_classes %} class="{{ css_classes }}"{% endif %}>
 		{% if collection.is_sortable %}
-	<div class="dj-drag-collection"></div>
+	<div class="collection-drag-handle"></div>
 		{% endif %}
 	{% endif %}
 	{{ holder }}
