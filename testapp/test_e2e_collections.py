@@ -218,8 +218,6 @@ def test_submit_reordered_data(page, mocker):
     page.select_option('#id_1\\.numbers\\.1\\.number\\.label', 'mobile')
 
     drag_handle = 'django-formset > .collection-siblings > django-form-collection[sibling-position="0"] > .collection-drag-handle'
-    pos_x, pos_y = page.locator(drag_handle).evaluate('elem => { const after = window.getComputedStyle(elem, "::after"); return [after.left, after.top]; }')
-    position = {'x': int(pos_x.rstrip('px')), 'y': int(pos_y.rstrip('px'))}
     page.drag_and_drop(
         drag_handle,
         'django-formset > .collection-siblings > django-form-collection[sibling-position="1"]',
