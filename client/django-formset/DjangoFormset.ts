@@ -1041,7 +1041,12 @@ class DjangoFormCollection {
 	protected resetToInitial() : boolean {
 		this.toggleForRemoval(false);
 		DjangoFormCollection.resetCollectionsToInitial(this.children);
-		this.formCollectionTemplate?.updateAddButtonAttrs();
+		if (this.formCollectionTemplate) {
+			const prefix = this.formCollectionTemplate.prefix;
+			const pathIndex = prefix === '0' ? 0 : prefix.split('.').length;
+			this.children.forEach((sibling, position) => sibling.repositionForms(pathIndex, position));
+			this.formCollectionTemplate.updateAddButtonAttrs();
+		}
 		return false;
 	}
 
@@ -1066,6 +1071,22 @@ class DjangoFormCollection {
 			}
 		}
 		removeCollections.forEach(collection => formCollections.splice(formCollections.indexOf(collection), 1));
+		formCollections.sort((l, r) => {
+			return l instanceof DjangoFormCollectionSibling && r instanceof DjangoFormCollectionSibling ? l.initialPosition - r.initialPosition : 0;
+		});
+
+		// undo DOM sorting previously changed by SortableJS
+		let prevElement: HTMLElement | null = null;
+		for (const collection of formCollections) {
+			if (collection instanceof DjangoFormCollectionSibling) {
+				if (collection.initialPosition === 0) {
+					collection.element.parentElement?.insertAdjacentElement('afterbegin', collection.element);
+				} else {
+					prevElement?.insertAdjacentElement('afterend', collection.element);
+				}
+				prevElement = collection.element;
+			}
+		}
 		formCollections.forEach(collection => collection.repositionSiblings());
 	}
 }
@@ -1073,6 +1094,7 @@ class DjangoFormCollection {
 
 class DjangoFormCollectionSibling extends DjangoFormCollection {
 	public position: number;
+	public readonly initialPosition: number;
 	private readonly minSiblings: number = 0;
 	public readonly maxSiblings: number | null = null;
 	private readonly removeButton: HTMLButtonElement;
@@ -1084,7 +1106,7 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 		const position = element.getAttribute('sibling-position');
 		if (!position)
 			throw new Error("Missing argument 'sibling-position' in <django-form-collection>")
-		this.position = parseInt(position);
+		this.position = this.initialPosition = parseInt(position);
 		const minSiblings = element.getAttribute('min-siblings');
 		if (!minSiblings)
 			throw new Error("Missing argument 'min-siblings' in <django-form-collection>")

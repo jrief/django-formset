@@ -239,8 +239,7 @@ class SortableContactCollection(ContactCollection):
 
         class SortableContactCollection(ContactCollection):
             numbers = PhoneNumberCollection(
-                max_siblings=8,
-                extra_siblings=1,
+                max_siblings=5,
                 is_sortable=True,
                 initial=[…]
             )
@@ -248,15 +247,14 @@ class SortableContactCollection(ContactCollection):
     """
 
     numbers = PhoneNumberCollection(
-        max_siblings=8,
-        extra_siblings=1,
+        max_siblings=5,
         is_sortable=True,
         initial=[
             {'number': {'phone_number': "+1 234 567 8900"}},
+            {'number': {'phone_number': "+33 1 43478293"}},
             {'number': {'phone_number': "+39 335 327041"}},
             {'number': {'phone_number': "+41 91 667914"}},
             {'number': {'phone_number': "+49 89 7178864"}},
-            {'number': {'phone_number': "+33 1 43478293"}},
         ]
     )
 
