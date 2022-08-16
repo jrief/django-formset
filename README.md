@@ -1,9 +1,9 @@
 # django-formset – Better UX for Django Forms 
 
-This library handles single forms and sets of forms in an alternative way as Django does it
+This library handles single forms and collections of forms in an alternative way as Django does it
 providing [formsets](https://docs.djangoproject.com/en/stable/topics/forms/formsets/). It however
 implements them with a way better user experience using modern form functionality as provided with
-HTML5.
+HTML5 and contemporary JavaScript.
 
 [![Build Status](https://github.com/jrief/django-formset/actions/workflows/tests.yml/badge.svg)](https://github.com/jrief/django-formset/actions)
 [![PyPI version](https://img.shields.io/pypi/v/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
@@ -78,9 +78,9 @@ It provides a drag-and-drop widget plus a file select button. This allows to pre
 before form submission. It also make the submission much faster, because the file is already in a
 temporary location on the server.
 
-Empty file upload          | Pending file upload
-:-------------------------:|:-------------------------:
-![](readmeimg/bootstrap-upload-empty.png)|![](readmeimg/bootstrap-upload.png)
+| Empty file upload                         | Pending file upload                 |
+|-------------------------------------------|-------------------------------------|
+| ![](readmeimg/bootstrap-upload-empty.png) | ![](readmeimg/bootstrap-upload.png) |
 
 
 ### Alternatives for `<select>` and `<select multiple>` Widgets
@@ -92,112 +92,142 @@ The default HTML `<select multiple="multiple">` widget can be replaced by two di
 which keeps the selected options inlined, and one which keeps them inside a "select-from" and a
 "selected option" field.
 
+| Multi Select with autocomplete        | Multi Select with source and target       |
+|---------------------------------------|-------------------------------------------|
+| ![](readmeimg/tailwind-selectize.png) | ![](readmeimg/tailwind-dual-selector.png) | 
 
-## How does it work?
+Similar widgets can be found in the Django admin to make many-to-many relations editable. In
+**django-formset**, the right widget (with source and target) offers some additional features:
 
-`<django-formset>` is a [Webcomponent](https://developer.mozilla.org/en-US/docs/Web/Web_Components)
-to wrap one or more Django Forms. This webcomponent is installed together with the Django app
-**django-formset**.
-
-
-## Documentation and Demo
-
-Reference documentation can be found on [Read The Docs](https://django-formset.readthedocs.io/en/latest/index.html).
-
-A [demo](https://django-formset.fly.dev/) showing all combinations of fields.
+* It can handle relations where the source contains too many entries to be loaded once. Instead,
+  this widget queries the database when searching for an option. It uses the same autocomplete
+  endpoint.
+* The right part of the widget can be filtered as well.
+* The widget has a redo/undo functionality in case the user mistakenly select to wrong option(s).
+* Optionally, selected options in the right part of the widget can be sorted.
 
 
-## Usage
+## Button actions
 
-Say, we have a standard Django Form:
+In **django-formset**, the button used for submission can hold a chain of actions. This for instance
+allows to disable the button, and/or add a spinning wheel while submitting data. It also is possible
+to specify the success page as a HTML link, rather than having it to hard-code inside the Django
+view. There is a complete set of predefined actions to select from, when designing the submit
+button.
 
-```python
-from django.forms import forms, fields
 
-class SubscribeForm(forms.Form):
-    last_name = fields.CharField(
-        label="Last name",
-        min_length=2,
-        max_length=50,
-    )
+## Immediate Form Validation
 
-    # ... more fields
-```
+Each field is validated as soon as it looses focus. This gives immediate feedback and signalizes if
+some user input will not be accepted, when submitting the form. The browser side validation
+constraints are excatly the same, as those defined in Python for each Django field.
 
-when rendering to HTML and using the
-[Bootstrap 5 framework](https://getbootstrap.com/docs/5.0/getting-started/introduction/), we wrap
-that Form into the special Webcomponent `<django-formset ...>`:
+Not every value or combination of thereof can be validated by the browser, but instead is rejected
+by the backend application, for instance inside the `clean()`- and/or `clean_FIELDNAME()`-methods.
+Those server side errors are sent back to the client and shown nearby the offending fields without
+having to re-render the complete page. On success, a given page is loaded (or another alternative
+action is performed).
+
+
+## Grouping Forms
+
+As the name "formset" suggests, **django-formset** allows to manage more than one form. It therefore
+is possible to create collections of forms and even nest those collections into each other.
+Collections can be declared to have siblings, allowing them to be instantiated multiple times. This
+is similar to Django's Stacked- and Tabular-Inlines, but allows an infinite number of nesting
+levels. Moreover, such collections with siblings can optionally be sorted.
+
+![Form Collections](readmeimg/bootstrap-contact.png)
+
+A form collection is also useful to create an editor for models wich have a one-to-one relation.
+The Django admin for instance requires to use a Stacked- or Tabular-Inline, which however is
+designed to handle one-to-many relations. With collections these two interconnected models can be
+handled with seemingly the same form (although in the background those are separated entinties).
+
+
+## Conditional hiding/disabeling
+
+Since each formset holds its state (the current value of their fields), that information can be used
+to conditionally hide or disabele other fields or even a complete fieldset.
+
+By adding the special attributes `show-if="condition"`, `hide-if="condition"` or
+`disable-if="condition"` on an input fields or on a fieldsets, one can hide or disable these marked
+fields. This `condition` can be any expression evaluating the current field values of the formset.
+
+
+## How does this all work?
+
+**django-formset** makes use of the
+[form renderer](https://docs.djangoproject.com/en/stable/ref/forms/renderers/) introduced in
+Django 4. This allows to create special renderers for each of the supported CSS frameworks. In
+addition to the form structure proposed by those framework vendors, this library adds private HTML
+tags to each field containg the constraint information as declared in Python.
+
+The form or the collections of forms then is wrapped by the provided
+[webcomponent](https://developer.mozilla.org/en-US/docs/Web/Web_Components) `<django-formset>`.
+The JavaScript (actually TypeScript) making up that webcomponent then handles the form validation,
+its submission, instantiation or removal of collection siblings, etc.
+
+Some widgets described above also require JavaScript. The client side functionality then also is
+handled by that webcomponent. Widgets which require autocompletion use the same endpoint as that 
+webcomponent istself. So there is no need to add extra endpoints to the URL router.
+
+This finally means, that an enduser must _only_ import this single JavaScript file and wrap its
+single form or collection of forms into a single HTML element such as
 
 ```html
-{% load static formsetify %}
-<html>
-  <head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script type="module" src="{% static 'formset/js/django-formset.min.js' %}"></script>
-  </head>
-  <body>
-    <!-- other stuff -->
-    <django-formset endpoint="{{ request.path }}">
-      {% render_form form "bootstrap" field_classes="mb-2" %}
-      <button type="button" click="disable -> submit -> proceed !~ scrollToError" class="btn">Submit</button>
-    </django-formset>
-    <!-- other stuff -->
-  </body>
-</html>
+<django-formset endpoint="/path/to/myproject/view" csrf-token="…">
+  …
+</django-formset>
 ```
 
-in our `urls.py` we now wire everything together:
+The Django view handling the form or collection of forms requires a special mixin class but
+otherwise is the same as those proposed by Django, for instance its
+[FormView](https://docs.djangoproject.com/en/stable/topics/class-based-views/generic-editing/).
 
-```python
-from django.urls import path
-from formset.views import FormView
-
-from .myforms import SubscribeForm
+The form classes can be reused unaltered, except for replacing the widgets if desired or required
+(the `FileField` requires a different widget).
 
 
-urlpatterns = [
-    ...
-    path('subscribe', FormView.as_view(
-        form_class=SubscribeForm,
-        template_name='my-subscribe-form.html',
-        success_url='/success',
-    )),
-    ...
-]
-```
+## Reference Documentation
 
-This renders `SubscribeForm` with a much better User Experience. We get immediate feedback if input
-entered into a field is not valid. Moreover, when this form is submitted but rejected by the
-server-side validation checker, errors are shown immediatly and without reloading the page. Only on
-success, a new page is loaded (or another alternative action is performed).
+Reference documentation can be found on
+[Read The Docs](https://django-formset.readthedocs.io/en/latest/index.html).
+
+
+## Demo
+
+A [demo](https://django-formset.fly.dev/) showing all combinations of fields.
 
 
 ## Motivation
 
 Instead of using a `<form>`-tag and include all its fields, here we wrap the complete form inside
-the special Webcomponent `<django-formset>`. This allows us to communicate via Ajax with our Django
-view, using the named endpoint. This means, that we can wrap multiple `<form>`-elements into our
-Formset. It also means, that we now can place the Submit `<button>`-element outside of the
-`<form>`-element. By doing so, we can decouple the Form's business-logic from its technical
-constraint, of transferring a group of fields from and to the server. 
+the special webcomponent `<django-formset>`. This allows the client to communicate through a
+XMLHttpRequest with the given Django view, using the named endpoint. This means, that multiple
+`<form>`-elements can be wrapped into a formset. It also means, that the submit `<button>` can
+be placed outside of the `<form>`-element. By doing so, the form's payload can be sent using
+`Content-Type: application/json` instead of the usual
+`Content-Type: application/x-www-form-urlencoded`. By using JSON for the payload, the form data is
+mapped into JavaScript objects and form collections can be nested into each other.
 
-When designing this library, the main goal was to keep the programming interface a near as possible
-to the way Django handles Forms, Models and Views.
+**When designing this library, the main goal was to keep the programming interface a near as
+possible to the way Django handles forms, models and views.**
 
 
-## Some Highlights
+## Summary
 
-* Before submitting, our Form is prevalidated by the browser, using the constraints we defined for
-  each Django Field.
-* The Form's data is sent by an Ajax request, preventing a full page reload. This gives a much
+* Before submitting, all form fields are prevalidated by the browser, using the same constraints as
+  declared for each Django form or model field in Python.
+* The form's data is sent by an Ajax request, preventing a full page reload. This gives a much
   better user experience.
 * Server side validation errors are sent back to the browser, and rendered near the offending
-  Form Field.
+  form field.
 * Non-field validation errors are renderer together with the form.
 * CSRF-tokens are handled through a HTTP-Header, hence there is no need to add a hidden input field
   to each form.
 * Forms can be rendered for different CSS frameworks using their specific style-guides for arranging
-  HTML. Currently **django-formset** includes renderers for:
+  HTML. Curently **django-formset** includes renderers for:
 
   * [Bootstrap 5](https://getbootstrap.com/docs/5.0/forms/overview/),
   * [Bulma](https://bulma.io/documentation/form/general/),
@@ -207,79 +237,21 @@ to the way Django handles Forms, Models and Views.
 
   It usually takes about 50 lines of code to create a renderer and most widgets can even be rendered
   using the default template as provided by Django. 
-* It's JavaScript-framework agnostic. No external JavaScript dependencies are required. The client
-  part is written in pure TypeScript and compiles to a single, portable JS-file.
-* Support for all standard widgets Django currently offers. This also includes radio buttons and
-  multiple checkboxes with options.
-* File uploads are handled asynchronously. When the user opens the file dialog or drags a file into
-  the form, this file then is uploaded immediately to a temporary folder on the server. On successful
-  file upload, a unique signed handle is returned together with a thumbnail of that file. On form
-  submission, this handle then is used to access that file and move it to its final destination.
-  No extra endpoint is required for this feature.
-* Select boxes with too many entries, can be filtered by the server using a search query. No extra
-  endpoint is required for this feature.
+* No external JavaScript dependencies are required. The client part is written in pure TypeScript
+  and compiles to a single, portable JS-file.
+* Support for all standard widgets Django currently offers (except GeoSpacials).
+* File uploads are handled asynchronously, separating the payload upload from the form submission.
+* Select boxes with too many entries, can be filtered by the server using a search query.
 * Radio buttons and multiple checkboxes with only a few fields can be rendered inlined rather than
   beneath each other.
-* The Submit buttons can be configured as a chain of actions. It for instance is possible to disable
-  the button before submission. It also is possible to change the CSS depending on success or
-  failure, add delays and specify the further proceedings. This for instance allows to specify the
-  success page as a HTML link, rather than having it to hard-code inside the Django View.
-* A Formset can group multiple Forms into a collection. On submission, this collection then is
-  sent to the server as a group a separate entities. After all Forms have been validated, the
-  submitted data is provided as a nested Python dictionary.
-* Such a Form-Collection can be declared to have many Form entities of the same kind. This allows to
-  create siblings of Forms, similar the Django's Admin Inline Forms. However, each of these siblings
-  can contain other Form-Collections, which themselves can also be declared as siblings. This list
-  of siblings can be extended or reduced using one "Add" and multiple "Remove" buttons.
-* By using the special attributes `show-if="condition"`, `hide-if="condition"` or
-  `disable-if="condition"` on input fields or fieldsets, one can hide or disable these marked
-  fields. This `condition` can evaluate all field values of the current Formset by a Boolean
-  expression.
+* The submit button(s) can be configured as a chain of actions.
+* A formset can group multiple forms into a collection. Collections can be nested. On submission,
+  the data from this form or collection of forms is sent to the server as a group a separate
+  entities.
+* Such a form-collection can be declared to have a list siblings, which can be changed in length
+  using one "Add" and multiple "Remove" buttons.
+* Form fields or fieldsets can be hidden or disabled using a Boolean expression as condition.
 
 [^1]: Tailwind is special here, since it doesn't include purpose-built form control classes out of
       the box. Instead **django-formset** offers an opinionated set of CSS classes suitable for
       Tailwind.
-
-
-## Running the Demo
-
-Make sure you have a recent version of Python and npm.
-
-To get a first impression of **django-formset**, run the demo site.
-
-```shell
-git clone https://github.com/jrief/django-formset.git
-cd django-formset
-python -m venv .venv
-source .venv/bin/activate
-pip install Django
-pip install -r testapp/requirements.txt
-pip install --no-deps -e .
-npm install --also=dev
-npm run tag-attributes
-npm run tailwindcss
-npm run build
-testapp/manage.py migrate
-testapp/manage.py runserver
-```
-
-Open http://localhost:8000/ in your browser. There is a link for each of the supported CSS
-frameworks. For each of them, there is a long list of forms for all kind of purposes.
-
-
-### Running the tests
-
-Since there is a lot of interaction between the browser and the server, the client is tested using
-[pytest](https://pytest-django.readthedocs.io/en/latest/) together with
-[Playwright](https://playwright.dev/python/docs/intro/) in order to run end-to-end tests.
-
-
-```shell
-playwright install
-```
-
-Then run the testsuite
-
-```shell
-pytest testapp
-```
