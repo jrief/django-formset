@@ -1,8 +1,9 @@
 # django-formset – Better UX for Django Forms 
 
-`<django-formset>` is a [Webcomponent](https://developer.mozilla.org/en-US/docs/Web/Web_Components)
-to wrap one or more Django Forms. This webcomponent is installed together with the Django app
-**django-formset**.
+This library handles single forms and sets of forms in an alternative way as Django does it
+providing [formsets](https://docs.djangoproject.com/en/stable/topics/forms/formsets/). It however
+implements them with a way better user experience using modern form functionality as provided with
+HTML5.
 
 [![Build Status](https://github.com/jrief/django-formset/actions/workflows/tests.yml/badge.svg)](https://github.com/jrief/django-formset/actions)
 [![PyPI version](https://img.shields.io/pypi/v/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
@@ -10,24 +11,93 @@ to wrap one or more Django Forms. This webcomponent is installed together with t
 [![Python versions](https://img.shields.io/pypi/pyversions/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
 [![Software license](https://img.shields.io/pypi/l/django-formset.svg)](https://github.com/jrief/django-formset/blob/master/LICENSE)
 
-
-## Installation
-
-Install **django-formset** using
-
-```shell
-pip install django-formset
-```
-
-change `settings.py` to
+Let's explain it using a short example. Say, we have a Django form with three fields:
 
 ```python
-INSTALLED_APPS = [
-    ...
-    'formset',
-    ...
-]
+from django.forms import fields, forms
+
+class AddressForm(forms.Form):
+    recipient = fields.CharField(label="Recipient")
+    postal_code = fields.CharField("Postal Code")
+    city = fields.CharField(label="City")
 ```
+
+After creating a
+[Django FormView](https://docs.djangoproject.com/en/stable/ref/class-based-views/generic-editing/#django.views.generic.edit.FormView)
+we can render the above form using a slightly modified template:
+
+```html
+{% load formsetify %}
+{% render_form form "bootstrap" %}
+```
+
+This will render our form using the layout and CSS classes as proposed by
+[Bootstrap's style guide](https://getbootstrap.com/docs/5.1/forms/overview/):
+
+![Address Form](readmeimg/bootstrap-address.png)
+
+Or if rendered with alternative CSS classes:
+
+```html
+{% load formsetify %}
+{% render_form form "bootstrap" field_css_classes="row mb-3" label_css_classes="col-sm-3" control_css_classes="col-sm-9" %}
+```
+
+![Address Form (horizontal)](readmeimg/bootstrap-address-horizontal.png)
+
+
+Or if rendered with the Tailwind renderer:
+
+```html
+{% load formsetify %}
+{% render_form form "tailwind" %}
+```
+
+![Address Form (Tailwind CSS)](readmeimg/tailwind-address.png)
+
+**django-formset** provides form renderers for all major CSS frameworks, such as
+[Bootstrap 5](https://getbootstrap.com/docs/5.1/forms/overview/),
+[Bulma](https://bulma.io/documentation/form/general/),
+[Foundation 6](https://get.foundation/sites/docs/forms.html),
+[Tailwind](https://tailwindcss.com/) and [UIkit](https://getuikit.com/).
+
+
+### Multiple Input Widgets
+
+Furthermore, it can render all widgets provided by Django (except Geospacials). This includes
+[multiple checkboxes](https://docs.djangoproject.com/en/stable/ref/forms/widgets/#checkboxselectmultiple)
+and radio selects, even with multiple option groups:
+
+![Multiple Inputs](readmeimg/bootstrap-multiple-input.png)
+
+
+### File Uploading Widget
+
+Uploading files is performed asynchronously, separating the payload upload from its form submission.
+It provides a drag-and-drop widget plus a file select button. This allows to preview uploaded files
+before form submission. It also make the submission much faster, because the file is already in a
+temporary location on the server.
+
+Empty file upload          | Pending file upload
+:-------------------------:|:-------------------------:
+![](readmeimg/bootstrap-upload-empty.png)|![](readmeimg/bootstrap-upload.png)
+
+
+### Alternatives for `<select>` and `<select multiple>` Widgets
+
+The default HTML `<select>` widget can be replaced by counterpart with autocompletion. No extra
+endpoint is required, because that's handled by the same Django view controlling the form.
+
+The default HTML `<select multiple="multiple">` widget can be replaced by two different widgets, one
+which keeps the selected options inlined, and one which keeps them inside a "select-from" and a
+"selected option" field.
+
+
+## How does it work?
+
+`<django-formset>` is a [Webcomponent](https://developer.mozilla.org/en-US/docs/Web/Web_Components)
+to wrap one or more Django Forms. This webcomponent is installed together with the Django app
+**django-formset**.
 
 
 ## Documentation and Demo
@@ -119,12 +189,13 @@ to the way Django handles Forms, Models and Views.
 
 * Before submitting, our Form is prevalidated by the browser, using the constraints we defined for
   each Django Field.
-* The Form's data is send by an Ajax request, preventing a full page reload. This gives a much
+* The Form's data is sent by an Ajax request, preventing a full page reload. This gives a much
   better user experience.
 * Server side validation errors are sent back to the browser, and rendered near the offending
   Form Field.
 * Non-field validation errors are renderer together with the form.
-* CSRF-tokens are handled through a Cookie, hence there is no need to add that token to each form.
+* CSRF-tokens are handled through a HTTP-Header, hence there is no need to add a hidden input field
+  to each form.
 * Forms can be rendered for different CSS frameworks using their specific style-guides for arranging
   HTML. Currently **django-formset** includes renderers for:
 
