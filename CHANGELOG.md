@@ -1,5 +1,12 @@
 ## Changes
 
+- 0.10
+  * The right part of the widget `DualSelector` optionally is sortable now. Views accepting forms
+    with this widget can rely upon that sorting order and store it.
+  * Form collections with siblings can optionally be declared as sortable. A drag handle is then
+    rendered above the collection, which can be used for sorting.
+  * Add Germans translations text readable by the end user.
+
 - 0.9.1
   * The optional URL parameter passed into button action `proceed(...)` now takes precedence over
     the `success_url` returned inside the response object.
