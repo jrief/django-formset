@@ -16,6 +16,10 @@ from django.utils.timezone import now, datetime, utc
 
 
 class IncompleteSelectMixin:
+    """
+    Extra interfaces for widgets not loading the complete set of choices.
+    """
+
     choices = ()
     max_prefetch_choices = 250
     search_lookup = None
@@ -57,19 +61,20 @@ class IncompleteSelectMixin:
         return options
 
     def _optgroups_model_choice(self, name, values, attrs=None):
-        options = []
-        values = set(values)
+        values_set = set(values)
+        options = [{}] * len(values_set)
         counter = 0
         for val, label in self.choices:
             if not isinstance(val, ModelChoiceIteratorValue):
                 continue
             val = str(val)
-            if val in values:
-                options.append({'value': val, 'label': label, 'selected': True})
-                values.remove(val)
+            if val in values_set:
+                index = values.index(val)
+                options[index] = {'value': val, 'label': label, 'selected': True}
+                values_set.remove(val)
             elif counter < self.max_prefetch_choices:
                 options.append({'value': val, 'label': label})
-            elif not values:
+            elif not values_set:
                 break
             counter += 1
         return options
@@ -124,6 +129,16 @@ class DualSelector(IncompleteSelectMixin, SelectMultiple):
     Render widget suitable for the <select is="django-dual-selector"> widget
     """
     template_name = 'formset/default/widgets/dual_selector.html'
+
+
+class DualSortableSelector(DualSelector):
+    """
+    Render widget suitable for the <select is="django-dual-sortable-selector"> widget
+    """
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context['is_sortable'] = True
+        return context
 
 
 class UploadedFileInput(FileInput):

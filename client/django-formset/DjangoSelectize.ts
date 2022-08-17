@@ -5,6 +5,7 @@ import TomSelect_remove_button from 'tom-select/src/plugins/remove_button/plugin
 import { escape_html } from 'tom-select/src/utils';
 import { IncompleteSelect } from './IncompleteSelect';
 import template from 'lodash.template';
+import { StyleHelpers } from './helpers';
 import styles from 'sass:./DjangoSelectize.scss';
 
 TomSelect.define('remove_button', TomSelect_remove_button);
@@ -23,7 +24,6 @@ class DjangoSelectize extends IncompleteSelect {
 
 	constructor(tomInput: TomInput) {
 		super(tomInput);
-		const pseudoStylesElement = this.convertPseudoClasses();
 		this.tomInput = tomInput;
 		// @ts-ignore
 		const config: TomSettings = {
@@ -70,7 +70,6 @@ class DjangoSelectize extends IncompleteSelect {
 		this.transferStyles(tomInput, nativeStyles);
 		this.validateInput(this.initialValue as string);
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
-		pseudoStylesElement.remove();
 	}
 
 	formResetted(event: Event) {
@@ -131,21 +130,21 @@ class DjangoSelectize extends IncompleteSelect {
 	private transferStyles(tomInput: HTMLElement, nativeStyles: CSSStyleDeclaration) {
 		const wrapperStyle = (this.shadowRoot.host as HTMLElement).style;
 		wrapperStyle.setProperty('display', nativeStyles.display);
-		const sheet = this.shadowRoot.styleSheets[0];
-		for (let index = 0; index < sheet.cssRules.length; index++) {
+		const lineHeight = window.getComputedStyle(tomInput).getPropertyValue('line-height');
+		const optionElement = tomInput.querySelector('option');
+		const sheet = this.shadowRoot.styleSheets.item(0);
+		for (let index = 0; sheet && index < sheet.cssRules.length; index++) {
 			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
-			const lineHeight = window.getComputedStyle(tomInput).getPropertyValue('line-height');
 			let extraStyles: string;
-			const optionElement = tomInput.querySelector('option');
 			switch (cssRule.selectorText) {
 				case '.ts-wrapper':
-					extraStyles = this.extractStyles(tomInput, [
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'font-family', 'font-size', 'font-strech', 'font-style', 'font-weight',
 						'letter-spacing', 'white-space']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case '.ts-wrapper .ts-control':
-					extraStyles = this.extractStyles(tomInput, [
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'background-color', 'border', 'border-radius', 'box-shadow', 'color',
 						'padding']).concat(`width: ${nativeStyles['width']}; min-height: ${nativeStyles['height']};`);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
@@ -153,20 +152,20 @@ class DjangoSelectize extends IncompleteSelect {
 				case '.ts-wrapper .ts-control > input':
 				case '.ts-wrapper .ts-control > div':
 					if (optionElement) {
-						extraStyles = this.extractStyles(optionElement, ['padding-left', 'padding-right']);
+						extraStyles = StyleHelpers.extractStyles(optionElement, ['padding-left', 'padding-right']);
 						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					}
 					break;
 				case '.ts-wrapper .ts-control > input::placeholder':
 					tomInput.classList.add('-placeholder-');
-					extraStyles = this.extractStyles(tomInput, ['background-color', 'color'])
+					extraStyles = StyleHelpers.extractStyles(tomInput, ['background-color', 'color'])
 					tomInput.classList.remove('-placeholder-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case '.ts-wrapper.focus .ts-control':
 					tomInput.style.transition = 'none';
 					tomInput.classList.add('-focus-');
-					extraStyles = this.extractStyles(tomInput, [
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'])
 					tomInput.classList.remove('-focus-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
@@ -174,13 +173,13 @@ class DjangoSelectize extends IncompleteSelect {
 					break;
 				case '.ts-wrapper.disabled .ts-control':
 					tomInput.classList.add('-disabled-');
-					extraStyles = this.extractStyles(tomInput, [
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 							'background-color', 'border', 'box-shadow', 'color', 'opacity', 'outline', 'transition'])
 					tomInput.classList.remove('-disabled-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case '.ts-wrapper .ts-dropdown':
-					extraStyles = this.extractStyles(tomInput, [
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'border-right', 'border-bottom', 'border-left', 'color', 'padding-left'])
 						.concat(parseFloat(lineHeight) > 0 ? `line-height: calc(${lineHeight} * 1.2);` : 'line-height: 1.2em;');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
@@ -199,68 +198,11 @@ class DjangoSelectize extends IncompleteSelect {
 		}
 	}
 
-	private extractStyles(element: Element, properties: Array<string>): string {
-		let styles = Array<string>();
-		const style = window.getComputedStyle(element);
-		for (let property of properties) {
-			styles.push(`${property}:${style.getPropertyValue(property)}`);
-		}
-		return styles.join('; ').concat('; ');
-	}
-
 	private setupRender(tomInput: TomInput) : Renderer {
 		const templ = tomInput.parentElement?.querySelector('template.select-no-results');
 		return templ ? {
 			no_results: (data: any, escape: Function) => template(templ.innerHTML)(data),
 		} : {};
-	}
-
-	private convertPseudoClasses() : HTMLStyleElement {
-		// Iterate over all style sheets, find most pseudo classes and add CSSRules with a
-		// CSS selector where the pseudo class has been replaced by a real counterpart.
-		// This is required, because browsers can not invoke `window.getComputedStyle(element)`
-		// using pseudo classes.
-		// With function `removeConvertedClasses()` the added CSSRules are removed again.
-		const numStyleSheets = document.styleSheets.length;
-		const styleElement = document.createElement('style');
-		document.head.appendChild(styleElement);
-		for (let index = 0; index < numStyleSheets; index++) {
-			const sheet = document.styleSheets[index];
-			for (let k = 0; k < sheet.cssRules.length; k++) {
-				const cssRule = sheet.cssRules.item(k);
-				if (cssRule) {
-					this.traverseStyles(cssRule, styleElement.sheet as CSSStyleSheet);
-				}
-			}
-		}
-		return styleElement;
-	}
-
-	private traverseStyles(cssRule: CSSRule, extraCSSStyleSheet: CSSStyleSheet) {
-		if (cssRule instanceof CSSImportRule) {
-			if (!cssRule.styleSheet)
-				return;
-			for (let subRule of cssRule.styleSheet.cssRules) {
-				this.traverseStyles(subRule, extraCSSStyleSheet);
-			}
-		} else if (cssRule instanceof CSSStyleRule) {
-			if (!cssRule.selectorText)
-				return;
-			const newSelectorText = cssRule.selectorText.
-				replaceAll(':focus', '.-focus-').
-				replaceAll(':focus-visible', '.-focus-visible-').
-				replaceAll(':hover', '.-hover-').
-				replaceAll(':disabled', '.-disabled-').
-				replaceAll(':invalid', '.-invalid-').
-				replaceAll(':valid', '.-valid-').
-				replaceAll('::placeholder-shown', '.-placeholder-shown').
-				replaceAll(':placeholder-shown', '.-placeholder-shown').
-				replaceAll('::placeholder', '.-placeholder-').
-				replaceAll(':placeholder', '.-placeholder-');
-			if (newSelectorText !== cssRule.selectorText) {
-				extraCSSStyleSheet.insertRule(`${newSelectorText}{${cssRule.style.cssText}}`);
-			}
-		} // else handle other CSSRule types
 	}
 
 	private attributesChanged(mutationsList: Array<MutationRecord>) {
@@ -287,13 +229,13 @@ class DjangoSelectize extends IncompleteSelect {
 const DS = Symbol('DjangoSelectize');
 
 export class DjangoSelectizeElement extends HTMLSelectElement {
-	private [DS]: DjangoSelectize;  // hides internal implementation
+	private [DS]?: DjangoSelectize;  // hides internal implementation
 
 	private connectedCallback() {
 		this[DS] = new DjangoSelectize(this);
 	}
 
 	public async getValue() {
-		return this[DS].value;
+		return this[DS]?.value;
 	}
 }

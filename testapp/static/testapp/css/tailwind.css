@@ -1,13 +1,29 @@
 @import "../../formset/css/tailwind.css";
 @import "../../formset/css/collections.css";
 
+:root {
+	--border-color: rgb(209 213 219);
+}
+
 django-form-collection[sibling-position] {
 	padding-top: 0.25rem;
 	margin-bottom: 0.25rem;
 }
 django-form-collection[sibling-position]:not(:last-of-type) {
-	border-bottom: 1px solid rgb(209 213 219);
+	border-bottom: 1px dashed var(--border-color);
 }
 django-form-collection[sibling-position] > .remove-collection {
 	top: -0.25rem;
 }
+django-form-collection[sibling-position] > .collection-drag-handle ~ .remove-collection {
+	top: 0.25rem;
+}
+.collection-siblings {
+	border-bottom: 1px solid var(--border-color);
+	margin-bottom: -1px;
+}
+.add-collection {
+	margin-top: 0.75rem;
+	margin-bottom: 0.75rem;
+}
+

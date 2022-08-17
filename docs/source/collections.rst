@@ -10,9 +10,18 @@ the same page and post them in a single submission. By using a prefix on each Dj
 possible to name the fields uniquely and on submission we can reassign the form data back to each
 individual form. This however is limited to one nesting level and is quite cumbersome to handle.
 
-In **django-formset** on the other side, we can create a Form Collection and explicitly add existing
-forms as members of those Collection. It even is possible to add a Collection as member of another
-Collection, in order to build a nested data structure.
+In **django-formset** on the other hand, we can create a form collection and explicitly add existing
+forms as members of those collection. It even is possible to add a collection as member of another
+collection, in order to build a pseudo nested [#1]_ structure of forms.
+
+The interface for classes inheriting from :class:`formset.collection.FormCollection` is
+intentionally very similar to that of Django's Form class. It can be filled with a ``data``
+dictionary as received by a POST request. It also can be initialized with a ``initial`` dictionary.
+Since collections can be nested, the ``data`` and ``initial`` dictionaries must contain the same
+shape as the nested structure.
+
+Furthermore a ``FormCollection`` offers a ``clean()``-method, which returns a cleaned representation
+of the data provided by a client's submission.
 
 
 Simple Collection
@@ -87,62 +96,107 @@ A Form Collection can not only contain other Django Forms, but also other Form C
 means, that we can nest collections into each other up to currently 10 levels (this limit can be
 increased if required).
 
-Just as with simple collections, form data sent by the client is already structured using the same
+Just as with simple collections, form data sent by the browser is already structured using the same
 hierarchy as the collection themselves.
 
 
 Collections with Siblings
 =========================
 
-If a Form Collection contains one of the attributes ``min_siblings``, ``max_siblings`` or
-``extra_siblings``, it is considered as a collection with siblings. They then behave similar to
-what we already know from Django's `InlineModelAdmin objects`_. The difference though is, that we
-can now use this feature outside of the Django-Admin, and that we can nest collections into each
-other recursively.
+If a class inheriting from :class:`formset.collection.FormCollection` contains one of the attributes
+``min_siblings``, ``max_siblings`` or ``extra_siblings``, it is considered as a *collection with
+siblings*. They then behave similar to what we already know as Django's `InlineModelAdmin objects`_.
+The difference though is, that we can use this feature outside of the Django-Admin, and moreover,
+that we can nest collections into each other recursively.
 
 .. _InlineModelAdmin objects: https://docs.djangoproject.com/en/stable/ref/contrib/admin/#inlinemodeladmin-objects
 
-Whenever a collection is declared to have siblings, its member forms are rendered from zero, once or
-multiple times. For each collection with siblings there is one "Add" button, and for each of the
-child forms/collections there is a "Remove" button. To avoid having too many "Remove" buttons, they
-become only visible when moving the cursor over that form/collection.
+Whenever a collection is declared to have siblings, its member collections are rendered from zero,
+once or multiple times. For each collection with siblings there is one "Add" button, and for each of
+the child collections there is a "Remove" button. To avoid having too many "Remove" buttons, they
+become only visible when moving the cursor over that collection.
 
 
 .. rubric:: Legend
 
-Just as HTML-elements of type``<fieldset>`` can contain a legend, also a Form Collection may
+Just as HTML-elements of type``<fieldset>`` can contain a legend, also a form collection may
 optionally contain a  ``<legend>…</legend>``-element. It is placed on top of the collection and
 shall be specified as parameter ``legend = "…"`` inside classes inheriting from
 :class:`formset.collection.FormCollection`.
 
 
+.. rubric:: Label for "Add" button
+
+The parameter ``add_label`` shall contain a human readable string, telling the user what kind of
+collection to add as sibling. If unset, the "Add" button just contains a **+** symbol.
+
+
 .. rubric:: Minimum Number of Siblings
 
-The parameter ``min_siblings`` tells us how many forms/collections the parent collection shall must
-contain as minimum. If unset, it defaults to 1.
+The parameter ``min_siblings`` tells us how many collections the parent collection must contain as
+minimum. If unset, it defaults to 1.
 
 
 .. rubric:: Maximum Number of Siblings
 
-The parameter ``max_siblings`` tells us how many forms/collections the parent collection may contain
-as maximum. If unset, there is no upper limit.
+The parameter ``max_siblings`` tells us how many collections the parent collection may contain as
+maximum. If unset, there is no upper limit.
+
 
 .. rubric:: Extra Siblings
 
-The parameter ``extra_siblings`` tells us how many empty forms/collections the parent collection
-starts with. If unset, it defaults to 0, which means that the user must explicitly add a new sibling
-by clicking on the "Add" button below the last sibling.
+The parameter ``extra_siblings`` tells us how many empty collections the parent collection starts
+with. If unset, it defaults to 0, which means that the user must explicitly add a new sibling by
+clicking on the "Add" button below the last sibling.
 
-Note that a collection with siblings behaves differently, when deleting forms/collections which
-either were initialized and thus loaded from the server, or were just added by clicking on the "Add"
-button below the last sibling. In the former case, such forms/collections are marked for deletion.
-This renders the form with a streaked background pattern, which signalizes to be removed on
-submission.
+Note that a collection with siblings behaves differently, when deleting a child collection. If that
+child collection was initialized and thus loaded from the server, then it is rendered with a
+streaked background pattern, which signalizes to be removed on submission.
 
 .. image:: _static/tailwind-marked-for-deletion.png
   :width: 672
   :alt: Marked for deletion
 
-If on the other side, a sibling collection just has been added, it can be removed immediately again.
-This is because for initialized forms/collections we have to keep a placeholder in order to tell the
-server how to change the underlying model.
+If on the other side that child collection was just added by clicking on the "Add" button below the
+last sibling, then that collection will be deleted immediately. This is because for initialized
+collections, while submitting we have to keep a placeholder in order to tell the server how to
+change the underlying model.
+
+.. rubric:: Ignore collections marked for removal
+
+The boolean parameter ``ignore_marked_for_removal`` tells the ``clean()``-method of the class
+inheriting from :class:`formset.collection.FormCollection` how to proceed with collections marked
+for removal. If unset or ``False`` (the default), such collections contain the special key value
+pair ``'_marked_for_removal_: True`` in their returned ``cleaned_data`` structure. This information
+shall be used, when the backend has to locate the proper model in order to delete it. If
+``ignore_marked_for_removal`` is ``True``, then collections marked for removal do not even appear
+inside the ``cleaned_data`` structure returned by the ``clean()``-method.
+
+
+Sortable Collections with Siblings
+==================================
+
+Whenever we work with a list of form collections, it might make sense to reorder the given entities.
+This allows the user to sort the siblings of a collection. To achieve this, either add
+``is_sortable = True`` when declaring the collection class, or instantiate the collection class
+by passing ``is_sortable=True`` to its constructor.
+
+Form collections declared to by sortable display a small drag area on their top right. By dragging
+that handle, the user can reorder the chosen collections. On form submission, that new order is
+reflected inside the list of transferred fields. When using a sortable collection to edit a 
+(query-)set of models, it therefor is mandatory to include the primary key of each object as hidden
+field. Otherwise it is not possible to resort those objects in the database.
+
+.. image:: _static/tailwind-sortable-collection.png
+  :width: 610
+  :alt: Sortable Collection
+
+One must note that it is only possible reorder collections inside its direct parent collection. It
+therefore is not possible to drag a sub collection into another collection.
+
+
+.. rubric:: Footnotes
+
+.. [#1] HTML does not allow to nest ``<form>``-elements. However, we can wrap those
+         ``<form>``-s into our own webcomponents which themselves are nested and hence mimick that
+         behaviour. 

@@ -1,12 +1,14 @@
 import { IncompleteSelect } from './IncompleteSelect';
+import { SortableSelectElement } from './SortableSelect';
 import template from 'lodash.template';
 
-class DualSelector extends IncompleteSelect {
+
+export class DualSelector extends IncompleteSelect {
 	private readonly selectorElement: HTMLSelectElement;
 	private readonly searchLeftInput?: HTMLInputElement;
 	private readonly searchRightInput?: HTMLInputElement;
 	private readonly selectLeftElement: HTMLSelectElement;
-	private readonly selectRightElement: HTMLSelectElement;
+	private readonly selectRightElement: HTMLSelectElement | SortableSelectElement;
 	private readonly moveAllRightButton: HTMLButtonElement;
 	private readonly moveSelectedRightButton: HTMLButtonElement;
 	private readonly moveAllLeftButton: HTMLButtonElement;
@@ -18,7 +20,7 @@ class DualSelector extends IncompleteSelect {
 	private lastRemoteQuery?: string;
 	private readonly renderNoResults: Function;
 
-	constructor(selectorElement: HTMLSelectElement) {
+	constructor(selectorElement: HTMLSelectElement, name: string) {
 		super(selectorElement);
 		this.selectorElement = selectorElement
 		selectorElement.setAttribute('multiple', 'multiple');
@@ -29,11 +31,18 @@ class DualSelector extends IncompleteSelect {
 			this.searchLeftInput.addEventListener('input', evt => this.leftLookup());
 			this.searchRightInput.addEventListener('input', evt => this.rightLookup());
 		}
-		const selectors = this.fieldGroup.querySelectorAll('select:not([is="django-dual-selector"])');
-		if (selectors.length !== 2)
-			throw new Error("<select is=\"django-dual-selector\"> requires two <select>-elements");
-		this.selectLeftElement = selectors[0] as HTMLSelectElement;
-		this.selectRightElement = selectors[1] as HTMLSelectElement;
+		const selectors = this.fieldGroup.querySelectorAll(`select:not([is="${name}"])`);
+		if (selectors.length >= 1) {
+			this.selectLeftElement = selectors.item(0) as HTMLSelectElement;
+			if (selectors.length === 2) {
+				this.selectRightElement = selectors.item(1) as HTMLSelectElement;
+			} else {
+				const selector = this.fieldGroup.querySelector('django-sortable-select');
+				this.selectRightElement = selector as SortableSelectElement;
+			}
+		} else {
+			throw new Error(`<select is="${name}"> requires two <select>-elements`);
+		}
 		this.moveAllRightButton = this.fieldGroup.querySelector('button.dj-move-all-right') as HTMLButtonElement;
 		this.moveSelectedRightButton = this.fieldGroup.querySelector('button.dj-move-selected-right') as HTMLButtonElement;
 		this.moveSelectedLeftButton = this.fieldGroup.querySelector('button.dj-move-selected-left') as HTMLButtonElement;
@@ -53,6 +62,7 @@ class DualSelector extends IncompleteSelect {
 		this.selectLeftElement.addEventListener('scroll', evt => this.selectLeftScrolled());
 		this.selectRightElement.addEventListener('focus', () => this.touch());
 		this.selectRightElement.addEventListener('dblclick', evt => this.moveOptionLeft(evt.target));
+		this.selectRightElement.addEventListener('options-sorted', evt => this.optionsSorted());
 		this.moveAllRightButton?.addEventListener('click', evt => this.moveAllOptionsRight());
 		this.moveSelectedRightButton?.addEventListener('click', evt => this.moveSelectedOptionsRight());
 		this.moveSelectedLeftButton?.addEventListener('click', evt => this.moveSelectedOptionsLeft());
@@ -61,7 +71,7 @@ class DualSelector extends IncompleteSelect {
 		this.redoButton?.addEventListener('click', evt => this.unOrRedo(+1));
 	}
 
-	private getOptions(selectElement: HTMLSelectElement) : Array<HTMLOptionElement> {
+	private getOptions(selectElement: HTMLSelectElement | SortableSelectElement) : Array<HTMLOptionElement> {
 		return Array.from(selectElement.getElementsByTagName('option'));
 	}
 
@@ -80,15 +90,18 @@ class DualSelector extends IncompleteSelect {
 		}
 		this.historicalValues.push(initialValues);
 		this.setHistoryCursor(0);
+		if (this.selectRightElement instanceof SortableSelectElement) {
+			this.selectRightElement.initialize(this.selectLeftElement);
+		}
 	}
 
-	private addNoResultsOption(selectElement: HTMLSelectElement, query: string) {
+	private addNoResultsOption(selectElement: HTMLSelectElement | SortableSelectElement, query: string) {
 		const option = new Option(this.renderNoResults({input: query}));
 		option.disabled = true;
 		selectElement.add(option);
 	}
 
-	private prepareOptions(selectElement: HTMLSelectElement) : Array<HTMLOptionElement> {
+	private prepareOptions(selectElement: HTMLSelectElement | SortableSelectElement) : Array<HTMLOptionElement> {
 		const options = this.getOptions(selectElement);
 		options.filter(o => o.disabled).forEach(o => o.remove());
 		return options;
@@ -170,6 +183,16 @@ class DualSelector extends IncompleteSelect {
 		this.selectorChanged();
 	}
 
+	private optionsSorted() {
+		this.getOptions(this.selectorElement).filter(o => o.selected).forEach(o => o.remove());
+		this.getOptions(this.selectRightElement).forEach(o => {
+			const clone = o.cloneNode() as HTMLOptionElement;
+			clone.selected = true;
+			this.selectorElement.add(clone);
+		});
+		this.optionsMoved();
+	}
+
 	private async moveOptionRight(target: EventTarget | null) {
 		if (target instanceof HTMLOptionElement) {
 			this.selectRightElement.add(target);
@@ -249,6 +272,15 @@ class DualSelector extends IncompleteSelect {
 		const nextValues = this.historicalValues[nextCursor];
 		this.getOptions(this.selectRightElement).filter(o => nextValues.indexOf(o.value) === -1).forEach(o => this.selectLeftElement.add(o));
 		this.getOptions(this.selectLeftElement).filter(o => nextValues.indexOf(o.value) !== -1).forEach(o => this.selectRightElement.add(o));
+		if (this.selectRightElement.tagName === 'DJANGO-SORTABLE-SELECT') {
+			nextValues.forEach(val => {
+				const optionElem = this.selectRightElement.querySelector(`option[value="${val}"]`);
+				if (optionElem) {
+					this.selectRightElement.insertAdjacentElement('beforeend', optionElem);
+				}
+			});
+			this.optionsSorted();
+		}
 		this.setHistoryCursor(nextCursor);
 		this.selectorChanged();
 	}
@@ -287,13 +319,13 @@ class DualSelector extends IncompleteSelect {
 const DS = Symbol('DualSelectorElement');
 
 export class DualSelectorElement extends HTMLSelectElement {
-	private [DS]: DualSelector;  // hides internal implementation
+	private [DS]?: DualSelector;  // hides internal implementation
 
 	connectedCallback() {
-		this[DS] = new DualSelector(this);
+		this[DS] = new DualSelector(this, 'django-dual-selector');
 	}
 
 	public async getValue() {
-		return this[DS].value;
+		return this[DS]?.value;
 	}
 }

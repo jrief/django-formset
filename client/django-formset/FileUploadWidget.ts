@@ -1,23 +1,5 @@
 import template from 'lodash.template';
 
-interface DjangoFormset {
-	endpoint: string;
-	CSRFToken: string | undefined;
-}
-
-interface DjangoForm {
-	formset: DjangoFormset;
-}
-
-interface FieldGroup {
-	form: DjangoForm;
-	element: HTMLElement;
-	touch(): void;
-	validate(): void;
-	reportFailedUpload(): void;
-	inputted(): void;
-}
-
 
 export class FileUploadWidget {
 	private readonly field: FieldGroup;

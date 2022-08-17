@@ -1,3 +1,4 @@
+import functools
 import itertools
 import json
 
@@ -25,13 +26,15 @@ from formset.views import FileUploadMixin, IncompleteSelectResponseMixin, FormCo
 
 from testapp.forms.address import AddressForm
 from testapp.forms.complete import CompleteForm
-from testapp.forms.contact import SimpleContactCollection, ContactCollection, ContactCollectionList
+from testapp.forms.contact import (SimpleContactCollection, ContactCollection, ContactCollectionList,
+    SortableContactCollection, SortableContactCollectionList)
 from testapp.forms.customer import CustomerCollection
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
+from testapp.forms.poll import ModelPollForm
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.upload import UploadForm
-from testapp.models import PersonModel
+from testapp.models import PersonModel, PollModel
 
 
 parser = Parser()
@@ -49,11 +52,13 @@ class JSONEncoder(DjangoJSONEncoder):
 
 
 def render_suburls(request, extra_context=None):
-    all_urls = set(filter(lambda url: url, (v[0][0][0] for v in get_resolver(__name__).reverse_dict.values())))
-    all_urls.remove('success')
+    all_views = ((v[0][0][0], v[2]) for v in get_resolver(__name__).reverse_dict.values())
+    all_views = filter(lambda t: t[0] and 'index' in t[1], all_views)
+    all_views = functools.reduce(lambda l, t: l.append(t) or l if t not in l else l, all_views, [])
+    all_views = sorted(all_views, key=lambda t: t[1]['index'])
     context = {
         'framework': request.resolver_match.app_name,
-        'all_urls': sorted(all_urls),
+        'all_urls': [t[0] for t in all_views],
     }
     if extra_context:
         context.update(extra_context)
@@ -150,9 +155,6 @@ class DemoFormView(DemoFormViewMixin, FormView):
 
 
 class DemoModelFormView(DemoFormViewMixin, UpdateView):
-    model = PersonModel
-    form_class = ModelPersonForm
-
     def get_queryset(self):
         queryset = super().get_queryset()
         return queryset.filter(created_by=self.request.session.session_key)
@@ -166,8 +168,9 @@ class DemoModelFormView(DemoFormViewMixin, UpdateView):
         response = super().form_valid(form)
         if not self.request.session.session_key:
             self.request.session.cycle_key()
-        form.instance.created_by = self.request.session.session_key
-        form.instance.save(update_fields=['created_by'])
+        if form.instance.created_by != self.request.session.session_key:
+            form.instance.created_by = self.request.session.session_key
+            form.instance.save(update_fields=['created_by'])
         return response
 
 
@@ -216,7 +219,7 @@ demo_css_classes = {
         '*': {
             'field_css_classes': 'mb-2',
             'fieldset_css_classes': 'border p-3',
-            'button_css_classes': 'mt-2',
+            'button_css_classes': 'mt-4',
         },
         'address': {
             'form_css_classes': 'row',
@@ -367,59 +370,69 @@ than placing them below each other.
 urlpatterns = [
     path('', render_suburls),
     path('success', SuccessView.as_view(), name='form_data_valid'),
-    path('01-complete.native', DemoFormView.as_view(
+    path('complete.native', DemoFormView.as_view(
         form_class=CompleteForm,
         extra_doc=extra_doc_native,
-    ), name='complete.native'),
-    path('02-complete.extended', DemoFormView.as_view(
+    ), kwargs={'group': 'form', 'index': 1}, name='complete.native'),
+    path('complete.extended', DemoFormView.as_view(
         form_class=CompleteForm,
         template_name='testapp/extended-form.html',
         extra_doc=extra_doc_extended,
-    ), name='complete.extended'),
-    path('03-complete.field-by-field', DemoFormView.as_view(
+    ), kwargs={'group': 'form', 'index': 2}, name='complete.extended'),
+    path('complete.field-by-field', DemoFormView.as_view(
         form_class=CompleteForm,
         template_name='testapp/field-by-field.html',
         extra_doc=extra_doc_field_by_field,
-    ), name='complete.field-by-field'),
-    path('04-complete.horizontal', DemoFormView.as_view(
+    ), kwargs={'group': 'form', 'index': 3}, name='complete.field-by-field'),
+    path('complete.horizontal', DemoFormView.as_view(
         form_class=CompleteForm,
         extra_doc=extra_doc_horizontal,
-    ), name='complete.horizontal'),
-    path('05-address', DemoFormView.as_view(
+    ), kwargs={'group': 'form', 'index': 4}, name='complete.horizontal'),
+    path('address', DemoFormView.as_view(
         form_class=AddressForm,
-    ), name='address'),
-    path('06-opinion', DemoFormView.as_view(
+    ), kwargs={'group': 'form', 'index': 5}, name='address'),
+    path('opinion', DemoFormView.as_view(
         form_class=OpinionForm,
-    ), name='opinion'),
-    path('07-questionnaire', DemoFormView.as_view(
+    ), kwargs={'group': 'form', 'index': 6}, name='opinion'),
+    path('questionnaire', DemoFormView.as_view(
         form_class=QuestionnaireForm,
-    ), name='questionnaire'),
-    path('08-simplecontact', DemoFormCollectionView.as_view(
+    ), kwargs={'group': 'form', 'index': 7}, name='questionnaire'),
+    path('simplecontact', DemoFormCollectionView.as_view(
         collection_class=SimpleContactCollection,
         initial={'person': sample_person_data},
-    ), name='simplecontact'),
-    path('09-customer', DemoFormCollectionView.as_view(
+    ), kwargs={'group': 'collection', 'index': 8}, name='simplecontact'),
+    path('customer', DemoFormCollectionView.as_view(
         collection_class=CustomerCollection,
-    ), name='customer'),
-    path('10-contact', DemoFormCollectionView.as_view(
+    ), kwargs={'group': 'collection', 'index': 9}, name='customer'),
+    path('contact', DemoFormCollectionView.as_view(
         collection_class=ContactCollection,
         initial={'person': sample_person_data, 'numbers': [{'number': {'phone_number': "+1 234 567 8900"}}]},
-    ), name='contact'),
-    path('11-contactlist', DemoFormCollectionView.as_view(
+    ), kwargs={'group': 'collection', 'index': 10}, name='contact'),
+    path('contactlist', DemoFormCollectionView.as_view(
         collection_class=ContactCollectionList,
-    ), name='contactlist'),
-    path('12-upload', DemoFormView.as_view(
+    ), kwargs={'group': 'collection', 'index': 11}, name='contactlist'),
+    path('sortablecontact', DemoFormCollectionView.as_view(
+        collection_class=SortableContactCollection,
+    ), kwargs={'group': 'sortable', 'index': 12}, name='sortablecontact'),
+    path('sortablecontactlist', DemoFormCollectionView.as_view(
+        collection_class=SortableContactCollectionList,
+    ), kwargs={'group': 'sortable', 'index': 13}, name='sortablecontactlist'),
+    path('upload', DemoFormView.as_view(
         form_class=UploadForm,
-    ), name='upload'),
-    path('13-person', DemoModelFormView.as_view(
+    ), kwargs={'group': 'form', 'index': 14}, name='upload'),
+    path('person', DemoModelFormView.as_view(
         form_class=ModelPersonForm,
         model=PersonModel,
-    ), name='person'),
-    path('14-button-actions', DemoFormView.as_view(
+    ), kwargs={'group': 'model', 'index': 15}, name='person'),
+    path('poll', DemoModelFormView.as_view(
+        form_class=ModelPollForm,
+        model=PollModel,
+    ), kwargs={'group': 'model', 'index': 16}, name='poll'),
+    path('button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',
         extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)'},
-    ), name='button-actions'),
+    ), kwargs={'group': 'button', 'index': 17}, name='button-actions'),
 ]
 
 # this creates permutations of forms to show how to withhold which feedback
@@ -445,12 +458,12 @@ for length in range(len(withhold_feedbacks) + 1):
         extra_docs.extend([f'* {extra_doc_withhold[w]}' for w in withhold_feedback])
         force_submission = suffix == '.mews'  # just for testing
         urlpatterns.append(
-            path(f'15-withhold{suffix}', DemoFormView.as_view(
+            path(f'withhold{suffix}', DemoFormView.as_view(
                 form_class=SimplePersonForm,
                 extra_context={
                     'withhold_feedback': ' '.join(withhold_feedback),
                     'force_submission': force_submission,
                 },
                 extra_doc='\n'.join(extra_docs),
-            ))
+            ), kwargs={'group': 'feedback', 'index': length + 18})
         )
