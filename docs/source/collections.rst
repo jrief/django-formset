@@ -119,7 +119,7 @@ become only visible when moving the cursor over that collection.
 
 .. rubric:: Legend
 
-Just as HTML-elements of type``<fieldset>`` can contain a legend, also a form collection may
+Just as HTML-elements of type ``<fieldset>`` can contain a legend, also a form collection may
 optionally contain a  ``<legend>…</legend>``-element. It is placed on top of the collection and
 shall be specified as parameter ``legend = "…"`` inside classes inheriting from
 :class:`formset.collection.FormCollection`.
@@ -181,11 +181,11 @@ This allows the user to sort the siblings of a collection. To achieve this, eith
 ``is_sortable = True`` when declaring the collection class, or instantiate the collection class
 by passing ``is_sortable=True`` to its constructor.
 
-Form collections declared to by sortable display a small drag area on their top right. By dragging
-that handle, the user can reorder the chosen collections. On form submission, that new order is
-reflected inside the list of transferred fields. When using a sortable collection to edit a 
-(query-)set of models, it therefor is mandatory to include the primary key of each object as hidden
-field. Otherwise it is not possible to resort those objects in the database.
+Form collections declared to by sortable display a small drag area on their top right corner. By
+dragging that handle, the user can reorder the chosen collections. On form submission, that new
+order is reflected inside the list of transferred fields. When using a sortable collection to edit a 
+(query-)set of models, it therefore is mandatory to include the primary key of each object as hidden
+field. Otherwise it will not be possible to resort those objects afterwards in the database.
 
 .. image:: _static/tailwind-sortable-collection.png
   :width: 610
