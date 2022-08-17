@@ -1,7 +1,7 @@
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
 import template from 'lodash.template';
-
+import Sortable, { SortableEvent } from 'sortablejs';
 import { FileUploadWidget } from './FileUploadWidget';
 import { TiptapArea } from './TiptapArea';
 import { parse } from './tag-attributes';
@@ -70,7 +70,7 @@ class FieldGroup {
 	public readonly name: string = '__undefined__';
 	public readonly element: HTMLElement;
 	private readonly pristineValue: BoundValue;
-	private readonly inputElements: Array<FieldElement>;
+	private readonly fieldElements: Array<FieldElement>;
 	private readonly initialDisabled: Array<boolean>;
 	public readonly errorPlaceholder: Element | null;
 	private readonly errorMessages: FieldErrorMessages;
@@ -109,7 +109,7 @@ class FieldGroup {
 					break;
 			}
 		}
-		this.inputElements = Array<FieldElement>(0).concat(inputElements);
+		this.fieldElements = Array<FieldElement>(0).concat(inputElements);
 
 		// <django-field-group> can contain at most one <select> element
 		const selectElement = element.getElementsByTagName('SELECT').item(0);
@@ -120,7 +120,7 @@ class FieldGroup {
 				this.clearCustomError();
 				this.validate()
 			});
-			this.inputElements.push(selectElement);
+			this.fieldElements.push(selectElement);
 		}
 
 		// <django-field-group> can contain at most one <textarea> element
@@ -129,14 +129,14 @@ class FieldGroup {
 			textAreaElement.addEventListener('focus', () => this.touch());
 			textAreaElement.addEventListener('input', () => this.inputted());
 			textAreaElement.addEventListener('blur', () => this.validate());
-			this.inputElements.push(textAreaElement);
+			this.fieldElements.push(textAreaElement);
 			if (textAreaElement.getAttribute('is') === 'tiptap') {
 				// @ts-ignore
 				this.tiptapArea = new TiptapArea(this, textAreaElement);
 			}
 		}
 
-		for (const element of this.inputElements) {
+		for (const element of this.fieldElements) {
 			if (this.name === '__undefined__') {
 				this.name = element.name;
 			} else {
@@ -144,7 +144,7 @@ class FieldGroup {
 					throw new Error(`Name mismatch on multiple input fields on ${element.name}`);
 			}
 		}
-		this.initialDisabled = this.inputElements.map(element => element.disabled);
+		this.initialDisabled = this.fieldElements.map(element => element.disabled);
 		if (requiredAny) {
 			this.validateCheckboxSelectMultiple();
 		} else {
@@ -158,8 +158,8 @@ class FieldGroup {
 	}
 
 	public aggregateValue(): FieldValue {
-		if (this.inputElements.length === 1) {
-			const element = this.inputElements[0];
+		if (this.fieldElements.length === 1) {
+			const element = this.fieldElements[0];
 			if (element.type === 'checkbox') {
 				return (element as HTMLInputElement).checked ? element.value : '';
 			}
@@ -182,7 +182,7 @@ class FieldGroup {
 			return element.value;
 		} else {
 			const value = [];
-			for (let element of this.inputElements) {
+			for (let element of this.fieldElements) {
 				if (element.type === 'checkbox') {
 					if ((element as HTMLInputElement).checked) {
 						value.push(element.value);
@@ -202,7 +202,7 @@ class FieldGroup {
 	}
 
 	private evalVisibility(attribute: string, visible: boolean): Function | null {
-		const attrValue = this.inputElements[0]?.getAttribute(attribute);
+		const attrValue = this.fieldElements[0]?.getAttribute(attribute);
 		if (typeof attrValue !== 'string')
 			return null;
 		try {
@@ -210,7 +210,7 @@ class FieldGroup {
 			return () => {
 				const isHidden = visible != Boolean(evalExpression.call(this));
 				if (this.element.hasAttribute('hidden') !== isHidden) {
-					this.inputElements.forEach((elem, index) => elem.disabled = isHidden || this.initialDisabled[index]);
+					this.fieldElements.forEach((elem, index) => elem.disabled = isHidden || this.initialDisabled[index]);
 					this.element.toggleAttribute('hidden', isHidden);
 				}
 			};
@@ -220,21 +220,21 @@ class FieldGroup {
 	}
 
 	private evalDisable(): Function {
-		const attrValue = this.inputElements[0]?.getAttribute('disable-if');
+		const attrValue = this.fieldElements[0]?.getAttribute('disable-if');
 		if (typeof attrValue !== 'string')
 			return () => {};
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
 			return () => {
 				const disable = evalExpression.call(this);
-				this.inputElements.forEach((elem, index) => elem.disabled = disable || this.initialDisabled[index]);
+				this.fieldElements.forEach((elem, index) => elem.disabled = disable || this.initialDisabled[index]);
 			}
 		} catch (error) {
 			throw new Error(`Error while parsing <... disable-if="${attrValue}">: ${error}.`);
 		}
 	}
 
-	getDataValue(path: Array<string>) {
+	private getDataValue(path: Array<string>) {
 		return this.form.getDataValue(path);
 	}
 
@@ -252,7 +252,7 @@ class FieldGroup {
 		if (this.errorPlaceholder) {
 			this.errorPlaceholder.innerHTML = '';
 		}
-		for (const element of this.inputElements) {
+		for (const element of this.fieldElements) {
 			if (element.validity.customError)
 				element.setCustomValidity('');
 		}
@@ -268,11 +268,11 @@ class FieldGroup {
 	}
 
 	public disableAllFields() {
-		this.inputElements.forEach(elem => elem.disabled = true);
+		this.fieldElements.forEach(elem => elem.disabled = true);
 	}
 
 	public reenableAllFields() {
-		this.inputElements.forEach((elem, index) => elem.disabled = this.initialDisabled[index]);
+		this.fieldElements.forEach((elem, index) => elem.disabled = this.initialDisabled[index]);
 	}
 
 	public touch() {
@@ -303,7 +303,7 @@ class FieldGroup {
 
 	public validate() {
 		let element: FieldElement | null = null;
-		for (element of this.inputElements) {
+		for (element of this.fieldElements) {
 			if (!element.validity.valid)
 				break;
 		}
@@ -326,7 +326,7 @@ class FieldGroup {
 
 	private validateCheckboxSelectMultiple() {
 		let validity = false;
-		for (const inputElement of this.inputElements) {
+		for (const inputElement of this.fieldElements) {
 			if (inputElement.type !== 'checkbox')
 				throw new Error("Expected input element of type 'checkbox'.");
 			if ((inputElement as HTMLInputElement).checked) {
@@ -336,7 +336,7 @@ class FieldGroup {
 			}
 		}
 		if (validity) {
-			for (const inputElement of this.inputElements) {
+			for (const inputElement of this.fieldElements) {
 				inputElement.setCustomValidity('');
 			}
 		} else if (this.pristineValue !== undefined && this.errorPlaceholder && this.form.formset.showFeedbackMessages) {
@@ -378,9 +378,9 @@ class FieldGroup {
 	private validateBoundField() {
 		// By default, HTML input fields do not validate their bound value regarding their min-
 		// and max-length. Therefore this validation must be performed separately.
-		if (this.inputElements.length !== 1 || !(this.inputElements[0] instanceof HTMLInputElement))
+		if (this.fieldElements.length !== 1 || !(this.fieldElements[0] instanceof HTMLInputElement))
 			return;
-		const inputElement = this.inputElements[0];
+		const inputElement = this.fieldElements[0];
 		if (!inputElement.value)
 			return;
 		if (inputElement.type === 'text') {
@@ -393,7 +393,7 @@ class FieldGroup {
 
 	public setValidationError(): boolean {
 		let element: FieldElement | undefined;
-		for (element of this.inputElements) {
+		for (element of this.fieldElements) {
 			if (!element.validity.valid)
 				break;
 		}
@@ -415,7 +415,7 @@ class FieldGroup {
 		if (this.errorPlaceholder) {
 			this.errorPlaceholder.innerHTML = message;
 		}
-		this.inputElements[0].setCustomValidity(message);
+		this.fieldElements[0].setCustomValidity(message);
 	}
 
 	public reportFailedUpload() {
@@ -517,7 +517,7 @@ class DjangoButton {
 	 * Re-enable the button for further submission.
 	 */
 	// @ts-ignore
-	enable() {
+	private enable() {
 		return (response: Response) => {
 			this.element.disabled = false;
 			return Promise.resolve(response);
@@ -831,7 +831,7 @@ class DjangoFieldset {
 		return this.form.getDataValue(path);
 	}
 
-	updateOperability() {
+	public updateOperability() {
 		this.updateVisibility();
 		this.updateDisabled();
 	}
@@ -878,22 +878,24 @@ class DjangoForm {
 		return data;
 	}
 
-	getDataValue(path: Array<string>) {
-		const absPath = [];
-		if (path[0] === '') {
-			// path is relative, so concatenate it to the form's path
-			absPath.push(...this.path);
-			const relPath = path.filter(part => part !== '');
-			const delta = path.length - relPath.length;
-			absPath.splice(absPath.length - delta + 1);
-			absPath.push(...relPath);
-		} else {
-			absPath.push(...path);
-		}
+	public getAbsPath() : Array<string> {
+		return ['formset_data', ...this.path];
+	}
+
+	public getDataValue(path: Array<string>) {
+		if (path[0] !== '')
+			return this.formset.getDataValue(path);
+
+		// path is relative, so concatenate it to the form's path
+		const absPath = [...this.path];
+		const relPath = path.filter(part => part !== '');
+		const delta = path.length - relPath.length;
+		absPath.splice(absPath.length - delta + 1);
+		absPath.push(...relPath);
 		return this.formset.getDataValue(absPath);
 	}
 
-	updateOperability() {
+	public updateOperability() {
 		this.fieldset?.updateOperability();
 		for (const fieldGroup of this.fieldGroups) {
 			fieldGroup.updateOperability();
@@ -983,14 +985,14 @@ class DjangoForm {
 
 class DjangoFormCollection {
 	protected readonly formset: DjangoFormset;
-	protected readonly element: Element;
+	protected readonly element: HTMLElement;
 	protected readonly parent?: DjangoFormCollection;
 	protected forms = Array<DjangoForm>(0);
 	public formCollectionTemplate?: DjangoFormCollectionTemplate;
 	public readonly children = Array<DjangoFormCollection>(0);
 	public markedForRemoval = false;
 
-	constructor(formset: DjangoFormset, element: Element, parent?: DjangoFormCollection, justAdded?: boolean) {
+	constructor(formset: DjangoFormset, element: HTMLElement, parent?: DjangoFormCollection, justAdded?: boolean) {
 		this.formset = formset;
 		this.element = element;
 		this.parent = parent;
@@ -1045,13 +1047,23 @@ class DjangoFormCollection {
 	protected resetToInitial() : boolean {
 		this.toggleForRemoval(false);
 		DjangoFormCollection.resetCollectionsToInitial(this.children);
-		this.formCollectionTemplate?.updateAddButtonAttrs();
+		if (this.formCollectionTemplate) {
+			const prefix = this.formCollectionTemplate.prefix;
+			const pathIndex = prefix === '0' ? 0 : prefix.split('.').length;
+			this.children.forEach((sibling, position) => sibling.repositionForms(pathIndex, position));
+			this.formCollectionTemplate.updateAddButtonAttrs();
+		}
 		return false;
 	}
 
-	protected repositionSiblings() {}
+	public repositionSiblings() {}
 
-	static getChildCollections(element: Element) : NodeListOf<Element> | [] {
+	public repositionForms(pathIndex: number, pathPart: number) {
+		this.forms.forEach(form => form.path[pathIndex] = String(pathPart));
+		this.children.forEach(child => child.repositionForms(pathIndex, pathPart));
+	}
+
+	static getChildCollections(element: Element) : NodeListOf<HTMLElement> | [] {
 		// traverse tree to find first occurrence of a <django-form-collection> and if so, return it with its siblings
 		const wrapper = element.querySelector('django-form-collection')?.parentElement;
 		return wrapper ? wrapper.querySelectorAll(':scope > django-form-collection') : [];
@@ -1065,6 +1077,22 @@ class DjangoFormCollection {
 			}
 		}
 		removeCollections.forEach(collection => formCollections.splice(formCollections.indexOf(collection), 1));
+		formCollections.sort((l, r) => {
+			return l instanceof DjangoFormCollectionSibling && r instanceof DjangoFormCollectionSibling ? l.initialPosition - r.initialPosition : 0;
+		});
+
+		// undo DOM sorting previously changed by SortableJS
+		let prevElement: HTMLElement | null = null;
+		for (const collection of formCollections) {
+			if (collection instanceof DjangoFormCollectionSibling) {
+				if (collection.initialPosition === 0) {
+					collection.element.parentElement?.insertAdjacentElement('afterbegin', collection.element);
+				} else {
+					prevElement?.insertAdjacentElement('afterend', collection.element);
+				}
+				prevElement = collection.element;
+			}
+		}
 		formCollections.forEach(collection => collection.repositionSiblings());
 	}
 }
@@ -1072,18 +1100,19 @@ class DjangoFormCollection {
 
 class DjangoFormCollectionSibling extends DjangoFormCollection {
 	public position: number;
+	public readonly initialPosition: number;
 	private readonly minSiblings: number = 0;
 	public readonly maxSiblings: number | null = null;
 	private readonly removeButton: HTMLButtonElement;
 	private justAdded = false;
 
-	constructor(formset: DjangoFormset, element: Element, parent?: DjangoFormCollection, justAdded?: boolean) {
+	constructor(formset: DjangoFormset, element: HTMLElement, parent?: DjangoFormCollection, justAdded?: boolean) {
 		super(formset, element, parent);
 		this.justAdded = justAdded ?? false;
 		const position = element.getAttribute('sibling-position');
 		if (!position)
 			throw new Error("Missing argument 'sibling-position' in <django-form-collection>")
-		this.position = parseInt(position);
+		this.position = this.initialPosition = parseInt(position);
 		const minSiblings = element.getAttribute('min-siblings');
 		if (!minSiblings)
 			throw new Error("Missing argument 'min-siblings' in <django-form-collection>")
@@ -1119,14 +1148,13 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 		super.disconnect();
 	}
 
-	protected repositionSiblings() {
+	public repositionSiblings() {
 		const siblings = this.parent?.children ?? this.formset.formCollections;
-		siblings.filter(sibling =>
-			sibling instanceof DjangoFormCollectionSibling
-		).forEach((collection, position) => {
-			const sibling = collection as DjangoFormCollectionSibling;
-			sibling.position = position;
-			sibling.element.setAttribute('sibling-position', String(position));
+		siblings.forEach((sibling, position) => {
+			if (sibling instanceof DjangoFormCollectionSibling) {
+				sibling.position = position;
+				sibling.element.setAttribute('sibling-position', String(position));
+			}
 		});
 	}
 
@@ -1162,11 +1190,11 @@ class DjangoFormCollectionTemplate {
 	private readonly formset: DjangoFormset;
 	private readonly element: HTMLTemplateElement;
 	private readonly parent?: DjangoFormCollection;
-	private readonly prefix: string;
 	private readonly renderEmptyCollection: Function;
 	private readonly addButton?: HTMLButtonElement;
 	private readonly maxSiblings: number | null = null;
 	private readonly baseContext = new Map<string, string>();
+	public readonly prefix: string;
 	public markedForRemoval = false;
 
 	constructor(formset: DjangoFormset, element: HTMLTemplateElement, parent?: DjangoFormCollection) {
@@ -1192,6 +1220,31 @@ class DjangoFormCollectionTemplate {
 		if (maxSiblings) {
 			this.maxSiblings = parseInt(maxSiblings);
 		}
+		if (element.hasAttribute('sortable')) {
+			new Sortable(element.parentElement!, {
+				animation: 150,
+				handle: 'django-form-collection[sibling-position]:not(.dj-marked-for-removal) > .collection-drag-handle',
+				draggable: 'django-form-collection[sibling-position]',
+				selectedClass: 'selected',
+				onEnd: this.resortSiblings,
+			});
+		}
+	}
+
+	private resortSiblings = (event: SortableEvent) => {
+		const oldIndex = event.oldDraggableIndex ?? NaN;
+		const newIndex = event.newDraggableIndex ?? NaN;
+		if (!isFinite(oldIndex) || !isFinite(newIndex) || oldIndex === newIndex)
+			return;
+		const siblings = this.parent?.children ?? this.formset.formCollections;
+		if (siblings.at(oldIndex) instanceof DjangoFormCollectionSibling) {
+			const extracted = siblings.splice(oldIndex, 1);
+			siblings.splice(newIndex, 0, ...extracted);
+			extracted.at(0)!.repositionSiblings();
+			const pathIndex = this.prefix === '0' ? 0 : this.prefix.split('.').length;
+			siblings.forEach((sibling, position) => sibling.repositionForms(pathIndex, position));
+			this.formset.validate();
+		}
 	}
 
 	private appendFormCollectionSibling = () => {
@@ -1206,7 +1259,7 @@ class DjangoFormCollectionTemplate {
 		const renderedHTML = this.renderEmptyCollection(context);
 		this.element.insertAdjacentHTML('beforebegin', renderedHTML);
 		const newCollectionElement = this.element.previousElementSibling;
-		if (!newCollectionElement)
+		if (!(newCollectionElement instanceof HTMLElement))
 			throw new Error("Unable to insert empty <django-form-collection> element.");
 		const siblings = this.parent?.children ?? this.formset.formCollections;
 		siblings.push(new DjangoFormCollectionSibling(this.formset, newCollectionElement, this.parent, true));
@@ -1246,7 +1299,7 @@ class DjangoFormCollectionTemplate {
 	}
 
 	static findFormCollectionTemplate(formset: DjangoFormset, element: Element, formCollection?: DjangoFormCollection) : DjangoFormCollectionTemplate | undefined {
-		const templateElement = element.querySelector(':scope > template.empty-collection') as HTMLTemplateElement;
+		const templateElement = element.querySelector(':scope > .collection-siblings > template.empty-collection') as HTMLTemplateElement;
 		if (templateElement) {
 			const formCollectionTemplate = new DjangoFormCollectionTemplate(formset, templateElement as HTMLTemplateElement, formCollection);
 			formCollectionTemplate.updateAddButtonAttrs();
@@ -1379,7 +1432,7 @@ export class DjangoFormset {
 		if (this.forms.length > 1) {
 			for (const form of this.forms) {
 				if (!form.name)
-					throw new Error('Multiple <form>-elements in a <django-formset> require a unique name each.');
+					throw new Error("Multiple <form>-elements in a <django-formset> require a unique name each.");
 				if (form.name in formNames)
 					throw new Error(`Detected more than one <form name="${form.name}"> in <django-formset>.`);
 				formNames.push(form.name);
@@ -1400,7 +1453,7 @@ export class DjangoFormset {
 	}
 
 	private findCollectionErrorsList() {
-		// find all elements <div class="dj-collection-errors"> belonging to the current <django-formset>
+		// find all elements <any class="dj-collection-errors"> belonging to the current <django-formset>
 		for (const element of this.element.getElementsByClassName('dj-collection-errors')) {
 			const prefix = element.getAttribute('prefix') ?? '';
 			const ulElement = element.querySelector('ul.dj-errorlist') as HTMLUListElement;
@@ -1430,11 +1483,7 @@ export class DjangoFormset {
 	private aggregateValues() {
 		this.data = {};
 		for (const form of this.forms) {
-			const path = ['formset_data']
-			if (form.name) {
-				path.push(...form.name.split('.'));
-			}
-			setDataValue(this.data, path, Object.fromEntries(form.aggregateValues()));
+			setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
 		}
 		for (const form of this.forms) {
 			if (!form.markedForRemoval) {
@@ -1506,7 +1555,7 @@ export class DjangoFormset {
 			if (!form.name)  // only a single form doesn't have a name
 				return Object.assign({}, this.data, {_extra: extraData});
 
-			const absPath = ['formset_data', ...form.path];
+			const absPath = form.getAbsPath();
 			dataValue = getDataValue(this.data, absPath);
 			if (form.markedForRemoval) {
 				dataValue[MARKED_FOR_REMOVAL] = MARKED_FOR_REMOVAL;
@@ -1610,8 +1659,7 @@ export class DjangoFormset {
 	}
 
 	public getDataValue(path: Array<string>) : string | null {
-		const absPath = ['formset_data'];
-		absPath.push(...path);
+		const absPath = ['formset_data', ...path];
 		return getDataValue(this.data, absPath, null);
 	}
 

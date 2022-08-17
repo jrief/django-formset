@@ -174,6 +174,7 @@ class IntermediateCollection(FormCollection):
         min_siblings=0,
         max_siblings=3,
         extra_siblings=0,
+        is_sortable=True,
     )
 
 
@@ -215,6 +216,74 @@ class ContactCollectionList(FormCollection):
         min_siblings=0,
         max_siblings=3,
         extra_siblings=0,
+        is_sortable=True,
     )
 
-    # intermediate = IntermediateCollection()
+
+class SortableContactCollection(ContactCollection):
+    """
+    This is a variation of the ``ContactCollection`` demo, where the used ``PhoneNumberCollection``
+    class is parametrized to be sortable. This allows the user to sort each sub collection
+    containing the phone number and label fields. The sorting can be performed by dragging the
+    supplied drag handle on the top right of each sub collection.
+
+    Declaring a ``FormCollection`` as sortable, is as simple as either adding the attribute
+    ``is_sortable = True`` to the collection class or by instantiating the collection class
+    as sortable. Here we do the latter reusing the ``PhoneNumberCollection`` from our previous
+    example:
+
+    .. code-block:: python
+
+        from myproject.forms import (ContactCollection,
+                                 PhoneNumberCollection)
+
+        class SortableContactCollection(ContactCollection):
+            numbers = PhoneNumberCollection(
+                max_siblings=5,
+                is_sortable=True,
+                initial=[…]
+            )
+
+    """
+
+    numbers = PhoneNumberCollection(
+        max_siblings=5,
+        is_sortable=True,
+        initial=[
+            {'number': {'phone_number': "+1 234 567 8900"}},
+            {'number': {'phone_number': "+33 1 43478293"}},
+            {'number': {'phone_number': "+39 335 327041"}},
+            {'number': {'phone_number': "+41 91 667914"}},
+            {'number': {'phone_number': "+49 89 7178864"}},
+        ]
+    )
+
+
+class SortableContactCollectionList(ContactCollectionList):
+    """
+    This is a variation of the ``ContactCollectionList`` demo, which is parametrized to be sortable
+    together with its sub form ``PhoneNumberCollection``. This allows the user to sort the outer
+    collections separately from its inner collections, by using the supplied drag handle on the top
+    right of each collection.
+
+    Declaring a ``FormCollection`` as sortable, is as simple as either adding the attribute
+    ``is_sortable = True`` to the collection class or by instantiating the collection class
+    as sortable. By inheriting from ``ContactCollectionList`` we can add the attribute
+    ``is_sortable`` to that class, while for its inner collections we reinstantiate it using
+    ``PhoneNumberCollection(is_sortable=True)``.
+
+    .. code-block:: python
+
+        from myproject.forms import (ContactCollectionList,
+                                     PhoneNumberCollection)
+
+        class SortableContactCollectionList(ContactCollectionList):
+            is_sortable = True
+
+            numbers = PhoneNumberCollection(is_sortable=True)
+
+    """
+
+    is_sortable = True
+
+    numbers = PhoneNumberCollection(is_sortable=True)

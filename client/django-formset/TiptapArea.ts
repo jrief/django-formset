@@ -4,6 +4,7 @@ import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
 
+
 export class TiptapArea {
 	private readonly field: FieldGroup;
 	private readonly textAreaElement: HTMLTextAreaElement;

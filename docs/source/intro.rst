@@ -20,13 +20,13 @@ eXperience. However, those JavaScript frameworks impose their own way of getting
 usually don't share the same mindset with Django. For instance, in Django we distinguish between
 `bound and unbound forms`_. This concept however doesn't make sense in most JavaScript
 frameworks, and hence is not implemented. We therefore often must work around those problems, which
-leeds to cumbersome and un-`DRY`_ solutions.
+leads to cumbersome and un-`DRY`_ solutions.
 
 .. _Django REST framework: https://www.django-rest-framework.org/
 .. _bound and unbound forms: https://docs.djangoproject.com/en/stable/ref/forms/api/#bound-and-unbound-forms
 .. _DRY: https://www.artima.com/articles/orthogonality-and-the-dry-principle
 
-With **django-formset** we get a `Web Component`_ explicitly written to handle Django forms and
+With **django-formset** we get a `webcomponent`_ explicitly written to handle Django forms and
 collections of forms (hence "formset") *with* the User eXperience modern JavaScript frameworks
 can offer. This means that fields are validated by the client, giving immediate feedback and the
 form's content is sent to the server without having to reload the page. The nice thing about this
@@ -34,7 +34,7 @@ approach is, that we can reuse all of our current Django forms (unaltered), can 
 (with a small modification), but we don't have to add any extra code and endpoints to our URL
 routing.
 
-.. _Web Component: https://developer.mozilla.org/en-US/docs/Web/Web_Components
+.. _webcomponent: https://developer.mozilla.org/en-US/docs/Web/Web_Components
 
 .. _forms_as_logical_entities:
 
@@ -149,10 +149,10 @@ is rendered, since we render them individually. More on this can be found in sec
 :ref:`field_by_field`.
 
 
-What are Web Components?
-========================
+What are Webcomponents?
+=======================
 
-According to `webcomponents.org`_, Web Components are a set of web platform APIs that allow you to
+According to `webcomponents.org`_, webcomponents are a set of web platform APIs that allow you to
 create new custom, reusable, encapsulated HTML tags to use in web pages and web apps. Custom
 components and widgets build on the Web Component standards, will work across modern browsers, and
 can be used with any JavaScript library or framework that works with HTML.
@@ -188,5 +188,12 @@ Annotation
 ==========
 
 When designing this library, one of the main goals was to keep the programming interface a near as
-possible to the way Django handles Forms, Models and Views. It therefore is possible to reuse
-existing Django Form declarations with a minimal modification to existing code.
+possible to the way Django handles forms, models and views. It therefore is possible to reuse
+existing Django form declarations with a minimal modification to existing code.
+
+
+Contributing
+============
+
+Before contributing to the code base, make sure you installed the complete set of tools as described
+in section :ref:`development`.

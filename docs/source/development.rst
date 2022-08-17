@@ -15,7 +15,7 @@ on the Discussion board.
 .. _PEG.js: https://peggyjs.org/documentation.html
 .. _GitHub: https://github.com/jrief/django-formset
 
-When playing with this library it therefore is strongly recommended that you install the whole
+When evaluating this library, it therefore is strongly recommended that you install the whole
 tool-chain required to build the test application:
 
 .. code-block:: shell
@@ -33,7 +33,8 @@ tool-chain required to build the test application:
 	testapp/manage.py migrate
 	testapp/manage.py runserver
 
-Open http://localhost:8000/ in your browser. There is a long list of forms for all kind of purposes.
+Open http://localhost:8000/ in your browser. There is a long list of examples for all kind of
+purposes.
 
 
 Setting up the Tests
@@ -57,16 +58,17 @@ Then run the testsuite
 .. _pytest: https://pytest-django.readthedocs.io/en/latest/
 .. _Playwright: https://playwright.dev/python/docs/intro/
 
+
 Building the Parser
 ===================
 
 The content of the button attribute ``click``, and the input field and fieldset attributes
 ``show-if``, ``hide-if`` and ``disable-if`` are parsed before being evaluated by the code
-implementing the Web Component. This parser is generated using PEG.js and compiles to a pure
+implementing the webcomponent. This parser is generated using PEG.js and compiles to a pure
 TypeScript module. The grammar describing this proprietary syntax can be found in
 ``assets/tag-attributes.pegjs``. The final parser is generated using ``npm run tag-attributes``
 and written to ``client/django-formset/tag-attributes.ts``. It then is imported by the code
-implementing the Web Component ``client/django-formset/DjangoFormset.ts``.
+implementing the webcomponent ``client/django-formset/DjangoFormset.ts``.
 
 
 Building the Client
