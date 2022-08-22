@@ -6,9 +6,9 @@ import { FileUploadWidget } from './FileUploadWidget';
 import { TiptapArea } from './TiptapArea';
 import { parse } from './tag-attributes';
 import styles from 'sass:./DjangoFormset.scss';
-import spinnerIcon from './spinner.svg';
-import okayIcon from './okay.svg';
-import bummerIcon from './bummer.svg';
+import spinnerIcon from './icons/spinner.svg';
+import okayIcon from './icons/okay.svg';
+import bummerIcon from './icons/bummer.svg';
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FieldValue = string | Array<string | Object>;
