@@ -727,14 +727,11 @@ class DjangoButton {
 	}
 
 	// @ts-ignore
+	/*
+	 * Called after all actions have been exected.
+	 */
 	private restore() {
-		return () => {
-			this.element.disabled = false;
-			this.element.setAttribute('class', this.initialClass);
-			if (this.originalDecorator) {
-				this.decoratorElement?.replaceChildren(...this.originalDecorator.cloneNode(true).childNodes);
-			}
-		}
+		return () => this.resetToInitial();
 	}
 
 	private decorate(decorator: HTMLElement, ms: number | undefined) {
@@ -773,6 +770,14 @@ class DjangoButton {
 			createActions(this.rejectActions, ast.rejectChain);
 		} catch (error) {
 			throw new Error(`Error while parsing <button click="${actionsQueue}">: ${error}.`);
+		}
+	}
+
+	public resetToInitial() {
+		this.element.disabled = false;
+		this.element.setAttribute('class', this.initialClass);
+		if (this.originalDecorator) {
+			this.decoratorElement?.replaceChildren(...this.originalDecorator.cloneNode(true).childNodes);
 		}
 	}
 
@@ -971,7 +976,7 @@ class DjangoForm {
 		}
 	}
 
-	findFirstErrorReport() : Element | null {
+	public findFirstErrorReport() : Element | null {
 		if (this.errorList?.textContent)
 			return this.element;  // report a non-field error
 		for (const fieldGroup of this.fieldGroups) {
@@ -1567,7 +1572,7 @@ export class DjangoFormset {
 		return Object.assign({}, body, {_extra: extraData});
 	}
 
-	async submit(extraData?: Object): Promise<Response | undefined> {
+	async submit(extraData?: Object) : Promise<Response | undefined> {
 		let formsAreValid = true;
 		this.setSubmitted();
 		if (!this.forceSubmission) {
@@ -1578,33 +1583,41 @@ export class DjangoFormset {
 		if (formsAreValid) {
 			if (!this.endpoint)
 				throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
-			const headers = new Headers();
-			headers.append('Accept', 'application/json');
-			headers.append('Content-Type', 'application/json');
-			if (this.CSRFToken) {
-				headers.append('X-CSRFToken', this.CSRFToken);
-			}
-			const response = await fetch(this.endpoint, {
-				method: 'POST',
-				headers: headers,
-				body: JSON.stringify(this.buildBody(extraData)),
-				signal: this.abortController.signal,
-			});
-			switch (response.status) {
-				case 200:
-					this.clearErrors();
-					for (const form of this.forms) {
-						form.element.dispatchEvent(new Event('submitted'));
-					}
-					return response;
-				case 422:
-					this.clearErrors();
-					const body = await response.json();
-					this.reportErrors(body);
-					return response;
-				default:
-					console.warn(`Unknown response status: ${response.status}`);
-					break;
+			try {
+				const headers = new Headers();
+				headers.append('Accept', 'application/json');
+				headers.append('Content-Type', 'application/json');
+				if (this.CSRFToken) {
+					headers.append('X-CSRFToken', this.CSRFToken);
+				}
+				const response = await fetch(this.endpoint, {
+					method: 'POST',
+					headers: headers,
+					body: JSON.stringify(this.buildBody(extraData)),
+					signal: this.abortController.signal,
+				});
+				switch (response.status) {
+					case 200:
+						this.clearErrors();
+						for (const form of this.forms) {
+							form.element.dispatchEvent(new Event('submitted'));
+						}
+						return response;
+					case 422:
+						this.clearErrors();
+						const body = await response.json();
+						this.reportErrors(body);
+						return response;
+					default:
+						console.warn(`Unknown response status: ${response.status}`);
+						this.clearErrors();
+						this.buttons.forEach(button => button.resetToInitial());
+						break;
+				}
+			} catch (error) {
+				this.clearErrors();
+				this.buttons.forEach(button => button.resetToInitial());
+				alert(error);
 			}
 		} else {
 			this.clearErrors();
@@ -1663,7 +1676,7 @@ export class DjangoFormset {
 		return getDataValue(this.data, absPath, null);
 	}
 
-	findFirstErrorReport() : Element | null {
+	public findFirstErrorReport() : Element | null {
 		for (const form of this.forms) {
 			const errorReportElement = form.findFirstErrorReport();
 			if (errorReportElement)
