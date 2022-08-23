@@ -1,0 +1,19 @@
+.ProseMirror {
+	word-wrap: break-word;
+	white-space: break-spaces;
+	font-variant-ligatures: none;
+	font-feature-settings: "liga" 0; /* the above doesn't seem to work in Edge */
+	position: relative;
+
+	&[contenteditable="false"] {
+		  white-space: normal;
+	}
+
+	&.ProseMirror-focused {
+		opacity: 1;
+	}
+
+	pre {
+		white-space: pre-wrap;
+	}
+}

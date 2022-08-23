@@ -1,6 +1,6 @@
 from django.forms import fields, forms
 
-from formset.widgets import TiptapArea
+from formset.widgets import RichTextArea
 
 
 class RichTextForm(forms.Form):
@@ -16,5 +16,5 @@ class RichTextForm(forms.Form):
 
     description = fields.JSONField(
         label="Description",
-        widget=TiptapArea,
+        widget=RichTextArea,
     )

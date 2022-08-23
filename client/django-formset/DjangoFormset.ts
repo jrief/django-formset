@@ -3,7 +3,7 @@ import setDataValue from 'lodash.set';
 import template from 'lodash.template';
 import Sortable, { SortableEvent } from 'sortablejs';
 import { FileUploadWidget } from './FileUploadWidget';
-import { TiptapArea } from './TiptapArea';
+import { RichTextArea } from './RichTextArea';
 import { parse } from './tag-attributes';
 import styles from 'sass:./DjangoFormset.scss';
 import spinnerIcon from './icons/spinner.svg';
@@ -75,7 +75,7 @@ class FieldGroup {
 	public readonly errorPlaceholder: Element | null;
 	private readonly errorMessages: FieldErrorMessages;
 	private readonly fileUploader?: FileUploadWidget;
-	private readonly tiptapArea?: TiptapArea;
+	private readonly richTextArea?: RichTextArea;
 	private readonly updateVisibility: Function;
 	private readonly updateDisabled: Function;
 
@@ -85,6 +85,8 @@ class FieldGroup {
 		this.errorPlaceholder = element.querySelector('.dj-errorlist > .dj-placeholder');
 		this.errorMessages = new FieldErrorMessages(this);
 		const requiredAny = element.classList.contains('dj-required-any');
+
+		// <django-field-group> can contain one or more <input type="checkbox"> or <input type="radio"> elements
 		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(e => e.name && e.type !== 'hidden');
 		for (const element of inputElements) {
 			switch (element.type) {
@@ -126,14 +128,15 @@ class FieldGroup {
 		// <django-field-group> can contain at most one <textarea> element
 		const textAreaElement = element.getElementsByTagName('TEXTAREA').item(0);
 		if (textAreaElement instanceof HTMLTextAreaElement) {
+			if (textAreaElement.getAttribute('is') === 'richtext') {
+				// @ts-ignore
+				this.richTextArea = new RichTextArea(this, textAreaElement);
+				// TODO: install event handlers
+			}
 			textAreaElement.addEventListener('focus', () => this.touch());
 			textAreaElement.addEventListener('input', () => this.inputted());
 			textAreaElement.addEventListener('blur', () => this.validate());
 			this.fieldElements.push(textAreaElement);
-			if (textAreaElement.getAttribute('is') === 'tiptap') {
-				// @ts-ignore
-				this.tiptapArea = new TiptapArea(this, textAreaElement);
-			}
 		}
 
 		for (const element of this.fieldElements) {
