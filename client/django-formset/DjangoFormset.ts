@@ -753,19 +753,18 @@ class DjangoButton {
 		if (!actionsQueue)
 			return;
 
-		let self = this;
-		function createActions(actions: Array<ButtonAction>, chain: Array<any>) {
+		const createActions = (actions: Array<ButtonAction>, chain: Array<any>) => {
 			for (let action of chain) {
-				const func = self[action.funcname as keyof DjangoButton];
+				const func = this[action.funcname as keyof DjangoButton];
 				if (typeof func !== 'function')
 					throw new Error(`Unknown function '${action.funcname}'.`);
 				actions.push(new ButtonAction(func, action.args));
 			}
 			if (actions.length === 0) {
 				// the actionsQueue must resolve at least once
-				actions.push(new ButtonAction(self.noop, []));
+				actions.push(new ButtonAction(this.noop, []));
 			}
-		}
+		};
 
 		try {
 			const ast = parse(actionsQueue, {startRule: 'Actions'});
