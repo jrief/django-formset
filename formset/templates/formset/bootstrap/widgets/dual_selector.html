@@ -4,8 +4,8 @@
 {% block "column_left_classes" %}col-sm-5{% endblock %}
 {% block "control-panel" %}
 <div class="col-sm-2 d-flex align-items-center justify-content-center">
-	<div class="btn-group-vertical flex-fill px-4 py-2">
-	{% with button_classes="btn btn-outline-secondary btn-sm" %}
+	<div class="btn-group-vertical btn-group-sm flex-fill px-4 py-2">
+	{% with button_classes="btn btn-outline-secondary" %}
 		{% include "formset/default/buttons/move_all_right.html" %}
 		{% include "formset/default/buttons/move_selected_right.html" %}
 		{% include "formset/default/buttons/move_selected_left.html" %}
