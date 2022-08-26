@@ -115,6 +115,8 @@ to specify the success page as a HTML link, rather than having it to hard-code i
 view. There is a complete set of predefined actions to select from, when designing the submit
 button.
 
+![Button Actions (Bootstrap)](readmeimg/bootstrap-actions.gif)
+
 
 ## Immediate Form Validation
 
