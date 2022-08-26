@@ -177,9 +177,7 @@ class FieldGroup {
 				return value;
 			}
 			if (element.type === 'file') {
-				if (!this.fileUploader)
-					throw new Error("fileUploader expected");
-				return this.fileUploader.uploadedFiles;
+				return this.fileUploader!.uploadedFiles;
 			}
 			// all other input types just return their value
 			return element.value;
@@ -262,9 +260,7 @@ class FieldGroup {
 	}
 
 	public resetToInitial() {
-		if (this.fileUploader) {
-			this.fileUploader.resetToInitial();
-		}
+		this.fileUploader?.resetToInitial();
 		this.untouch();
 		this.setPristine();
 		this.clearCustomError();
@@ -366,8 +362,8 @@ class FieldGroup {
 				return false;
 			}
 		}
-		if (inputElement.type === 'file' && this.fileUploader) {
-			if (this.fileUploader.inProgress()) {
+		if (inputElement.type === 'file') {
+			if (this.fileUploader!.inProgress()) {
 				// seems that file upload is still in progress => field shall not be valid
 				if (this.errorPlaceholder) {
 					this.errorPlaceholder.innerHTML = this.errorMessages.get('typeMismatch') ?? '';
