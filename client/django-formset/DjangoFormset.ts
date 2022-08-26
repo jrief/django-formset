@@ -471,14 +471,14 @@ class DjangoButton {
 		this.bummerElement.classList.add('dj-icon', 'dj-bummer');
 		this.bummerElement.innerHTML = bummerIcon;
 		this.parseActionsQueue(element.getAttribute('click'));
-		element.addEventListener('click', () => this.clicked());
+		element.addEventListener('click', this.clicked);
 	}
 
 	/**
 	 * Event handler to be called when someone clicks on the button.
 	 */
 	// @ts-ignore
-	private clicked() {
+	private clicked = () => {
 		let promise: Promise<Response> | undefined;
 		for (const [index, action] of this.successActions.entries()) {
 			if (!promise) {
