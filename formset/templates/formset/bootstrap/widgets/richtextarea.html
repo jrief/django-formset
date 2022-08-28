@@ -1,6 +1,8 @@
 {% include "django/forms/widgets/textarea.html" %}
-<div class="btn-group" role="group">
-	<button type="button" class="btn btn-outline-secondary">1</button>
-	<button type="button" class="btn btn-outline-secondary">2</button>
-	<button type="button" class="btn btn-outline-secondary">3</button>
+<div class="btn-group btn-group-sm" role="group">
+	<button type="button" aria-label="bold" class="btn btn-light py-1">{% include "formset/icons/bold.svg" %}</button>
+	<button type="button" aria-label="italic" class="btn btn-light py-1">{% include "formset/icons/italic.svg" %}</button>
+	<button type="button" aria-label="underline" class="btn btn-light py-1">{% include "formset/icons/underline.svg" %}</button>
+	<button type="button" aria-label="bullet-list" class="btn btn-light py-1">{% include "formset/icons/bullet-list.svg" %}</button>
+	<button type="button" aria-label="clear-format" class="btn btn-light py-1">{% include "formset/icons/clear-format.svg" %}</button>
 </div>

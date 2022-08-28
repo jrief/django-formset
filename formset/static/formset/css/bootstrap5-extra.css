@@ -14,3 +14,7 @@ select[is="django-dual-selector"] ~ .row :is(select, django-sortable-select) {
 	border-top-right-radius: 0;
 	margin-top: -1px;
 }
+
+textarea[is="richtext"] ~ * .btn > svg {
+	width: 1.2em;
+}
