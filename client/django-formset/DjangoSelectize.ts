@@ -63,7 +63,7 @@ class DjangoSelectize extends IncompleteSelect {
 		}
 		this.numOptions = parseInt(tomInput.getAttribute('options') ?? this.numOptions.toString());
 		this.tomSelect = new TomSelect(tomInput, config);
-		this.observer = new MutationObserver(mutationsList => this.attributesChanged(mutationsList));
+		this.observer = new MutationObserver(this.attributesChanged);
 		this.observer.observe(this.tomInput, {attributes: true});
 		this.initialValue = this.tomSelect.getValue();
 		this.shadowRoot = this.wrapInShadowRoot();
@@ -205,7 +205,7 @@ class DjangoSelectize extends IncompleteSelect {
 		} : {};
 	}
 
-	private attributesChanged(mutationsList: Array<MutationRecord>) {
+	private attributesChanged = (mutationsList: Array<MutationRecord>) => {
 		for (const mutation of mutationsList) {
 			if (mutation.type === 'attributes' && mutation.attributeName === 'disabled') {
 				if (this.tomInput.disabled) {
