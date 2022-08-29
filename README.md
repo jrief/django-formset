@@ -147,7 +147,7 @@ designed to handle one-to-many relations. With collections these two interconnec
 handled with seemingly the same form (although in the background those are separated entinties).
 
 
-## Conditional hiding/disabeling
+## Conditional hiding/disabling
 
 Since each formset holds its state (the current value of their fields), that information can be used
 to conditionally hide or disabele other fields or even a complete fieldset.
