@@ -222,7 +222,7 @@ class DjangoSelectize extends IncompleteSelect {
 		}
 	}
 
-	public get value() : string | string[] {
+	public getValue() : string | string[] {
 		return this.tomSelect.getValue();
 	}
 }
@@ -237,6 +237,6 @@ export class DjangoSelectizeElement extends HTMLSelectElement {
 	}
 
 	public async getValue() {
-		return this[DS]?.value;
+		return this[DS]?.getValue();
 	}
 }

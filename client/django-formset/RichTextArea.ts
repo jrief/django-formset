@@ -11,29 +11,34 @@ import styles from 'sass:./RichTextArea.scss';
 import { StyleHelpers } from "./helpers";
 
 
-export class RichTextArea {
+class RichTextArea {
+	private readonly textAreaElement: HTMLTextAreaElement;
 	private readonly declaredStyles: HTMLStyleElement;
-	private readonly field: FieldGroup;
 	private readonly editor: Editor;
-	private readonly required: Boolean;
+	private readonly proseMirrorElement: HTMLElement;
 	private readonly initialValue: string | object;
+	private readonly required: Boolean;
 
-	constructor(fieldGroup: FieldGroup, textAreaElement: HTMLTextAreaElement) {
+	constructor(textAreaElement: HTMLTextAreaElement) {
+		this.textAreaElement = textAreaElement;
 		this.declaredStyles = document.createElement('style');
 		this.declaredStyles.innerText = styles;
 		document.head.appendChild(this.declaredStyles);
-		this.field = fieldGroup;
 		this.editor = this.createEditor(textAreaElement);
-		this.required = textAreaElement.required;
-		textAreaElement.required = false;
+		const proseMirrorElement = this.editor.options.element.getElementsByClassName('ProseMirror').item(0);
+		if (!(proseMirrorElement instanceof HTMLElement))
+			throw new Error("Failed to initialize Rich Text Area");
+		this.proseMirrorElement = proseMirrorElement;
 		this.initialValue = textAreaElement.value;
-		textAreaElement.hidden = true;
+		this.required = textAreaElement.required;
+		textAreaElement.classList.add('dj-concealed');
+		this.installEventHandlers();
 	}
 
 	private createEditor(textAreaElement: HTMLTextAreaElement) : Editor {
 		const divElement = document.createElement('DIV') as HTMLDivElement;
 		divElement.classList.add('richtext-wrapper');
-		textAreaElement.insertAdjacentElement('afterend', divElement);
+		textAreaElement.insertAdjacentElement('beforebegin', divElement);
 		const editor = new Editor({
 			element: divElement,
 			extensions: [
@@ -59,13 +64,46 @@ export class RichTextArea {
 	}
 
 	private wrapControlElements(wrapperElement: HTMLElement) {
-		const buttonGroup = wrapperElement.parentElement?.querySelector('textarea[is="richtext"] ~ [role="group"]');
+		const buttonGroup = wrapperElement.parentElement?.querySelector('textarea[is="django-richtext"] ~ [role="group"]');
 		if (!buttonGroup)
 			throw new Error('<textarea is="richtext"> requires a sibling element <ANY [role="group"]>');
 		wrapperElement.insertBefore(buttonGroup, null);
 		buttonGroup.querySelectorAll('button[aria-label]').forEach(button => {
 			button.addEventListener('click', this.controlButtonClicked);
 		});
+	}
+
+	private installEventHandlers() {
+		this.editor.on('focus', this.focused);
+		this.editor.on('update', this.updated);
+		this.editor.on('blur', this.blurred);
+		this.textAreaElement.addEventListener('valid', this.validate);
+	}
+
+	private focused = () => {
+		console.log('focus');
+		this.textAreaElement.dispatchEvent(new Event('focus'));
+	}
+
+	private updated = () => {
+		console.log('update');
+		this.textAreaElement.innerText = this.editor.getText();
+		this.textAreaElement.dispatchEvent(new Event('input'));
+	}
+
+	private blurred = () => {
+		this.textAreaElement.dispatchEvent(new Event('blur'));
+	}
+
+	private validate = (event: Event) => {
+		console.log(event);
+		if (this.required && !this.editor.getText()) {
+			this.proseMirrorElement.classList.remove('valid');
+			this.proseMirrorElement.classList.add('invalid');
+		} else {
+			this.proseMirrorElement.classList.add('valid');
+			this.proseMirrorElement.classList.remove('invalid');
+		}
 	}
 
 	private controlButtonClicked = (event: Event) => {
@@ -127,4 +165,27 @@ export class RichTextArea {
 		}
 	}
 
+	public getValue() : any {
+		//return this.textAreaElement.innerText;
+		return this.editor.getText();
+	}
+}
+
+
+const RTA = Symbol('RichTextArea');
+
+export class RichTextAreaElement extends HTMLTextAreaElement {
+	private [RTA]?: RichTextArea;  // hides internal implementation
+
+	private connectedCallback() {
+		this[RTA] = new RichTextArea(this);
+	}
+
+	public get value() : any {
+		return this[RTA]?.getValue();
+	}
+
+	public async getValue() {
+		return this[RTA]?.getValue();
+	}
 }

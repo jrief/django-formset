@@ -3,7 +3,6 @@ import setDataValue from 'lodash.set';
 import template from 'lodash.template';
 import Sortable, { SortableEvent } from 'sortablejs';
 import { FileUploadWidget } from './FileUploadWidget';
-import { RichTextArea } from './RichTextArea';
 import { parse } from './tag-attributes';
 import styles from 'sass:./DjangoFormset.scss';
 import spinnerIcon from './icons/spinner.svg';
@@ -75,7 +74,6 @@ class FieldGroup {
 	public readonly errorPlaceholder: Element | null;
 	private readonly errorMessages: FieldErrorMessages;
 	private readonly fileUploader?: FileUploadWidget;
-	private readonly richTextArea?: RichTextArea;
 	private readonly updateVisibility: Function;
 	private readonly updateDisabled: Function;
 
@@ -128,11 +126,6 @@ class FieldGroup {
 		// <django-field-group> can contain at most one <textarea> element
 		const textAreaElement = element.getElementsByTagName('TEXTAREA').item(0);
 		if (textAreaElement instanceof HTMLTextAreaElement) {
-			if (textAreaElement.getAttribute('is') === 'richtext') {
-				// @ts-ignore
-				this.richTextArea = new RichTextArea(this, textAreaElement);
-				// TODO: install event handlers
-			}
 			textAreaElement.addEventListener('focus', () => this.touch());
 			textAreaElement.addEventListener('input', () => this.inputted());
 			textAreaElement.addEventListener('blur', () => this.validate());
