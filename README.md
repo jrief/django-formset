@@ -147,10 +147,10 @@ designed to handle one-to-many relations. With collections these two interconnec
 handled with seemingly the same form (although in the background those are separated entinties).
 
 
-## Conditional hiding/disabeling
+## Conditional hiding/disabling
 
 Since each formset holds its state (the current value of their fields), that information can be used
-to conditionally hide or disabele other fields or even a complete fieldset.
+to conditionally hide or disable other fields or even a complete fieldset.
 
 By adding the special attributes `show-if="condition"`, `hide-if="condition"` or
 `disable-if="condition"` on an input fields or on a fieldsets, one can hide or disable these marked
