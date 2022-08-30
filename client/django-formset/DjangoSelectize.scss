@@ -1,9 +1,7 @@
 // This stylesheet is added to the shadow root created by DjangoSelectize.
 // Changes in here do not affect HTML elements outside of this realm.
-$select-color-highlight: rgba(255, 237, 40, 0.4);
-$select-color-dropdown: rgb(244, 244, 244);
-$selected-items-border-color: rgba(0, 0, 0, 0.15);
-$active-items-background-color: rgba(0, 0, 0, 0.05);
+@import "colors";
+
 
 .ts-wrapper {
 	position: relative;
