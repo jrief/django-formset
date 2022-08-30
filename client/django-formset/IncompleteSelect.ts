@@ -33,21 +33,9 @@ export abstract class IncompleteSelect {
 		this.fieldGroup.classList.add('dj-touched');
 	}
 
-	protected get CSRFToken(): string | undefined {
-		const value = `; ${document.cookie}`;
-		const parts = value.split('; csrftoken=');
-
-		if (parts.length === 2) {
-			return parts[1].split(';').shift();
-		}
-	}
-
 	protected async loadOptions(query: string, successCallback: Function) {
 		const headers = new Headers();
 		headers.append('Accept', 'application/json');
-		if (this.CSRFToken) {
-			headers.append('X-CSRFToken', this.CSRFToken);
-		}
 		const url = `${this.endpoint}?field=${this.fieldName}&${query}`;
 		const response = await fetch(url, {
 			method: 'GET',
