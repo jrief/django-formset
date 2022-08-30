@@ -4,10 +4,9 @@
   "private": true,
   "scripts": {
     "build": "node client/build.cjs",
-    "minify": "jsmin -o formset/static/formset/js/django-formset.min.js formset/static/formset/js/django-formset.js",
+    "minify": "terser --compress --mangle --output formset/static/formset/js/django-formset.min.js -- formset/static/formset/js/django-formset.js",
     "tag-attributes": "peggy -o client/django-formset/tag-attributes.ts --extra-options-file assets/pegjsconf.json --plugin ./node_modules/ts-pegjs/src/tspegjs.js assets/tag-attributes.pegjs",
-    "tailwindcss": "tailwindcss --input assets/tailwind-styles.css --config assets/tailwind.config.js --output formset/static/formset/css/tailwind.css",
-    "uglify": "uglifyjs formset/static/formset/js/django-formset.js --compress --mangle -o formset/static/formset/js/django-formset.min.js"
+    "tailwindcss": "tailwindcss --input assets/tailwind-styles.css --config assets/tailwind.config.js --output formset/static/formset/css/tailwind.css"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.0",
@@ -32,11 +31,11 @@
     "sass": "^1.32.12",
     "sortablejs": "^1.15.0",
     "tailwindcss": "^3.0.23",
+    "terser": "^5.15.0",
     "tom-select": "^2.1.0",
     "ts-pegjs": "^1.2.1",
     "tslib": "^2.2.0",
     "typescript": "^4.1.4",
-    "uglify-js": "^3.13.8",
     "uikit": "^3.7.5"
   }
 }
