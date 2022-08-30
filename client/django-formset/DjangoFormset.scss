@@ -86,6 +86,21 @@ django-formset {
 
 		select, textarea {
 			background-image: none !important;
+
+			&.dj-concealed {
+				// HTML fields replaced by counterpart: 'django-selectize', 'django-dual-selector' or 'django-richtext'
+				// and hence marked as concealed.
+				// Styling with 'display: none;' or 'visible: hidden;' would lead to console error
+				// "An invalid form control with name='…' is not focusable" while processing the 'invalid' event handler.
+				display: block !important;
+				height: 1px !important;
+				min-height: initial !important;
+				max-height: initial !important;
+				padding: 0 !important;
+				margin: -1px 0 0 0 !important;
+				border: none !important;
+				opacity: 0 !important;
+			}
 		}
 
 		&.dj-submitted {
