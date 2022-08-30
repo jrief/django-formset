@@ -111,7 +111,7 @@ def test_form_validated(page, form):
 def test_initial_value(page, form):
     selector_element = page.query_selector('django-formset select[is="django-dual-selector"]')
     assert selector_element is not None
-    value = selector_element.evaluate('elem => elem.getValue()')
+    value = selector_element.evaluate('elem => elem.value')
     if form.name == 'selector_initialized':
         assert set(value) == set(str(k) for k in get_initial_opinions())
     else:
@@ -308,7 +308,7 @@ def test_force_submit_invalid_form(page, mocker, view, form):
 def test_reset_selector(page, view, form):
     selector_element = page.query_selector('django-formset select[is="django-dual-selector"]')
     assert selector_element is not None
-    initial_values = selector_element.evaluate('elem => elem.getValue()')
+    initial_values = selector_element.evaluate('elem => elem.value')
     select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
     assert select_left_element is not None
     left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option')]
@@ -317,10 +317,10 @@ def test_reset_selector(page, view, form):
     assert select_right_element is not None
     right_option_values = [o.get_attribute('value') for o in select_right_element.query_selector_all('option')]
     assert set(initial_values).union([left_option_values[50]]) == set(right_option_values)
-    values = selector_element.evaluate('elem => elem.getValue()')
+    values = selector_element.evaluate('elem => elem.value')
     assert values != initial_values
     page.wait_for_selector('django-formset').evaluate('elem => elem.reset()')
-    values = selector_element.evaluate('elem => elem.getValue()')
+    values = selector_element.evaluate('elem => elem.value')
     assert values == initial_values
 
 
@@ -410,7 +410,7 @@ def test_right_selector_lookup(page, form):
 def test_undo_redo(page, view, form):
     selector_element = page.query_selector('django-formset select[is="django-dual-selector"]')
     assert selector_element is not None
-    initial_values = selector_element.evaluate('elem => elem.getValue()')
+    initial_values = selector_element.evaluate('elem => elem.value')
     undo_button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-undo-selected')
     assert undo_button is not None
     assert undo_button.is_disabled()
