@@ -137,7 +137,7 @@
 	}
 }
 
-:host-context(django-field-group.dj-dirty) .ts-wrapper {
+:host-context(django-field-group.dj-touched) .ts-wrapper {
 	&.has-items:not(.input-active) .ts-control {
 		border-color: var(--django-formset-color-valid);
 	}
