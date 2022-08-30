@@ -45,7 +45,7 @@ jobs:
     - name: Build Client
       run: |
         npm run build
-        npm run uglify
+        npm run minify
     - name: Translate *.po files
       run: cd formset && django-admin compilemessages
     - name: Build 🐍 Python 📦 Package

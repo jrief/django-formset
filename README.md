@@ -139,7 +139,9 @@ Collections can be declared to have siblings, allowing them to be instantiated m
 is similar to Django's Stacked- and Tabular-Inlines, but allows an infinite number of nesting
 levels. Moreover, such collections with siblings can optionally be sorted.
 
-![Form Collections](readmeimg/bootstrap-contact.png)
+[![Form Collections](readmeimg/bootstrap-contact.png)](https://youtu.be/dxyzzGOeNY4)
+
+[watch as video](https://youtu.be/dxyzzGOeNY4)
 
 A form collection is also useful to create an editor for models wich have a one-to-one relation.
 The Django admin for instance requires to use a Stacked- or Tabular-Inline, which however is

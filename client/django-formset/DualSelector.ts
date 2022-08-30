@@ -5,6 +5,7 @@ import template from 'lodash.template';
 
 export class DualSelector extends IncompleteSelect {
 	private readonly selectorElement: HTMLSelectElement;
+	private readonly containerElement: HTMLElement | null;
 	private readonly searchLeftInput?: HTMLInputElement;
 	private readonly searchRightInput?: HTMLInputElement;
 	private readonly selectLeftElement: HTMLSelectElement;
@@ -22,7 +23,8 @@ export class DualSelector extends IncompleteSelect {
 
 	constructor(selectorElement: HTMLSelectElement, name: string) {
 		super(selectorElement);
-		this.selectorElement = selectorElement
+		this.selectorElement = selectorElement;
+		this.containerElement = this.fieldGroup.querySelector('.dj-dual-selector');
 		selectorElement.setAttribute('multiple', 'multiple');
 		const inputs = this.fieldGroup.querySelectorAll('input[type="text"]');
 		if (inputs.length === 2) {
@@ -153,6 +155,7 @@ export class DualSelector extends IncompleteSelect {
 			option.selected = rightOptions.filter(o => o.value === option.value).length === 1;
 		}
 		this.setButtonsState();
+		this.containerElement?.classList.toggle('invalid', !this.selectorElement.checkValidity());
 		this.selectorElement.dispatchEvent(new Event('change'));
 	}
 

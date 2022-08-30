@@ -1,7 +1,7 @@
 {% extends "formset/default/widgets/dual_selector.html" %}
 
 {% block "wrapper_classes" %}{{ block.super }} row{% endblock %}
-{% block "column_left_classes" %}col-sm-5{% endblock %}
+{% block "column_left_classes" %}{{ block.super }} col-sm-5{% endblock %}
 {% block "control-panel" %}
 <div class="col-sm-2 d-flex align-items-center justify-content-center">
 	<div class="btn-group-vertical btn-group-sm flex-fill px-4 py-2">
@@ -16,6 +16,6 @@
 	</div>
 </div>
 {% endblock %}
-{% block "column_right_classes" %}col-sm-5{% endblock %}
+{% block "column_right_classes" %}{{ block.super }} col-sm-5{% endblock %}
 
 

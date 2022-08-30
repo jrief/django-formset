@@ -1,7 +1,7 @@
 {% extends "formset/default/widgets/dual_selector.html" %}
 
-{% block "wrapper_classes" %}flex flex-row{% endblock %}
-{% block "column_left_classes" %}basis-1/2{% endblock %}
+{% block "wrapper_classes" %}{{ block.super }} flex flex-row{% endblock %}
+{% block "column_left_classes" %}{{ block.super }} basis-1/2{% endblock %}
 {% block "control-panel" %}
 <div class="basis-12 pt-11">
 	<div class="flex flex-col">
@@ -16,4 +16,4 @@
 	</div>
 </div>
 {% endblock %}
-{% block "column_right_classes" %}basis-1/2{% endblock %}
+{% block "column_right_classes" %}{{ block.super }} basis-1/2{% endblock %}
