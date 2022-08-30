@@ -1,3 +1,5 @@
+@import "colors";
+
 @mixin DualSelector {
 	.dj-dual-selector {
 		display: flex;
@@ -18,6 +20,19 @@
 		}
 		button svg {
 			vertical-align: middle;
+		}
+
+		&.invalid {
+			.right-column {
+				input {
+					border-color: var(--django-formset-color-invalid);
+				}
+				select:not(:focus), django-sortable-select:not(.focus) {
+					border-left-color: var(--django-formset-color-invalid);
+					border-right-color: var(--django-formset-color-invalid);
+					border-bottom-color: var(--django-formset-color-invalid);
+				}
+			}
 		}
 	}
 }

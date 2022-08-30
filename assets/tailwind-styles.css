@@ -9,10 +9,16 @@
     @apply w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300;
 }
 .formset-dual-selector-select {
-	@apply formset-select-multiple rounded-t-none !important;
+	@apply formset-select-multiple rounded-t-none w-full !important;
 }
 .formset-dual-selector-lookup {
 	@apply formset-text-input border-b-0 rounded-b-none !important;
+}
+.dj-dual-selector ~ .dj-field-errors {
+	@apply text-end;
+}
+[is="django-dual-selector"] {
+	@apply w-full;
 }
 .formset-checkbox, .formset-checkbox-multiple {
     @apply mr-2 focus:ring-indigo-100 border-gray-300 rounded;

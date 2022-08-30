@@ -11,6 +11,8 @@
   * Simplify the way events handlers are called.
   * Remove the CSRF-Token from the request header of webcomponents `<select is="django-selectize">`
     and `<select is="django-dual-selector">`, since they exclusively use GET requests.
+  * The right selector box of the webcomponent `<select is="django-dual-selector" required …>` now
+    shows a red border if input data is missing.
 
 - 0.10
   * The right part of the widget `DualSelector` optionally is sortable now. Views accepting forms
