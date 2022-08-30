@@ -311,7 +311,7 @@ export class DualSelector extends IncompleteSelect {
 		this.setHistoryCursor(0);
 	}
 
-	public get value() : string[] {
+	public getValue() : string[] {
 		return this.getOptions(this.selectorElement).filter(o => o.selected).map(o => o.value);
 	}
 }
@@ -325,7 +325,7 @@ export class DualSelectorElement extends HTMLSelectElement {
 		this[DS] = new DualSelector(this, 'django-dual-selector');
 	}
 
-	public async getValue() {
-		return this[DS]?.value;
+	public get value() : any {
+		return this[DS]?.getValue();
 	}
 }
