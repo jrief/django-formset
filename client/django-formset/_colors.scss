@@ -1,0 +1,21 @@
+// border colors
+$django-formset-alert: #ff0300;
+$django-formset-warning: #ffa500;
+$django-formset-success: #007a00;
+
+// selectize items
+$select-color-highlight: rgba(255, 237, 40, 0.4);
+$select-color-dropdown: rgb(244, 244, 244);
+$selected-items-border-color: rgba(0, 0, 0, 0.15);
+$active-items-background-color: rgba(0, 0, 0, 0.05);
+
+@use "sass:color";
+$django-formset-color-invalid: 'rgb(' + #{color.red($django-formset-alert), color.green($django-formset-alert), color.blue($django-formset-alert)} + ')';
+$django-formset-color-warning: 'rgb(' + #{color.red($django-formset-warning), color.green($django-formset-warning), color.blue($django-formset-warning)} + ')';
+$django-formset-shadow-invalid: 'rgb(' + #{color.red($django-formset-alert), color.green($django-formset-alert), color.blue($django-formset-alert)} +', 0.25)';
+$django-formset-color-valid: 'rgb(' + #{color.red($django-formset-success), color.green($django-formset-success), color.blue($django-formset-success)} + ')';
+:root {
+	--django-formset-color-invalid: #{$django-formset-color-invalid};
+	--django-formset-shadow-invalid: #{$django-formset-shadow-invalid};
+	--django-formset-color-valid: #{$django-formset-color-valid};
+}
