@@ -1,10 +1,5 @@
 {% load translate from i18n %}
 {% spaceless %}
-<select is="django-dual-selector" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %} hidden>
-	{% for option in widget.options %}
-	<option value="{{ option.value|stringformat:'s' }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>
-	{% endfor %}
-</select>
 {% block "select-no-results" %}
 <template class="select-no-results">{% translate "No results found for '${input}'" %}</template>
 {% endblock %}
@@ -41,4 +36,9 @@
 {% endblock %}
 </div>
 {% endwith %}
+<select is="django-dual-selector" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %}>
+	{% for option in widget.options %}
+	<option value="{{ option.value|stringformat:'s' }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>
+	{% endfor %}
+</select>
 {% endspaceless %}

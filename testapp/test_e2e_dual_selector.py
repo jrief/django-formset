@@ -461,7 +461,7 @@ def test_selector_sorting(page, mocker, view, form):
     assert select_left_element is not None
     option = select_left_element.query_selector('option:nth-child(40)')
     option.click()
-    option = select_left_element.query_selector('option:nth-child(49)')
+    option = select_left_element.query_selector('option:nth-child(47)')
     option.click(modifiers=['Shift'])
     select_right_element = page.query_selector('django-formset .dj-dual-selector .right-column django-sortable-select')
     assert select_right_element is not None
@@ -469,27 +469,32 @@ def test_selector_sorting(page, mocker, view, form):
     button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-move-selected-right')
     assert button is not None
     button.click()
-    assert len(select_right_element.query_selector_all('option')) == 10
+    assert len(select_right_element.query_selector_all('option')) == 8
     page.query_selector('django-formset .dj-dual-selector .right-column django-sortable-select option').click()
+    page.locator('django-formset .right-column django-sortable-select option:nth-child(7)').click()
+    sleep(0.1)
     drag_handle = page.locator('django-formset .right-column django-sortable-select option:nth-child(7)')
     drag_handle.drag_to(page.locator('django-formset .right-column django-sortable-select option:first-child'))
+    sleep(0.1)
     drag_handle = page.locator('django-formset .right-column django-sortable-select option:nth-child(3)')
     drag_handle.drag_to(page.locator('django-formset .right-column django-sortable-select option:last-child'))
-    drag_handle = page.locator('django-formset .right-column django-sortable-select option:nth-child(5)')
+    sleep(0.1)
+    drag_handle = page.locator('django-formset .right-column django-sortable-select option:nth-child(4)')
     drag_handle.drag_to(page.locator('django-formset .right-column django-sortable-select option:nth-child(6)'))
+    sleep(0.1)
     button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-undo-selected')
     assert button is not None
     button.click()
     spy = mocker.spy(view.view_class, 'post')
     submit_button = page.query_selector('django-formset button[click]')
     submit_button.click()
-    sleep(0.1)
     assert spy.called is True
     request = json.loads(spy.call_args.args[1].body)
-    labels = [f"Opinion {number:04d}" for number in range(40, 50)]
+    labels = [f"Opinion {number:04d}" for number in range(40, 48)]
     expected = [str(o.pk) for o in OpinionModel.objects.filter(label__in=labels)]
     expected.insert(0, expected.pop(6))
     expected.append(expected.pop(2))
     assert request['formset_data']['weighted_opinions'] == expected
+    sleep(0.1)
     response = json.loads(spy.spy_return.content)
     assert response == {'success_url': '/success'}

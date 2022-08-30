@@ -49,6 +49,7 @@ export class DualSelector extends IncompleteSelect {
 		this.moveAllLeftButton = this.fieldGroup.querySelector('button.dj-move-all-left') as HTMLButtonElement;
 		this.undoButton = this.fieldGroup.querySelector('button.dj-undo-selected') as HTMLButtonElement;
 		this.redoButton = this.fieldGroup.querySelector('button.dj-redo-selected') as HTMLButtonElement;
+		this.selectorElement.classList.add('dj-concealed');
 		const templ = selectorElement.parentElement?.querySelector('template.select-no-results');
 		this.renderNoResults = (data: any) => templ ? template(templ.innerHTML)(data) : "No results";
 		this.installEventHandlers();

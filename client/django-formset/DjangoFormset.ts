@@ -110,13 +110,13 @@ class FieldGroup {
 		this.fieldElements = Array<FieldElement>(0).concat(inputElements);
 
 		// <django-field-group> can contain at most one <select> element
-		const selectElement = element.getElementsByTagName('SELECT').item(0);
-		if (selectElement instanceof HTMLSelectElement && selectElement.name) {
+		const selectElement = (Array.from(element.getElementsByTagName('SELECT')) as Array<HTMLSelectElement>).filter(e => e.name).at(0);
+		if (selectElement) {
 			selectElement.addEventListener('focus', () => this.touch());
 			selectElement.addEventListener('change', () => {
 				this.setDirty();
 				this.clearCustomError();
-				this.validate()
+				this.validate();
 			});
 			this.fieldElements.push(selectElement);
 		}

@@ -1,16 +1,17 @@
 @media (max-width: 575.98px) {
-	select[is="django-dual-selector"] ~ .row :is(.dj-move-all-right, .dj-move-selected-right, .dj-move-all-left, .dj-move-selected-left) svg {
+	.dj-dual-selector :is(.dj-move-all-right, .dj-move-selected-right, .dj-move-all-left, .dj-move-selected-left) svg {
 		transform: rotate(90deg);
 	}
 }
 
-select[is="django-dual-selector"] ~ .row input {
+.dj-dual-selector input {
 	border-bottom-left-radius: 0;
 	border-bottom-right-radius: 0;
 }
 
-select[is="django-dual-selector"] ~ .row :is(select, django-sortable-select) {
+.dj-dual-selector :is(select, django-sortable-select) {
 	border-top-left-radius: 0;
 	border-top-right-radius: 0;
 	margin-top: -1px;
+	width: 100% !important;
 }

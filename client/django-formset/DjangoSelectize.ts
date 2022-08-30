@@ -68,6 +68,7 @@ class DjangoSelectize extends IncompleteSelect {
 		this.initialValue = this.tomSelect.getValue();
 		this.shadowRoot = this.wrapInShadowRoot();
 		this.transferStyles(tomInput, nativeStyles);
+		tomInput.classList.add('dj-concealed');
 		this.validateInput(this.initialValue as string);
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
 	}
@@ -84,7 +85,7 @@ class DjangoSelectize extends IncompleteSelect {
 		const shadowRoot = shadowWrapper.attachShadow({mode: 'open', delegatesFocus: true});
 		const shadowStyleElement = document.createElement('style');
 		shadowRoot.appendChild(shadowStyleElement).textContent = styles;
-		this.tomInput.insertAdjacentElement('afterend', shadowWrapper);
+		this.tomInput.insertAdjacentElement('beforebegin', shadowWrapper);
 		const wrapper = (this.tomInput.parentElement as HTMLElement).removeChild(this.tomSelect.wrapper);
 		shadowRoot.appendChild(wrapper);
 		return shadowRoot;
