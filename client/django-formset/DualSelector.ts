@@ -57,10 +57,10 @@ export class DualSelector extends IncompleteSelect {
 	}
 
 	private installEventHandlers() {
-		this.selectLeftElement.addEventListener('focus', () => this.touch());
+		this.selectLeftElement.addEventListener('focus', this.touch);
 		this.selectLeftElement.addEventListener('dblclick', evt => this.moveOptionRight(evt.target));
 		this.selectLeftElement.addEventListener('scroll', evt => this.selectLeftScrolled());
-		this.selectRightElement.addEventListener('focus', () => this.touch());
+		this.selectRightElement.addEventListener('focus', this.touch);
 		this.selectRightElement.addEventListener('dblclick', evt => this.moveOptionLeft(evt.target));
 		this.selectRightElement.addEventListener('options-sorted', evt => this.optionsSorted());
 		this.moveAllRightButton?.addEventListener('click', evt => this.moveAllOptionsRight());

@@ -33,10 +33,10 @@ class DjangoSelectize extends IncompleteSelect {
 			maxItems: 1,
 			searchField: ['label'],
 			render: this.setupRender(tomInput),
-			onFocus: () => this.touch(),
-			onBlur: () => this.blurred(),
-			onChange: () => this.changed(),
-			onType: (evt: Event) => this.inputted(evt),
+			onFocus: this.touch,
+			onBlur: this.blurred,
+			onChange: this.changed,
+			onType: this.inputted,
 		};
 		if (this.isIncomplete) {
 			config.load = (query: string, callback: Function) => this.loadOptions(`query=${encodeURIComponent(query)}`, callback);
@@ -90,19 +90,19 @@ class DjangoSelectize extends IncompleteSelect {
 		return shadowRoot;
 	}
 
-	private blurred() {
+	private blurred = () => {
 		const wrapper = this.shadowRoot.querySelector('.ts-wrapper');
 		wrapper?.classList.remove('dirty');
 	}
 
-	private changed() {
+	private changed = () => {
 		this.tomSelect.setTextboxValue('');
 		if (this.tomSelect.dropdown_content.childElementCount <= 1) {
 			this.tomSelect.close();
 		}
 	}
 
-	private inputted(event: Event) {
+	private inputted = (event: Event) => {
 		const value = event as unknown as string;
 		const wrapper = this.shadowRoot.querySelector('.ts-wrapper');
 		wrapper?.classList.toggle('dirty', value.length > 0);
