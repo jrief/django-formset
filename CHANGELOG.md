@@ -1,5 +1,17 @@
 ## Changes
 
+- 0.10.1
+  * The HTML tags for `<select is="django-selectize">` and `<select is="django-dual-selector">`
+    declare their own webcomponents which now add their own HTML elements in front of themselves,
+    before hiding. Instead of hiding via `display: none;` they now "conceal" so that the browser
+    can set focus on input fields not validating.
+  * Replace `uglify` against `terser` to minify JavaScript files.
+  * In webcomponent `<select is="django-dual-selector">`, replace `elem.getValue()` against
+    `elem.value`.
+  * Simplify the way events handlers are called.
+  * Remove the CSRF-Token from the request header of webcomponents `<select is="django-selectize">`
+    and `<select is="django-dual-selector">`, since they exclusively use GET requests.
+
 - 0.10
   * The right part of the widget `DualSelector` optionally is sortable now. Views accepting forms
     with this widget can rely upon that sorting order and store it.
