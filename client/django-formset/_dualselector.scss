@@ -27,10 +27,14 @@
 				input {
 					border-color: var(--django-formset-color-invalid);
 				}
-				select:not(:focus), django-sortable-select:not(.focus) {
+				select, django-sortable-select {
 					border-left-color: var(--django-formset-color-invalid);
 					border-right-color: var(--django-formset-color-invalid);
 					border-bottom-color: var(--django-formset-color-invalid);
+				}
+				select:focus, django-sortable-select.focus {
+					border-top-color: var(--django-formset-color-invalid);
+					box-shadow: 0 0 0 0.2rem var(--django-formset-shadow-invalid);
 				}
 			}
 		}
