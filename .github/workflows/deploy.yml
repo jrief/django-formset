@@ -1,9 +1,6 @@
 name: Deploy django-formset
 
-on:
-  release:
-    types:
-      - published
+on: workflow_dispatch
 
 env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
