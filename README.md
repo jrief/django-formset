@@ -1,9 +1,8 @@
 # django-formset – Better UX for Django Forms 
 
-This library handles single forms and collections of forms in an alternative way as Django does it
-providing [formsets](https://docs.djangoproject.com/en/stable/topics/forms/formsets/). It however
-implements them with a way better user experience using modern form functionality as provided with
-HTML5 and contemporary JavaScript.
+This library handles single forms and collections of forms with a way better user experience than
+the internal Django implementation for
+[formsets](https://docs.djangoproject.com/en/stable/topics/forms/formsets/) can offers.
 
 [![Build Status](https://github.com/jrief/django-formset/actions/workflows/tests.yml/badge.svg)](https://github.com/jrief/django-formset/actions)
 [![PyPI version](https://img.shields.io/pypi/v/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
@@ -85,8 +84,8 @@ temporary location on the server.
 
 ### Alternatives for `<select>` and `<select multiple>` Widgets
 
-The default HTML `<select>` widget can be replaced by counterpart with autocompletion. No extra
-endpoint is required, because that's handled by the same Django view controlling the form.
+The default HTML `<select>` widget can be replaced by a counterpart with autocompletion. No extra
+endpoint is required, because that's handled by the Django view already controlling the form.
 
 The default HTML `<select multiple="multiple">` widget can be replaced by two different widgets, one
 which keeps the selected options inlined, and one which keeps them inside a "select-from" and a
@@ -103,8 +102,11 @@ Similar widgets can be found in the Django admin to make many-to-many relations 
   this widget queries the database when searching for an option. It uses the same autocomplete
   endpoint.
 * The right part of the widget can be filtered as well.
-* The widget has a redo/undo functionality in case the user mistakenly select to wrong option(s).
-* Optionally, selected options in the right part of the widget can be sorted.
+* The widget has a redo/undo functionality in case the user mistakenly selected wrong option(s).
+* Optionally, selected options in the right part of the widget can be sorted. This order then is
+  can be refelected in an
+  [extra field](https://docs.djangoproject.com/en/stable/topics/db/models/#intermediary-manytomany)
+   on the many-to-many relationship.
 
 
 ## Button actions
@@ -115,18 +117,20 @@ to specify the success page as a HTML link, rather than having it to hard-code i
 view. There is a complete set of predefined actions to select from, when designing the submit
 button.
 
-![](readmeimg/bootstrap-actions.gif)
+![Button Actions](readmeimg/bootstrap-actions.gif)
 
 
 ## Immediate Form Validation
 
 Each field is validated as soon as it looses focus. This gives immediate feedback and signalizes if
 some user input will not be accepted, when submitting the form. The browser side validation
-constraints are excatly the same, as those defined in Python for each Django field.
+constraints are excatly the same, as those defined for each Django field in Python.
 
-Not every value or combination of thereof can be validated by the browser, but instead is rejected
-by the backend application, for instance inside the `clean()`- and/or `clean_FIELDNAME()`-methods.
-Those server side errors are sent back to the client and shown nearby the offending fields without
+Not every value or combination of thereof can be validated by the browser, but instead may be
+rejected by the backend application. For instance, the `clean()`- and/or `clean_FIELDNAME()`-methods
+may complain about values using some kind of internal logic.
+
+Those serverside errors are sent back to the client and shown nearby the offending fields without
 having to re-render the complete page. On success, a given page is loaded (or another alternative
 action is performed).
 
