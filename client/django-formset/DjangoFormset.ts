@@ -834,7 +834,7 @@ class DjangoFieldset {
 
 class DjangoForm {
 	public readonly formId: string | null;
-	public readonly name: string | null;
+	public name: string | null;
 	public readonly path: Array<string>;
 	public readonly formset: DjangoFormset;
 	public readonly element: HTMLFormElement;
@@ -1053,7 +1053,10 @@ class DjangoFormCollection {
 	public repositionSiblings() {}
 
 	public repositionForms(pathIndex: number, pathPart: number) {
-		this.forms.forEach(form => form.path[pathIndex] = String(pathPart));
+		this.forms.forEach(form => {
+			form.path[pathIndex] = String(pathPart);
+			form.name = form.path.join('.');
+		});
 		this.children.forEach(child => child.repositionForms(pathIndex, pathPart));
 	}
 
@@ -1220,8 +1223,8 @@ class DjangoFormCollectionTemplate {
 				handle: 'django-form-collection[sibling-position]:not(.dj-marked-for-removal) > .collection-drag-handle',
 				draggable: 'django-form-collection[sibling-position]',
 				selectedClass: 'selected',
-				onEnd: this.resortSiblings,
 				ghostClass: 'dj-ghost-collection',
+				onEnd: this.resortSiblings,
 			});
 		}
 	}
