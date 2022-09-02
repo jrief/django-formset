@@ -1,5 +1,17 @@
 ## Changes
 
+- 0.10.2
+  * In sortable form collections, add a CSS ghost class to make moved item more opaque. This is for
+    a better usability experience.
+  * In sortable form collections, change the form name after moving a collection. This fixes a
+    problem with form validation.
+  * Fix: On forms created from a model, method `IncompleteSelectResponseMixin.fetch_options()`
+    raised an AttributeError.
+  * Class `FormCollection` and class `Fieldset` accept an optional help text which is rendered at
+    the bottom of a `<django-form-collection>` or `<fieldset>`.
+  * Some rendering templates remove whitespace using templatetag `{% spaceless %}`.
+  * Django-4.1 now is officially supported.
+
 - 0.10.1
   * The HTML tags for `<select is="django-selectize">` and `<select is="django-dual-selector">`
     declare their own webcomponents which now add their own HTML elements in front of themselves,
