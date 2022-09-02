@@ -294,7 +294,7 @@ class FormCollection(BaseFormCollection, metaclass=FormCollectionMeta):
     Base class for a collection of forms. Attributes of this class which inherit from
     `django.forms.forms.BaseForm` are managed by this class.
     """
-    def get_field(self, path):
-        path = path.split('.', 1)
+    def get_field(self, field_path):
+        path = field_path.split('.', 1)
         key, path = path
-        return self.holders[key].get_field(path)
+        return self.declared_holders[key].get_field(path)

@@ -91,8 +91,8 @@ class FormViewMixin(FormsetResponseMixin):
             kwargs['data'] = self._request_body.get('formset_data')
         return kwargs
 
-    def get_field(self, path):
-        field_name = path.split('.')[-1]
+    def get_field(self, field_path):
+        field_name = field_path.split('.')[-1]
         return self.form_class.base_fields[field_name]
 
 
@@ -156,8 +156,9 @@ class FormCollectionViewMixin(FormsetResponseMixin):
         context['form_collection'] = self.get_form_collection()
         return context
 
-    def get_field(self, path):
-        return self.form_collection.get_field(path)
+    def get_field(self, field_path):
+        collection_class = self.get_collection_class()
+        return collection_class().get_field(field_path)
 
     def get_form_collection(self):
         collection_class = self.get_collection_class()
