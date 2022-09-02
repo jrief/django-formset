@@ -68,16 +68,18 @@ class FormRenderer(DjangoTemplates):
     def _amend_fieldset(self, context):
         context.update(
             css_classes=self.fieldset_css_classes,
+            help_text_template='formset/default/help_text.html',
         )
         return context
 
     def _amend_collection(self, context):
-        context.update({
-            'add_collection_button': 'formset/default/buttons/add_collection.html',
-            'remove_collection_button': 'formset/default/buttons/remove_collection.html',
-            'css_classes': self.collection_css_classes,
-            'add_collection_label': context['collection'].add_label,
-        })
+        context.update(
+            add_collection_button='formset/default/buttons/add_collection.html',
+            remove_collection_button='formset/default/buttons/remove_collection.html',
+            help_text_template='formset/default/help_text.html',
+            css_classes=self.collection_css_classes,
+            add_collection_label=context['collection'].add_label,
+        )
         return context
 
     _context_modifiers = {

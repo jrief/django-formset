@@ -59,11 +59,12 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     extra_siblings = None
     is_sortable = None
     legend = None
+    help_text = None
     add_label = None
     ignore_marked_for_removal = None
 
     def __init__(self, data=None, initial=None, renderer=None, prefix=None, min_siblings=None,
-                 max_siblings=None, extra_siblings=None, is_sortable=None):
+                 max_siblings=None, extra_siblings=None, is_sortable=None, legend=None, help_text=None):
         self.data = MultiValueDict() if data is None else data
         self.initial = initial
         if prefix is not None:
@@ -84,6 +85,10 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 self.is_sortable = is_sortable
         else:
             self.is_sortable = False
+        if legend is not None:
+            self.legend = legend
+        if help_text is not None:
+            self.help_text = help_text
 
         # Initialize form renderer. Use a global default if not specified
         # either as an argument or as self.default_renderer.

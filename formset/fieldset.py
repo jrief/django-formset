@@ -9,6 +9,7 @@ class FieldsetMixin(FormMixin):
     hide_if = None
     disable_if = None
     legend = None
+    help_text = None
     template_name = 'formset/default/fieldset.html'
 
     def __init__(self, **kwargs):
@@ -23,9 +24,10 @@ class FieldsetMixin(FormMixin):
             self.hide_if = hide_if
         if disable_if:
             self.disable_if = disable_if
-        legend = kwargs.pop('legend', None)
-        if legend:
+        if legend := kwargs.pop('legend', None):
             self.legend = legend
+        if help_text := kwargs.pop('help_text', None):
+            self.help_text = help_text
         super().__init__(**kwargs)
 
     def get_context(self):
@@ -35,6 +37,7 @@ class FieldsetMixin(FormMixin):
             hide_if=self.hide_if,
             disable_if=self.disable_if,
             legend=self.legend,
+            help_text=self.help_text,
         )
         return context
 

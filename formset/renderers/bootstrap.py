@@ -50,12 +50,20 @@ class FormRenderer(DefaultFormRenderer):
                 option['template_name'] = 'formset/bootstrap/widgets/input_option.html'
         return context
 
+    def _amend_fieldset(self, context):
+        context = super()._amend_fieldset(context)
+        context.update(
+            help_text_template='formset/bootstrap/help_text.html',
+        )
+        return context
+
     def _amend_collection(self, context):
         context = super()._amend_collection(context)
-        context.update({
-            'add_collection_button': 'formset/bootstrap/buttons/add_collection.html',
-            'remove_collection_button': 'formset/bootstrap/buttons/remove_collection.html',
-        })
+        context.update(
+            add_collection_button='formset/bootstrap/buttons/add_collection.html',
+            remove_collection_button='formset/bootstrap/buttons/remove_collection.html',
+            help_text_template='formset/bootstrap/help_text.html',
+        )
         return context
 
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
@@ -73,5 +81,6 @@ class FormRenderer(DefaultFormRenderer):
         'formset/default/widgets/file.html': _amend_file,
         'formset/default/widgets/selectize.html': _amend_select,
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,
+        'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/collection.html': _amend_collection,
     })

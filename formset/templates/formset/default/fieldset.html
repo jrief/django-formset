@@ -4,5 +4,6 @@
 <fieldset{% if css_classes %} class="{{ css_classes }}"{% endif %}{% if show_if %} show-if="{{ show_if }}"{% endif %}{% if hide_if %} hide-if="{{ hide_if }}"{% endif %}{% if disable_if %} disable-if="{{ disable_if }}"{% endif %}>
 	{% if legend %}<legend>{{ legend }}</legend>{% endif %}
 	{{ block.super }}
+	{% if help_text %}{% include help_text_template %}{% endif %}
 </fieldset>
 {% endblock %}

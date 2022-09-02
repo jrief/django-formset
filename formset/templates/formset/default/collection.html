@@ -27,6 +27,7 @@
 		{% endif %}
 	{% endif %}
 {% endfor %}
+{% if collection.help_text %}{% include help_text_template with help_text=collection.help_text %}{% endif %}
 {% if collection.has_many %}
 </div>
 {% endif %}
