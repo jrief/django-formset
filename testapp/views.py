@@ -27,7 +27,7 @@ from formset.views import FileUploadMixin, IncompleteSelectResponseMixin, FormCo
 from testapp.forms.address import AddressForm
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import (SimpleContactCollection, ContactCollection, ContactCollectionList,
-    SortableContactCollection, SortableContactCollectionList)
+    IntermediateContactCollectionList, SortableContactCollection, SortableContactCollectionList)
 from testapp.forms.customer import CustomerCollection
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
@@ -417,25 +417,28 @@ urlpatterns = [
     path('sortablecontactlist', DemoFormCollectionView.as_view(
         collection_class=SortableContactCollectionList,
     ), kwargs={'group': 'sortable', 'index': 13}, name='sortablecontactlist'),
+    path('intermediatecontactlist', DemoFormCollectionView.as_view(
+        collection_class=IntermediateContactCollectionList,
+    ), kwargs={'group': 'sortable', 'index': 14}, name='intermediatecontactlist'),
     path('upload', DemoFormView.as_view(
         form_class=UploadForm,
-    ), kwargs={'group': 'form', 'index': 14}, name='upload'),
+    ), kwargs={'group': 'form', 'index': 15}, name='upload'),
     path('person', DemoModelFormView.as_view(
         form_class=ModelPersonForm,
         model=PersonModel,
-    ), kwargs={'group': 'model', 'index': 15}, name='person'),
+    ), kwargs={'group': 'model', 'index': 16}, name='person'),
     path('poll', DemoModelFormView.as_view(
         form_class=ModelPollForm,
         model=PollModel,
-    ), kwargs={'group': 'model', 'index': 16}, name='poll'),
+    ), kwargs={'group': 'model', 'index': 17}, name='poll'),
     path('pollcollection', DemoFormCollectionView.as_view(
         collection_class=PollCollection,
-    ), kwargs={'group': 'collection', 'index': 17}, name='poll'),
+    ), kwargs={'group': 'collection', 'index': 18}, name='poll'),
     path('button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',
         extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)'},
-    ), kwargs={'group': 'button', 'index': 18}, name='button-actions'),
+    ), kwargs={'group': 'button', 'index': 19}, name='button-actions'),
 ]
 
 # this creates permutations of forms to show how to withhold which feedback
@@ -468,5 +471,5 @@ for length in range(len(withhold_feedbacks) + 1):
                     'force_submission': force_submission,
                 },
                 extra_doc='\n'.join(extra_docs),
-            ), kwargs={'group': 'feedback', 'index': length + 19})
+            ), kwargs={'group': 'feedback', 'index': length + 20})
         )
