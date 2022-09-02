@@ -44,3 +44,6 @@ django-form-collection {
 	django-form-collection[sortable] > django-form-collection[sibling-position] > .collection-drag-handle:active::after {
 		cursor: grabbing;
 		}
+.dj-ghost-collection {
+	opacity: 0.2;
+	}

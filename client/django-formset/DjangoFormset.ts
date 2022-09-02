@@ -1221,6 +1221,7 @@ class DjangoFormCollectionTemplate {
 				draggable: 'django-form-collection[sibling-position]',
 				selectedClass: 'selected',
 				onEnd: this.resortSiblings,
+				ghostClass: 'dj-ghost-collection',
 			});
 		}
 	}
