@@ -31,7 +31,7 @@ from testapp.forms.contact import (SimpleContactCollection, ContactCollection, C
 from testapp.forms.customer import CustomerCollection
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
-from testapp.forms.poll import ModelPollForm
+from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.upload import UploadForm
 from testapp.models import PersonModel, PollModel
@@ -79,7 +79,7 @@ class SuccessView(TemplateView):
         return context
 
 
-class DemoViewMixin(IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin):
+class DemoViewMixin(IncompleteSelectResponseMixin, FileUploadMixin):
     def get_success_url(self):
         return reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
 
@@ -128,7 +128,7 @@ class DemoViewMixin(IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixi
         pass
 
 
-class DemoFormViewMixin(DemoViewMixin):
+class DemoFormViewMixin(DemoViewMixin, FormViewMixin):
     template_name = 'testapp/native-form.html'
     extra_doc = None
 
@@ -428,11 +428,14 @@ urlpatterns = [
         form_class=ModelPollForm,
         model=PollModel,
     ), kwargs={'group': 'model', 'index': 16}, name='poll'),
+    path('pollcollection', DemoFormCollectionView.as_view(
+        collection_class=PollCollection,
+    ), kwargs={'group': 'collection', 'index': 17}, name='poll'),
     path('button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',
         extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)'},
-    ), kwargs={'group': 'button', 'index': 17}, name='button-actions'),
+    ), kwargs={'group': 'button', 'index': 18}, name='button-actions'),
 ]
 
 # this creates permutations of forms to show how to withhold which feedback
@@ -465,5 +468,5 @@ for length in range(len(withhold_feedbacks) + 1):
                     'force_submission': force_submission,
                 },
                 extra_doc='\n'.join(extra_docs),
-            ), kwargs={'group': 'feedback', 'index': length + 18})
+            ), kwargs={'group': 'feedback', 'index': length + 19})
         )
