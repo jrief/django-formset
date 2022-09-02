@@ -4,9 +4,12 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import include, path
 
+from formset import __version__
+
 
 def render_landing(request):
     context = {
+        'FORMSET_VERSION': __version__,
         'frameworks': [
             'default',
             'bootstrap',
