@@ -1,5 +1,10 @@
 ## Changes
 
+- 0.10.3
+  * Fix: Widget `DualSortableSelector` now checks bounds for provided values. This in rare occasions
+    raised an exception.
+  * Both CSS files `collections.css` and `bootstrap5-extra.css` now are compiled from a SCSS source.
+
 - 0.10.2
   * In sortable form collections, add a CSS ghost class to make moved item more opaque. This is for
     a better usability experience.
