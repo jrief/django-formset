@@ -6,6 +6,7 @@
     "build": "node client/build.cjs",
     "minify": "terser --compress --mangle --output formset/static/formset/js/django-formset.min.js -- formset/static/formset/js/django-formset.js",
     "tag-attributes": "peggy -o client/django-formset/tag-attributes.ts --extra-options-file assets/pegjsconf.json --plugin ./node_modules/ts-pegjs/src/tspegjs.js assets/tag-attributes.pegjs",
+    "compilescss": "sass formset/static/formset/scss:formset/static/formset/css",
     "tailwindcss": "tailwindcss --input assets/tailwind-styles.css --config assets/tailwind.config.js --output formset/static/formset/css/tailwind.css"
   },
   "devDependencies": {

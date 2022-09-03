@@ -33,8 +33,10 @@ jobs:
         python -m pip install build django --user
     - name: Build Parser
       run: npm run tag-attributes
-    - name: Build Tailwind CSS
-      run: npm run tailwindcss
+    - name: Build CSS files
+      run: |
+        npm run compilescss
+        npm run tailwindcss
     - name: Build Client
       run: |
         npm run build

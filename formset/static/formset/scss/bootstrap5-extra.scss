@@ -1,0 +1,27 @@
+@media (max-width: 575.98px) {
+	.dj-dual-selector :is(.dj-move-all-right, .dj-move-selected-right, .dj-move-all-left, .dj-move-selected-left) svg {
+		transform: rotate(90deg);
+	}
+}
+
+.dj-dual-selector {
+	input {
+		border-bottom-left-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+
+	:is(select, django-sortable-select) {
+		border-top-left-radius: 0;
+		border-top-right-radius: 0;
+		margin-top: -1px;
+		width: 100% !important;
+	}
+
+	~ .dj-field-errors {
+		text-align: end;
+	}
+}
+
+[is="django-dual-selector"] {
+	width: 100%;
+}
