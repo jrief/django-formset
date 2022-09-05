@@ -299,7 +299,7 @@ export class DualSelector extends IncompleteSelect {
 		}
 	}
 
-	public formResetted(event: Event) {
+	protected formResetted(event: Event) {
 		this.clearSearchFields();
 		const initialValues = this.historicalValues[0];
 		this.historicalValues.splice(1);
@@ -309,7 +309,7 @@ export class DualSelector extends IncompleteSelect {
 		this.selectorChanged();
 	}
 
-	public formSubmitted(event: Event) {
+	protected formSubmitted(event: Event) {
 		this.clearSearchFields();
 		this.historicalValues.splice(0, this.historicalValues.length - 1);
 		this.setHistoryCursor(0);

@@ -73,11 +73,11 @@ class DjangoSelectize extends IncompleteSelect {
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
 	}
 
-	formResetted(event: Event) {
+	protected formResetted(event: Event) {
 		this.tomSelect.setValue(this.initialValue);
 	}
 
-	formSubmitted(event: Event) {}
+	protected formSubmitted(event: Event) {}
 
 	private wrapInShadowRoot() : ShadowRoot {
 		const shadowWrapper = document.createElement('div');

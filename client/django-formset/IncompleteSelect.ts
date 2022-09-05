@@ -23,9 +23,9 @@ export abstract class IncompleteSelect {
 		form.addEventListener('submitted', event => this.formSubmitted(event));
 	}
 
-	abstract formResetted(event: Event) : void;
+	protected abstract formResetted(event: Event) : void;
 
-	abstract formSubmitted(event: Event) : void;
+	protected abstract formSubmitted(event: Event) : void;
 
 	protected touch = () => {
 		this.fieldGroup.classList.remove('dj-untouched');
