@@ -7,6 +7,7 @@ import Italic from '@tiptap/extension-italic';
 import Underline from '@tiptap/extension-underline';
 import BulletList from '@tiptap/extension-bullet-list';
 import ListItem from '@tiptap/extension-list-item';
+import Link from '@tiptap/extension-link';
 import styles from 'sass:./RichTextArea.scss';
 import { StyleHelpers } from "./helpers";
 
@@ -37,7 +38,7 @@ class RichTextArea {
 	}
 
 	private createEditor(wrapperElement: HTMLElement) : Editor {
-		const content = this.textAreaElement.textContent ? JSON.parse(this.textAreaElement.textContent) : '';
+		const scriptContent = wrapperElement.querySelector('textarea + script')?.textContent ?? '';
 		const editor = new Editor({
 			element: wrapperElement,
 			extensions: [
@@ -51,8 +52,9 @@ class RichTextArea {
 				ListItem.extend({
 					content: 'text*',
 				}),
+				Link,
 			],
-			content: content,
+			content: JSON.parse(scriptContent),
 			autofocus: false,
 			editable: !this.textAreaElement.disabled,
 			injectCSS: false,
@@ -120,6 +122,24 @@ class RichTextArea {
 
 	private underline() {
 		this.editor.chain().focus().toggleUnderline().run();
+	}
+
+	private link() {
+		const previousUrl = this.editor.getAttributes('link').href;
+		const url = window.prompt('URL', previousUrl);
+
+		// cancelled
+		if (url === null)
+			return;
+
+		// empty
+		if (url === '') {
+			this.editor.chain().focus().extendMarkRange('link').unsetLink().run();
+			return
+		}
+
+		// update link
+		this.editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
 	}
 
 	private bulletList() {

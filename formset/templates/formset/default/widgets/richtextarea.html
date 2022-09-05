@@ -1,3 +1,4 @@
+{% spaceless %}
 <div class="{% block "wrapper_classes" %}dj-richtext-wrapper{% endblock %}">
 	<div role="group">
 		<button type="button" aria-label="bold">{% include "formset/icons/bold.svg" %}</button>
@@ -5,6 +6,9 @@
 		<button type="button" aria-label="underline">{% include "formset/icons/underline.svg" %}</button>
 		<button type="button" aria-label="bullet-list">{% include "formset/icons/bullet-list.svg" %}</button>
 		<button type="button" aria-label="clear-format">{% include "formset/icons/clear-format.svg" %}</button>
+		<button type="button" aria-label="link">{% include "formset/icons/link.svg" %}</button>
 	</div>
-	<textarea is="django-richtext" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>{% if widget.value %}{{ widget.value }}{% endif %}</textarea>
+	<textarea is="django-richtext" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}></textarea>
+	{% if widget.value %}<script type="application/json">{{ widget.value }}</script>{% endif %}
 </div>
+{% endspaceless %}
