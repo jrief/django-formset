@@ -24,7 +24,11 @@ class RichTextArea {
 		this.declaredStyles = document.createElement('style');
 		this.declaredStyles.innerText = styles;
 		document.head.appendChild(this.declaredStyles);
-		this.editor = this.createEditor(textAreaElement);
+		const wrapperElement = textAreaElement.closest('.dj-richtext-wrapper');
+		if (!(wrapperElement instanceof HTMLElement))
+			throw new Error('<textarea is="django-richtext"> must be wrapped inside <div class="dj-richtext-wrapper">');
+		this.editor = this.createEditor(wrapperElement);
+		this.transferStyles(textAreaElement);
 		const proseMirrorElement = this.editor.options.element.getElementsByClassName('ProseMirror').item(0);
 		if (!(proseMirrorElement instanceof HTMLElement))
 			throw new Error("Failed to initialize Rich Text Area");
@@ -32,15 +36,12 @@ class RichTextArea {
 		this.initialValue = textAreaElement.value;
 		this.required = textAreaElement.required;
 		textAreaElement.classList.add('dj-concealed');
-		this.installEventHandlers();
+		this.installEventHandlers(wrapperElement);
 	}
 
-	private createEditor(textAreaElement: HTMLTextAreaElement) : Editor {
-		const divElement = document.createElement('DIV') as HTMLDivElement;
-		divElement.classList.add('richtext-wrapper');
-		textAreaElement.insertAdjacentElement('beforebegin', divElement);
+	private createEditor(wrapperElement: HTMLElement) : Editor {
 		const editor = new Editor({
-			element: divElement,
+			element: wrapperElement,
 			extensions: [
 				Document,
 				Paragraph,
@@ -55,28 +56,30 @@ class RichTextArea {
 			],
 			content: '',
 			autofocus: false,
-			editable: !textAreaElement.disabled,
+			// editable: !textAreaElement.disabled,
 			injectCSS: false,
 		});
-		this.transferStyles(textAreaElement);
-		this.wrapControlElements(divElement);
 		return editor;
 	}
 
-	private wrapControlElements(wrapperElement: HTMLElement) {
-		const buttonGroup = wrapperElement.parentElement?.querySelector('textarea[is="django-richtext"] ~ [role="group"]');
-		if (!buttonGroup)
-			throw new Error('<textarea is="richtext"> requires a sibling element <ANY [role="group"]>');
-		wrapperElement.insertBefore(buttonGroup, null);
-		buttonGroup.querySelectorAll('button[aria-label]').forEach(button => {
-			button.addEventListener('click', this.controlButtonClicked);
-		});
-	}
+	// private wrapControlElements(wrapperElement: HTMLElement) {
+	// 	const buttonGroup = wrapperElement.parentElement?.querySelector('textarea[is="django-richtext"] ~ [role="group"]');
+	// 	if (!buttonGroup)
+	// 		throw new Error('<textarea is="richtext"> requires a sibling element <ANY [role="group"]>');
+	// 	wrapperElement.insertBefore(buttonGroup, null);
+	// 	buttonGroup.querySelectorAll('button[aria-label]').forEach(button => {
+	// 		button.addEventListener('click', this.controlButtonClicked);
+	// 	});
+	// }
 
-	private installEventHandlers() {
+	private installEventHandlers(wrapperElement: HTMLElement) {
 		this.editor.on('focus', this.focused);
 		this.editor.on('update', this.updated);
 		this.editor.on('blur', this.blurred);
+		const buttonGroup = wrapperElement.querySelector('[role="group"]');
+		buttonGroup?.querySelectorAll('button[aria-label]').forEach(button => {
+			button.addEventListener('click', this.controlButtonClicked);
+		});
 		this.textAreaElement.addEventListener('valid', this.validate);
 	}
 
