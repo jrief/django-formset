@@ -307,6 +307,7 @@ export class DualSelector extends IncompleteSelect {
 		this.getOptions(this.selectRightElement).filter(o => initialValues.indexOf(o.value) === -1).forEach(o => this.selectLeftElement.add(o));
 		this.getOptions(this.selectLeftElement).filter(o => initialValues.indexOf(o.value) !== -1).forEach(o => this.selectRightElement.add(o));
 		this.selectorChanged();
+		this.containerElement?.classList.remove('invalid');
 	}
 
 	protected formSubmitted(event: Event) {
