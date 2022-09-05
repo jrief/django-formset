@@ -2,13 +2,17 @@
 
 .dj-richtext-wrapper {
 	position: relative;
+	overflow: hidden;
 
 	[role="group"] {
+		border: none;
 		position: absolute;
-		top: 1px;
-		right: 10px;
-		left: 1px;
-		backdrop-filter: blur(1rem);
+		top: 0;
+		left: 0;
+		right: 0;
+		padding-left: 0.25rem;
+		padding-right: 0.25rem;
+
 		button {
 			display: inline-block;
 			text-align: center;
@@ -32,7 +36,11 @@
 	}
 
 	.ProseMirror {
-		padding-top: 30px;
+		border: none;
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
 		word-wrap: break-word;
 		white-space: break-spaces;
 		font-variant-ligatures: none;
@@ -42,20 +50,24 @@
 				white-space: normal;
 		}
 
-		&.ProseMirror-focused {
-			opacity: 1;
-		}
-
-		&:not(.ProseMirror-focused).invalid {
-			border-color: var(--django-formset-color-invalid);
-		}
-
-		&:not(.ProseMirror-focused).valid {
-			border-color: var(--django-formset-color-valid);
+		&:focus-visible {
+			outline: none;
 		}
 
 		pre {
 			white-space: pre-wrap;
 		}
+	}
+
+	&.focused {
+		opacity: 1;
+	}
+
+	&:not(.focused).invalid {
+		border-color: var(--django-formset-color-invalid);
+	}
+
+	&:not(.focused).valid {
+		border-color: var(--django-formset-color-valid);
 	}
 }
