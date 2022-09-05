@@ -108,4 +108,5 @@ class FormRenderer(DefaultFormRenderer):
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/collection.html': _amend_collection,
+        'formset/default/widgets/richtextarea.html': _amend_textarea,
     })

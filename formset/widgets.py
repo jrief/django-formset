@@ -1,3 +1,4 @@
+import json
 from base64 import b16encode
 from functools import reduce
 from operator import or_
@@ -10,7 +11,8 @@ from django.core.files.storage import default_storage
 from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
-from django.forms.widgets import FileInput, Select, SelectMultiple
+from django.forms.widgets import FileInput, Select, SelectMultiple, Textarea
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import now, datetime, utc
 
@@ -181,3 +183,14 @@ class UploadedFileInput(FileInput):
                 content_type_extra=handle['content_type_extra'],
             )
         return files.get(name)
+
+
+class RichTextArea(Textarea):
+    template_name = 'formset/default/widgets/richtextarea.html'
+
+    def format_value(self, value):
+        return mark_safe(value)
+
+    def build_attrs(self, base_attrs, extra_attrs=None):
+        attrs = super().build_attrs(base_attrs, extra_attrs=extra_attrs)
+        return attrs

@@ -25,3 +25,8 @@
 [is="django-dual-selector"] {
 	width: 100%;
 }
+
+textarea[is="richtext"] ~ * .btn > svg {
+	width: 1.2em;
+}
+

@@ -66,4 +66,5 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/textarea.html': _amend_textarea,
         'django/forms/widgets/radio.html': _amend_radio,
         'formset/default/collection.html': _amend_collection,
+        'formset/default/widgets/richtextarea.html': _amend_textarea,
     })

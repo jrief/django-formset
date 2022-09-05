@@ -1,13 +1,14 @@
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
+import isEqual from 'lodash.isEqual';
 import template from 'lodash.template';
 import Sortable, { SortableEvent } from 'sortablejs';
 import { FileUploadWidget } from './FileUploadWidget';
 import { parse } from './tag-attributes';
 import styles from 'sass:./DjangoFormset.scss';
-import spinnerIcon from './spinner.svg';
-import okayIcon from './okay.svg';
-import bummerIcon from './bummer.svg';
+import spinnerIcon from './icons/spinner.svg';
+import okayIcon from './icons/okay.svg';
+import bummerIcon from './icons/bummer.svg';
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FieldValue = string | Array<string | Object>;
@@ -40,8 +41,10 @@ class BoundValue {
 	equals(other: FieldValue) {
 		if (typeof this.value === 'string') {
 			return this.value === other;
-		} else {
+		} else if (Array.isArray(this.value)) {
 			return this.value.length === other.length && this.value.every((val, index) => val === other[index]);
+		} else {
+			return isEqual(this.value, other);
 		}
 	}
 }
@@ -83,6 +86,8 @@ class FieldGroup {
 		this.errorPlaceholder = element.querySelector('.dj-errorlist > .dj-placeholder');
 		this.errorMessages = new FieldErrorMessages(this);
 		const requiredAny = element.classList.contains('dj-required-any');
+
+		// <django-field-group> can contain one or more <input type="checkbox"> or <input type="radio"> elements
 		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(e => e.name && e.type !== 'hidden');
 		for (const element of inputElements) {
 			switch (element.type) {
@@ -161,9 +166,7 @@ class FieldGroup {
 				return value;
 			}
 			if (element.type === 'file') {
-				if (!this.fileUploader)
-					throw new Error("fileUploader expected");
-				return this.fileUploader.uploadedFiles;
+				return this.fileUploader!.uploadedFiles;
 			}
 			// all other input types just return their value
 			return element.value;
@@ -259,9 +262,7 @@ class FieldGroup {
 	}
 
 	public resetToInitial() {
-		if (this.fileUploader) {
-			this.fileUploader.resetToInitial();
-		}
+		this.fileUploader?.resetToInitial();
 		this.untouch();
 		this.setPristine();
 		this.clearCustomError();
@@ -363,8 +364,8 @@ class FieldGroup {
 				return false;
 			}
 		}
-		if (inputElement.type === 'file' && this.fileUploader) {
-			if (this.fileUploader.inProgress()) {
+		if (inputElement.type === 'file') {
+			if (this.fileUploader!.inProgress()) {
 				// seems that file upload is still in progress => field shall not be valid
 				if (this.errorPlaceholder) {
 					this.errorPlaceholder.innerHTML = this.errorMessages.get('typeMismatch') ?? '';
@@ -468,14 +469,14 @@ class DjangoButton {
 		this.bummerElement.classList.add('dj-icon', 'dj-bummer');
 		this.bummerElement.innerHTML = bummerIcon;
 		this.parseActionsQueue(element.getAttribute('click'));
-		element.addEventListener('click', () => this.clicked());
+		element.addEventListener('click', this.clicked);
 	}
 
 	/**
 	 * Event handler to be called when someone clicks on the button.
 	 */
 	// @ts-ignore
-	private clicked() {
+	private clicked = () => {
 		let promise: Promise<Response> | undefined;
 		for (const [index, action] of this.successActions.entries()) {
 			if (!promise) {
@@ -727,14 +728,11 @@ class DjangoButton {
 	}
 
 	// @ts-ignore
+	/*
+	 * Called after all actions have been exected.
+	 */
 	private restore() {
-		return () => {
-			this.element.disabled = false;
-			this.element.setAttribute('class', this.initialClass);
-			if (this.originalDecorator) {
-				this.decoratorElement?.replaceChildren(...this.originalDecorator.cloneNode(true).childNodes);
-			}
-		}
+		return () => this.restoreToInitial();
 	}
 
 	private decorate(decorator: HTMLElement, ms: number | undefined) {
@@ -753,19 +751,18 @@ class DjangoButton {
 		if (!actionsQueue)
 			return;
 
-		let self = this;
-		function createActions(actions: Array<ButtonAction>, chain: Array<any>) {
+		const createActions = (actions: Array<ButtonAction>, chain: Array<any>) => {
 			for (let action of chain) {
-				const func = self[action.funcname as keyof DjangoButton];
+				const func = this[action.funcname as keyof DjangoButton];
 				if (typeof func !== 'function')
 					throw new Error(`Unknown function '${action.funcname}'.`);
 				actions.push(new ButtonAction(func, action.args));
 			}
 			if (actions.length === 0) {
 				// the actionsQueue must resolve at least once
-				actions.push(new ButtonAction(self.noop, []));
+				actions.push(new ButtonAction(this.noop, []));
 			}
-		}
+		};
 
 		try {
 			const ast = parse(actionsQueue, {startRule: 'Actions'});
@@ -773,6 +770,14 @@ class DjangoButton {
 			createActions(this.rejectActions, ast.rejectChain);
 		} catch (error) {
 			throw new Error(`Error while parsing <button click="${actionsQueue}">: ${error}.`);
+		}
+	}
+
+	public restoreToInitial() {
+		this.element.disabled = false;
+		this.element.setAttribute('class', this.initialClass);
+		if (this.originalDecorator) {
+			this.decoratorElement?.replaceChildren(...this.originalDecorator.cloneNode(true).childNodes);
 		}
 	}
 
@@ -975,7 +980,7 @@ class DjangoForm {
 		}
 	}
 
-	findFirstErrorReport() : Element | null {
+	public findFirstErrorReport() : Element | null {
 		if (this.errorList?.textContent)
 			return this.element;  // report a non-field error
 		for (const fieldGroup of this.fieldGroups) {
@@ -1575,7 +1580,7 @@ export class DjangoFormset {
 		return Object.assign({}, body, {_extra: extraData});
 	}
 
-	async submit(extraData?: Object): Promise<Response | undefined> {
+	async submit(extraData?: Object) : Promise<Response | undefined> {
 		let formsAreValid = true;
 		this.setSubmitted();
 		if (!this.forceSubmission) {
@@ -1586,33 +1591,41 @@ export class DjangoFormset {
 		if (formsAreValid) {
 			if (!this.endpoint)
 				throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
-			const headers = new Headers();
-			headers.append('Accept', 'application/json');
-			headers.append('Content-Type', 'application/json');
-			if (this.CSRFToken) {
-				headers.append('X-CSRFToken', this.CSRFToken);
-			}
-			const response = await fetch(this.endpoint, {
-				method: 'POST',
-				headers: headers,
-				body: JSON.stringify(this.buildBody(extraData)),
-				signal: this.abortController.signal,
-			});
-			switch (response.status) {
-				case 200:
-					this.clearErrors();
-					for (const form of this.forms) {
-						form.element.dispatchEvent(new Event('submitted'));
-					}
-					return response;
-				case 422:
-					this.clearErrors();
-					const body = await response.json();
-					this.reportErrors(body);
-					return response;
-				default:
-					console.warn(`Unknown response status: ${response.status}`);
-					break;
+			try {
+				const headers = new Headers();
+				headers.append('Accept', 'application/json');
+				headers.append('Content-Type', 'application/json');
+				if (this.CSRFToken) {
+					headers.append('X-CSRFToken', this.CSRFToken);
+				}
+				const response = await fetch(this.endpoint, {
+					method: 'POST',
+					headers: headers,
+					body: JSON.stringify(this.buildBody(extraData)),
+					signal: this.abortController.signal,
+				});
+				switch (response.status) {
+					case 200:
+						this.clearErrors();
+						for (const form of this.forms) {
+							form.element.dispatchEvent(new Event('submitted'));
+						}
+						return response;
+					case 422:
+						this.clearErrors();
+						const body = await response.json();
+						this.reportErrors(body);
+						return response;
+					default:
+						console.warn(`Unknown response status: ${response.status}`);
+						this.clearErrors();
+						this.buttons.forEach(button => button.restoreToInitial());
+						break;
+				}
+			} catch (error) {
+				this.clearErrors();
+				this.buttons.forEach(button => button.restoreToInitial());
+				alert(error);
 			}
 		} else {
 			this.clearErrors();
@@ -1671,7 +1684,7 @@ export class DjangoFormset {
 		return getDataValue(this.data, absPath, null);
 	}
 
-	findFirstErrorReport() : Element | null {
+	public findFirstErrorReport() : Element | null {
 		for (const form of this.forms) {
 			const errorReportElement = form.findFirstErrorReport();
 			if (errorReportElement)
