@@ -1,9 +1,11 @@
-from django.forms import fields, forms
+from django.forms import models
 
 from formset.widgets import RichTextArea
 
+from testapp.models import PayloadModel
 
-class RichTextForm(forms.Form):
+
+class RichTextForm(models.ModelForm):
     """
     This Form shows how to edit rich text.
 
@@ -13,8 +15,9 @@ class RichTextForm(forms.Form):
             description = fields.CharField(…)
 
     """
-
-    description = fields.JSONField(
-        label="Description",
-        widget=RichTextArea,
-    )
+    class Meta:
+        model = PayloadModel
+        fields = '__all__'
+        widgets = {
+            'data': RichTextArea,
+        }

@@ -35,7 +35,7 @@ from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.richtext import RichTextForm
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.upload import UploadForm
-from testapp.models import PersonModel, PollModel
+from testapp.models import PayloadModel, PersonModel, PollModel
 
 
 parser = Parser()
@@ -435,9 +435,10 @@ urlpatterns = [
     path('pollcollection', DemoFormCollectionView.as_view(
         collection_class=PollCollection,
     ), kwargs={'group': 'collection', 'index': 18}, name='poll'),
-    path('richtext', DemoFormView.as_view(
+    path('richtext', DemoModelFormView.as_view(
         form_class=RichTextForm,
-    ), kwargs={'group': 'form', 'index': 19}, name='richtext'),
+        model=PayloadModel,
+    ), kwargs={'group': 'model', 'index': 19}, name='richtext'),
     path('button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',

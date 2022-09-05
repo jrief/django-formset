@@ -1,5 +1,6 @@
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
+import isEqual from 'lodash.isEqual';
 import template from 'lodash.template';
 import Sortable, { SortableEvent } from 'sortablejs';
 import { FileUploadWidget } from './FileUploadWidget';
@@ -40,8 +41,10 @@ class BoundValue {
 	equals(other: FieldValue) {
 		if (typeof this.value === 'string') {
 			return this.value === other;
-		} else {
+		} else if (Array.isArray(this.value)) {
 			return this.value.length === other.length && this.value.every((val, index) => val === other[index]);
+		} else {
+			return isEqual(this.value, other);
 		}
 	}
 }

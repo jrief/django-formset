@@ -15,7 +15,6 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox_select.html': 'formset/bootstrap/widgets/multiple_input.html',
         'formset/default/widgets/dual_selector.html': 'formset/bootstrap/widgets/dual_selector.html',
         'formset/default/widgets/file.html': 'formset/bootstrap/widgets/file.html',
-        'formset/default/widgets/richtextarea.html': 'formset/bootstrap/widgets/richtextarea.html',
     })
 
     def _amend_input(self, context):
@@ -39,10 +38,6 @@ class FormRenderer(DefaultFormRenderer):
 
     def _amend_file(self, context):
         return context  # intentionally noop
-
-    def _amend_richtextarea(self, context):
-        context = self._amend_input(context)
-        return context
 
     def _amend_label(self, context):
         return super()._amend_label(context, hide_checkbox_label=True)
@@ -84,9 +79,9 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
         'formset/default/widgets/file.html': _amend_file,
-        'formset/default/widgets/richtextarea.html': _amend_richtextarea,
         'formset/default/widgets/selectize.html': _amend_select,
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/collection.html': _amend_collection,
+        'formset/default/widgets/richtextarea.html': _amend_input,
     })

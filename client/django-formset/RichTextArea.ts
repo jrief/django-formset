@@ -13,33 +13,30 @@ import { StyleHelpers } from "./helpers";
 
 class RichTextArea {
 	private readonly textAreaElement: HTMLTextAreaElement;
+	private readonly proseMirrorElement: HTMLElement;
+	private readonly buttonGroupElement: HTMLElement | null;
 	private readonly declaredStyles: HTMLStyleElement;
 	private readonly editor: Editor;
-	private readonly proseMirrorElement: HTMLElement;
 	private readonly initialValue: string | object;
 	private readonly required: Boolean;
 
-	constructor(textAreaElement: HTMLTextAreaElement) {
+	constructor(wrapperElement: HTMLElement, textAreaElement: HTMLTextAreaElement) {
 		this.textAreaElement = textAreaElement;
+		this.buttonGroupElement = wrapperElement.querySelector('[role="group"]');
 		this.declaredStyles = document.createElement('style');
 		this.declaredStyles.innerText = styles;
 		document.head.appendChild(this.declaredStyles);
-		const wrapperElement = textAreaElement.closest('.dj-richtext-wrapper');
-		if (!(wrapperElement instanceof HTMLElement))
-			throw new Error('<textarea is="django-richtext"> must be wrapped inside <div class="dj-richtext-wrapper">');
-		this.editor = this.createEditor(wrapperElement);
-		this.transferStyles(textAreaElement);
-		const proseMirrorElement = this.editor.options.element.getElementsByClassName('ProseMirror').item(0);
-		if (!(proseMirrorElement instanceof HTMLElement))
-			throw new Error("Failed to initialize Rich Text Area");
-		this.proseMirrorElement = proseMirrorElement;
+		[this.editor, this.proseMirrorElement] = this.createEditor(wrapperElement);
+		this.transferStyles();
+		wrapperElement.style.width = 'fit-content';
 		this.initialValue = textAreaElement.value;
 		this.required = textAreaElement.required;
-		textAreaElement.classList.add('dj-concealed');
-		this.installEventHandlers(wrapperElement);
+		this.concealTextArea(wrapperElement);
+		this.installEventHandlers();
 	}
 
-	private createEditor(wrapperElement: HTMLElement) : Editor {
+	private createEditor(wrapperElement: HTMLElement) : [Editor, HTMLElement] {
+		const content = this.textAreaElement.textContent ? JSON.parse(this.textAreaElement.textContent) : '';
 		const editor = new Editor({
 			element: wrapperElement,
 			extensions: [
@@ -54,33 +51,29 @@ class RichTextArea {
 					content: 'text*',
 				}),
 			],
-			content: '',
+			content: content,
 			autofocus: false,
-			// editable: !textAreaElement.disabled,
+			editable: !this.textAreaElement.disabled,
 			injectCSS: false,
 		});
-		return editor;
+		const proseMirrorElement = editor.options.element.getElementsByClassName('ProseMirror').item(0);
+		if (!(proseMirrorElement instanceof HTMLElement))
+			throw new Error("Failed to initialize Rich Text Area");
+		return [editor, proseMirrorElement];
 	}
 
-	// private wrapControlElements(wrapperElement: HTMLElement) {
-	// 	const buttonGroup = wrapperElement.parentElement?.querySelector('textarea[is="django-richtext"] ~ [role="group"]');
-	// 	if (!buttonGroup)
-	// 		throw new Error('<textarea is="richtext"> requires a sibling element <ANY [role="group"]>');
-	// 	wrapperElement.insertBefore(buttonGroup, null);
-	// 	buttonGroup.querySelectorAll('button[aria-label]').forEach(button => {
-	// 		button.addEventListener('click', this.controlButtonClicked);
-	// 	});
-	// }
-
-	private installEventHandlers(wrapperElement: HTMLElement) {
+	private installEventHandlers() {
 		this.editor.on('focus', this.focused);
 		this.editor.on('update', this.updated);
 		this.editor.on('blur', this.blurred);
-		const buttonGroup = wrapperElement.querySelector('[role="group"]');
-		buttonGroup?.querySelectorAll('button[aria-label]').forEach(button => {
+		this.buttonGroupElement?.querySelectorAll('button[aria-label]').forEach(button => {
 			button.addEventListener('click', this.controlButtonClicked);
 		});
-		this.textAreaElement.addEventListener('valid', this.validate);
+	}
+
+	private concealTextArea(wrapperElement: HTMLElement) {
+		wrapperElement.insertAdjacentElement('afterend', this.textAreaElement);
+		this.textAreaElement.classList.add('dj-concealed');
 	}
 
 	private focused = () => {
@@ -95,11 +88,8 @@ class RichTextArea {
 	}
 
 	private blurred = () => {
+		console.log('blurred');
 		this.textAreaElement.dispatchEvent(new Event('blur'));
-	}
-
-	private validate = (event: Event) => {
-		console.log(event);
 		if (this.required && !this.editor.getText()) {
 			this.proseMirrorElement.classList.remove('valid');
 			this.proseMirrorElement.classList.add('invalid');
@@ -140,27 +130,37 @@ class RichTextArea {
 		this.editor.chain().focus().unsetBold().unsetUnderline().unsetItalic().run();
 	}
 
-	private transferStyles(textareaElement: HTMLTextAreaElement) {
+	private transferStyles() {
+		const buttonGroupHeight = this.buttonGroupElement ? this.buttonGroupElement.getBoundingClientRect().height : 0;
 		const sheet = this.declaredStyles.sheet;
 		for (let index = 0; sheet && index < sheet.cssRules.length; index++) {
 			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
 			switch (cssRule.selectorText) {
-				case '.ProseMirror':
-					extraStyles = StyleHelpers.extractStyles(textareaElement, [
+				case '.dj-richtext-wrapper .ProseMirror':
+					const re = new RegExp('(padding-top):\s*([^;]+);');
+					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
 						'width', 'height', 'background-image', 'border', 'border-radius', 'box-shadow', 'outline',
 						'font-family', 'font-size', 'font-strech', 'font-style', 'font-weight',
-						'letter-spacing', 'white-space', 'line-height', 'overflow', 'padding', 'resize']);
+						'letter-spacing', 'white-space', 'line-height', 'overflow', 'padding-top', 'padding-left',
+						'padding-right', 'padding-bottom', 'resize']);
+					extraStyles = extraStyles.replace(re, `$1:calc(${buttonGroupHeight}px + $2);`);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.ProseMirror.ProseMirror-focused':
-					textareaElement.style.transition = 'none';
-					textareaElement.focus();
-					extraStyles = StyleHelpers.extractStyles(textareaElement, [
+				case '.dj-richtext-wrapper .ProseMirror.ProseMirror-focused':
+					this.textAreaElement.style.transition = 'none';
+					this.textAreaElement.focus();
+					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
 						'border', 'box-shadow', 'outline']);
-					textareaElement.blur();
+					this.textAreaElement.blur();
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					textareaElement.style.transition = '';
+					this.textAreaElement.style.transition = '';
+					break;
+				case '.dj-richtext-wrapper [role="group"]':
+					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
+						'border-bottom'
+					])
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				default:
 					break;
@@ -170,7 +170,7 @@ class RichTextArea {
 
 	public getValue() : any {
 		//return this.textAreaElement.innerText;
-		return this.editor.getText();
+		return this.editor.getJSON();
 	}
 }
 
@@ -181,7 +181,10 @@ export class RichTextAreaElement extends HTMLTextAreaElement {
 	private [RTA]?: RichTextArea;  // hides internal implementation
 
 	private connectedCallback() {
-		this[RTA] = new RichTextArea(this);
+		const wrapperElement = this.closest('.dj-richtext-wrapper');
+		if (wrapperElement instanceof HTMLElement) {
+			this[RTA] = new RichTextArea(wrapperElement, this);
+		}
 	}
 
 	public get value() : any {

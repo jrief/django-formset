@@ -1,40 +1,61 @@
 @import "colors";
 
-.ProseMirror {
-	word-wrap: break-word;
-	white-space: break-spaces;
-	font-variant-ligatures: none;
-	font-feature-settings: "liga" 0; /* the above doesn't seem to work in Edge */
-
-	&[contenteditable="false"] {
-			white-space: normal;
-	}
-
-	&.ProseMirror-focused {
-		opacity: 1;
-	}
-
-	&:not(.ProseMirror-focused).invalid {
-		border-color: var(--django-formset-color-invalid);
-	}
-
-	&:not(.ProseMirror-focused).valid {
-		border-color: var(--django-formset-color-valid);
-	}
-
-	pre {
-		white-space: pre-wrap;
-	}
-}
-
-.richtext-wrapper {
+.dj-richtext-wrapper {
 	position: relative;
 
 	[role="group"] {
 		position: absolute;
-		top: 0;
-		right: 3em;
-		transform: translate(0, -85%);
+		top: 1px;
+		right: 10px;
+		left: 1px;
+		backdrop-filter: blur(1rem);
+		button {
+			display: inline-block;
+			text-align: center;
+			text-decoration: none;
+			vertical-align: middle;
+			cursor: pointer;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			user-select: none;
+			border: none;
+			padding: 0.25rem;
+			background-color: inherit;
+			&:hover {
+				background-color: whitesmoke;
+			}
+
+			> svg {
+				vertical-align: middle;
+			}
+		}
 	}
 
+	.ProseMirror {
+		padding-top: 30px;
+		word-wrap: break-word;
+		white-space: break-spaces;
+		font-variant-ligatures: none;
+		font-feature-settings: "liga" 0; /* the above doesn't seem to work in Edge */
+
+		&[contenteditable="false"] {
+				white-space: normal;
+		}
+
+		&.ProseMirror-focused {
+			opacity: 1;
+		}
+
+		&:not(.ProseMirror-focused).invalid {
+			border-color: var(--django-formset-color-invalid);
+		}
+
+		&:not(.ProseMirror-focused).valid {
+			border-color: var(--django-formset-color-valid);
+		}
+
+		pre {
+			white-space: pre-wrap;
+		}
+	}
 }

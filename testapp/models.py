@@ -6,6 +6,12 @@ from formset.fields import SortableManyToManyField
 class PayloadModel(models.Model):
     data = models.JSONField()
 
+    created_by = models.CharField(
+        editable=False,
+        max_length=40,
+        db_index=True,
+    )
+
 
 class OpinionModel(models.Model):
     tenant = models.PositiveSmallIntegerField()

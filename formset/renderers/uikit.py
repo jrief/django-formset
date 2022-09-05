@@ -59,4 +59,5 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/radio.html': _amend_multiple_input,
         'formset/default/widgets/selectize.html': _amend_select,
         'formset/default/collection.html': _amend_collection,
+        'formset/forms/widgets/textarea.html': _amend_textarea,
     })
