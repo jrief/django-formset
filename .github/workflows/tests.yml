@@ -12,8 +12,8 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
-        django-version: ["4.0.*", "4.1rc1"]
-        node-version: ["14.x"]
+        django-version: ["4.0.*", "4.1.*"]
+        node-version: ["16.x"]
 
     steps:
     - uses: actions/checkout@v2
@@ -45,6 +45,7 @@ jobs:
     - name: Build Client
       run: |
         npm run build
+        npm run compilescss
     - name: Test with pytest
       run: |
         python -m pytest testapp

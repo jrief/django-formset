@@ -119,10 +119,18 @@ become only visible when moving the cursor over that collection.
 
 .. rubric:: Legend
 
-Just as HTML-elements of type ``<fieldset>`` can contain a legend, also a form collection may
-optionally contain a  ``<legend>…</legend>``-element. It is placed on top of the collection and
-shall be specified as parameter ``legend = "…"`` inside classes inheriting from
-:class:`formset.collection.FormCollection`.
+Just as HTML-elements of type ``<fieldset>`` can contain a legend, a form collection may optionally
+also contain a ``<legend>…</legend>``-element. It is placed on top of the collection and shall be
+specified as attribute ``legend = "…"`` inside classes inheriting from
+:class:`formset.collection.FormCollection`, or as a parameter when initializing the collection.
+
+
+.. rubric:: Help Text
+
+A form collection may optionally render a ``<div>…</div>``- or ``<p>…</p>``-element (depending on
+the best practices of the CSS framework) at its end, containg a help text string. It shall be
+specified as attribute ``help_text = "…"`` inside classes inheriting from
+:class:`formset.collection.FormCollection`, or as a parameter when initializing the collection.
 
 
 .. rubric:: Label for "Add" button

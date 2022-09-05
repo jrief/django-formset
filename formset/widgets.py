@@ -70,7 +70,8 @@ class IncompleteSelectMixin:
             val = str(val)
             if val in values_set:
                 index = values.index(val)
-                options[index] = {'value': val, 'label': label, 'selected': True}
+                if index < len(options):
+                    options[index] = {'value': val, 'label': label, 'selected': True}
                 values_set.remove(val)
             elif counter < self.max_prefetch_choices:
                 options.append({'value': val, 'label': label})

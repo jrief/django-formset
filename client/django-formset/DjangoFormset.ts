@@ -66,7 +66,7 @@ class FieldErrorMessages extends Map<ErrorKey, string>{
 
 class FieldGroup {
 	public readonly form: DjangoForm;
-	public readonly name: string = '__undefined__';
+	public readonly name: string;
 	public readonly element: HTMLElement;
 	private readonly pristineValue: BoundValue;
 	private readonly fieldElements: Array<FieldElement>;
@@ -132,14 +132,7 @@ class FieldGroup {
 			this.fieldElements.push(textAreaElement);
 		}
 
-		for (const element of this.fieldElements) {
-			if (this.name === '__undefined__') {
-				this.name = element.name;
-			} else {
-				if (this.name !== element.name)
-					throw new Error(`Name mismatch on multiple input fields on ${element.name}`);
-			}
-		}
+		this.name = this.assertUniqueName();
 		this.initialDisabled = this.fieldElements.map(element => element.disabled);
 		if (requiredAny) {
 			this.validateCheckboxSelectMultiple();
@@ -193,6 +186,19 @@ class FieldGroup {
 	public updateOperability() {
 		this.updateVisibility();
 		this.updateDisabled();
+	}
+
+	private assertUniqueName() : string {
+		let name = '__undefined__';
+		for (const element of this.fieldElements) {
+			if (name === '__undefined__') {
+				name = element.name;
+			} else {
+				if (name !== element.name)
+					throw new Error(`Name '${name}' mismatch on multiple input fields on '${element.name}'`);
+			}
+		}
+		return name;
 	}
 
 	private evalVisibility(attribute: string, visible: boolean): Function | null {
@@ -835,11 +841,9 @@ class DjangoFieldset {
 
 
 class DjangoForm {
-	public readonly formId: string | null;
-	public readonly name: string | null;
-	public readonly path: Array<string>;
 	public readonly formset: DjangoFormset;
 	public readonly element: HTMLFormElement;
+	public readonly path: Array<string>;
 	public readonly fieldset: DjangoFieldset | null;
 	private readonly errorList: Element | null = null;
 	private readonly errorPlaceholder: Element | null = null;
@@ -848,11 +852,9 @@ class DjangoForm {
 	public markedForRemoval = false;
 
 	constructor(formset: DjangoFormset, element: HTMLFormElement) {
-		this.formId = element.getAttribute('id');
-		this.name = element.getAttribute('name');
-		this.path = this.name?.split('.') ?? [];
 		this.formset = formset;
 		this.element = element;
+		this.path = this.name?.split('.') ?? [];
 		const fieldsetElement = element.querySelector('fieldset');
 		this.fieldset = fieldsetElement ? new DjangoFieldset(this, fieldsetElement) : null;
 		const placeholder = element.querySelector('.dj-form-errors > .dj-errorlist > .dj-placeholder');
@@ -872,6 +874,14 @@ class DjangoForm {
 			data.set(element.name, element.value);
 		}
 		return data;
+	}
+
+	public get name() : string | null {
+		return this.element.getAttribute('name');
+	}
+
+	public get formId() : string | null {
+		return this.element.getAttribute('id');
 	}
 
 	public getAbsPath() : Array<string> {
@@ -1055,7 +1065,10 @@ class DjangoFormCollection {
 	public repositionSiblings() {}
 
 	public repositionForms(pathIndex: number, pathPart: number) {
-		this.forms.forEach(form => form.path[pathIndex] = String(pathPart));
+		this.forms.forEach(form => {
+			form.path[pathIndex] = String(pathPart);
+			form.element.setAttribute('name', form.path.join('.'));
+		});
 		this.children.forEach(child => child.repositionForms(pathIndex, pathPart));
 	}
 
@@ -1222,6 +1235,7 @@ class DjangoFormCollectionTemplate {
 				handle: 'django-form-collection[sibling-position]:not(.dj-marked-for-removal) > .collection-drag-handle',
 				draggable: 'django-form-collection[sibling-position]',
 				selectedClass: 'selected',
+				ghostClass: 'dj-ghost-collection',
 				onEnd: this.resortSiblings,
 			});
 		}

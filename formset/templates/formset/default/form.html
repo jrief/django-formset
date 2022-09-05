@@ -1,3 +1,4 @@
+{% spaceless %}
 <form{% include "formset/form_attrs.html" %}>
 {% include "formset/non_field_errors.html" %}
 {% block fields %}
@@ -10,3 +11,4 @@
 	{% endfor %}
 {% endblock %}
 </form>
+{% endspaceless %}

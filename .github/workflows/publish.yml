@@ -5,25 +5,18 @@ on:
     tags:
       - '*'
 
-env:
-  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
 jobs:
   publish:
     name: "Publish release"
     runs-on: "ubuntu-latest"
 
-    environment:
-       name: deploy
-
     strategy:
       matrix:
         python-version: ["3.9"]
-        node-version: ["14.x"]
+        node-version: ["16.x"]
 
     steps:
     - uses: actions/checkout@v3
-    - uses: superfly/flyctl-actions/setup-flyctl@master
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
@@ -40,8 +33,10 @@ jobs:
         python -m pip install build django --user
     - name: Build Parser
       run: npm run tag-attributes
-    - name: Build Tailwind CSS
-      run: npm run tailwindcss
+    - name: Build CSS files
+      run: |
+        npm run compilescss
+        npm run tailwindcss
     - name: Build Client
       run: |
         npm run build
@@ -55,5 +50,3 @@ jobs:
       uses: pypa/gh-action-pypi-publish@master
       with:
         password: ${{ secrets.PYPI_API_TOKEN_FORMSET }}
-    - name: Deploy testapp to https://django-formset.fly.dev/
-      run: flyctl deploy --remote-only

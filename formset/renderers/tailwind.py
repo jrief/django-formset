@@ -76,12 +76,20 @@ class FormRenderer(DefaultFormRenderer):
     def _amend_radio(self, context):
         return self._amend_multiple_input(context, 'formset-radio-select')
 
+    def _amend_fieldset(self, context):
+        context = super()._amend_fieldset(context)
+        context.update(
+            help_text_template='formset/tailwind/help_text.html',
+        )
+        return context
+
     def _amend_collection(self, context):
         context = super()._amend_collection(context)
-        context.update({
-            'add_collection_button': 'formset/tailwind/buttons/add_collection.html',
-            'remove_collection_button': 'formset/tailwind/buttons/remove_collection.html',
-        })
+        context.update(
+            add_collection_button='formset/tailwind/buttons/add_collection.html',
+            remove_collection_button='formset/tailwind/buttons/remove_collection.html',
+            help_text_template='formset/tailwind/help_text.html',
+        )
         return context
 
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
@@ -98,5 +106,6 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/radio.html': _amend_radio,
         'formset/default/widgets/selectize.html': _amend_select,
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,
+        'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/collection.html': _amend_collection,
     })

@@ -1,6 +1,5 @@
 from django.core.exceptions import ValidationError
 from django.forms import fields, forms
-from django.utils.translation import gettext_lazy as _
 
 from formset.collection import FormCollection
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
@@ -97,8 +96,8 @@ class PhoneNumberForm(forms.Form):
 
 
 class PhoneNumberCollection(FormCollection):
-    legend = _("List of Phone Numbers")
-    add_label = _("Add new Phone Number")
+    legend = "List of Phone Numbers"
+    add_label = "Add new Phone Number"
     min_siblings = 1
     max_siblings = 5
     extra_siblings = 1
@@ -167,17 +166,6 @@ class ContactCollection(FormCollection):
     numbers = PhoneNumberCollection()
 
 
-class IntermediateCollection(FormCollection):
-    legend = "Intermediate"
-
-    numbers = PhoneNumberCollection(
-        min_siblings=0,
-        max_siblings=3,
-        extra_siblings=0,
-        is_sortable=True,
-    )
-
-
 class ContactCollectionList(FormCollection):
     """
     This Form Collection shows how to start right away as a *collection with siblings*. It can
@@ -205,8 +193,8 @@ class ContactCollectionList(FormCollection):
     By passing in other values to the collection's constructor, we can respecify the
     number of mininimum, maximum and extra siblings.
     """
-    legend = _("List of Contacts")
-    add_label = _("Add new Contact")
+    legend = "List of Contacts"
+    add_label = "Add new Contact"
     min_siblings = 0
     extra_siblings = 1
 
@@ -220,42 +208,53 @@ class ContactCollectionList(FormCollection):
     )
 
 
-class SortableContactCollection(ContactCollection):
+class SortableContactCollection(FormCollection):
     """
-    This is a variation of the ``ContactCollection`` demo, where the used ``PhoneNumberCollection``
-    class is parametrized to be sortable. This allows the user to sort each sub collection
-    containing the phone number and label fields. The sorting can be performed by dragging the
-    supplied drag handle on the top right of each sub collection.
+    Sortable Collections
+    --------------------
+
+    This is a variation of the ``ContactCollection`` demo, where we reuse the class
+    ``PhoneNumberCollection``, and parametrize it be *sortable*. This allows the user to sort each
+    child collection containing the phone number and label fields. The sorting can be performed by
+    dragging the supplied drag handle in the top right corner of each sub collection.
 
     Declaring a ``FormCollection`` as sortable, is as simple as either adding the attribute
     ``is_sortable = True`` to the collection class or by instantiating the collection class
-    as sortable. Here we do the latter reusing the ``PhoneNumberCollection`` from our previous
-    example:
+    as sortable. In this example we do the latter reusing the ``PhoneNumberCollection`` previously
+    defined:
 
     .. code-block:: python
 
-        from myproject.forms import (ContactCollection,
-                                 PhoneNumberCollection)
+        from formset.collection import FormCollection
+        from myproject.forms import PersonForm, PhoneNumberCollection
 
-        class SortableContactCollection(ContactCollection):
+        class SortableContactCollection(FormCollection):
+            person = PersonForm(initial={…})
+
             numbers = PhoneNumberCollection(
                 max_siblings=5,
                 is_sortable=True,
-                initial=[…]
+                initial=[…],
+                help_text="A maximum of 5 phone numbers are allowed per contact.",
             )
 
     """
+
+    person = PersonForm(initial={
+        'last_name': "Miller",
+        'first_name': "Elisabeth",
+    })
 
     numbers = PhoneNumberCollection(
         max_siblings=5,
         is_sortable=True,
         initial=[
             {'number': {'phone_number': "+1 234 567 8900"}},
-            {'number': {'phone_number': "+33 1 43478293"}},
             {'number': {'phone_number': "+39 335 327041"}},
             {'number': {'phone_number': "+41 91 667914"}},
             {'number': {'phone_number': "+49 89 7178864"}},
-        ]
+        ],
+        help_text="A maximum of 5 phone numbers are allowed per contact.",
     )
 
 
@@ -287,3 +286,65 @@ class SortableContactCollectionList(ContactCollectionList):
     is_sortable = True
 
     numbers = PhoneNumberCollection(is_sortable=True)
+
+
+class IntermediateCollection(FormCollection):
+    help_text = "This intermediate collection adds another level of nesting without any benefit."
+
+    numbers = PhoneNumberCollection(
+        min_siblings=0,
+        max_siblings=3,
+        extra_siblings=0,
+        is_sortable=True,
+        help_text="Resort the phone numbers by using the drag handle on the upper right.",
+    )
+
+
+class IntermediateContactCollectionList(FormCollection):
+    """
+    Wrap a FormCollection into another FormCollection
+    -------------------------------------------------
+
+    Here we wrap an existing FormCollection with siblings, into another FormCollection.
+    Apart from adding an extra nesting level in the submitted data, this does not
+    have any side effects.
+
+    Using this might be useful if you want to add the legend and/or the help text outside the block
+    containing the sortable collection of phone numbers.
+
+    .. code-block:: python
+
+        from formset.collection import FormCollection
+        from myapp.forms import PersonForm
+
+        class IntermediateCollection(FormCollection):
+            help_text = "This intermediate collection adds another level of nesting without any benefit."
+
+            numbers = PhoneNumberCollection(
+                min_siblings=0,
+                max_siblings=3,
+                extra_siblings=0,
+                is_sortable=True,
+                help_text="Resort the phone numbers by using the drag handle on the upper right.",
+            )
+
+        class IntermediateContactCollectionList(FormCollection):
+            legend = "List of Contacts"
+            help_text = "Contacts can not be sorted, only their phone numbers."
+            add_label = "Add new Contact"
+            min_siblings = 0
+            extra_siblings = 1
+
+            person = PersonForm()
+
+            intermediate = IntermediateCollection()
+    """
+    legend = "List of Contacts"
+    help_text = "Contacts can not be sorted, only their phone numbers."
+    add_label = "Add new Contact"
+    min_siblings = 0
+    extra_siblings = 1
+
+    person = PersonForm()
+
+    intermediate = IntermediateCollection()

@@ -145,4 +145,4 @@ class FormMixin(HolderMixin):
         }
 
     def get_field(self, field_name):
-        return self.declared_fields[field_name]
+        return self.fields[field_name]

@@ -1,5 +1,22 @@
 ## Changes
 
+- 0.10.3
+  * Fix: Widget `DualSortableSelector` now checks bounds for provided values. This in rare occasions
+    raised an exception.
+  * Both CSS files `collections.css` and `bootstrap5-extra.css` now are compiled from a SCSS source.
+
+- 0.10.2
+  * In sortable form collections, add a CSS ghost class to make moved item more opaque. This is for
+    a better usability experience.
+  * In sortable form collections, change the form name after moving a collection. This fixes a
+    problem with form validation.
+  * Fix: On forms created from a model, method `IncompleteSelectResponseMixin.fetch_options()`
+    raised an AttributeError.
+  * Class `FormCollection` and class `Fieldset` accept an optional help text which is rendered at
+    the bottom of a `<django-form-collection>` or `<fieldset>`.
+  * Some rendering templates remove whitespace using templatetag `{% spaceless %}`.
+  * Django-4.1 now is officially supported.
+
 - 0.10.1
   * The HTML tags for `<select is="django-selectize">` and `<select is="django-dual-selector">`
     declare their own webcomponents which now add their own HTML elements in front of themselves,
@@ -11,8 +28,8 @@
   * Simplify the way events handlers are called.
   * Remove the CSRF-Token from the request header of webcomponents `<select is="django-selectize">`
     and `<select is="django-dual-selector">`, since they exclusively use GET requests.
-  * The right selector box of the webcomponent `<select is="django-dual-selector" required …>` now
-    shows a red border if input data is missing.
+  * The right selector box of the webcomponent `<select is="django-dual-selector" required …>`
+    highlights as invalid (by rendering a red border), if input data is missing.
 
 - 0.10
   * The right part of the widget `DualSelector` optionally is sortable now. Views accepting forms
