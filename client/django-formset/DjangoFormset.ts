@@ -37,16 +37,6 @@ class BoundValue {
 	constructor(value: FieldValue) {
 		this.value = value;
 	}
-
-	equals(other: FieldValue) {
-		if (typeof this.value === 'string') {
-			return this.value === other;
-		} else if (Array.isArray(this.value)) {
-			return this.value.length === other.length && this.value.every((val, index) => val === other[index]);
-		} else {
-			return isEqual(this.value, other);
-		}
-	}
 }
 
 
@@ -242,7 +232,7 @@ class FieldGroup {
 	}
 
 	public inputted() {
-		if (this.pristineValue.equals(this.aggregateValue())) {
+		if (isEqual(this.pristineValue, this.aggregateValue())) {
 			this.setPristine();
 		} else {
 			this.setDirty();
