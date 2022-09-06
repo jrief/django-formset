@@ -16,6 +16,7 @@ class RichTextArea {
 	private readonly textAreaElement: HTMLTextAreaElement;
 	private readonly wrapperElement: HTMLElement;
 	private readonly buttonGroupElement: HTMLElement | null;
+	private readonly registeredCommands = new Map<string, HTMLButtonElement>();
 	private readonly declaredStyles: HTMLStyleElement;
 	private readonly editor: Editor;
 	private readonly initialValue: string | object;
@@ -33,7 +34,9 @@ class RichTextArea {
 		this.transferStyles();
 		this.required = textAreaElement.required;
 		this.concealTextArea(wrapperElement);
-		this.textAreaElement.innerText = this.editor.getText();
+		this.registerCommands();
+		// innerHTML must reflect the content, otherwise field validation complains about a missing value
+		this.textAreaElement.innerHTML = this.editor.getHTML();
 		this.installEventHandlers();
 	}
 
@@ -63,15 +66,30 @@ class RichTextArea {
 		return editor;
 	}
 
+	private registerCommands() {
+		this.buttonGroupElement?.querySelectorAll('button[aria-label]').forEach(button => {
+			if (!button.ariaLabel)
+				return;
+			const parts = button.ariaLabel.split('-');
+			const funcname = parts.map((p, k) => k > 0 ? p.charAt(0).toUpperCase() + p.slice(1) : p).join('');
+			const func = this[funcname as keyof RichTextArea];
+			if (typeof func !== 'function')
+				throw new Error(`Unknown command function '${funcname}' in RichTextArea.`);
+			this.registeredCommands.set(funcname, button as HTMLButtonElement);
+		});
+	}
+
 	private installEventHandlers() {
 		this.editor.on('focus', this.focused);
 		this.editor.on('update', this.updated);
 		this.editor.on('blur', this.blurred);
+		this.editor.on('selectionUpdate', this.selectionUpdate);
 		const form = this.wrapperElement.closest('form');
 		form?.addEventListener('reset', this.formResetted);
 		form?.addEventListener('submitted', this.formSubmitted);
-		this.buttonGroupElement?.querySelectorAll('button[aria-label]').forEach(button => {
-			button.addEventListener('click', this.controlButtonClicked);
+		this.registeredCommands.forEach((button, action) => {
+			const func = this[action as keyof RichTextArea];
+			button.addEventListener('click', () => func.apply(this));
 		});
 	}
 
@@ -86,13 +104,13 @@ class RichTextArea {
 	}
 
 	private updated = () => {
-		this.textAreaElement.innerText = this.editor.getText();
+		this.textAreaElement.innerHTML = this.editor.getHTML();
 		this.textAreaElement.dispatchEvent(new Event('input'));
 	}
 
 	private blurred = () => {
 		this.wrapperElement.classList.remove('focused');
-		if (this.required && !this.editor.getText()) {
+		if (this.required && this.editor.getText().length === 0) {
 			this.wrapperElement.classList.remove('valid');
 			this.wrapperElement.classList.add('invalid');
 		} else {
@@ -102,22 +120,17 @@ class RichTextArea {
 		this.textAreaElement.dispatchEvent(new Event('blur'));
 	}
 
+	private selectionUpdate = () => {
+		this.registeredCommands.forEach((button, action) => {
+			button.classList.toggle('active', this.editor.isActive(action));
+		});
+	}
+
 	private formResetted = () => {
 		this.editor.chain().clearContent().insertContent(this.initialValue).run();
 	}
 
 	private formSubmitted = () => {}
-
-	private controlButtonClicked = (event: Event) => {
-		if (event.currentTarget instanceof HTMLButtonElement && typeof event.currentTarget.ariaLabel === 'string') {
-			const parts = event.currentTarget.ariaLabel.split('-');
-			const funcname = parts.map((p, k) => k > 0 ? p.charAt(0).toUpperCase() + p.slice(1) : p).join('');
-			const func = this[funcname as keyof RichTextArea] as (() => void);
-			if (typeof func !== 'function')
-				throw new Error(`Unknown editor function '${funcname}'.`);
-			func.apply(this);
-		}
-	}
 
 	private bold() {
 		this.editor.chain().focus().toggleBold().run();
