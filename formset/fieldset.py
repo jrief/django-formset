@@ -15,14 +15,13 @@ class FieldsetMixin(FormMixin):
     def __init__(self, **kwargs):
         show_if = kwargs.pop('show_if', None)
         hide_if = kwargs.pop('hide_if', None)
-        disable_if = kwargs.pop('disable_if', None)
         if show_if and hide_if:
             raise ImproperlyConfigured(f"class {self.__class__} can accept either `show_if` or `hide_if`, but not both.")
         if show_if:
             self.show_if = show_if
         elif hide_if:
             self.hide_if = hide_if
-        if disable_if:
+        if disable_if := kwargs.pop('disable_if', None):
             self.disable_if = disable_if
         if legend := kwargs.pop('legend', None):
             self.legend = legend
