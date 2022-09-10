@@ -6,7 +6,7 @@
     "build": "node client/build.cjs",
     "minify": "terser --compress --mangle --output formset/static/formset/js/django-formset.min.js -- formset/static/formset/js/django-formset.js",
     "tag-attributes": "peggy -o client/django-formset/tag-attributes.ts --extra-options-file assets/pegjsconf.json --plugin ./node_modules/ts-pegjs/src/tspegjs.js assets/tag-attributes.pegjs",
-    "compilescss": "sass formset/static/formset/scss:formset/static/formset/css",
+    "compilescss": "sass --load-path=. formset/static/formset/scss:formset/static/formset/css",
     "tailwindcss": "tailwindcss --input assets/tailwind-styles.css --config assets/tailwind.config.js --output formset/static/formset/css/tailwind.css"
   },
   "devDependencies": {
@@ -15,6 +15,7 @@
     "@tiptap/extension-bold": "^2.0.0-beta.28",
     "@tiptap/extension-bullet-list": "^2.0.0-beta.29",
     "@tiptap/extension-document": "^2.0.0-beta.17",
+    "@tiptap/extension-history": "^2.0.0-beta.26",
     "@tiptap/extension-italic": "^2.0.0-beta.28",
     "@tiptap/extension-link": "^2.0.0-beta.43",
     "@tiptap/extension-list-item": "^2.0.0-beta.23",
