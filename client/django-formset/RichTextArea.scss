@@ -27,7 +27,9 @@
 			&:hover {
 				background-color: whitesmoke;
 			}
-
+			&.active {
+				background-color: beige;
+			}
 			> svg {
 				vertical-align: middle;
 			}
@@ -47,6 +49,14 @@
 
 		&[contenteditable="false"] {
 				white-space: normal;
+		}
+
+		p {
+			margin-bottom: 0.5rem;
+		}
+
+		li > p {
+			margin: 0;
 		}
 
 		&:focus-visible {

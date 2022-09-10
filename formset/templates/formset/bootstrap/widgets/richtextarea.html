@@ -1,10 +1,1 @@
-<div class="{% block "wrapper_classes" %}dj-richtext-wrapper{% endblock %}">
-	<div role="group">
-		<button type="button" aria-label="bold">{% include "formset/icons/bold.svg" %}</button>
-		<button type="button" aria-label="italic">{% include "formset/icons/italic.svg" %}</button>
-		<button type="button" aria-label="underline">{% include "formset/icons/underline.svg" %}</button>
-		<button type="button" aria-label="bullet-list">{% include "formset/icons/bullet-list.svg" %}</button>
-		<button type="button" aria-label="clear-format">{% include "formset/icons/clear-format.svg" %}</button>
-	</div>
-	{% include "django/forms/widgets/textarea.html" %}
-</div>
+{% extends "formset/default/widgets/richtextarea.html" %}

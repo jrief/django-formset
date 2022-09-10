@@ -1,5 +1,6 @@
 import { Editor } from '@tiptap/core';
 import Document from '@tiptap/extension-document';
+import History from '@tiptap/extension-history';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import Bold from '@tiptap/extension-bold';
@@ -15,6 +16,7 @@ import { StyleHelpers } from "./helpers";
 class RichTextArea {
 	private readonly textAreaElement: HTMLTextAreaElement;
 	private readonly wrapperElement: HTMLElement;
+	private readonly modalDialogElement: HTMLDialogElement | null;
 	private readonly buttonGroupElement: HTMLElement | null;
 	private readonly registeredCommands = new Map<string, HTMLButtonElement>();
 	private readonly declaredStyles: HTMLStyleElement;
@@ -25,6 +27,7 @@ class RichTextArea {
 	constructor(wrapperElement: HTMLElement, textAreaElement: HTMLTextAreaElement) {
 		this.wrapperElement = wrapperElement;
 		this.textAreaElement = textAreaElement;
+		this.modalDialogElement = wrapperElement.querySelector('dialog');
 		this.buttonGroupElement = wrapperElement.querySelector('[role="group"]');
 		this.declaredStyles = document.createElement('style');
 		this.declaredStyles.innerText = styles;
@@ -46,16 +49,17 @@ class RichTextArea {
 			element: wrapperElement,
 			extensions: [
 				Document,
+				History,
 				Paragraph,
 				Text,
+				BulletList,
+				ListItem,
 				Bold,
 				Italic,
 				Underline,
-				BulletList,
-				ListItem.extend({
-					content: 'text*',
-				}),
-				Link,
+				Link.configure({
+					openOnClick: false
+				})
 			],
 			content: scriptElement?.textContent ? JSON.parse(scriptElement.textContent) : '',
 			autofocus: false,
@@ -109,6 +113,9 @@ class RichTextArea {
 	}
 
 	private blurred = () => {
+		this.registeredCommands.forEach((button) => {
+			button.classList.remove('active');
+		});
 		this.wrapperElement.classList.remove('focused');
 		if (this.required && this.editor.getText().length === 0) {
 			this.wrapperElement.classList.remove('valid');
@@ -145,21 +152,32 @@ class RichTextArea {
 	}
 
 	private link() {
-		const previousUrl = this.editor.getAttributes('link').href;
-		const url = window.prompt('URL', previousUrl);
-
-		// cancelled
-		if (url === null)
+		const modalDialogElement = this.modalDialogElement;
+		const textField = modalDialogElement?.querySelector('INPUT[name="text"]');
+		const urlField = modalDialogElement?.querySelector('INPUT[name="url"]');
+		if (!(modalDialogElement && textField instanceof HTMLInputElement && urlField instanceof HTMLInputElement))
 			return;
 
-		// empty
-		if (url === '') {
-			this.editor.chain().focus().extendMarkRange('link').unsetLink().run();
-			return
+		const { selection, doc } = this.editor.view.state;
+		textField.value = doc.textBetween(selection.from, selection.to, '');
+		urlField.value = this.editor.getAttributes('link').href ?? '';
+		if (!urlField.value) {
+			modalDialogElement.querySelector('button[value="remove"]')
+				?.setAttribute('hidden', 'hidden');
 		}
-
-		// update link
-		this.editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+		modalDialogElement.showModal();
+		modalDialogElement.addEventListener('close', () => {
+			const returnValue = this.modalDialogElement?.returnValue;
+			if (returnValue === 'save' && textField.value && urlField.value) {
+				this.editor.chain().focus()
+					.extendMarkRange('link')
+					.setLink({href: urlField.value})
+					.insertContentAt({from: selection.from, to: selection.to}, textField.value)
+					.run();
+			} else if (returnValue === 'remove' || !urlField.value) {
+				this.editor.chain().focus().extendMarkRange('link').unsetLink().run();
+			}
+		}, {once: true});
 	}
 
 	private bulletList() {
@@ -167,7 +185,15 @@ class RichTextArea {
 	}
 
 	private clearFormat() {
-		this.editor.chain().focus().unsetBold().unsetUnderline().unsetItalic().run();
+		this.editor.chain().focus().unsetBold().unsetUnderline().unsetItalic().setParagraph().run();
+	}
+
+	private undo() {
+		this.editor.commands.undo();
+	}
+
+	private redo() {
+		this.editor.commands.redo();
 	}
 
 	private transferStyles() {

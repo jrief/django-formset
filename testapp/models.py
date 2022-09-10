@@ -1,6 +1,6 @@
 from django.db import models
 
-from formset.fields import SortableManyToManyField
+from formset.fields import RichTextField, SortableManyToManyField
 
 
 class PayloadModel(models.Model):
@@ -133,3 +133,13 @@ class WeightedOpinion(models.Model):
 
     def __repr__(self):
         return f'<{self.__class__.__name__}: [{self.weight}] "{self.opinion.label}">'
+
+
+class AdvertisementModel(models.Model):
+    text = RichTextField()
+
+    created_by = models.CharField(
+        editable=False,
+        max_length=40,
+        db_index=True,
+    )

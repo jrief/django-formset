@@ -15,6 +15,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox_select.html': 'formset/bootstrap/widgets/multiple_input.html',
         'formset/default/widgets/dual_selector.html': 'formset/bootstrap/widgets/dual_selector.html',
         'formset/default/widgets/file.html': 'formset/bootstrap/widgets/file.html',
+        'formset/default/widgets/richtextarea.html': 'formset/bootstrap/widgets/richtextarea.html',
     })
 
     def _amend_input(self, context):
