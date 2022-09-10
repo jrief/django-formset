@@ -3,6 +3,7 @@
 	<div role="group">
 		<button type="button" aria-label="bold">{% include "formset/icons/bold.svg" %}</button>
 		<button type="button" aria-label="italic">{% include "formset/icons/italic.svg" %}</button>
+<<<<<<< HEAD
 		<button type="button" aria-label="link">{% include "formset/icons/link.svg" %}</button>
 		<button type="button" aria-label="bullet-list">{% include "formset/icons/bullet-list.svg" %}</button>
 		<button type="button" aria-label="clear-format">{% include "formset/icons/clear-format.svg" %}</button>
@@ -33,6 +34,13 @@
 		</form>
 	</dialog>
 
+=======
+		<button type="button" aria-label="underline">{% include "formset/icons/underline.svg" %}</button>
+		<button type="button" aria-label="bullet-list">{% include "formset/icons/bullet-list.svg" %}</button>
+		<button type="button" aria-label="clear-format">{% include "formset/icons/clear-format.svg" %}</button>
+		<button type="button" aria-label="link">{% include "formset/icons/link.svg" %}</button>
+	</div>
+>>>>>>> origin/tiptap
 	<textarea is="django-richtext" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}></textarea>
 	{% if widget.value %}<script type="application/json">{{ widget.value }}</script>{% endif %}
 </div>
