@@ -16,6 +16,10 @@ django-form-collection {
 			top: 0.5rem;
 			right: 0.5rem;
 			visibility: hidden;
+			> svg {
+				width: 1rem;
+				height: 1rem;
+			}
 		}
 
 		> .collection-drag-handle ~ .remove-collection {
@@ -56,5 +60,12 @@ django-form-collection {
 
 	.dj-ghost-collection {
 		opacity: 0.2;
+	}
+}
+
+.add-collection, .remove-collection {
+	> svg {
+		width: 1rem;
+		height: 1rem;
 	}
 }

@@ -163,7 +163,9 @@ django-formset {
 	line-height: initial;
 
 	svg {
-		vertical-align: initial;
+		vertical-align: middle;
+		width: 1rem;
+		height: 1rem;
 
 		.path {
 			stroke-dasharray: 1000;

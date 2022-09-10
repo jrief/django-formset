@@ -1,27 +1,75 @@
-@media (max-width: 575.98px) {
-	.dj-dual-selector :is(.dj-move-all-right, .dj-move-selected-right, .dj-move-all-left, .dj-move-selected-left) svg {
-		transform: rotate(90deg);
-	}
-}
+@import "node_modules/bootstrap/scss/functions";
+@import "node_modules/bootstrap/scss/variables";
 
-.dj-dual-selector {
-	input {
-		border-bottom-left-radius: 0;
-		border-bottom-right-radius: 0;
+django-formset {
+	@media (max-width: 575.98px) {
+		.dj-dual-selector :is(.dj-move-all-right, .dj-move-selected-right, .dj-move-all-left, .dj-move-selected-left) svg {
+			transform: rotate(90deg);
+		}
 	}
 
-	:is(select, django-sortable-select) {
-		border-top-left-radius: 0;
-		border-top-right-radius: 0;
-		margin-top: -1px;
-		width: 100% !important;
+	.dj-dual-selector {
+		input {
+			border-bottom-left-radius: 0;
+			border-bottom-right-radius: 0;
+		}
+
+		:is(select, django-sortable-select) {
+			border-top-left-radius: 0;
+			border-top-right-radius: 0;
+			margin-top: -1px;
+			width: 100% !important;
+		}
+
+		~ .dj-field-errors {
+			text-align: end;
+		}
 	}
 
-	~ .dj-field-errors {
-		text-align: end;
+	[is="django-dual-selector"] {
+		width: 100%;
 	}
-}
 
-[is="django-dual-selector"] {
-	width: 100%;
+	textarea[is="richtext"] ~ * .btn > svg {
+		width: 1.2em;
+	}
+
+	dialog {
+		padding: 0;
+		word-wrap: break-word;
+		color: $modal-content-color;
+		background-color: $modal-content-bg;
+		border: $modal-content-border-width solid $modal-content-border-color;
+		border-radius: $modal-content-border-radius;
+		.dialog-header {
+			display: flex;
+			flex-shrink: 0;
+			align-items: center;
+			justify-content: space-between;
+			padding: $modal-header-padding;
+			border-bottom: $modal-header-border-width solid $modal-header-border-color;
+			border-top-left-radius: $modal-content-inner-border-radius;
+			border-top-right-radius: $modal-content-inner-border-radius;
+		}
+		.dialog-body {
+			position: relative;
+			flex: 1 1 auto;
+			padding: $modal-inner-padding;
+		}
+		.dialog-footer {
+			display: flex;
+			flex-shrink: 0;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: flex-end;
+			padding: $modal-inner-padding;
+			background-color: $modal-footer-bg;
+			border-top: $modal-footer-border-width solid $modal-footer-border-color;
+			border-bottom-right-radius: $modal-content-inner-border-radius;
+			border-bottom-left-radius: $modal-content-inner-border-radius;
+			> * {
+				margin: 0.25rem;
+			}
+		}
+	}
 }
