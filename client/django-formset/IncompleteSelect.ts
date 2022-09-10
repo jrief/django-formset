@@ -5,9 +5,9 @@ export abstract class IncompleteSelect {
 	protected isIncomplete: boolean;
 	protected readonly fieldGroup: Element;
 
-	constructor(element: HTMLElement) {
+	constructor(element: HTMLSelectElement) {
 		const fieldGroup = element.closest('django-field-group');
-		const form = element.closest('form');
+		const form = element.form;
 		const formset = element.closest('django-formset');
 		if (!fieldGroup || !form || !formset)
 			throw new Error("Attempt to initialize <django-selectize> outside <django-formset>");

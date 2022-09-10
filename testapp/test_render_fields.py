@@ -112,7 +112,7 @@ def check_field(framework, form, field_name, soup, initial):
         formset = field_elem.find_parent('django-formset')
         assert formset is not None
         assert len(formset.attrs.get('endpoint', '')) > 0
-        form_elem = formset.find('form')
+        form_elem = formset.find('div', class_='dj-form')
         errors_elem = form_elem.find('div', class_='dj-form-errors')
         assert errors_elem is not None
         errorlist_elem = errors_elem.find('ul', class_='dj-errorlist')

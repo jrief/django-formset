@@ -47,8 +47,8 @@ class BoundField(boundfield.BoundField):
 
     def build_widget_attrs(self, attrs, widget=None):
         attrs = super().build_widget_attrs(attrs, widget)
-        if self.form.form_id:
-            attrs['form'] = self.form.form_id
+        attrs['form'] = self.form.form_id
+        assert attrs['form'], "Each <form> requires a form_id"
         if hasattr(self.field, 'regex'):
             attrs['pattern'] = self.field.regex.pattern
         return attrs

@@ -33,6 +33,7 @@ class FieldsetMixin(FormMixin):
     def get_context(self):
         context = super().get_context()
         context.update(
+            form_id=self.form_id,
             show_if=self.show_if,
             hide_if=self.hide_if,
             disable_if=self.disable_if,

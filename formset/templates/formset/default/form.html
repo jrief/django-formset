@@ -1,5 +1,6 @@
 {% spaceless %}
-<form{% include "formset/form_attrs.html" %}>
+<form{% include "formset/form_attrs.html" %}></form>
+<div class="dj-form{% if form_css_classes %} {{ form_css_classes }}{% endif %}">
 {% include "formset/non_field_errors.html" %}
 {% block fields %}
 	{% for field in form %}
@@ -10,5 +11,5 @@
 		{% endif %}
 	{% endfor %}
 {% endblock %}
-</form>
+</div>
 {% endspaceless %}

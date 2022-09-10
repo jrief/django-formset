@@ -78,7 +78,8 @@ class FieldGroup {
 		const requiredAny = element.classList.contains('dj-required-any');
 
 		// <django-field-group> can contain one or more <input type="checkbox"> or <input type="radio"> elements
-		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(e => e.name && e.type !== 'hidden');
+		const allowedInputs = (i: Element) => i instanceof HTMLInputElement && i.name && i.hasAttribute('form') && i.type !== 'hidden';
+		const inputElements = Array.from(element.getElementsByTagName('INPUT')).filter(allowedInputs) as Array<HTMLInputElement>;
 		for (const element of inputElements) {
 			switch (element.type) {
 				case 'checkbox':
@@ -105,8 +106,9 @@ class FieldGroup {
 		this.fieldElements = Array<FieldElement>(0).concat(inputElements);
 
 		// <django-field-group> can contain at most one <select> element
-		const selectElement = (Array.from(element.getElementsByTagName('SELECT')) as Array<HTMLSelectElement>).filter(e => e.name).at(0);
-		if (selectElement) {
+		const allowedSelects = (s: Element) => s instanceof HTMLSelectElement && s.name && s.hasAttribute('form');
+		const selectElement = Array.from(element.getElementsByTagName('SELECT')).filter(allowedSelects).at(0);
+		if (selectElement instanceof HTMLSelectElement) {
 			selectElement.addEventListener('focus', () => this.touch());
 			selectElement.addEventListener('change', () => {
 				this.setDirty();
@@ -117,7 +119,8 @@ class FieldGroup {
 		}
 
 		// <django-field-group> can contain at most one <textarea> element
-		const textAreaElement = element.getElementsByTagName('TEXTAREA').item(0);
+		const allowedTextAreas = (t: Element) => t instanceof HTMLTextAreaElement && t.name && t.hasAttribute('form');
+		const textAreaElement = Array.from(element.getElementsByTagName('TEXTAREA')).filter(allowedTextAreas).at(0);
 		if (textAreaElement instanceof HTMLTextAreaElement) {
 			textAreaElement.addEventListener('focus', () => this.touch());
 			textAreaElement.addEventListener('input', () => this.inputted());
@@ -188,7 +191,7 @@ class FieldGroup {
 				name = element.name;
 			} else {
 				if (name !== element.name)
-					throw new Error(`Name '${name}' mismatch on multiple input fields on '${element.name}'`);
+					throw new Error(`Duplicate name '${name}' on multiple input fields on '${element.name}'`);
 			}
 		}
 		return name;
@@ -795,7 +798,7 @@ class DjangoFieldset {
 
 	private evalVisibility(attribute: string, visible: boolean): Function | null {
 		const attrValue = this.element.getAttribute(attribute);
-		if (typeof attrValue !== 'string')
+		if (attrValue === null)
 			return null;
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
@@ -848,8 +851,8 @@ class DjangoForm {
 		this.formset = formset;
 		this.element = element;
 		this.path = this.name?.split('.') ?? [];
-		const fieldsetElement = element.querySelector('fieldset');
-		this.fieldset = fieldsetElement ? new DjangoFieldset(this, fieldsetElement) : null;
+		const next = element.nextSibling;
+		this.fieldset = next instanceof HTMLFieldSetElement && next.form === element ? new DjangoFieldset(this, next) : null;
 		const placeholder = element.querySelector('.dj-form-errors > .dj-errorlist > .dj-placeholder');
 		if (placeholder) {
 			this.errorList = placeholder.parentElement;
@@ -896,15 +899,11 @@ class DjangoForm {
 
 	public updateOperability() {
 		this.fieldset?.updateOperability();
-		for (const fieldGroup of this.fieldGroups) {
-			fieldGroup.updateOperability();
-		}
+		this.fieldGroups.forEach(fieldGroup => fieldGroup.updateOperability());
 	}
 
 	setSubmitted() {
-		for (const fieldGroup of this.fieldGroups) {
-			fieldGroup.setSubmitted();
-		}
+		this.fieldGroups.forEach(fieldGroup => fieldGroup.setSubmitted());
 	}
 
 	validate() {
@@ -1388,34 +1387,24 @@ export class DjangoFormset {
 
 	public assignFieldsToForms(parentElement?: Element) {
 		parentElement = parentElement ?? this.element;
-		for (const element of parentElement.querySelectorAll('INPUT, SELECT, TEXTAREA')) {
-			const formId = element.getAttribute('form');
-			let djangoForm: DjangoForm;
-			if (formId) {
-				const djangoForms = this.forms.filter(form => form.formId && form.formId === formId);
-				if (djangoForms.length > 1)
-					throw new Error(`More than one form has id="${formId}"`);
-				if (djangoForms.length !== 1)
-					continue;
-				djangoForm = djangoForms[0];
-			} else {
-				const formElement = element.closest('form');
-				if (!formElement)
-					continue;
-				const djangoForms = this.forms.filter(form => form.element === formElement);
-				if (djangoForms.length !== 1)
-					continue;
-				djangoForm = djangoForms[0];
-			}
-			const fieldGroupElement = element.closest('django-field-group');
+		for (const fieldElement of parentElement.querySelectorAll('INPUT, SELECT, TEXTAREA')) {
+			const formId = fieldElement.getAttribute('form');
+			if (!formId)
+				continue;
+			const djangoForms = this.forms.filter(form => form.formId && form.formId === formId);
+			if (djangoForms.length < 1)
+				continue;
+			if (djangoForms.length > 1)
+				throw new Error(`More than one form has id="${formId}"`);
+			const djangoForm = djangoForms[0];
+			const fieldGroupElement = fieldElement.closest('django-field-group');
 			if (fieldGroupElement) {
 				if (djangoForm.fieldGroups.filter(fg => fg.element === fieldGroupElement).length === 0) {
 					djangoForm.fieldGroups.push(new FieldGroup(djangoForm, fieldGroupElement as HTMLElement));
 				}
-			} else if (element.nodeName === 'INPUT' && (element as HTMLInputElement).type === 'hidden') {
-				const hiddenInputElement = element as HTMLInputElement;
-				if (!djangoForm.hiddenInputFields.includes(hiddenInputElement)) {
-					djangoForm.hiddenInputFields.push(hiddenInputElement);
+			} else if (fieldElement instanceof HTMLInputElement && fieldElement.type === 'hidden') {
+				if (!djangoForm.hiddenInputFields.includes(fieldElement)) {
+					djangoForm.hiddenInputFields.push(fieldElement);
 				}
 			}
 		}
@@ -1424,6 +1413,8 @@ export class DjangoFormset {
 	public findForms(parentElement?: Element) {
 		parentElement = parentElement ?? this.element;
 		for (const element of parentElement.getElementsByTagName('FORM')) {
+			if ((element as HTMLFormElement).method === 'dialog')
+				continue;  // these forms are just used for modal dialogs
 			const form = new DjangoForm(this, element as HTMLFormElement);
 			this.forms.push(form);
 		}
@@ -1437,7 +1428,7 @@ export class DjangoFormset {
 				if (!form.name)
 					throw new Error("Multiple <form>-elements in a <django-formset> require a unique name each.");
 				if (form.name in formNames)
-					throw new Error(`Detected more than one <form name="${form.name}"> in <django-formset>.`);
+					throw new Error(`Duplicate name "${form.name}" used in multiple forms of same <django-formset>.`);
 				formNames.push(form.name);
 			}
 		}

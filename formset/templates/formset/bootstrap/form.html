@@ -1,6 +1,7 @@
-<form{% include "formset/form_attrs.html" %}>
-	{% include "formset/non_field_errors.html" %}
-	{% for field in form %}
-		{% if field.is_hidden %}{{ field }}{% else %}{% include "formset/bootstrap/field_group.html" %}{% endif %}
-	{% endfor %}
-</form>
+{% extends "formset/default/form.html" %}
+
+{% block fields %}{% spaceless %}
+{% for field in form %}
+	{% if field.is_hidden %}{{ field }}{% else %}{% include "formset/bootstrap/field_group.html" %}{% endif %}
+{% endfor %}
+{% endspaceless %}{% endblock %}

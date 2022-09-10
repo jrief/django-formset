@@ -1,9 +1,15 @@
-{% extends "formset/default/form.html" %}
-
-{% block fields %}{% spaceless %}
-<fieldset{% if css_classes %} class="{{ css_classes }}"{% endif %}{% if show_if %} show-if="{{ show_if }}"{% endif %}{% if hide_if %} hide-if="{{ hide_if }}"{% endif %}{% if disable_if %} disable-if="{{ disable_if }}"{% endif %}>
+{% spaceless %}
+<form{% include "formset/form_attrs.html" %}></form>
+<fieldset form="{{ form_id }}"{% if css_classes %} class="{{ css_classes }}"{% endif %}{% if show_if %} show-if="{{ show_if }}"{% endif %}{% if hide_if %} hide-if="{{ hide_if }}"{% endif %}{% if disable_if %} disable-if="{{ disable_if }}"{% endif %}>
 	{% if legend %}<legend>{{ legend }}</legend>{% endif %}
-	{{ block.super }}
+	{% include "formset/non_field_errors.html" %}
+	{% for field in form %}
+		{% if field.is_hidden %}
+			{{ field }}
+		{% else %}
+			{% include "formset/default/field_group.html" %}
+		{% endif %}
+	{% endfor %}
 	{% if help_text %}{% include help_text_template %}{% endif %}
 </fieldset>
-{% endspaceless %}{% endblock %}
+{% endspaceless %}

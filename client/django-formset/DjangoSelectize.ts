@@ -22,7 +22,7 @@ class DjangoSelectize extends IncompleteSelect {
 	private readonly observer: MutationObserver;
 	private readonly initialValue: string | string[];
 
-	constructor(tomInput: TomInput) {
+	constructor(tomInput: HTMLSelectElement) {
 		super(tomInput);
 		this.tomInput = tomInput;
 		// @ts-ignore

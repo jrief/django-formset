@@ -1,17 +1,14 @@
-form {
+/* use this stylesheet to see nesting levels on collections and their form validation status */
+.dj-form {
 	padding: 0.5rem;
 	border: 1px dotted grey;
 	min-height: 1em;
 	}
-	form:valid {
-		border-color: green;
+form:valid + :is(.dj-form, fieldset) {
+	border-color: rgba(0%, 100%, 0%, 0.5);
 	}
-	form:invalid {
-		border-color: red;
-	}
-
-fieldset {
-	margin: -0.5rem;
+form:invalid + :is(.dj-form, fieldset) {
+	border-color: rgba(100%, 0%, 0%, 0.5);
 	}
 
 select:disabled {
