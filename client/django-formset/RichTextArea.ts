@@ -1,6 +1,9 @@
 import { Editor } from '@tiptap/core';
 import Document from '@tiptap/extension-document';
+<<<<<<< HEAD
 import History from '@tiptap/extension-history';
+=======
+>>>>>>> origin/tiptap
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import Bold from '@tiptap/extension-bold';
@@ -16,9 +19,13 @@ import { StyleHelpers } from "./helpers";
 class RichTextArea {
 	private readonly textAreaElement: HTMLTextAreaElement;
 	private readonly wrapperElement: HTMLElement;
+<<<<<<< HEAD
 	private readonly modalDialogElement: HTMLDialogElement | null;
 	private readonly buttonGroupElement: HTMLElement | null;
 	private readonly registeredCommands = new Map<string, HTMLButtonElement>();
+=======
+	private readonly buttonGroupElement: HTMLElement | null;
+>>>>>>> origin/tiptap
 	private readonly declaredStyles: HTMLStyleElement;
 	private readonly editor: Editor;
 	private readonly initialValue: string | object;
@@ -27,12 +34,16 @@ class RichTextArea {
 	constructor(wrapperElement: HTMLElement, textAreaElement: HTMLTextAreaElement) {
 		this.wrapperElement = wrapperElement;
 		this.textAreaElement = textAreaElement;
+<<<<<<< HEAD
 		this.modalDialogElement = wrapperElement.querySelector('dialog');
+=======
+>>>>>>> origin/tiptap
 		this.buttonGroupElement = wrapperElement.querySelector('[role="group"]');
 		this.declaredStyles = document.createElement('style');
 		this.declaredStyles.innerText = styles;
 		document.head.appendChild(this.declaredStyles);
 		this.editor = this.createEditor(wrapperElement);
+<<<<<<< HEAD
 		this.initialValue = this.getValue();
 		this.transferStyles();
 		this.required = textAreaElement.required;
@@ -40,15 +51,27 @@ class RichTextArea {
 		this.registerCommands();
 		// innerHTML must reflect the content, otherwise field validation complains about a missing value
 		this.textAreaElement.innerHTML = this.editor.getHTML();
+=======
+		this.transferStyles();
+		//wrapperElement.style.width = 'fit-content';
+		this.initialValue = textAreaElement.value;
+		this.required = textAreaElement.required;
+		this.concealTextArea(wrapperElement);
+>>>>>>> origin/tiptap
 		this.installEventHandlers();
 	}
 
 	private createEditor(wrapperElement: HTMLElement) : Editor {
+<<<<<<< HEAD
 		const scriptElement = wrapperElement.querySelector('textarea + script');
+=======
+		const scriptContent = wrapperElement.querySelector('textarea + script')?.textContent ?? '';
+>>>>>>> origin/tiptap
 		const editor = new Editor({
 			element: wrapperElement,
 			extensions: [
 				Document,
+<<<<<<< HEAD
 				History,
 				Paragraph,
 				Text,
@@ -62,10 +85,25 @@ class RichTextArea {
 				})
 			],
 			content: scriptElement?.textContent ? JSON.parse(scriptElement.textContent) : '',
+=======
+				Paragraph,
+				Text,
+				Bold,
+				Italic,
+				Underline,
+				BulletList,
+				ListItem.extend({
+					content: 'text*',
+				}),
+				Link,
+			],
+			content: JSON.parse(scriptContent),
+>>>>>>> origin/tiptap
 			autofocus: false,
 			editable: !this.textAreaElement.disabled,
 			injectCSS: false,
 		});
+<<<<<<< HEAD
 		scriptElement?.remove();
 		return editor;
 	}
@@ -83,10 +121,16 @@ class RichTextArea {
 		});
 	}
 
+=======
+		return editor;
+	}
+
+>>>>>>> origin/tiptap
 	private installEventHandlers() {
 		this.editor.on('focus', this.focused);
 		this.editor.on('update', this.updated);
 		this.editor.on('blur', this.blurred);
+<<<<<<< HEAD
 		this.editor.on('selectionUpdate', this.selectionUpdate);
 		const form = this.wrapperElement.closest('form');
 		form?.addEventListener('reset', this.formResetted);
@@ -94,6 +138,10 @@ class RichTextArea {
 		this.registeredCommands.forEach((button, action) => {
 			const func = this[action as keyof RichTextArea];
 			button.addEventListener('click', () => func.apply(this));
+=======
+		this.buttonGroupElement?.querySelectorAll('button[aria-label]').forEach(button => {
+			button.addEventListener('click', this.controlButtonClicked);
+>>>>>>> origin/tiptap
 		});
 	}
 
@@ -103,21 +151,36 @@ class RichTextArea {
 	}
 
 	private focused = () => {
+<<<<<<< HEAD
+=======
+		console.log('focus');
+>>>>>>> origin/tiptap
 		this.wrapperElement.classList.add('focused');
 		this.textAreaElement.dispatchEvent(new Event('focus'));
 	}
 
 	private updated = () => {
+<<<<<<< HEAD
 		this.textAreaElement.innerHTML = this.editor.getHTML();
+=======
+		console.log('update');
+		this.textAreaElement.innerText = this.editor.getText();
+>>>>>>> origin/tiptap
 		this.textAreaElement.dispatchEvent(new Event('input'));
 	}
 
 	private blurred = () => {
+<<<<<<< HEAD
 		this.registeredCommands.forEach((button) => {
 			button.classList.remove('active');
 		});
 		this.wrapperElement.classList.remove('focused');
 		if (this.required && this.editor.getText().length === 0) {
+=======
+		console.log('blurred');
+		this.wrapperElement.classList.remove('focused');
+		if (this.required && !this.editor.getText()) {
+>>>>>>> origin/tiptap
 			this.wrapperElement.classList.remove('valid');
 			this.wrapperElement.classList.add('invalid');
 		} else {
@@ -127,6 +190,7 @@ class RichTextArea {
 		this.textAreaElement.dispatchEvent(new Event('blur'));
 	}
 
+<<<<<<< HEAD
 	private selectionUpdate = () => {
 		this.registeredCommands.forEach((button, action) => {
 			button.classList.toggle('active', this.editor.isActive(action));
@@ -139,6 +203,19 @@ class RichTextArea {
 
 	private formSubmitted = () => {}
 
+=======
+	private controlButtonClicked = (event: Event) => {
+		if (event.currentTarget instanceof HTMLButtonElement && typeof event.currentTarget.ariaLabel === 'string') {
+			const parts = event.currentTarget.ariaLabel.split('-');
+			const funcname = parts.map((p, k) => k > 0 ? p.charAt(0).toUpperCase() + p.slice(1) : p).join('');
+			const func = this[funcname as keyof RichTextArea] as (() => void);
+			if (typeof func !== 'function')
+				throw new Error(`Unknown editor function '${funcname}'.`);
+			func.apply(this);
+		}
+	}
+
+>>>>>>> origin/tiptap
 	private bold() {
 		this.editor.chain().focus().toggleBold().run();
 	}
@@ -152,6 +229,7 @@ class RichTextArea {
 	}
 
 	private link() {
+<<<<<<< HEAD
 		const modalDialogElement = this.modalDialogElement;
 		const textField = modalDialogElement?.querySelector('INPUT[name="text"]');
 		const urlField = modalDialogElement?.querySelector('INPUT[name="url"]');
@@ -178,6 +256,23 @@ class RichTextArea {
 				this.editor.chain().focus().extendMarkRange('link').unsetLink().run();
 			}
 		}, {once: true});
+=======
+		const previousUrl = this.editor.getAttributes('link').href;
+		const url = window.prompt('URL', previousUrl);
+
+		// cancelled
+		if (url === null)
+			return;
+
+		// empty
+		if (url === '') {
+			this.editor.chain().focus().extendMarkRange('link').unsetLink().run();
+			return
+		}
+
+		// update link
+		this.editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+>>>>>>> origin/tiptap
 	}
 
 	private bulletList() {
@@ -185,6 +280,7 @@ class RichTextArea {
 	}
 
 	private clearFormat() {
+<<<<<<< HEAD
 		this.editor.chain().focus().unsetBold().unsetUnderline().unsetItalic().setParagraph().run();
 	}
 
@@ -194,6 +290,9 @@ class RichTextArea {
 
 	private redo() {
 		this.editor.commands.redo();
+=======
+		this.editor.chain().focus().unsetBold().unsetUnderline().unsetItalic().run();
+>>>>>>> origin/tiptap
 	}
 
 	private transferStyles() {
@@ -240,6 +339,10 @@ class RichTextArea {
 	}
 
 	public getValue() : any {
+<<<<<<< HEAD
+=======
+		//return this.textAreaElement.innerText;
+>>>>>>> origin/tiptap
 		return this.editor.getJSON();
 	}
 }
