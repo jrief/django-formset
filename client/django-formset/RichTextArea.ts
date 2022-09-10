@@ -88,7 +88,7 @@ class RichTextArea {
 		this.editor.on('update', this.updated);
 		this.editor.on('blur', this.blurred);
 		this.editor.on('selectionUpdate', this.selectionUpdate);
-		const form = this.wrapperElement.closest('form');
+		const form = this.textAreaElement.form;
 		form?.addEventListener('reset', this.formResetted);
 		form?.addEventListener('submitted', this.formSubmitted);
 		this.registeredCommands.forEach((button, action) => {
