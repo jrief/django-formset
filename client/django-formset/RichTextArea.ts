@@ -154,11 +154,11 @@ class RichTextArea {
 	private link() {
 		const modalDialogElement = this.modalDialogElement;
 		const textField = modalDialogElement?.querySelector('INPUT[name="text"]');
+		const { selection, doc } = this.editor.view.state;
 		const urlField = modalDialogElement?.querySelector('INPUT[name="url"]');
-		if (!(modalDialogElement && textField instanceof HTMLInputElement && urlField instanceof HTMLInputElement))
+		if (!(modalDialogElement && textField instanceof HTMLInputElement && urlField instanceof HTMLInputElement && !selection.empty))
 			return;
 
-		const { selection, doc } = this.editor.view.state;
 		textField.value = doc.textBetween(selection.from, selection.to, '');
 		urlField.value = this.editor.getAttributes('link').href ?? '';
 		if (!urlField.value) {

@@ -1,0 +1,9 @@
+{% spaceless %}{% if node.content %}
+<ul>
+{% for item in node.content %}
+	{% with template="./"|add:item.type|lower|add:".html" %}
+		{% include template with node=item %}
+	{% endwith %}
+{% endfor %}
+</ul>
+{% endif %}{% endspaceless %}
