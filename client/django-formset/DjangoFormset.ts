@@ -78,7 +78,7 @@ class FieldGroup {
 		const requiredAny = element.classList.contains('dj-required-any');
 
 		// <django-field-group> can contain one or more <input type="checkbox"> or <input type="radio"> elements
-		const allowedInputs = (i: Element) => i instanceof HTMLInputElement && i.name && i.hasAttribute('form') && i.type !== 'hidden';
+		const allowedInputs = (i: Element) => i instanceof HTMLInputElement && i.name && i.form === form.element && i.type !== 'hidden';
 		const inputElements = Array.from(element.getElementsByTagName('INPUT')).filter(allowedInputs) as Array<HTMLInputElement>;
 		for (const element of inputElements) {
 			switch (element.type) {
@@ -106,7 +106,7 @@ class FieldGroup {
 		this.fieldElements = Array<FieldElement>(0).concat(inputElements);
 
 		// <django-field-group> can contain at most one <select> element
-		const allowedSelects = (s: Element) => s instanceof HTMLSelectElement && s.name && s.hasAttribute('form');
+		const allowedSelects = (s: Element) => s instanceof HTMLSelectElement && s.name && s.form === form.element;
 		const selectElement = Array.from(element.getElementsByTagName('SELECT')).filter(allowedSelects).at(0);
 		if (selectElement instanceof HTMLSelectElement) {
 			selectElement.addEventListener('focus', () => this.touch());
@@ -119,7 +119,7 @@ class FieldGroup {
 		}
 
 		// <django-field-group> can contain at most one <textarea> element
-		const allowedTextAreas = (t: Element) => t instanceof HTMLTextAreaElement && t.name && t.hasAttribute('form');
+		const allowedTextAreas = (t: Element) => t instanceof HTMLTextAreaElement && t.name && t.form === form.element;
 		const textAreaElement = Array.from(element.getElementsByTagName('TEXTAREA')).filter(allowedTextAreas).at(0);
 		if (textAreaElement instanceof HTMLTextAreaElement) {
 			textAreaElement.addEventListener('focus', () => this.touch());
