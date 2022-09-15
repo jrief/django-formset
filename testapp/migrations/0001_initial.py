@@ -79,5 +79,13 @@ class Migration(migrations.Migration):
                 ('opinions', models.ManyToManyField(related_name='person_groups', to='testapp.opinionmodel', verbose_name='Opinions')),
             ],
         ),
+        migrations.CreateModel(
+            name='AdvertisementModel',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('text', formset.fields.RichTextField()),
+                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
+            ],
+        ),
         migrations.RunPython(initialize_opinions, reverse_code=migrations.RunPython.noop),
     ]

@@ -16,6 +16,7 @@
     "@tiptap/extension-bullet-list": "^2.0.0-beta.29",
     "@tiptap/extension-document": "^2.0.0-beta.17",
     "@tiptap/extension-history": "^2.0.0-beta.26",
+    "@tiptap/extension-image": "^2.0.0-beta.195",
     "@tiptap/extension-italic": "^2.0.0-beta.28",
     "@tiptap/extension-link": "^2.0.0-beta.43",
     "@tiptap/extension-list-item": "^2.0.0-beta.23",

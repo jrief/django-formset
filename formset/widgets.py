@@ -1,7 +1,7 @@
-import json
 from base64 import b16encode
 from functools import reduce
 from operator import or_
+import copy
 import os
 import struct
 
@@ -191,6 +191,19 @@ class RichTextArea(Textarea):
     def format_value(self, value):
         return mark_safe(value)
 
-    def build_attrs(self, base_attrs, extra_attrs=None):
-        attrs = super().build_attrs(base_attrs, extra_attrs=extra_attrs)
-        return attrs
+    def value_from_datadict(self, data, files, name):
+        # TODO[link]: convert internal links to reverse looksups
+        # TODO[img]: extract images and move them to the upload area
+        return data.get(name, {})
+
+    def render(self, name, value, attrs=None, renderer=None):
+        from formset.dialog_form import LinkEditForm, ImageEditForm
+
+        modal_form_renderer = copy.copy(renderer)
+        modal_form_renderer.exempt_feedback = True
+        context = self.get_context(name, value, attrs)
+        context.update(
+            link_edit_form=LinkEditForm(renderer=modal_form_renderer),
+            image_edit_form=ImageEditForm(renderer=modal_form_renderer),
+        )
+        return self._render(self.template_name, context, renderer)

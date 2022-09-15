@@ -52,7 +52,6 @@ class SortableManyToManyField(ManyToManyField):
             ]
         return []
 
-
     def value_from_object(self, obj):
         if obj.pk is None:
             return []

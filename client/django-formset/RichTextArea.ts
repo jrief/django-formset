@@ -9,6 +9,7 @@ import Underline from '@tiptap/extension-underline';
 import BulletList from '@tiptap/extension-bullet-list';
 import ListItem from '@tiptap/extension-list-item';
 import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
 import styles from 'sass:./RichTextArea.scss';
 import { StyleHelpers } from "./helpers";
 
@@ -16,7 +17,8 @@ import { StyleHelpers } from "./helpers";
 class RichTextArea {
 	private readonly textAreaElement: HTMLTextAreaElement;
 	private readonly wrapperElement: HTMLElement;
-	private readonly modalDialogElement: HTMLDialogElement | null;
+	private readonly linkModalDialogElement: HTMLDialogElement | null;
+	private readonly imageModalDialogElement: HTMLDialogElement | null;
 	private readonly buttonGroupElement: HTMLElement | null;
 	private readonly registeredCommands = new Map<string, HTMLButtonElement>();
 	private readonly declaredStyles: HTMLStyleElement;
@@ -27,7 +29,8 @@ class RichTextArea {
 	constructor(wrapperElement: HTMLElement, textAreaElement: HTMLTextAreaElement) {
 		this.wrapperElement = wrapperElement;
 		this.textAreaElement = textAreaElement;
-		this.modalDialogElement = wrapperElement.querySelector('dialog');
+		this.linkModalDialogElement = wrapperElement.querySelector('dialog[role="link"]');
+		this.imageModalDialogElement = wrapperElement.querySelector('dialog[role="img"]');
 		this.buttonGroupElement = wrapperElement.querySelector('[role="group"]');
 		this.declaredStyles = document.createElement('style');
 		this.declaredStyles.innerText = styles;
@@ -59,6 +62,9 @@ class RichTextArea {
 				Underline,
 				Link.configure({
 					openOnClick: false
+				}),
+				Image.configure({
+					inline: false
 				})
 			],
 			content: scriptElement?.textContent ? JSON.parse(scriptElement.textContent) : '',
@@ -152,7 +158,7 @@ class RichTextArea {
 	}
 
 	private link() {
-		const modalDialogElement = this.modalDialogElement;
+		const modalDialogElement = this.linkModalDialogElement;
 		const textField = modalDialogElement?.querySelector('INPUT[name="text"]');
 		const { selection, doc } = this.editor.view.state;
 		const urlField = modalDialogElement?.querySelector('INPUT[name="url"]');
@@ -167,7 +173,7 @@ class RichTextArea {
 		}
 		modalDialogElement.showModal();
 		modalDialogElement.addEventListener('close', () => {
-			const returnValue = this.modalDialogElement?.returnValue;
+			const returnValue = this.linkModalDialogElement?.returnValue;
 			if (returnValue === 'save' && textField.value && urlField.value) {
 				this.editor.chain().focus()
 					.extendMarkRange('link')
@@ -175,6 +181,20 @@ class RichTextArea {
 					.insertContentAt({from: selection.from, to: selection.to}, textField.value)
 					.run();
 			} else if (returnValue === 'remove' || !urlField.value) {
+				this.editor.chain().focus().extendMarkRange('link').unsetLink().run();
+			}
+		}, {once: true});
+	}
+
+	private image() {
+		const modalDialogElement = this.imageModalDialogElement;
+		modalDialogElement?.showModal();
+		modalDialogElement?.addEventListener('close', () => {
+			const returnValue = modalDialogElement?.returnValue;
+			if (returnValue === 'save') {
+				const imgElement = modalDialogElement?.querySelector('.dj-dropbox img') as HTMLImageElement;
+				this.editor.chain().focus().setImage({src: imgElement.src}).run();
+			} else if (returnValue === 'remove') {
 				this.editor.chain().focus().extendMarkRange('link').unsetLink().run();
 			}
 		}, {once: true});
@@ -232,6 +252,16 @@ class RichTextArea {
 						'border-bottom'
 					])
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '.dj-richtext-wrapper [role="group"] button.active':
+					this.textAreaElement.style.transition = 'none';
+					this.textAreaElement.focus();
+					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
+						'border-color', 'outline', 'box-shadow'
+					]);
+					this.textAreaElement.blur();
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					this.textAreaElement.style.transition = '';
 					break;
 				default:
 					break;

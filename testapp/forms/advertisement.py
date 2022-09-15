@@ -13,6 +13,8 @@ class AdvertisementForm(models.ModelForm):
             description = fields.CharField(…)
 
     """
+    # prefix = "advertisement"
+
     class Meta:
         model = AdvertisementModel
         fields = '__all__'

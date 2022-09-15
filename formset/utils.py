@@ -105,11 +105,7 @@ class HolderMixin:
         return super().is_valid()
 
 
-class FormMixin(HolderMixin):
-    """
-    Mixin class to be added to a native Django Form. This is required to add
-    """
-
+class FormDecoratorMixin:
     def __init__(self, error_class=FormsetErrorList, **kwargs):
         kwargs['error_class'] = error_class
         super().__init__(**kwargs)
@@ -131,6 +127,12 @@ class FormMixin(HolderMixin):
             return auto_id % self.prefix
         else:
             return auto_id % self.__class__.__name__.lower()
+
+
+class FormMixin(FormDecoratorMixin, HolderMixin):
+    """
+    Mixin class to be added to a native Django Form. This is required to add
+    """
 
     def add_prefix(self, field_name):
         """
