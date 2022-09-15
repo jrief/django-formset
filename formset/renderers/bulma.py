@@ -1,4 +1,5 @@
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
+from formset.boundfield import ClassList
 
 
 class FormRenderer(DefaultFormRenderer):
@@ -20,7 +21,7 @@ class FormRenderer(DefaultFormRenderer):
     })
 
     def _amend_input(self, context):
-        context['widget']['attrs']['class'] = 'input'
+        context['widget']['attrs']['class'] = ClassList('input')
         return context
 
     def _amend_label(self, context):
@@ -28,13 +29,13 @@ class FormRenderer(DefaultFormRenderer):
 
     def _amend_multiple_input(self, context, css_class):
         context = super()._amend_multiple_input(context)
-        css_classes = [css_class]
+        label_css_classes = ClassList(css_class)
         if not context['widget'].get('inlined_options'):
-            css_classes.append('is-block ml-0 mb-1')
+            label_css_classes.add('is-block ml-0 mb-1')
         for _, optgroup, _ in context['widget']['optgroups']:
             for option in optgroup:
                 option['template_name'] = 'formset/bulma/widgets/input_option.html'
-                option['label_css_classes'] = ' '.join(css_classes)
+                option['label_css_classes'] = label_css_classes
         return context
 
     def _amend_checkbox_select(self, context):
@@ -44,7 +45,7 @@ class FormRenderer(DefaultFormRenderer):
         return self._amend_multiple_input(context, 'radio mr-1')
 
     def _amend_textarea(self, context):
-        context['widget']['attrs']['class'] = 'textarea'
+        context['widget']['attrs']['class'] = ClassList('textarea')
         return context
 
     def _amend_collection(self, context):

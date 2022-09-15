@@ -1,4 +1,5 @@
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
+from formset.boundfield import ClassList
 
 
 class FormRenderer(DefaultFormRenderer):
@@ -21,45 +22,45 @@ class FormRenderer(DefaultFormRenderer):
         return super()._amend_label(context, hide_checkbox_label=True)
 
     def _amend_text_input(self, context):
-        context['widget']['attrs']['class'] = 'formset-text-input'
+        context['widget']['attrs']['class'] = ClassList('formset-text-input')
         return context
 
     def _amend_email_input(self, context):
-        context['widget']['attrs']['class'] = 'formset-email-input'
+        context['widget']['attrs']['class'] = ClassList('formset-email-input')
         return context
 
     def _amend_date_input(self, context):
-        context['widget']['attrs']['class'] = 'formset-date-input'
+        context['widget']['attrs']['class'] = ClassList('formset-date-input')
         return context
 
     def _amend_number_input(self, context):
-        context['widget']['attrs']['class'] = 'formset-number-input'
+        context['widget']['attrs']['class'] = ClassList('formset-number-input')
         return context
 
     def _amend_password_input(self, context):
-        context['widget']['attrs']['class'] = 'formset-password-input'
+        context['widget']['attrs']['class'] = ClassList('formset-password-input')
         return context
 
     def _amend_textarea(self, context):
-        context['widget']['attrs']['class'] = 'formset-textarea'
+        context['widget']['attrs']['class'] = ClassList('formset-textarea')
         return context
 
     def _amend_select(self, context):
         if context['widget']['attrs'].get('multiple') is True:
-            context['widget']['attrs']['class'] = 'formset-select-multiple'
+            context['widget']['attrs']['class'] = ClassList('formset-select-multiple')
         else:
-            context['widget']['attrs']['class'] = 'formset-select'
+            context['widget']['attrs']['class'] = ClassList('formset-select')
         return context
 
     def _amend_dual_selector(self, context):
         context.update(
-            select_classes='formset-dual-selector-select',
-            lookup_field_classes='formset-dual-selector-lookup',
+            select_classes=ClassList('formset-dual-selector-select'),
+            lookup_field_classes=ClassList('formset-dual-selector-lookup'),
         )
         return context
 
     def _amend_checkbox(self, context):
-        context['widget']['attrs']['class'] = 'formset-checkbox'
+        context['widget']['attrs']['class'] = ClassList('formset-checkbox')
         return context
 
     def _amend_multiple_input(self, context, css_class):
@@ -67,7 +68,7 @@ class FormRenderer(DefaultFormRenderer):
         for _, optgroup, _ in context['widget']['optgroups']:
             for option in optgroup:
                 option['template_name'] = 'formset/tailwind/widgets/input_option.html'
-                option['attrs']['class'] = css_class
+                option['attrs']['class'] = ClassList(css_class)
         return context
 
     def _amend_checkbox_select(self, context):
