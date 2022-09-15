@@ -880,6 +880,10 @@ class DjangoForm {
 		return this.element.getAttribute('id');
 	}
 
+	public get provideData() : boolean {
+		return this.element.method !== 'dialog';
+	}
+
 	public getAbsPath() : Array<string> {
 		return ['formset_data', ...this.path];
 	}
@@ -911,6 +915,8 @@ class DjangoForm {
 	}
 
 	isValid() {
+		if (this.element.noValidate)
+			return true;
 		let isValid = true;
 		for (const fieldGroup of this.fieldGroups) {
 			isValid = fieldGroup.setValidationError() && isValid;
@@ -919,10 +925,14 @@ class DjangoForm {
 	}
 
 	checkValidity() {
+		if (this.element.noValidate)
+			return true;
 		return this.element.checkValidity();
 	}
 
 	reportValidity() {
+		if (this.element.noValidate)
+			return;
 		this.element.reportValidity();
 	}
 
@@ -1413,8 +1423,6 @@ export class DjangoFormset {
 	public findForms(parentElement?: Element) {
 		parentElement = parentElement ?? this.element;
 		for (const element of parentElement.getElementsByTagName('FORM')) {
-			if ((element as HTMLFormElement).method === 'dialog')
-				continue;  // these forms are just used for modal dialogs
 			const form = new DjangoForm(this, element as HTMLFormElement);
 			this.forms.push(form);
 		}
@@ -1422,16 +1430,17 @@ export class DjangoFormset {
 	}
 
 	private checkForUniqueness() {
-		const formNames = Array<string>(0);
-		if (this.forms.length > 1) {
-			for (const form of this.forms) {
-				if (!form.name)
-					throw new Error("Multiple <form>-elements in a <django-formset> require a unique name each.");
-				if (form.name in formNames)
-					throw new Error(`Duplicate name "${form.name}" used in multiple forms of same <django-formset>.`);
-				formNames.push(form.name);
-			}
-		}
+		const forms = this.forms.filter(form => !form.element.noValidate);
+		if (forms.length === 1)
+			return;
+		const formNames = Array<string>();
+		forms.forEach(form => {
+			if (!form.name)
+				throw new Error("Multiple <form>-elements in a <django-formset> require a unique name each.");
+			if (form.name in formNames)
+				throw new Error(`Duplicate name "${form.name}" used in multiple forms of same <django-formset>.`);
+			formNames.push(form.name);
+		});
 	}
 
 	private findFormCollections() {
@@ -1477,7 +1486,9 @@ export class DjangoFormset {
 	private aggregateValues() {
 		this.data = {};
 		for (const form of this.forms) {
-			setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
+			if (form.provideData) {
+				setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
+			}
 		}
 		for (const form of this.forms) {
 			if (!form.markedForRemoval) {
