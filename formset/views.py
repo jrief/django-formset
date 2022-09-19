@@ -1,5 +1,6 @@
 import json
 
+from django.db import transaction
 from django.http.response import HttpResponseBadRequest, JsonResponse
 from django.utils.functional import cached_property
 from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
@@ -208,5 +209,6 @@ class EditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCol
         return initial
 
     def form_collection_valid(self, form_collection):
-        form_collection.construct_instance(self.object, form_collection.cleaned_data)
+        with transaction.atomic():
+            form_collection.construct_instance(self.object, form_collection.cleaned_data)
         return super().form_collection_valid(form_collection)

@@ -33,10 +33,10 @@ def test_person_form_get():
     response = view(RequestFactory().get('/'))
     response.render()
     soup = BeautifulSoup(response.content, 'html.parser')
-    form_elem = soup.find('form')
-    assert form_elem is not None
-    assert 'row' in form_elem.attrs['class']
-    field_group_elems = form_elem.find_all('django-field-group')
+    form_wrapper = soup.find('div', class_='dj-form')
+    assert form_wrapper is not None
+    assert 'row' in form_wrapper.attrs['class']
+    field_group_elems = form_wrapper.find_all('django-field-group')
     assert len(field_group_elems) == 3
     assert all(map(lambda elem: 'mb-2' in elem.attrs['class'], field_group_elems))
     assert 'col-12' in field_group_elems[0].attrs['class']
@@ -83,9 +83,10 @@ def test_simple_collection_get(initial):
     assert form_elem is not None
     assert form_elem.attrs['name'] == 'person'
     assert form_elem.attrs['id'] == 'id_person'
-    field_group_elems = form_elem.find_all('django-field-group')
+    form_wrapper = collection_elems[0].find('div', class_='dj-form')
+    field_group_elems = form_wrapper.find_all('django-field-group')
     assert len(field_group_elems) == 2
-    input_elems = form_elem.find_all('input')
+    input_elems = form_wrapper.find_all('input')
     assert len(input_elems) == 2
     for input_elem in input_elems:
         name = input_elem.attrs['name']
@@ -99,9 +100,10 @@ def test_simple_collection_get(initial):
     form_elem = collection_elems[1].find('form')
     assert form_elem.attrs['name'] == 'profession'
     assert form_elem.attrs['id'] == 'id_profession'
-    field_group_elems = form_elem.find_all('django-field-group')
+    form_wrapper = collection_elems[1].find('div', class_='dj-form')
+    field_group_elems = form_wrapper.find_all('django-field-group')
     assert len(field_group_elems) == 2
-    input_elems = form_elem.find_all('input')
+    input_elems = form_wrapper.find_all('input')
     assert len(input_elems) == 2
     for input_elem in input_elems:
         name = input_elem.attrs['name']

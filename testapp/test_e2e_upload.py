@@ -25,9 +25,9 @@ urlpatterns = [path('upload', DemoFormView.as_view(), name='upload')]
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_image(page, mocker):
-    choose_file_button = page.query_selector('django-formset form button.dj-choose-file')
+    choose_file_button = page.query_selector('django-formset .dj-form button.dj-choose-file')
     assert choose_file_button is not None  # that button would open the file selector
-    dropbox = page.query_selector('django-formset form figure.dj-dropbox')
+    dropbox = page.query_selector('django-formset .dj-form figure.dj-dropbox')
     assert dropbox.inner_html() == '<div class="dj-empty-item"><p>Drag file here</p></div>'
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
     img_element = dropbox.wait_for_selector('img')
@@ -74,7 +74,7 @@ def test_upload_image(page, mocker):
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_pdf(page):
     page.set_input_files('#id_avatar', 'testapp/assets/dummy.pdf')
-    dropbox = page.query_selector('django-formset form django-field-group figure.dj-dropbox')
+    dropbox = page.query_selector('django-formset .dj-form django-field-group figure.dj-dropbox')
     assert dropbox is not None
     img_src = dropbox.wait_for_selector('img').get_attribute('src')
     assert img_src == '/static/formset/icons/file-pdf.svg'
@@ -84,7 +84,7 @@ def test_upload_pdf(page):
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_broken_image(page):
     page.set_input_files('#id_avatar', 'testapp/assets/broken-image.jpg')
-    dropbox = page.query_selector('django-formset form django-field-group figure.dj-dropbox')
+    dropbox = page.query_selector('django-formset .dj-form django-field-group figure.dj-dropbox')
     assert dropbox is not None
     img_src = dropbox.wait_for_selector('img').get_attribute('src')
     assert img_src == '/static/formset/icons/file-picture.svg'
@@ -103,7 +103,7 @@ def test_upload_required(page):
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_delete_uploaded_file(page):
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
-    dropbox = page.query_selector('django-formset form django-field-group figure.dj-dropbox')
+    dropbox = page.query_selector('django-formset .dj-form django-field-group figure.dj-dropbox')
     dropbox.wait_for_selector('img')
     delete_button = dropbox.wait_for_selector('figcaption a.dj-delete-file')
     delete_button.click()

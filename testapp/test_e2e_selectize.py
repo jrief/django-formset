@@ -258,7 +258,7 @@ def test_lookup_value(page, mocker, form):
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_submit_missing(page, view, form):
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
-    placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
+    placeholder_text = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == Field.default_error_messages['required']
 
 
@@ -304,7 +304,7 @@ def test_submit_invalid(page, mocker, view, form):
     response = json.loads(spy.spy_return.content)
     error_message = models.ModelChoiceField.default_error_messages['invalid_choice']
     assert response == {'model_choice': [error_message]}
-    placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
+    placeholder_text = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == error_message
     initial_opinion.tenant = 1  # reset to initial tenant
     initial_opinion.save(update_fields=['tenant'])

@@ -120,8 +120,8 @@ def test_nested_remove_inner_first(page, mocker, viewname):
     page.fill('#id_0\\.level1\\.campum\\.agro', "BB")
     page.fill('#id_0\\.level1\\.level2\\.campum\\.agro', "CC")
     page.click('template[prefix="0.level1.level2.level3"] + button.add-collection')
-    page.hover('#id_0\\.level1\\.level2\\.level3\\.0\\.campum')
-    formset.wait_for_selector('#id_0\\.level1\\.level2\\.level3\\.0\\.campum + button.remove-collection').click()
+    page.hover('#id_0\\.level1\\.level2\\.level3\\.0\\.campum + .dj-form')
+    formset.wait_for_selector('#id_0\\.level1\\.level2\\.level3\\.0\\.campum ~ button.remove-collection').click()
     page.fill('#id_0\\.level1\\.level2\\.level3\\.1\\.campum\\.agro', "DD")
     page.fill('#id_0\\.level1\\.level2\\.level3\\.2\\.campum\\.agro', "EE")
     page.query_selector('#id_0\\.campum\\.agro').evaluate('elem => elem.focus()')
@@ -158,8 +158,8 @@ def test_nested_remove_inner_last(page, mocker):
     page.fill('#id_0\\.level1\\.campum\\.agro', "BB")
     page.fill('#id_0\\.level1\\.level2\\.campum\\.agro', "CC")
     page.click('template[prefix="0.level1.level2.level3"] + button.add-collection')
-    page.hover('#id_0\\.level1\\.level2\\.level3\\.2\\.campum')
-    formset.wait_for_selector('#id_0\\.level1\\.level2\\.level3\\.2\\.campum + button.remove-collection').click()
+    page.hover('#id_0\\.level1\\.level2\\.level3\\.2\\.campum + .dj-form')
+    formset.wait_for_selector('#id_0\\.level1\\.level2\\.level3\\.2\\.campum ~ button.remove-collection').click()
     page.fill('#id_0\\.level1\\.level2\\.level3\\.0\\.campum\\.agro', "DD")
     page.fill('#id_0\\.level1\\.level2\\.level3\\.1\\.campum\\.agro', "EE")
     page.query_selector('#id_0\\.campum\\.agro').evaluate('elem => elem.focus()')
@@ -233,8 +233,8 @@ def test_nested_reset(page, mocker, viewname):
     else:
         assert input_value == 'ee'
 
-    page.hover('#id_0\\.level1\\.level2\\.level3\\.0\\.campum')
-    page.wait_for_selector('#id_0\\.level1\\.level2\\.level3\\.0\\.campum + button.remove-collection').click()
+    page.hover('#id_0\\.level1\\.level2\\.level3\\.0\\.campum + .dj-form')
+    page.wait_for_selector('#id_0\\.level1\\.level2\\.level3\\.0\\.campum ~ button.remove-collection').click()
     locator = page.locator('django-formset > .collection-siblings > django-form-collection[sibling-position="0"] > django-form-collection:last-of-type > django-form-collection:last-of-type > .collection-siblings > django-form-collection[sibling-position="0"]')
     assert locator.get_attribute('class') == 'dj-marked-for-removal'
     formset.evaluate('elem => elem.reset()')

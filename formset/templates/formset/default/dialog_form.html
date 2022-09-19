@@ -1,0 +1,26 @@
+{% spaceless %}
+<form{% include "formset/form_attrs.html" %} novalidate></form>
+{% if form.modal_title %}
+<div class="dialog-header">
+	<div class="modal-title">{{ form.modal_title }}</div>
+</div>
+{% endif %}
+{% if form.fields %}
+<div class="dialog-body">
+	{% include "formset/non_field_errors.html" %}
+	{% for field in form %}
+		{% if field.is_hidden %}
+			{{ field }}
+		{% else %}
+			{% include "formset/default/field_group.html" %}
+		{% endif %}
+	{% endfor %}
+	{% if help_text %}{% include help_text_template %}{% endif %}
+</div>
+{% endif %}
+<div class="dialog-footer">
+	<button class="btn btn-outline-secondary" value="close" form="{{ form.form_id }}">Close</button>
+	<button class="btn btn-danger" value="remove" form="{{ form.form_id }}">Remove</button>
+	<button class="btn btn-primary" value="save" form="{{ form.form_id }}">Save</button>
+</div>
+{% endspaceless %}

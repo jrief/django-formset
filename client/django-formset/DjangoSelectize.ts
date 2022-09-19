@@ -22,7 +22,7 @@ class DjangoSelectize extends IncompleteSelect {
 	private readonly observer: MutationObserver;
 	private readonly initialValue: string | string[];
 
-	constructor(tomInput: TomInput) {
+	constructor(tomInput: HTMLSelectElement) {
 		super(tomInput);
 		this.tomInput = tomInput;
 		// @ts-ignore
@@ -222,7 +222,7 @@ class DjangoSelectize extends IncompleteSelect {
 		}
 	}
 
-	public get value() : string | string[] {
+	public getValue() : string | string[] {
 		return this.tomSelect.getValue();
 	}
 }
@@ -237,6 +237,6 @@ export class DjangoSelectizeElement extends HTMLSelectElement {
 	}
 
 	public async getValue() {
-		return this[DS]?.value;
+		return this[DS]?.getValue();
 	}
 }

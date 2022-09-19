@@ -1,0 +1,82 @@
+@import "colors";
+
+.dj-richtext-wrapper {
+	position: relative;
+	overflow: hidden;
+
+	[role="group"] {
+		border: none;
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		padding: 0.125rem 0.25rem;
+
+		button {
+			display: inline-block;
+			text-align: center;
+			text-decoration: none;
+			vertical-align: middle;
+			cursor: pointer;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			user-select: none;
+			border: none;
+			padding: 0.25rem;
+			background-color: inherit;
+			&:hover {
+				background-color: whitesmoke;
+			}
+			&.active {
+				background-color: beige;
+			}
+			> svg {
+				vertical-align: middle;
+			}
+		}
+	}
+
+	.ProseMirror {
+		border: none;
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		word-wrap: break-word;
+		white-space: break-spaces;
+		font-variant-ligatures: none;
+		font-feature-settings: "liga" 0; /* the above doesn't seem to work in Edge */
+
+		&[contenteditable="false"] {
+				white-space: normal;
+		}
+
+		p {
+			margin-bottom: 0.5rem;
+		}
+
+		li > p {
+			margin: 0;
+		}
+
+		&:focus-visible {
+			outline: none;
+		}
+
+		pre {
+			white-space: pre-wrap;
+		}
+	}
+
+	&.focused {
+		opacity: 1;
+	}
+
+	&:not(.focused).invalid {
+		border-color: var(--django-formset-color-invalid);
+	}
+
+	&:not(.focused).valid {
+		border-color: var(--django-formset-color-valid);
+	}
+}

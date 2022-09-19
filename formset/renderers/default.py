@@ -3,9 +3,12 @@ import types
 
 from django.forms.renderers import DjangoTemplates
 
+from formset.boundfield import ClassList
+
 
 class FormRenderer(DjangoTemplates):
-    max_options_per_line = 0
+    max_options_per_line = 0  # for multiple checkboxes and radio-selects
+    exempt_feedback = False  # if True, exempt rendered field from feedback
 
     _template_mapping = {
         'django/forms/errors/list/default.html': 'formset/default/field_errors.html',
@@ -17,15 +20,17 @@ class FormRenderer(DjangoTemplates):
 
     def __init__(self, field_css_classes=None, label_css_classes=None, control_css_classes=None,
                  form_css_classes=None, fieldset_css_classes=None, collection_css_classes=None,
-                 max_options_per_line=None):
+                 max_options_per_line=None, exempt_feedback=None):
         self.field_css_classes = field_css_classes
-        self.label_css_classes = label_css_classes
-        self.control_css_classes = control_css_classes
-        self.form_css_classes = form_css_classes
-        self.fieldset_css_classes = fieldset_css_classes
-        self.collection_css_classes = collection_css_classes
+        self.label_css_classes = ClassList(label_css_classes)
+        self.control_css_classes = ClassList(control_css_classes)
+        self.form_css_classes = ClassList(form_css_classes)
+        self.fieldset_css_classes = ClassList(fieldset_css_classes)
+        self.collection_css_classes = ClassList(collection_css_classes)
         if max_options_per_line is not None:
             self.max_options_per_line = max_options_per_line
+        if exempt_feedback is not None:
+            self.exempt_feedback = exempt_feedback
         super().__init__()
 
     def get_template(self, template_name):
@@ -43,13 +48,23 @@ class FormRenderer(DjangoTemplates):
         if self.label_css_classes:
             if not isinstance(context['attrs'], dict):
                 context['attrs'] = {}
-            context['attrs']['class'] = self.label_css_classes
+            context['attrs']['class'] = ClassList(self.label_css_classes)
         if hide_checkbox_label and context['field'].widget_type == 'checkbox':
             # `<label>Label:</label>` is rendered by `{{ field }}`, so remove it to
             # prevent double rendering.
             context.pop('label', None)
             context['attrs'].pop('for', None)
             context['use_tag'] = bool(self.control_css_classes)
+        return context
+
+    def _amend_feedback(self, context):
+        if self.exempt_feedback:
+            context['widget']['attrs']['class'].add('dj-exempt-feedback')
+        return context
+
+    def _amend_input(self, context):
+        context['widget']['attrs']['class'] = ClassList()
+        self._amend_feedback(context)
         return context
 
     def _amend_multiple_input(self, context):
@@ -95,8 +110,8 @@ class FormRenderer(DjangoTemplates):
     def _copy_context(cls, context):
         """"
         Make a semi-deep copy of context. This is required since the amend-methods
-        modify the context before rendering. Python's copy.deepcopy doesn't work here
-        because File fields _io.BufferedReader can't be pickled.
+        modify the context before rendering. Python's `copy.deepcopy()` doesn't work
+        here, because the File field's _io.BufferedReader can't be pickled.
         """
         replica = context.copy()
         if 'attrs' in context:

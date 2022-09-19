@@ -1,4 +1,5 @@
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
+from formset.boundfield import ClassList
 
 
 class FormRenderer(DefaultFormRenderer):
@@ -17,18 +18,18 @@ class FormRenderer(DefaultFormRenderer):
     })
 
     def _amend_input(self, context):
-        context['widget']['attrs']['class'] = 'uk-input'
+        context['widget']['attrs']['class'] = ClassList('uk-input')
         return context
 
     def _amend_label(self, context):
         return super()._amend_label(context, hide_checkbox_label=True)
 
     def _amend_textarea(self, context):
-        context['widget']['attrs']['class'] = 'uk-textarea'
+        context['widget']['attrs']['class'] = ClassList('uk-textarea')
         return context
 
     def _amend_select(self, context):
-        context['widget']['attrs']['class'] = 'uk-select'
+        context['widget']['attrs']['class'] = ClassList('uk-select')
         return context
 
     def _amend_multiple_input(self, context):
@@ -59,4 +60,5 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/radio.html': _amend_multiple_input,
         'formset/default/widgets/selectize.html': _amend_select,
         'formset/default/collection.html': _amend_collection,
+        'formset/forms/widgets/textarea.html': _amend_textarea,
     })

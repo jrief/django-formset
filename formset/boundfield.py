@@ -10,6 +10,53 @@ from formset.widgets import UploadedFileInput
 from formset.upload import get_file_info
 
 
+class ClassList(set):
+    """
+    Inspired by JavaScript's classlist on HTMLElement
+    """
+    __slots__ = ()
+
+    def __init__(self, css_classes=None):
+        if css_classes is None:
+            super().__init__()
+        elif isinstance(css_classes, (list, set, tuple)):
+            super().__init__(css_classes)
+        elif isinstance(css_classes, str):
+            super().__init__(css_classes.split())
+        else:
+            raise TypeError(f"Can not convert {css_classes.__class__} to ClassList")
+
+    def __bool__(self):
+        return len(self) > 0
+
+    def add(self, css_classes):
+        for css_class in ClassList(css_classes):
+            super().add(css_class)
+        return self
+
+    def remove(self, css_classes):
+        for css_class in ClassList(css_classes):
+            if css_class in self:
+                super().remove(css_class)
+        return self
+
+    def toggle(self, css_classes, condition=None):
+        for css_class in ClassList(css_classes):
+            if css_class in self:
+                if condition in (None, False):
+                    super().remove(css_class)
+            else:
+                if condition in (None, True):
+                    super().add(css_class)
+        return self
+
+    def render(self):
+        return ' '.join(self)
+
+    __str__ = render
+    __html__ = render
+
+
 class CheckboxInputMixin:
     """
     This hack is required for adding the field's label to the rendering context.
@@ -47,7 +94,7 @@ class BoundField(boundfield.BoundField):
 
     def build_widget_attrs(self, attrs, widget=None):
         attrs = super().build_widget_attrs(attrs, widget)
-        if self.form.form_id:
+        if hasattr(self.form, 'form_id'):
             attrs['form'] = self.form.form_id
         if hasattr(self.field, 'regex'):
             attrs['pattern'] = self.field.regex.pattern
@@ -57,9 +104,7 @@ class BoundField(boundfield.BoundField):
         """
         Return a string of space-separated CSS classes for this field.
         """
-        if hasattr(extra_classes, 'split'):
-            extra_classes = extra_classes.split()
-        extra_classes = set(extra_classes or [])
+        extra_classes = ClassList(extra_classes)
         if self.field.required:
             if self.widget_type == 'checkboxselectmultiple':
                 extra_classes.add('dj-required-any')
@@ -70,13 +115,11 @@ class BoundField(boundfield.BoundField):
         field_css_classes = getattr(self.form.renderer, 'field_css_classes', None)
         if isinstance(field_css_classes, dict):
             try:
-                field_css_classes = field_css_classes[self.name]
+                extra_classes.add(field_css_classes[self.name])
             except KeyError:
-                field_css_classes = field_css_classes.get('*')
-        if hasattr(field_css_classes, 'split'):
-            extra_classes.update(field_css_classes.split())
-        elif isinstance(field_css_classes, (list, tuple)):
-            extra_classes.update(field_css_classes)
+                extra_classes.add(field_css_classes.get('*'))
+        else:
+            extra_classes.add(field_css_classes)
         return super().css_classes(extra_classes)
 
     @cached_property

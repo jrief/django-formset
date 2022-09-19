@@ -1,4 +1,5 @@
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
+from formset.boundfield import ClassList
 
 
 class FormRenderer(DefaultFormRenderer):
@@ -15,18 +16,20 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox_select.html': 'formset/bootstrap/widgets/multiple_input.html',
         'formset/default/widgets/dual_selector.html': 'formset/bootstrap/widgets/dual_selector.html',
         'formset/default/widgets/file.html': 'formset/bootstrap/widgets/file.html',
+        'formset/default/widgets/richtextarea.html': 'formset/bootstrap/widgets/richtextarea.html',
     })
 
     def _amend_input(self, context):
-        context['widget']['attrs']['class'] = 'form-control'
+        super()._amend_input(context)
+        context['widget']['attrs']['class'].add('form-control')
         return context
 
     def _amend_checkbox(self, context):
-        context['widget']['attrs']['class'] = 'form-check-input'
+        context['widget']['attrs']['class'] = ClassList('form-check-input')
         return context
 
     def _amend_select(self, context):
-        context['widget']['attrs']['class'] = 'form-select'
+        context['widget']['attrs']['class'] = ClassList('form-select')
         return context
 
     def _amend_dual_selector(self, context):
@@ -46,7 +49,7 @@ class FormRenderer(DefaultFormRenderer):
         context = super()._amend_multiple_input(context)
         for _, optgroup, _ in context['widget']['optgroups']:
             for option in optgroup:
-                option['attrs']['class'] = 'form-check-input'
+                option['attrs']['class'] = ClassList('form-check-input')
                 option['template_name'] = 'formset/bootstrap/widgets/input_option.html'
         return context
 
@@ -71,6 +74,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/text.html': _amend_input,
         'django/forms/widgets/email.html': _amend_input,
         'django/forms/widgets/date.html': _amend_input,
+        'django/forms/widgets/datetime.html': _amend_input,
         'django/forms/widgets/number.html': _amend_input,
         'django/forms/widgets/url.html': _amend_input,
         'django/forms/widgets/password.html': _amend_input,
@@ -84,4 +88,5 @@ class FormRenderer(DefaultFormRenderer):
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/collection.html': _amend_collection,
+        'formset/default/widgets/richtextarea.html': _amend_input,
     })

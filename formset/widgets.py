@@ -1,6 +1,7 @@
 from base64 import b16encode
 from functools import reduce
 from operator import or_
+import copy
 import os
 import struct
 
@@ -10,7 +11,8 @@ from django.core.files.storage import default_storage
 from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
-from django.forms.widgets import FileInput, Select, SelectMultiple
+from django.forms.widgets import FileInput, Select, SelectMultiple, Textarea
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import now, datetime, utc
 
@@ -181,3 +183,27 @@ class UploadedFileInput(FileInput):
                 content_type_extra=handle['content_type_extra'],
             )
         return files.get(name)
+
+
+class RichTextArea(Textarea):
+    template_name = 'formset/default/widgets/richtextarea.html'
+
+    def format_value(self, value):
+        return mark_safe(value)
+
+    def value_from_datadict(self, data, files, name):
+        # TODO[link]: convert internal links to reverse looksups
+        # TODO[img]: extract images and move them to the upload area
+        return data.get(name, {})
+
+    def render(self, name, value, attrs=None, renderer=None):
+        from formset.dialog_form import LinkEditForm, ImageEditForm
+
+        modal_form_renderer = copy.copy(renderer)
+        modal_form_renderer.exempt_feedback = True
+        context = self.get_context(name, value, attrs)
+        context.update(
+            link_edit_form=LinkEditForm(renderer=modal_form_renderer),
+            image_edit_form=ImageEditForm(renderer=modal_form_renderer),
+        )
+        return self._render(self.template_name, context, renderer)

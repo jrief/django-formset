@@ -1,0 +1,9 @@
+{% spaceless %}
+{% for mark in node.marks %}
+	{% with template="./marks/"|add:mark.type|add:".html" %}
+		{% include template with text=node.text attrs=mark.attrs %}
+	{% endwith %}
+{% empty %}
+{{ node.text }}
+{% endfor %}
+{% endspaceless %}

@@ -14,7 +14,7 @@ from django.template.loader import get_template
 from django.urls import get_resolver, path, reverse
 from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
-from django.views.generic import FormView, TemplateView, UpdateView
+from django.views.generic import DetailView, FormView, TemplateView, UpdateView
 
 from docutils.frontend import OptionParser
 from docutils.io import StringOutput
@@ -26,6 +26,7 @@ from formset.utils import FormMixin
 from formset.views import FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormViewMixin, EditCollectionView
 
 from testapp.forms.address import AddressForm
+from testapp.forms.advertisement import AdvertisementForm
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import (SimpleContactCollection, ContactCollection, ContactCollectionList,
     IntermediateContactCollectionList, SortableContactCollection, SortableContactCollectionList)
@@ -36,7 +37,7 @@ from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.user import UserCollection, UserListCollection
 from testapp.forms.upload import UploadForm
-from testapp.models import PersonModel, PollModel
+from testapp.models import AdvertisementModel, PersonModel, PollModel
 
 
 parser = Parser()
@@ -385,6 +386,10 @@ than placing them below each other.
 urlpatterns = [
     path('', render_suburls),
     path('success', SuccessView.as_view(), name='form_data_valid'),
+    path('tiptap/<int:pk>', DetailView.as_view(
+        model=AdvertisementModel,
+        template_name='testapp/tiptap.html',
+    )),
     path('complete.native', DemoFormView.as_view(
         form_class=CompleteForm,
         extra_doc=extra_doc_native,
@@ -455,11 +460,15 @@ urlpatterns = [
     path('userlist', UserCollectionView.as_view(
         collection_class=UserListCollection
     ), kwargs={'group': 'model', 'index': 19}, name='userlist'),
+    path('advertisement', DemoModelFormView.as_view(
+        form_class=AdvertisementForm,
+        model=AdvertisementModel,
+    ), kwargs={'group': 'model', 'index': 19}, name='richtext'),
     path('button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',
         extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)'},
-    ), kwargs={'group': 'button', 'index': 19}, name='button-actions'),
+    ), kwargs={'group': 'button', 'index': 20}, name='button-actions'),
 ]
 
 # this creates permutations of forms to show how to withhold which feedback
@@ -492,5 +501,5 @@ for length in range(len(withhold_feedbacks) + 1):
                     'force_submission': force_submission,
                 },
                 extra_doc='\n'.join(extra_docs),
-            ), kwargs={'group': 'feedback', 'index': length + 20})
+            ), kwargs={'group': 'feedback', 'index': length + 21})
         )

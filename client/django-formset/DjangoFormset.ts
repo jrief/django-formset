@@ -1,13 +1,14 @@
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
+import isEqual from 'lodash.isEqual';
 import template from 'lodash.template';
 import Sortable, { SortableEvent } from 'sortablejs';
 import { FileUploadWidget } from './FileUploadWidget';
 import { parse } from './tag-attributes';
 import styles from 'sass:./DjangoFormset.scss';
-import spinnerIcon from './spinner.svg';
-import okayIcon from './okay.svg';
-import bummerIcon from './bummer.svg';
+import spinnerIcon from './icons/spinner.svg';
+import okayIcon from './icons/okay.svg';
+import bummerIcon from './icons/bummer.svg';
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FieldValue = string | Array<string | Object>;
@@ -75,7 +76,10 @@ class FieldGroup {
 		this.errorPlaceholder = element.querySelector('.dj-errorlist > .dj-placeholder');
 		this.errorMessages = new FieldErrorMessages(this);
 		const requiredAny = element.classList.contains('dj-required-any');
-		const inputElements = (Array.from(element.getElementsByTagName('INPUT')) as Array<HTMLInputElement>).filter(e => e.name && e.type !== 'hidden');
+
+		// <django-field-group> can contain one or more <input type="checkbox"> or <input type="radio"> elements
+		const allowedInputs = (i: Element) => i instanceof HTMLInputElement && i.name && i.form === form.element && i.type !== 'hidden';
+		const inputElements = Array.from(element.getElementsByTagName('INPUT')).filter(allowedInputs) as Array<HTMLInputElement>;
 		for (const element of inputElements) {
 			switch (element.type) {
 				case 'checkbox':
@@ -102,8 +106,9 @@ class FieldGroup {
 		this.fieldElements = Array<FieldElement>(0).concat(inputElements);
 
 		// <django-field-group> can contain at most one <select> element
-		const selectElement = (Array.from(element.getElementsByTagName('SELECT')) as Array<HTMLSelectElement>).filter(e => e.name).at(0);
-		if (selectElement) {
+		const allowedSelects = (s: Element) => s instanceof HTMLSelectElement && s.name && s.form === form.element;
+		const selectElement = Array.from(element.getElementsByTagName('SELECT')).filter(allowedSelects).at(0);
+		if (selectElement instanceof HTMLSelectElement) {
 			selectElement.addEventListener('focus', () => this.touch());
 			selectElement.addEventListener('change', () => {
 				this.setDirty();
@@ -114,7 +119,8 @@ class FieldGroup {
 		}
 
 		// <django-field-group> can contain at most one <textarea> element
-		const textAreaElement = element.getElementsByTagName('TEXTAREA').item(0);
+		const allowedTextAreas = (t: Element) => t instanceof HTMLTextAreaElement && t.name && t.form === form.element;
+		const textAreaElement = Array.from(element.getElementsByTagName('TEXTAREA')).filter(allowedTextAreas).at(0);
 		if (textAreaElement instanceof HTMLTextAreaElement) {
 			textAreaElement.addEventListener('focus', () => this.touch());
 			textAreaElement.addEventListener('input', () => this.inputted());
@@ -153,9 +159,7 @@ class FieldGroup {
 				return value;
 			}
 			if (element.type === 'file') {
-				if (!this.fileUploader)
-					throw new Error("fileUploader expected");
-				return this.fileUploader.uploadedFiles;
+				return this.fileUploader!.uploadedFiles;
 			}
 			// all other input types just return their value
 			return element.value;
@@ -187,7 +191,7 @@ class FieldGroup {
 				name = element.name;
 			} else {
 				if (name !== element.name)
-					throw new Error(`Name '${name}' mismatch on multiple input fields on '${element.name}'`);
+					throw new Error(`Duplicate name '${name}' on multiple input fields on '${element.name}'`);
 			}
 		}
 		return name;
@@ -251,9 +255,7 @@ class FieldGroup {
 	}
 
 	public resetToInitial() {
-		if (this.fileUploader) {
-			this.fileUploader.resetToInitial();
-		}
+		this.fileUploader?.resetToInitial();
 		this.untouch();
 		this.setPristine();
 		this.clearCustomError();
@@ -355,8 +357,8 @@ class FieldGroup {
 				return false;
 			}
 		}
-		if (inputElement.type === 'file' && this.fileUploader) {
-			if (this.fileUploader.inProgress()) {
+		if (inputElement.type === 'file') {
+			if (this.fileUploader!.inProgress()) {
 				// seems that file upload is still in progress => field shall not be valid
 				if (this.errorPlaceholder) {
 					this.errorPlaceholder.innerHTML = this.errorMessages.get('typeMismatch') ?? '';
@@ -460,14 +462,14 @@ class DjangoButton {
 		this.bummerElement.classList.add('dj-icon', 'dj-bummer');
 		this.bummerElement.innerHTML = bummerIcon;
 		this.parseActionsQueue(element.getAttribute('click'));
-		element.addEventListener('click', () => this.clicked());
+		element.addEventListener('click', this.clicked);
 	}
 
 	/**
 	 * Event handler to be called when someone clicks on the button.
 	 */
 	// @ts-ignore
-	private clicked() {
+	private clicked = () => {
 		let promise: Promise<Response> | undefined;
 		for (const [index, action] of this.successActions.entries()) {
 			if (!promise) {
@@ -719,14 +721,11 @@ class DjangoButton {
 	}
 
 	// @ts-ignore
+	/*
+	 * Called after all actions have been exected.
+	 */
 	private restore() {
-		return () => {
-			this.element.disabled = false;
-			this.element.setAttribute('class', this.initialClass);
-			if (this.originalDecorator) {
-				this.decoratorElement?.replaceChildren(...this.originalDecorator.cloneNode(true).childNodes);
-			}
-		}
+		return () => this.restoreToInitial();
 	}
 
 	private decorate(decorator: HTMLElement, ms: number | undefined) {
@@ -745,19 +744,18 @@ class DjangoButton {
 		if (!actionsQueue)
 			return;
 
-		let self = this;
-		function createActions(actions: Array<ButtonAction>, chain: Array<any>) {
+		const createActions = (actions: Array<ButtonAction>, chain: Array<any>) => {
 			for (let action of chain) {
-				const func = self[action.funcname as keyof DjangoButton];
+				const func = this[action.funcname as keyof DjangoButton];
 				if (typeof func !== 'function')
 					throw new Error(`Unknown function '${action.funcname}'.`);
 				actions.push(new ButtonAction(func, action.args));
 			}
 			if (actions.length === 0) {
 				// the actionsQueue must resolve at least once
-				actions.push(new ButtonAction(self.noop, []));
+				actions.push(new ButtonAction(this.noop, []));
 			}
-		}
+		};
 
 		try {
 			const ast = parse(actionsQueue, {startRule: 'Actions'});
@@ -765,6 +763,14 @@ class DjangoButton {
 			createActions(this.rejectActions, ast.rejectChain);
 		} catch (error) {
 			throw new Error(`Error while parsing <button click="${actionsQueue}">: ${error}.`);
+		}
+	}
+
+	public restoreToInitial() {
+		this.element.disabled = false;
+		this.element.setAttribute('class', this.initialClass);
+		if (this.originalDecorator) {
+			this.decoratorElement?.replaceChildren(...this.originalDecorator.cloneNode(true).childNodes);
 		}
 	}
 
@@ -792,7 +798,7 @@ class DjangoFieldset {
 
 	private evalVisibility(attribute: string, visible: boolean): Function | null {
 		const attrValue = this.element.getAttribute(attribute);
-		if (typeof attrValue !== 'string')
+		if (attrValue === null)
 			return null;
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
@@ -845,8 +851,8 @@ class DjangoForm {
 		this.formset = formset;
 		this.element = element;
 		this.path = this.name?.split('.') ?? [];
-		const fieldsetElement = element.querySelector('fieldset');
-		this.fieldset = fieldsetElement ? new DjangoFieldset(this, fieldsetElement) : null;
+		const next = element.nextSibling;
+		this.fieldset = next instanceof HTMLFieldSetElement && next.form === element ? new DjangoFieldset(this, next) : null;
 		const placeholder = element.querySelector('.dj-form-errors > .dj-errorlist > .dj-placeholder');
 		if (placeholder) {
 			this.errorList = placeholder.parentElement;
@@ -874,6 +880,10 @@ class DjangoForm {
 		return this.element.getAttribute('id');
 	}
 
+	public get provideData() : boolean {
+		return this.element.method !== 'dialog';
+	}
+
 	public getAbsPath() : Array<string> {
 		return ['formset_data', ...this.path];
 	}
@@ -893,15 +903,11 @@ class DjangoForm {
 
 	public updateOperability() {
 		this.fieldset?.updateOperability();
-		for (const fieldGroup of this.fieldGroups) {
-			fieldGroup.updateOperability();
-		}
+		this.fieldGroups.forEach(fieldGroup => fieldGroup.updateOperability());
 	}
 
 	setSubmitted() {
-		for (const fieldGroup of this.fieldGroups) {
-			fieldGroup.setSubmitted();
-		}
+		this.fieldGroups.forEach(fieldGroup => fieldGroup.setSubmitted());
 	}
 
 	validate() {
@@ -909,6 +915,8 @@ class DjangoForm {
 	}
 
 	isValid() {
+		if (this.element.noValidate)
+			return true;
 		let isValid = true;
 		for (const fieldGroup of this.fieldGroups) {
 			isValid = fieldGroup.setValidationError() && isValid;
@@ -917,10 +925,14 @@ class DjangoForm {
 	}
 
 	checkValidity() {
+		if (this.element.noValidate)
+			return true;
 		return this.element.checkValidity();
 	}
 
 	reportValidity() {
+		if (this.element.noValidate)
+			return;
 		this.element.reportValidity();
 	}
 
@@ -967,7 +979,7 @@ class DjangoForm {
 		}
 	}
 
-	findFirstErrorReport() : Element | null {
+	public findFirstErrorReport() : Element | null {
 		if (this.errorList?.textContent)
 			return this.element;  // report a non-field error
 		for (const fieldGroup of this.fieldGroups) {
@@ -1385,34 +1397,24 @@ export class DjangoFormset {
 
 	public assignFieldsToForms(parentElement?: Element) {
 		parentElement = parentElement ?? this.element;
-		for (const element of parentElement.querySelectorAll('INPUT, SELECT, TEXTAREA')) {
-			const formId = element.getAttribute('form');
-			let djangoForm: DjangoForm;
-			if (formId) {
-				const djangoForms = this.forms.filter(form => form.formId && form.formId === formId);
-				if (djangoForms.length > 1)
-					throw new Error(`More than one form has id="${formId}"`);
-				if (djangoForms.length !== 1)
-					continue;
-				djangoForm = djangoForms[0];
-			} else {
-				const formElement = element.closest('form');
-				if (!formElement)
-					continue;
-				const djangoForms = this.forms.filter(form => form.element === formElement);
-				if (djangoForms.length !== 1)
-					continue;
-				djangoForm = djangoForms[0];
-			}
-			const fieldGroupElement = element.closest('django-field-group');
+		for (const fieldElement of parentElement.querySelectorAll('INPUT, SELECT, TEXTAREA')) {
+			const formId = fieldElement.getAttribute('form');
+			if (!formId)
+				continue;
+			const djangoForms = this.forms.filter(form => form.formId && form.formId === formId);
+			if (djangoForms.length < 1)
+				continue;
+			if (djangoForms.length > 1)
+				throw new Error(`More than one form has id="${formId}"`);
+			const djangoForm = djangoForms[0];
+			const fieldGroupElement = fieldElement.closest('django-field-group');
 			if (fieldGroupElement) {
 				if (djangoForm.fieldGroups.filter(fg => fg.element === fieldGroupElement).length === 0) {
 					djangoForm.fieldGroups.push(new FieldGroup(djangoForm, fieldGroupElement as HTMLElement));
 				}
-			} else if (element.nodeName === 'INPUT' && (element as HTMLInputElement).type === 'hidden') {
-				const hiddenInputElement = element as HTMLInputElement;
-				if (!djangoForm.hiddenInputFields.includes(hiddenInputElement)) {
-					djangoForm.hiddenInputFields.push(hiddenInputElement);
+			} else if (fieldElement instanceof HTMLInputElement && fieldElement.type === 'hidden') {
+				if (!djangoForm.hiddenInputFields.includes(fieldElement)) {
+					djangoForm.hiddenInputFields.push(fieldElement);
 				}
 			}
 		}
@@ -1428,16 +1430,17 @@ export class DjangoFormset {
 	}
 
 	private checkForUniqueness() {
-		const formNames = Array<string>(0);
-		if (this.forms.length > 1) {
-			for (const form of this.forms) {
-				if (!form.name)
-					throw new Error("Multiple <form>-elements in a <django-formset> require a unique name each.");
-				if (form.name in formNames)
-					throw new Error(`Detected more than one <form name="${form.name}"> in <django-formset>.`);
-				formNames.push(form.name);
-			}
-		}
+		const forms = this.forms.filter(form => !form.element.noValidate);
+		if (forms.length === 1)
+			return;
+		const formNames = Array<string>();
+		forms.forEach(form => {
+			if (!form.name)
+				throw new Error("Multiple <form>-elements in a <django-formset> require a unique name each.");
+			if (form.name in formNames)
+				throw new Error(`Duplicate name "${form.name}" used in multiple forms of same <django-formset>.`);
+			formNames.push(form.name);
+		});
 	}
 
 	private findFormCollections() {
@@ -1483,7 +1486,9 @@ export class DjangoFormset {
 	private aggregateValues() {
 		this.data = {};
 		for (const form of this.forms) {
-			setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
+			if (form.provideData) {
+				setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
+			}
 		}
 		for (const form of this.forms) {
 			if (!form.markedForRemoval) {
@@ -1567,7 +1572,7 @@ export class DjangoFormset {
 		return Object.assign({}, body, {_extra: extraData});
 	}
 
-	async submit(extraData?: Object): Promise<Response | undefined> {
+	async submit(extraData?: Object) : Promise<Response | undefined> {
 		let formsAreValid = true;
 		this.setSubmitted();
 		if (!this.forceSubmission) {
@@ -1578,33 +1583,41 @@ export class DjangoFormset {
 		if (formsAreValid) {
 			if (!this.endpoint)
 				throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
-			const headers = new Headers();
-			headers.append('Accept', 'application/json');
-			headers.append('Content-Type', 'application/json');
-			if (this.CSRFToken) {
-				headers.append('X-CSRFToken', this.CSRFToken);
-			}
-			const response = await fetch(this.endpoint, {
-				method: 'POST',
-				headers: headers,
-				body: JSON.stringify(this.buildBody(extraData)),
-				signal: this.abortController.signal,
-			});
-			switch (response.status) {
-				case 200:
-					this.clearErrors();
-					for (const form of this.forms) {
-						form.element.dispatchEvent(new Event('submitted'));
-					}
-					return response;
-				case 422:
-					this.clearErrors();
-					const body = await response.json();
-					this.reportErrors(body);
-					return response;
-				default:
-					console.warn(`Unknown response status: ${response.status}`);
-					break;
+			try {
+				const headers = new Headers();
+				headers.append('Accept', 'application/json');
+				headers.append('Content-Type', 'application/json');
+				if (this.CSRFToken) {
+					headers.append('X-CSRFToken', this.CSRFToken);
+				}
+				const response = await fetch(this.endpoint, {
+					method: 'POST',
+					headers: headers,
+					body: JSON.stringify(this.buildBody(extraData)),
+					signal: this.abortController.signal,
+				});
+				switch (response.status) {
+					case 200:
+						this.clearErrors();
+						for (const form of this.forms) {
+							form.element.dispatchEvent(new Event('submitted'));
+						}
+						return response;
+					case 422:
+						this.clearErrors();
+						const body = await response.json();
+						this.reportErrors(body);
+						return response;
+					default:
+						console.warn(`Unknown response status: ${response.status}`);
+						this.clearErrors();
+						this.buttons.forEach(button => button.restoreToInitial());
+						break;
+				}
+			} catch (error) {
+				this.clearErrors();
+				this.buttons.forEach(button => button.restoreToInitial());
+				alert(error);
 			}
 		} else {
 			this.clearErrors();
@@ -1663,7 +1676,7 @@ export class DjangoFormset {
 		return getDataValue(this.data, absPath, null);
 	}
 
-	findFirstErrorReport() : Element | null {
+	public findFirstErrorReport() : Element | null {
 		for (const form of this.forms) {
 			const errorReportElement = form.findFirstErrorReport();
 			if (errorReportElement)

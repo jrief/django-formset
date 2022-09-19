@@ -1,7 +1,16 @@
 from django.core import checks
+from django.db.models.fields.json import JSONField
 from django.db.models.fields.related import ManyToManyField
 
-from formset.widgets import DualSortableSelector
+from formset.widgets import DualSortableSelector, RichTextArea
+
+
+class RichTextField(JSONField):
+    def formfield(self, **kwargs):
+        form_field = super().formfield(**kwargs)
+        if not isinstance(form_field.widget, RichTextArea):
+            form_field.widget = RichTextArea()
+        return form_field
 
 
 class SortableMultipleChoiceMixin:
@@ -42,7 +51,6 @@ class SortableManyToManyField(ManyToManyField):
                 )
             ]
         return []
-
 
     def value_from_object(self, obj):
         if obj.pk is None:

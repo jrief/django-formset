@@ -23,6 +23,14 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
+            name='AdvertisementModel',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('text', formset.fields.RichTextField()),
+                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
+            ],
+        ),
+        migrations.CreateModel(
             name='OpinionModel',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -38,6 +46,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('data', models.JSONField()),
+                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
             ],
         ),
         migrations.CreateModel(
@@ -51,7 +60,7 @@ class Migration(migrations.Migration):
             name='WeightedOpinion',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('weight', models.BigIntegerField(default=0, verbose_name='Weighted Opinion', db_index=True)),
+                ('weight', models.BigIntegerField(db_index=True, default=0, verbose_name='Weighted Opinion')),
                 ('opinion', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='testapp.opinionmodel')),
                 ('poll', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='testapp.pollmodel')),
             ],

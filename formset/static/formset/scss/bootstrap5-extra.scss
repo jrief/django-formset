@@ -50,6 +50,11 @@ django-formset {
 			border-bottom: $modal-header-border-width solid $modal-header-border-color;
 			border-top-left-radius: $modal-content-inner-border-radius;
 			border-top-right-radius: $modal-content-inner-border-radius;
+			.modal-title {
+				line-height: $modal-title-line-height;
+				font-weight: bolder;
+				font-size: larger;
+			}
 		}
 		.dialog-body {
 			position: relative;

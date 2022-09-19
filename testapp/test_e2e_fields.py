@@ -2,7 +2,6 @@ from collections import namedtuple
 import json
 import pytest
 
-from django import VERSION as DJANGO_VERSION
 from django.forms import fields, Form, widgets
 from django.urls import path
 
@@ -112,7 +111,7 @@ def test_touch_input_field(page, form):
     placeholder = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder')
     assert placeholder.inner_text() == ''
     name = next(iter(form.fields.keys()))
-    input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
+    input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
     input_elem.click()
     assert 'dj-touched' in field_group.get_attribute('class')
     assert 'dj-pristine' in field_group.get_attribute('class')
@@ -124,11 +123,11 @@ def test_touch_input_field(page, form):
 @pytest.mark.parametrize('viewname', views.keys())
 def test_touch_and_blur_input_field(page, view, form):
     name = next(iter(form.fields.keys()))
-    input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
+    input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
     input_elem.click()
     input_elem.evaluate('elem => elem.blur()')
-    input_elem_valid = page.query_selector(f'django-formset form input[name="{name}"]:valid')
-    input_elem_invalid = page.query_selector(f'django-formset form input[name="{name}"]:invalid')
+    input_elem_valid = page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid')
+    input_elem_invalid = page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid')
     withhold_feedback = view.view_initkwargs['extra_context']['withhold_feedback']
     placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
     if form.name in ['empty_valid', 'prefilled_valid', 'regex_valid', 'email_valid']:
@@ -159,22 +158,22 @@ def test_touch_and_blur_input_field(page, view, form):
 @pytest.mark.parametrize('viewname', views.keys())
 def test_touch_and_change_input_field(page, form):
     name = next(iter(form.fields.keys()))
-    input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
+    input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
     input_elem.click()
     page.keyboard.press('Backspace')
     input_elem.type("XYZ")
     input_elem.evaluate('elem => elem.blur()')
     assert page.query_selector('django-formset form:valid') is not None
     assert page.query_selector('django-formset form:invalid') is None
-    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is not None
-    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is not None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is None
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', views.keys())
 def test_valid_form_submission(page, mocker, view, form):
     field_name = next(iter(form.fields.keys()))
-    input_elem = page.query_selector(f'django-formset form input[name="{field_name}"]')
+    input_elem = page.query_selector(f'django-formset .dj-form input[name="{field_name}"]')
     input_elem.click()
     page.keyboard.press('Backspace')
     page.keyboard.press('Backspace')
@@ -195,7 +194,7 @@ def test_valid_form_submission(page, mocker, view, form):
 @pytest.mark.parametrize('viewname', views.keys())
 def test_reset_formset(page, view, form):
     name = next(iter(form.fields.keys()))
-    input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
+    input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
     initial_value = input_elem.evaluate('elem => elem.value')
     input_elem.click()
     page.keyboard.press('Backspace')
@@ -220,21 +219,21 @@ def test_email_field(page):
     name = 'email'
     assert page.query_selector('django-formset form:valid') is not None
     assert page.query_selector('django-formset form:invalid') is None
-    input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
+    input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
     input_elem.click()
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is not None
-    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is not None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is None
     input_elem.click()
     page.keyboard.press('Backspace')
     page.keyboard.press('Backspace')
     page.keyboard.press('Backspace')
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is None
-    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is not None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is not None
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
+    placeholder_text = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == "Enter a valid email address."
 
 
@@ -259,32 +258,32 @@ def test_integer_field(page):
     name = 'intval'
     assert page.query_selector('django-formset form:valid') is not None
     assert page.query_selector('django-formset form:invalid') is None
-    input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
+    input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
     input_elem.click()
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is not None
-    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is not None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is None
     input_elem.click()
     page.keyboard.press('Backspace')
     page.keyboard.press('Delete')
     input_elem.type("5")
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is None
-    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is not None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is not None
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
+    placeholder_text = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == "Ensure this value is less than or equal to 4."
     input_elem.click()
     page.keyboard.press('Backspace')
     page.keyboard.press('Delete')
     input_elem.type("1")
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is None
-    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is not None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is not None
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
+    placeholder_text = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == "Value too low."
 
 
@@ -305,19 +304,19 @@ def test_float_field(page):
     name = 'floatval'
     assert page.query_selector('django-formset form:valid') is not None
     assert page.query_selector('django-formset form:invalid') is None
-    input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
+    input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
     input_elem.click()
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is not None
-    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is not None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is None
     input_elem.click()
     input_elem.type(".1")
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is None
-    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is not None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is not None
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_text = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder').inner_text()
+    placeholder_text = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == "Input value must be a multiple of 0.5."
 
 
@@ -338,11 +337,11 @@ def test_date_field(page, mocker):
     name = 'dateval'
     assert page.query_selector('django-formset form:valid') is not None
     assert page.query_selector('django-formset form:invalid') is None
-    input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
+    input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
     input_elem.click()
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is not None
-    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is not None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is None
     spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
@@ -368,13 +367,13 @@ def test_boolean_field(page, mocker):
     name = 'boolval'
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    assert page.query_selector(f'django-formset form input[name="{name}"]:valid') is None
-    assert page.query_selector(f'django-formset form input[name="{name}"]:invalid') is not None
-    placeholder_field = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder')
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is None
+    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is not None
+    placeholder_field = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder')
     assert placeholder_field.inner_text() == ""
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     assert placeholder_field.inner_text() == "This field is required."
-    input_elem = page.query_selector(f'django-formset form input[name="{name}"]')
+    input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
     input_elem.click()
     assert placeholder_field.inner_text() == ""
     spy = mocker.spy(FormView, 'post')
@@ -413,9 +412,9 @@ def test_select_field(page, mocker):
     name = 'choice'
     assert page.query_selector('django-formset form:valid') is not None
     assert page.query_selector('django-formset form:invalid') is None
-    assert page.query_selector(f'django-formset form select[name="{name}"]:valid') is not None
-    assert page.query_selector(f'django-formset form select[name="{name}"]:invalid') is None
-    page.select_option(f'django-formset form select[name="{name}"]', 'c')
+    assert page.query_selector(f'django-formset .dj-form select[name="{name}"]:valid') is not None
+    assert page.query_selector(f'django-formset .dj-form select[name="{name}"]:invalid') is None
+    page.select_option(f'django-formset .dj-form select[name="{name}"]', 'c')
     spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
@@ -444,9 +443,9 @@ def test_select_field(page, mocker):
     name = 'choices'
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    assert page.query_selector(f'django-formset form select[name="{name}"]:valid') is None
-    assert page.query_selector(f'django-formset form select[name="{name}"]:invalid') is not None
-    page.select_option(f'django-formset form select[name="{name}"]', ['c', 'b'])
+    assert page.query_selector(f'django-formset .dj-form select[name="{name}"]:valid') is None
+    assert page.query_selector(f'django-formset .dj-form select[name="{name}"]:invalid') is not None
+    page.select_option(f'django-formset .dj-form select[name="{name}"]', ['c', 'b'])
     assert page.query_selector('django-formset form:valid') is not None
     assert page.query_selector('django-formset form:invalid') is None
     spy = mocker.spy(FormView, 'post')
@@ -477,11 +476,11 @@ urlpatterns.append(
 def test_radiochoice_field(page, mocker):
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_field = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder')
+    placeholder_field = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder')
     assert placeholder_field.inner_text() == ""
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     assert placeholder_field.inner_text() == "This field is required."
-    input_elem_b = page.query_selector('django-formset form input[value="b"]')
+    input_elem_b = page.query_selector('django-formset .dj-form input[value="b"]')
     input_elem_b.click(position=dict(x=6.5, y=6.5))
     assert page.query_selector('django-formset form:valid') is not None
     assert page.query_selector('django-formset form:invalid') is None
@@ -514,9 +513,9 @@ urlpatterns.append(
 def test_multichoice_field(page, mocker):
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_field = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder')
+    placeholder_field = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder')
     assert placeholder_field.inner_text() == ""
-    input_elem_a = page.query_selector('django-formset form input[value="a"]')
+    input_elem_a = page.query_selector('django-formset .dj-form input[value="a"]')
     input_elem_a.click()
     input_elem_a.click()
     assert placeholder_field.inner_text() == "At least one checkbox must be selected."
@@ -524,7 +523,7 @@ def test_multichoice_field(page, mocker):
     assert page.query_selector('django-formset form:valid') is not None
     assert page.query_selector('django-formset form:invalid') is None
     assert placeholder_field.inner_text() == ""
-    page.query_selector(f'django-formset form input[value="d"]').click()
+    page.query_selector(f'django-formset .dj-form input[value="d"]').click()
     spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
@@ -551,9 +550,9 @@ urlpatterns.append(
 def test_textarea(page, mocker):
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_field = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder')
+    placeholder_field = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder')
     assert placeholder_field.inner_text() == ""
-    textarea_elem = page.query_selector('django-formset form textarea')
+    textarea_elem = page.query_selector('django-formset .dj-form textarea')
     textarea_elem.click()
     textarea_elem.evaluate('elem => elem.blur()')
     assert placeholder_field.inner_text() == "This field is required."

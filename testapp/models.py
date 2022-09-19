@@ -1,11 +1,17 @@
 from django.conf import settings
 from django.db import models
 
-from formset.fields import SortableManyToManyField
+from formset.fields import RichTextField, SortableManyToManyField
 
 
 class PayloadModel(models.Model):
     data = models.JSONField()
+
+    created_by = models.CharField(
+        editable=False,
+        max_length=40,
+        db_index=True,
+    )
 
 
 class OpinionModel(models.Model):
@@ -157,4 +163,14 @@ class UserContact(models.Model):
         max_length=25,
         blank=True,
         null=True,
+    )
+
+
+class AdvertisementModel(models.Model):
+    text = RichTextField()
+
+    created_by = models.CharField(
+        editable=False,
+        max_length=40,
+        db_index=True,
     )
