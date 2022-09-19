@@ -7,7 +7,7 @@ Creating Forms from Models
 Just as in Django, forms can be created from models and rendered by **django-formset**.  
 
 Say, we use the same model as described in the Django documentation, ie. ``myapp.models.Article``,
-then we use that model to create a form class, for example:
+and then we use that model to create a form class, for example:
 
 .. code-block:: python
 
@@ -53,8 +53,8 @@ In case we want to map a model field of type ``django.db.models.FileField`` or
 uploading.
 
 
-Detail View for ModelForm
-=========================
+Detail View for ``ModelForm``
+=============================
 
 In a CRUD_ application, we usually add a Django View to add, update and delete an instance of our
 model. The Django documentation proposes to `create one view for each of these tasks`_, a
