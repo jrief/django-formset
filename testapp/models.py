@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 from formset.fields import SortableManyToManyField
@@ -127,3 +128,43 @@ class WeightedOpinion(models.Model):
 
     def __repr__(self):
         return f'<{self.__class__.__name__}: [{self.weight}] "{self.opinion.label}">'
+
+
+class ExtendUser(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='extend_user',
+    )
+
+    phone_number = models.CharField(
+        verbose_name="Phone Number",
+        max_length=25,
+        blank=True,
+        null=True,
+    )
+
+
+class UserContact(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='contacts',
+    )
+
+    phone_number = models.CharField(
+        verbose_name="Phone Number",
+        max_length=25,
+        blank=True,
+        null=True,
+    )
+
+
+class AdvertisementModel(models.Model):
+    text = RichTextField()
+
+    created_by = models.CharField(
+        editable=False,
+        max_length=40,
+        db_index=True,
+    )

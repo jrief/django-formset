@@ -3,6 +3,7 @@ import itertools
 import json
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.renderers import get_default_renderer
@@ -22,7 +23,7 @@ from docutils.parsers.rst import Parser
 from docutils.writers import get_writer_class
 
 from formset.utils import FormMixin
-from formset.views import FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormViewMixin
+from formset.views import FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormViewMixin, EditCollectionView
 
 from testapp.forms.address import AddressForm
 from testapp.forms.complete import CompleteForm
@@ -33,6 +34,7 @@ from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
 from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.questionnaire import QuestionnaireForm
+from testapp.forms.user import UserCollection, UserListCollection
 from testapp.forms.upload import UploadForm
 from testapp.models import PersonModel, PollModel
 
@@ -79,7 +81,7 @@ class SuccessView(TemplateView):
         return context
 
 
-class DemoViewMixin(IncompleteSelectResponseMixin, FileUploadMixin):
+class DemoViewMixin:
     def get_success_url(self):
         return reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
 
@@ -101,7 +103,7 @@ class DemoViewMixin(IncompleteSelectResponseMixin, FileUploadMixin):
         context_data = super().get_context_data(**kwargs)
         if self.framework != 'default':
             context_data.update(framework=self.framework)
-        holder_class = self.collection_class if isinstance(self, FormCollectionView) else self.form_class
+        holder_class = self.collection_class if isinstance(self, (EditCollectionView, FormCollectionView)) else self.form_class
         context_data.update(
             leaf_name=holder_class.__name__,
             **self.get_css_classes(),
@@ -128,7 +130,7 @@ class DemoViewMixin(IncompleteSelectResponseMixin, FileUploadMixin):
         pass
 
 
-class DemoFormViewMixin(DemoViewMixin, FormViewMixin):
+class DemoFormViewMixin(DemoViewMixin, IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin):
     template_name = 'testapp/native-form.html'
     extra_doc = None
 
@@ -174,7 +176,7 @@ class DemoModelFormView(DemoFormViewMixin, UpdateView):
         return response
 
 
-class DemoFormCollectionView(DemoViewMixin, FormCollectionView):
+class DemoFormCollectionViewMixin(DemoViewMixin):
     template_name = 'testapp/form-collection.html'
     extra_doc = None
 
@@ -211,6 +213,19 @@ class DemoFormCollectionView(DemoViewMixin, FormCollectionView):
             form_collection.cleaned_data, cls=JSONEncoder, indent=2, ensure_ascii=False
         )
         return super().form_collection_valid(form_collection)
+
+
+class DemoFormCollectionView(DemoFormCollectionViewMixin, FormCollectionView):
+    pass
+
+
+class UserCollectionView(DemoFormCollectionViewMixin, EditCollectionView):
+    model = get_user_model()
+    template_name = 'testapp/form-collection.html'
+
+    def get_object(self, queryset=None):
+        user, _ = self.model.objects.get_or_create(username='demo')
+        return user
 
 
 demo_css_classes = {
@@ -434,6 +449,12 @@ urlpatterns = [
     path('pollcollection', DemoFormCollectionView.as_view(
         collection_class=PollCollection,
     ), kwargs={'group': 'collection', 'index': 18}, name='poll'),
+    path('user', UserCollectionView.as_view(
+        collection_class=UserCollection
+    ), kwargs={'group': 'model', 'index': 19}, name='user'),
+    path('userlist', UserCollectionView.as_view(
+        collection_class=UserListCollection
+    ), kwargs={'group': 'model', 'index': 19}, name='userlist'),
     path('button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',
