@@ -12,7 +12,7 @@ select.ts-hidden-accessible {
 django-formset {
 	$feedback-input-fields: 'input[type=email]:not(.dj-exempt-feedback)', 'input[type=text]:not(.dj-exempt-feedback)',
 		'input[type=number]:not(.dj-exempt-feedback)', 'input[type=date]:not(.dj-exempt-feedback)',
-		'input[type=url]:not(.dj-exempt-feedback)';
+		'input[type=url]:not(.dj-exempt-feedback)', 'input[type=password]:not(.dj-exempt-feedback)';
 	$feedback-fields: #{$feedback-input-fields}, 'select:not(.dj-exempt-feedback)', 'textarea:not(.dj-exempt-feedback)';
 
 	.dj-errorlist {
