@@ -1,6 +1,6 @@
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
-import isEqual from 'lodash.isEqual';
+import isEqual from 'lodash.isequal';
 import template from 'lodash.template';
 import Sortable, { SortableEvent } from 'sortablejs';
 import { FileUploadWidget } from './FileUploadWidget';
