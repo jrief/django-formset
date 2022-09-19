@@ -22,6 +22,7 @@ Django ``Form``-s.
 	fieldsets
 	collections
 	model-form
+	model-collections
 	renderers
 	conditionals
 	uploading

@@ -160,6 +160,8 @@ form collections have siblings. We then can rewrite our collection as:
 .. code-block:: python
 
 	class ExtendUserForm(ModelForm):
+	    id = IntegerField(required=False, widget=HiddenInput)
+
 	    class Meta:
 	        model = ExtendUser
 	        fields = ['phone_number']
@@ -169,10 +171,24 @@ form collections have siblings. We then can rewrite our collection as:
 	    extend = ExtendUserForm()
 
 	    def model_to_dict(self, user):
-	        # to be implemented
-
-	    def construct_instance(self, main_object, data):
-	        # to be implemented
+	        opts = self.declared_holders['contact']._meta
+	        return [{'contact': model_to_dict(contact, fields=opts.fields)}
+	                for contact in user.contacts.all()]
+	
+	    def construct_instance(self, user, data):
+	        for data in data:
+	            try:
+	                contact_object = user.contacts.get(id=data['contact']['id'])
+	            except (KeyError, UserContact.DoesNotExist):
+	                contact_object = UserContact(user=user)
+	            form_class = self.declared_holders['contact'].__class__
+	            form = form_class(data=data['contact'], instance=contact_object)
+	            if form.is_valid():
+	                if form.marked_for_removal:
+	                    contact_object.delete()
+	                else:
+	                    construct_instance(form, contact_object)
+	                    form.save()
 
 	class UserCollection(FormCollection):
 	    user = UserForm()
@@ -183,6 +199,13 @@ ourselves. Since the collection class ``ExtendCollection`` is declared to allow 
 children forms are rendered as many times as objects of type ``ExtendUser`` point onto the main
 object, in short the ``User`` object.
 
+Here method ``model_to_dict`` instantiates a list. This list is a serialized representation of all
+objects of type ``ExtendUser`` referring to the ``User`` (main) object.
+
+After a submitted form has been validated, we start constructing as many models of type
+``ExtendUser``, as the collections provides. Since we must link each form to its associated
+object, each sub-form contains the primary key of that object as hidden field. Forms which have
+been deleted by the user are marked for removal and will be removed from the main object.
 
 
 .. _[#1]: In technical terms, a one-to-one relation *is a* foreign key with an additional unique
