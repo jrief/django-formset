@@ -23,14 +23,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='AdvertisementModel',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', formset.fields.RichTextField()),
-                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
-            ],
-        ),
-        migrations.CreateModel(
             name='OpinionModel',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),

@@ -158,13 +158,3 @@ class UserContact(models.Model):
         blank=True,
         null=True,
     )
-
-
-class AdvertisementModel(models.Model):
-    text = RichTextField()
-
-    created_by = models.CharField(
-        editable=False,
-        max_length=40,
-        db_index=True,
-    )
