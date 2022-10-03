@@ -173,12 +173,13 @@ tags to each field containg the constraint information as declared in Python.
 
 The form or the collections of forms then is wrapped by the provided
 [webcomponent](https://developer.mozilla.org/en-US/docs/Web/Web_Components) `<django-formset>`.
-The JavaScript (actually TypeScript) making up that webcomponent then handles the form validation,
-its submission, instantiation or removal of collection siblings, etc.
+The JavaScript part (actually TypeScript) making up that webcomponent then handles the form
+validation, its submission, instantiation or removal of collection siblings, etc.
 
-Some widgets described above also require JavaScript. The client side functionality then also is
-handled by that webcomponent. Widgets which require autocompletion use the same endpoint as that 
-webcomponent istself. So there is no need to add extra endpoints to the URL router.
+Some of the widgets described above (select with autocomplete, file upload) also require JavaScript
+code. The client side functionality of those widgets is also is handled by that webcomponent.
+Widgets which require autocompletion use the same endpoint as that webcomponent itself. So there is
+no need to add extra endpoints to the URL router.
 
 This finally means, that an enduser must _only_ import this single JavaScript file and wrap its
 single form or collection of forms into a single HTML element such as
@@ -211,13 +212,14 @@ A [demo](https://django-formset.fly.dev/) showing all combinations of fields.
 ## Motivation
 
 Instead of using a `<form>`-tag and include all its fields, here we wrap the complete form inside
-the special webcomponent `<django-formset>`. This allows the client to communicate through a
-XMLHttpRequest with the given Django view, using the named endpoint. This means, that multiple
-`<form>`-elements can be wrapped into a formset. It also means, that the submit `<button>` can
-be placed outside of the `<form>`-element. By doing so, the form's payload can be sent using
-`Content-Type: application/json` instead of the usual
+the special webcomponent `<django-formset>`. It allows the client to communicate with the Django
+view (we name this "endpoint") using the
+[fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch).
+This means, that multiple `<form>`-elements can be wrapped into a formset. It also means, that the
+submit `<button>` can be placed outside of the `<form>`-element. By doing so, the form's payload
+is sent using `Content-Type: application/json` instead of the usual
 `Content-Type: application/x-www-form-urlencoded`. By using JSON for the payload, the form data is
-mapped into JavaScript objects and form collections can be nested into each other.
+mapped into JavaScript objects and collections of forms are represented by nested data structures.
 
 **When designing this library, the main goal was to keep the programming interface a near as
 possible to the way Django handles forms, models and views.**

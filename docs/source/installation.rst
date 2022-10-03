@@ -75,7 +75,7 @@ template:
 
 Many components from Bootstrap require their own JavaScript. This can optionally be included in a
 very similar way as shown for the CSS above. One JavaScript file which always must be included is
-that one, providing the functionality of our web component:
+that one, providing the functionality of our webcomponent:
 
 .. code-block:: django
 

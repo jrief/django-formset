@@ -157,7 +157,7 @@ create new custom, reusable, encapsulated HTML tags to use in web pages and web 
 components and widgets build on the Web Component standards, will work across modern browsers, and
 can be used with any JavaScript library or framework that works with HTML.
 
-Web components are based on existing web standards. Features to support web components are currently
+Webcomponents are based on existing web standards. Features to support webcomponents are currently
 being added to the HTML and DOM specs, letting web developers easily extend HTML with new elements
 with encapsulated styling and custom behavior.
 

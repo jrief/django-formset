@@ -44,7 +44,7 @@ between validated and invalid forms.
 
 .. _Unprocessable Entity: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422
 
-For invalid forms, the client's JavaScript code handling the web component, then fills the
+For invalid forms, the client's JavaScript code handling the webcomponent, then fills the
 placeholders near the offending input fields with those error messages. It also puts the HTML form
 element into an invalid state, so that it can not be re-submitted before editing.
 The response on validated forms can be used to update the database or do other processing before
@@ -97,7 +97,7 @@ our form. When rendered, the above form will roughly turn into HTML such as:
 
 Compared to the way the native Django form renderer works, we see a few differences here: The most
 ovious one is, that each input field is wrapped into a ``<django-field-group>``. Event tough this
-tag may look like another web component, it just is a non-visual HTML element. Its purpose is to
+tag may look like another webcomponent, it just is a non-visual HTML element. Its purpose is to
 group one or more input elements belonging to one field together. Remember that in HTML radios and
 multiple checkboxes have more than one input element, but in Django they are considered as a single
 form field.
@@ -150,9 +150,9 @@ The template required to render such a form then shall look like:
 
 Let's discuss these lines of HTML code step by step:
 
-Since the JavaScript implementing web component ``<django-formset>`` communicates via Ajax with the
+Since the JavaScript implementing webcomponent ``<django-formset>`` communicates via Ajax with the
 server, having a hidden field containing the CSRF-token doesn't make sense. Instead we pass that
-token value as attribute to the web component ``<django-formset>``. Since that value is available in
+token value as attribute to the webcomponent ``<django-formset>``. Since that value is available in
 the rendering context, we always add it as ``<django-formset csrf-token="{{ csrf_token }}">``.
 
 Having setup the form's template this way, allows us to render the form instance as a string. This

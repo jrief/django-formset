@@ -4,11 +4,11 @@
 Webcomponent ``<django-formset>``
 =================================
 
-When a form is rendered using a Django template, we must wrap it inside the web component
+When a form is rendered using a Django template, we must wrap it inside the webcomponent
 ``<django-formset>``. This component then takes care of the client-part, such as the form
 validation, submission, error handling and many other features.
 
-A mandatory attribute of each web component ``<django-formset>`` is its ``endpoint``. This is the
+A mandatory attribute of each webcomponent ``<django-formset>`` is its ``endpoint``. This is the
 URL pointing onto a Django view and this is how the client-part communicates with the server.
 Typically that endpoint is connected to a view inheriting from :class:`formset.views.FormView`. We
 can either inherit from that class, specialize into our own view class and register it in the URL
@@ -57,7 +57,7 @@ We can do this, because the endpoint is located on the same URL as the view rend
 	  ...
 	</django-formset>
 
-An optional attribute to this web component is ``force-submission``. By adding this attribute, we can
+An optional attribute to this webcomponent is ``force-submission``. By adding this attribute, we can
 force a submission to the server, even if the form did not validate on the client side. The default
 is to always validate all form fields on the client, and only if all of them validate, proceed with
 the submission to the server.
@@ -71,7 +71,7 @@ the submission to the server.
 	  ...
 	</django-formset>
 
-An optional attribute to this web component is ``withhold-feedback``. By setting this to
+An optional attribute to this webcomponent is ``withhold-feedback``. By setting this to
 ``messages``, ``errors``, ``warnings``, ``success``, or any combination of thereof, we can withhold
 the feedback immediately shown after the user types into a field or whenever a field looses focus.
 When combining two or more of those values, separate them by spaces.

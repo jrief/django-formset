@@ -59,7 +59,7 @@ We use this kind of collection, if we just want to group two or more forms toget
 
 Collections must be rendered using the special View class :class:`formset.views.FormCollectionView`:
 The template used to render our Form Collection must ensure that the CSRF-token is set; this is
-done by passing that CSRF token value as attribute to the web component ``<django-formset>``.
+done by passing that CSRF token value as attribute to the webcomponent ``<django-formset>``.
 Otherwise this View just behaves like an ordinary Form View embedded in a **django-formset**.
 
 .. code-block:: django
