@@ -12,6 +12,12 @@
 		right: 0;
 		padding: 0.125rem 0.25rem;
 
+		[role="separator"] {
+			display: inline-block;
+			padding: 0.25rem 0;
+			vertical-align: middle;
+		}
+
 		button {
 			display: inline-block;
 			text-align: center;

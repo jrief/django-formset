@@ -11,11 +11,13 @@ django-form-collection {
 	}
 
 	&[sibling-position] {
+
 		> .remove-collection {
 			position: absolute;
 			top: 0.5rem;
 			right: 0.5rem;
 			visibility: hidden;
+
 			> svg {
 				width: 1rem;
 				height: 1rem;
