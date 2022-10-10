@@ -2,7 +2,7 @@ import template from 'lodash.template';
 
 
 export class FileUploadWidget {
-	private readonly field: FieldGroup;
+	private readonly fieldGroup: FieldGroup;
 	private readonly inputElement: HTMLInputElement;
 	private readonly dropbox: HTMLElement;
 	private readonly chooseFileButton: HTMLButtonElement;
@@ -14,18 +14,18 @@ export class FileUploadWidget {
 	public uploadedFiles: Array<Object>;
 
 	constructor(fieldGroup: FieldGroup, inputElement: HTMLInputElement) {
-		this.field = fieldGroup;
+		this.fieldGroup = fieldGroup;
 		this.inputElement = inputElement;
 
-		this.dropbox = this.field.element.querySelector('figure.dj-dropbox') as HTMLElement;
+		this.dropbox = this.fieldGroup.element.querySelector('figure.dj-dropbox') as HTMLElement;
 		if (!this.dropbox)
 			throw new Error('Element <input type="file"> requires sibling element <figure class="dj-dropbox"></figure>');
 
-		this.chooseFileButton = this.field.element.querySelector('button.dj-choose-file') as HTMLButtonElement;
+		this.chooseFileButton = this.fieldGroup.element.querySelector('button.dj-choose-file') as HTMLButtonElement;
 		if (!this.chooseFileButton)
 			throw new Error('Element <input type="file"> requires sibling element <button class="dj-choose-file"></button>');
 
-		this.progressBar = this.field.element.querySelector('progress') as HTMLProgressElement;
+		this.progressBar = this.fieldGroup.element.querySelector('progress') as HTMLProgressElement;
 		if (this.progressBar) {
 			this.progressBar.style.visibility = 'hidden';
 		}
@@ -34,7 +34,7 @@ export class FileUploadWidget {
 		if (!this.emptyDropboxItem)
 			throw new Error('Element <input type="file"> requires sibling element <figure><div class="dj-empty-item"></div></figure>');
 
-		const dropboxItemTemplate = this.field.element.querySelector('.dj-dropbox-items');
+		const dropboxItemTemplate = this.fieldGroup.element.querySelector('.dj-dropbox-items');
 		if (!dropboxItemTemplate)
 			throw new Error('Element <input type="file"> requires sibling element <template class="dj-dropbox-items"></template>');
 		this.dropboxItemTemplate = template(dropboxItemTemplate.innerHTML);
@@ -53,23 +53,27 @@ export class FileUploadWidget {
 		this.dropbox.addEventListener('dragenter', this.swallowEvent);
 		this.dropbox.addEventListener('dragover', this.swallowEvent);
 		this.dropbox.addEventListener('drop', this.fileDrop);
-		this.chooseFileButton.addEventListener('click', () => inputElement.click());
+		this.chooseFileButton.addEventListener('click', () => {
+			inputElement.click();
+		});
 		inputElement.addEventListener('change', () => this.uploadFiles(this.inputElement.files).then(() => {
-			this.field.inputted();
-			this.field.validate();
+			this.fieldGroup.inputted();
+			this.fieldGroup.validate();
 		}).catch(() => {
-			this.field.reportFailedUpload();
-		}).finally(() => this.field.touch()));
+			this.fieldGroup.reportFailedUpload();
+		}).finally(() => {
+			this.fieldGroup.touch();
+		}));
 	}
 
 	private fileDrop = (event: DragEvent) => {
 		this.swallowEvent(event);
 		if (event.dataTransfer) {
-			this.field.touch();
+			this.fieldGroup.touch();
 			this.inputElement.files = event.dataTransfer.files;
 			this.uploadFiles(this.inputElement.files).then(() => {
-				this.field.inputted();
-				this.field.validate();
+				this.fieldGroup.inputted();
+				this.fieldGroup.validate();
 			});
 		}
 	}
@@ -81,9 +85,9 @@ export class FileUploadWidget {
 			this.dropbox.removeChild(this.dropbox.firstChild);
 		}
 		this.dropbox.appendChild(this.emptyDropboxItem);
-		this.field.touch();
-		this.field.inputted();
-		this.field.validate();
+		this.fieldGroup.touch();
+		this.fieldGroup.inputted();
+		this.fieldGroup.validate();
 	}
 
 	private swallowEvent = (event: Event) => {
@@ -101,7 +105,7 @@ export class FileUploadWidget {
 				this.uploadFile(file, this.dropbox.clientHeight).then(response => {
 					this.uploadedFiles = [response];
 					this.renderDropbox();
-					this.field.inputted();
+					this.fieldGroup.inputted();
 					resolve();
 				}).catch(() => {
 					reject();
@@ -147,8 +151,8 @@ export class FileUploadWidget {
 				request.upload.addEventListener('progress', updateProgress, false);
 			}
 			request.addEventListener('loadend', transferComplete);
-			request.open('POST', this.field.form.formset.endpoint, true);
-			const csrfToken = this.field.form.formset.CSRFToken;
+			request.open('POST', this.fieldGroup.form.formset.endpoint, true);
+			const csrfToken = this.fieldGroup.form.formset.CSRFToken;
 			if (csrfToken) {
 				request.setRequestHeader('X-CSRFToken', csrfToken);
 			}
