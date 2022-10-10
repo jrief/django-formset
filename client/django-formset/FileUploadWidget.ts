@@ -62,6 +62,7 @@ export class FileUploadWidget {
 		}).catch(() => {
 			this.fieldGroup.reportFailedUpload();
 		}).finally(() => {
+			this.chooseFileButton.blur();
 			this.fieldGroup.touch();
 		}));
 	}
