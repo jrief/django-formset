@@ -3,6 +3,7 @@ from formset.renderers.default import FormRenderer as DefaultFormRenderer
 
 class FormRenderer(DefaultFormRenderer):
     max_options_per_line = 4
+    framework = 'foundation'
 
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
         'django/forms/default.html': 'formset/foundation/form.html',
