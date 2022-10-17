@@ -342,7 +342,7 @@ class FieldGroup {
 
 	private validateInput(inputElement: HTMLInputElement) {
 		// By default, HTML input fields do not validate their bound value regarding their
-		// min- and max-length. Therefore this validation must be performed by the client.
+		// min- and max-length. Therefore, this validation must be performed by the client.
 		if (inputElement.type === 'text' && inputElement.value) {
 			if (inputElement.minLength > 0 && inputElement.value.length < inputElement.minLength) {
 				if (this.errorPlaceholder) {
@@ -916,7 +916,7 @@ class DjangoForm {
 	}
 
 	isValid() {
-		if (this.element.noValidate)
+		if (this.element.noValidate || !this.provideData)
 			return true;
 		let isValid = true;
 		for (const fieldGroup of this.fieldGroups) {
@@ -926,13 +926,13 @@ class DjangoForm {
 	}
 
 	checkValidity() {
-		if (this.element.noValidate)
+		if (this.element.noValidate || !this.provideData)
 			return true;
 		return this.element.checkValidity();
 	}
 
 	reportValidity() {
-		if (this.element.noValidate)
+		if (this.element.noValidate || !this.provideData)
 			return;
 		this.element.reportValidity();
 	}
@@ -1434,7 +1434,7 @@ export class DjangoFormset {
 	}
 
 	private checkForUniqueness() {
-		const forms = this.forms.filter(form => !form.element.noValidate);
+		const forms = this.forms.filter(form => form.provideData);
 		if (forms.length === 1)
 			return;
 		const formNames = Array<string>();
