@@ -858,6 +858,7 @@ class DjangoForm {
 			this.errorList = placeholder.parentElement;
 			this.errorPlaceholder = this.errorList!.removeChild(placeholder);
 		}
+		this.element.addEventListener('reset', this.resetted);
 	}
 
 	aggregateValues(): Map<string, FieldValue> {
@@ -944,6 +945,9 @@ class DjangoForm {
 
 	resetToInitial() {
 		this.element.reset();
+	}
+
+	private resetted = () => {
 		for (const fieldGroup of this.fieldGroups) {
 			fieldGroup.resetToInitial();
 		}
