@@ -8,7 +8,9 @@ build({
   entryPoints: ['client/django-formset.ts'],
   bundle: true,
   minify: false,
-  outfile: 'formset/static/formset/js/django-formset.js',
+  outdir: 'formset/static/formset/js/',
+  splitting: true,
+  format: 'esm',
   plugins: [
     // Run inline style imports through Sass
     inlineImportPlugin({
