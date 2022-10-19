@@ -11,8 +11,8 @@ from django.core.files.storage import default_storage
 from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
-from django.forms.widgets import FileInput, Select, SelectMultiple, Textarea
 from django.utils.safestring import mark_safe
+from django.forms.widgets import FileInput, Select, SelectMultiple, TextInput
 from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import now, datetime, utc
 
@@ -142,6 +142,16 @@ class DualSortableSelector(DualSelector):
         context = super().get_context(name, value, attrs)
         context['is_sortable'] = True
         return context
+
+
+class SlugInput(TextInput):
+    def __init__(self, populate_from, attrs=None):
+        super().__init__(attrs)
+        self.attrs.update({
+            'is': 'django-slug',
+            'pattern': '^[-a-zA-Z0-9_]+$',
+            'populate-from': populate_from,
+        })
 
 
 class UploadedFileInput(FileInput):

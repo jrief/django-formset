@@ -169,7 +169,7 @@ class BoundField(boundfield.BoundField):
             for validator in self.field.validators:
                 validator_code = getattr(validator, 'code', None)
                 if validator_code == 'invalid':
-                    client_messages['type_mismatch'] = validator.message
+                    client_messages['type_mismatch'] = client_messages['pattern_mismatch'] = validator.message
         if getattr(self.field, 'max_length', None) is not None:
             data = {'max_length': self.field.max_length}
             max_length_message = _("Ensure this value has at most %(max_length)s characters.")

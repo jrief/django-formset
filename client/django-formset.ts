@@ -32,6 +32,13 @@ window.addEventListener('load', (event) => {
 		});
 		promises.push(promise);
 	}
+	if (document.querySelector('input[is="django-slug"]')) {
+		const promise = import('./django-formset/DjangoSlug');
+		promise.then(({DjangoSlugElement}) => {
+			window.customElements.define('django-slug', DjangoSlugElement, {extends: 'input'});
+		});
+		promises.push(promise);
+	}
 	Promise.all(promises).then(() => {
 		window.customElements.define('django-formset', DjangoFormsetElement);
 		pseudoStylesElement.remove();

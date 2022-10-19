@@ -27,6 +27,7 @@ from formset.views import FileUploadMixin, IncompleteSelectResponseMixin, FormCo
 
 from testapp.forms.address import AddressForm
 from testapp.forms.advertisement import AdvertisementForm
+from testapp.forms.article import ArticleForm
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import (SimpleContactCollection, ContactCollection, ContactCollectionList,
     IntermediateContactCollectionList, SortableContactCollection, SortableContactCollectionList)
@@ -411,6 +412,9 @@ urlpatterns = [
     path('address', DemoFormView.as_view(
         form_class=AddressForm,
     ), kwargs={'group': 'form', 'index': 5}, name='address'),
+    path('article', DemoFormView.as_view(
+        form_class=ArticleForm,
+    ), kwargs={'group': 'form', 'index': 5}, name='article'),
     path('opinion', DemoFormView.as_view(
         form_class=OpinionForm,
     ), kwargs={'group': 'form', 'index': 6}, name='opinion'),
