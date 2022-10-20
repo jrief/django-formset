@@ -3,8 +3,8 @@ from django.forms import fields, forms
 
 class AddressForm(forms.Form):
     """
-    Address Form
-    ------------
+    Grouping fields using CSS
+    -------------------------
 
     Sometimes it is desirable to align certain input fields in the same row. To achieve this, the Bootstrap
     framework offers special CSS classes, in order to style the input groups into columns of different size.
