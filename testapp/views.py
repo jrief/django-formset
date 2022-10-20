@@ -23,13 +23,16 @@ from docutils.parsers.rst import Parser
 from docutils.writers import get_writer_class
 
 from formset.utils import FormMixin
-from formset.views import FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormViewMixin, EditCollectionView
+from formset.views import (
+    FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormViewMixin, EditCollectionView)
 
 from testapp.forms.address import AddressForm
-from testapp.forms.advertisement import AdvertisementForm
+from testapp.forms.advertisement import AdvertisementForm, AdvertisementModelForm
+from testapp.forms.article import ArticleForm
 from testapp.forms.complete import CompleteForm
-from testapp.forms.contact import (SimpleContactCollection, ContactCollection, ContactCollectionList,
-    IntermediateContactCollectionList, SortableContactCollection, SortableContactCollectionList)
+from testapp.forms.contact import (
+    SimpleContactCollection, ContactCollection, ContactCollectionList, IntermediateContactCollectionList,
+    SortableContactCollection, SortableContactCollectionList)
 from testapp.forms.customer import CustomerCollection
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
@@ -411,6 +414,9 @@ urlpatterns = [
     path('address', DemoFormView.as_view(
         form_class=AddressForm,
     ), kwargs={'group': 'form', 'index': 5}, name='address'),
+    path('article', DemoFormView.as_view(
+        form_class=ArticleForm,
+    ), kwargs={'group': 'form', 'index': 5}, name='article'),
     path('opinion', DemoFormView.as_view(
         form_class=OpinionForm,
     ), kwargs={'group': 'form', 'index': 6}, name='opinion'),
@@ -460,10 +466,13 @@ urlpatterns = [
     path('userlist', UserCollectionView.as_view(
         collection_class=UserListCollection
     ), kwargs={'group': 'model', 'index': 19}, name='userlist'),
-    path('advertisement', DemoModelFormView.as_view(
-        form_class=AdvertisementForm,
+    path('advertisementmodel', DemoModelFormView.as_view(
+        form_class=AdvertisementModelForm,
         model=AdvertisementModel,
-    ), kwargs={'group': 'model', 'index': 19}, name='richtext'),
+    ), kwargs={'group': 'model', 'index': 19}, name='advertisementmodel'),
+    path('advertisementform', DemoFormView.as_view(
+        form_class=AdvertisementForm,
+    ), kwargs={'group': 'model', 'index': 19}, name='advertisementform'),
     path('button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',

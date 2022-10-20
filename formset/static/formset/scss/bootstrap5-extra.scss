@@ -34,6 +34,14 @@ django-formset {
 		width: 1.2em;
 	}
 
+	.dj-richtext-wrapper {
+		[role="menubar"] {
+			.dropdown-menu {
+				min-width: initial;
+			}
+		}
+	}
+
 	dialog {
 		padding: 0;
 		word-wrap: break-word;

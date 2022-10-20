@@ -1,3 +1,4 @@
+@use "sass:list";
 @import "dropbox";
 @import "dualselector";
 @import "colors";
@@ -10,10 +11,17 @@ select.ts-hidden-accessible {
 }
 
 django-formset {
-	$feedback-input-fields: 'input[type=email]:not(.dj-exempt-feedback)', 'input[type=text]:not(.dj-exempt-feedback)',
-		'input[type=number]:not(.dj-exempt-feedback)', 'input[type=date]:not(.dj-exempt-feedback)',
-		'input[type=url]:not(.dj-exempt-feedback)', 'input[type=password]:not(.dj-exempt-feedback)';
-	$feedback-fields: #{$feedback-input-fields}, 'select:not(.dj-exempt-feedback)', 'textarea:not(.dj-exempt-feedback)';
+	--django-formset-color-invalid: #{$django-formset-color-invalid};
+	--django-formset-shadow-invalid: #{$django-formset-shadow-invalid};
+	--django-formset-color-valid: #{$django-formset-color-valid};
+	--django-formset-icon-invalid: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 16" fill="#{$django-formset-color-invalid}"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/></svg>');
+	--django-formset-icon-warning: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 16" fill="#{$django-formset-color-warning}"><path fill-rule="evenodd" d="M7.938 2.016a.146.146 0 0 0-.054.057L1.027 13.74a.176.176 0 0 0-.002.183c.016.03.037.05.054.06.015.01.034.017.066.017h13.713a.12.12 0 0 0 .066-.017.163.163 0 0 0 .055-.06.176.176 0 0 0-.003-.183L8.12 2.073a.146.146 0 0 0-.054-.057A.13.13 0 0 0 8.002 2a.13.13 0 0 0-.064.016zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/><path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/></svg>');
+	--django-formset-icon-valid: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 16" fill="#{$django-formset-color-valid}"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg>');
+
+	$feedback-input-fields: 'input[type=email]', 'input[type=text]', 'input[type=number]', 'input[type=date]',
+		'input[type=url]', 'input[type=password]';
+	$feedback-fields: list.join($feedback-input-fields, (select, textarea));
+	$has-feedback: ':not(.dj-exempt-feedback)';
 
 	.dj-errorlist {
 		list-style: none;
@@ -25,8 +33,8 @@ django-formset {
 	}
 
 	&.dj-feedback-errors django-field-group.dj-touched:not(.dj-submitted) {
-		#{$feedback-fields} {
-			&:invalid:not(:focus) {
+		@each $field in $feedback-fields {
+			> #{$field}#{$has-feedback}:invalid:not(:focus) {
 				border-color: var(--django-formset-color-invalid);
 				background-image: var(--django-formset-icon-invalid);
 			}
@@ -35,16 +43,16 @@ django-formset {
 
 	&.dj-feedback-warnings {
 		django-field-group.dj-dirty:not(.dj-submitted) {
-			#{$feedback-fields} {
-				&:invalid:focus {
+			@each $field in $feedback-fields {
+				> #{$field}#{$has-feedback}:invalid:focus {
 					background-image: var(--django-formset-icon-warning);
 				}
 			}
 		}
 		&:not(.dj-feedback-errors) {
 			django-field-group.dj-dirty:not(.dj-submitted) {
-				#{$feedback-fields} {
-					&:invalid {
+				@each $field in $feedback-fields {
+					> #{$field}#{$has-feedback}:invalid {
 						background-image: var(--django-formset-icon-warning);
 					}
 				}
@@ -52,17 +60,15 @@ django-formset {
 		}
 	}
 
-	&.dj-feedback-success django-field-group {
-		&.dj-dirty {
-			#{$feedback-fields} {
-				&:valid:not(:focus) {
-					border-color: var(--django-formset-color-valid);
-				}
+	&.dj-feedback-success django-field-group.dj-dirty {
+		@each $field in $feedback-fields {
+			> #{$field}#{$has-feedback}:valid:not(:focus) {
+				border-color: var(--django-formset-color-valid);
 			}
-			#{$feedback-input-fields} {
-				&:valid {
-					background-image: var(--django-formset-icon-valid) !important;
-				}
+		}
+		@each $field in $feedback-input-fields {
+			> #{$field}#{$has-feedback}:valid {
+				background-image: var(--django-formset-icon-valid) !important;
 			}
 		}
 	}
@@ -73,9 +79,28 @@ django-formset {
 		&[hidden] {
 			display: none;
 		}
+
 		&.dj-required, &.dj-required-any {
 			> label {
 				font-weight: bolder;
+			}
+		}
+
+		&.dj-submitted {
+			@each $field in $feedback-fields {
+				> #{$field}#{$has-feedback}:invalid {
+					border-color: var(--django-formset-color-invalid);
+					background-image: var(--django-formset-icon-invalid);
+					&:focus {
+						box-shadow: 0 0 0 0.2rem var(--django-formset-shadow-invalid);
+					}
+				}
+			}
+		}
+
+		&.dj-touched input[type="date"] {
+			&::-webkit-calendar-picker-indicator {
+				opacity: 0;
 			}
 		}
 
@@ -105,18 +130,6 @@ django-formset {
 			}
 		}
 
-		&.dj-submitted {
-			#{$feedback-fields} {
-				&:invalid {
-					border-color: var(--django-formset-color-invalid);
-					background-image: var(--django-formset-icon-invalid);
-					&:focus {
-						box-shadow: 0 0 0 0.2rem var(--django-formset-shadow-invalid);
-					}
-				}
-			}
-		}
-
 		.dj-help-text {
 			font-style: oblique;
 		}
@@ -136,12 +149,6 @@ django-formset {
 			// `display: none;` causes Chrome to complain on calling `form.reportValidity()`.
 			width: 0 !important;
 			height: 0 !important;
-		}
-
-		&.dj-touched input[type="date"] {
-			&::-webkit-calendar-picker-indicator {
-				opacity: 0;
-			}
 		}
 
 		.dj-control-panel {

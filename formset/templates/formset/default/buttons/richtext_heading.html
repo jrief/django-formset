@@ -1,0 +1,18 @@
+{% load i18n %}{% spaceless %}
+{% if levels|length_is:1 %}
+	{% with icon="formset/icons/heading"|add:levels.0|add:".svg" %}
+<button type="button" richtext-toggle="heading:{{ levels.0 }}" aria-label="{% translate 'Heading' %}">{% include icon %}</button>
+	{% endwith %}
+{% else %}
+<button type="button" richtext-toggle="heading" aria-label="{% translate 'Heading' %}" aria-haspopup="true" aria-expanded="false">{% include "formset/icons/heading.svg" %}</button>
+<ul{% block dropdown_menu_class %}{% endblock %} role="menu" aria-labelledby="{% translate 'Heading' %}">
+	{% for level in levels %}
+	<li{% block dropdown_menu_item %}{% endblock %}>
+		{% with icon="formset/icons/heading"|add:level|add:".svg" %}
+		<a richtext-toggle="heading:{{ level }}">{% include icon %}</a>
+		{% endwith %}
+	</li>
+	{% endfor %}
+</ul>
+{% endif %}
+{% endspaceless %}

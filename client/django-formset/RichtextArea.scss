@@ -1,15 +1,16 @@
 @import "colors";
 
 .dj-richtext-wrapper {
+	--button-hover: #{$richtext-button-hover};
+	--button-active: #{$richtext-button-active};
+
 	position: relative;
 	overflow: hidden;
 
-	[role="group"] {
+	[role="menubar"] {
 		border: none;
 		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
+		inset: 0 0 auto 0;
 		padding: 0.125rem 0.25rem;
 
 		[role="separator"] {
@@ -28,13 +29,30 @@
 			-moz-user-select: none;
 			user-select: none;
 			border: none;
+			border-radius: 0.25rem;
 			padding: 0.25rem;
 			background-color: inherit;
 			&:hover {
-				background-color: whitesmoke;
+				background-color: var(--button-hover);
 			}
 			&.active {
-				background-color: beige;
+				background-color: var(--button-active);
+
+			}
+			&[richtext-toggle="heading"] {
+				&:after {
+					border-bottom: 0;
+					border-left: 0.3em solid transparent;
+					border-right: 0.3em solid transparent;
+					border-top: 0.3em solid;
+					margin-right: 0.125rem;
+					content: "";
+					display: inline-block;
+					transition: transform 250ms ease-in-out;
+				}
+				&[aria-expanded="true"]:after {
+					transform: scaleY(-1);
+				}
 			}
 			> svg {
 				vertical-align: middle;

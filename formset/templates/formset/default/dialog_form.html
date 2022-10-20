@@ -1,5 +1,5 @@
 {% spaceless %}
-<form{% include "formset/form_attrs.html" %} novalidate></form>
+<form{% include "formset/form_attrs.html" %}></form>
 {% if form.modal_title %}
 <div class="dialog-header">
 	<div class="modal-title">{{ form.modal_title }}</div>
@@ -7,7 +7,6 @@
 {% endif %}
 {% if form.fields %}
 <div class="dialog-body">
-	{% include "formset/non_field_errors.html" %}
 	{% for field in form %}
 		{% if field.is_hidden %}
 			{{ field }}
@@ -19,8 +18,8 @@
 </div>
 {% endif %}
 <div class="dialog-footer">
-	<button class="btn btn-outline-secondary" value="close" form="{{ form.form_id }}">Close</button>
-	<button class="btn btn-danger" value="remove" form="{{ form.form_id }}">Remove</button>
-	<button class="btn btn-primary" value="save" form="{{ form.form_id }}">Save</button>
+	<button class="btn btn-outline-secondary" name="close" type="button" form="{{ form.form_id }}">Close</button>
+	<button class="btn btn-danger" name="remove" type="button" form="{{ form.form_id }}">Remove</button>
+	<button class="btn btn-primary" name="save" value="save" type="submit" form="{{ form.form_id }}">Save</button>
 </div>
 {% endspaceless %}

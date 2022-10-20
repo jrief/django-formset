@@ -10,6 +10,8 @@ the internal Django implementation for
 [![Python versions](https://img.shields.io/pypi/pyversions/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
 [![Software license](https://img.shields.io/pypi/l/django-formset.svg)](https://github.com/jrief/django-formset/blob/master/LICENSE)
 
+[Full documentation on ReadTheDocs](https://django-formset.readthedocs.io/en/latest/)
+
 Let's explain it using a short example. Say, we have a Django form with three fields:
 
 ```python

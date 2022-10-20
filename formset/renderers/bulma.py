@@ -4,6 +4,7 @@ from formset.boundfield import ClassList
 
 class FormRenderer(DefaultFormRenderer):
     max_options_per_line = 4
+    framework = 'bulma'
 
     def __init__(self, **kwargs):
         kwargs.setdefault('label_css_classes', 'label')
