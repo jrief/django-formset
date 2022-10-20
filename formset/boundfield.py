@@ -2,7 +2,7 @@ from django.core import validators
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.fields.files import FieldFile
 from django.forms import boundfield
-from django.forms.fields import FileField
+from django.forms.fields import FileField, JSONField
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
@@ -98,6 +98,8 @@ class BoundField(boundfield.BoundField):
             attrs['form'] = self.form.form_id
         if hasattr(self.field, 'regex'):
             attrs['pattern'] = self.field.regex.pattern
+        if isinstance(self.field, JSONField):
+            attrs['use_json'] = True
         return attrs
 
     def css_classes(self, extra_classes=None):

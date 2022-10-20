@@ -16,6 +16,6 @@ $richtext-button-hover: whitesmoke;
 @use "sass:color";
 $django-formset-color-invalid: 'rgb(' + #{color.red($django-formset-alert), color.green($django-formset-alert), color.blue($django-formset-alert)} + ')';
 $django-formset-color-warning: 'rgb(' + #{color.red($django-formset-warning), color.green($django-formset-warning), color.blue($django-formset-warning)} + ')';
-$django-formset-shadow-invalid: 'rgb(' + #{color.red($django-formset-alert), color.green($django-formset-alert), color.blue($django-formset-alert)} +', 0.25)';
+$django-formset-shadow-invalid: 'rgb(' + #{color.red($django-formset-alert), color.green($django-formset-alert), color.blue($django-formset-alert)} + ', 0.25)';
 $django-formset-shadow-warning: 'rgb(' + #{color.red($django-formset-warning), color.green($django-formset-warning), color.blue($django-formset-warning)} +', 0.25)';
 $django-formset-color-valid: 'rgb(' + #{color.red($django-formset-success), color.green($django-formset-success), color.blue($django-formset-success)} + ')';

@@ -1,5 +1,6 @@
 import { DjangoFormsetElement } from "./django-formset/DjangoFormset";
 import { StyleHelpers } from './django-formset/helpers';
+import {RichTextAreaElement} from "./django-formset/RichtextArea";
 
 window.addEventListener('load', (event) => {
 	const pseudoStylesElement = StyleHelpers.convertPseudoClasses();
@@ -26,7 +27,7 @@ window.addEventListener('load', (event) => {
 		promises.push(promise);
 	}
 	if (document.querySelector('textarea[is="django-richtext"]')) {
-		const promise = import('./django-formset/RichTextArea');
+		const promise = import('./django-formset/RichtextArea');
 		promise.then(({ RichTextAreaElement }) => {
 	 		window.customElements.define('django-richtext', RichTextAreaElement, {extends: 'textarea'});
 		});

@@ -3,8 +3,8 @@ from django.forms.fields import CharField, URLField, ImageField
 from django.forms.widgets import URLInput
 from django.utils.translation import gettext_lazy as _
 
-from formset.widgets import UploadedFileInput
 from formset.utils import FormDecoratorMixin
+from formset.widgets import UploadedFileInput
 
 
 class DialogForm(FormDecoratorMixin, forms.Form):
@@ -18,10 +18,10 @@ class DialogForm(FormDecoratorMixin, forms.Form):
         return f'<{self.__class__.__name__} template_name="{self.template_name}">'
 
 
-class LinkEditForm(DialogForm):
+class LinkFormDialog(DialogForm):
     modal_title = _("Edit Link")
     method = 'dialog'
-    prefix = "edit_link"
+    prefix = 'edit_link'
 
     text = CharField(
         label=_("Text"),
@@ -33,7 +33,7 @@ class LinkEditForm(DialogForm):
     )
 
 
-class ImageEditForm(DialogForm):
+class ImageFormDialog(DialogForm):
     modal_title = _("Edit Image")
     method = 'dialog'
     prefix = "edit_image"

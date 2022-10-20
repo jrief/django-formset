@@ -1,21 +1,10 @@
 {% spaceless %}
 <div class="{% block wrapper_classes %}dj-richtext-wrapper{% endblock %}">
-	<div role="group">
-		<button type="button" aria-label="bold">{% include "formset/icons/bold.svg" %}</button>
-		<button type="button" aria-label="italic">{% include "formset/icons/italic.svg" %}</button>
-		<button type="button" aria-label="bullet-list">{% include "formset/icons/bullet-list.svg" %}</button>
-		<button type="button" aria-label="link">{% include "formset/icons/link.svg" %}</button>
-		<button type="button" aria-label="image">{% include "formset/icons/image.svg" %}</button>
-		<span role="separator">{% include "formset/icons/separator.svg" %}</span>
-		<button type="button" aria-label="clear-format">{% include "formset/icons/clear-format.svg" %}</button>
-		<button type="button" aria-label="undo">{% include "formset/icons/undo.svg" %}</button>
-		<button type="button" aria-label="redo">{% include "formset/icons/redo.svg" %}</button>
-	</div>
-
-	<dialog role="link">{{ link_edit_form }}</dialog>
-	<dialog role="img">{{ image_edit_form }}</dialog>
-
-	<textarea is="django-richtext" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}></textarea>
-	{% if widget.value %}<script type="application/json">{{ widget.value }}</script>{% endif %}
+	<div role="menubar">{{ control_panel }}</div>
+	<textarea is="django-richtext" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>{% if not use_json %}{{ widget.value }}{% endif %}</textarea>
+{% if use_json %}
+	<script type="application/json">{{ widget.value|safe }}</script>
+{% endif %}
+	{{ modal_dialogs }}
 </div>
 {% endspaceless %}
