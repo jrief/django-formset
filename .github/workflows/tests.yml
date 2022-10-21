@@ -3,12 +3,17 @@ name: Test django-formset
 on:
   push:
     branches:
-      - dynamic-loading
+      - main
+    paths-ignore:
+      - '**.md'
+      - '**.rst'
   pull_request:
     branches:
       - main
-    paths:
-      - ".github/workflows/tests.yml"
+    paths-ignore:
+      - '**.md'
+      - '**.rst'
+
 jobs:
   build:
     runs-on: ubuntu-latest
