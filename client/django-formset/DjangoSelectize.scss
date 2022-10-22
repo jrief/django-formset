@@ -146,3 +146,13 @@
 		border-color: var(--django-formset-color-invalid);
 	}
 }
+
+:host-context(django-field-group.dj-submitted) .ts-wrapper {
+	&.invalid .ts-control {
+		border-color: var(--django-formset-color-invalid);
+	}
+
+	&.invalid.focus .ts-control {
+		opacity: 1;
+	}
+}
