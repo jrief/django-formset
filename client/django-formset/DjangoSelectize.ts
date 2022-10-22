@@ -1,8 +1,7 @@
 import TomSelect from 'tom-select/src/tom-select';
 import { TomSettings } from 'tom-select/src/types/settings';
-import { TomInput } from 'tom-select/src/types';
+import { RecursivePartial, TomInput, TomTemplates } from 'tom-select/src/types';
 import TomSelect_remove_button from 'tom-select/src/plugins/remove_button/plugin';
-import { escape_html } from 'tom-select/src/utils';
 import { IncompleteSelect } from './IncompleteSelect';
 import template from 'lodash.template';
 import { StyleHelpers } from './helpers';
@@ -10,9 +9,6 @@ import styles from 'sass:./DjangoSelectize.scss';
 
 TomSelect.define('remove_button', TomSelect_remove_button);
 
-type Renderer = {
-	[key:string]: (data:any, escape:typeof escape_html) => string | HTMLElement;
-}
 
 class DjangoSelectize extends IncompleteSelect {
 	private readonly numOptions: number = 12;
@@ -25,8 +21,7 @@ class DjangoSelectize extends IncompleteSelect {
 	constructor(tomInput: HTMLSelectElement) {
 		super(tomInput);
 		this.tomInput = tomInput;
-		// @ts-ignore
-		const config: TomSettings = {
+		const config: RecursivePartial<TomSettings> = {
 			create: false,
 			valueField: 'id',
 			labelField: 'label',
@@ -199,11 +194,13 @@ class DjangoSelectize extends IncompleteSelect {
 		}
 	}
 
-	private setupRender(tomInput: TomInput) : Renderer {
+	private setupRender(tomInput: TomInput) : TomTemplates {
 		const templ = tomInput.parentElement?.querySelector('template.select-no-results');
-		return templ ? {
-			no_results: (data: any, escape: Function) => template(templ.innerHTML)(data),
-		} : {};
+		if (!templ)
+			return {} as TomTemplates;
+		return {
+			no_results: (data, escape) => template(templ.innerHTML)(data)
+		} as TomTemplates;
 	}
 
 	private attributesChanged = (mutationsList: Array<MutationRecord>) => {
