@@ -1,7 +1,6 @@
-const inlineImportPlugin = require('esbuild-plugin-inline-import');
+const inlineImportPlugin = require('./esbuild-plugin-inline-import');
 const path = require('path');
 const sass = require('sass');
-const sassPlugin = require('esbuild-plugin-sass');
 const { build } = require('esbuild');
 
 build({
@@ -14,7 +13,7 @@ build({
   plugins: [
     // Run inline style imports through Sass
     inlineImportPlugin({
-      filter: /^sass:/,
+      filter: /\.scss$/,
       transform: async (contents, args) => {
         return await new Promise((resolve, reject) => {
           sass.render(
@@ -34,8 +33,6 @@ build({
         });
       }
     }),
-    // Run all other stylesheets through Sass
-    sassPlugin()
   ],
   loader: {'.svg': 'text'},
   sourcemap: true,

@@ -13,7 +13,7 @@ import OrderedList from '@tiptap/extension-ordered-list';
 import ListItem from '@tiptap/extension-list-item';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
-import styles from 'sass:./RichtextArea.scss';
+import styles from './RichtextArea.scss';
 import { StyleHelpers } from './helpers';
 
 

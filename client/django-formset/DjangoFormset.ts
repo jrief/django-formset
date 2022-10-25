@@ -5,7 +5,7 @@ import template from 'lodash.template';
 import Sortable, { SortableEvent } from 'sortablejs';
 import { FileUploadWidget } from './FileUploadWidget';
 import { parse } from './tag-attributes';
-import styles from 'sass:./DjangoFormset.scss';
+import styles from './DjangoFormset.scss';
 import spinnerIcon from './icons/spinner.svg';
 import okayIcon from './icons/okay.svg';
 import bummerIcon from './icons/bummer.svg';

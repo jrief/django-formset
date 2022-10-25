@@ -5,7 +5,7 @@ import TomSelect_remove_button from 'tom-select/src/plugins/remove_button/plugin
 import { IncompleteSelect } from './IncompleteSelect';
 import template from 'lodash.template';
 import { StyleHelpers } from './helpers';
-import styles from 'sass:./DjangoSelectize.scss';
+import styles from './DjangoSelectize.scss';
 
 TomSelect.define('remove_button', TomSelect_remove_button);
 
