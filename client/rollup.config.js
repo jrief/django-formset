@@ -3,6 +3,7 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import summary from 'rollup-plugin-summary';
 import {terser} from 'rollup-plugin-terser';
 import commonjs from '@rollup/plugin-commonjs';
+import replace from '@rollup/plugin-replace';
 import resolve from '@rollup/plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
 import styles from "rollup-plugin-styles";
@@ -16,6 +17,7 @@ export default {
     format: 'esm',
     sourcemap: true,
   },
+  preserveEntrySignatures: 'strict',
   onwarn(warning) {
     if (warning.code !== 'THIS_IS_UNDEFINED') {
       console.error(`(!) ${warning.message}`);
@@ -24,6 +26,11 @@ export default {
   plugins: [
     resolve({
       extensions: ['.ts', '.svg', '.scss', '.js']
+    }),
+    replace({
+      'process.env.NODE_ENV': JSON.stringify('production'),
+      __buildDate__: () => JSON.stringify(new Date()),
+      preventAssignment: true
     }),
     styles(),
     svg(),

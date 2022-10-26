@@ -1,18 +1,46 @@
-import { DjangoFormsetElement } from './django-formset/DjangoFormset';
+import { DjangoFormsetElement } from "./django-formset/DjangoFormset";
 import { StyleHelpers } from './django-formset/helpers';
-import { DjangoSelectizeElement } from "./django-formset/DjangoSelectize";
-import { DualSelectorElement } from "./django-formset/DualSelector";
-import { SortableSelectElement } from "./django-formset/SortableSelect";
-import { RichTextAreaElement } from "./django-formset/RichtextArea";
-import { DjangoSlugElement } from "./django-formset/DjangoSlug";
 
 window.addEventListener('load', (event) => {
 	const pseudoStylesElement = StyleHelpers.convertPseudoClasses();
-	window.customElements.define('django-selectize', DjangoSelectizeElement, {extends: 'select'});
-	window.customElements.define('django-sortable-select', SortableSelectElement);
-	window.customElements.define('django-dual-selector', DualSelectorElement, {extends: 'select'});
-	window.customElements.define('django-richtext', RichTextAreaElement, {extends: 'textarea'});
-	window.customElements.define('django-slug', DjangoSlugElement, {extends: 'input'});
-	window.customElements.define('django-formset', DjangoFormsetElement);
-	pseudoStylesElement.remove();
+	const promises = Array<Promise<any>>();
+	if (document.querySelector('select[is="django-selectize"]')) {
+		const promise = import('./django-formset/DjangoSelectize');
+		promises.push(promise);
+		promise.then(({DjangoSelectizeElement}) => {
+			window.customElements.define('django-selectize', DjangoSelectizeElement, {extends: 'select'});
+		});
+	}
+	if (document.querySelector('django-sortable-select')) {
+		const promise = import('./django-formset/SortableSelect');
+		promises.push(promise);
+		promise.then(({ SortableSelectElement }) => {
+			window.customElements.define('django-sortable-select', SortableSelectElement);
+		});
+	}
+	if (document.querySelector('select[is="django-dual-selector"]')) {
+		const promise = import('./django-formset/DualSelector');
+		promises.push(promise);
+		promise.then(({ DualSelectorElement }) => {
+			window.customElements.define('django-dual-selector', DualSelectorElement, {extends: 'select'});
+		});
+	}
+	if (document.querySelector('textarea[is="django-richtext"]')) {
+		const promise = import('./django-formset/RichtextArea');
+		promises.push(promise);
+		promise.then(({ RichTextAreaElement }) => {
+	 		window.customElements.define('django-richtext', RichTextAreaElement, {extends: 'textarea'});
+		});
+	}
+	if (document.querySelector('input[is="django-slug"]')) {
+		const promise = import('./django-formset/DjangoSlug');
+		promises.push(promise);
+		promise.then(({ DjangoSlugElement }) => {
+	 		window.customElements.define('django-richtext', DjangoSlugElement, {extends: 'input'});
+		});
+	}
+	Promise.all(promises).then(() => {
+		window.customElements.define('django-formset', DjangoFormsetElement);
+		pseudoStylesElement.remove();
+	});
 });
