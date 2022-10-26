@@ -451,6 +451,15 @@ class RichtextArea {
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					this.textAreaElement.style.transition = '';
 					break;
+				case '.dj-submitted .dj-richtext-wrapper.focused.invalid':
+					this.textAreaElement.style.transition = 'none';
+					this.textAreaElement.classList.add('-focus-', '-invalid-', 'is-invalid');  // is-invalid is a Bootstrap hack
+					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
+						'border', 'box-shadow', 'outline']);
+					this.textAreaElement.classList.remove('-focus-', '-invalid-', 'is-invalid');
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					this.textAreaElement.style.transition = '';
+					break;
 				case '.dj-richtext-wrapper .ProseMirror':
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
 						'font-family', 'font-size', 'font-strech', 'font-style', 'font-weight', 'letter-spacing',
@@ -475,6 +484,8 @@ class RichtextArea {
 	}
 
 	public getValue() : any {
+		if (this.editor.isEmpty)
+			return '';  // otherwise empty field is not detected by calling function
 		return this.useJson ? this.editor.getJSON() : this.editor.getHTML();
 	}
 }

@@ -5,7 +5,6 @@
 	--button-active: #{$richtext-button-active};
 
 	position: relative;
-	overflow: hidden;
 
 	[role="menubar"] {
 		border: none;
@@ -70,6 +69,7 @@
 		white-space: break-spaces;
 		font-variant-ligatures: none;
 		font-feature-settings: "liga" 0; /* the above doesn't seem to work in Edge */
+		overflow: hidden;
 
 		&[contenteditable="false"] {
 				white-space: normal;
@@ -93,6 +93,10 @@
 	}
 
 	&.focused {
+		opacity: 1;
+	}
+
+	.dj-submitted &.focused.invalid {
 		opacity: 1;
 	}
 
