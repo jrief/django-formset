@@ -67,6 +67,11 @@ class OrderedList(ControlElement):
     label = _("Ordered List")
 
 
+class HorizontalRule(ControlElement):
+    name = 'horizontalRule'
+    label = _("Horizontal Rule")
+
+
 class ClearFormat(ControlElement):
     name = 'clearFormat'
     label = _("Clear Format")

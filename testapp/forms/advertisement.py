@@ -92,6 +92,7 @@ class AdvertisementForm(forms.Form):
             controls.Bold(),
             controls.Italic(),
             controls.Underline(),
+            controls.HorizontalRule(),
             controls.Separator(),
             controls.Redo(),
             controls.Undo(),

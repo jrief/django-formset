@@ -10,6 +10,7 @@ import Italic from '@tiptap/extension-italic';
 import Underline from '@tiptap/extension-underline';
 import BulletList from '@tiptap/extension-bullet-list';
 import OrderedList from '@tiptap/extension-ordered-list';
+import HorizontalRule from '@tiptap/extension-horizontal-rule';
 import ListItem from '@tiptap/extension-list-item';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
@@ -71,6 +72,14 @@ namespace controls {
 
 		toggle(editor: Editor) {
 			editor.chain().focus().toggleOrderedList().run();
+		}
+	}
+
+	export class horizontalRuleAction extends Action {
+		public readonly extensions = [HorizontalRule];
+
+		toggle(editor: Editor) {
+			editor.chain().focus().setHorizontalRule().run();
 		}
 	}
 

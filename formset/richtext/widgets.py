@@ -12,6 +12,7 @@ class RichTextarea(Textarea):
         controls.Italic(),
         controls.Link(),
         controls.BulletList(),
+        controls.HorizontalRule(),
         controls.Separator(),
         controls.ClearFormat(),
         controls.Undo(),
