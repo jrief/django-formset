@@ -1,4 +1,4 @@
-import { DjangoFormsetElement } from "./django-formset/DjangoFormset";
+import { DjangoFormsetElement } from './django-formset/DjangoFormset';
 import { StyleHelpers } from './django-formset/helpers';
 import { DjangoSelectizeElement } from "./django-formset/DjangoSelectize";
 import { DualSelectorElement } from "./django-formset/DualSelector";
