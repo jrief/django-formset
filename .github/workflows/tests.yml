@@ -52,7 +52,7 @@ jobs:
         npm run tag-attributes
     - name: Build Client
       run: |
-        npm run build
+        npm run rollup
         npm run compilescss
     - name: Test with pytest
       run: |
