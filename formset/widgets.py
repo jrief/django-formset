@@ -11,7 +11,7 @@ from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
 from django.forms.widgets import FileInput, Select, SelectMultiple, TextInput
-from django.utils.timezone import now, datetime, utc
+from django.utils.timezone import datetime, now, utc
 from django.utils.translation import gettext_lazy as _
 
 
