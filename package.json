@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "esbuild": "node client/esbuild.cjs",
+    "esbuild.monolith": "node client/esbuild.monolith.cjs",
     "rollup": "rollup --config client/rollup.config.js",
     "minify": "terser --compress --mangle --output formset/static/formset/js/django-formset.min.js -- formset/static/formset/js/django-formset.js",
     "tag-attributes": "peggy -o client/django-formset/tag-attributes.ts --extra-options-file assets/pegjsconf.json --plugin ./node_modules/ts-pegjs/src/tspegjs.js assets/tag-attributes.pegjs",

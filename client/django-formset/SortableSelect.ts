@@ -1,6 +1,6 @@
 import Sortable, { MultiDrag, SortableEvent } from 'sortablejs';
-import styles from './SortableSelect.scss';
 import { StyleHelpers } from './helpers';
+import styles from './SortableSelect.scss';
 
 Sortable.mount(new MultiDrag());
 
