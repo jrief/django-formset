@@ -45,7 +45,7 @@ jobs:
         npm run tag-attributes
     - name: Build Client
       run: |
-        npm run esbuild.monolith
+        npm run esbuild
         npm run compilescss
     - name: Test with pytest
       run: |
