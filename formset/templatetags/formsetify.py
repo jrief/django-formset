@@ -4,8 +4,8 @@ from django.middleware.csrf import get_token
 from django.template.exceptions import TemplateSyntaxError
 from django.utils.module_loading import import_string
 
-from formset.utils import FormMixin, FormsetErrorList
 from formset.renderers.default import FormRenderer
+from formset.utils import FormMixin, FormsetErrorList
 
 
 def _formsetify(form, *args, **kwargs):

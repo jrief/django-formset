@@ -2,8 +2,8 @@ from django.core import checks
 from django.db.models.fields.json import JSONField
 from django.db.models.fields.related import ManyToManyField
 
-from formset.widgets import DualSortableSelector
 from formset.richtext.widgets import RichTextarea
+from formset.widgets import DualSortableSelector
 
 
 class RichTextField(JSONField):

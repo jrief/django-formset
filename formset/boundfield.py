@@ -6,8 +6,8 @@ from django.forms.fields import FileField, JSONField
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from formset.widgets import UploadedFileInput
 from formset.upload import get_file_info
+from formset.widgets import UploadedFileInput
 
 
 class ClassList(set):

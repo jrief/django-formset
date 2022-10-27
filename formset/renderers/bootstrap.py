@@ -1,5 +1,5 @@
-from formset.renderers.default import FormRenderer as DefaultFormRenderer
 from formset.boundfield import ClassList
+from formset.renderers.default import FormRenderer as DefaultFormRenderer
 
 
 class FormRenderer(DefaultFormRenderer):

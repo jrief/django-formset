@@ -1,13 +1,12 @@
 import mimetypes
 import os
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.files.storage import default_storage
 from django.core.signing import get_cookie_signer
 from django.http.response import HttpResponseBadRequest, JsonResponse
-
 
 THUMBNAIL_MAX_HEIGHT = 200
 THUMBNAIL_MAX_WIDTH = 350

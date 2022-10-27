@@ -1,18 +1,18 @@
+import os
+import struct
 from base64 import b16encode
 from functools import reduce
 from operator import or_
-import os
-import struct
 
 from django.core.exceptions import ImproperlyConfigured
-from django.core.files.uploadedfile import UploadedFile
 from django.core.files.storage import default_storage
+from django.core.files.uploadedfile import UploadedFile
 from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
 from django.forms.widgets import FileInput, Select, SelectMultiple, TextInput
-from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import now, datetime, utc
+from django.utils.translation import gettext_lazy as _
 
 
 class IncompleteSelectMixin:

@@ -4,11 +4,11 @@ from django.db import transaction
 from django.http.response import HttpResponseBadRequest, JsonResponse
 from django.utils.functional import cached_property
 from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
-from django.views.generic.edit import FormView as GenericFormView
 from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.edit import FormView as GenericFormView
 
 from formset.upload import FileUploadMixin
-from formset.widgets import Selectize, DualSelector
+from formset.widgets import DualSelector, Selectize
 
 
 class IncompleteSelectResponseMixin:

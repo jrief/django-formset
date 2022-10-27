@@ -1,5 +1,5 @@
 from django.forms import forms
-from django.forms.fields import CharField, URLField, ImageField
+from django.forms.fields import CharField, ImageField, URLField
 from django.forms.widgets import URLInput
 from django.utils.translation import gettext_lazy as _
 
