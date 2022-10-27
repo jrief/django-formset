@@ -8,7 +8,7 @@ build({
   bundle: true,
   minify: true,
   outdir: 'formset/static/formset/js/',
-  splitting: false,
+  splitting: true,
   format: 'esm',
   plugins: [
     // Run inline style imports through Sass

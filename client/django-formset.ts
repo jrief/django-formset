@@ -1,7 +1,7 @@
 import { DjangoFormsetElement } from "./django-formset/DjangoFormset";
 import { StyleHelpers } from './django-formset/helpers';
 
-window.addEventListener('load', (event) => {
+window.addEventListener('DOMContentLoaded', (event) => {
 	const pseudoStylesElement = StyleHelpers.convertPseudoClasses();
 	const promises = Array<Promise<void>>();
 	if (document.querySelector('select[is="django-selectize"]')) {
