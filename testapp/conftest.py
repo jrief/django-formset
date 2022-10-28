@@ -1,5 +1,6 @@
 import os
 import pytest
+from time import sleep
 from playwright.sync_api import sync_playwright
 
 from django.urls import reverse
@@ -23,6 +24,7 @@ class Connector:
         self.browser = self.playwright.chromium.launch()
         self.page = self.browser.new_page()
         self.page.on('console', print_args)
+        sleep(0.1)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
