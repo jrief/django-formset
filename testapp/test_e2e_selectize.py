@@ -123,6 +123,7 @@ def test_initial_value(page, form):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_changing_value(page, form):
+    sleep(0.25)
     input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
     assert input_element is not None
     assert input_element.is_visible()
