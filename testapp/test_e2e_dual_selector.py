@@ -109,6 +109,7 @@ def test_form_validated(page, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', views.keys())
 def test_initial_value(page, form, viewname):
+    sleep(0.25)
     selector_element = page.query_selector('django-formset select[is="django-dual-selector"]')
     assert selector_element is not None
     value = selector_element.evaluate('elem => elem.value')
