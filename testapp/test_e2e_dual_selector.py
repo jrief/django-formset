@@ -169,6 +169,7 @@ def test_move_all_right(page, mocker, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0', 'selector3'])
 def test_move_selected_right(page, mocker, view, form, viewname):
+    sleep(0.25)
     select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
     assert select_left_element is not None
     left_option_values = set()
@@ -249,6 +250,7 @@ def test_infinite_scroll(page, mocker, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0'])
 def test_submit_valid_form(page, mocker, view, form, viewname):
+    sleep(0.25)
     select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
     assert select_left_element is not None
     left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option')]
@@ -359,6 +361,7 @@ def test_touch_selector(page, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0'])
 def test_left_selector_lookup(page, mocker, view, form, viewname):
+    sleep(0.25)
     select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
     assert select_left_element is not None
     input_element = page.query_selector('django-formset .dj-dual-selector .left-column input')
