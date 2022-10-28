@@ -108,6 +108,7 @@ def test_form_validated(page, form):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', views.keys())
 def test_initial_value(page, form):
+    sleep(0.25)
     select_element = page.query_selector('django-formset select[is="django-selectize"]')
     assert select_element is not None
     value = select_element.evaluate('elem => elem.getValue()')
@@ -265,6 +266,7 @@ def test_submit_missing(page, view, form):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_submit_value(page, mocker, view, form):
+    sleep(0.25)
     input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
     assert input_element is not None
     input_element.click()
@@ -285,6 +287,7 @@ def test_submit_value(page, mocker, view, form):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_submit_invalid(page, mocker, view, form):
+    sleep(0.25)
     input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
     assert input_element is not None
     input_element.click()
@@ -313,6 +316,7 @@ def test_submit_invalid(page, mocker, view, form):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize0', 'selectize2', 'selectize4'])
 def test_reset_selectize(page, view, form):
+    sleep(0.25)
     select_element = page.query_selector('django-formset select[is="django-selectize"]')
     assert select_element is not None
     initial_value = select_element.evaluate('elem => elem.getValue()')
