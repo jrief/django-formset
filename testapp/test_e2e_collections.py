@@ -248,7 +248,7 @@ def test_submit_reordered_data(page, mocker):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['sortedcontact'])
-def test_submit_resetted_collection(page, mocker):
+def test_submit_resetted_collection(page, mocker, viewname):
     contact_collections = page.locator('django-formset > django-form-collection:last-of-type')
     number_collections = contact_collections.first.locator(':scope > .collection-siblings > django-form-collection')
     assert number_collections.count() == 5

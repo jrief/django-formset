@@ -109,7 +109,6 @@ def test_form_validated(page, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', views.keys())
 def test_initial_value(page, form, viewname):
-    sleep(0.25)
     selector_element = page.query_selector('django-formset select[is="django-dual-selector"]')
     assert selector_element is not None
     value = selector_element.evaluate('elem => elem.value')
@@ -169,7 +168,6 @@ def test_move_all_right(page, mocker, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0', 'selector3'])
 def test_move_selected_right(page, mocker, view, form, viewname):
-    sleep(0.25)
     select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
     assert select_left_element is not None
     left_option_values = set()
@@ -250,7 +248,6 @@ def test_infinite_scroll(page, mocker, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0'])
 def test_submit_valid_form(page, mocker, view, form, viewname):
-    sleep(0.25)
     select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
     assert select_left_element is not None
     left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option')]
@@ -330,7 +327,6 @@ def test_reset_selector(page, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0'])
 def test_touch_selector(page, form, viewname):
-    sleep(0.25)
     field_group = page.query_selector('django-formset django-field-group')
     assert 'dj-untouched' in field_group.get_attribute('class')
     assert 'dj-pristine' in field_group.get_attribute('class')
@@ -362,7 +358,6 @@ def test_touch_selector(page, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0'])
 def test_left_selector_lookup(page, mocker, view, form, viewname):
-    sleep(0.25)
     select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
     assert select_left_element is not None
     input_element = page.query_selector('django-formset .dj-dual-selector .left-column input')
@@ -462,7 +457,6 @@ def test_undo_redo(page, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectorP'])
 def test_selector_sorting(page, mocker, view, form, viewname):
-    sleep(0.25)
     select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
     assert select_left_element is not None
     option = select_left_element.query_selector('option:nth-child(40)')

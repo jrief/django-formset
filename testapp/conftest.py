@@ -39,4 +39,6 @@ def connector(live_server):
 @pytest.fixture
 def page(connector, viewname):
     connector.page.goto(connector.live_server.url + reverse(viewname))
+    django_formset = connector.page.locator('django-formset:defined')
+    django_formset.wait_for()
     return connector.page
