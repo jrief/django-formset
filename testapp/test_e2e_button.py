@@ -126,7 +126,7 @@ def test_button_emit_custom_event(page, mocker):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_6'])
-def test_button_scroll_to_error(page):
+def test_button_scroll_to_error(page, viewname):
     input_elem = page.query_selector('#id_enter')
     assert input_elem is not None
     input_elem.type("invalid")
@@ -136,7 +136,7 @@ def test_button_scroll_to_error(page):
     success_chain, reject_chain = button_elem.get_attribute('click').split('!~')
     assert 'submit' in success_chain
     assert 'scrollToError' in reject_chain
-    window_handle = page.evaluate_handle('() => Promise.resolve(window)');
+    window_handle = page.evaluate_handle('() => Promise.resolve(window)')
     assert window_handle.get_property('scrollY').json_value() == 0
     button_elem.evaluate('elem => elem.setAttribute("style", "margin-top: 1500px;")')
     button_elem.scroll_into_view_if_needed()
