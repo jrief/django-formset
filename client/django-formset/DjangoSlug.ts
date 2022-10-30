@@ -13,6 +13,7 @@ export class DjangoSlugElement extends HTMLInputElement {
 			observedElement.addEventListener('input', (event: Event) => {
 				if (event.currentTarget instanceof HTMLInputElement) {
 					this.value = slug(event.currentTarget.value);
+					this.dispatchEvent(new Event('input'));
 				}
 			});
 		}
