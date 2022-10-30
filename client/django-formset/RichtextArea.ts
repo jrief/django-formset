@@ -19,7 +19,7 @@ import { StyleHelpers } from './helpers';
 
 
 abstract class Action {
-	public readonly button: HTMLButtonElement;
+	protected readonly button: HTMLButtonElement;
 	public readonly extensions: Array<Extension|Mark|Node> = [];
 
 	constructor(wrapperElement: HTMLElement, button: HTMLButtonElement) {
@@ -31,6 +31,14 @@ abstract class Action {
 	}
 
 	abstract toggle(editor: Editor): void;
+
+	activate(editor: Editor, name: string) {
+		this.button.classList.toggle('active', editor.isActive(name));
+	}
+
+	deactivate() {
+		this.button.classList.remove('active');
+	}
 }
 
 
@@ -138,7 +146,7 @@ namespace controls {
 
 		installEventHandler(editor: Editor) {
 			if (this.dropdownMenu) {
-				this.button.addEventListener('click', () => this.toggleMenu());
+				this.button.addEventListener('click', () => this.toggleMenu(editor));
 				this.dropdownMenu.addEventListener('click', event => this.toggleItem(event, editor));
 				document.addEventListener('click', event => {
 					let element = event.target instanceof Element ? event.target : null;
@@ -147,7 +155,7 @@ namespace controls {
 							return;
 						element = element.parentElement;
 					}
-					this.toggleMenu(false);
+					this.toggleMenu(editor, false);
 				});
 			} else {
 				this.button.addEventListener('click', event => this.toggleItem(event, editor));
@@ -156,10 +164,13 @@ namespace controls {
 
 		toggle() {}
 
-		toggleMenu(force?: boolean) {
-			this.button.classList.toggle('active', force);
-			this.dropdownMenu?.classList.toggle('show', force);
-			this.button.ariaExpanded = this.dropdownMenu?.classList.contains('show') ? 'true' : 'false';
+		private toggleMenu(editor: Editor, force?: boolean) {
+			const expanded = (force !== false && this.button.ariaExpanded === 'false');
+			this.button.ariaExpanded = expanded ? 'true' : 'false';
+			this.dropdownMenu?.querySelectorAll('[richtext-toggle^="heading:"]').forEach(element => {
+				const level = this.extractLevel(element);
+				element.parentElement?.classList.toggle('active', editor.isActive('heading', {level}));
+			});
 			this.dropdownInstance?.update();
 		}
 
@@ -169,7 +180,7 @@ namespace controls {
 				if (element instanceof HTMLButtonElement || element instanceof HTMLAnchorElement) {
 					const level = this.extractLevel(element);
 					editor.chain().focus().setHeading({'level': level}).run();
-					this.toggleMenu(false);
+					this.toggleMenu(editor, false);
 					break;
 				}
 				element = element.parentElement;
@@ -402,7 +413,7 @@ class RichtextArea {
 
 	private blurred = () => {
 		this.registeredCommands.forEach((action) => {
-			action.button.classList.remove('active');
+			action.deactivate();
 		});
 		this.wrapperElement.classList.remove('focused');
 		if (this.textAreaElement.required && this.editor.getText().length === 0) {
@@ -417,7 +428,7 @@ class RichtextArea {
 
 	private selectionUpdate = () => {
 		this.registeredCommands.forEach((action, name) => {
-			action.button.classList.toggle('active', this.editor.isActive(name));
+			action.activate(this.editor, name);
 		});
 	}
 
@@ -472,6 +483,25 @@ class RichtextArea {
 						'border-bottom'
 					]);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '.dj-richtext-wrapper [role="menubar"] button[richtext-toggle="heading"] + ul[role="menu"]':
+					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
+						'border', 'z-index']);
+					const re = new RegExp('z-index:(\\d+);');
+					const matches = extraStyles.match(re);
+					if (matches) {
+						extraStyles = extraStyles.replace(re, `z-index:${parseInt(matches[1]) + 1}`);
+					} else {
+						extraStyles = extraStyles.replace('z-index:auto;', 'z-index:1;');
+					}
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					if (this.menubarElement) {
+						extraStyles = StyleHelpers.extractStyles(document.documentElement, ['background-color']);
+						if (extraStyles === 'background-color:rgba(0, 0, 0, 0); ') {
+							extraStyles = 'background-color:rgb(255, 255, 255);'
+						}
+						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					}
 					break;
 				default:
 					break;
