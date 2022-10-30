@@ -1,6 +1,7 @@
 import json
-
 import pytest
+
+from time import sleep
 
 from django.forms import fields, forms
 from django.urls import path
@@ -268,6 +269,7 @@ def test_submit_resetted_collection(page, mocker, viewname):
         source_position=position,
         target_position=position,
     )
+    sleep(0.1)
 
     spy = mocker.spy(FormCollectionView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
