@@ -48,7 +48,7 @@ urlpatterns = [
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['nested', 'nested_i'])
-def test_nested_default(page, mocker):
+def test_nested_default(page, mocker, viewname):
     formset = page.query_selector('django-formset')
     assert len(formset.query_selector_all('django-form-collection')) == 7
     page.fill('#id_0\\.campum\\.agro', "AA")
@@ -79,7 +79,7 @@ def test_nested_default(page, mocker):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['nested', 'nested_i'])
-def test_nested_add_inner(page, mocker):
+def test_nested_add_inner(page, mocker, viewname):
     formset = page.query_selector('django-formset')
     assert len(formset.query_selector_all('django-form-collection')) == 7
     page.fill('#id_0\\.campum\\.agro', "AA")
@@ -151,7 +151,7 @@ def test_nested_remove_inner_first(page, mocker, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['nested', 'nested_i'])
-def test_nested_remove_inner_last(page, mocker):
+def test_nested_remove_inner_last(page, mocker, viewname):
     formset = page.query_selector('django-formset')
     assert len(formset.query_selector_all('django-form-collection')) == 7
     page.fill('#id_0\\.campum\\.agro', "AA")

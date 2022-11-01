@@ -27,7 +27,7 @@ from formset.views import (
     FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormViewMixin, EditCollectionView)
 
 from testapp.forms.address import AddressForm
-from testapp.forms.advertisement import AdvertisementForm, AdvertisementModelForm
+from testapp.forms.advertisement import AdvertisementForm, AdvertisementModelForm, initial_html
 from testapp.forms.article import ArticleForm
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import (
@@ -472,6 +472,7 @@ urlpatterns = [
     ), kwargs={'group': 'model', 'index': 19}, name='advertisementmodel'),
     path('advertisementform', DemoFormView.as_view(
         form_class=AdvertisementForm,
+        #initial={'text': initial_html},
     ), kwargs={'group': 'model', 'index': 19}, name='advertisementform'),
     path('button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,

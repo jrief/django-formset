@@ -97,5 +97,4 @@ class AdvertisementForm(forms.Form):
             controls.Redo(),
             controls.Undo(),
         ]),
-        initial=initial_html,
     )

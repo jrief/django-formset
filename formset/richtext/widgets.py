@@ -25,7 +25,7 @@ class RichTextarea(Textarea):
             self.control_elements = control_elements
 
     def format_value(self, value):
-        return value
+        return value or ''
 
     def value_from_datadict(self, data, files, name):
         # TODO[link]: convert internal links to reverse lookups
