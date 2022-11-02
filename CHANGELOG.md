@@ -1,5 +1,26 @@
 ## Changes
 
+- 0.11
+  * Add widget for Django's [SlugField](https://docs.djangoproject.com/en/latest/ref/forms/fields/#slugfield).
+  * Add widget to handle rich text using the [Tiptap](https://tiptap.dev/) editor framework.
+  * Load submodules with 3rd party dependencies dynamically. This decreases the initial Javascript
+    payload by ~90% copared to a monolithic build.
+  * In addition to the [esbuild compiler](https://esbuild.github.io/), add scripts to compile the
+    TypeScript code using [rollup](https://rollupjs.org/guide/en/) + [babel](https://babeljs.io/) +
+    [terser](https://terser.org/).
+  * Webcomponents are initialized on the `DOMContentLoaded` (instead of `load`) Event.
+  * Fix: The `Selectize` widget now uses the same border styles for feedback as other input/select
+    fields.
+  * Fix: Forms which do not provide data are not validated.
+  * Add handler to listen for an external `reset` Event.
+  * Fix: `FileUpload` widget now looses focus after file submission.
+  * Handle input fields for URLs properly.
+  * Fix missing feedback on datetime and password fields.
+  * Fix: An initialized `FormCollection` with siblings but `max_siblings=None`, raised a TypeError.
+  * Pay attention to form attribute `novalidate`.
+  * All `<form>` elements are empty and referred by form=… attribute from their input fields.
+  * Add utility class `ClassList` which behaves similar to its Javascript counterpart `HTMLElement`.
+
 - 0.10.3
   * Fix: Widget `DualSortableSelector` now checks bounds for provided values. This in rare occasions
     raised an exception.
