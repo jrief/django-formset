@@ -6,7 +6,7 @@ WORKDIR /web
 # install packages outside of PyPI
 RUN apt-get upgrade -y
 RUN apt-get install -y curl
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
 RUN apt-get install -y nodejs
 RUN pip install --upgrade pip
 
@@ -17,7 +17,7 @@ RUN npm ci
 
 # install Python specific requirements
 RUN pip install django psycopg2-binary Pillow uWSGI docutils Pygments
-RUN pip install django-formset==0.10.3
+RUN pip install django-formset==0.11.dev1
 
 # copy project relevant files into container
 ADD testapp /web/testapp
