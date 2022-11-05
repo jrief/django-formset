@@ -96,7 +96,7 @@ urlpatterns = [
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['contactlist', 'sortedcontactlist'])
-def test_submit_data(page, mocker):
+def test_submit_data(page, mocker, viewname):
     contact_collections = page.query_selector_all('django-formset > .collection-siblings > django-form-collection')
     assert len(contact_collections) == 1
     number_collections = contact_collections[0].query_selector_all(':scope > .collection-siblings > django-form-collection')
@@ -141,7 +141,7 @@ def test_add_inner_collection(page):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['contactlist', 'sortedcontactlist'])
-def test_add_outer_collection(page):
+def test_add_outer_collection(page, viewname):
     formset = page.query_selector('django-formset')
     assert len(formset.query_selector_all('django-form-collection')) == 2
     assert len(formset.query_selector_all(':scope > .collection-siblings > django-form-collection')) == 1
@@ -162,7 +162,7 @@ def test_add_outer_collection(page):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['contactlist', 'sortedcontactlist'])
-def test_expand_collection_template(page):
+def test_expand_collection_template(page, viewname):
     formset = page.query_selector('django-formset')
     assert len(formset.query_selector_all(':scope > .collection-siblings > django-form-collection')) == 1
     formset.wait_for_selector(':scope > .collection-siblings > button.add-collection').click()

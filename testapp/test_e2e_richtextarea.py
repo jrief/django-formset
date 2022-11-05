@@ -1,4 +1,5 @@
 import pytest
+from playwright.sync_api import expect
 
 from django.urls import path
 
@@ -42,11 +43,17 @@ def select_ipsum(paragraph):
     paragraph.evaluate('''paragraph => {
         const selection = window.getSelection();
         const range = document.createRange();
+        selection.removeAllRanges();
         range.setStart(paragraph.childNodes[0], 6);
         range.setEnd(paragraph.childNodes[0], 11);
-        selection.removeAllRanges();
         selection.addRange(range);
     }''')
+
+
+def set_caret(page):
+    page.keyboard.press('Home')
+    for _ in range(9):
+        page.keyboard.press('ArrowRight')
 
 
 @pytest.mark.urls(__name__)
@@ -55,7 +62,11 @@ def select_ipsum(paragraph):
 def test_tiptap_marks(page, viewname, menubar, contenteditable, control):
     lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
     contenteditable.type(lorem)
-    select_ipsum(contenteditable.locator('p').element_handle())
     assert contenteditable.inner_html() == f"<p>{lorem}</p>"
-    menubar.locator(f'[richtext-toggle="{control[0]}"]').click()
+    select_ipsum(contenteditable.locator('p'))
+    button = menubar.locator(f'[richtext-toggle="{control[0]}"]')
+    button.click()
     assert contenteditable.inner_html() == f"<p>{lorem[:6]}<{control[1]}>{lorem[6:11]}</{control[1]}>{lorem[11:]}</p>"
+    contenteditable.click(position={'x': 2, 'y': 2})
+    set_caret(page)
+    expect(button).to_have_class('active')

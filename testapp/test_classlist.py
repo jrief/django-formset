@@ -1,6 +1,17 @@
 from formset.boundfield import ClassList
 
 
+def test_constructor():
+    class_list = ClassList()
+    assert str(class_list) == ''
+    class_list = ClassList('foo bar')
+    assert str(class_list) in ['foo bar', 'bar foo']
+    class_list = ClassList(('foo bar'))
+    assert str(class_list) in ['foo bar', 'bar foo']
+    class_list = ClassList(['foo bar'])
+    assert str(class_list) in ['foo bar', 'bar foo']
+
+
 def test_add_class():
     class_list = ClassList()
     class_list.add('foo')
