@@ -1,4 +1,5 @@
 import pytest
+from playwright.sync_api import expect
 
 from django.urls import path
 
@@ -22,11 +23,9 @@ urlpatterns = [
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['new_article'])
 def test_slug_field(page, viewname):
-    title_field = page.query_selector('django-formset input[name="title"]')
-    assert title_field is not None
+    title_field = page.locator('django-formset input[name="title"]')
     assert title_field.evaluate('elem => elem.value') == ""
-    slug_field = page.query_selector('django-formset input[name="slug"]')
-    assert slug_field is not None
+    slug_field = page.locator('django-formset input[name="slug"]')
     assert slug_field.evaluate('elem => elem.value') == ""
     title_field.type("Falsches 'Üben' von Xylophonmusik quält jeden größeren Zwerg.")
     assert slug_field.evaluate('elem => elem.value') == "falsches-uben-von-xylophonmusik-qualt-jeden-grosseren-zwerg"
@@ -35,11 +34,9 @@ def test_slug_field(page, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['current_article'])
 def test_initialized_slug_field(page, viewname):
-    title_field = page.query_selector('django-formset input[name="title"]')
-    assert title_field is not None
+    title_field = page.locator('django-formset input[name="title"]')
     assert title_field.evaluate('elem => elem.value') == ""
-    slug_field = page.query_selector('django-formset input[name="slug"]')
-    assert slug_field is not None
+    slug_field = page.locator('django-formset input[name="slug"]')
     assert slug_field.evaluate('elem => elem.value') == "foo-bar"
     title_field.type("BAR foo")
     assert slug_field.evaluate('elem => elem.value') == "foo-bar"
@@ -48,15 +45,14 @@ def test_initialized_slug_field(page, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['new_article'])
 def test_invalid_slug_field(page, viewname):
-    title_field = page.query_selector('django-formset input[name="title"]')
-    assert title_field is not None
+    title_field = page.locator('django-formset input[name="title"]')
     assert title_field.evaluate('elem => elem.value') == ""
-    slug_field = page.query_selector('django-formset input[name="slug"]')
-    assert slug_field is not None
-    submit_button = page.query_selector('django-formset button[click]')
+    slug_field = page.locator('django-formset input[name="slug"]')
+    assert slug_field.evaluate('elem => elem.value') == ""
+    submit_button = page.locator('django-formset button[click]').first
     submit_button.click()
-    assert page.query_selector('django-formset input[name="title"]:valid') is None
-    assert page.query_selector('django-formset input[name="slug"]:valid') is None
+    expect(page.locator('django-formset input[name="title"]:valid')).not_to_be_visible()
+    expect(page.locator('django-formset input[name="slug"]:valid')).not_to_be_visible()
     title_field.type("A")
-    assert page.query_selector('django-formset input[name="title"]:invalid') is None
-    assert page.query_selector('django-formset input[name="slug"]:invalid') is None
+    expect(page.locator('django-formset input[name="title"]:valid')).to_be_visible()
+    expect(page.locator('django-formset input[name="title"]:valid')).to_be_visible()

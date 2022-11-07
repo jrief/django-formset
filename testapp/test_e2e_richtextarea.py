@@ -70,3 +70,28 @@ def test_tiptap_marks(page, viewname, menubar, contenteditable, control):
     contenteditable.click(position={'x': 2, 'y': 2})
     set_caret(page)
     expect(button).to_have_class('active')
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['new_advertisement'])
+def test_tiptap_heading(page, viewname, menubar, contenteditable):
+    heading = "Tiptap Editor"
+    contenteditable.type(heading)
+    assert contenteditable.inner_html() == f"<p>{heading}</p>"
+    set_caret(page)
+    menu_button = menubar.locator('[richtext-toggle="heading"]')
+    submenu = menubar.locator('[richtext-toggle="heading"] + ul[role="menu"]')
+    expect(submenu).not_to_be_visible()
+    menu_button.click()
+    expect(submenu).to_be_visible()
+    submenu.locator('[richtext-toggle="heading:1"]').click()
+    assert contenteditable.inner_html() == f"<h1>{heading}</h1>"
+    contenteditable.click(position={'x': 2, 'y': 2})
+    set_caret(page)
+    expect(menu_button).to_have_class('active')
+    expect(submenu).not_to_be_visible()
+    menu_button.click()
+    expect(submenu).to_be_visible()
+    expect(submenu.locator('li:first-child')).to_have_class('active')
+    expect(submenu.locator('li:nth-child(2)')).not_to_have_class('active')
+    expect(submenu.locator('li:nth-child(3)')).not_to_have_class('active')
