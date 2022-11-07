@@ -853,7 +853,7 @@ class DjangoForm {
 		this.path = this.name?.split('.') ?? [];
 		const next = element.nextSibling;
 		this.fieldset = next instanceof HTMLFieldSetElement && next.form === element ? new DjangoFieldset(this, next) : null;
-		const placeholder = element.querySelector('.dj-form-errors > .dj-errorlist > .dj-placeholder');
+		const placeholder = element.nextElementSibling?.querySelector('.dj-form-errors > .dj-errorlist > .dj-placeholder');
 		if (placeholder) {
 			this.errorList = placeholder.parentElement;
 			this.errorPlaceholder = this.errorList!.removeChild(placeholder);
