@@ -482,15 +482,15 @@ def test_selector_sorting(page, mocker, view, form, viewname):
     button = page.locator('django-formset .dj-dual-selector .control-column button.dj-undo-selected')
     button.click()
     spy = mocker.spy(view.view_class, 'post')
-    submit_button = page.locator('django-formset button[click]:first-child')
+    submit_button = page.locator('django-formset button[click]').first
     submit_button.click()
+    sleep(0.1)
     assert spy.called is True
     request = json.loads(spy.call_args.args[1].body)
     labels = [f"Opinion {number:04d}" for number in range(40, 48)]
     expected = [str(o.pk) for o in OpinionModel.objects.filter(label__in=labels)]
     expected.insert(0, expected.pop(6))
     expected.append(expected.pop(2))
-    sleep(0.1)
     assert request['formset_data']['weighted_opinions'] == expected
     response = json.loads(spy.spy_return.content)
     assert response == {'success_url': '/success'}
