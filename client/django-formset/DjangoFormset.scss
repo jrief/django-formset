@@ -168,11 +168,10 @@ django-formset {
 }
 
 .dj-button-decorator {
-	vertical-align: inherit;
 	line-height: initial;
 
 	svg {
-		vertical-align: middle;
+		vertical-align: baseline;
 		width: 1rem;
 		height: 1rem;
 
@@ -180,28 +179,21 @@ django-formset {
 			stroke-dasharray: 1000;
 			stroke-dashoffset: 0;
 			&.circle {
-				-webkit-animation: dash 0.9s ease-in-out;
 				animation: dash 0.9s ease-in-out;
 			}
 			&.line {
 				stroke-dashoffset: 1000;
-				-webkit-animation: dash 0.9s 0.35s ease-in-out forwards;
 				animation: dash 0.9s 0.35s ease-in-out forwards;
 			}
 			&.check {
 				stroke-dashoffset: -100;
-				-webkit-animation: dash-check 0.9s 0.35s ease-in-out forwards;
 				animation: dash-check 0.9s 0.35s ease-in-out forwards;
 			}
 		}
 
-		@-webkit-keyframes dash {
-			0% {
-				stroke-dashoffset: 1000;
-			}
-			100% {
-				stroke-dashoffset: 0;
-			}
+		.spinner {
+			transform-origin: center;
+			animation: rotate 1.5s infinite linear;
 		}
 
 		@keyframes dash {
@@ -210,15 +202,6 @@ django-formset {
 			}
 			100% {
 				stroke-dashoffset: 0;
-			}
-		}
-
-		@-webkit-keyframes dash-check {
-			0% {
-				stroke-dashoffset: -100;
-			}
-			100% {
-				stroke-dashoffset: 900;
 			}
 		}
 
@@ -231,24 +214,20 @@ django-formset {
 			}
 		}
 
-	}
+		@keyframes rotate {
+			from {
+				transform: rotate(0deg);
+			}
+			to {
+				transform: rotate(360deg);
+			}
+		}
 
-	@keyframes rotate {
-		from {
-			transform: rotate(0deg);
-		}
-		to {
-			transform: rotate(360deg);
-		}
 	}
 
 	.dj-icon {
 		display: inline-block;
 		width: 1em;
 		height: 1em;
-	}
-
-	.dj-spinner {
-		animation: rotate 1.5s infinite linear;
 	}
 }
