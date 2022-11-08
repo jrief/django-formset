@@ -13,13 +13,16 @@
     fields.
   * Fix: Forms which do not provide data are not validated.
   * Add handler to listen for an external `reset` Event.
-  * Fix: `FileUpload` widget now looses focus after file submission.
+  * Fix: `FileUpload` widget now loses focus after file submission.
   * Handle input fields for URLs properly.
   * Fix missing feedback on datetime and password fields.
   * Fix: An initialized `FormCollection` with siblings but `max_siblings=None`, raised a TypeError.
-  * Pay attention to form attribute `novalidate`.
+  * Fix: Forms now pay attention to form attribute `novalidate`.
   * All `<form>` elements are empty and referred by form=… attribute from their input fields.
-  * Add utility class `ClassList` which behaves similar to its Javascript counterpart `HTMLElement`.
+  * Add Python utility class `ClassList` which behaves similar to its Javascript counterpart
+    `HTMLElement`.
+  * Unify the styling of animated icons, such as "Okay", "Bummer" and "Spinner".
+  * On HTML placeholders used to display feedback errors, add `role="alert"`.
 
 - 0.10.3
   * Fix: Widget `DualSortableSelector` now checks bounds for provided values. This in rare occasions
