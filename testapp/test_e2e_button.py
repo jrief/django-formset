@@ -31,9 +31,9 @@ views = {
         extra_context={'click_actions': click_actions, 'auto_disable': False},
     )
     for ctr, click_actions in enumerate([
-        'disable',
-        'addClass("foo")',
-        'removeClass("button")',
+        'disable -> delay(100)',
+        'addClass("foo") -> delay(100)',
+        'removeClass("button") -> delay(100)',
         'toggleClass("button") -> delay(100) -> toggleClass("foo") -> delay(100) -> toggleClass("bar") -> delay(100) -> toggleClass("foo") -> delay(100) -> toggleClass("bar")',
         'emit("my_event")',
         'emit("my_event", {foo: "bar"})',
@@ -54,16 +54,13 @@ urlpatterns = [path(name, view, name=name) for name, view in views.items()]
 @pytest.mark.parametrize('viewname', ['test_button_0'])
 def test_button_disable(page, viewname):
     button = page.locator('django-formset button').first
-    # assert button_elem is not None
     expect(button).not_to_be_disabled()
-    # assert page.query_selector('django-formset button:disabled') is None
     button.click()
+    sleep(0.02)
     expect(button).to_be_disabled()
-    #assert page.query_selector('django-formset button:disabled') is not None
-    sleep(0.15)
+    sleep(0.1)
     # as a final action, <button> restores its state
     expect(button).not_to_be_disabled()
-    #assert page.query_selector('django-formset button:disabled') is None
 
 
 @pytest.mark.urls(__name__)
@@ -72,8 +69,9 @@ def test_button_add_class(page, viewname):
     button = page.locator('django-formset button').first
     expect(button).to_have_class('button')
     button.click()
+    sleep(0.02)
     expect(button).to_have_class('button foo')
-    sleep(0.15)
+    sleep(0.1)
     # as a final action, <button> restores its state
     expect(button).to_have_class('button')
 
@@ -84,8 +82,9 @@ def test_button_remove_class(page, viewname):
     button = page.locator('django-formset button').first
     expect(button).to_have_class('button')
     button.click()
+    sleep(0.02)
     expect(button).not_to_have_class('button')
-    sleep(0.15)
+    sleep(0.1)
     # as a final action, <button> restores its state
     expect(button).to_have_class('button')
 
@@ -98,6 +97,7 @@ def test_button_toggle_class(page, viewname):
     """
     button = page.locator('django-formset button').first
     button.click()
+    sleep(0.02)
     expect(button).not_to_have_class('button')
     sleep(0.1)
     expect(button).to_have_class('foo')
