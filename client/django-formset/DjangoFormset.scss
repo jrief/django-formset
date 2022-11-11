@@ -98,16 +98,18 @@ django-formset {
 			}
 		}
 
-		&.dj-touched input[type="date"] {
-			&::-webkit-calendar-picker-indicator {
-				opacity: 0;
-			}
-		}
-
 		input {
 			background-repeat: no-repeat !important;
 			background-position: center right !important;
 			background-origin: content-box !important;
+			&[type="date"] {
+				&::-webkit-calendar-picker-indicator {
+					margin-right: 2em;
+				}
+				&:hover::-webkit-calendar-picker-indicator {
+					cursor: pointer;
+				}
+			}
 		}
 
 		select, textarea {
