@@ -116,7 +116,7 @@ def test_tiptap_heading(page, viewname, menubar, contenteditable):
     submenu.locator('[richtext-toggle="heading:1"]').click()
     assert contenteditable.inner_html() == f"<h1>{heading}</h1>"
     contenteditable.click(position={'x': 2, 'y': 2})
-    set_caret(page)
+    set_caret(page, 5)
     expect(menu_button).to_have_class('active')
     expect(submenu).not_to_be_visible()
     menu_button.click()
