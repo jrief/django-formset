@@ -3,6 +3,7 @@ import struct
 from base64 import b16encode
 from functools import reduce
 from operator import or_
+from datetime import date
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import default_storage
@@ -10,7 +11,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
-from django.forms.widgets import FileInput, Select, SelectMultiple, TextInput
+from django.forms.widgets import DateTimeBaseInput, FileInput, Select, SelectMultiple, TextInput
 from django.utils.timezone import datetime, now, utc
 from django.utils.translation import gettext_lazy as _
 
@@ -191,3 +192,22 @@ class UploadedFileInput(FileInput):
                 content_type_extra=handle['content_type_extra'],
             )
         return files.get(name)
+
+
+class DateInput(DateTimeBaseInput):
+    """
+    This is a replacement for Django's date widget ``django.forms.widgets.DateInput`` which renders
+    as ``<input type="text" ...>`` . Since we want to use the browsers built-in validation and
+    optionally its date-picker, we have to use this alternative implementation.
+    """
+    template_name = 'django/forms/widgets/date.html'
+
+    def __init__(self, attrs=None):
+        default_attrs = {'type': 'date', 'pattern': r'\d{4}-\d{2}-\d{2}'}
+        if attrs:
+            default_attrs.update(**attrs)
+        super().__init__(attrs=default_attrs)
+
+    def format_value(self, value):
+        if isinstance(value, date):
+            return value.isoformat()
