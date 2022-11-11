@@ -725,7 +725,7 @@ class DjangoButton {
 	 * Called after all actions have been executed.
 	 */
 	private restore() {
-		return () => window.setTimeout(() => this.restoreToInitial(), 100);
+		return () => window.setTimeout(() => this.restoreToInitial());
 	}
 
 	private decorate(decorator: HTMLElement, ms: number | undefined) {
