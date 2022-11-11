@@ -43,6 +43,10 @@ urlpatterns = [
     path('plain_richtext', DemoFormView.as_view(
         form_class=PlainRichTextForm,
     ), name='plain_richtext'),
+    path('plain_richtext_initialized', DemoFormView.as_view(
+        form_class=PlainRichTextForm,
+        initial={'text': '<p>Click <a href="https://example.org">here</a></p>'},
+    ), name='plain_richtext_initialized'),
     path('json_richtext', DemoFormView.as_view(
         form_class=JSONRichTextForm,
     ), name='json_richtext'),
@@ -137,6 +141,7 @@ def test_tiptap_valid_link(page, viewname, menubar, contenteditable):
     dialog = page.locator('dialog[richtext-opener="link"]')
     expect(dialog).not_to_be_visible()
     menu_button.click()
+    sleep(0.1)
     expect(dialog).to_be_visible()
     text_input = dialog.locator('input[name="text"]')
     expect(text_input).to_have_value("here")
@@ -147,9 +152,57 @@ def test_tiptap_valid_link(page, viewname, menubar, contenteditable):
     save_button = dialog.locator('button[name="save"]')
     save_button.click()
     sleep(0.1)
+    expect(dialog).not_to_be_visible()
     assert contenteditable.inner_html() == '<p>Click <a target="_blank" rel="noopener noreferrer nofollow" href="https://example.org/">here</a></p>'
     set_caret(page, 9)
     expect(menu_button).to_have_class('active')
     set_caret(page, 3)
     set_caret(page, 2)
     expect(menu_button).not_to_have_class('active')
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['plain_richtext', 'json_richtext'])
+def test_tiptap_invalid_link(page, viewname, menubar, contenteditable):
+    clickme = "Click here"
+    contenteditable.type(clickme)
+    assert contenteditable.inner_html() == f"<p>{clickme}</p>"
+    select_text(contenteditable.locator('p'), 6, 10)
+    menu_button = menubar.locator('[richtext-toggle="link"]')
+    dialog = page.locator('dialog[richtext-opener="link"]')
+    expect(dialog).not_to_be_visible()
+    menu_button.click()
+    expect(dialog).to_be_visible()
+    text_input = dialog.locator('input[name="text"]')
+    expect(text_input).to_have_value("here")
+    link_input = dialog.locator('input[name="url"]')
+    expect(link_input).to_have_value("")
+    link_input.type("www.example.org")
+    dialog.click(position={'x': 1, 'y': 1})
+    placeholder = dialog.locator('#id_dialog_edit_link-url + .dj-field-errors .dj-placeholder')
+    expect(placeholder).to_have_text("Enter a valid URL.")
+    dialog.locator('button[name="save"]').click()
+    expect(dialog).to_be_visible()
+    dialog.locator('button[name="close"]').click()
+    sleep(0.1)
+    expect(dialog).not_to_be_visible()
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['plain_richtext_initialized'])
+def test_tiptap_remove_link(page, viewname, menubar, contenteditable):
+    assert contenteditable.inner_html() == '<p>Click <a target="_blank" rel="noopener noreferrer nofollow" href="https://example.org">here</a></p>'
+    select_text(contenteditable.locator('p > a'), 0, 4)
+    menu_button = menubar.locator('[richtext-toggle="link"]')
+    dialog = page.locator('dialog[richtext-opener="link"]')
+    expect(dialog).not_to_be_visible()
+    menu_button.click()
+    expect(dialog).to_be_visible()
+    text_input = dialog.locator('input[name="text"]')
+    expect(text_input).to_have_value("here")
+    link_input = dialog.locator('input[name="url"]')
+    expect(link_input).to_have_value("https://example.org")
+    dialog.locator('button[name="remove"]').click()
+    sleep(0.1)
+    expect(dialog).not_to_be_visible()
+    contenteditable.inner_html() == '<p>Click here</p>'

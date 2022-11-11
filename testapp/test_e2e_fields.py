@@ -89,7 +89,7 @@ def bound_form(view):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', views.keys())
-def test_form_validity(page, bound_form):
+def test_form_validity(page, bound_form, viewname):
     form_elem_valid = page.query_selector('django-formset form:valid')
     form_elem_invalid = page.query_selector('django-formset form:invalid')
     if bound_form.is_valid():
@@ -102,7 +102,7 @@ def test_form_validity(page, bound_form):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', views.keys())
-def test_touch_input_field(page, form):
+def test_touch_input_field(page, form, viewname):
     field_group = page.query_selector('django-formset django-field-group')
     assert 'dj-untouched' in field_group.get_attribute('class')
     assert 'dj-pristine' in field_group.get_attribute('class')
@@ -121,7 +121,7 @@ def test_touch_input_field(page, form):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', views.keys())
-def test_touch_and_blur_input_field(page, view, form):
+def test_touch_and_blur_input_field(page, view, form, viewname):
     name = next(iter(form.fields.keys()))
     input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
     input_elem.click()
@@ -156,7 +156,7 @@ def test_touch_and_blur_input_field(page, view, form):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', views.keys())
-def test_touch_and_change_input_field(page, form):
+def test_touch_and_change_input_field(page, form, viewname):
     name = next(iter(form.fields.keys()))
     input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
     input_elem.click()
