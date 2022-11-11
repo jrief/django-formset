@@ -1,9 +1,9 @@
 import os
 import struct
 from base64 import b16encode
+from datetime import date
 from functools import reduce
 from operator import or_
-from datetime import date
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import default_storage
