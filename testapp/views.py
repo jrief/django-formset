@@ -473,7 +473,7 @@ urlpatterns = [
     path('advertisementform', DemoFormView.as_view(
         form_class=AdvertisementForm,
         #initial={'text': initial_html},
-    ), kwargs={'group': 'model', 'index': 19}, name='advertisementform'),
+    ), kwargs={'group': 'form', 'index': 19}, name='advertisementform'),
     path('button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',
