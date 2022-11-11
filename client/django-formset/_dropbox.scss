@@ -27,6 +27,7 @@
 			flex-grow: 1;
 			display: block;
 			height: inherit;
+			max-width: calc(100% - 12rem);
 		}
 
 		> figcaption {
@@ -34,6 +35,7 @@
 			padding: 0.25rem 0.5rem;
 			background-color: white;
 			overflow-x: hidden;
+			min-width: 12rem;
 
 			dl {
 				font-size: small;
