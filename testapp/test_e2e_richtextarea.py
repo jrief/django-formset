@@ -151,4 +151,5 @@ def test_tiptap_valid_link(page, viewname, menubar, contenteditable):
     set_caret(page, 9)
     expect(menu_button).to_have_class('active')
     set_caret(page, 3)
+    set_caret(page, 2)
     expect(menu_button).not_to_have_class('active')
