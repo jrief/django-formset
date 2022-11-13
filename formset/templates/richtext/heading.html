@@ -1,9 +1,9 @@
-{% if node.content %}
-<p>
+{% if node.content %}{% with level=node.attrs.level %}
+<h{{ level }}>
 	{% for item in node.content %}
 		{% with template="./"|add:item.type|lower|add:".html" %}
 			{% include template with node=item %}
 		{% endwith %}
 	{% endfor %}
-</p>
-{% endif %}
+</h{{ level }}>
+{% endwith %}{% endif %}

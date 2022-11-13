@@ -1,6 +1,1 @@
-{% extends request.resolver_match.app_name|default:"testapp"|add:"/base.html" %}
-{% load render_richtext from tiptap %}
-
-{% block "main-content" %}
-	{% render_richtext object.text %}
-{% endblock %}
+{% load richtext %}{% render_richtext object.text %}

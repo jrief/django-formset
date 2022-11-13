@@ -1,4 +1,4 @@
-{% spaceless %}{% if node.content %}
+{% if node.content %}
 <li>
 {% for item in node.content %}
 	{% with template="./"|add:item.type|lower|add:".html" %}
@@ -6,4 +6,4 @@
 	{% endwith %}
 {% endfor %}
 </li>
-{% endif %}{% endspaceless %}
+{% endif %}
