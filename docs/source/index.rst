@@ -28,6 +28,8 @@ Django ``Form``-s.
 	uploading
 	selectize
 	dual-selector
+	rich-textarea
+	slug-input-field
 	development
 
 Indices and tables

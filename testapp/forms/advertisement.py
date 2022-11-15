@@ -67,7 +67,7 @@ class AdvertisementForm(forms.Form):
     .. code-block:: python
 
         from django.forms import forms
-        from formset.widgets import RichTextarea
+        from formset.richtext.widgets import RichTextarea
 
         class AdvertisementForm(forms.Form):
             text = fields.CharField(

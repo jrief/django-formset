@@ -88,7 +88,7 @@ def get_file_info(field_file):
 
 class FileUploadMixin:
     """
-    Add this mixin class to views classes using forms which accept file uploads through
+    Add this mixin to any Django View class using a form which accept file uploads through
     the provided widget :class:`formset.widgets.UploadedFileInput`.
     """
     filename_max_length = 250

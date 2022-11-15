@@ -13,7 +13,7 @@ from formset.widgets import DualSelector, Selectize
 
 class IncompleteSelectResponseMixin:
     """
-    Add this mixin class to views classes using forms with incomplete fields. These fields
+    Add this mixin to any Django View class using forms with incomplete fields. These fields
     usually are of type ChoiceField referring to a foreign model and using one of the widgets
     :class:`formset.widgets.Selectize`, :class:`formset.widgets.SelectizeMultiple` or
     :class:`formset.widgets.DualSelector`.
