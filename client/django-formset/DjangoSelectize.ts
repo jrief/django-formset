@@ -40,9 +40,7 @@ class DjangoSelectize extends IncompleteSelect {
 		if (tomInput.hasAttribute('multiple')) {
 			config.maxItems = parseInt(tomInput.getAttribute('max_items') ?? '3');
 			const translation = tomInput.parentElement?.querySelector('template.selectize-remove-item');
-			if (translation) {
-				config.plugins = {remove_button: {title: translation.innerHTML}};
-			}
+			config.plugins = {remove_button: {title: translation?.innerHTML ?? "Remove item"}};
 			// tom-select has some issues to initialize items using the original input element
 			const scriptId = `${tomInput.getAttribute('id')}_initial`;
 			config.items = JSON.parse(document.getElementById(scriptId)?.textContent ?? '[]');
