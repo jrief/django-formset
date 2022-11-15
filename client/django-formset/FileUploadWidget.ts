@@ -188,7 +188,7 @@ export class FileUploadWidget {
 	}
 
 	public inProgress(): boolean {
-		return !!this.inputElement.files && this.inputElement.files.length > this.uploadedFiles.length;
+		return !!this.inputElement.files && this.inputElement.files.length > 0 && !this.uploadedFiles.length;
 	}
 
 	public resetToInitial() {
