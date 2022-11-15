@@ -23,6 +23,8 @@
     `HTMLElement`.
   * Unify the styling of animated icons, such as "Okay", "Bummer" and "Spinner".
   * On HTML placeholders used to display feedback errors, add `role="alert"`.
+  * Fix: Uploading more than one image caused the ``UploadWidget`` to complain with "File upload
+    still in progress."
 
 - 0.10.3
   * Fix: Widget `DualSortableSelector` now checks bounds for provided values. This in rare occasions
