@@ -5,14 +5,13 @@ Submit Button Controls
 ======================
 
 In HTML each form must be submitted through a user defined action. This normally is done using
-either an input field, or a button with type submit. This ``<button type="submit">`` must be placed
-inside the ``<form>...</form>``-element. 
+either an input field, or a button with type submit. This ``<button type="submit">Submit</button>``
+or ``<input type="submit" value="Submit">`` must be placed inside the ``<form>...</form>``-element. 
 
-**django-formset** has a different approach. Submit buttons shall be able to do much more than just
-triggering an event, which then proceeds with a predefined action on the form. Instead, a button
-when clicked, can perform a whole chain of actions. This allows us to trigger more than one event,
-whenever a user clicks on a button.
-
+**django-formset** has a different approach: Submit buttons shall be able to do *much more* than
+just triggering an event, which then proceeds with a predefined action on the form. Instead,
+a button when clicked, can perform a whole chain of actions. This allows us to trigger more than one
+event, whenever a user clicks on a button.
 
 All controlling buttons must be placed inside the ``<django-formset>``-element. A typically submit
 button therefore may look like
@@ -86,6 +85,12 @@ together with **django-formset**:
   automatically removed from the class.
 * ``removeClass("foo")`` removes the CSS class "foo" to the button class.
 * ``toggleClass("foo")`` toggles the CSS class "foo" on the button class.
+* ``confirm("A question?")`` opens a confirmation popup with the given message string together with
+  a "Cancel" and an "OK" button. If the user clicks on "Cancel", the action chain is interrupted.
+  This action typically preceeds the ``submit``-action to prompt the user for confirmation.
+* ``alertOnError`` typically is added after the ``!~`` operator. In case the form submission
+  generated an non-form-validation error, for instance "permission denied", this error is shown in
+  an alert box. 
 * ``emit("event name")`` emit a named event to the DOM.
 * ``intercept`` intercepts the response object after submission and prints it onto the console. This
   is only useful for debugging purpose.

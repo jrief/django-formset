@@ -712,6 +712,36 @@ class DjangoButton {
 	}
 
 	/**
+	 * Confirm a user response. If it is accepted proceed, otherwise reject.
+ 	 */
+	// @ts-ignore
+	private confirm(message: string) {
+		if (typeof message !== 'string')
+			throw new Error("The confirm() action requires a message.")
+		return (response: Response) => {
+			if (window.confirm(message)) {
+				return Promise.resolve(response);
+			} else {
+				return Promise.reject({});
+			}
+		}
+	}
+
+	/**
+	 * Show an alert message with the response text for other types of errors, such as permission denied.
+	 * This can be useful information to the end user in case the Django endpoint can not process a request.
+ 	 */
+	// @ts-ignore
+	private alertOnError() {
+		return (response: Response) => {
+			if (response.status !== 422) {
+				window.alert(response.statusText);
+			}
+			return Promise.resolve(response);
+		}
+	}
+
+	/**
 	 * Dummy action to be called in case of empty actionsQueue.
  	 */
 	private noop() {
@@ -1616,7 +1646,7 @@ export class DjangoFormset {
 						console.warn(`Unknown response status: ${response.status}`);
 						this.clearErrors();
 						this.buttons.forEach(button => button.restoreToInitial());
-						break;
+						return response;
 				}
 			} catch (error) {
 				this.clearErrors();

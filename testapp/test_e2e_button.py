@@ -5,6 +5,7 @@ from time import sleep
 
 from django.core.exceptions import ValidationError
 from django.forms import fields, Form
+from django.http.response import HttpResponseForbidden
 from django.urls import path
 
 from formset.views import FormView
@@ -26,6 +27,11 @@ class NativeFormView(FormView):
     success_url = '/success'
 
 
+class ForbiddenView(NativeFormView):
+    def post(self, request, **kwargs):
+        return HttpResponseForbidden()
+
+
 views = {
     f'test_button_{ctr}': NativeFormView.as_view(
         extra_context={'click_actions': click_actions, 'auto_disable': False},
@@ -38,6 +44,7 @@ views = {
         'emit("my_event")',
         'emit("my_event", {foo: "bar"})',
         'submit !~ scrollToError',
+        'confirm("Submit?") -> submit',
     ])
 }
 views['test_button_submit'] = NativeFormView.as_view(
@@ -45,6 +52,9 @@ views['test_button_submit'] = NativeFormView.as_view(
 )
 views['test_button_submit_with_data'] = NativeFormView.as_view(
     extra_context={'click_actions': 'submit({foo: "bar"})', 'auto_disable': True},
+)
+views['test_button_alert'] = ForbiddenView.as_view(
+    extra_context={'click_actions': 'submit !~ alertOnError -> delay(100)'},
 )
 
 urlpatterns = [path(name, view, name=name) for name, view in views.items()]
@@ -132,12 +142,10 @@ def test_button_emit_custom_event(page, mocker, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_6'])
 def test_button_scroll_to_error(page, viewname):
-    input_elem = page.query_selector('#id_enter')
-    assert input_elem is not None
+    input_elem = page.locator('#id_enter')
     input_elem.type("invalid")
     input_elem.evaluate('elem => elem.blur()')
-    button_elem = page.query_selector('django-formset button')
-    assert button_elem is not None
+    button_elem = page.locator('django-formset button').first
     success_chain, reject_chain = button_elem.get_attribute('click').split('!~')
     assert 'submit' in success_chain
     assert 'scrollToError' in reject_chain
@@ -152,29 +160,78 @@ def test_button_scroll_to_error(page, viewname):
 
 
 @pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['test_button_7'])
+def test_button_confirm_accept(page, mocker, viewname):
+    def handle_dialog(dialog):
+        assert dialog.type == 'confirm'
+        assert dialog.message == "Submit?"
+        dialog.accept()
+
+    input_elem = page.locator('#id_enter')
+    input_elem.type("Is Valid")
+    input_elem.evaluate('elem => elem.blur()')
+    page.once('dialog', handle_dialog)
+    button = page.locator('django-formset button').first
+    spy = mocker.spy(FormView, 'post')
+    button.click()
+    assert spy.called is True
+    request = json.loads(spy.call_args.args[1].body)
+    assert request['formset_data']['enter'] == "Is Valid"
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['test_button_7'])
+def test_button_confirm_dismiss(page, mocker, viewname):
+    def handle_dialog(dialog):
+        assert dialog.type == 'confirm'
+        assert dialog.message == "Submit?"
+        dialog.dismiss()
+
+    input_elem = page.locator('#id_enter')
+    input_elem.type("Is Valid")
+    input_elem.evaluate('elem => elem.blur()')
+    page.once('dialog', handle_dialog)
+    button = page.locator('django-formset button').first
+    spy = mocker.spy(FormView, 'post')
+    button.click()
+    assert spy.called is False
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['test_button_alert'])
+def test_button_alert(page, viewname):
+    def handle_dialog(dialog):
+        assert dialog.type == 'alert'
+        assert dialog.message == "Forbidden"
+        dialog.dismiss()
+
+    input_elem = page.locator('#id_enter')
+    input_elem.type("invalid")
+    input_elem.evaluate('elem => elem.blur()')
+    page.once('dialog', handle_dialog)
+    button = page.locator('django-formset button').first
+    button.click()
+
+
+@pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_submit'])
 def test_button_autodisable(page, viewname):
-    button_elem = page.query_selector('django-formset button:disabled')
-    assert button_elem is not None
-    input_elem = page.query_selector('django-formset #id_enter')
-    assert input_elem is not None
+    button_elem = page.locator('django-formset button').first
+    expect(button_elem).to_be_disabled()
+    input_elem = page.locator('#id_enter')
     input_elem.type("BAR")
     input_elem.evaluate('elem => elem.blur()')
-    button_elem = page.query_selector('django-formset button:enabled')
-    assert button_elem is not None
+    expect(button_elem).to_be_enabled()
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_submit'])
 def test_button_submit(page, mocker, viewname):
-    input_elem = page.query_selector('#id_enter')
-    assert input_elem is not None
+    input_elem = page.locator('#id_enter')
     input_elem.type("BAR")
     input_elem.evaluate('elem => elem.blur()')
-    button_elem = page.query_selector('django-formset button')
-    assert button_elem is not None
+    button_elem = page.locator('django-formset button').first
     spy = mocker.spy(FormView, 'post')
-    page.wait_for_selector('django-formset button').click()
+    button_elem.click()
     assert spy.called is True
     request = json.loads(spy.call_args.args[1].body)
     assert request['formset_data']['enter'] == "BAR"
@@ -182,15 +239,13 @@ def test_button_submit(page, mocker, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_submit_with_data'])
-def test_button_submit_with_data(page, mocker):
-    input_elem = page.query_selector('#id_enter')
-    assert input_elem is not None
+def test_button_submit_with_data(page, mocker, viewname):
+    input_elem = page.locator('#id_enter')
     input_elem.type("BAR")
     input_elem.evaluate('elem => elem.blur()')
-    button_elem = page.query_selector('django-formset button')
-    assert button_elem is not None
+    button_elem = page.locator('django-formset button').first
     spy = mocker.spy(FormView, 'post')
-    page.wait_for_selector('django-formset button').click()
+    button_elem.click()
     assert spy.called is True
     request = json.loads(spy.call_args.args[1].body)
     assert request['_extra']['foo'] == "bar"
