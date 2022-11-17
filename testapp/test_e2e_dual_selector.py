@@ -197,6 +197,7 @@ def test_move_selected_right(page, mocker, view, form, viewname):
     assert option.get_attribute('value') not in right_option_values
     spy = mocker.spy(view.view_class, 'post')
     page.wait_for_selector('django-formset > p button').click()
+    sleep(0.1)
     assert spy.called is True
     request = json.loads(spy.call_args.args[1].body)
     assert set(request['formset_data']['model_choice']) == right_option_values
