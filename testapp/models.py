@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.db import models
 
-from formset.fields import RichTextField, SortableManyToManyField
+from formset.fields import SortableManyToManyField
+from formset.richtext.fields import RichTextField
 
 
 class PayloadModel(models.Model):

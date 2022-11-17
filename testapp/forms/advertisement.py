@@ -19,7 +19,7 @@ class AdvertisementModelForm(models.ModelForm):
     .. code-block:: python
 
         from django.db.models import Model
-        from formset.fields import RichTextField
+        from formset.richtext.fields import RichTextField
 
         class AdvertisementModel(Model):
             text = RichTextField()

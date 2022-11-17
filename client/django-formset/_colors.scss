@@ -10,8 +10,8 @@ $selected-items-border-color: rgba(0, 0, 0, 0.15);
 $active-items-background-color: rgba(0, 0, 0, 0.05);
 
 // RichTextArea
-$richtext-button-active: beige;
-$richtext-button-hover: whitesmoke;
+$richtext-button-active: rgba(0, 0, 0, 0.1);
+$richtext-button-opacity: 0.5;
 
 @use "sass:color";
 $django-formset-color-invalid: 'rgb(' + #{color.red($django-formset-alert), color.green($django-formset-alert), color.blue($django-formset-alert)} + ')';

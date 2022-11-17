@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
             name='AdvertisementModel',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', formset.fields.RichTextField()),
+                ('text', formset.richtext.fields.RichTextField()),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
             ],
         ),

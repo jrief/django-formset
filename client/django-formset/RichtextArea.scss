@@ -1,8 +1,8 @@
 @import "colors";
 
 .dj-richtext-wrapper {
-	--button-hover: #{$richtext-button-hover};
 	--button-active: #{$richtext-button-active};
+	--button-opacity: #{$richtext-button-opacity};
 
 	position: relative;
 
@@ -31,10 +31,12 @@
 			border-radius: 0.25rem;
 			padding: 0.25rem;
 			background-color: inherit;
+			opacity: var(--button-opacity);
 			&:hover {
-				background-color: var(--button-hover);
+				opacity: 1;
 			}
 			&.active {
+				opacity: 1;
 				background-color: var(--button-active);
 			}
 			&[richtext-toggle="heading"] {
@@ -57,11 +59,19 @@
 					list-style: none;
 					background-color: inherit;
 					border-color: black;
-					> li:hover {
-						background-color: var(--button-hover);
-					}
-					> li.active {
-						background-color: var(--button-active);
+					> li {
+						background-color: inherit;
+						opacity: var(--button-opacity);
+
+						&:hover {
+							opacity: 1;
+						}
+
+						&.active {
+							color: inherit;
+							opacity: 1;
+							background-color: var(--button-active);
+						}
 					}
 				}
 				&[aria-expanded="true"] + ul[role="menu"] {
