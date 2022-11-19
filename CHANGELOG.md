@@ -4,11 +4,11 @@
   * Add widget for Django's [SlugField](https://docs.djangoproject.com/en/latest/ref/forms/fields/#slugfield).
   * Add widget to handle rich text using the [Tiptap](https://tiptap.dev/) editor framework.
   * Load submodules with 3rd party dependencies dynamically. This decreases the initial Javascript
-    payload by ~90% copared to a monolithic build.
+    payload by ~90% compared to a monolithic build.
   * In addition to the [esbuild compiler](https://esbuild.github.io/), add scripts to compile the
     TypeScript code using [rollup](https://rollupjs.org/guide/en/) + [babel](https://babeljs.io/) +
     [terser](https://terser.org/).
-  * Webcomponents are initialized on the `DOMContentLoaded` (instead of `load`) Event.
+  * Web components are initialized on the `DOMContentLoaded` (instead of `load`) Event.
   * Fix: The `Selectize` widget now uses the same border styles for feedback as other input/select
     fields.
   * Fix: Forms which do not provide data are not validated.
