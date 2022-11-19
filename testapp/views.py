@@ -357,18 +357,17 @@ might look like:
 	...
 	{% formsetify form %}
 	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
-	  <form>
-	    {% include "formset/non_field_errors.html" %}
-	    {% for field in form %}
-	      {% if field.is_hidden %}
-	        {{ field }}
-	      {% elif field.name == "my_special_field" %}
-	        {% include "myproject/my_special_field.html" %}
-	      {% else %}
-	        {% include "formset/default/field_group.html" %}
-	      {% endif %}
-	    {% endfor %}
-	  </form>
+	  <form id="{{ form.form_id }}"></form>
+	  {% include "formset/non_field_errors.html" %}
+	  {% for field in form %}
+	    {% if field.is_hidden %}
+	      {{ field }}
+	    {% elif field.name == "my_special_field" %}
+	      {% include "myproject/my_special_field.html" %}
+	    {% else %}
+	      {% include "formset/default/field_group.html" %}
+	    {% endif %}
+	  {% endfor %}
 	  <button type="button" click="submit -> proceed">Submit</button>
 	</django-formset>
 """
