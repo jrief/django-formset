@@ -64,11 +64,11 @@ Building the Parser
 
 The content of the button attribute ``click``, and the input field and fieldset attributes
 ``show-if``, ``hide-if`` and ``disable-if`` are parsed before being evaluated by the code
-implementing the webcomponent. This parser is generated using PEG.js and compiles to a pure
+implementing the web component. This parser is generated using PEG.js and compiles to a pure
 TypeScript module. The grammar describing this proprietary syntax can be found in
 ``assets/tag-attributes.pegjs``. The final parser is generated using ``npm run tag-attributes``
 and written to ``client/django-formset/tag-attributes.ts``. It then is imported by the code
-implementing the webcomponent ``client/django-formset/DjangoFormset.ts``.
+implementing the web component ``client/django-formset/DjangoFormset.ts``.
 
 
 Building the Client

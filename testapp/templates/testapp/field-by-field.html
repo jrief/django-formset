@@ -4,16 +4,15 @@
 {% block "main-content" %}
 <django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}" csrf-token="{{ csrf_token }}">
 	{% formsetify form framework form_classes=form_css_classes field_classes=field_css_classes label_classes=label_css_classes|default:None control_classes=control_css_classes %}
-	<form>
-		{% include "formset/non_field_errors.html" %}
-		{% for field in form %}
-			{% if field.is_hidden %}
-				{{ field }}
-			{% else %}
-				{% include "formset/default/field_group.html" %}
-			{% endif %}
-		{% endfor %}
-	</form>
-	{% include "./buttons.html" %}
+	<form id="{{ form.form_id }}"></form>
+	{% include "formset/non_field_errors.html" %}
+	{% for field in form %}
+		{% if field.is_hidden %}
+			{{ field }}
+		{% else %}
+			{% include "formset/default/field_group.html" %}
+		{% endif %}
+	{% endfor %}
+	{% include framework|default:"testapp"|add:"/buttons.html" %}
 </django-formset>
 {% endblock %}

@@ -6,7 +6,7 @@ Fieldsets
 
 In HTML the ``<form>``-element is just a data-abstraction layer. It has no display properties and is
 not intended to be styled or annotated. Its purpose is to group one or more input fields, in order
-to submit them to the server altogether.
+to submit their gathered input data to the server altogether.
 
 On the other side, we might want to visually group those input fields and optionally add a legend
 tag to create a caption for the form. We also might want to group related input fields visually by
@@ -14,10 +14,10 @@ surrounding them with a border. For this purpose the HTML standard defines the `
 Django itself does not offer any abstraction for this HTML tag. If one wants to use it, this has to
 be done on the template level when rendering the form.
 
-To fill this gap, **django-formset** introduces a Python class to handle the Fieldset element. From
-a technical point of view, a fieldset behaves exactly like a single form and in HTML it always is
-wrapped inside a ``<form>``-element. If we want to use more than one fieldset, then we have to group
-them using :ref:`collections`, just as we would do with normal forms.
+To fill this gap, **django-formset** introduces a Python class to handle the ``<fieldset>``-element.
+From a technical point of view, a fieldset behaves exactly like a single form and in HTML it always
+must be wrapped inside a ``<form>``-element. If we want to use more than one fieldset, then we have
+to group them using :ref:`collections`, just as we would do with normal forms.
 
 Another purpose of using fieldsets, appart from adding a border and legend to a form, is to use
 :ref:`conditionals`. This allows us to hide or disable the whole fieldset depending on the context

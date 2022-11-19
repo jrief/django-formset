@@ -4,7 +4,7 @@ Documentation of ``<django-formset>``
 
 **Building beautiful Forms in Django with a contemporary User eXperience has never been easier.**
 
-``<django-formset>`` is a webcomponent to let the browser pre-validate one or more standard
+``<django-formset>`` is a web component to let the browser pre-validate one or more standard
 Django ``Form``-s.
 
 
@@ -19,8 +19,8 @@ Django ``Form``-s.
 	django-formset
 	styling
 	buttons
-	fieldsets
 	collections
+	fieldsets
 	model-form
 	model-collections
 	renderers
@@ -28,7 +28,7 @@ Django ``Form``-s.
 	uploading
 	selectize
 	dual-selector
-	rich-textarea
+	richtext
 	slug-input-field
 	development
 

@@ -1,14 +1,14 @@
 .. _django-formset:
 
-=================================
-Webcomponent ``<django-formset>``
-=================================
+==================================
+Web Component ``<django-formset>``
+==================================
 
-When a form is rendered using a Django template, we must wrap it inside the webcomponent
+When a form is rendered using a Django template, we must wrap it inside the web component
 ``<django-formset>``. This component then takes care of the client-part, such as the form
 validation, submission, error handling and many other features.
 
-A mandatory attribute of each webcomponent ``<django-formset>`` is its ``endpoint``. This is the
+A mandatory attribute of each web component ``<django-formset>`` is its ``endpoint``. This is the
 URL pointing onto a Django view and this is how the client-part communicates with the server.
 Typically that endpoint is connected to a view inheriting from :class:`formset.views.FormView`. We
 can either inherit from that class, specialize into our own view class and register it in the URL
@@ -23,7 +23,7 @@ router,
 	    form_class = RegisterPersonForm
 	    success_url = '/success'
 
-or use that class directly in ``urls.py`` while defining the routing:
+or use the class ``FormView`` directly in ``urls.py`` while defining the routing:
 
 .. code-block:: python
 
@@ -57,9 +57,9 @@ We can do this, because the endpoint is located on the same URL as the view rend
 	  ...
 	</django-formset>
 
-An optional attribute to this webcomponent is ``force-submission``. By adding this attribute, we can
+An optional attribute to this web component is ``force-submission``. By adding this attribute, we can
 force a submission to the server, even if the form did not validate on the client side. The default
-is to always validate all form fields on the client, and only if all of them validate, proceed with
+is to always validate all form fields on the client, and only if all of them pass, proceed with
 the submission to the server.
 
 
@@ -71,12 +71,13 @@ the submission to the server.
 	  ...
 	</django-formset>
 
-An optional attribute to this webcomponent is ``withhold-feedback``. By setting this to
+An optional attribute to this web component is ``withhold-feedback``. By setting this to
 ``messages``, ``errors``, ``warnings``, ``success``, or any combination of thereof, we can withhold
-the feedback immediately shown after the user types into a field or whenever a field looses focus.
-When combining two or more of those values, separate them by spaces.
+the feedback, which is shown immediately after the user types into a field or when a field looses
+focus. When combining two or more "withhold feedback" values, separate them by spaces, for instance 
+``withhold-feedback="warnings success"``.
 
-Adding ``messages`` to ``withhold-feedback="..."`` means, that the error messages below the field
+Adding ``messages`` to ``withhold-feedback="..."`` means, that the error message below the field
 will not be rendered when the user blurs a field with invalid data. 
 
 Adding ``errors`` to ``withhold-feedback="..."`` means, that the border does not change color
@@ -93,9 +94,9 @@ Adding ``success`` to ``withhold-feedback="..."`` means, that the border does no
 valid data.
 
 The attribute ``withhold-feedback="..."`` only has effect while editing the form fields. Whenever
-the user clicks onto the submit button of a form containing invalid data, then all fields which
+the user clicks on the submit button of a form containing invalid data, then all fields which
 did not validate, will show their error message together with an alert symbol and an alert border
 (usually red).
 
-Non-field errors need more validation logic and therefore must always be computed by the server,
-usually the ``clean()``-method of the form class.
+Non-field errors need more validation logic and therefore are always determined on the server,
+usually by the ``clean()``-method of the form class.

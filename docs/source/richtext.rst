@@ -1,8 +1,8 @@
-.. _rich-textarea:
+.. _richtext:
 
-=============
-Rich Textarea
-=============
+==============
+Edit Rich Text
+==============
 
 A Rich Textarea allows editing or pasting formatted text, similar to traditional "What you see is
 what you get" (WYSIWYG) editors. The current implementation offers common text formatting options
@@ -10,7 +10,7 @@ such as paragraphs, headings, emphasised and bold text, ordered and bulleted lis
 More text formating options will be implemented in the future.
 
 The **django-formset** library provides a widget, which can be used as a drop in replacement for the
-HTML element ``<textarea>``, imlemented as webcomponent. In a Django form's ``CharField``, we just
+HTML element ``<textarea>``, imlemented as web component. In a Django form's ``CharField``, we just
 have to replace the built-in widget against :class:`formset.richtext.widgets.RichTextarea`.
 
 .. code-block:: python
@@ -133,16 +133,16 @@ when adding a new formatting option.
 Richtext as a Model Field
 =========================
 
-In the example from above, we used a Django form ``CharField`` and replaced the default widget. A
-more common use case is to store the entered rich text in a database field. Here **django-formset**
-offers two solutions:
+In the example from above, we used a Django form ``CharField`` and replaced the default widget
+provided by Django (``TextInput``). A more common use case is to store the entered rich text in
+a database field. Here **django-formset** offers two solutions:
 
 .. rubric:: Using HTML
 
 Storing rich text as HTML inside the database using the field `django.db.models.fields.TextField`_  
 is the simplest solution. It however requires to override the default widget (``Textarea``) against
-the ``RichTextarea`` provided by this library, when instantiating the form associated with this
-model.
+the ``RichTextarea`` provided by **django-formset**, when instantiating the form associated with
+this model.
 
 .. _django.db.models.fields.TextField: https://docs.djangoproject.com/en/stable/ref/models/fields/#textfield
 
@@ -156,4 +156,23 @@ template filter `{{ …|safe }}`_.
 
 .. rubric:: Using JSON
 
+Since HTML content has an implicit tree structure, an alternative approach to HTML is to keep this
+hierarchie unaltered when storing. The best suited format for this is JSON. This approach has the
+big advantage, it is rendered during runtime, allowing to adopt the resulting HTML as needed.
 
+**django-formset** provides a special model field class
+:class:`formset.richtext.fields.RichTextField`. It shall be used as a replacement to Django's model
+field class ``TextField``. This model field provides the widget ``RichTextarea`` using the default
+settings. Often that might not be the desired configuration, and it may be necessary to re-declare
+that widget, while creating the form from the model.
+
+Since the content is stored in JSON, it has to be converted to HTML while rendering. For this
+purpose **django-formset** offers a templatetag, which can be used such as:
+
+.. code-block:: django
+
+	{% load richtext %}
+	
+	{% render_richtext obj.content %}
+
+Here ``obj`` is a Django object with a field of type ``RichTextField``.

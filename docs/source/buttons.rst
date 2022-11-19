@@ -9,9 +9,9 @@ either an input field, or a button with type submit. This ``<button type="submit
 or ``<input type="submit" value="Submit">`` must be placed inside the ``<form>...</form>``-element. 
 
 **django-formset** has a different approach: Submit buttons shall be able to do *much more* than
-just triggering an event, which then proceeds with a predefined action on the form. Instead,
-a button when clicked, can perform a whole chain of actions. This allows us to trigger more than one
-event, whenever a user clicks on a button.
+just triggering an event, which then proceeds with submitting its form content to the server.
+Instead, a button when clicked, can perform a whole chain of actions. This allows us to trigger more
+than one event, whenever a user clicks on a button.
 
 All controlling buttons must be placed inside the ``<django-formset>``-element. A typically submit
 button therefore may look like
@@ -28,21 +28,21 @@ button therefore may look like
 Action Queues
 =============
 
-What we see here are 4 actions, ``disable``, ``submit``, ``proceed`` and ``scrollToError``. Let's go
-into details: 
+What we see here are 4 actions: ``disable``, ``submit``, ``proceed`` and ``scrollToError``. Let's
+explain their functionality:
 
 * In ``disable``, the button disables itself. This is useful to prevent double submissions and
   should be used whenever possible.
 * In ``submit``, the content of the form(s) inside the ``<django-formset>`` is submitted to the
   server through the given endpoint. This function can take extra values which are submitted along
   with the form data. If for example we use ``submit({foo: "bar"})`` then that extra submit data
-  is available in our View entity connected to the given endpoint. That extra submitted data then
-  can be accessed by calling ``self.get_extra_data()``. 
+  is available in our ``FormView`` instance connected to the given endpoint. That extra submitted
+  data then can be accessed by calling ``self.get_extra_data()``. 
 * If the submission was successful, ``proceed`` tells the client what to do next. If called without
-  parameter, the default is to load the page given by the ``success_url`` in the Django View
-  handling the request. If instead we use ``proceed("/path/to/success/page")``, that page is loaded
-  on successful form submission. This allows web designers to specify that URL like a link, rather
-  than having to rely on a response from the server.
+  parameter, the default is to load the page given by the ``success_url`` provided by our Django
+  view handling the request. If instead we use ``proceed("/path/to/success/page")``, that page is
+  loaded on successful form submission. This allows web designers to specify that URL like a link,
+  rather than having to rely on a response from the server.
 
 A submission which did not validate on the server is considered as failed and the response status
 code is 422, rather than 200. This is where the ``!~`` comes into play. It acts similar to a
@@ -59,7 +59,7 @@ catch-statement and everything after that symbol is executed on submission failu
   input data.
 
 The above 4 functions are the most useful ones, but there are many more functions to be used
-together with **django-formset**:
+as queued actions for buttons in **django-formset**:
 
 * ``enable`` is used to re-enable a previously disabled button. By default, every button is put into
   the state just before having clicked on it, regardless if the submission was successful or not.
@@ -127,3 +127,63 @@ Here we delay the okay tick by 1.5 seconds before proceeding to the next page.
   :alt: Submit Button (failure)
 
 In case of failure, we render the bummer symbol for 10 seconds before resetting it to the default.
+
+
+Buttons without a Form
+======================
+
+Sometimes we just need to send a certain event to the server, without having to fill out a form.
+Consider a blog application, where the blog post model contains a boolean field named ``published``.
+We want our application to show a preview page of our blog post, so after editing and submitting the
+main content, the detail page of that post shall appear. There we add a button to publish the page.
+With **django-formset**, we can reuse the same edit view. 
+
+This is the final part of the template rendering the detail view of our blog post:
+
+.. code-block:: django
+
+	{# the detailt view of our blog post #}
+	{% if is_owner %}
+	  <django-formset endpoint="{{ editview_url }}" csrf-token="{{ csrf_token }}">
+	    {# no <form> element is rendered here, because single field `published` is handled through action buttons #}
+	    {% if post.published %}
+	      <button type="button" click="submit({published: false}) -> proceed">
+	        Unpublish Post
+	      </button>
+	    {% else %}
+	      <button type="button" click="submit({published: true}) -> proceed">
+	        Publish Post
+	      </button>
+	    {% endif %}
+	      <button type="button" click="proceed('{{ editview_url }}')">
+	        Change Post
+	      </button>
+	  </django-formset>
+	{% endif %}
+
+Here ``editview_url`` points onto the view used to edit the blog post:
+
+.. code-block:: python
+	:caption: edit_view.py
+
+	class EditBlogPostView(LoginRequiredMixin, FormViewMixin, UpdateView):
+	    model = BlogPost
+	    form_class = BlogPostForm
+	    template_name = 'edit-blog-post.html'
+	
+	    def post(self, request, *args, **kwargs):
+	        if extra_data := self.get_extra_data():
+	            if 'published' in extra_data:
+	                instance = self.get_object()
+	                instance.published = extra_data['published']
+	                instance.save(update_fields=['published'])
+	                return JsonResponse({'success_url': self.get_success_url()
+	        return super().post(request, *args, **kwargs)
+
+	    # other methods
+
+What we do here is to bypass form validation if we find out that besides "form data", some
+``extra_data`` is submitted. This data originates from the ``submit({published: true/false})``
+buttons from above. 
+
+This neat trick allows us to reuse the edit view class for a similar purpose.

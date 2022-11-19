@@ -19,10 +19,12 @@ widgets, for five different CSS frameworks.
   horizontally or vertically.
 * Select widgets with predefined options.
 * Select widgets with autocomplete behaviour.
-* Select widgets with allowing a limited number of multiple selections.
+* Select widgets allowing a limited number of multiple selections.
 * Select widgets with a source and target field, allowing a large number of multiple selections.
   This widget usually is used for fields mapping a many-to-many relation.
 * Textarea fields.
+* Rich textarea fields.
+* Slug input fields.
 * File upload fields with asynchronous upload and drag & drop support.
 
 Currently not supported widgets:
@@ -34,9 +36,9 @@ Default Styling
 ===============
 
 The default **django-formset** styling intentionally renders all the fields as the browser would by
-default. This admittedly looks very rough and we only use it, if we want to style every aspect of our
-web site. This requires to write the CSS ourselves. If we use one of the known CSS frameworks, then
-instead we will proceed with one of the specialized renderers. The concept for rendering a form
+default. This admittedly looks very rough and we only use it, if we want to style every aspect of
+our web site. This requires to write the CSS ourselves. If we use one of the known CSS frameworks,
+then instead we will proceed with one of the specialized renderers. The concept for rendering a form
 remains to same, independently of the CSS framework.
 
 Say we have a typical Django form
@@ -65,6 +67,10 @@ Say we have a typical Django form
 	        choices=[('m', "Male"), ('f', "Female")],
 	        widget=widgets.RadioSelect,
 	        error_messages={'invalid_choice': "Please select your gender."},
+	    )
+
+	    authorized = fields.BooleanField(
+	        label="Authorized to sign?",
 	    )
 
 When rendered using the view class :class:`formset.views.FormView` together with this template 
@@ -127,7 +133,7 @@ and get the same form instance rendered in a much nicer looking way:
   :alt: Bootstrap Form
 
 Compared to the unstyled form shown in the previous section, we notice that the radio fields
-are inlined and that the checkbox is positioned before its label. This behaviour is intended.
+are inlined and that the checkbox is positioned before its label. This is intended behaviour.
 
 According to the Bootstrap's usage guide, checkboxes shall be placed on the left side of their
 label. Django can't handle this by itself, because it does not distinguish between checkbox input
@@ -160,13 +166,16 @@ and we get a form rendered as
 Inlining Radio Buttons and Multiple Checkboxes
 ----------------------------------------------
 
-In **django-formset**, radio buttons and multiple checkboxes can be inlined, if there are only a
+In **django-formset**, radio buttons and/or multiple checkboxes can be inlined, if there are only a
 few of them. The default threshold is 4 and can be modified with the parameter
 ``max_options_per_line``. It can be passed in through the templatetag
 
 .. code-block:: django
 
 	  {% render_form form "bootstrap" max_options_per_line=3 %}
+
+If the number of radio buttons and/or multiple checkboxes exceeds this threshold, those fields are
+rendered below each other.
 
 
 Bulma
@@ -270,7 +279,4 @@ input fields as proposed by `UIKit's form rendering guide`_.
 
 Unless there is a strong community interest, it might be that support for this framework will be
 removed in the future, since I do not see any benefit using UIKit compared to any of the much more
-popular frameworks.
-
-
-
+popular and advanced CSS frameworks.

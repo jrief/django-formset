@@ -8,14 +8,16 @@ A very powerful feature of **django-formset** is the ability to create a collect
 Django we quite often create forms out of models and want to edit more than one of those forms on
 the same page and post them in a single submission. By using a prefix on each Django Form, it is
 possible to name the fields uniquely and on submission we can reassign the form data back to each
-individual form. This however is limited to one nesting level and is quite cumbersome to handle.
+individual form. This however is limited to one nesting level and in order to add extra forms
+dynamically, we must create our own JavaScript function, which is not provided by the Django
+framework.
 
 In **django-formset** on the other hand, we can create a form collection and explicitly add existing
 forms as members of those collection. It even is possible to add a collection as member of another
 collection, in order to build a pseudo nested [#1]_ structure of forms.
 
 The interface for classes inheriting from :class:`formset.collection.FormCollection` is
-intentionally very similar to that of Django's Form class. It can be filled with a ``data``
+intentionally very similar to that of a Django ``Form`` class. It can be filled with a ``data``
 dictionary as received by a POST request. It also can be initialized with a ``initial`` dictionary.
 Since collections can be nested, the ``data`` and ``initial`` dictionaries must contain the same
 shape as the nested structure.
@@ -40,26 +42,27 @@ We use this kind of collection, if we just want to group two or more forms toget
 
 .. note::
 	The above example will render the form with the default style. To render the form with a specific
-	css framework you need to specify the ``default_renderer`` attribute on your ``FormCollection``. 
-	For example :
+	CSS framework you need to specify the ``default_renderer`` attribute on your ``FormCollection``. 
 
-	.. code-block:: python
-		:caption: my_forms.py
+Example:
+
+.. code-block:: python
+
+	from formset.collection import FormCollection
+	from formset.renderers.bootstrap import FormRenderer
+
+	class MyFormCollection(FormCollection):
+	    default_renderer = FormRenderer()
+	    form1 = MyForm1()
+	    form2 = MyForm2()
 	
-		from formset.collection import FormCollection
-		from formset.renderers.bootstrap import FormRenderer
-	
-		class MyFormCollection(FormCollection):
-		 	default_renderer = FormRenderer()
-			form1 = MyForm1()
-			form2 = MyForm2()
-	
-	All supported css frameworks define a ``FormRenderer`` that can be imported with a path similar 
-	to the one defined in the example.
+All supported CSS frameworks define a ``FormRenderer`` that can be imported with a path similar 
+to the one defined in the example, for instance ``formset.renderers.bulma.FormRenderer``, 
+``formset.renderers.tailwind.FormRenderer``, etc.
 
 Collections must be rendered using the special View class :class:`formset.views.FormCollectionView`:
-The template used to render our Form Collection must ensure that the CSRF-token is set; this is
-done by passing that CSRF token value as attribute to the webcomponent ``<django-formset>``.
+The template used to render this Form Collection must ensure that the CSRF-token is set; this is
+done by passing that CSRF token value as attribute to the web component ``<django-formset>``.
 Otherwise this View just behaves like an ordinary Form View embedded in a **django-formset**.
 
 .. code-block:: django
@@ -99,6 +102,7 @@ increased if required).
 Just as with simple collections, form data sent by the browser is already structured using the same
 hierarchy as the collection themselves.
 
+.. _collections-with-siblings:
 
 Collections with Siblings
 =========================
@@ -114,7 +118,7 @@ that we can nest collections into each other recursively.
 Whenever a collection is declared to have siblings, its member collections are rendered from zero,
 once or multiple times. For each collection with siblings there is one "Add" button, and for each of
 the child collections there is a "Remove" button. To avoid having too many "Remove" buttons, they
-become only visible when moving the cursor over that collection.
+are invisible by default and only become visible when moving the cursor over that collection.
 
 
 .. rubric:: Legend
@@ -136,7 +140,7 @@ specified as attribute ``help_text = "…"`` inside classes inheriting from
 .. rubric:: Label for "Add" button
 
 The parameter ``add_label`` shall contain a human readable string, telling the user what kind of
-collection to add as sibling. If unset, the "Add" button just contains a **+** symbol.
+collection to add as sibling. If unset, the "Add" button just contains the **+** symbol.
 
 
 .. rubric:: Minimum Number of Siblings
@@ -172,13 +176,13 @@ change the underlying model.
 
 .. rubric:: Ignore collections marked for removal
 
-The boolean parameter ``ignore_marked_for_removal`` tells the ``clean()``-method of the class
-inheriting from :class:`formset.collection.FormCollection` how to proceed with collections marked
-for removal. If unset or ``False`` (the default), such collections contain the special key value
-pair ``'_marked_for_removal_: True`` in their returned ``cleaned_data`` structure. This information
-shall be used, when the backend has to locate the proper model in order to delete it. If
-``ignore_marked_for_removal`` is ``True``, then collections marked for removal do not even appear
-inside the ``cleaned_data`` structure returned by the ``clean()``-method.
+Adding the boolean parameter ``ignore_marked_for_removal`` to a class inheriting from
+:class:`formset.collection.FormCollection` tells the ``clean()``-method how to proceed with
+collections marked for removal. If unset or ``False`` (the default), such collections contain the
+special key value pair ``'_marked_for_removal_': True`` inside their returned ``cleaned_data``
+structure. This information shall be used, when the backend has to locate the proper model in order
+to delete it. If ``ignore_marked_for_removal = True``, then collections marked for removal do not
+even appear inside that ``cleaned_data`` structure returned by the ``clean()``-method.
 
 
 Sortable Collections with Siblings
@@ -189,22 +193,22 @@ This allows the user to sort the siblings of a collection. To achieve this, eith
 ``is_sortable = True`` when declaring the collection class, or instantiate the collection class
 by passing ``is_sortable=True`` to its constructor.
 
-Form collections declared to by sortable display a small drag area on their top right corner. By
+Form collections declared to by sortable, render a small drag area on their top right corner. By
 dragging that handle, the user can reorder the chosen collections. On form submission, that new
 order is reflected inside the list of transferred fields. When using a sortable collection to edit a 
-(query-)set of models, it therefore is mandatory to include the primary key of each object as hidden
-field. Otherwise it will not be possible to resort those objects afterwards in the database.
+(query-)set of models, it therefore is mandatory to include the primary key of each object as a
+hidden input field. Otherwise it will not be possible to resort those objects afterwards in the
+database.
 
 .. image:: _static/tailwind-sortable-collection.png
   :width: 610
   :alt: Sortable Collection
 
-One must note that it is only possible reorder collections inside its direct parent collection. It
-therefore is not possible to drag a sub collection into another collection.
+One must note that it is only possible to reorder collections inside its direct parent collection.
+It therefore is not possible to drag a sub collection into another collection.
 
 
 .. rubric:: Footnotes
 
-.. [#1] HTML does not allow to nest ``<form>``-elements. However, we can wrap those
-         ``<form>``-s into our own webcomponents which themselves are nested and hence mimick that
-         behaviour. 
+.. [#1] HTML does not allow to nest ``<form>``-elements. However, we can wrap those ``<form>``-s
+	into our own web components which themselves are nested and hence mimick that behaviour. 

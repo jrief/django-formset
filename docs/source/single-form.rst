@@ -4,13 +4,14 @@
 Working with a single Form
 ==========================
 
-In Django we typically connect a single Form with a `FormView`_ class. Requests arriving with method
-GET will create an empty or prefilled form instance and render it by the template specified in the
-view class. This view class then is connected to our URL router:
+In Django we typically assign a single form to a `FormView`_ class. Requests arriving with method
+GET will create an empty or prefilled form instance and render it using the template specified in
+the view class. This view class then is connected to our URL router:
 
 .. _FormView: https://docs.djangoproject.com/en/stable/topics/class-based-views/generic-editing/#basic-forms
 
 .. code-block:: python
+	:caption: urls.py
 
 	from formset.views import FormView
 
@@ -38,29 +39,29 @@ processed view is neither an HTTP redirect nor a HTML page, but just a data obje
 JSON. If that form validates successfully, that response object just contains the success URL with a
 status code of 200. On the other side, if the form does not validate, then that response object
 contains the error messages of the fields submitting invalid data, indexed by their field names. The
-status code of that response then is 422, which stands for "`Unprocessable Entity`_". Having the
+status code of such a response then is 422, which stands for "`Unprocessable Entity`_". Having the
 server respond with a status code indication an error, makes it easier for the client to distinguish
 between validated and invalid forms.
 
 .. _Unprocessable Entity: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422
 
-For invalid forms, the client's JavaScript code handling the webcomponent, then fills the
-placeholders near the offending input fields with those error messages. It also puts the HTML form
-element into an invalid state, so that it can not be re-submitted before editing.
+For invalid forms, the client's JavaScript code handling the web component ``<django-formset>``,
+then fills the placeholders near the offending input fields with those error messages. It also puts
+the HTML form element into an invalid state, so that it can not be re-submitted before editing.
 The response on validated forms can be used to update the database or do other processing before
 telling the browser where to go next. Instead of sending a HTTP redirect, the server now sends the
-success URL wrapped in a JavaScript object. When receiving this, the browser just loads the page
-with that URL. This also prevents that users can accidently submit the form data twice, in case they
-click on the browser's reload button.
+success URL wrapped in a JavaScript object. When receiving this response, the browser just loads the
+page with that URL. This also prevents that users can accidently submit the form data twice, in case
+they click on the browser's reload button.
 
-A Django Form using **django-formset** can be rendered using three different methods:
+A Django form using **django-formset** can be rendered using three different methods:
 
 .. _native_form:
 
 Using a Native Django Form
 ==========================
 
-Working with a native Django Form, presumably is the most frequent use case. Here we add an
+Working with a native Django form, presumably is the most frequent use case. Here we add an
 instantiation of that form to the rendering context. Then that form instance is rendered using the
 special template tag ``render_form``. The template responsible for rendering shall be written as:
 
@@ -80,27 +81,33 @@ our form. When rendered, the above form will roughly turn into HTML such as:
 .. code-block:: html
 
 	<django-formset endpoint="/path/to/form-view" csrf-token="{{ csrf_token }}">
-	  <form class="rounded-xl">
+	  <form id="id_registerpersonform"></form>
+	  <div class="rounded-xl dj-form">
 	    <div class="dj-form-errors"><ul class="dj-errorlist"></ul></div>
 	    <django-field-group class="mb-5 dj-required">
 	      <label class="formset-label">First name:</label>
-	      <input class="formset-text-input" type="text" name="first_name" required="" pattern="^[A-Z][a-z -]+$">
-	      <div class="dj-field-errors">
+	      <input class="formset-text-input" form="id_registerpersonform" type="text" name="first_name" required="" pattern="^[A-Z][a-z -]+$">
+	      <div role="alert" class="dj-field-errors">
 	        <django-error-messages value_missing="This field is required." type_mismatch="A first name must start in upper case." pattern_mismatch="A first name must start in upper case." bad_input="Null characters are not allowed."></django-error-messages>
 	        <ul class="dj-errorlist"><li class="dj-placeholder"></li></ul>
 	      </div>
 	    </django-field-group>
 	    <!-- other form fields snipped away -->
-	  </form>
+	  </div>
 	  <button type="button" click="submit -> proceed">Submit</button>
 	</django-formset>
 
 Compared to the way the native Django form renderer works, we see a few differences here: The most
-ovious one is, that each input field is wrapped into a ``<django-field-group>``. Event tough this
-tag may look like another webcomponent, it just is a non-visual HTML element. Its purpose is to
-group one or more input elements belonging to one field together. Remember that in HTML radios and
-multiple checkboxes have more than one input element, but in Django they are considered as a single
-form field.
+ovious one is, that input fields are not wrapped into their ``<form>``-element. Instead they refer
+the form they belong to by ID using the attribute ``form="id_registerpersonform"``. This is so that
+forms can logically be nested into each other. Remember: It is invalid HTML to nest one
+``<form>``-element into another one, but using that trick we can mimick that bahviour.
+
+Also note that each input field is wrapped into a ``<django-field-group>``-element. Event tough this
+tag may look like another web component, it just is a non-visual HTML element. Its purpose is to
+group one or more input elements (in Django we name them widgets) belonging to one field together.
+Remember that in HTML radios and multiple checkboxes have more than one input element, but in Django
+they are considered as a single form field.
 
 Moreover, CSS frameworks such as Bootstrap require to `group`_ the label and their input fields
 into one HTML element, typically a ``<div>``. This is what the ``<django-field-group>`` does, in
@@ -150,18 +157,19 @@ The template required to render such a form then shall look like:
 
 Let's discuss these lines of HTML code step by step:
 
-Since the JavaScript implementing webcomponent ``<django-formset>`` communicates via Ajax with the
+Since the JavaScript implementing web component ``<django-formset>`` communicates via Ajax with the
 server, having a hidden field containing the CSRF-token doesn't make sense. Instead we pass that
-token value as attribute to the webcomponent ``<django-formset>``. Since that value is available in
+token value as attribute to the web component ``<django-formset>``. Since that value is available in
 the rendering context, we always add it as ``<django-formset csrf-token="{{ csrf_token }}">``.
 
 Having setup the form's template this way, allows us to render the form instance as a string. This
 is what ``{{ form }}`` does. On the first sight, this may seem more cumbersome that the solution
 shown before when :ref:`native_form`. In some situations however, it might be simpler to change the
-signature of the form class in Python code, rather than changing the template code. Another use case
-would be to, when many forms with renderers, each configured different, shall be rendered by the
-same form. Then this setup might make more sense. Please also check the section about
-:ref:`renderers`.
+signature of the form class in Python code, rather than changing the code in the template.
+
+Another use case would be to have a form with more than one renderer, each configured differently.
+We then can reuse a Django template but for instance render the form with different CSS classes.
+If such a setup might make sense in your project, please check the section about :ref:`renderers`.
 
 
 .. _field_by_field:
@@ -180,18 +188,17 @@ template:
 	...
 	{% formsetify form %}
 	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
-	  <form>
-	    {% include "formset/non_field_errors.html" %}
-	    {% for field in form %}
-	      {% if field.is_hidden %}
-	        {{ field }}
-	      {% elif field.name == "my_special_field" %}
-	        {% include "myproject/my_special_field.html" %}
-	      {% else %}
-	        {% include "formset/default/field_group.html" %}
-	      {% endif %}
-	    {% endfor %}
-	  </form>
+	  <form id="{{ form.form_id }}"></form>
+	  {% include "formset/non_field_errors.html" %}
+	  {% for field in form %}
+	    {% if field.is_hidden %}
+	      {{ field }}
+	    {% elif field.name == "my_special_field" %}
+	      {% include "myproject/my_special_field.html" %}
+	    {% else %}
+	      {% include "formset/default/field_group.html" %}
+	    {% endif %}
+	  {% endfor %}
 	  <button type="button" click="submit -> proceed">Submit</button>
 	</django-formset>
 
@@ -199,11 +206,11 @@ Let's discuss these lines of HTML code step by step:
 
 First we have to "formsetify" our form. This is required in order to change the signature of the
 form class as described in the previous section. If the form instance already inherits from
-:class:`formset.utils.FormMixin`, then this step can be skipped.
+:class:`formset.utils.FormMixin`, then this operation can be skipped.
 
-We then iterate over all form fields. Here we must distinguish between hidden and visible fields.
-While the latter shall be wrapped inside a ``<django-field-group>`` each, the former shall not.
-We can then further specialize our rendering logic, depending on which field we want to render.
+We then iterate over all form fields. Here we must distinguish between hidden and visible input
+fields. While the latter shall be wrapped inside a ``<django-field-group>`` each, the former shall
+not. We can then further specialize our rendering logic, depending on which field we want to render.
 
 Rendering a form field-by-field shall only be used as last resort, because it inhibits the reuse
 of the rendering templates. If fields have to be styled explicitly, for instance to place the input

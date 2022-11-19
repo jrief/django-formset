@@ -7,7 +7,7 @@ Creating Forms from Models
 Just as in Django, forms can be created from models and rendered by **django-formset**.  
 
 Say, we use the same model as described in the Django documentation, ie. ``myapp.models.Article``,
-and then we use that model to create a form class, for example:
+and then we use that model to create a form class:
 
 .. code-block:: python
 
