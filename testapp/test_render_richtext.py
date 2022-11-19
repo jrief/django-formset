@@ -238,3 +238,38 @@ def test_render_link():
     }}
     html = render_to_string('testapp/tiptap.html', context)
     assert html == '<p>Click <a href="https://example.org">here</a></p>'
+
+
+def test_render_alternative_template():
+    context = {'object': {
+        'text': {
+            'type': 'doc',
+            'content': [{
+                'type': 'paragraph',
+                'content': [{
+                    'type': 'text',
+                    'text': 'This is '
+                }, {
+                    'type': 'text',
+                    'marks': [{
+                        'type': 'bold'
+                    }],
+                    'text': 'bold'
+                }, {
+                    'type': 'text',
+                    'text': ' '
+                }, {
+                    'type': 'text',
+                    'marks': [{
+                        'type': 'italic'
+                    }],
+                    'text': 'and italic'
+                }, {
+                    'type': 'text',
+                    'text': ' text.'
+                }]
+            }]
+        }
+    }}
+    html = render_to_string('testapp/tiptap-alternative.html', context)
+    assert html == '<article><p>This is <strong>bold</strong> <em>and italic</em> text.</p></article>'
