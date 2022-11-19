@@ -13,16 +13,16 @@ dynamically, we must create our own JavaScript function, which is not provided b
 framework.
 
 In **django-formset** on the other hand, we can create a form collection and explicitly add existing
-forms as members of those collection. It even is possible to add a collection as member of another
+forms as members of those collections. It's even possible to add a collection as a member of another
 collection, in order to build a pseudo nested [#1]_ structure of forms.
 
 The interface for classes inheriting from :class:`formset.collection.FormCollection` is
 intentionally very similar to that of a Django ``Form`` class. It can be filled with a ``data``
-dictionary as received by a POST request. It also can be initialized with a ``initial`` dictionary.
+dictionary as received by a POST request. It also can be initialized with an ``initial`` dictionary.
 Since collections can be nested, the ``data`` and ``initial`` dictionaries must contain the same
 shape as the nested structure.
 
-Furthermore a ``FormCollection`` offers a ``clean()``-method, which returns a cleaned representation
+Furthermore, a ``FormCollection`` offers a ``clean()``-method, which returns a cleaned representation
 of the data provided by a client's submission.
 
 
@@ -96,11 +96,11 @@ Nested Collection
 =================
 
 A Form Collection can not only contain other Django Forms, but also other Form Collections. This
-means, that we can nest collections into each other up to currently 10 levels (this limit can be
+means that we can nest collections into each other up to currently 10 levels (this limit can be
 increased if required).
 
 Just as with simple collections, form data sent by the browser is already structured using the same
-hierarchy as the collection themselves.
+hierarchy as the collections themselves.
 
 .. _collections-with-siblings:
 
@@ -132,7 +132,7 @@ specified as attribute ``legend = "…"`` inside classes inheriting from
 .. rubric:: Help Text
 
 A form collection may optionally render a ``<div>…</div>``- or ``<p>…</p>``-element (depending on
-the best practices of the CSS framework) at its end, containg a help text string. It shall be
+the best practices of the CSS framework) at its end, containing a help text string. It shall be
 specified as attribute ``help_text = "…"`` inside classes inheriting from
 :class:`formset.collection.FormCollection`, or as a parameter when initializing the collection.
 
@@ -140,7 +140,7 @@ specified as attribute ``help_text = "…"`` inside classes inheriting from
 .. rubric:: Label for "Add" button
 
 The parameter ``add_label`` shall contain a human readable string, telling the user what kind of
-collection to add as sibling. If unset, the "Add" button just contains the **+** symbol.
+collection to add as a sibling. If unset, the "Add" button just contains the **+** symbol.
 
 
 .. rubric:: Minimum Number of Siblings
@@ -197,7 +197,7 @@ Form collections declared to by sortable, render a small drag area on their top 
 dragging that handle, the user can reorder the chosen collections. On form submission, that new
 order is reflected inside the list of transferred fields. When using a sortable collection to edit a 
 (query-)set of models, it therefore is mandatory to include the primary key of each object as a
-hidden input field. Otherwise it will not be possible to resort those objects afterwards in the
+hidden input field. Otherwise it will not be possible to reorder those objects afterwards in the
 database.
 
 .. image:: _static/tailwind-sortable-collection.png
@@ -210,5 +210,5 @@ It therefore is not possible to drag a sub collection into another collection.
 
 .. rubric:: Footnotes
 
-.. [#1] HTML does not allow to nest ``<form>``-elements. However, we can wrap those ``<form>``-s
-	into our own web components which themselves are nested and hence mimick that behaviour. 
+.. [#1] HTML does not allow nesting ``<form>``-elements. However, we can wrap those ``<form>``-s
+	into our own web components which themselves are nested and hence mimic that behavior. 

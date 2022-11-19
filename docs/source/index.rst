@@ -29,8 +29,9 @@ Django ``Form``-s.
 	selectize
 	dual-selector
 	richtext
-	slug-input-field
+	slug-input
 	development
+	contributing
 
 Indices and tables
 ==================

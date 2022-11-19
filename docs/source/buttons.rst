@@ -39,7 +39,7 @@ explain their functionality:
   is available in our ``FormView`` instance connected to the given endpoint. That extra submitted
   data then can be accessed by calling ``self.get_extra_data()``. 
 * If the submission was successful, ``proceed`` tells the client what to do next. If called without
-  parameter, the default is to load the page given by the ``success_url`` provided by our Django
+  arguments, the default is to load the page given by the ``success_url`` provided by our Django
   view handling the request. If instead we use ``proceed("/path/to/success/page")``, that page is
   loaded on successful form submission. This allows web designers to specify that URL like a link,
   rather than having to rely on a response from the server.
@@ -50,7 +50,7 @@ catch-statement and everything after that symbol is executed on submission failu
 
 .. note:: According to `RFC4918 Section 12.1`_, a status code of 422 can be used if a request body
    contains well-formed (i.e., syntactically correct), but semantically erroneous, instructions.
-   Even though, the cited RFC applies to XML, invalid form data submitted via JSON can as well be
+   Even though the cited RFC applies to XML, invalid form data submitted via JSON can as well be
    interpreted as “semantically erroneous”.
 
 .. _RFC4918 Section 12.1: https://www.rfc-editor.org/rfc/rfc4918#section-11.2
@@ -87,20 +87,20 @@ as queued actions for buttons in **django-formset**:
 * ``toggleClass("foo")`` toggles the CSS class "foo" on the button class.
 * ``confirm("A question?")`` opens a confirmation popup with the given message string together with
   a "Cancel" and an "OK" button. If the user clicks on "Cancel", the action chain is interrupted.
-  This action typically preceeds the ``submit``-action to prompt the user for confirmation.
+  This action typically precedes the ``submit``-action to prompt the user for confirmation.
 * ``alertOnError`` typically is added after the ``!~`` operator. In case the form submission
   generated an non-form-validation error, for instance "permission denied", this error is shown in
   an alert box. 
 * ``emit("event name")`` emit a named event to the DOM.
 * ``intercept`` intercepts the response object after submission and prints it onto the console. This
-  is only useful for debugging purpose.
+  is only useful for debugging purposes.
 * ``clearErrors`` clears all error annotations from a previously failed form validation.
 * ``noop`` does nothing and can be used as a placeholder.
 
 
 By combining these button actions, we gain a huge set of possibilities to improve the user
 experience. If for instance, form processing takes more than say one second, we shall somehow
-signalize to the user that the submission might take some time. This is where the ``spinner`` action
+signal to the user that the submission might take some time. This is where the ``spinner`` action
 renders a spinning wheel. After a successful submission, we might want to signalize to the user that
 everything is okay, before proceeding to the next page without notification. This is where the
 ``okay`` action displays an animated tick. In case of an unsuccessful submission attempt, we might
@@ -142,7 +142,7 @@ This is the final part of the template rendering the detail view of our blog pos
 
 .. code-block:: django
 
-	{# the detailt view of our blog post #}
+	{# the detail view of our blog post #}
 	{% if is_owner %}
 	  <django-formset endpoint="{{ editview_url }}" csrf-token="{{ csrf_token }}">
 	    {# no <form> element is rendered here, because single field `published` is handled through action buttons #}

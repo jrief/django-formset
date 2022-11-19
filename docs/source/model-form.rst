@@ -52,6 +52,44 @@ In case we want to map a model field of type ``django.db.models.FileField`` or
 *uploaded before* form submission. Please read the section :ref:`uploading` for details about file
 uploading.
 
+.. code-block:: python
+
+	from formset.widgets import UploadFileInput
+
+	class ArticleForm(ModelForm):
+	    class Meta:
+	        ...
+	        widgets = {
+	            'image': UploadFileInput(),
+	            ...
+	        }
+
+
+.. rubric:: Replacing Widget for TextField
+
+In case we want to offer a widget to :ref:`richtext` but prefer to use the model field
+``django.db.models.TextField``, we have to map this widget in the ``Meta`` class of the form
+class instantiating the model.
+
+.. code-block:: python
+
+	from formset.richtext.widgets import RichTextarea
+
+	class ArticleForm(ModelForm):
+	    class Meta:
+	        ...
+	        widgets = {
+	            'text': RichTextarea(),
+	            ...
+	        }
+
+Usually you don't want to use the default control elements for that rich text editor, but instead
+configure your own preferences.
+
+The model field :class:`formset.richtext.fields.RichTextField` maps to widget ``RichTextarea`` by
+default, but again you may prefer to use your own configuration of control elements and hence you
+have to map the widget in the ``Meta`` class of the form class instantiating the model.
+
 
 Detail View for ``ModelForm``
 =============================
@@ -64,7 +102,7 @@ model. The Django documentation proposes to `create one view for each of these t
 .. _create one view for each of these tasks: https://docs.djangoproject.com/en/stable/ref/class-based-views/generic-editing/#generic-editing-views
 
 With **django-formset** we instead can combine them into one view class. This is because we can add
-extra context data to the form control buttons, which then is sumbitted together with the form data.
+extra context data to the form control buttons, which then is submitted together with the form data.
 An example:
 
 .. code-block:: python
@@ -116,7 +154,7 @@ data together with the submitted form data. We use that information in the ``for
 our view to distinguish between the creation, the update or the deletion of an instance, see above. 
 
 Finally we must attach that view class to our URL routing. Here we reuse our form view class
-``ArticleEditView`` and use the parameter ``extra_context`` to modify the behaviour of that view.
+``ArticleEditView`` and use the parameter ``extra_context`` to modify the behavior of that view.
 
 .. code-block:: python
 

@@ -6,10 +6,10 @@ Conditional Field and Fieldset Expressions
 
 Sometimes it doesn't make sense to render all fields of a form. Consider for instance a
 questionnaire of a radiologist, who wants to know if the patient is pregnant. If that patient
-is a male, he might even be offended by that question. The most user friendly solution to this is to
+is a male, he might even be offended by that question. The most user-friendly solution to this is to
 hide or disable such a field.
 
-**django-formset** offers three conditionals:
+For this purpose **django-formset** offers three conditionals:
 
 * ``show-if="condition"``: The field or fieldset is only shown if the condition evaluates to true.
 * ``hide-if="condition"``: The field or fieldset is only shown if the condition evaluates to false.
@@ -17,15 +17,16 @@ hide or disable such a field.
 
 The ``condition`` can be any logical JavaScript expression. It can contain comparison operators such
 as ``==``, ``<`` or ``!=`` and logical operators such as ``&&``, ``||`` and ``!``. This conditional
-expression also has access to all the values inside the complete ``<django-formset>``. Values from
-fields in the same form can be accessed using a relative path, starting with dot, for instance
+expression also has access to all the values in the complete context of ``<django-formset>``. Values
+from fields in the same form can be accessed using a relative path, starting with dot, for instance
 ``.fieldname``. Values from fields in other forms can be accessed by specifying the complete path to
 that field, for instance ``formname.fieldname``. This also works for deeply nested forms.
 
 .. note:: Fields using the conditionals ``show-if="…"`` or ``hide-if="…"`` shall use the attribute
 	``required=False`` during initialization. This is because otherwise Django's form validation
 	rejects that field as required, meanwhile it has been hidden by the client. In case only visible
-	fields are required, add some validation code to the ``clean()`` method of that form.
+	fields are required, adopt the validation code of the ``clean()``-method in the corresponding
+	form class.
 
 
 Example Form

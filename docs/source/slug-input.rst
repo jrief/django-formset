@@ -1,14 +1,14 @@
-.. _slug-input-field:
+.. _slug-input:
 
 ================
 Slug Input Field
 ================
 
 This widget is used to create a "slug" using the value of another input field, which typically is a
-text field. It usually is used as the browsers counterpart for a Django SlugField_.
+text field. It usually is used as the browser's counterpart for a Django SlugField_.
 
-The Django Admin provides such client-side functionality, where one can specify that field to be
-prepopulated using the content of another text input field. To emulate a similar behaviour,
+The Django Admin provides such client-side functionality, where one can specify that (slug) field to
+be prepopulated using the content of another text input field. To emulate a similar behavior,
 **django-formset** provides a special widget named ``SlugInput``.
 
 .. _SlugField: https://docs.djangoproject.com/en/stable/ref/forms/fields/#slugfield
@@ -38,8 +38,13 @@ slug (e.g. substituting dashes for spaces, lowercasing letters and rewriting uni
 ASCII letters).
 
 Prefilled slug fields aren't modified after a value has been saved as this usually is undesired
-behaviour.
+behavior.
 
-This implementation of the ``SlugInput`` widget is based on the JavaScript library slug_.
+
+Implementation
+==============
+
+This implementation of the ``SlugInput`` widget is based on the JavaScript library slug_ by Rich
+Trott and contributors.
 
 .. _slug: https://www.npmjs.com/package/slug

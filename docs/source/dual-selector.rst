@@ -4,7 +4,7 @@
 Dual Selector Widget
 ====================
 
-This widget usually is used to control the mapping of a many-to-many relation. It consists of two
+This widget is usually used to control the mapping of a many-to-many relation. It consists of two
 HTML elements of type ``<select multiple ...>`` placed side by side. The left part contains the
 available options to select from, while the right part contains the already selected options.
 Between those two select fields, six buttons are located. With the first four, one can move selected
@@ -51,8 +51,8 @@ Undo and Redo Buttons
 ---------------------
 
 While working with these kinds of widgets, it can easily happen to accidentally move the wrong
-options. Often the only solution to this is to reset the form and restart over again. By using the
-**DualSelector** widget, one can use the undo and redo buttons to switch to the previous selections.
+options. Sometimes the only solution to this is to reset the form and restart over again. By using
+the **DualSelector** widget, one can use the undo and redo buttons to switch to the previous selections.
 
 
 Usage
@@ -88,8 +88,8 @@ Comparison with SelectizeMultiple
 ---------------------------------
 
 The **DualSelector** widget can be considered as the big sibling of the :ref:`selectize-multiple`
-widget. Both widgets use the same lookup interface and hence can easily be swapped out against each
-other, by changing the widget argument in the choice field. 
+widget. Both widgets use the same lookup interface and hence can arbitrarily be swapped out against
+each other, by changing the widget argument in the choice field. 
 
 From a usability point of view, the **SelectizeMultiple** widget probably is easier to understand,
 especially for inexperienced users. It is best suited when only a few options (say, less than 15)
@@ -105,19 +105,20 @@ functionality is required.
 Sortable Dual Selector Widget
 =============================
 
-By default, Django handles the neccessary mapping model for a many-to-many relation by itself.
+By default, Django handles the necessary mapping model for a many-to-many relation by itself.
 In some situations one might want to add additional `fields to that intermediate mapping model`_,
 for example to sort the selected opinions according to the user's preference. This is where the
 special field ``SortableManyToManyField`` becomes useful.
 
 .. _fields to that intermediate mapping model: https://docs.djangoproject.com/en/stable/topics/db/models/#intermediary-manytomany
 
-Consider the case of a poll application wher a user can select one or more opinions. We therefore
-need a many-to-many relationship between the poll entity and the choosen opinions, so we typically
+Consider the case of a poll application where a user can select one or more opinions. We therefore
+need a many-to-many relationship between the poll entity and the chosen opinions, so we typically
 would use a ``ManyToManyField`` to represent this relationship. However, users shall also be allowed
-to weight their choosen opinions. We can handle this be providing our own intermediate many-to-many
-mapping model named ``WeightedOpinion``, which contains a foreign key onto our ``PollModel``, our
-``OpinionModel`` and a number field to specify the weighting .
+to weigh their chosen opinions. We can handle this by providing our own intermediate many-to-many
+mapping model named ``WeightedOpinion``, which contains two foreign keys, one onto our
+``PollModel``, the other onto our ``OpinionModel`` and additionally a number field to specify the
+weighting .
 
 .. code-block:: python
 
@@ -175,7 +176,7 @@ ordering.
 	            'weighted_opinions': DualSortableSelector(search_lookup='label__icontains'),
 	        }
 
-When rendered this widget looks excatly the same as the ``DualSelector`` but options in its right
+When rendered this widget looks exactly the same as the ``DualSelector`` but options in its right
 panel can be dragged to set their weight:
 
 .. image:: _static/dual-sortable-selector.gif

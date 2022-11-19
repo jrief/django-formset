@@ -59,6 +59,6 @@ When rendered, this Form Collection may look like:
   :width: 660
   :alt: Fieldset
 
-The interesting part of this collection is, that we can hide the Fieldset by clicking on the
-checkbox named "I'm not a customer". This means, that by using conditionals, we can dynamically
+The interesting part of this collection is that we can hide the fieldset by clicking on the
+checkbox named "I'm not a customer". This means that by using conditionals, we can dynamically
 adjust the visibility of a complete form.

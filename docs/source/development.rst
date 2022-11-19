@@ -5,17 +5,18 @@
 Developing in django-formset
 ============================
 
-**django-formset** is a library partially written in Python, TypeScript_ and `PEG.js`_. The last
-two applications are required for the client part and make up about one quarter of the code base.
+**django-formset** is a 3rd party Django library partially written in Python, TypeScript_ and
+`PEG.js`_. The last two applications are required for the client part and make up about one third
+of the code base.
 
-The code can be found on GitHub_. Report bugs using the issue tracker, but please ask questions
-on the Discussion board.
+The code can be found on GitHub_. Please use the issue tracker only the report bugs. For questions
+and new ideas, please use the Discussion board.
 
 .. _TypeScript: https://www.typescriptlang.org/
 .. _PEG.js: https://peggyjs.org/documentation.html
 .. _GitHub: https://github.com/jrief/django-formset
 
-When evaluating this library, it therefore is strongly recommended that you install the whole
+When building this library locally, it therefore is strongly recommended that you install the whole
 tool-chain required to build the test application:
 
 .. code-block:: shell
@@ -33,12 +34,12 @@ tool-chain required to build the test application:
 	testapp/manage.py migrate
 	testapp/manage.py runserver
 
-Open http://localhost:8000/ in your browser. There is a long list of examples for all kind of
+Open http://localhost:8000/ in your browser. There is a long list of examples for all kinds of
 purposes.
 
 
-Setting up the Tests
-====================
+Setting up and running Tests
+============================
 
 Since there is a lot of interaction between the browser and the server, the client is tested using
 pytest_ together with Playwright_. The latter is a testing framework to run end-to-end tests using a
@@ -74,12 +75,44 @@ implementing the web component ``client/django-formset/DjangoFormset.ts``.
 Building the Client
 ===================
 
-The client part consists of a few TypeScript modules which all are compiled and bundled to a single
-JavaScript file using ``npm run build``. The default TypeScript compiler used in this project is
-esbuild_, which currently is the fastest compiler of its kind. Feel free to use alternative
-TypeScript compilers, they will take longer but might build smaller target modules.
+The client part consists of a few TypeScript modules which all are compiled and bundled to
+JavaScript using ``npm run esbuild``. The default TypeScript compiler used in this project is
+esbuild_, which currently is the fastest compiler of its kind.
 
 .. _esbuild: https://esbuild.github.io/
+
+The client can be built in three ways:
+
+.. rubric:: ``npm run esbuild``
+
+This creates a bundle of JavaScript modules. The main entry point is found in file
+``formset/static/formset/django-formset.js``. This file only contains the core functionality, ie.
+that one, required for web component ``<django-formset>``. The JavaScript code for all other web
+components, such as ``<select is="django-selectize">``, ``<django-dual-selector>``,
+``<textarea is="django-richtext">``, etc. is loaded *automatically* upon request.
+
+This is the default setting.
+
+
+.. rubric:: ``npm run esbuild.monolith``
+
+This creates one single monolithic JavaScript module, named
+``formset/static/formset/django-formset.js``. In some circumstances this might be preferable over
+many splitted  modules.
+
+
+.. rubric:: ``npm run rollup``
+
+This works similar to ``esbuild``. However instead of using the ``esbuild`` compiler it uses
+rollup_ + babel_ + terser_.
+
+.. _rollup: https://rollupjs.org/guide/en/
+.. _babel: https://babel.dev/docs/en/babel-core
+.. _terser: https://terser.org/
+
+I haven't found any compelling reason why to use ``rollup`` instead of ``esbuild``, since building
+the bundle takes much longer and the output sizes are comparable. For reasons of code hygiene, one
+sample of the unit tests is run using this setup.
 
 
 Running the Django Test App
@@ -88,4 +121,4 @@ Running the Django Test App
 The unit tests and the application used to test the functionality, share a lot of code. In my
 opinion this is really important, because when writing code for end users, manual testing is
 mandatory. Therefore all unit tests provided with this application have been manually verified.
-Otherwise I could not guarantee a user experience which feels right.
+Otherwise I could not guarantee a user experience which feels natural.

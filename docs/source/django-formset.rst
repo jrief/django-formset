@@ -73,21 +73,21 @@ the submission to the server.
 
 An optional attribute to this web component is ``withhold-feedback``. By setting this to
 ``messages``, ``errors``, ``warnings``, ``success``, or any combination of thereof, we can withhold
-the feedback, which is shown immediately after the user types into a field or when a field looses
+the feedback, which is shown immediately after the user types into a field or when a field loses
 focus. When combining two or more "withhold feedback" values, separate them by spaces, for instance 
 ``withhold-feedback="warnings success"``.
 
-Adding ``messages`` to ``withhold-feedback="..."`` means, that the error message below the field
+Adding ``messages`` to ``withhold-feedback="..."`` means that the error message below the field
 will not be rendered when the user blurs a field with invalid data. 
 
-Adding ``errors`` to ``withhold-feedback="..."`` means, that the border does not change color
+Adding ``errors`` to ``withhold-feedback="..."`` means that the border does not change color
 (usually red) and the field does not show an alert symbol, when the user blurs a field with invalid
 data.
 
-Adding ``warning`` to ``withhold-feedback="..."`` means, that the field does not show a warning
+Adding ``warning`` to ``withhold-feedback="..."`` means that the field does not show a warning
 symbol (usually orange), when a field has focus, but its content does not contain valid data (yet).
-If only ``errors`` has been added to ``withhold-feedback="..."``, then the warning symbol will
-remain even if the field looses focus.
+If only attribute ``errors`` has been added to ``withhold-feedback="..."``, then the warning symbol
+will remain even if the field loses focus.
 
 Adding ``success`` to ``withhold-feedback="..."`` means, that the border does not change color
 (usually green) and the field does not show a success symbol, when the user blurs a field with

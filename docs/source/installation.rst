@@ -44,7 +44,7 @@ By doing so, the CSS file for Bootstrap can for instance be included as
 	  ...
 	</head>
 
-other CSS frameworks behave similar. Except for Tailwind CSS, **django-formset** does provide only
+Other CSS frameworks behave similarly. Except for Tailwind CSS, **django-formset** provides only
 two very short CSS files. This is because it relies on the styling definitions of the underlying CSS
 framework rather than imposing their own styles on the components shipped with this library.
 
@@ -88,5 +88,5 @@ that one, providing the functionality of our web component:
 
 .. note:: The provided JavaScript file is optimized for modern browsers, which can handle
 	EcmaScript-ES2020, or later. These browsers are Chrome 94+, Edge 94+, Firefox 93+, Safari 15+
-	and Opera 81+. In the rare occasion, that you have to support a legacy browser, choose an
+	and Opera 81+. In the rare occasion that you have to support a legacy browser, choose an
 	appropriate target from the TypeScript build options and recompile the sources.

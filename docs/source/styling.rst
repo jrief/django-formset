@@ -12,13 +12,13 @@ widgets, for five different CSS frameworks.
 * Input fields of type number, with validation on their input range.
 * Input fields of type date. This currently uses the default date widget from the browser, but
   future versions will offer their own native date widget.
-* Checkboxes for a single input. They can be styled reversing the label with its input field.
+* Checkboxes for a single input. They can be styled by reversing the label with its input field.
 * Radio buttons with support for option groups. They can be arranged to align either horizontally
   or vertically.
 * Multiple checkboxes with support for option groups. They can be arranged to align either
   horizontally or vertically.
 * Select widgets with predefined options.
-* Select widgets with autocomplete behaviour.
+* Select widgets with autocomplete behavior.
 * Select widgets allowing a limited number of multiple selections.
 * Select widgets with a source and target field, allowing a large number of multiple selections.
   This widget usually is used for fields mapping a many-to-many relation.
@@ -29,7 +29,9 @@ widgets, for five different CSS frameworks.
 
 Currently not supported widgets:
 
-* Geospacial fields.
+* `Geospatial fields`_
+
+.. _Geospatial fields: https://docs.djangoproject.com/en/stable/ref/contrib/gis/forms-api/
 
 
 Default Styling
@@ -37,9 +39,9 @@ Default Styling
 
 The default **django-formset** styling intentionally renders all the fields as the browser would by
 default. This admittedly looks very rough and we only use it, if we want to style every aspect of
-our web site. This requires to write the CSS ourselves. If we use one of the known CSS frameworks,
+our website. This requires us to write the CSS ourselves. If we use one of the known CSS frameworks,
 then instead we will proceed with one of the specialized renderers. The concept for rendering a form
-remains to same, independently of the CSS framework.
+remains the same, independently of the CSS framework.
 
 Say we have a typical Django form
 
@@ -84,9 +86,9 @@ When rendered using the view class :class:`formset.views.FormView` together with
 	  <button type="button" click="submit -> proceed">Submit</button>
 	</django-formset>
 
-that form displays two text input fields, one for the person's first- and its last name. Here we
+That form displays two text input fields, one for the person's first- and its last name. Here we
 declared two constraints on the first two fields: The first name must start in upper case and
-contain at least one additional character in lower case, while the last name must consist from at
+contain at least one additional character in lower case, while the last name must consist of at
 least two, but no more than 50 characters. Additionally the user has to choose his gender using
 two radio input fields and a mandatory checkbox input to accept the terms and conditions.
 
@@ -94,12 +96,12 @@ two radio input fields and a mandatory checkbox input to accept the terms and co
   :width: 560
   :alt: Unstyled Form
 
-Styling this form now is up you. Use this as a starting point, if you edit the CSS of your project
-anyway. There are a few HTML tags and CSS classes, which might help styling:
+Styling this form now is up to you. Use this as a starting point, if you edit the CSS of your
+project anyway. There are a few HTML tags and CSS classes, which might help styling:
 
 * ``django-fieldgroup > label``: The label right above the input element. 
 * ``django-fieldgroup input[type="..."]``: The input element. Use the correct ``type`` here.
-* ``django-fieldgroup > .dj-help-text``: Some optional helptext below the input field(s).
+* ``django-fieldgroup > .dj-help-text``: Some optional help text below the input field(s).
 * ``django-fieldgroup > ul.dj-errorlist li.dj-placeholder``: This list-element usually is empty.
   If filled, it contains the validation error message. 
 
@@ -118,7 +120,7 @@ Bootstrap
 Bootstrap is probably the most popular CSS framework nowadays, and **django-formset** offers a
 renderer, which renders all its input fields as proposed by the `Bootstrap's form usage guide`_.
 
-.. _Bootstrap's form usage guide: https://getbootstrap.com/docs/5.1/forms/overview/
+.. _Bootstrap's form usage guide: https://getbootstrap.com/docs/5.2/forms/overview/
 
 In the template from above, we simply replace the templatetag against
 
@@ -133,7 +135,7 @@ and get the same form instance rendered in a much nicer looking way:
   :alt: Bootstrap Form
 
 Compared to the unstyled form shown in the previous section, we notice that the radio fields
-are inlined and that the checkbox is positioned before its label. This is intended behaviour.
+are inlined and that the checkbox is positioned before its label. This is intended behavior.
 
 According to the Bootstrap's usage guide, checkboxes shall be placed on the left side of their
 label. Django can't handle this by itself, because it does not distinguish between checkbox input
@@ -235,7 +237,7 @@ define those classes for their project.
 .. _Tailwind CSS: https://tailwindcss.com/
 
 In the template from above, we must include the opinionated style definitions for our form elements
-or replace them against against our individually styled ones. The form then is rendered with
+or replace them against our individually styled ones. The form then is rendered with
 
 .. code-block:: django
 
@@ -277,6 +279,6 @@ input fields as proposed by `UIKit's form rendering guide`_.
 
 .. _UIKit's form rendering guide: https://getuikit.com/docs/form
 
-Unless there is a strong community interest, it might be that support for this framework will be
-removed in the future, since I do not see any benefit using UIKit compared to any of the much more
-popular and advanced CSS frameworks.
+Unless there is a strong community interest, support for this framework might be removed in the
+future, since I do not see any benefit using UIKit compared to any of the much more popular and
+advanced CSS frameworks listed here.

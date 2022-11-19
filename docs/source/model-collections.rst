@@ -71,8 +71,8 @@ Django ``Form`` can implement two methods, ``model_to_dict`` and ``construct_ins
 
 This method creates the initial data for a form starting from ``main_object`` as reference. It is
 inspired by Django's global function ``model_to_dict(instance, fields=None, exclude=None)`` which
-returns a dict containing the data in ``instance`` suitable for passing as a Form's ``initial``
-keyword argument.
+returns a dict containing the data in argument ``instance`` suitable for passing as a form's
+``initial`` keyword argument.
 
 The ``main_object`` is determined by the view (inheriting from
 :class:`formset.views.EditCollectionView`) which handles our form collection ``UserCollection``,
@@ -83,7 +83,7 @@ using the ``get_object``-method (usually by resolving a primary key or slug).
 
 This method takes the ``cleaned_data`` from a validated form and applies it to one of the model
 objects which are related with the ``main_object``. It is inspired by Django's global function 
-``construct_instance(form, instance, fields=None, exclude=None)`` which construct and returns a
+``construct_instance(form, instance, fields=None, exclude=None)`` which constructs and returns a
 model instance from the bound ``form``'s ``cleaned_data``, but does not save the returned instance
 to the database.
 
@@ -135,8 +135,8 @@ The view class serving as endpoint for ``UserCollection`` then can be written as
 	    collection_class = UserCollection
 	    template_name = 'form-collection.html'
 
-and added to the ``urlpatterns`` to usual way. The template referenced by that view shall contain
-HTML with something like this:
+and added to the ``urlpatterns`` in the usual way. The template referenced by that view shall
+contain HTML with containing something such as:
 
 .. code-block:: django
 
@@ -153,9 +153,9 @@ One of the most prominent use-cases is to edit a model object together with chil
 to itself. By children we mean objects which point onto the main object using a Django
 `ForeignKey`_. Let's again explain this using an example. Say, we want to extend the previous
 example and allow more than one phone number per user. For this we replace the ``OneToOneField`` for
-field ``user`` against a ``ForeignKey``. In practice, this means that we now have a flexible list of
-phone numbers instead of just one. To solve this, **django-formset** offers the possibility to let
-form collections have siblings. We then can rewrite our collection as:
+our model field ``user`` against a ``ForeignKey``. In practice, this means that we now have a
+flexible list of phone numbers instead of just one. To solve this, **django-formset** offers the
+possibility to let form collections have siblings. We then can rewrite our collection as:
 
 .. code-block:: python
 
@@ -204,7 +204,7 @@ objects of type ``ExtendUser`` referring to the ``User`` (main) object.
 
 After a submitted form has been validated, we start constructing as many models of type
 ``ExtendUser``, as the collections provides. Since we must link each form to its associated
-object, each sub-form contains the primary key of that object as hidden field. Forms which have
+object, each sub-form contains the primary key of that object as a hidden field. Forms which have
 been deleted by the user are marked for removal and will be removed from the main object.
 
 

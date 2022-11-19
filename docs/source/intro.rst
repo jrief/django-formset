@@ -50,15 +50,16 @@ What does that mean? In Django we can define a form as a group of fields with ce
 Often these forms are derived from a Django model. On the client, this form then is rendered, can
 be filled with data and submitted back to the server.
 
-Typically there is one form per page, because the HTML standard does not allow to submit more than
-one form in one submission. With the introduction of FormSets_, Django provides a workaround for
-this use-case. It however relies on prefixing each field from the forms making up a "FormSet" with a
-unique identifier, so that those Django forms can be wrapped into one HTML ``<form>``-element. This
-makes the handling of multiple forms per page cumbersome and difficult to understand.
+Typically there is one form per page, because the HTML standard does not allow you to submit more
+than one form in one submission. With the introduction of FormSets_, Django provides a workaround
+for this use-case. It however relies on prefixing each field from the forms making up a "FormSet"
+with a unique identifier, so that those Django forms can be wrapped into one HTML
+``<form>``-element. This makes the handling of multiple forms per page cumbersome and difficult to
+understand.
 
 By using **django-formset** on the other hand, each Django form corresponds to its own
-self-contained ``<form>``-element. Inside each of these forms, all field names remain unmodified and
-on submission, each form introduces its own namespace, so that the form data is submitted as a
+self-contained ``<form>``-element. Inside each of these forms, all field names remain unmodified
+and on submission, each form introduces its own namespace, so that the form data is submitted as a
 dictionary of field-value-pairs. By doing so, we can even nest forms deeply, something currently
 not possible with Django FormSets_.
 
@@ -140,14 +141,14 @@ rendering that form.
 In this example, the form is rendered by the special templatetag ``{% render_form form %}``. This
 templatetag can be parametrized to use the correct style-guide for each of the supported CSS
 frameworks. It can also be used to pass in our own CSS classes for labels, fields and field groups.
-More on this can be found in section :ref:`native_form`.
+More on this can be found in chapter :ref:`native_form`.
 
 It also is possible to render the form using the classic approach with mustaches, ie.
 ``{{ form }}``. Then however the form object can't be a native Django form. Instead it has to be
-transformed using a special mixin class. More on this can be found in section :ref:`extended_form`.
+transformed using a special mixin class. More on this can be found in chapter :ref:`extended_form`.
 
 Another approach is to render the form field-by-field. Here we gain full control over how each field
-is rendered, since we render them individually. More on this can be found in section
+is rendered, since we render them individually. More on this can be found in chapter
 :ref:`field_by_field`.
 
 
@@ -156,8 +157,8 @@ What are Web Components?
 
 According to `webcomponents.org`_, web components are a set of web platform APIs that allow you to
 create new custom, reusable, encapsulated HTML tags to use in web pages and web apps. Custom
-components and widgets build on the Web Component standards, will work across modern browsers, and
-can be used with any JavaScript library or framework that works with HTML.
+components and widgets built upon the web component standards, will work across modern browsers,
+and can be used with any JavaScript library or framework that works with HTML.
 
 Web components are based on existing web standards. Features to support web components are currently
 being added to the HTML and DOM specs, letting web developers easily extend HTML with new elements
@@ -189,13 +190,13 @@ The JavaScript behind this component now handles the following functions:
 Annotation
 ==========
 
-When designing this library, one of the main goals was to **keep the programming interface a near as
-possible to the way Django handles forms, models and views**. It therefore is possible to reuse
+When designing this library, one of the main goals was to **keep the programming interface as near
+as possible to the way Django handles forms, models and views**. It therefore is possible to reuse
 existing Django form declarations with a minimal modification to existing code.
 
 
 Contributing
 ============
 
-Before contributing to the code base, make sure you installed the complete set of tools as described
-in section :ref:`development`.
+Please read chapter :ref:`contributing` before opening issues or pull requests.
+
