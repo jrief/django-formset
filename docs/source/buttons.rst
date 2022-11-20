@@ -177,7 +177,7 @@ Here ``editview_url`` points onto the view used to edit the blog post:
 	                instance = self.get_object()
 	                instance.published = extra_data['published']
 	                instance.save(update_fields=['published'])
-	                return JsonResponse({'success_url': self.get_success_url()
+	                return JsonResponse({'success_url': self.get_success_url()})
 	        return super().post(request, *args, **kwargs)
 
 	    # other methods
