@@ -46,7 +46,7 @@ export abstract class IncompleteSelect {
 			if (typeof data.incomplete === 'boolean') {
 				this.isIncomplete = data.incomplete;
 			}
-			successCallback(data.items);
+			successCallback(data.options, data.optgroups);
 		} else {
 			console.error(`Failed to fetch from ${url} (status=${response.status})`);
 		}

@@ -33,6 +33,7 @@ from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import (
     SimpleContactCollection, ContactCollection, ContactCollectionList, IntermediateContactCollectionList,
     SortableContactCollection, SortableContactCollectionList)
+from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerCollection
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
@@ -448,6 +449,9 @@ urlpatterns = [
     path('upload', DemoFormView.as_view(
         form_class=UploadForm,
     ), kwargs={'group': 'form', 'index': 15}, name='upload'),
+    path('counties', DemoFormView.as_view(
+        form_class=CountyForm,
+    ), kwargs={'group': 'form', 'index': 15}, name='counties'),
     path('person', DemoModelFormView.as_view(
         form_class=ModelPersonForm,
         model=PersonModel,

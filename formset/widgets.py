@@ -16,6 +16,27 @@ from django.utils.timezone import datetime, now, utc
 from django.utils.translation import gettext_lazy as _
 
 
+class SingleModelChoiceIterator(ModelChoiceIterator):
+    def __iter__(self):
+        queryset = self.queryset
+        # Can't use iterator() when queryset uses prefetch_related()
+        if not queryset._prefetch_related_lookups:
+            queryset = queryset.iterator()
+        for obj in queryset:
+            yield self.choice(obj)
+
+
+class GroupedModelChoiceIterator(SingleModelChoiceIterator):
+    group_field_name = None
+
+    def choice(self, obj):
+        return (
+            ModelChoiceIteratorValue(self.field.prepare_value(obj), obj),
+            self.field.label_from_instance(obj),
+            getattr(obj, self.group_field_name),
+        )
+
+
 class IncompleteSelectMixin:
     """
     Extra interfaces for widgets not loading the complete set of choices.
@@ -24,12 +45,15 @@ class IncompleteSelectMixin:
     choices = ()
     max_prefetch_choices = 250
     search_lookup = None
+    group_field_name = None
 
-    def __init__(self, attrs=None, choices=(), search_lookup=None):
+    def __init__(self, attrs=None, choices=(), search_lookup=None, group_field_name=None):
         if search_lookup:
             self.search_lookup = search_lookup
         if isinstance(self.search_lookup, str):
             self.search_lookup = [self.search_lookup]
+        if group_field_name is not None:
+            self.group_field_name = group_field_name
         super().__init__(attrs, choices)
 
     def search(self, search_term):
@@ -39,47 +63,81 @@ class IncompleteSelectMixin:
             raise ImproperlyConfigured(f"Invalid attribute 'search_lookup' in {self.__class__}.")
         return self.choices.queryset.filter(query)
 
+    def format_value(self, value):
+        if value is None:
+            return []
+        if not isinstance(value, (tuple, list)):
+            value = [value]
+        return [str(v) if v is not None else "" for v in value]
+
     def get_context(self, name, value, attrs):
-        if isinstance(self.choices, ModelChoiceIterator):
-            self.optgroups = self._optgroups_model_choice
+        if isinstance(self.choices, (ModelChoiceIterator, GroupedModelChoiceIterator)):
             if self.choices.queryset.count() > self.max_prefetch_choices:
                 attrs = dict(attrs, incomplete=True)
+            if self.group_field_name:
+                self.optgroups = self._optgroups_model_choice
+                self.choices.queryset = self.choices.queryset.order_by(self.group_field_name)
+                self.choices.group_field_name = self.group_field_name
+                self.choices.__class__ = GroupedModelChoiceIterator
+            else:
+                self.optgroups = self._options_model_choice
         else:
             self.optgroups = self._optgroups_static_choice
         context = super().get_context(name, value, attrs)
-        options = context['widget'].pop('optgroups')
-        context['widget']['options'] = options
         return context
 
     def _optgroups_static_choice(self, name, values, attrs=None):
-        options = []
-        for val, label in self.choices:
-            val = str(val)
-            if val in values:
-                options.append({'value': val, 'label': label, 'selected': True})
-            else:
-                options.append({'value': val, 'label': label})
-        return options
+        return super().optgroups(name, values, attrs)
+        # optgroups = []
+        # for counter, (val, label) in enumerate(self.choices):
+        #     val = str(val)
+        #     if val in values:
+        #         optgroups.append((None, [{'value': val, 'label': label, 'selected': True}], counter))
+        #     else:
+        #         optgroups.append((None, [{'value': val, 'label': label}], counter))
+        # return optgroups
 
-    def _optgroups_model_choice(self, name, values, attrs=None):
+    def _options_model_choice(self, name, values, attrs=None):
         values_set = set(values)
-        options = [{}] * len(values_set)
-        counter = 0
-        for val, label in self.choices:
+        options = [(None, [{}], 0)] * len(values_set)
+        for counter, (val, label) in enumerate(self.choices):
             if not isinstance(val, ModelChoiceIteratorValue):
                 continue
             val = str(val)
             if val in values_set:
                 index = values.index(val)
                 if index < len(options):
-                    options[index] = {'value': val, 'label': label, 'selected': True}
+                    options[index] = [{'value': val, 'label': label, 'selected': True}]
                 values_set.remove(val)
-            elif counter < self.max_prefetch_choices:
-                options.append({'value': val, 'label': label})
+            elif counter <= self.max_prefetch_choices:
+                options.append((None, [{'value': val, 'label': label}], counter))
             elif not values_set:
                 break
-            counter += 1
         return options
+
+    def _optgroups_model_choice(self, name, values, attrs=None):
+        values_set = set(values)
+        optgroups = [(None, [{}], 0)] * len(values_set)
+        prev_group_name = '-'
+        for counter, (val, label, group_name) in enumerate(self.choices):
+            if not isinstance(val, ModelChoiceIteratorValue):
+                continue
+            val = str(val)
+            if val in values_set:
+                index = values.index(val)
+                if index < len(optgroups):
+                    optgroups[index] = [{'value': val, 'label': label, 'selected': True}]
+                values_set.remove(val)
+            elif counter <= self.max_prefetch_choices:
+                if prev_group_name != group_name:
+                    prev_group_name = group_name
+                    subgroup = [{'value': val, 'label': label}]
+                    optgroups.append((group_name, subgroup, counter))
+                else:
+                    subgroup.append({'value': val, 'label': label})
+            elif not values_set:
+                break
+        return optgroups
 
 
 class Selectize(IncompleteSelectMixin, Select):
@@ -89,8 +147,8 @@ class Selectize(IncompleteSelectMixin, Select):
     template_name = 'formset/default/widgets/selectize.html'
     placeholder = _("Select")
 
-    def __init__(self, attrs=None, choices=(), search_lookup=None, placeholder=None):
-        super().__init__(attrs, choices, search_lookup)
+    def __init__(self, attrs=None, choices=(), search_lookup=None, group_field_name=None, placeholder=None):
+        super().__init__(attrs, choices, search_lookup, group_field_name)
         if placeholder is not None:
             self.placeholder = placeholder
 
@@ -101,14 +159,19 @@ class Selectize(IncompleteSelectMixin, Select):
         return attrs
 
     def _optgroups_static_choice(self, name, values, attrs=None):
-        options = [{'value': '', 'label': self.placeholder}]
+        options = [(None, [{'value': '', 'label': self.placeholder}], None)]
         options.extend(super()._optgroups_static_choice(name, values, attrs))
         return options
 
-    def _optgroups_model_choice(self, name, values, attrs=None):
-        options = [{'value': '', 'label': self.placeholder}]
-        options.extend(super()._optgroups_model_choice(name, values, attrs))
+    def _options_model_choice(self, name, values, attrs=None):
+        options = [(None, [{'value': '', 'label': self.placeholder}], None)]
+        options.extend(super()._options_model_choice(name, values, attrs))
         return options
+
+    def _optgroups_model_choice(self, name, values, attrs=None):
+        optgroups = [(None, [{'value': '', 'label': self.placeholder}], None)]
+        optgroups.extend(super()._optgroups_model_choice(name, values, attrs))
+        return optgroups
 
 
 class SelectizeMultiple(Selectize):

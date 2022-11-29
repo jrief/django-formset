@@ -11,9 +11,8 @@ class CountyForm(forms.Form):
         queryset=County.objects.all(),
         widget=Selectize(
             search_lookup='county_name__istartswith',
-            group_value='state_name',
+            group_field_name='state_name',
             placeholder="Select county"
         ),
         required=True,
     )
-

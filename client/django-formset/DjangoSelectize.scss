@@ -122,6 +122,9 @@
 			cursor: pointer;
 			overflow: hidden;
 
+			&:hover {
+				background-color: $select-color-hover;
+			}
 			.highlight {
 				background: $select-color-highlight;
 				border-radius: 1px;
@@ -133,6 +136,10 @@
 			overflow-x: hidden;
 			overflow-scrolling: touch;
 			scroll-behavior: smooth;
+		}
+
+		.optgroup-header {
+			opacity: 0.5;
 		}
 	}
 }

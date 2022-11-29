@@ -45,12 +45,12 @@ class IncompleteSelectResponseMixin:
             incomplete = queryset.count() - offset > field.widget.max_prefetch_choices
         limited_qs = queryset[offset:offset + field.widget.max_prefetch_choices]
         to_field_name = field.to_field_name if field.to_field_name else 'pk'
-        items = [{'id': getattr(item, to_field_name), 'label': str(item)} for item in limited_qs]
+        options = [{'id': getattr(item, to_field_name), 'label': str(item)} for item in limited_qs]
         data.update(
-            count=len(items),
+            count=len(options),
             total_count=field.widget.choices.queryset.count(),
             incomplete=incomplete,
-            items=items,
+            options=options,
         )
         return JsonResponse(data)
 
