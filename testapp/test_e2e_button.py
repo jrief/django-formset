@@ -109,13 +109,13 @@ def test_button_toggle_class(page, viewname):
     button.click()
     sleep(0.02)
     expect(button).not_to_have_class('button')
-    sleep(0.1)
+    sleep(0.05)
     expect(button).to_have_class('foo')
-    sleep(0.1)
+    sleep(0.05)
     expect(button).to_have_class('foo bar')
-    sleep(0.1)
+    sleep(0.05)
     expect(button).to_have_class('bar')
-    sleep(0.1)
+    sleep(0.05)
     expect(button).to_have_class('button')
 
 
