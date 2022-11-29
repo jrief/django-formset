@@ -122,6 +122,9 @@
 			cursor: pointer;
 			overflow: hidden;
 
+			&:hover {
+				background-color: $select-color-hover;
+			}
 			.highlight {
 				background: $select-color-highlight;
 				border-radius: 1px;
