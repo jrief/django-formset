@@ -103,8 +103,13 @@ django-formset {
 			background-position: center right !important;
 			background-origin: content-box !important;
 			&[type="date"] {
+				position: relative;
+				&::-webkit-datetime-edit-fields-wrapper {
+					margin-left: 2em;
+				}
 				&::-webkit-calendar-picker-indicator {
-					margin-right: 2em;
+					position: absolute;
+					left: 0.75em;
 				}
 				&:hover::-webkit-calendar-picker-indicator {
 					cursor: pointer;
