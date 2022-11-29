@@ -1,5 +1,10 @@
 ## Changes
 
+- 0.11.1
+  * In `DjangoButton`'s `reload()` action, add a Boolean argument to optionally ignore query strings.
+  * In `DjangoSelectize` fix handling of `line-height: normal` by settings it to value 1.2.
+  * In `DjangoSelectize` change `background-color` for mouse over on `<option>` elements.
+
 - 0.11
   * Add widget for Django's [SlugField](https://docs.djangoproject.com/en/latest/ref/forms/fields/#slugfield).
   * Add widget to handle rich text using the [Tiptap](https://tiptap.dev/) editor framework.
