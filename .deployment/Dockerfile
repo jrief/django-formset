@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.11
 LABEL Description="django-formset testapp" Maintainer="Jacob Rief"
 RUN mkdir /web
 WORKDIR /web
@@ -17,7 +17,7 @@ RUN npm ci
 
 # install Python specific requirements
 RUN pip install django psycopg2-binary Pillow uWSGI docutils Pygments
-RUN pip install django-formset==0.11
+RUN pip install django-formset
 
 # copy project relevant files into container
 ADD testapp /web/testapp

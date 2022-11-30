@@ -119,7 +119,7 @@ def test_tiptap_heading(page, viewname, menubar, contenteditable):
     expect(submenu).to_be_visible()
     submenu.locator('[richtext-toggle="heading:1"]').click()
     assert contenteditable.inner_html() == f"<h1>{heading}</h1>"
-    contenteditable.click(position={'x': 2, 'y': 2})
+    contenteditable.click(position={'x': 100, 'y': 20})
     set_caret(page, 5)
     expect(menu_button).to_have_class('active')
     expect(submenu).not_to_be_visible()
@@ -141,7 +141,7 @@ def test_tiptap_valid_link(page, viewname, menubar, contenteditable):
     dialog = page.locator('dialog[richtext-opener="link"]')
     expect(dialog).not_to_be_visible()
     menu_button.click()
-    sleep(0.1)
+    sleep(0.25)
     expect(dialog).to_be_visible()
     text_input = dialog.locator('input[name="text"]')
     expect(text_input).to_have_value("here")
@@ -151,7 +151,7 @@ def test_tiptap_valid_link(page, viewname, menubar, contenteditable):
     expect(link_input).to_have_value("https://example.org/")
     save_button = dialog.locator('button[name="save"]')
     save_button.click()
-    sleep(0.1)
+    sleep(0.25)
     expect(dialog).not_to_be_visible()
     assert contenteditable.inner_html() == '<p>Click <a target="_blank" rel="noopener noreferrer nofollow" href="https://example.org/">here</a></p>'
     set_caret(page, 9)

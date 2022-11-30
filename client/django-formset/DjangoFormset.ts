@@ -276,6 +276,7 @@ class FieldGroup {
 	}
 
 	private untouch() {
+		this.element.classList.remove('dj-submitted');
 		this.element.classList.remove('dj-touched');
 		this.element.classList.add('dj-untouched');
 	}
@@ -544,9 +545,9 @@ class DjangoButton {
 	}
 
 	// @ts-ignore
-	private reload() {
+	private reload(includeQuery?: Boolean) {
 		return (response: Response) => {
-			location.reload();
+			includeQuery ? location.reload() : location.replace(window.location.pathname);
 			return Promise.resolve(response);
 		};
 	}
