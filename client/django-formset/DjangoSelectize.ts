@@ -26,6 +26,8 @@ class DjangoSelectize extends IncompleteSelect {
 			valueField: 'id',
 			labelField: 'label',
 			maxItems: 1,
+			sortField: [{field: '$order'}, {field: '$score'}],
+			lockOptgroupOrder: true,
 			searchField: ['label'],
 			render: this.setupRender(tomInput),
 			onFocus: this.touch,
