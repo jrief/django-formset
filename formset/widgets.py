@@ -5,7 +5,7 @@ from datetime import date
 from functools import reduce
 from operator import or_
 
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import UploadedFile
 from django.core.signing import get_cookie_signer
@@ -16,7 +16,7 @@ from django.utils.timezone import datetime, now, utc
 from django.utils.translation import gettext_lazy as _
 
 
-class SingleModelChoiceIterator(ModelChoiceIterator):
+class SimpleModelChoiceIterator(ModelChoiceIterator):
     def __iter__(self):
         queryset = self.queryset
         # Can't use iterator() when queryset uses prefetch_related()
@@ -26,7 +26,7 @@ class SingleModelChoiceIterator(ModelChoiceIterator):
             yield self.choice(obj)
 
 
-class GroupedModelChoiceIterator(SingleModelChoiceIterator):
+class GroupedModelChoiceIterator(SimpleModelChoiceIterator):
     group_field_name = None
 
     def choice(self, obj):
@@ -87,56 +87,60 @@ class IncompleteSelectMixin:
         return context
 
     def _optgroups_static_choice(self, name, values, attrs=None):
-        return super().optgroups(name, values, attrs)
-        # optgroups = []
-        # for counter, (val, label) in enumerate(self.choices):
-        #     val = str(val)
-        #     if val in values:
-        #         optgroups.append((None, [{'value': val, 'label': label, 'selected': True}], counter))
-        #     else:
-        #         optgroups.append((None, [{'value': val, 'label': label}], counter))
-        # return optgroups
+        optgroups = super().optgroups(name, values, attrs)
+        return optgroups
 
     def _options_model_choice(self, name, values, attrs=None):
-        values_set = set(values)
-        options = [(None, [{}], 0)] * len(values_set)
+        values_list = [str(val) for val in values]
+        optgroups = []
         for counter, (val, label) in enumerate(self.choices):
             if not isinstance(val, ModelChoiceIteratorValue):
                 continue
             val = str(val)
-            if val in values_set:
-                index = values.index(val)
-                if index < len(options):
-                    options[index] = [{'value': val, 'label': label, 'selected': True}]
-                values_set.remove(val)
-            elif counter <= self.max_prefetch_choices:
-                options.append((None, [{'value': val, 'label': label}], counter))
-            elif not values_set:
+            if selected := val in values_list:
+                values_list.remove(val)
+            optgroups.append((None, [{'value': val, 'label': label, 'selected': selected}], counter))
+            if counter == self.max_prefetch_choices:
                 break
-        return options
+        for counter, val in enumerate(values_list, counter):
+            try:
+                obj = self.choices.queryset.get(pk=val)
+            except ObjectDoesNotExist:
+                continue
+            label = self.choices.field.label_from_instance(obj)
+            optgroups.append((None, [{'value': str(val), 'label': label, 'selected': True}], counter))
+        return optgroups
 
     def _optgroups_model_choice(self, name, values, attrs=None):
-        values_set = set(values)
-        optgroups = [(None, [{}], 0)] * len(values_set)
-        prev_group_name = '-'
+        values_list = [str(val) for val in values]
+        optgroups, prev_group_name = [], '-'
         for counter, (val, label, group_name) in enumerate(self.choices):
             if not isinstance(val, ModelChoiceIteratorValue):
                 continue
             val = str(val)
-            if val in values_set:
-                index = values.index(val)
-                if index < len(optgroups):
-                    optgroups[index] = [{'value': val, 'label': label, 'selected': True}]
-                values_set.remove(val)
-            elif counter <= self.max_prefetch_choices:
-                if prev_group_name != group_name:
-                    prev_group_name = group_name
-                    subgroup = [{'value': val, 'label': label}]
-                    optgroups.append((group_name, subgroup, counter))
-                else:
-                    subgroup.append({'value': val, 'label': label})
-            elif not values_set:
+            if selected := val in values_list:
+                values_list.remove(val)
+            if prev_group_name != group_name:
+                prev_group_name = group_name
+                subgroup = [{'value': val, 'label': label, 'selected': selected}]
+                optgroups.append((group_name, subgroup, counter))
+            else:
+                subgroup.append({'value': val, 'label': label, 'selected': selected})
+            if counter == self.max_prefetch_choices:
                 break
+        for counter, val in enumerate(values_list, counter):
+            try:
+                obj = self.choices.queryset.get(pk=val)
+            except ObjectDoesNotExist:
+                continue
+            label = self.choices.field.label_from_instance(obj)
+            group_name = getattr(obj, self.group_field_name) if self.group_field_name else None
+            optgroup = list(filter(lambda item: item[0] == group_name, optgroups))
+            if optgroup:
+                optgroup[-1][1].append({'value': str(val), 'label': label, 'selected': True})
+            else:
+                subgroup = [{'value': str(val), 'label': label, 'selected': True}]
+                optgroups.append((group_name, subgroup, counter))
         return optgroups
 
 

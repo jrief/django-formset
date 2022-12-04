@@ -15,13 +15,18 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	}
 	if (document.querySelector('django-sortable-select')) {
 		promises.push(new Promise((resolve, reject) => {
-			import('./django-formset/SortableSelect').then(({ SortableSelectElement }) => {
+			import('./django-formset/SortableSelect').then(({SortableSelectElement}) => {
 				window.customElements.define('django-sortable-select', SortableSelectElement);
-				window.customElements.whenDefined('django-sortable-select').then(() => resolve());
+				import('./django-formset/DualSelector').then(({DualSelectorElement}) => {
+					window.customElements.define('django-dual-selector', DualSelectorElement, {extends: 'select'});
+					Promise.all([
+						window.customElements.whenDefined('django-sortable-select'),
+						window.customElements.whenDefined('django-dual-selector'),
+					]).then(() => resolve());
+				}).catch(err => reject(err));
 			}).catch(err => reject(err));
 		}));
-	}
-	if (document.querySelector('select[is="django-dual-selector"]')) {
+	} else if (document.querySelector('select[is="django-dual-selector"]')) {
 		promises.push(new Promise((resolve, reject) => {
 			import('./django-formset/DualSelector').then(({ DualSelectorElement }) => {
 				window.customElements.define('django-dual-selector', DualSelectorElement, {extends: 'select'});

@@ -138,8 +138,13 @@
 			scroll-behavior: smooth;
 		}
 
-		.optgroup-header {
-			opacity: 0.5;
+		.optgroup {
+			.optgroup-header {
+				opacity: 0.5;
+			}
+			.option {
+				margin-left: 1em;
+			}
 		}
 	}
 }

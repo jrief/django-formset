@@ -15,3 +15,9 @@ interface FieldGroup {
 	reportFailedUpload(): void;
 	inputted(): void;
 }
+
+interface OptionData {
+	id: string,
+	label: string,
+	optgroup?: string,
+}

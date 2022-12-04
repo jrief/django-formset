@@ -36,7 +36,7 @@ class DjangoSelectize extends IncompleteSelect {
 			onType: this.inputted,
 		};
 		if (this.isIncomplete) {
-			config.load = (query: string, callback: Function) => this.loadOptions(`query=${encodeURIComponent(query)}`, callback);
+			config.load = this.load;
 		}
 		let isMultiple = false;
 		if (tomInput.hasAttribute('multiple')) {
@@ -84,6 +84,20 @@ class DjangoSelectize extends IncompleteSelect {
 		const wrapper = (this.tomInput.parentElement as HTMLElement).removeChild(this.tomSelect.wrapper);
 		shadowRoot.appendChild(wrapper);
 		return shadowRoot;
+	}
+
+	private load = (query: string, callback: Function) => {
+		const transform = (options: Array<OptionData>) => {
+			const groupnames = new Set<string>();
+			options.forEach(o => {
+				if (typeof o.optgroup === 'string') {
+					groupnames.add(o.optgroup);
+				}
+			});
+			const optgroups = Array.from(groupnames).map(name => ({label: name, value: name}));
+			callback(options, optgroups);
+		};
+		this.loadOptions(`query=${encodeURIComponent(query)}`, transform);
 	}
 
 	private blurred = () => {

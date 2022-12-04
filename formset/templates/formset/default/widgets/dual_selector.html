@@ -36,7 +36,7 @@
 {% endblock %}
 </div>
 {% endwith %}
-<select is="django-dual-selector" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %}>{% for group_name, group_choices, group_index in widget.optgroups %}{% if group_name %}
+<select is="django-dual-selector" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %}{% if select_classes %} class="{{ select_classes }}"{% endif %}>{% for group_name, group_choices, group_index in widget.optgroups %}{% if group_name %}
 	<optgroup label="{{ group_name }}">{% endif %}{% for option in group_choices %}
 		<option value="{{ option.value|stringformat:'s' }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>{% endfor %}{% if group_name %}
 	</optgroup>{% endif %}{% endfor %}

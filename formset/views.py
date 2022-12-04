@@ -46,25 +46,21 @@ class IncompleteSelectResponseMixin:
         limited_qs = queryset[offset:offset + field.widget.max_prefetch_choices]
         to_field_name = field.to_field_name if field.to_field_name else 'pk'
         if field.widget.group_field_name:
-            options, optgroups = [], set()
-            for item in limited_qs:
-                optgroup = getattr(item, field.widget.group_field_name)
-                options.append({
-                    'id': getattr(item, to_field_name),
-                    'label': str(item),
-                    'optgroup': optgroup,
-                })
-                optgroups.add(optgroup)
-            optgroups = [{'value': optgroup, 'label': optgroup} for optgroup in sorted(optgroups)]
+            options = [{
+                'id': getattr(item, to_field_name),
+                'label': str(item),
+                'optgroup': getattr(item, field.widget.group_field_name),
+            } for item in limited_qs]
         else:
-            options = [{'id': getattr(item, to_field_name), 'label': str(item)} for item in limited_qs]
-            optgroups = None
+            options = [{
+                'id': getattr(item, to_field_name),
+                'label': str(item),
+            } for item in limited_qs]
         data.update(
             count=len(options),
             total_count=field.widget.choices.queryset.count(),
             incomplete=incomplete,
             options=options,
-            optgroups=optgroups,
         )
         return JsonResponse(data)
 
