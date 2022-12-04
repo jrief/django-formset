@@ -140,8 +140,9 @@ class DemoFormViewMixin(DemoViewMixin, IncompleteSelectResponseMixin, FileUpload
     extra_doc = None
 
     def form_valid(self, form):
+        formset_data = json.loads(self.request.body)['formset_data']
         self.request.session['valid_formset_data'] = json.dumps(
-            form.cleaned_data, cls=JSONEncoder, indent=2, ensure_ascii=False
+            formset_data, cls=JSONEncoder, indent=2, ensure_ascii=False
         )
         return super().form_valid(form)
 
@@ -214,8 +215,9 @@ class DemoFormCollectionViewMixin(DemoViewMixin):
         return form_collection
 
     def form_collection_valid(self, form_collection):
+        formset_data = json.loads(self.request.body)['formset_data']
         self.request.session['valid_formset_data'] = json.dumps(
-            form_collection.cleaned_data, cls=JSONEncoder, indent=2, ensure_ascii=False
+            formset_data, cls=JSONEncoder, indent=2, ensure_ascii=False
         )
         return super().form_collection_valid(form_collection)
 
