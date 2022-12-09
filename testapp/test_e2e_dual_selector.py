@@ -109,8 +109,7 @@ def test_form_validated(page, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', views.keys())
 def test_initial_value(page, form, viewname):
-    selector_element = page.query_selector('django-formset select[is="django-dual-selector"]')
-    assert selector_element is not None
+    selector_element = page.locator('django-formset select[is="django-dual-selector"]')
     value = selector_element.evaluate('elem => elem.value')
     if form.name == 'selector_initialized':
         assert set(value) == set(str(k) for k in get_initial_opinions())
@@ -121,48 +120,46 @@ def test_initial_value(page, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', views.keys())
 def test_move_all_right(page, mocker, view, form, viewname):
-    selector_element = page.query_selector('django-formset select[is="django-dual-selector"]')
-    assert selector_element is not None
+    selector_element = page.locator('django-formset select[is="django-dual-selector"]')
     incomplete = selector_element.get_attribute('incomplete') is not None
-    selector_options = selector_element.query_selector_all('option')
+    selector_options = selector_element.locator('option')
     if form.name == 'selector_complete':
         assert incomplete is False
-        assert len(selector_options) == 100
+        assert selector_options.count() == 100
     else:
         assert incomplete is True
-        assert len(selector_options) == DualSelector.max_prefetch_choices
-    select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
-    assert select_left_element is not None
-    button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-move-all-right')
-    assert button is not None
+        assert selector_options.count() == DualSelector.max_prefetch_choices
+    select_left_element = page.locator('django-formset .dj-dual-selector .left-column select')
+    button = page.locator('django-formset .dj-dual-selector .control-column button.dj-move-all-right')
     if viewname == 'selectorP':
-        select_right_element = page.query_selector('django-formset .dj-dual-selector .right-column django-sortable-select')
+        select_right_element = page.locator('django-formset .dj-dual-selector .right-column django-sortable-select')
     else:
-        select_right_element = page.query_selector('django-formset .dj-dual-selector .right-column select')
-    assert select_right_element is not None
-    assert len(select_left_element.query_selector_all('option')) + len(select_right_element.query_selector_all('option')) == len(selector_options)
+        select_right_element = page.locator('django-formset .dj-dual-selector .right-column select')
+    select_left_options = select_left_element.locator('option')
+    select_right_options = select_right_element.locator('option')
+    assert select_left_options.count() + select_right_options.count() == selector_options.count()
     if form.name == 'selector_initialized':
-        assert len(select_right_element.query_selector_all('option')) == len(get_initial_opinions())
+        assert select_right_options.count() == len(get_initial_opinions())
     else:
-        assert len(select_right_element.query_selector_all('option')) == 0
+        assert select_right_options.count() == 0
     spy = mocker.spy(view.view_class, 'get')
-    right_option_values = set(o.get_attribute('value') for o in select_right_element.query_selector_all('option'))
+    right_option_values = set(select_right_options.nth(i).get_attribute('value') for i in range(select_right_options.count()))
     while incomplete:
-        left_option_values = set(o.get_attribute('value') for o in select_left_element.query_selector_all('option'))
+        left_option_values = set(select_left_options.nth(i).get_attribute('value') for i in range(select_left_options.count()))
         button.click()  # this triggers loading of more options
         right_option_values = right_option_values.union(left_option_values)
-        assert right_option_values == set(o.get_attribute('value') for o in select_right_element.query_selector_all('option'))
+        assert right_option_values == set(select_right_options.nth(i).get_attribute('value') for i in range(select_right_options.count()))
         assert spy.called is True
         assert spy.spy_return.status_code == 200
         content = json.loads(spy.spy_return.content)
         spy.reset_mock()
-        assert len(select_left_element.query_selector_all('option')) == content['count']
+        assert select_left_options.count() == content['count']
         incomplete = content['incomplete']
         assert content['total_count'] == OpinionModel.objects.filter(tenant=1).count()
         if incomplete:
-            assert len(selector_element.query_selector_all('option')) < content['total_count']
+            assert selector_options.count() < content['total_count']
         else:
-            assert len(selector_element.query_selector_all('option')) == content['total_count']
+            assert selector_options.count() == content['total_count']
 
 
 @pytest.mark.urls(__name__)
@@ -206,16 +203,17 @@ def test_move_selected_right(page, mocker, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0'])
 def test_infinite_scroll(page, mocker, view, form, viewname):
-    selector_element = page.query_selector('django-formset select[is="django-dual-selector"]')
-    select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
-    assert select_left_element is not None
-    left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option')]
+    selector_element = page.locator('django-formset select[is="django-dual-selector"]')
+    select_left_element = page.locator('django-formset .dj-dual-selector .left-column select')
+    left_options = select_left_element.locator('option')
+    left_option_values = [left_options.nth(i).get_attribute('value') for i in range(left_options.count())]
     assert len(left_option_values) == DualSelector.max_prefetch_choices
     select_left_element.focus()
     spy = mocker.spy(view.view_class, 'get')
     select_left_element.select_option(left_option_values[-2])
     assert spy.called is False
-    assert len(select_left_element.query_selector_all('option')) == DualSelector.max_prefetch_choices
+    left_option_values = [left_options.nth(i).get_attribute('value') for i in range(left_options.count())]
+    assert len(left_option_values) == DualSelector.max_prefetch_choices
     page.keyboard.press('ArrowDown')
     sleep(0.1)
     assert spy.called is True
@@ -223,22 +221,22 @@ def test_infinite_scroll(page, mocker, view, form, viewname):
     params = spy.call_args.args[1].GET
     assert params['field'] == f'__default__.{field_name}'
     assert int(params['offset']) == DualSelector.max_prefetch_choices
-    left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option')]
+    left_option_values = [left_options.nth(i).get_attribute('value') for i in range(left_options.count())]
     assert len(left_option_values) == 2 * DualSelector.max_prefetch_choices
     response = json.loads(spy.spy_return.content)
     assert response['count'] == DualSelector.max_prefetch_choices
     assert response['incomplete'] is True
-    assert isinstance(response['items'], list)
-    assert len(response['items']) == response['count']
+    assert isinstance(response['options'], list)
+    assert len(response['options']) == response['count']
     spy.reset_mock()
-    select_left_element.query_selector('option[value="{}"]'.format(left_option_values[-1])).click()
+    select_left_element.locator('option[value="{}"]'.format(left_option_values[-1])).click()
     page.keyboard.press('ArrowDown')
     sleep(0.1)
     assert spy.called is True
-    left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option')]
+    left_option_values = [left_options.nth(i).get_attribute('value') for i in range(left_options.count())]
     assert len(left_option_values) == 3 * DualSelector.max_prefetch_choices
     spy.reset_mock()
-    select_left_element.query_selector('option[value="{}"]'.format(left_option_values[-1])).click()
+    select_left_element.locator('option[value="{}"]'.format(left_option_values[-1])).click()
     page.keyboard.press('ArrowDown')
     sleep(0.1)
     assert spy.called is True
@@ -456,7 +454,7 @@ def test_undo_redo(page, view, form, viewname):
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.xfail(reason="On GitHub test runner this fails occasionally with no apparent reason.")
+# @pytest.mark.xfail(reason="On GitHub test runner this fails occasionally with no apparent reason.")
 @pytest.mark.parametrize('viewname', ['selectorP'])
 def test_selector_sorting(page, mocker, view, form, viewname):
     select_left_element = page.locator('django-formset .dj-dual-selector .left-column select')
@@ -466,27 +464,24 @@ def test_selector_sorting(page, mocker, view, form, viewname):
     option.click(modifiers=['Shift'])
     select_right_element = page.locator('django-formset .dj-dual-selector .right-column django-sortable-select')
     assert select_right_element.locator('option').count() == 0
-    button = page.locator('django-formset .dj-dual-selector .control-column button.dj-move-selected-right')
-    button.click()
+    page.locator('django-formset .dj-dual-selector .control-column button.dj-move-selected-right').click()
     assert select_right_element.locator('option').count() == 8
-    page.locator('django-formset .dj-dual-selector .right-column django-sortable-select option:first-child').click()
-    page.locator('django-formset .dj-dual-selector .right-column django-sortable-select option:nth-child(7)').click()
-    sleep(0.1)
-    drag_handle = page.locator('django-formset .right-column django-sortable-select option:nth-child(7)')
-    drag_handle.drag_to(page.locator('django-formset .right-column django-sortable-select option:first-child'))
-    sleep(0.1)
-    drag_handle = page.locator('django-formset .right-column django-sortable-select option:nth-child(3)')
-    drag_handle.drag_to(page.locator('django-formset .right-column django-sortable-select option:last-child'))
-    sleep(0.1)
-    drag_handle = page.locator('django-formset .right-column django-sortable-select option:nth-child(4)')
-    drag_handle.drag_to(page.locator('django-formset .right-column django-sortable-select option:nth-child(6)'))
-    sleep(0.1)
-    button = page.locator('django-formset .dj-dual-selector .control-column button.dj-undo-selected')
-    button.click()
+    select_right_element.locator('option:first-child').click()
+    select_right_element.locator('option:nth-child(7)').click()
+    sleep(0.2)  # animation is set to 150ms
+    drag_handle = select_right_element.locator('option:nth-child(7)')
+    drag_handle.drag_to(select_right_element.locator('option:first-child'))
+    sleep(0.2)  # animation is set to 150ms
+    drag_handle = select_right_element.locator('option:nth-child(3)')
+    drag_handle.drag_to(select_right_element.locator('option:last-child'))
+    sleep(0.2)  # animation is set to 150ms
+    drag_handle = select_right_element.locator('option:nth-child(4)')
+    drag_handle.drag_to(select_right_element.locator('option:nth-child(6)'))
+    sleep(0.2)  # animation is set to 150ms
+    page.locator('django-formset .dj-dual-selector .control-column button.dj-undo-selected').click()
     spy = mocker.spy(view.view_class, 'post')
-    submit_button = page.locator('django-formset button[click]').first
-    submit_button.click()
-    sleep(0.1)
+    page.locator('django-formset button[click]').first.click()
+    sleep(0.2)  # animation is set to 150ms
     assert spy.called is True
     request = json.loads(spy.call_args.args[1].body)
     labels = [f"Opinion {number:04d}" for number in range(40, 48)]

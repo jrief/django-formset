@@ -92,16 +92,16 @@ class IncompleteSelectMixin:
 
     def _options_model_choice(self, name, values, attrs=None):
         values_list = [str(val) for val in values]
-        optgroups = []
-        for counter, (val, label) in enumerate(self.choices):
+        optgroups, counter = [], 0
+        for counter, (val, label) in enumerate(self.choices, counter):
+            if counter == self.max_prefetch_choices:
+                break
             if not isinstance(val, ModelChoiceIteratorValue):
                 continue
             val = str(val)
             if selected := val in values_list:
                 values_list.remove(val)
             optgroups.append((None, [{'value': val, 'label': label, 'selected': selected}], counter))
-            if counter == self.max_prefetch_choices:
-                break
         for counter, val in enumerate(values_list, counter):
             try:
                 obj = self.choices.queryset.get(pk=val)
@@ -113,8 +113,10 @@ class IncompleteSelectMixin:
 
     def _optgroups_model_choice(self, name, values, attrs=None):
         values_list = [str(val) for val in values]
-        optgroups, prev_group_name = [], '-'
-        for counter, (val, label, group_name) in enumerate(self.choices):
+        optgroups, prev_group_name, counter = [], '-', 0
+        for counter, (val, label, group_name) in enumerate(self.choices, counter):
+            if counter == self.max_prefetch_choices:
+                break
             if not isinstance(val, ModelChoiceIteratorValue):
                 continue
             val = str(val)
@@ -126,8 +128,6 @@ class IncompleteSelectMixin:
                 optgroups.append((group_name, subgroup, counter))
             else:
                 subgroup.append({'value': val, 'label': label, 'selected': selected})
-            if counter == self.max_prefetch_choices:
-                break
         for counter, val in enumerate(values_list, counter):
             try:
                 obj = self.choices.queryset.get(pk=val)

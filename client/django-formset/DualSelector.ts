@@ -371,9 +371,14 @@ export class DualSelector extends IncompleteSelect {
 
 		if (this.selectRightElement.tagName === 'DJANGO-SORTABLE-SELECT') {
 			nextValues.forEach(val => {
-				const optionElem = this.selectRightElement.querySelector(`option[value="${val}"]`);
+				const optionElem = this.selectRightElement.querySelector(`:scope > option[value="${val}"]`);
 				if (optionElem) {
 					this.selectRightElement.insertAdjacentElement('beforeend', optionElem);
+				} else {
+					const optionElem = this.selectRightElement.querySelector(`:scope > optgroup > option[value="${val}"]`);
+					if (optionElem) {
+						optionElem.parentElement?.insertAdjacentElement('beforeend', optionElem);
+					}
 				}
 			});
 			this.optionsSorted();
@@ -396,10 +401,11 @@ export class DualSelector extends IncompleteSelect {
 		const sheet = this.declaredStyles.sheet!;
 
 		// set background-color to transparent, so that the shadow on a focused input/select field is not cropped
-		sheet.insertRule('.dj-dual-selector select, .dj-dual-selector input{background-color: transparent;}', 0);
-		let extraStyles = StyleHelpers.extractStyles(this.selectorElement, ['background-color']);
-		sheet.insertRule(`django-formset django-field-group .dj-dual-selector .left-column{${extraStyles}}`, 1);
-		sheet.insertRule(`django-formset django-field-group .dj-dual-selector .right-column{${extraStyles}}`, 2);
+		let extraStyles = StyleHelpers.extractStyles(this.selectLeftElement, ['background-color']);
+		sheet.insertRule(`django-formset django-field-group .dj-dual-selector .left-column{${extraStyles}}`, 0);
+		extraStyles = StyleHelpers.extractStyles(this.selectRightElement, ['background-color']);
+		sheet.insertRule(`django-formset django-field-group .dj-dual-selector .right-column{${extraStyles}}`, 1);
+		sheet.insertRule('.dj-dual-selector select, .dj-dual-selector input{background-color: transparent;}', 2);
 
 		// prevent <select multiple> to have different heights depending on the having at least one <option>
 		extraStyles = StyleHelpers.extractStyles(this.selectLeftElement, ['height']);
