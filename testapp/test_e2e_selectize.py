@@ -247,7 +247,7 @@ def test_lookup_value(page, mocker, form, viewname):
     assert spy.spy_return.status_code == 200
     content = json.loads(spy.spy_return.content)
     assert content['count'] == 1
-    assert content['items'][0]['label'] == "Opinion 0159"
+    assert content['options'][0]['label'] == "Opinion 0159"
     dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-dropdown.single')
     pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(1)')
     assert pseudo_option is not None

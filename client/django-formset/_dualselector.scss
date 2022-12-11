@@ -16,7 +16,13 @@
 			padding: 1rem 0.5rem;
 		}
 		select, django-sortable-select {
-			width: 10rem;
+			min-width: 10rem;
+		}
+		select {
+			height: auto;
+		}
+		input {
+			z-index: 1;  // do not crop shadow of focused input field on scroll bar of select field
 		}
 		button svg {
 			vertical-align: middle;
@@ -28,6 +34,9 @@
 			.right-column {
 				input {
 					border-color: var(--django-formset-color-invalid);
+					&:focus {
+						box-shadow: 0 0 0 0.2rem var(--django-formset-shadow-invalid);
+					}
 				}
 				select, django-sortable-select {
 					border-left-color: var(--django-formset-color-invalid);

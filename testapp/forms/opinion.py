@@ -12,12 +12,13 @@ class OpinionForm(forms.Form):
 
     This form shows the usage of different choices fields.
 
-    The **Classic Select** uses a Django ``ChoiceField`` using the classic ``<select>`` widget.
-    This is the default and shall only be used for fields with a very few choices, say less than 10.
+    The **Classic Select** uses a Django ``ChoiceField`` using the ``<select>`` widget as provided
+    by  HTML. This is the default and shall only be used for fields with a very few choices, say
+    less than 10. It can't be styled through CSS.
 
     The **Static Opinion** uses a Django ``ChoiceField`` using the new ``Selectize`` widget with a
-    fixed set of choices. It shall be used when the number of choices exceeds 10 but is also well
-    suitable for less.
+    fixed set of choices. It shall be used when the number of choices exceeds 10 but also is well
+    suited for less.
 
     The **Dynamic Opinion** field shows a ``ModelChoiceField`` using the ``Selectize`` widget
     configured to query from the associated Django Model. While typing into this field, the number
@@ -50,26 +51,37 @@ class OpinionForm(forms.Form):
     static_opinion = fields.ChoiceField(
         label="Static Opinion",
         choices=lambda: OpinionModel.objects.filter(tenant=1).values_list('id', 'label')[:99],
-        widget=Selectize,
+        widget=Selectize(placeholder="Select from static opinion"),
     )
 
     dynamic_opinion = models.ModelChoiceField(
         label="Dynamic Opinion",
         queryset=OpinionModel.objects.filter(tenant=1),
-        widget=Selectize(search_lookup='label__icontains', placeholder="Select opinion dynamically"),
+        widget=Selectize(
+            search_lookup='label__icontains',
+            placeholder="Select from dynamic opinion",
+        ),
         required=True,
     )
 
     few_opinions = models.ModelMultipleChoiceField(
         label="Few Opinions",
         queryset=OpinionModel.objects.filter(tenant=1),
-        widget=SelectizeMultiple(search_lookup='label__icontains', placeholder="Select any opinion", max_items=15),
+        widget=SelectizeMultiple(
+            search_lookup='label__icontains',
+            placeholder="Select up to 9 opinions",
+            max_items=9,
+        ),
     )
 
     many_opinions = models.ModelMultipleChoiceField(
         label="Many Opinions",
         queryset=OpinionModel.objects.filter(tenant=1),
-        widget=DualSelector(search_lookup='label__icontains'),
+        widget=DualSelector(
+            search_lookup='label__icontains',
+            attrs={'size': 8},
+        ),
+        initial=range(10, 1200, 57),
     )
 
     annotation = fields.CharField(

@@ -2,6 +2,7 @@ import json
 
 from django.db import transaction
 from django.http.response import HttpResponseBadRequest, JsonResponse
+from django.utils.encoding import force_str
 from django.utils.functional import cached_property
 from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
 from django.views.generic.detail import SingleObjectMixin
@@ -45,12 +46,22 @@ class IncompleteSelectResponseMixin:
             incomplete = queryset.count() - offset > field.widget.max_prefetch_choices
         limited_qs = queryset[offset:offset + field.widget.max_prefetch_choices]
         to_field_name = field.to_field_name if field.to_field_name else 'pk'
-        items = [{'id': getattr(item, to_field_name), 'label': str(item)} for item in limited_qs]
+        if field.widget.group_field_name:
+            options = [{
+                'id': getattr(item, to_field_name),
+                'label': str(item),
+                'optgroup': force_str(getattr(item, field.widget.group_field_name)),
+            } for item in limited_qs]
+        else:
+            options = [{
+                'id': getattr(item, to_field_name),
+                'label': str(item),
+            } for item in limited_qs]
         data.update(
-            count=len(items),
+            count=len(options),
             total_count=field.widget.choices.queryset.count(),
             incomplete=incomplete,
-            items=items,
+            options=options,
         )
         return JsonResponse(data)
 

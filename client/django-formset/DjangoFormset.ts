@@ -276,6 +276,7 @@ class FieldGroup {
 	}
 
 	private untouch() {
+		this.element.classList.remove('dj-submitted');
 		this.element.classList.remove('dj-touched');
 		this.element.classList.add('dj-untouched');
 	}

@@ -1,0 +1,230 @@
+import pytest
+from time import sleep
+
+from django.conf import settings
+from django.core.management import call_command
+from django.forms import Form, fields, models
+from django.urls import path
+from django.views.generic import UpdateView, FormView as GenericFormView
+
+from formset.views import IncompleteSelectResponseMixin, FormViewMixin
+from formset.widgets import DualSelector, Selectize, SelectizeMultiple, DualSortableSelector
+
+from testapp.forms.county import CountyForm
+from testapp.models import County, CountyUnnormalized, State
+
+
+class NativeFormView(IncompleteSelectResponseMixin, FormViewMixin, GenericFormView):
+    template_name = 'testapp/native-form.html'
+    success_url = '/success'
+
+
+class ModelFormView(IncompleteSelectResponseMixin, FormViewMixin, UpdateView):
+    template_name = 'testapp/native-form.html'
+    success_url = '/success'
+    form_class = CountyForm
+    model = County
+
+    def get_object(self, queryset=None):
+        obj, _ = self.model.objects.get_or_create(created_by='testapp')
+        return obj
+
+
+@pytest.fixture(scope='function')
+def django_db_setup(django_db_blocker):
+    with django_db_blocker.unblock():
+        call_command('loaddata', settings.BASE_DIR / 'testapp/fixtures/counties.json', verbosity=0)
+        for county in CountyUnnormalized.objects.all():
+            state, _ = State.objects.get_or_create(code=county.state_code, name=county.state_name)
+            County.objects.create(state=state, name=county.county_name)
+
+
+def initial_static_choices():
+    choices, num_choices = [], 0
+    for state in State.objects.all():
+        choices.append((state.name, [(c.id, str(c)) for c in County.objects.filter(state=state)[:21:7]]))
+        num_choices += len(choices[-1][1])
+        if num_choices > 225:
+            break
+    return choices
+
+
+test_fields = dict(
+    static_county=fields.ChoiceField(
+        choices=initial_static_choices,
+        widget=Selectize(),
+    ),
+    one_county=models.ModelChoiceField(
+        label="One County",
+        queryset=County.objects.all(),
+        widget=Selectize(
+            search_lookup='name__icontains',
+            group_field_name='state',
+        ),
+        required=True,
+    ),
+    few_counties = models.ModelMultipleChoiceField(
+        label="A few counties",
+        queryset=County.objects.all(),
+        widget=SelectizeMultiple(
+            search_lookup='name__icontains',
+            group_field_name='state',
+            max_items=20,
+        ),
+        required=True,
+    ),
+    many_counties=models.ModelMultipleChoiceField(
+        label="Many counties",
+        queryset=County.objects.all(),
+        widget=DualSelector(
+            search_lookup='name__icontains',
+            group_field_name='state',
+        ),
+        required=True,
+    ),
+    sortable_counties=models.ModelMultipleChoiceField(
+        label="Sortable counties",
+        queryset=County.objects.all(),
+        widget=DualSortableSelector(
+            search_lookup='name__icontains',
+            group_field_name='state',
+        ),
+        required=True,
+    ),
+)
+
+views = {
+    name: NativeFormView.as_view(
+        form_class=type(f'{name}_form', (Form,), {'name': name, 'county': field}),
+    )
+    for (name, field) in test_fields.items()
+}
+
+urlpatterns = [path(name, view, name=name) for name, view in views.items()]
+
+
+@pytest.fixture
+def view(viewname):
+    return views[viewname]
+
+
+@pytest.fixture
+def form(view):
+    return view.view_initkwargs['form_class']()
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['static_county', 'one_county'])
+def test_single_county(page, form, viewname):
+    selectize = page.locator('django-formset select[is="django-selectize"]')
+    optgroups = selectize.locator('optgroup')
+    states = [optgroups.nth(i).get_attribute('label') for i in range(optgroups.count())]
+    if viewname == 'static_county':
+        assert len(states) == 51
+        states[50] == "Wyoming"
+    else:
+        assert len(states) == 6
+        states[4] == "California"
+    input_field = page.locator('django-formset input[type="select-one"]')
+    input_field.type("gosh")
+    div_optgroup = page.locator('django-formset .ts-dropdown .optgroup')
+    assert div_optgroup.locator('.optgroup-header').inner_html() == "Wyoming"
+    div_option = div_optgroup.locator('[role="option"]')
+    assert div_option.text_content() == "Goshen (WY)"
+    div_option.click()
+    value = selectize.evaluate('elem => elem.getValue()')
+    assert value == str(County.objects.get(name="Goshen").id)
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['few_counties'])
+def test_few_counties(page, form, viewname):
+    selectize = page.locator('django-formset select[is="django-selectize"]')
+    optgroups = selectize.locator('optgroup')
+    states = [optgroups.nth(i).get_attribute('label') for i in range(optgroups.count())]
+    assert len(states) == 6
+    states[4] == "California"
+    input_field = page.locator('django-formset input[type="select-multiple"]')
+    input_field.type("clall")
+    div_optgroup = page.locator('django-formset .ts-dropdown .optgroup .optgroup-header')
+    div_option = page.locator('django-formset .ts-dropdown .optgroup [role="option"]')
+    assert div_optgroup.inner_html() == "Washington"
+    assert div_option.text_content() == "Clallam (WA)"
+    div_option.click()
+    input_field.type("tillam")
+    assert div_optgroup.inner_html() == "Oregon"
+    assert div_option.text_content() == "Tillamook (OR)"
+    div_option.click()
+    input_field.type("stani")
+    assert div_optgroup.inner_html() == "California"
+    assert div_option.text_content() == "Stanislaus (CA)"
+    div_option.click()
+    input_field.type("lync")
+    assert div_optgroup.inner_html() == "Virginia"
+    assert div_option.text_content() == "Lynchburg (VA)"
+    div_option.click()
+    values = selectize.evaluate('elem => elem.getValue()')
+    expected = County.objects.filter(name__in=["Clallam", "Tillamook", "Stanislaus", "Lynchburg"]).values_list('id', flat=True)
+    assert set(values) == set(str(e) for e in expected)
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['many_counties'])
+def test_many_counties(page, form, viewname):
+    selector = page.locator('django-formset select[is="django-dual-selector"]')
+    select_left = page.locator('django-formset .left-column select[multiple]')
+    select_right = page.locator('django-formset .right-column select[multiple]')
+    assert select_left.locator('optgroup').count() == 6
+    assert select_left.locator('option').count() == 250
+    assert select_right.locator('optgroup').count() == 0
+    assert select_right.locator('option').count() == 0
+    select_left.locator('optgroup:nth-child(3) option:nth-child(10)').dblclick()
+    assert select_left.locator('optgroup').count() == 6
+    assert select_left.locator('option').count() == 249
+    assert select_right.locator('optgroup').count() == 1
+    assert select_right.locator('option').count() == 1
+    assert select_right.locator('optgroup').get_attribute('label') == "Arizona"
+    assert select_right.locator('optgroup:nth-child(1) option').inner_text() == "Navajo (AZ)"
+    expected = select_right.locator('optgroup:nth-child(1) option').get_attribute('value')
+    assert selector.evaluate('elem => elem.value') == [expected]
+    select_left.locator('optgroup:nth-child(6) option:first-child').click()
+    select_left.locator('optgroup:nth-child(6) option:last-child').click(modifiers=['Shift'])
+    page.locator('django-formset button.dj-move-selected-right ').click()
+    assert select_right.locator('optgroup').count() == 2
+    assert select_right.locator('option').count() == 6
+    assert select_right.locator('optgroup:last-child').get_attribute('label') == "Colorado"
+    assert select_right.locator('optgroup:last-child option:first-child').inner_text() == "Adams (CO)"
+    select_right.locator('optgroup:first-child option').dblclick()
+    assert select_right.locator('optgroup').count() == 1
+    assert select_right.locator('option').count() == 5
+    expected = [select_right.locator(f'optgroup option:nth-child({i})').get_attribute('value') for i in range(1, 6)]
+    assert selector.evaluate('elem => elem.value') == expected
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['sortable_counties'])
+def test_sortable_counties(page, form, viewname):
+    selector = page.locator('django-formset select[is="django-dual-selector"]')
+    select_left = page.locator('django-formset .left-column select[multiple]')
+    select_right = page.locator('django-formset .right-column django-sortable-select')
+    assert select_left.locator('optgroup').count() == 6
+    assert select_left.locator('option').count() == 250
+    assert select_right.locator('optgroup').count() == 0
+    assert select_right.locator('option').count() == 0
+    select_left.locator('optgroup:nth-child(6) option:first-child').click()
+    select_left.locator('optgroup:nth-child(6) option:last-child').click(modifiers=['Shift'])
+    page.locator('django-formset button.dj-move-selected-right ').click()
+    assert select_right.locator('optgroup').count() == 1
+    assert select_right.locator('option').count() == 5
+    assert select_right.locator('optgroup').get_attribute('label') == "Colorado"
+    assert select_right.locator('optgroup option:first-child').inner_text() == "Adams (CO)"
+    assert select_right.locator('optgroup option:last-child').inner_text() == "Baca (CO)"
+    before = [select_right.locator(f'optgroup option:nth-child({i})').get_attribute('value') for i in range(1, 6)]
+    select_right.locator('optgroup:first-child option:last-child').drag_to(select_right.locator('optgroup:first-child option:first-child'))
+    select_right.locator('optgroup:first-child option:nth-child(2)').drag_to(select_right.locator('optgroup option:last-child'))
+    sleep(0.3)  # Sortable.js has a delay of 300ms
+    after = [select_right.locator(f'optgroup option:nth-child({i})').get_attribute('value') for i in range(1, 6)]
+    before.insert(0, before.pop(4))
+    before.append(before.pop(1))
+    assert after == before
+    assert selector.evaluate('elem => elem.value') == after
