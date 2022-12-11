@@ -2,8 +2,8 @@ import json
 
 from django.db import transaction
 from django.http.response import HttpResponseBadRequest, JsonResponse
-from django.utils.functional import cached_property
 from django.utils.encoding import force_str
+from django.utils.functional import cached_property
 from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormView as GenericFormView
