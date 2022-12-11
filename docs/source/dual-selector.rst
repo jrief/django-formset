@@ -102,6 +102,73 @@ selectable options. It also might make sense to use this widget, whenever some k
 functionality is required.
 
 
+Grouping Options
+================  
+
+Sometimes it may be desirable to group options the user may select from. As an example, consider the
+use case where we want to choose one or more counties in the United States. Here we use two models
+with a simple relationship:
+
+.. code-block:: python
+	:caption: models.py
+
+	class State(models.Model):
+	    code = models.CharField(max_length=2)
+	
+	    name = models.CharField(
+	        max_length=20,
+	        db_index=True,
+	    )
+	
+	    class Meta:
+	        ordering = ['name']
+	
+	    def __str__(self):
+	        return self.name
+	
+	
+	class County(models.Model):
+	    state = models.ForeignKey(
+	        State,
+	        on_delete=models.CASCADE,
+	    )
+	
+	    name = models.CharField(max_length=30)
+	
+	    class Meta:
+	        ordering = ['state', 'name']
+	
+	    def __str__(self):
+	        return f"{self.name} ({self.state.code})"
+
+Since there are 3143 counties, many of them using the same name, it would be really confusing to
+show them in a simple list of options. Instead we typically would render them grouped by state. To
+achieve this, we have to tell the field ``counties`` how to group them, by using the attribute
+``group_field_name``. This sets up the ``DualSelector``-widget to use the named field from the model
+specified by the queryset for grouping.
+
+.. code-block:: python
+	:caption: forms.py
+
+	class PersonForm(models.ModelForm):
+	    # other fields
+
+	    counties = models.ModelChoiceField(
+	        queryset=County.objects.all(),
+	        widget=DualSelector(
+	            search_lookup='name__icontains',
+	            group_field_name='state',
+	        ),
+	    )
+
+When rendered, the ``<option>`` elements then are grouped inside ``<optgroup>``-s using the state's
+name as their label:
+
+.. image:: _static/dual-selector-optgroups.png
+  :width: 760
+  :alt: Dual Selector with option groups
+
+
 Sortable Dual Selector Widget
 =============================
 
