@@ -26,6 +26,8 @@ class DjangoSelectize extends IncompleteSelect {
 			valueField: 'id',
 			labelField: 'label',
 			maxItems: 1,
+			sortField: [{field: '$order'}, {field: '$score'}],
+			lockOptgroupOrder: true,
 			searchField: ['label'],
 			render: this.setupRender(tomInput),
 			onFocus: this.touch,
@@ -34,7 +36,7 @@ class DjangoSelectize extends IncompleteSelect {
 			onType: this.inputted,
 		};
 		if (this.isIncomplete) {
-			config.load = (query: string, callback: Function) => this.loadOptions(`query=${encodeURIComponent(query)}`, callback);
+			config.load = this.load;
 		}
 		let isMultiple = false;
 		if (tomInput.hasAttribute('multiple')) {
@@ -84,6 +86,20 @@ class DjangoSelectize extends IncompleteSelect {
 		return shadowRoot;
 	}
 
+	private load = (query: string, callback: Function) => {
+		const transform = (options: Array<OptionData>) => {
+			const groupnames = new Set<string>();
+			options.forEach(o => {
+				if (typeof o.optgroup === 'string') {
+					groupnames.add(o.optgroup);
+				}
+			});
+			const optgroups = Array.from(groupnames).map(name => ({label: name, value: name}));
+			callback(options, optgroups);
+		};
+		this.loadOptions(`query=${encodeURIComponent(query)}`, transform);
+	}
+
 	private blurred = () => {
 		const wrapper = this.shadowRoot.querySelector('.ts-wrapper');
 		wrapper?.classList.remove('dirty');
@@ -125,9 +141,9 @@ class DjangoSelectize extends IncompleteSelect {
 		const wrapperStyle = (this.shadowRoot.host as HTMLElement).style;
 		wrapperStyle.setProperty('display', nativeStyles.display);
 		let lineHeight = window.getComputedStyle(tomInput).getPropertyValue('line-height');
-		lineHeight = lineHeight === 'normal' ? '1.2' : lineHeight;
 		const optionElement = tomInput.querySelector('option');
 		const sheet = this.shadowRoot.styleSheets.item(0);
+		const displayNumOptions = Math.min(Math.max(this.numOptions, 8), 25);
 		for (let index = 0; sheet && index < sheet.cssRules.length; index++) {
 			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
@@ -181,9 +197,9 @@ class DjangoSelectize extends IncompleteSelect {
 					break;
 				case '.ts-wrapper .ts-dropdown .ts-dropdown-content':
 					if (parseFloat(lineHeight) > 0) {
-						extraStyles =  `max-height: calc(${lineHeight} * 1.2 * ${this.numOptions});`;
+						extraStyles =  `max-height: calc(${lineHeight} * 1.2 * ${displayNumOptions});`;
 					} else {
-						extraStyles =  `max-height: ${this.numOptions * 1.4}em;`;
+						extraStyles =  `max-height: ${displayNumOptions * 1.4}em;`;
 					}
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;

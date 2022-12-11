@@ -11,6 +11,9 @@
 .formset-dual-selector-select {
 	@apply formset-select-multiple rounded-t-none w-full !important;
 }
+.formset-dual-selector-select optgroup {
+	@apply font-bold;
+}
 .formset-dual-selector-lookup {
 	@apply formset-text-input border-b-0 rounded-b-none !important;
 }

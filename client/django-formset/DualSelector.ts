@@ -1,10 +1,13 @@
 import { IncompleteSelect } from './IncompleteSelect';
 import { SortableSelectElement } from './SortableSelect';
+import { StyleHelpers } from "./helpers";
 import template from 'lodash.template';
+import styles from "./SortableSelect.scss";
 
 
 export class DualSelector extends IncompleteSelect {
 	private readonly selectorElement: HTMLSelectElement;
+	private readonly declaredStyles: HTMLStyleElement;
 	private readonly containerElement: HTMLElement | null;
 	private readonly searchLeftInput?: HTMLInputElement;
 	private readonly searchRightInput?: HTMLInputElement;
@@ -23,6 +26,10 @@ export class DualSelector extends IncompleteSelect {
 
 	constructor(selectorElement: HTMLSelectElement, name: string) {
 		super(selectorElement);
+		this.declaredStyles = document.createElement('style');
+		this.declaredStyles.innerText = styles;
+		document.head.appendChild(this.declaredStyles);
+
 		this.selectorElement = selectorElement;
 		this.containerElement = this.fieldGroup.querySelector('.dj-dual-selector');
 		selectorElement.setAttribute('multiple', 'multiple');
@@ -56,6 +63,7 @@ export class DualSelector extends IncompleteSelect {
 		this.renderNoResults = (data: any) => templ ? template(templ.innerHTML)(data) : "No results";
 		this.installEventHandlers();
 		this.initialize();
+		this.transferStyles();
 		this.setButtonsState();
 	}
 
@@ -74,13 +82,10 @@ export class DualSelector extends IncompleteSelect {
 		this.redoButton?.addEventListener('click', evt => this.unOrRedo(+1));
 	}
 
-	private getOptions(selectElement: HTMLSelectElement | SortableSelectElement) : Array<HTMLOptionElement> {
-		return Array.from(selectElement.getElementsByTagName('option'));
-	}
-
 	private initialize() {
 		const initialValues: string[] = [];
-		for (let option of this.getOptions(this.selectorElement)) {
+		const optionElemens = this.selectorElement.querySelectorAll(':scope > option') as NodeListOf<HTMLOptionElement>;
+		optionElemens.forEach(option => {
 			const clone = option.cloneNode() as HTMLOptionElement;
 			if (option.selected) {
 				option.selected = false;
@@ -90,7 +95,35 @@ export class DualSelector extends IncompleteSelect {
 				this.selectLeftElement.add(option);
 			}
 			this.selectorElement.add(clone);  // add clone without inner text
-		}
+		});
+		const optionGroupElements = this.selectorElement.querySelectorAll(':scope > optgroup') as NodeListOf<HTMLOptGroupElement>;
+		optionGroupElements.forEach(optGroupElement => {
+			const selectedOptions = optGroupElement.querySelectorAll('option:checked') as NodeListOf<HTMLOptionElement>;
+			if (selectedOptions.length > 0) {
+				const newOptGroup = document.createElement('optgroup');
+				newOptGroup.label = optGroupElement.label;
+				this.selectRightElement.add(newOptGroup);
+				selectedOptions.forEach(option => {
+					const clone = option.cloneNode() as HTMLOptionElement;
+					option.selected = false;
+					newOptGroup.appendChild(option);
+					initialValues.push(option.value);
+					this.selectorElement.add(clone);  // add clone without inner text
+				});
+			}
+			const unselectedOptions = optGroupElement.querySelectorAll('option:not(:checked)');
+			if (unselectedOptions.length > 0) {
+				const newOptGroup = document.createElement('optgroup');
+				newOptGroup.label = optGroupElement.label;
+				this.selectLeftElement.add(newOptGroup);
+				unselectedOptions.forEach(option => {
+					const clone = option.cloneNode() as HTMLOptionElement;
+					newOptGroup.appendChild(option);
+					this.selectorElement.add(clone);  // add clone without inner text
+				});
+			}
+			this.selectorElement.removeChild(optGroupElement);
+		});
 		this.historicalValues.push(initialValues);
 		this.setHistoryCursor(0);
 		if (this.selectRightElement instanceof SortableSelectElement) {
@@ -104,21 +137,24 @@ export class DualSelector extends IncompleteSelect {
 		selectElement.add(option);
 	}
 
-	private prepareOptions(selectElement: HTMLSelectElement | SortableSelectElement) : Array<HTMLOptionElement> {
-		const options = this.getOptions(selectElement);
-		options.filter(o => o.disabled).forEach(o => o.remove());
-		return options;
-	}
-
-	private addMoreOptions(items: Array<any>) {
-		const selectorOptions = this.getOptions(this.selectorElement);
-		for (let item of items) {
-			if (selectorOptions.filter(o => o.value == item.id).length === 0) {
-				const option = new Option(item.label, item.id);
-				this.selectorElement.add(option.cloneNode() as HTMLOptionElement);
-				this.selectLeftElement.add(option);
+	private addOptionToSelectElement(option: OptionData, target: HTMLSelectElement | SortableSelectElement) {
+		if (this.selectorElement.querySelector(`option[value="${option.id}"]`))
+			return;
+		const newOptionElement = new Option(option.label, option.id);
+		if (typeof option.optgroup === 'string') {
+			const optGroupElement = target.querySelector(`optgroup[label="${option.optgroup}"]`);
+			if (optGroupElement instanceof HTMLOptGroupElement) {
+				optGroupElement.appendChild(newOptionElement);
+			} else {
+				const newOptGroupElement = document.createElement('optgroup');
+				newOptGroupElement.label = option.optgroup;
+				newOptGroupElement.appendChild(newOptionElement);
+				target.add(newOptGroupElement);
 			}
+		} else {
+			target.add(newOptionElement);
 		}
+		this.selectorElement.add(newOptionElement.cloneNode() as HTMLOptionElement);
 	}
 
 	private async selectLeftScrolled() {
@@ -135,7 +171,7 @@ export class DualSelector extends IncompleteSelect {
 		let query: string;
 		const searchString = this.searchLeftInput?.value;
 		if (searchString) {
-			const offset = this.getOptions(this.selectLeftElement).filter(o => !o.hidden).length;
+			const offset = this.selectLeftElement.querySelectorAll('option:not([hidden])').length;
 			query = `query=${searchString}&offset=${offset}`;
 		} else {
 			query = `offset=${this.selectorElement.childElementCount}`;
@@ -143,27 +179,25 @@ export class DualSelector extends IncompleteSelect {
 		if (this.lastRemoteQuery === query)
 			return;
 		this.lastRemoteQuery = query;
-		await this.loadOptions(query, (items: Array<any>) => {
-			this.addMoreOptions(items);
-		});
+		await this.loadOptions(query, (options: Array<OptionData>) => options.forEach(option => {
+			this.addOptionToSelectElement(option, this.selectLeftElement);
+		}));
 	}
 
 	private selectorChanged() {
-		const rightOptions = this.getOptions(this.selectRightElement);
-		const selectorOptions = this.getOptions(this.selectorElement);
-		for (let option of selectorOptions) {
-			option.selected = rightOptions.filter(o => o.value === option.value).length === 1;
-		}
+		this.selectorElement.querySelectorAll('option').forEach(option => {
+			option.selected = !!this.selectRightElement.querySelector(`option[value="${option.value}"]`);
+		});
 		this.setButtonsState();
 		this.containerElement?.classList.toggle('invalid', !this.selectorElement.checkValidity());
 		this.selectorElement.dispatchEvent(new Event('change'));
 	}
 
 	private setButtonsState() {
-		let disabled = this.getOptions(this.selectLeftElement).filter(o => !o.hidden).length === 0;
+		let disabled = !this.selectLeftElement.querySelector('option:not([hidden])');
 		this.moveAllRightButton.disabled = disabled;
 		this.moveSelectedRightButton.disabled = disabled;
-		disabled = this.getOptions(this.selectRightElement).filter(o => !o.hidden).length === 0;
+		disabled = !this.selectRightElement.querySelector('option:not([hidden])');
 		this.moveAllLeftButton.disabled = disabled;
 		this.moveSelectedLeftButton.disabled = disabled;
 	}
@@ -175,12 +209,14 @@ export class DualSelector extends IncompleteSelect {
 		if (this.searchRightInput) {
 			this.searchRightInput.value = '';
 		}
-		this.prepareOptions(this.selectLeftElement).forEach(o => o.hidden = false);
-		this.prepareOptions(this.selectRightElement).forEach(o => o.hidden = false);
+		this.selectLeftElement.querySelector('option[disabled]')?.remove();
+		this.selectRightElement.querySelector('option[disabled]')?.remove();
+		this.selectLeftElement.querySelectorAll('option').forEach(o => o.hidden = false);
+		this.selectRightElement.querySelectorAll('option').forEach(o => o.hidden = false);
 	}
 
 	private optionsMoved() {
-		const rightOptions = this.getOptions(this.selectRightElement);
+		const rightOptions = Array.from(this.selectRightElement.querySelectorAll('option'));
 		this.historicalValues.splice(this.historyCursor + 1);
 		this.historicalValues.push(rightOptions.map(o => o.value));
 		this.setHistoryCursor(this.historicalValues.length - 1);
@@ -188,62 +224,102 @@ export class DualSelector extends IncompleteSelect {
 	}
 
 	private optionsSorted() {
-		this.getOptions(this.selectorElement).filter(o => o.selected).forEach(o => o.remove());
-		this.getOptions(this.selectRightElement).forEach(o => {
-			const clone = o.cloneNode() as HTMLOptionElement;
+		this.selectorElement.querySelectorAll('option:checked').forEach(o => o.remove());
+		this.selectRightElement.querySelectorAll('option').forEach(optionElement => {
+			const clone = optionElement.cloneNode() as HTMLOptionElement;
 			clone.selected = true;
 			this.selectorElement.add(clone);
 		});
 		this.optionsMoved();
 	}
 
+	private moveOptionToSelectElement(optionElement: HTMLOptionElement, selectElement: HTMLSelectElement | SortableSelectElement) {
+		const sourceOptGroupElement = optionElement.parentElement;
+		if (sourceOptGroupElement instanceof HTMLOptGroupElement) {
+			const targetOptGroupElement = selectElement.querySelector(`optgroup[label="${sourceOptGroupElement.label}"]`);
+			if (targetOptGroupElement instanceof HTMLOptGroupElement) {
+				targetOptGroupElement.appendChild(optionElement);
+				targetOptGroupElement.hidden = false;
+			} else {
+				const newOptGroupElement = document.createElement('optgroup');
+				newOptGroupElement.label = sourceOptGroupElement.label;
+				newOptGroupElement.appendChild(optionElement)
+				selectElement.add(newOptGroupElement);
+			}
+			if (!sourceOptGroupElement.querySelector('option')) {
+				// remove empty <optgroup>-element
+				sourceOptGroupElement.remove();
+			}
+		} else {
+			selectElement.add(optionElement);
+		}
+	}
+
 	private async moveOptionRight(target: EventTarget | null) {
 		if (target instanceof HTMLOptionElement) {
-			this.selectRightElement.add(target);
+			this.moveOptionToSelectElement(target, this.selectRightElement);
 			await this.selectLeftScrolled();
+			this.hideOptionGroups(this.selectLeftElement);
 			this.optionsMoved();
 		}
 	}
 
 	private async moveAllOptionsRight() {
-		this.getOptions(this.selectLeftElement).filter(o => !o.hidden).forEach(o => this.selectRightElement.add(o));
+		this.selectLeftElement.querySelectorAll('option:not([hidden])').forEach(option => {
+			this.moveOptionToSelectElement(option as HTMLOptionElement, this.selectRightElement);
+		});
 		this.clearSearchFields();
 		await this.selectLeftScrolled();
 		this.optionsMoved();
 	}
 
 	private moveSelectedOptionsRight() {
-		this.getOptions(this.selectLeftElement).filter(o => o.selected).forEach(o => this.selectRightElement.add(o));
+		this.selectLeftElement.querySelectorAll('option:checked').forEach(option => {
+			this.moveOptionToSelectElement(option as HTMLOptionElement, this.selectRightElement);
+		});
+		this.hideOptionGroups(this.selectLeftElement);
 		this.optionsMoved();
 	}
 
 	private moveSelectedOptionsLeft() {
-		this.getOptions(this.selectRightElement).filter(o => o.selected).forEach(o => this.selectLeftElement.add(o));
+		this.selectRightElement.querySelectorAll('option:checked').forEach(option => {
+			this.moveOptionToSelectElement(option as HTMLOptionElement, this.selectLeftElement);
+		});
+		this.hideOptionGroups(this.selectRightElement);
 		this.optionsMoved();
 	}
 
 	private moveAllOptionsLeft() {
-		this.getOptions(this.selectRightElement).filter(o => !o.hidden).forEach(o => this.selectLeftElement.add(o));
+		this.selectRightElement.querySelectorAll('option:not([hidden])').forEach(option => {
+			this.moveOptionToSelectElement(option as HTMLOptionElement, this.selectLeftElement);
+		});
 		this.clearSearchFields();
 		this.optionsMoved();
 	}
 
 	private moveOptionLeft(target: EventTarget | null) {
 		if (target instanceof HTMLOptionElement) {
-			this.selectLeftElement.add(target);
+			this.moveOptionToSelectElement(target, this.selectLeftElement);
+			this.hideOptionGroups(this.selectRightElement);
 			this.optionsMoved();
 		}
 	}
 
+	private hideOptionGroups(selectElement: HTMLSelectElement | SortableSelectElement) {
+		selectElement.querySelectorAll('optgroup').forEach(optGroup => {
+			optGroup.hidden = !optGroup.querySelector('option:not([hidden])');
+		});
+	}
+
 	private async leftLookup() {
 		const query = this.searchLeftInput?.value ?? '';
-		let numFoundOptions = this.lookup(this.prepareOptions(this.selectLeftElement), query);
-		// first we lookup for matching options ...
+		let numFoundOptions = this.lookup(this.selectLeftElement, query);
+		// first we look up for matching options ...
 		if (this.isIncomplete && numFoundOptions < this.selectLeftElement.size) {
 			// if we find less options than the <select> element can depict,
 			// query for additional matching options from the server.
 			await this.remoteLookup();
-			numFoundOptions = this.lookup(this.getOptions(this.selectLeftElement), query);
+			numFoundOptions = this.lookup(this.selectLeftElement, query);
 		}
 		this.setButtonsState();
 		if (numFoundOptions === 0) {
@@ -253,19 +329,28 @@ export class DualSelector extends IncompleteSelect {
 
 	private rightLookup() {
 		const query = this.searchRightInput?.value ?? '';
-		if (this.lookup(this.prepareOptions(this.selectRightElement), query) === 0) {
+		if (this.lookup(this.selectRightElement, query) === 0) {
 			this.addNoResultsOption(this.selectRightElement, query);
 		}
 	}
 
-	private lookup(options: Array<HTMLOptionElement>, query: string) : number {
+	private lookup(selectElement: HTMLSelectElement | SortableSelectElement, query: string) : number {
+		selectElement.querySelector('option[disabled]')?.remove();
+		const optionElements = selectElement.querySelectorAll('option');
 		if (query) {
 			query = query.toLowerCase();
-			options.forEach(o => o.hidden = o.text.toLowerCase().indexOf(query) === -1);
-			return options.length - options.filter(o => o.hidden).length;
+			let hiddenOptions = 0;
+			optionElements.forEach(option => {
+				if (option.hidden = (option.text.toLowerCase().indexOf(query) === -1)) {
+					hiddenOptions++;
+				}
+			});
+			this.hideOptionGroups(selectElement);
+			return optionElements.length - hiddenOptions;
 		}
-		options.forEach(o => o.hidden = false);
-		return options.length;
+		optionElements.forEach(option => option.hidden = false);
+		selectElement.querySelectorAll('optgroup').forEach(optgroup => optgroup.hidden = false);
+		return optionElements.length;
 	}
 
 	private unOrRedo(direction: number) {
@@ -274,13 +359,26 @@ export class DualSelector extends IncompleteSelect {
 		if (nextCursor < 0 || nextCursor >= this.historicalValues.length)
 			return;
 		const nextValues = this.historicalValues[nextCursor];
-		this.getOptions(this.selectRightElement).filter(o => nextValues.indexOf(o.value) === -1).forEach(o => this.selectLeftElement.add(o));
-		this.getOptions(this.selectLeftElement).filter(o => nextValues.indexOf(o.value) !== -1).forEach(o => this.selectRightElement.add(o));
+
+		const rightOptions = Array.from(this.selectRightElement.querySelectorAll('option'));
+		rightOptions.filter(o => nextValues.indexOf(o.value) === -1).forEach(optionElement => {
+			this.moveOptionToSelectElement(optionElement, this.selectLeftElement)
+		});
+		const leftOptions = Array.from(this.selectLeftElement.querySelectorAll('option'));
+		leftOptions.filter(o => nextValues.indexOf(o.value) !== -1).forEach(optionElement => {
+			this.moveOptionToSelectElement(optionElement, this.selectRightElement)
+		});
+
 		if (this.selectRightElement.tagName === 'DJANGO-SORTABLE-SELECT') {
 			nextValues.forEach(val => {
-				const optionElem = this.selectRightElement.querySelector(`option[value="${val}"]`);
+				const optionElem = this.selectRightElement.querySelector(`:scope > option[value="${val}"]`);
 				if (optionElem) {
 					this.selectRightElement.insertAdjacentElement('beforeend', optionElem);
+				} else {
+					const optionElem = this.selectRightElement.querySelector(`:scope > optgroup > option[value="${val}"]`);
+					if (optionElem) {
+						optionElem.parentElement?.insertAdjacentElement('beforeend', optionElem);
+					}
 				}
 			});
 			this.optionsSorted();
@@ -299,13 +397,34 @@ export class DualSelector extends IncompleteSelect {
 		}
 	}
 
+	private transferStyles() {
+		const sheet = this.declaredStyles.sheet!;
+
+		// set background-color to transparent, so that the shadow on a focused input/select field is not cropped
+		let extraStyles = StyleHelpers.extractStyles(this.selectLeftElement, ['background-color']);
+		sheet.insertRule(`django-formset django-field-group .dj-dual-selector .left-column{${extraStyles}}`, 0);
+		extraStyles = StyleHelpers.extractStyles(this.selectRightElement, ['background-color']);
+		sheet.insertRule(`django-formset django-field-group .dj-dual-selector .right-column{${extraStyles}}`, 1);
+		sheet.insertRule('.dj-dual-selector select, .dj-dual-selector input{background-color: transparent;}', 2);
+
+		// prevent <select multiple> to have different heights depending on the having at least one <option>
+		extraStyles = StyleHelpers.extractStyles(this.selectLeftElement, ['height']);
+		sheet.insertRule(`django-formset django-field-group .dj-dual-selector select{${extraStyles}}`, 3);
+	}
+
 	protected formResetted(event: Event) {
 		this.clearSearchFields();
 		const initialValues = this.historicalValues[0];
 		this.historicalValues.splice(1);
 		this.setHistoryCursor(0);
-		this.getOptions(this.selectRightElement).filter(o => initialValues.indexOf(o.value) === -1).forEach(o => this.selectLeftElement.add(o));
-		this.getOptions(this.selectLeftElement).filter(o => initialValues.indexOf(o.value) !== -1).forEach(o => this.selectRightElement.add(o));
+		const rightOptions = Array.from(this.selectRightElement.querySelectorAll('option'));
+		rightOptions.filter(o => initialValues.indexOf(o.value) === -1).forEach(optionElement => {
+			this.moveOptionToSelectElement(optionElement, this.selectLeftElement)
+		});
+		const leftOptions = Array.from(this.selectLeftElement.querySelectorAll('option'))
+		leftOptions.filter(o => initialValues.indexOf(o.value) !== -1).forEach(optionElement => {
+			this.moveOptionToSelectElement(optionElement, this.selectRightElement)
+		});
 		this.selectorChanged();
 		this.containerElement?.classList.remove('invalid');
 	}
@@ -317,7 +436,8 @@ export class DualSelector extends IncompleteSelect {
 	}
 
 	public getValue() : string[] {
-		return this.getOptions(this.selectorElement).filter(o => o.selected).map(o => o.value);
+		const optionElements = Array.from(this.selectorElement.querySelectorAll('option:checked'));
+		return (optionElements as Array<HTMLOptionElement>).map(o => o.value);
 	}
 }
 

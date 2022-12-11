@@ -1,10 +1,10 @@
 django-sortable-select {
-	opacity: 1;
+	background-color: transparent !important;
 
 	&.focus {
 		opacity: 1;
 
-		> option {
+		option {
 			&.sortable-selected {
 				opacity: 1;
 				cursor: grab;
@@ -16,11 +16,18 @@ django-sortable-select {
 		}
 	}
 
-	> option {
+	option {
+		display: block;
 		line-height: normal;
 		cursor: default;
 
 		&.sortable-chosen, &.sortable-selected {
+			opacity: 1;
+		}
+	}
+
+	optgroup {
+		option::before {
 			opacity: 1;
 		}
 	}

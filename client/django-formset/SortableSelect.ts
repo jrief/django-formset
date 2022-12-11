@@ -26,6 +26,17 @@ export class SortableSelectElement extends HTMLElement {
 			fallbackOnBody: true,
 			multiDrag: true,
 			onEnd: event => this.onEnd(event),
+			handle: '>option',
+		});
+		this.querySelectorAll('optgroup').forEach(optgroup => {
+			Sortable.create(this, {
+				animation: 150,
+				fallbackOnBody: true,
+				multiDrag: true,
+				onEnd: event => this.onEnd(event),
+				handle: '>option',
+				group: optgroup.label,
+			});
 		});
 	}
 
@@ -110,7 +121,7 @@ export class SortableSelectElement extends HTMLElement {
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					selectElement.style.transition = '';
 					break;
-				case 'django-sortable-select > option.sortable-chosen, django-sortable-select > option.sortable-selected':
+				case 'django-sortable-select option.sortable-chosen, django-sortable-select option.sortable-selected':
 					if (optionElement) {
 						optionElement.selected = true;
 						extraStyles = StyleHelpers.extractStyles(optionElement, [
@@ -119,7 +130,7 @@ export class SortableSelectElement extends HTMLElement {
 						optionElement.selected = false;
 					}
 					break;
-				case 'django-sortable-select.focus > option.sortable-chosen, django-sortable-select.focus > option.sortable-selected':
+				case 'django-sortable-select.focus option.sortable-chosen, django-sortable-select.focus option.sortable-selected':
 					selectElement.focus();
 					if (optionElement) {
 						optionElement.selected = true;
@@ -130,14 +141,37 @@ export class SortableSelectElement extends HTMLElement {
 					}
 					selectElement.blur();
 					break;
+				case 'django-sortable-select optgroup option::before':
+					sheet.insertRule(`${cssRule.selectorText}{content:"\\0000a0\\0000a0\\0000a0\\0000a0";}`, ++index);
+					break;
 				default:
 					break;
 			}
 		}
 	}
 
-	public add(option: HTMLOptionElement) {
-		this.appendChild(option);
-		Sortable.utils.select(option);
+	public add(element: HTMLOptionElement | HTMLOptGroupElement) {
+		if (element instanceof HTMLOptionElement) {
+			this.appendChild(element);
+			Sortable.utils.select(element);
+		} else if (element instanceof HTMLOptGroupElement) {
+			this.appendChild(element);
+			Sortable.create(element, {
+				animation: 150,
+				fallbackOnBody: true,
+				multiDrag: true,
+				onEnd: event => this.onEnd(event),
+				handle: '>option',
+			});
+		}
+	}
+}
+
+
+export class SortableOptGroupElement extends HTMLOptGroupElement {
+	private lastSelected: HTMLOptionElement | null = null;
+
+	public constructor() {
+		super();
 	}
 }
