@@ -1,5 +1,10 @@
 ## Changes
 
+- 0.12
+  * Add feature to work with option groups when using the ``Selectize``, ``SelectizeMultiple``,
+    ``DualSelector`` and ``DualSortableSelector`` widget.
+  * Fix border shadow after submitting invalid form data.
+
 - 0.11.1
   * In `DjangoButton`'s `reload()` action, add a Boolean argument to optionally ignore query strings.
   * In `DjangoSelectize` fix handling of `line-height: normal` by settings it to value 1.2.
