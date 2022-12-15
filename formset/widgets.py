@@ -3,7 +3,7 @@ import struct
 from base64 import b16encode
 from datetime import date
 from functools import reduce
-from operator import or_
+from operator import and_, or_
 
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.core.files.storage import default_storage
@@ -24,6 +24,12 @@ class SimpleModelChoiceIterator(ModelChoiceIterator):
             queryset = queryset.iterator()
         for obj in queryset:
             yield self.choice(obj)
+
+    def __len__(self):
+        return self.queryset.count()
+
+    def __bool__(self):
+        return self.queryset.exists()
 
 
 class GroupedModelChoiceIterator(SimpleModelChoiceIterator):
@@ -46,22 +52,33 @@ class IncompleteSelectMixin:
     max_prefetch_choices = 250
     search_lookup = None
     group_field_name = None
+    filter_by = None
 
-    def __init__(self, attrs=None, choices=(), search_lookup=None, group_field_name=None):
+    def __init__(self, attrs=None, choices=(), search_lookup=None, group_field_name=None, filter_by=None):
         if search_lookup:
             self.search_lookup = search_lookup
         if isinstance(self.search_lookup, str):
             self.search_lookup = [self.search_lookup]
-        if group_field_name is not None:
+        if isinstance(group_field_name, str):
             self.group_field_name = group_field_name
+        if isinstance(filter_by, dict):
+            self.filter_by = filter_by
         super().__init__(attrs, choices)
 
-    def search(self, search_term):
+    def build_filter_query(self, filters):
+        queries = []
+        for fieldname, lookup in self.filter_by.items():
+            queries.append(Q(**{f'{fieldname}__{lookup}': filters[fieldname]}))
         try:
-            query = reduce(or_, (Q(**{sl: search_term}) for sl in self.search_lookup))
+            return reduce(and_, queries)
+        except TypeError:
+            raise ImproperlyConfigured(f"Invalid attribute 'filter_by' in {self.__class__}.")
+
+    def build_search_query(self, search_term):
+        try:
+            return reduce(or_, (Q(**{sl: search_term}) for sl in self.search_lookup))
         except TypeError:
             raise ImproperlyConfigured(f"Invalid attribute 'search_lookup' in {self.__class__}.")
-        return self.choices.queryset.filter(query)
 
     def format_value(self, value):
         if value is None:
@@ -70,17 +87,25 @@ class IncompleteSelectMixin:
             value = [value]
         return [str(v) if v is not None else "" for v in value]
 
-    def get_context(self, name, value, attrs):
-        if isinstance(self.choices, (ModelChoiceIterator, GroupedModelChoiceIterator)):
+    def build_attrs(self, base_attrs, extra_attrs):
+        attrs = super().build_attrs(base_attrs, extra_attrs)
+        if isinstance(self.choices, SimpleModelChoiceIterator):
             if self.choices.queryset.count() > self.max_prefetch_choices:
-                attrs = dict(attrs, incomplete=True)
+                attrs['incomplete'] = True
+            if self.filter_by:
+                attrs['filter-by'] = ','.join(self.filter_by.keys())
+        return attrs
+
+    def get_context(self, name, value, attrs):
+        if isinstance(self.choices, ModelChoiceIterator):
             if self.group_field_name:
                 self.optgroups = self._optgroups_model_choice
-                self.choices.queryset = self.choices.queryset.order_by(self.group_field_name)
+                # self.choices.queryset = self.choices.queryset.order_by('?')  #f'-{self.group_field_name}')
                 self.choices.group_field_name = self.group_field_name
                 self.choices.__class__ = GroupedModelChoiceIterator
             else:
                 self.optgroups = self._options_model_choice
+                self.choices.__class__ = SimpleModelChoiceIterator
         else:
             self.optgroups = self._optgroups_static_choice
         context = super().get_context(name, value, attrs)
@@ -114,20 +139,7 @@ class IncompleteSelectMixin:
     def _optgroups_model_choice(self, name, values, attrs=None):
         values_list = [str(val) for val in values]
         optgroups, prev_group_name, counter = [], '-', 0
-        for counter, (val, label, group_name) in enumerate(self.choices, counter):
-            if counter == self.max_prefetch_choices:
-                break
-            if not isinstance(val, ModelChoiceIteratorValue):
-                continue
-            val = str(val)
-            if selected := val in values_list:
-                values_list.remove(val)
-            if prev_group_name != group_name:
-                prev_group_name = group_name
-                subgroup = [{'value': val, 'label': label, 'selected': selected}]
-                optgroups.append((group_name, subgroup, counter))
-            else:
-                subgroup.append({'value': val, 'label': label, 'selected': selected})
+        # first handle selected values
         for counter, val in enumerate(values_list, counter):
             try:
                 obj = self.choices.queryset.get(pk=val)
@@ -141,6 +153,19 @@ class IncompleteSelectMixin:
             else:
                 subgroup = [{'value': str(val), 'label': label, 'selected': True}]
                 optgroups.append((group_name, subgroup, counter))
+        # afterwards handle the remaining values
+        for counter, (val, label, group_name) in enumerate(self.choices, counter):
+            if counter == self.max_prefetch_choices:
+                break
+            if not isinstance(val, ModelChoiceIteratorValue):
+                continue
+            val = str(val)
+            if prev_group_name != group_name:
+                prev_group_name = group_name
+                subgroup = [{'value': val, 'label': label}]
+                optgroups.append((group_name, subgroup, counter))
+            else:
+                subgroup.append({'value': val, 'label': label})
         return optgroups
 
 
@@ -151,8 +176,8 @@ class Selectize(IncompleteSelectMixin, Select):
     template_name = 'formset/default/widgets/selectize.html'
     placeholder = _("Select")
 
-    def __init__(self, attrs=None, choices=(), search_lookup=None, group_field_name=None, placeholder=None):
-        super().__init__(attrs, choices, search_lookup, group_field_name)
+    def __init__(self, attrs=None, choices=(), search_lookup=None, group_field_name=None, filter_by=None, placeholder=None):
+        super().__init__(attrs, choices, search_lookup, group_field_name, filter_by)
         if placeholder is not None:
             self.placeholder = placeholder
 

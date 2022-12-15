@@ -270,20 +270,17 @@ class FieldGroup {
 	}
 
 	public touch() {
-		this.element.classList.remove('dj-untouched');
-		this.element.classList.remove('dj-validated');
+		this.element.classList.remove('dj-untouched', 'dj-validated');
 		this.element.classList.add('dj-touched');
 	}
 
 	private untouch() {
-		this.element.classList.remove('dj-submitted');
-		this.element.classList.remove('dj-touched');
+		this.element.classList.remove('dj-submitted', 'dj-touched');
 		this.element.classList.add('dj-untouched');
 	}
 
 	private setDirty() {
-		this.element.classList.remove('dj-submitted');
-		this.element.classList.remove('dj-pristine');
+		this.element.classList.remove('dj-submitted', 'dj-pristine');
 		this.element.classList.add('dj-dirty');
 	}
 

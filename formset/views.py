@@ -21,8 +21,9 @@ class IncompleteSelectResponseMixin:
     """
     def get(self, request, **kwargs):
         if request.accepts('application/json') and 'field' in request.GET:
-            if 'query' in request.GET or 'offset' in request.GET:
-                return self._fetch_options(request)
+            # has_filter = any(k.startswith('filter-') for k in request.GET.keys())
+            # if has_filter or 'query' in request.GET or 'offset' in request.GET:
+            return self._fetch_options(request)
         return super().get(request, **kwargs)
 
     def _fetch_options(self, request):
@@ -32,25 +33,34 @@ class IncompleteSelectResponseMixin:
         except KeyError:
             return HttpResponseBadRequest(f"No such field: {field_path}")
         assert isinstance(field.widget, (Selectize, DualSelector))
+        widget = field.widget
+        queryset = widget.choices.queryset
+        data = {'total_count': queryset.count()}
+
         try:
             offset = int(request.GET.get('offset'))
         except TypeError:
             offset = 0
-        if query := request.GET.get('query'):
-            data = {'query': query}
-            queryset = field.widget.search(query)
+
+        if widget.filter_by and any(k.startswith('filter-') for k in request.GET.keys()):
+            filters = {key: request.GET.get(f'filter-{key}') for key in widget.filter_by.keys()}
+            data['filters'] = filters
+            queryset = queryset.filter(widget.build_filter_query(filters))
+
+        if search := request.GET.get('search'):
+            data['search'] = search
+            queryset = queryset.filter(widget.build_search_query(search))
             incomplete = None  # incomplete state unknown
         else:
-            data = {}
-            queryset = field.widget.choices.queryset
-            incomplete = queryset.count() - offset > field.widget.max_prefetch_choices
-        limited_qs = queryset[offset:offset + field.widget.max_prefetch_choices]
+            incomplete = queryset.count() - offset > widget.max_prefetch_choices
+
+        limited_qs = queryset[offset:offset + widget.max_prefetch_choices]
         to_field_name = field.to_field_name if field.to_field_name else 'pk'
-        if field.widget.group_field_name:
+        if widget.group_field_name:
             options = [{
                 'id': getattr(item, to_field_name),
                 'label': str(item),
-                'optgroup': force_str(getattr(item, field.widget.group_field_name)),
+                'optgroup': force_str(getattr(item, widget.group_field_name)),
             } for item in limited_qs]
         else:
             options = [{
@@ -59,7 +69,6 @@ class IncompleteSelectResponseMixin:
             } for item in limited_qs]
         data.update(
             count=len(options),
-            total_count=field.widget.choices.queryset.count(),
             incomplete=incomplete,
             options=options,
         )

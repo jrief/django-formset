@@ -4,7 +4,7 @@ django-sortable-select {
 	&.focus {
 		opacity: 1;
 
-		option {
+		option, optgroup {
 			&.sortable-selected {
 				opacity: 1;
 				cursor: grab;

@@ -4,6 +4,7 @@ export abstract class IncompleteSelect {
 	private readonly fieldName?: string;
 	protected isIncomplete: boolean;
 	protected readonly fieldGroup: Element;
+	protected filterByValues = new Map<string, string>();
 
 	constructor(element: HTMLSelectElement) {
 		const fieldGroup = element.closest('django-field-group');
@@ -23,14 +24,46 @@ export abstract class IncompleteSelect {
 		form.addEventListener('submitted', event => this.formSubmitted(event));
 	}
 
+	protected setupFilters(element: HTMLSelectElement) {
+		const filters = element.getAttribute('filter-by')?.split(',') ?? [];
+		filters.forEach(filterBy => {
+			const observedElement = element.form?.elements.namedItem(filterBy);
+			if (observedElement instanceof HTMLInputElement || observedElement instanceof HTMLSelectElement) {
+				this.filterByValues.set(filterBy, observedElement.value);
+				if (Array.from(this.filterByValues.values()).some(val => val)) {
+					this.reloadOptions();
+				}
+				observedElement.addEventListener('change', (event: Event) => {
+					const changedElement = event.currentTarget;
+					if (changedElement instanceof HTMLInputElement || changedElement instanceof HTMLSelectElement) {
+						this.filterByValues.set(filterBy, changedElement.value);
+						this.reloadOptions();
+					}
+				});
+			}
+		});
+	}
+
 	protected abstract formResetted(event: Event) : void;
 
 	protected abstract formSubmitted(event: Event) : void;
 
+	protected abstract reloadOptions() : void;
+
 	protected touch = () => {
-		this.fieldGroup.classList.remove('dj-untouched');
-		this.fieldGroup.classList.remove('dj-validated');
+		this.fieldGroup.classList.remove('dj-untouched', 'dj-validated');
 		this.fieldGroup.classList.add('dj-touched');
+	}
+
+	protected buildFetchQuery(searchStr?: string) {
+		const parts = [];
+		if (searchStr) {
+			parts.push(`search=${encodeURIComponent(searchStr)}`);
+		}
+		for (const [key, value] of this.filterByValues) {
+			parts.push(`filter-${key}=${encodeURIComponent(value)}`);
+		}
+		return parts.join('&');
 	}
 
 	protected async loadOptions(query: string, successCallback: Function) {

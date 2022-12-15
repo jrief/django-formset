@@ -27,7 +27,8 @@ class OpinionForm(forms.Form):
     The **Few Opinions** field shows a ``ModelMultipleChoiceField`` using the ``SelectizeMultiple``
     widget configured to query from the associated model. It behaves similar to the ``Selectize``
     widget, but allows to choose one or more options. It shall be used if the maximum number of
-    selectable options does not exceed more than say 10.
+    selectable options does not exceed more than say 10. Here the limit is set to 5 items, which
+    is the default.
 
     The **Many Opinions** field shows a ``ModelMultipleChoiceField`` using the ``DualSelector``
     widget configured to query from the associated Django Model. It shows two ``<select multiple>``

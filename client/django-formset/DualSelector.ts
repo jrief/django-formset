@@ -84,45 +84,30 @@ export class DualSelector extends IncompleteSelect {
 
 	private initialize() {
 		const initialValues: string[] = [];
-		const optionElemens = this.selectorElement.querySelectorAll(':scope > option') as NodeListOf<HTMLOptionElement>;
-		optionElemens.forEach(option => {
-			const clone = option.cloneNode() as HTMLOptionElement;
+		const optionElements = this.selectorElement.querySelectorAll(':scope > option') as NodeListOf<HTMLOptionElement>;
+		optionElements.forEach(option => {
+			const optionData : OptionData = {id: option.value, label: option.label};
 			if (option.selected) {
-				option.selected = false;
-				this.selectRightElement.add(option);
+				this.addOptionToSelectElement(optionData, this.selectRightElement);
 				initialValues.push(option.value);
 			} else {
-				this.selectLeftElement.add(option);
+				this.addOptionToSelectElement(optionData, this.selectLeftElement);
 			}
-			this.selectorElement.add(clone);  // add clone without inner text
+			option.replaceChildren();  // selectorElement is shadowed
 		});
 		const optionGroupElements = this.selectorElement.querySelectorAll(':scope > optgroup') as NodeListOf<HTMLOptGroupElement>;
 		optionGroupElements.forEach(optGroupElement => {
-			const selectedOptions = optGroupElement.querySelectorAll('option:checked') as NodeListOf<HTMLOptionElement>;
-			if (selectedOptions.length > 0) {
-				const newOptGroup = document.createElement('optgroup');
-				newOptGroup.label = optGroupElement.label;
-				this.selectRightElement.add(newOptGroup);
-				selectedOptions.forEach(option => {
-					const clone = option.cloneNode() as HTMLOptionElement;
-					option.selected = false;
-					newOptGroup.appendChild(option);
+			optGroupElement.querySelectorAll('option').forEach(option => {
+				const optionData : OptionData = {id: option.value, label: option.label, optgroup: optGroupElement.label};
+				if (option.selected) {
+					this.addOptionToSelectElement(optionData, this.selectRightElement);
 					initialValues.push(option.value);
-					this.selectorElement.add(clone);  // add clone without inner text
-				});
-			}
-			const unselectedOptions = optGroupElement.querySelectorAll('option:not(:checked)');
-			if (unselectedOptions.length > 0) {
-				const newOptGroup = document.createElement('optgroup');
-				newOptGroup.label = optGroupElement.label;
-				this.selectLeftElement.add(newOptGroup);
-				unselectedOptions.forEach(option => {
-					const clone = option.cloneNode() as HTMLOptionElement;
-					newOptGroup.appendChild(option);
-					this.selectorElement.add(clone);  // add clone without inner text
-				});
-			}
-			this.selectorElement.removeChild(optGroupElement);
+				} else {
+					this.addOptionToSelectElement(optionData, this.selectLeftElement);
+				}
+				option.replaceChildren();  // selectorElement is shadowed
+			});
+			optGroupElement.replaceWith(...optGroupElement.childNodes);
 		});
 		this.historicalValues.push(initialValues);
 		this.setHistoryCursor(0);
@@ -137,24 +122,25 @@ export class DualSelector extends IncompleteSelect {
 		selectElement.add(option);
 	}
 
-	private addOptionToSelectElement(option: OptionData, target: HTMLSelectElement | SortableSelectElement) {
-		if (this.selectorElement.querySelector(`option[value="${option.id}"]`))
-			return;
+	private addOptionToSelectElement(option: OptionData, target: HTMLSelectElement | SortableSelectElement) : HTMLOptionElement {
+		const optionElement = target.querySelector(`option[value="${option.id}"]`);
+		if (optionElement instanceof HTMLOptionElement)
+			return optionElement;  // prevent duplicates
 		const newOptionElement = new Option(option.label, option.id);
 		if (typeof option.optgroup === 'string') {
-			const optGroupElement = target.querySelector(`optgroup[label="${option.optgroup}"]`);
-			if (optGroupElement instanceof HTMLOptGroupElement) {
-				optGroupElement.appendChild(newOptionElement);
-			} else {
-				const newOptGroupElement = document.createElement('optgroup');
-				newOptGroupElement.label = option.optgroup;
-				newOptGroupElement.appendChild(newOptionElement);
-				target.add(newOptGroupElement);
+			let optGroupElement = target.querySelector(`optgroup[label="${option.optgroup}"]`);
+			if (!optGroupElement) {
+				optGroupElement = document.createElement('optgroup');
+				if (optGroupElement instanceof HTMLOptGroupElement) {
+					optGroupElement.label = option.optgroup;
+					target.add(optGroupElement);
+				}
 			}
+			optGroupElement.appendChild(newOptionElement);
 		} else {
 			target.add(newOptionElement);
 		}
-		this.selectorElement.add(newOptionElement.cloneNode() as HTMLOptionElement);
+		return newOptionElement;
 	}
 
 	private async selectLeftScrolled() {
@@ -180,7 +166,10 @@ export class DualSelector extends IncompleteSelect {
 			return;
 		this.lastRemoteQuery = query;
 		await this.loadOptions(query, (options: Array<OptionData>) => options.forEach(option => {
-			this.addOptionToSelectElement(option, this.selectLeftElement);
+			if (!(this.selectorElement.querySelector(`option[value="${option.id}"]`))) {
+				const optionElement = this.addOptionToSelectElement(option, this.selectLeftElement).cloneNode(false) as HTMLOptionElement;
+				this.selectorElement.add(optionElement);
+			}
 		}));
 	}
 
@@ -226,7 +215,7 @@ export class DualSelector extends IncompleteSelect {
 	private optionsSorted() {
 		this.selectorElement.querySelectorAll('option:checked').forEach(o => o.remove());
 		this.selectRightElement.querySelectorAll('option').forEach(optionElement => {
-			const clone = optionElement.cloneNode() as HTMLOptionElement;
+			const clone = optionElement.cloneNode(false) as HTMLOptionElement;
 			clone.selected = true;
 			this.selectorElement.add(clone);
 		});
@@ -433,6 +422,10 @@ export class DualSelector extends IncompleteSelect {
 		this.clearSearchFields();
 		this.historicalValues.splice(0, this.historicalValues.length - 1);
 		this.setHistoryCursor(0);
+	}
+
+	protected reloadOptions() {
+		// TODO: called after adjacent field changed value
 	}
 
 	public getValue() : string[] {
