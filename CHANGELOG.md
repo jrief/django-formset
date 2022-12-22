@@ -1,5 +1,10 @@
 ## Changes
 
+- 0.13
+  * Add feature to preselect choices in one select field using a value from another field.
+  * Remove function `getValue()` from widgets `RichtextArea` and `DjangoSelectize`; use property
+    `value` instead.
+
 - 0.11.1
   * In `DjangoButton`'s `reload()` action, add a Boolean argument to optionally ignore query strings.
   * In `DjangoSelectize` fix handling of `line-height: normal` by settings it to value 1.2.

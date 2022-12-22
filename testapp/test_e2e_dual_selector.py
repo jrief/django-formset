@@ -2,6 +2,8 @@ import pytest
 import json
 from time import sleep
 
+from playwright.sync_api import expect
+
 from django.forms import Form, models
 from django.urls import path
 from django.views.generic import UpdateView, FormView as GenericFormView
@@ -110,11 +112,11 @@ def test_form_validated(page, form, viewname):
 @pytest.mark.parametrize('viewname', views.keys())
 def test_initial_value(page, form, viewname):
     selector_element = page.locator('django-formset select[is="django-dual-selector"]')
-    value = selector_element.evaluate('elem => elem.value')
+    values = selector_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
     if form.name == 'selector_initialized':
-        assert set(value) == set(str(k) for k in get_initial_opinions())
+        assert set(values) == set(str(k) for k in get_initial_opinions())
     else:
-        assert value == []
+        assert values == []
 
 
 @pytest.mark.urls(__name__)
@@ -165,37 +167,32 @@ def test_move_all_right(page, mocker, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0', 'selector3'])
 def test_move_selected_right(page, mocker, view, form, viewname):
-    select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
-    assert select_left_element is not None
+    select_left = page.locator('django-formset .dj-dual-selector .left-column select')
     left_option_values = set()
-    for option in select_left_element.query_selector_all('option')[30:39]:
-        left_option_values.add(option.get_attribute('value'))
-        option.click(modifiers=['Shift'])
-    select_right_element = page.query_selector('django-formset .dj-dual-selector .right-column select')
-    assert select_right_element is not None
+    for index in range(30, 39):
+        left_option_values.add(select_left.locator(f'option:nth-child({index})').get_attribute('value'))
+    select_left.select_option(value=list(left_option_values))
+    select_right = page.locator('django-formset .dj-dual-selector .right-column select')
     if form.name == 'selector_initialized':
-        assert len(select_right_element.query_selector_all('option')) == len(get_initial_opinions())
-        left_option_values.update(o.get_attribute('value') for o in select_right_element.query_selector_all('option'))
+        expect(select_right.locator('option')).to_have_count(len(get_initial_opinions()))
+        left_option_values.update(o.get_attribute('value') for o in select_right.locator('option').all())
     else:
-        assert len(select_right_element.query_selector_all('option')) == 0
-    button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-move-selected-right')
-    assert button is not None
-    button.click()
-    right_option_values = set(o.get_attribute('value') for o in select_right_element.query_selector_all('option'))
+        expect(select_right.locator('option')).to_have_count(0)
+    page.locator('django-formset .dj-dual-selector button.dj-move-selected-right').click()
+    right_option_values = set(o.get_attribute('value') for o in select_right.locator('option').all())
     assert left_option_values == right_option_values
-    option = select_right_element.query_selector_all('option')[5]
+    option = select_right.locator('option:nth-child(6)')
     option.click()
-    button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-move-selected-left')
-    assert button is not None
-    button.click()
-    left_option_values = set(o.get_attribute('value') for o in select_left_element.query_selector_all('option'))
-    right_option_values = set(o.get_attribute('value') for o in select_right_element.query_selector_all('option'))
-    assert option.get_attribute('value') in left_option_values
-    assert option.get_attribute('value') not in right_option_values
+    option_value = option.get_attribute('value')
+    page.locator('django-formset .dj-dual-selector button.dj-move-selected-left').click()
+    left_option_values = set(o.get_attribute('value') for o in select_left.locator('option').all())
+    right_option_values = set(o.get_attribute('value') for o in select_right.locator('option').all())
+    assert option_value in left_option_values
+    assert option_value not in right_option_values
     spy = mocker.spy(view.view_class, 'post')
-    page.wait_for_selector('django-formset > p button').click()
-    sleep(0.1)
-    assert spy.called is True
+    page.locator('django-formset > p button:first-child').click()
+    sleep(0.25)
+    spy.assert_called()
     request = json.loads(spy.call_args.args[1].body)
     assert set(request['formset_data']['model_choice']) == right_option_values
 
@@ -307,7 +304,7 @@ def test_force_submit_invalid_form(page, mocker, view, form, viewname):
 def test_reset_selector(page, view, form, viewname):
     selector_element = page.query_selector('django-formset select[is="django-dual-selector"]')
     assert selector_element is not None
-    initial_values = selector_element.evaluate('elem => elem.value')
+    initial_values = selector_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
     select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
     assert select_left_element is not None
     left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option')]
@@ -316,10 +313,10 @@ def test_reset_selector(page, view, form, viewname):
     assert select_right_element is not None
     right_option_values = [o.get_attribute('value') for o in select_right_element.query_selector_all('option')]
     assert set(initial_values).union([left_option_values[50]]) == set(right_option_values)
-    values = selector_element.evaluate('elem => elem.value')
+    values = selector_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
     assert values != initial_values
     page.wait_for_selector('django-formset').evaluate('elem => elem.reset()')
-    values = selector_element.evaluate('elem => elem.value')
+    values = selector_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
     assert values == initial_values
 
 
@@ -409,7 +406,7 @@ def test_right_selector_lookup(page, form, viewname):
 def test_undo_redo(page, view, form, viewname):
     selector_element = page.query_selector('django-formset select[is="django-dual-selector"]')
     assert selector_element is not None
-    initial_values = selector_element.evaluate('elem => elem.value')
+    initial_values = selector_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
     undo_button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-undo-selected')
     assert undo_button is not None
     assert undo_button.is_disabled()

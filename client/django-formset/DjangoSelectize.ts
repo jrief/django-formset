@@ -78,9 +78,14 @@ class DjangoSelectize extends IncompleteSelect {
 	protected reloadOptions() {
 		this.tomSelect.clear();
 		this.tomSelect.clearOptions();
+		this.tomInput.replaceChildren();
 		this.fieldGroup.classList.remove('dj-dirty', 'dj-touched', 'dj-validated');
 		this.fieldGroup.classList.add('dj-untouched', 'dj-pristine');
-		this.loadOptions(this.buildFetchQuery(), (options: Array<OptionData>) => {
+		const errorPlaceholder = this.fieldGroup.querySelector('.dj-errorlist > .dj-placeholder');
+		if (errorPlaceholder) {
+			errorPlaceholder.innerHTML = '';
+		}
+		this.loadOptions(this.buildFetchQuery(0), (options: Array<OptionData>) => {
 			this.tomSelect.addOptions(options);
 		});
 	}
@@ -96,7 +101,7 @@ class DjangoSelectize extends IncompleteSelect {
 	}
 
 	private load = (query: string, callback: Function) => {
-		this.loadOptions(this.buildFetchQuery(query), (options: Array<OptionData>) => {
+		this.loadOptions(this.buildFetchQuery(0, query), (options: Array<OptionData>) => {
 			callback(options, this.extractOptGroups(options));
 		});
 	}
@@ -248,10 +253,6 @@ class DjangoSelectize extends IncompleteSelect {
 			}
 		}
 	}
-
-	public getValue() : string | string[] {
-		return this.tomSelect.getValue();
-	}
 }
 
 const DS = Symbol('DjangoSelectize');
@@ -261,9 +262,5 @@ export class DjangoSelectizeElement extends HTMLSelectElement {
 
 	private connectedCallback() {
 		this[DS] = new DjangoSelectize(this);
-	}
-
-	public async getValue() {
-		return this[DS]?.getValue();
 	}
 }

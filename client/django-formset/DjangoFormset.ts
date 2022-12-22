@@ -149,14 +149,8 @@ class FieldGroup {
 				return (element as HTMLInputElement).checked ? element.value : '';
 			}
 			if (element.type === 'select-multiple') {
-				const value = [];
 				const select = element as HTMLSelectElement;
-				for (const key in select.options) {
-					if (select.options[key].selected) {
-						value.push(select.options[key].value);
-					}
-				}
-				return value;
+				return Array.from(select.selectedOptions).map(o => o.value);
 			}
 			if (element.type === 'file') {
 				return this.fileUploader!.uploadedFiles;

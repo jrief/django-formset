@@ -68,9 +68,14 @@ class IncompleteSelectMixin:
     def build_filter_query(self, filters):
         queries = []
         for fieldname, lookup in self.filter_by.items():
-            queries.append(Q(**{f'{fieldname}__{lookup}': filters[fieldname]}))
+            filtervalue = filters[fieldname]
+            if isinstance(filtervalue, list):
+                subqueries = [Q(**{lookup: val}) for val in filtervalue if val]
+                queries.append(reduce(or_, subqueries, Q()))
+            elif isinstance(filtervalue, str):
+                queries.append(Q(**{lookup: filtervalue}))
         try:
-            return reduce(and_, queries)
+            return reduce(and_, queries, Q())
         except TypeError:
             raise ImproperlyConfigured(f"Invalid attribute 'filter_by' in {self.__class__}.")
 

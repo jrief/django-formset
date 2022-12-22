@@ -43,7 +43,7 @@ class IncompleteSelectResponseMixin:
             offset = 0
 
         if widget.filter_by and any(k.startswith('filter-') for k in request.GET.keys()):
-            filters = {key: request.GET.get(f'filter-{key}') for key in widget.filter_by.keys()}
+            filters = {key: request.GET.getlist(f'filter-{key}') for key in widget.filter_by.keys()}
             data['filters'] = filters
             queryset = queryset.filter(widget.build_filter_query(filters))
 

@@ -540,8 +540,4 @@ export class RichTextAreaElement extends HTMLTextAreaElement {
 	public get value() : any {
 		return this[RA]?.getValue();
 	}
-
-	public async getValue() {
-		return this[RA]?.getValue();
-	}
 }

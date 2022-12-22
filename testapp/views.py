@@ -39,7 +39,7 @@ from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
 from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.questionnaire import QuestionnaireForm
-from testapp.forms.state import StateForm
+from testapp.forms.state import StateForm, StatesForm
 from testapp.forms.user import UserCollection, UserListCollection
 from testapp.forms.upload import UploadForm
 from testapp.models import AdvertisementModel, PersonModel, PollModel
@@ -455,8 +455,11 @@ urlpatterns = [
     path('counties', DemoFormView.as_view(
         form_class=CountyForm,
     ), kwargs={'group': 'form', 'index': 15}, name='counties'),
-    path('states', DemoFormView.as_view(
+    path('state', DemoFormView.as_view(
         form_class=StateForm,
+    ), kwargs={'group': 'form', 'index': 15}, name='state'),
+    path('states', DemoFormView.as_view(
+        form_class=StatesForm,
     ), kwargs={'group': 'form', 'index': 15}, name='states'),
     path('person', DemoModelFormView.as_view(
         form_class=ModelPersonForm,

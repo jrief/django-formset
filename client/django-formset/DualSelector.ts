@@ -21,7 +21,7 @@ export class DualSelector extends IncompleteSelect {
 	private readonly redoButton?: HTMLButtonElement;
 	private historicalValues: string[][] = [];
 	private historyCursor: number = 0;
-	private lastRemoteQuery?: string;
+	private lastRemoteQuery = new URLSearchParams();
 	private readonly renderNoResults: Function;
 
 	constructor(selectorElement: HTMLSelectElement, name: string) {
@@ -65,6 +65,7 @@ export class DualSelector extends IncompleteSelect {
 		this.initialize();
 		this.transferStyles();
 		this.setButtonsState();
+		this.setupFilters(selectorElement);
 	}
 
 	private installEventHandlers() {
@@ -143,33 +144,36 @@ export class DualSelector extends IncompleteSelect {
 		return newOptionElement;
 	}
 
-	private async selectLeftScrolled() {
+	private selectLeftScrolled() {
 		if (!this.isIncomplete)
 			return;
 		const selectLeftScroll = this.selectLeftElement.scrollHeight - this.selectLeftElement.scrollTop;
 		if (selectLeftScroll <= this.selectLeftElement.offsetHeight) {
 			// triggers whenever the last <option>-element becomes visible inside its parent <select>
-			await this.remoteLookup();
+			this.remoteLookup();
 		}
 	}
 
-	private async remoteLookup() {
-		let query: string;
+	private remoteLookup() {
+		let query: URLSearchParams;
 		const searchString = this.searchLeftInput?.value;
 		if (searchString) {
 			const offset = this.selectLeftElement.querySelectorAll('option:not([hidden])').length;
-			query = `query=${searchString}&offset=${offset}`;
+			// query = `${this.buildFetchQuery(searchString)}&offset=${offset}`;
+			query = this.buildFetchQuery(offset, searchString);
 		} else {
-			query = `offset=${this.selectorElement.childElementCount}`;
+			// query = `${this.buildFetchQuery()}&offset=${this.selectorElement.childElementCount}`;
+			query = this.buildFetchQuery(this.selectorElement.childElementCount);
 		}
 		if (this.lastRemoteQuery === query)
 			return;
 		this.lastRemoteQuery = query;
-		await this.loadOptions(query, (options: Array<OptionData>) => options.forEach(option => {
+		this.loadOptions(query, (options: Array<OptionData>) => options.forEach(option => {
 			if (!(this.selectorElement.querySelector(`option[value="${option.id}"]`))) {
 				const optionElement = this.addOptionToSelectElement(option, this.selectLeftElement).cloneNode(false) as HTMLOptionElement;
 				this.selectorElement.add(optionElement);
 			}
+			this.setButtonsState();
 		}));
 	}
 
@@ -244,21 +248,21 @@ export class DualSelector extends IncompleteSelect {
 		}
 	}
 
-	private async moveOptionRight(target: EventTarget | null) {
+	private moveOptionRight(target: EventTarget | null) {
 		if (target instanceof HTMLOptionElement) {
 			this.moveOptionToSelectElement(target, this.selectRightElement);
-			await this.selectLeftScrolled();
+			this.selectLeftScrolled();
 			this.hideOptionGroups(this.selectLeftElement);
 			this.optionsMoved();
 		}
 	}
 
-	private async moveAllOptionsRight() {
+	private moveAllOptionsRight() {
 		this.selectLeftElement.querySelectorAll('option:not([hidden])').forEach(option => {
 			this.moveOptionToSelectElement(option as HTMLOptionElement, this.selectRightElement);
 		});
 		this.clearSearchFields();
-		await this.selectLeftScrolled();
+		this.selectLeftScrolled();
 		this.optionsMoved();
 	}
 
@@ -300,14 +304,14 @@ export class DualSelector extends IncompleteSelect {
 		});
 	}
 
-	private async leftLookup() {
+	private leftLookup() {
 		const query = this.searchLeftInput?.value ?? '';
 		let numFoundOptions = this.lookup(this.selectLeftElement, query);
 		// first we look up for matching options ...
 		if (this.isIncomplete && numFoundOptions < this.selectLeftElement.size) {
 			// if we find less options than the <select> element can depict,
 			// query for additional matching options from the server.
-			await this.remoteLookup();
+			this.remoteLookup();
 			numFoundOptions = this.lookup(this.selectLeftElement, query);
 		}
 		this.setButtonsState();
@@ -425,12 +429,20 @@ export class DualSelector extends IncompleteSelect {
 	}
 
 	protected reloadOptions() {
-		// TODO: called after adjacent field changed value
-	}
-
-	public getValue() : string[] {
-		const optionElements = Array.from(this.selectorElement.querySelectorAll('option:checked'));
-		return (optionElements as Array<HTMLOptionElement>).map(o => o.value);
+		this.selectorElement.replaceChildren();
+		this.selectLeftElement.replaceChildren();
+		this.selectRightElement.replaceChildren();
+		this.clearSearchFields();
+		this.fieldGroup.classList.remove('dj-dirty', 'dj-touched', 'dj-validated');
+		this.fieldGroup.classList.add('dj-untouched', 'dj-pristine');
+		this.containerElement?.classList.remove('invalid');
+		const errorPlaceholder = this.fieldGroup.querySelector('.dj-errorlist > .dj-placeholder');
+		if (errorPlaceholder) {
+			errorPlaceholder.innerHTML = '';
+		}
+		this.remoteLookup();
+		this.historicalValues.splice(1);
+		this.setHistoryCursor(0);
 	}
 }
 
@@ -441,9 +453,5 @@ export class DualSelectorElement extends HTMLSelectElement {
 
 	connectedCallback() {
 		this[DS] = new DualSelector(this, 'django-dual-selector');
-	}
-
-	public get value() : any {
-		return this[DS]?.getValue();
 	}
 }

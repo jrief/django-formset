@@ -1,5 +1,6 @@
 import json
 import pytest
+from time import sleep
 
 from django.urls import path
 
@@ -19,7 +20,7 @@ urlpatterns = [
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['customer'])
-def test_submit_customer(page, mocker):
+def test_submit_customer(page, mocker, viewname):
     customer_collections = page.query_selector_all('django-formset > django-form-collection')
     assert len(customer_collections) == 2
     fieldset = customer_collections[0].query_selector('fieldset[hide-if]')
@@ -31,6 +32,7 @@ def test_submit_customer(page, mocker):
     page.fill('#id_customer\\.address', "123, Lye Street")
     spy = mocker.spy(FormCollectionView, 'post')
     page.query_selector('django-formset button').click()
+    sleep(0.25)
     response = json.loads(spy.call_args.args[1].body)
     assert response == {'formset_data': {
         'customer': {'name': "John Doe", 'address': "123, Lye Street", 'phone_number': ""},
@@ -40,7 +42,7 @@ def test_submit_customer(page, mocker):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['customer'])
-def test_submit_no_customer(page, mocker):
+def test_submit_no_customer(page, mocker, viewname):
     assert page.query_selector('django-formset > django-form-collection:first-of-type fieldset[hide-if]') is not None
     page.click('#id_register\\.no_customer')
     assert page.query_selector('django-formset > django-form-collection:first-of-type fieldset[hidden]') is not None
