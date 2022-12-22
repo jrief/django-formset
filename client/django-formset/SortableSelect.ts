@@ -26,6 +26,17 @@ export class SortableSelectElement extends HTMLElement {
 			fallbackOnBody: true,
 			multiDrag: true,
 			onEnd: event => this.onEnd(event),
+			handle: '>option',
+		});
+		this.querySelectorAll('optgroup').forEach(optgroup => {
+			Sortable.create(this, {
+				animation: 150,
+				fallbackOnBody: true,
+				multiDrag: true,
+				onEnd: event => this.onEnd(event),
+				handle: '>option',
+				group: optgroup.label,
+			});
 		});
 		this.querySelectorAll('optgroup').forEach(optgroup => {
 			Sortable.create(this, {

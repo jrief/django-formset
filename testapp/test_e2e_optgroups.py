@@ -19,17 +19,6 @@ class NativeFormView(IncompleteSelectResponseMixin, FormViewMixin, GenericFormVi
     success_url = '/success'
 
 
-# class ModelFormView(IncompleteSelectResponseMixin, FormViewMixin, UpdateView):
-#     template_name = 'testapp/native-form.html'
-#     success_url = '/success'
-#     form_class = CountyForm
-#     model = County
-#
-#     def get_object(self, queryset=None):
-#         obj, _ = self.model.objects.get_or_create(created_by='testapp')
-#         return obj
-#
-#
 @pytest.fixture(scope='function')
 def django_db_setup(django_db_blocker):
     with django_db_blocker.unblock():

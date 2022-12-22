@@ -101,6 +101,13 @@ class IncompleteSelectMixin:
                 attrs['filter-by'] = ','.join(self.filter_by.keys())
         return attrs
 
+    def format_value(self, value):
+        if value is None:
+            return []
+        if not isinstance(value, (tuple, list)):
+            value = [value]
+        return [str(v) if v is not None else "" for v in value]
+
     def get_context(self, name, value, attrs):
         if isinstance(self.choices, ModelChoiceIterator):
             if self.group_field_name:

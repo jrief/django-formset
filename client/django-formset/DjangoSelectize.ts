@@ -106,6 +106,20 @@ class DjangoSelectize extends IncompleteSelect {
 		});
 	}
 
+	private load = (query: string, callback: Function) => {
+		const transform = (options: Array<OptionData>) => {
+			const groupnames = new Set<string>();
+			options.forEach(o => {
+				if (typeof o.optgroup === 'string') {
+					groupnames.add(o.optgroup);
+				}
+			});
+			const optgroups = Array.from(groupnames).map(name => ({label: name, value: name}));
+			callback(options, optgroups);
+		};
+		this.loadOptions(`query=${encodeURIComponent(query)}`, transform);
+	}
+
 	private blurred = () => {
 		const wrapper = this.shadowRoot.querySelector('.ts-wrapper');
 		wrapper?.classList.remove('dirty');
