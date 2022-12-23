@@ -1,5 +1,10 @@
 ## Changes
 
+- 0.13
+  * Add feature to preselect choices in one select field using a value from another field.
+  * Remove function `getValue()` from widgets `RichtextArea` and `DjangoSelectize`; use property
+    `value` instead.
+
 - 0.12
   * Add feature to work with option groups when using the ``Selectize``, ``SelectizeMultiple``,
     ``DualSelector`` and ``DualSortableSelector`` widget.

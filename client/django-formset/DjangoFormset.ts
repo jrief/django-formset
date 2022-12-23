@@ -149,14 +149,8 @@ class FieldGroup {
 				return (element as HTMLInputElement).checked ? element.value : '';
 			}
 			if (element.type === 'select-multiple') {
-				const value = [];
 				const select = element as HTMLSelectElement;
-				for (const key in select.options) {
-					if (select.options[key].selected) {
-						value.push(select.options[key].value);
-					}
-				}
-				return value;
+				return Array.from(select.selectedOptions).map(o => o.value);
 			}
 			if (element.type === 'file') {
 				return this.fileUploader!.uploadedFiles;
@@ -270,20 +264,17 @@ class FieldGroup {
 	}
 
 	public touch() {
-		this.element.classList.remove('dj-untouched');
-		this.element.classList.remove('dj-validated');
+		this.element.classList.remove('dj-untouched', 'dj-validated');
 		this.element.classList.add('dj-touched');
 	}
 
 	private untouch() {
-		this.element.classList.remove('dj-submitted');
-		this.element.classList.remove('dj-touched');
+		this.element.classList.remove('dj-submitted', 'dj-touched');
 		this.element.classList.add('dj-untouched');
 	}
 
 	private setDirty() {
-		this.element.classList.remove('dj-submitted');
-		this.element.classList.remove('dj-pristine');
+		this.element.classList.remove('dj-submitted', 'dj-pristine');
 		this.element.classList.add('dj-dirty');
 	}
 

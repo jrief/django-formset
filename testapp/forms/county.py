@@ -17,14 +17,15 @@ class CountyForm(forms.Form):
     purpose, HTML provides the element ``<optgroup>``. Other than visually grouping options to
     select from, this element has no other effect.
 
-    The **Classic Select** uses a Django ``ChoiceField`` together with the ``<select>`` widget as
-    provided by  HTML. In Django this field can be used to show the usage of option groups
+    The **Historic Regions** uses a Django ``ChoiceField`` together with the ``<select>`` widget
+    as provided by  HTML. In Django this field can be used to show the usage of option groups
     (``<optgroup>``) by using a list of option tuples rather than a single string. This example
-    is just used for reference.
+    is just used for reference to show how options groups would look like without modern widgets.
+    Even with only 34 options, this widget becomes quite unhandy.
 
     The **One County** uses a Django ``ChoiceField`` together with the ``Selectize`` widget as
     provided by **django-formset**. It shall be used when the number of choices exceeds 10 but
-    also is well suited for less.
+    also is well suited for less. Here the limit is set to 15 items, but this value can be changed.
 
     The **Few Counties** field shows a ``ModelMultipleChoiceField`` using the ``SelectizeMultiple``
     widget configured to query from the associated model. It behaves similar to the ``Selectize``
@@ -48,20 +49,56 @@ class CountyForm(forms.Form):
      * ``search_lookup`` is the query part to filter for obects using the given queryset.
      * ``group_field_name`` in combination with option groups. This field is used to determine
        the group name.
+     * ``filter_by`` is a dictionary to filter options based on the value of other field(s).
     """
 
-    classic_select = fields.ChoiceField(
-        label="Classic Select",
+    historic_regions = fields.ChoiceField(
+        label="Historic Regions",
         choices=[
-            ("Theropods", [
-                (1, "Tyrannosaurus"),
-                (2, "Velociraptor"),
-                (3, "Deinonychus"),
+            ('', "––––––––––"),
+            ("New England", [
+                (1, "Acadia"),
+                (2, "Equivalent Lands"),
+                (3, "King's College Tract"),
+                (4, "Provinces of Maine"),
+                (5, "Massachusetts Bay"),
+                (6, "New Hampshire"),
+                (7, "New Haven"),
+                (8, "Plymouth"),
+                (9, "Saybrook"),
+                (10, "Wessagusset"),
             ]),
-            ("Sauropods", [
-                (4, "Diplodocus"),
-                (5, "Saltasaurus"),
-                (6, "Apatosaurus"),
+            ("Mid-Atlantic", [
+                (11, "Granville"),
+                (12, "East Jersey"),
+                (13, "West Jersey"),
+                (14, "New Netherland"),
+                (15, "New Sweden"),
+            ]),
+            ("Southern", [
+                (16, "Province of Carolina"),
+                (17, "Fort Caroline"),
+                (18, "Charlesfort"),
+                (19, "La Florida"),
+                (20, "Jamestown"),
+                (21, "Fairfax Grant"),
+                (22, "Roanoke"),
+                (23, "Stuarts"),
+            ]),
+            ("Interior", [
+                (24, "West Augusta"),
+                (25, "Illinois Country"),
+                (26, "Indiana"),
+                (27, "Indian Reserve"),
+                (28, "Ohio"),
+                (29, "Quebec"),
+            ]),
+            ("Far West", [
+                (30, "La Louisiane"),
+                (31, "Luisiana"),
+                (32, "Tejas"),
+                (33, "Santa Fe"),
+                (34, "Las Californias"),
             ]),
         ],
     )
@@ -84,7 +121,7 @@ class CountyForm(forms.Form):
             search_lookup='name__icontains',
             group_field_name='state',
             placeholder="Select one or more counties",
-            max_items=20,
+            max_items=15,
         ),
         required=True,
     )
@@ -109,4 +146,5 @@ class CountyForm(forms.Form):
             attrs={'size': 16},
         ),
         required=True,
+        # initial=[3000, 498, 96, 95, 69, 14, 415, 10, 6],
     )

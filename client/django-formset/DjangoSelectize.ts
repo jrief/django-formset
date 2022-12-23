@@ -26,13 +26,13 @@ class DjangoSelectize extends IncompleteSelect {
 			valueField: 'id',
 			labelField: 'label',
 			maxItems: 1,
+			maxOptions: undefined,
 			sortField: [{field: '$order'}, {field: '$score'}],
 			lockOptgroupOrder: true,
 			searchField: ['label'],
 			render: this.setupRender(tomInput),
 			onFocus: this.touch,
 			onBlur: this.blurred,
-			onChange: this.changed,
 			onType: this.inputted,
 		};
 		if (this.isIncomplete) {
@@ -66,6 +66,7 @@ class DjangoSelectize extends IncompleteSelect {
 		tomInput.classList.add('dj-concealed');
 		this.validateInput(this.initialValue as string);
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
+		this.setupFilters(tomInput);
 	}
 
 	protected formResetted(event: Event) {
@@ -74,42 +75,40 @@ class DjangoSelectize extends IncompleteSelect {
 
 	protected formSubmitted(event: Event) {}
 
-	private wrapInShadowRoot() : ShadowRoot {
-		const shadowWrapper = document.createElement('div');
-		shadowWrapper.classList.add('shadow-wrapper');
-		const shadowRoot = shadowWrapper.attachShadow({mode: 'open', delegatesFocus: true});
-		const shadowStyleElement = document.createElement('style');
-		shadowRoot.appendChild(shadowStyleElement).textContent = styles;
-		this.tomInput.insertAdjacentElement('beforebegin', shadowWrapper);
-		const wrapper = (this.tomInput.parentElement as HTMLElement).removeChild(this.tomSelect.wrapper);
-		shadowRoot.appendChild(wrapper);
-		return shadowRoot;
+	protected reloadOptions() {
+		this.tomSelect.clear();
+		this.tomSelect.clearOptions();
+		this.tomInput.replaceChildren();
+		this.fieldGroup.classList.remove('dj-dirty', 'dj-touched', 'dj-validated');
+		this.fieldGroup.classList.add('dj-untouched', 'dj-pristine');
+		const errorPlaceholder = this.fieldGroup.querySelector('.dj-errorlist > .dj-placeholder');
+		if (errorPlaceholder) {
+			errorPlaceholder.innerHTML = '';
+		}
+		this.loadOptions(this.buildFetchQuery(0), (options: Array<OptionData>) => {
+			this.tomSelect.addOptions(options);
+		});
+	}
+
+	private extractOptGroups(options: Array<OptionData>) {
+		const groupnames = new Set<string>();
+		options.forEach(o => {
+			if (typeof o.optgroup === 'string') {
+				groupnames.add(o.optgroup);
+			}
+		});
+		return Array.from(groupnames).map(name => ({label: name, value: name}));
 	}
 
 	private load = (query: string, callback: Function) => {
-		const transform = (options: Array<OptionData>) => {
-			const groupnames = new Set<string>();
-			options.forEach(o => {
-				if (typeof o.optgroup === 'string') {
-					groupnames.add(o.optgroup);
-				}
-			});
-			const optgroups = Array.from(groupnames).map(name => ({label: name, value: name}));
-			callback(options, optgroups);
-		};
-		this.loadOptions(`query=${encodeURIComponent(query)}`, transform);
+		this.loadOptions(this.buildFetchQuery(0, query), (options: Array<OptionData>) => {
+			callback(options, this.extractOptGroups(options));
+		});
 	}
 
 	private blurred = () => {
 		const wrapper = this.shadowRoot.querySelector('.ts-wrapper');
 		wrapper?.classList.remove('dirty');
-	}
-
-	private changed = () => {
-		this.tomSelect.setTextboxValue('');
-		if (this.tomSelect.dropdown_content.childElementCount <= 1) {
-			this.tomSelect.close();
-		}
 	}
 
 	private inputted = (event: Event) => {
@@ -135,6 +134,18 @@ class DjangoSelectize extends IncompleteSelect {
 		} else {
 			this.tomInput.value = value as string;
 		}
+	}
+
+	private wrapInShadowRoot() : ShadowRoot {
+		const shadowWrapper = document.createElement('div');
+		shadowWrapper.classList.add('shadow-wrapper');
+		const shadowRoot = shadowWrapper.attachShadow({mode: 'open', delegatesFocus: true});
+		const shadowStyleElement = document.createElement('style');
+		shadowRoot.appendChild(shadowStyleElement).textContent = styles;
+		this.tomInput.insertAdjacentElement('beforebegin', shadowWrapper);
+		const wrapper = (this.tomInput.parentElement as HTMLElement).removeChild(this.tomSelect.wrapper);
+		shadowRoot.appendChild(wrapper);
+		return shadowRoot;
 	}
 
 	private transferStyles(tomInput: HTMLElement, nativeStyles: CSSStyleDeclaration) {
@@ -242,10 +253,6 @@ class DjangoSelectize extends IncompleteSelect {
 			}
 		}
 	}
-
-	public getValue() : string | string[] {
-		return this.tomSelect.getValue();
-	}
 }
 
 const DS = Symbol('DjangoSelectize');
@@ -255,9 +262,5 @@ export class DjangoSelectizeElement extends HTMLSelectElement {
 
 	private connectedCallback() {
 		this[DS] = new DjangoSelectize(this);
-	}
-
-	public async getValue() {
-		return this[DS]?.getValue();
 	}
 }

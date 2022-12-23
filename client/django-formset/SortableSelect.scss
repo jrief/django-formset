@@ -3,16 +3,16 @@ django-sortable-select {
 
 	&.focus {
 		opacity: 1;
+	}
 
-		option {
-			&.sortable-selected {
-				opacity: 1;
-				cursor: grab;
-			}
-			&.sortable-chosen, &.sortable-ghost {
-				opacity: 1;
-				cursor: grabbing !important;
-			}
+	option, optgroup {
+		&.sortable-selected {
+			opacity: 1;
+			cursor: grab;
+		}
+		&.sortable-chosen, &.sortable-ghost {
+			opacity: 1;
+			cursor: grabbing !important;
 		}
 	}
 

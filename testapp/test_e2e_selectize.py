@@ -110,13 +110,14 @@ def test_form_validated(page, form, viewname):
 def test_initial_value(page, form, viewname):
     select_element = page.query_selector('django-formset select[is="django-selectize"]')
     assert select_element is not None
-    value = select_element.evaluate('elem => elem.getValue()')
     if form.name in ['selection_initialized', 'selection_required_initialized']:
+        value = select_element.evaluate('elem => elem.value')
         assert value == str(get_initial_opinion().id)
     elif form.name in ['multi_selection_initialized']:
-        assert set(value) == set(str(k) for k in get_initial_opinions().values_list('id', flat=True))
+        values = select_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
+        assert set(values) == set(str(k) for k in get_initial_opinions().values_list('id', flat=True))
     else:
-        assert not value
+        assert select_element.evaluate('elem => elem.value') == ''
 
 
 @pytest.mark.urls(__name__)
@@ -206,8 +207,8 @@ def test_add_multiple(page, form, viewname):
     assert len(selected_item_elements) == 2
     select_element = page.query_selector('django-formset select[is="django-selectize"]')
     assert select_element is not None
-    value = select_element.evaluate('elem => elem.getValue()')
-    assert value == selected_ids
+    values = select_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
+    assert set(values) == set(selected_ids)
 
 
 @pytest.mark.urls(__name__)
@@ -216,15 +217,15 @@ def test_change_multiple(page, form, viewname):
     formset_element = page.query_selector('django-formset')
     select_element = page.query_selector('django-formset select[is="django-selectize"]')
     assert select_element is not None
-    value = select_element.evaluate('elem => elem.getValue()')
-    assert len(value) == 4
-    assert set(value) == set(str(i) for i in get_initial_opinions().values_list('id', flat=True))
+    values = select_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
+    assert len(values) == 4
+    assert set(values) == set(str(i) for i in get_initial_opinions().values_list('id', flat=True))
     field_group_element = page.query_selector('django-formset django-field-group')
     assert field_group_element is not None
     assert 'dj-pristine' in field_group_element.get_attribute('class')
     assert 'dj-untouched' in field_group_element.get_attribute('class')
     assert 'dj-dirty' not in field_group_element.get_attribute('class')
-    remove_selected_item_element = formset_element.query_selector(f'.shadow-wrapper .ts-wrapper .ts-control div[data-value="{value[1]}"].item .remove')
+    remove_selected_item_element = formset_element.query_selector(f'.shadow-wrapper .ts-wrapper .ts-control div[data-value="{values[1]}"].item .remove')
     assert remove_selected_item_element is not None
     remove_selected_item_element.click()
     item_elements = formset_element.query_selector_all(f'.shadow-wrapper .ts-wrapper .ts-control div.item')
@@ -315,7 +316,7 @@ def test_submit_invalid(page, mocker, view, form, viewname):
 def test_reset_selectize(page, view, form, viewname):
     select_element = page.query_selector('django-formset select[is="django-selectize"]')
     assert select_element is not None
-    initial_value = select_element.evaluate('elem => elem.getValue()')
+    initial_value = select_element.evaluate('elem => elem.value')
     input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
     assert input_element.is_visible()
     if form.name in ['selection', 'static_selection']:
@@ -327,10 +328,10 @@ def test_reset_selectize(page, view, form, viewname):
         input_element.focus()
         page.keyboard.press('Backspace')
     input_element.evaluate('elem => elem.blur()')
-    value = select_element.evaluate('elem => elem.getValue()')
+    value = select_element.evaluate('elem => elem.value')
     assert value != initial_value
     page.wait_for_selector('django-formset').evaluate('elem => elem.reset()')
-    value = select_element.evaluate('elem => elem.getValue()')
+    value = select_element.evaluate('elem => elem.value')
     assert value == initial_value
 
 

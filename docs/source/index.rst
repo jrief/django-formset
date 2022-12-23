@@ -28,6 +28,7 @@ Django ``Form``-s.
 	uploading
 	selectize
 	dual-selector
+	preselect-options
 	richtext
 	slug-input
 	development

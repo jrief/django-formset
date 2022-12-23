@@ -132,8 +132,8 @@ def test_single_county(page, form, viewname):
     div_option = div_optgroup.locator('[role="option"]')
     assert div_option.text_content() == "Goshen (WY)"
     div_option.click()
-    value = selectize.evaluate('elem => elem.getValue()')
-    assert value == str(County.objects.get(name="Goshen").id)
+    value = selectize.evaluate('elem => elem.value')
+    assert County.objects.get(id=value).name == "Goshen"
 
 
 @pytest.mark.urls(__name__)
@@ -151,21 +151,27 @@ def test_few_counties(page, form, viewname):
     assert div_optgroup.inner_html() == "Washington"
     assert div_option.text_content() == "Clallam (WA)"
     div_option.click()
+    for _ in range(5):
+        page.keyboard.press("Backspace")
     input_field.type("tillam")
     assert div_optgroup.inner_html() == "Oregon"
     assert div_option.text_content() == "Tillamook (OR)"
     div_option.click()
+    for _ in range(6):
+        page.keyboard.press("Backspace")
     input_field.type("stani")
     assert div_optgroup.inner_html() == "California"
     assert div_option.text_content() == "Stanislaus (CA)"
     div_option.click()
+    for _ in range(5):
+        page.keyboard.press("Backspace")
     input_field.type("lync")
     assert div_optgroup.inner_html() == "Virginia"
     assert div_option.text_content() == "Lynchburg (VA)"
     div_option.click()
-    values = selectize.evaluate('elem => elem.getValue()')
-    expected = County.objects.filter(name__in=["Clallam", "Tillamook", "Stanislaus", "Lynchburg"]).values_list('id', flat=True)
-    assert set(values) == set(str(e) for e in expected)
+    values = selectize.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
+    expected = County.objects.filter(id__in=values).order_by('name').values_list('name', flat=True)
+    assert list(expected) == ["Clallam", "Lynchburg", "Stanislaus", "Tillamook"]
 
 
 @pytest.mark.urls(__name__)
@@ -186,7 +192,7 @@ def test_many_counties(page, form, viewname):
     assert select_right.locator('optgroup').get_attribute('label') == "Arizona"
     assert select_right.locator('optgroup:nth-child(1) option').inner_text() == "Navajo (AZ)"
     expected = select_right.locator('optgroup:nth-child(1) option').get_attribute('value')
-    assert selector.evaluate('elem => elem.value') == [expected]
+    assert selector.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)') == [expected]
     select_left.locator('optgroup:nth-child(6) option:first-child').click()
     select_left.locator('optgroup:nth-child(6) option:last-child').click(modifiers=['Shift'])
     page.locator('django-formset button.dj-move-selected-right ').click()
@@ -198,7 +204,7 @@ def test_many_counties(page, form, viewname):
     assert select_right.locator('optgroup').count() == 1
     assert select_right.locator('option').count() == 5
     expected = [select_right.locator(f'optgroup option:nth-child({i})').get_attribute('value') for i in range(1, 6)]
-    assert selector.evaluate('elem => elem.value') == expected
+    assert selector.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)') == expected
 
 
 @pytest.mark.urls(__name__)
@@ -227,4 +233,4 @@ def test_sortable_counties(page, form, viewname):
     before.insert(0, before.pop(4))
     before.append(before.pop(1))
     assert after == before
-    assert selector.evaluate('elem => elem.value') == after
+    assert selector.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)') == after
