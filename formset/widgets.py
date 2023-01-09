@@ -15,6 +15,8 @@ from django.forms.widgets import DateTimeBaseInput, FileInput, Select, SelectMul
 from django.utils.timezone import datetime, now, utc
 from django.utils.translation import gettext_lazy as _
 
+from formset.calendar import get_calendar_context
+
 
 class SimpleModelChoiceIterator(ModelChoiceIterator):
     def __iter__(self):
@@ -306,5 +308,25 @@ class DateInput(DateTimeBaseInput):
         super().__init__(attrs=default_attrs)
 
     def format_value(self, value):
+        if isinstance(value, datetime):
+            return value.date().isoformat()
         if isinstance(value, date):
             return value.isoformat()
+
+
+class DatePicker(DateInput):
+    """
+    This is an enhancement for the ``DateInput`` widget, but with a customizable date-picker.
+    """
+    template_name = 'formset/default/widgets/datepicker.html'
+
+    def __init__(self, attrs=None):
+        default_attrs = {'type': 'text', 'is': 'django-datepicker', 'aria-expanded': 'false'}
+        if attrs:
+            default_attrs.update(**attrs)
+        super().__init__(attrs=default_attrs)
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context['calendar'] = get_calendar_context(start_date=value)
+        return context

@@ -1,0 +1,101 @@
+
+
+@mixin Calendar {
+	input[type="date"][is="django-datepicker"] {
+		&::-webkit-calendar-picker-indicator {
+			display: none;
+		}
+	}
+
+	input[is="django-datepicker"] {
+		position: relative;
+
+		&::before {
+			content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"/><path d="M17 3h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h4V1h2v2h6V1h2v2zm-2 2H9v2H7V5H4v4h16V5h-3v2h-2V5zm5 6H4v8h16v-8z"/></svg>');
+			display: inline-block;
+			height: 24px;
+			zoom: 0.8;
+		}
+
+		&:hover::before {
+			cursor: pointer;
+		}
+	}
+
+	input[aria-expanded="false"] + .calendar {
+		display: none;
+	}
+	input[aria-expanded="true"] + .calendar {
+		display: block;
+	}
+
+	.calendar {
+		width: 280px;
+		border: 1px solid lightgray;
+		box-shadow: lightgray 0 0 1rem;
+		border-radius: 6px;
+		background-color: white;
+
+		.control {
+			display: flex;
+			justify-content: space-between;
+			padding: 0.5rem;
+		}
+		button {
+			display: inline-flex;
+			background-color: transparent;
+			border: none;
+		}
+		ul {
+			list-style: none;
+			margin: 0;
+			padding: 0.5rem;
+			text-align: center;
+			display: grid;
+
+			> li {
+				&.adjacent {
+					color: #808080;
+				}
+				&.today {
+					border: 1px solid #a8a8a8;
+				}
+				&.selected {
+					background-color: #007bff;
+					color: white;
+				}
+				&:hover {
+					opacity: 1;
+					background-color: #d0d0d0;
+				}
+			}
+		}
+
+		.weekdays {
+			grid-template-columns: repeat(7, 1fr);
+			li:nth-child(n):nth-child(-n+7) {
+				font-weight: bold;
+				&:hover {
+					background-color: initial;
+				}
+			}
+		}
+
+		.months {
+			grid-template-columns: repeat(3, 1fr);
+			display: none;
+		}
+
+		abbr[title] {
+			text-decoration: none;
+			cursor: default;
+		}
+		//ul.weekdays > li {
+		//	font-size: 0;
+		//	abbr::after {
+		//		content: attr(title);
+		//		font-size: initial;
+		//	}
+    //}
+	}
+}

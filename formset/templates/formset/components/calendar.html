@@ -1,0 +1,23 @@
+<div class="control">
+	<button class="prev-month" type="button">
+		{% include "formset/icons/arrow-left.svg" %}
+	</button>
+  <time datetime="{{ calendar.startdate|date:'c' }}">{{ calendar.startdate|date:'F Y' }}</time>
+	<button class="next-month" type="button">
+		{% include "formset/icons/arrow-right.svg" %}
+	</button>
+</div>
+<ul class="weekdays">
+{% for abbr, weekday in calendar.weekdays %}
+	<li><abbr title="{{ weekday }}">{{ abbr }}</abbr></li>
+{% endfor %}
+{% for date, classes in calendar.monthdays %}
+	<li data-date="{{ date|date:'Y' }}-{{ date|date:'m' }}-{{ date|date:'d' }}"{% if classes %} class="{{ classes }}"{% endif %}>{{ date.day }}</li>
+{% endfor %}
+</ul>
+
+<ul class="months">
+{% for month in calendar.months %}
+	<li>{{ month }}</li>
+{% endfor %}
+</ul>

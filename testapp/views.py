@@ -24,7 +24,9 @@ from docutils.writers import get_writer_class
 
 from formset.utils import FormMixin
 from formset.views import (
-    FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormViewMixin, EditCollectionView)
+    CalendarResponseMixin, FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormViewMixin,
+    EditCollectionView
+)
 
 from testapp.forms.address import AddressForm
 from testapp.forms.advertisement import AdvertisementForm, AdvertisementModelForm
@@ -33,6 +35,7 @@ from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import (
     SimpleContactCollection, ContactCollection, ContactCollectionList, IntermediateContactCollectionList,
     SortableContactCollection, SortableContactCollectionList)
+from testapp.forms.birthdate import BirthdateForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerCollection
 from testapp.forms.opinion import OpinionForm
@@ -136,7 +139,7 @@ class DemoViewMixin:
         pass
 
 
-class DemoFormViewMixin(DemoViewMixin, IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin):
+class DemoFormViewMixin(DemoViewMixin, CalendarResponseMixin, IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin):
     template_name = 'testapp/native-form.html'
     extra_doc = None
 
@@ -452,6 +455,9 @@ urlpatterns = [
     path('upload', DemoFormView.as_view(
         form_class=UploadForm,
     ), kwargs={'group': 'form', 'index': 15}, name='upload'),
+    path('birthdate', DemoFormView.as_view(
+        form_class=BirthdateForm,
+    ), kwargs={'group': 'form', 'index': 15}, name='birthdate'),
     path('counties', DemoFormView.as_view(
         form_class=CountyForm,
     ), kwargs={'group': 'form', 'index': 15}, name='counties'),

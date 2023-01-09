@@ -1,5 +1,6 @@
 import { DjangoFormsetElement } from "./django-formset/DjangoFormset";
 import { StyleHelpers } from './django-formset/helpers';
+import { DatePickerElement } from "./django-formset/DatePicker";
 
 
 window.addEventListener('DOMContentLoaded', (event) => {
@@ -47,6 +48,14 @@ window.addEventListener('DOMContentLoaded', (event) => {
 			import('./django-formset/DjangoSlug').then(({ DjangoSlugElement }) => {
 		 		window.customElements.define('django-slug', DjangoSlugElement, {extends: 'input'});
 				window.customElements.whenDefined('django-slug').then(() => resolve());
+			}).catch(err => reject(err));
+		}));
+	}
+	if (document.querySelector('input[is="django-datepicker"]')) {
+		promises.push(new Promise((resolve, reject) => {
+			import('./django-formset/DatePicker').then(({ DatePickerElement }) => {
+		 		window.customElements.define('django-datepicker', DatePickerElement, {extends: 'input'});
+				window.customElements.whenDefined('django-datepicker').then(() => resolve());
 			}).catch(err => reject(err));
 		}));
 	}

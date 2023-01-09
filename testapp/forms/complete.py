@@ -3,6 +3,8 @@ from django.core.exceptions import ValidationError
 from django.forms import fields, forms, widgets
 from django.utils.timezone import datetime
 
+from formset.widgets import DateInput
+
 
 def validate_password(value):
     pwhasher = PBKDF2PasswordHasher()
@@ -103,7 +105,9 @@ class CompleteForm(forms.Form):
     birth_date = fields.DateField(
         label="Date of birth",
         widget=widgets.DateInput(attrs={'type': 'date', 'pattern': r'\d{4}-\d{2}-\d{2}'}),
+        #widget=DateInput,
         help_text="Allowed date format: yyyy-mm-dd",
+        initial=datetime(2023, 3, 3),
     )
 
     continent = fields.ChoiceField(
@@ -191,7 +195,7 @@ sample_complete_data = {
     'email': 'john.doe@example.org',
     'subscribe': True,
     'phone': '+1 234 567 8900',
-    'birth_date': datetime(year=2000, month=5, day=18),
+    'birth_date': datetime(2000, 5, 18),
     'continent': 'eu',
     'available_transportation': ['foot', 'taxi'],
     'preferred_transportation': 'car',

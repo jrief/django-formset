@@ -8,6 +8,7 @@ from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormView as GenericFormView
 
+from formset.calendar import CalendarResponseMixin
 from formset.upload import FileUploadMixin
 from formset.widgets import DualSelector, Selectize
 

@@ -1,0 +1,5 @@
+{# <input is="django-datepicker" name="{{ widget.name }}" type="{{ widget.type }}"{% include "django/forms/widgets/attrs.html" %} aria-expanded="false"> #}
+{% include "django/forms/widgets/input.html" %}
+<div role="dialog" class="calendar" aria-label="calendar">
+	{% include "formset/components/calendar.html" %}
+</div>
