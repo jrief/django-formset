@@ -1,3 +1,4 @@
+import '@ungap/custom-elements';
 import { DjangoFormsetElement } from "./django-formset/DjangoFormset";
 import { StyleHelpers } from './django-formset/helpers';
 import { DatePickerElement } from "./django-formset/DatePicker";
