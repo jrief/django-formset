@@ -7,17 +7,11 @@
 		{% include "formset/icons/arrow-right.svg" %}
 	</button>
 </div>
-<ul class="weekdays" aria-label="month-view">
+<ul class="weekdays" aria-label="weeks-view">
 {% for abbr, weekday in calendar.weekdays %}
 	<li><abbr title="{{ weekday }}">{{ abbr }}</abbr></li>
 {% endfor %}
 {% for date, day, classes in calendar.monthdays %}
 	<li data-date="{{ date }}"{% if classes %} class="{{ classes }}"{% endif %}>{{ day }}</li>
-{% endfor %}
-</ul>
-
-<ul class="months" aria-label="year-view">
-{% for month in calendar.months %}
-	<li>{{ month }}</li>
 {% endfor %}
 </ul>

@@ -1,0 +1,14 @@
+<div class="control">
+	<button class="prev" type="button">
+		{% include "formset/icons/arrow-left.svg" %}
+	</button>
+  <time datetime="{{ calendar.startdate|date:'c' }}">{{ calendar.startdate|date:'Y' }}</time>
+	<button class="next" type="button">
+		{% include "formset/icons/arrow-right.svg" %}
+	</button>
+</div>
+<ul class="months" aria-label="months-view">
+{% for date, month in calendar.months %}
+	<li data-date="{{ date }}">{{ month }}</li>
+{% endfor %}
+</ul>

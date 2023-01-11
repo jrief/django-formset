@@ -15,8 +15,8 @@ class Calendar extends Widget {
 	private readonly calendarElement: HTMLElement;
 	private readonly declaredStyles: HTMLStyleElement;
 	private viewMode = ViewMode.weeks;
-	private monthView: HTMLUListElement | null = null;
-	private yearView: HTMLUListElement | null = null;
+	// private monthView: HTMLUListElement | null = null;
+	// private yearView: HTMLUListElement | null = null;
 	private dropdownInstance?: Instance;
 	private startDate!: Date;
 	private isOpen = false;
@@ -39,12 +39,28 @@ class Calendar extends Widget {
 		document.addEventListener('click', this.handleClick);
 	}
 
+	private setStartDate() {
+		this.startDate = new Date(this.calendarElement.querySelector('time')?.getAttribute('datetime') ?? '');
+		this.startDate.setTime(this.startDate.getTime() - this.startDate.getTimezoneOffset() * 60000);
+	}
+
 	private registerElement() {
-		this.monthView = this.calendarElement.querySelector('ul[aria-label="month-view"]');
-		this.yearView = this.calendarElement.querySelector('ul[aria-label="year-view"]');
-		this.yearView!.hidden = true;
+		switch (this.viewMode) {
+			case ViewMode.weeks:
+				this.registerWeeksView();
+				break;
+			case ViewMode.months:
+				this.registerMonthsView();
+				break;
+			case ViewMode.years:
+				this.registerYearsView();
+				break;
+		}
+	}
+
+	private registerWeeksView() {
 		this.calendarElement.querySelector('button.prev')?.addEventListener('click', event => this.changeMonth(-1), {once: true});
-		this.calendarElement.querySelector('time')?.addEventListener('click', this.selectMonth, {once: true});
+		this.calendarElement.querySelector('time')?.addEventListener('click', this.switchMonthsView, {once: true});
 		this.calendarElement.querySelector('button.next')?.addEventListener('click', event => this.changeMonth(+1), {once: true});
 		const today = new Date(Date.now());
 		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
@@ -55,7 +71,28 @@ class Calendar extends Widget {
 			elem.classList.toggle('selected', date === this.inputElement.value);
 			elem.addEventListener('click', this.selectDate);
 		});
-		this.startDate = new Date(this.calendarElement.querySelector('time')?.getAttribute('datetime') as string);
+		this.setStartDate();
+	}
+
+	private registerMonthsView() {
+		this.calendarElement.querySelector('button.prev')?.addEventListener('click', event => this.changeYear(-1), {once: true});
+		this.calendarElement.querySelector('time')?.addEventListener('click', this.switchYearsView, {once: true});
+		this.calendarElement.querySelector('button.next')?.addEventListener('click', event => this.changeYear(+1), {once: true});
+		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
+			const date = elem.getAttribute('data-date') ?? '';
+			elem.addEventListener('click', this.selectMonth);
+		});
+		this.setStartDate();
+	}
+
+	private registerYearsView() {
+		this.calendarElement.querySelector('button.prev')?.addEventListener('click', event => this.changeYear(-1), {once: true});
+		this.calendarElement.querySelector('button.next')?.addEventListener('click', event => this.changeYear(+1), {once: true});
+		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
+			const date = elem.getAttribute('data-date') ?? '';
+			elem.addEventListener('click', this.selectYear);
+		});
+		this.setStartDate();
 	}
 
 	private handleClick = (event: Event) => {
@@ -77,6 +114,11 @@ class Calendar extends Widget {
 		});
 		this.inputElement.setAttribute('aria-expanded', 'true')
 		this.isOpen = true;
+		const date = new Date(this.calendarElement.querySelector('time')?.getAttribute('datetime') ?? '');
+		date.setTime(date.getTime() - date.getTimezoneOffset() * 60000);
+		if (date.getTime() !== this.startDate.getTime()) {
+			this.fetchCalendar(this.startDate);
+		}
 	}
 
 	private handleBlur = (event: Event) => {
@@ -86,11 +128,11 @@ class Calendar extends Widget {
 	}
 
 	private handleChange = (event: Event) => {
-		const date = new Date(this.inputElement.value);
-		if (isNaN(date.getTime())) {
+		const newDate = new Date(this.inputElement.value);
+		if (isNaN(newDate.getTime())) {
 			this.inputElement.value = 'yyyy-mm-dd';  // enforce a pattern validation error
 		} else {
-			this.fetchMonth(new URLSearchParams({'calendar': this.inputElement.value}));
+			this.fetchCalendar(newDate);
 		}
 	}
 
@@ -107,14 +149,38 @@ class Calendar extends Widget {
 			this.inputElement.setAttribute('aria-expanded', 'false')
 			this.inputElement.dispatchEvent(new Event('input'));
 		 	this.dropdownInstance?.destroy();
+			this.startDate = new Date(date);
+			this.startDate.setUTCDate(1);
+			this.startDate.setTime(this.startDate.getTime() - this.startDate.getTimezoneOffset() * 60000);
 		}
 	}
 
 	private selectMonth = (event: Event) => {
+		if (event.target instanceof HTMLLIElement) {
+			const date = event.target.getAttribute('data-date') ?? '';
+			this.viewMode = ViewMode.weeks;
+			this.fetchCalendar(new Date(date));
+		}
+	}
+
+	private selectYear = (event: Event) => {
 		if (event.target instanceof HTMLTimeElement) {
-			const target = event.target;
-			this.monthView!.hidden = true;
-			this.yearView!.hidden = false;
+			this.viewMode = ViewMode.months;
+			this.fetchCalendar(new Date(this.startDate));
+		}
+	}
+
+	private switchMonthsView = (event: Event) => {
+		if (event.target instanceof HTMLTimeElement) {
+			this.viewMode = ViewMode.months;
+			this.fetchCalendar(new Date(this.startDate));
+		}
+	}
+
+	private switchYearsView = (event: Event) => {
+		if (event.target instanceof HTMLTimeElement) {
+			this.viewMode = ViewMode.years;
+			this.fetchCalendar(new Date(this.startDate));
 		}
 	}
 
@@ -130,10 +196,20 @@ class Calendar extends Widget {
 		} else {
 			newDate.setUTCMonth(newDate.getUTCMonth() + dir);
 		}
-		this.fetchMonth(new URLSearchParams({'calendar': newDate.toISOString().slice(0, 10)}));
+		this.fetchCalendar(newDate);
 	}
 
-	private async fetchMonth(query: URLSearchParams) {
+	private async changeYear(dir: number) {
+		const newDate = new Date(this.startDate);
+		newDate.setTime(newDate.getTime() - newDate.getTimezoneOffset() * 60000);
+		newDate.setUTCFullYear(newDate.getUTCFullYear() + dir);
+		this.fetchCalendar(newDate);
+	}
+
+	private async fetchCalendar(newDate: Date) {
+		const query = new URLSearchParams('calendar');
+		query.set('date', newDate.toISOString().slice(0, 10));
+		query.set('mode', this.viewMode);
 		const response = await fetch(`${this.endpoint}?${query.toString()}`, {
 			method: 'GET',
 		});

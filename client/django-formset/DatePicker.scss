@@ -18,6 +18,9 @@
 			background-color: transparent;
 			border: none;
 		}
+		time:hover {
+			cursor: pointer;
+		}
 		ul {
 			list-style: none;
 			margin: 0;
@@ -55,6 +58,10 @@
 
 		.months {
 			grid-template-columns: repeat(3, 1fr);
+		}
+
+		.years {
+			grid-template-columns: repeat(4, 1fr);
 		}
 
 		abbr[title] {
