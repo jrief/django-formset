@@ -3,33 +3,56 @@ import { Widget } from './helpers';
 import styles from './DatePicker.scss';
 
 
+enum ViewMode {
+	weeks = 'w',
+	months = 'm',
+	years = 'y',
+}
+
+
 class Calendar extends Widget {
 	private readonly inputElement: HTMLInputElement;
 	private readonly calendarElement: HTMLElement;
+	private readonly declaredStyles: HTMLStyleElement;
+	private viewMode = ViewMode.weeks;
+	private monthView: HTMLUListElement | null = null;
+	private yearView: HTMLUListElement | null = null;
 	private dropdownInstance?: Instance;
 	private startDate!: Date;
-	private hasFocus = false;
+	private isOpen = false;
 
 	constructor(inputElement: HTMLInputElement, calendarElement: HTMLElement) {
 		super(inputElement);
 		this.inputElement = inputElement;
 		this.calendarElement = calendarElement;
+		this.declaredStyles = document.createElement('style');
+		this.declaredStyles.innerText = styles;
+		document.head.appendChild(this.declaredStyles);
+		this.installEventHandlers();
 		this.registerElement();
-		inputElement.addEventListener('focus', this.handleFocus);
-		inputElement.addEventListener('blur', this.handleBlur);
-		inputElement.addEventListener('change', this.handleChange);
+	}
+
+	private installEventHandlers() {
+		this.inputElement.addEventListener('focus', this.handleFocus);
+		this.inputElement.addEventListener('blur', this.handleBlur);
+		this.inputElement.addEventListener('change', this.handleChange);
 		document.addEventListener('click', this.handleClick);
 	}
 
 	private registerElement() {
-		this.calendarElement.querySelector('button.prev-month')?.addEventListener('click', event => this.changeMonth(-1), {once: true});
-		this.calendarElement.querySelector('button.next-month')?.addEventListener('click', event => this.changeMonth(+1), {once: true});
+		this.monthView = this.calendarElement.querySelector('ul[aria-label="month-view"]');
+		this.yearView = this.calendarElement.querySelector('ul[aria-label="year-view"]');
+		this.yearView!.hidden = true;
+		this.calendarElement.querySelector('button.prev')?.addEventListener('click', event => this.changeMonth(-1), {once: true});
+		this.calendarElement.querySelector('time')?.addEventListener('click', this.selectMonth, {once: true});
+		this.calendarElement.querySelector('button.next')?.addEventListener('click', event => this.changeMonth(+1), {once: true});
 		const today = new Date(Date.now());
 		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
-			const date1 = new Date(elem.getAttribute('data-date') ?? '');
+			const date = elem.getAttribute('data-date') ?? '';
+			const date1 = new Date(date);
 			const date2 = new Date(date1.getTime() + 86400000);
 			elem.classList.toggle('today', today >= date1 && today < date2);
-			elem.classList.toggle('selected', date1.getTime() === this.inputElement.valueAsDate?.getTime());
+			elem.classList.toggle('selected', date === this.inputElement.value);
 			elem.addEventListener('click', this.selectDate);
 		});
 		this.startDate = new Date(this.calendarElement.querySelector('time')?.getAttribute('datetime') as string);
@@ -42,9 +65,9 @@ class Calendar extends Widget {
 				return;
 			element = element.parentElement;
 		}
-		this.hasFocus = false;
+		this.isOpen = false;
 		this.inputElement.blur();
-		this.inputElement.ariaExpanded = 'false';
+		this.inputElement.setAttribute('aria-expanded', 'false')
 		this.dropdownInstance?.destroy();
 	}
 
@@ -52,36 +75,46 @@ class Calendar extends Widget {
 		this.dropdownInstance = createPopper(this.inputElement, this.calendarElement, {
 			placement: 'bottom-start',
 		});
-		this.inputElement.ariaExpanded = 'true';
-		this.hasFocus = true;
+		this.inputElement.setAttribute('aria-expanded', 'true')
+		this.isOpen = true;
 	}
 
 	private handleBlur = (event: Event) => {
-		if (this.hasFocus) {
+		if (this.isOpen) {
 			this.inputElement.focus();
 		}
 	}
 
 	private handleChange = (event: Event) => {
-		const newDate = this.inputElement.valueAsDate;
-		if (newDate) {
-			this.fetchMonth(new URLSearchParams({'calendar': newDate.toISOString().slice(0, 10)}));
+		const date = new Date(this.inputElement.value);
+		if (isNaN(date.getTime())) {
+			this.inputElement.value = 'yyyy-mm-dd';  // enforce a pattern validation error
+		} else {
+			this.fetchMonth(new URLSearchParams({'calendar': this.inputElement.value}));
 		}
 	}
 
 	private selectDate = (event: Event) => {
 		if (event.target instanceof HTMLElement) {
-			const date = new Date(event.target.getAttribute('data-date') ?? '');
+			const target = event.target;
+			const date = target.getAttribute('data-date') ?? '';
 			this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
-				elem.classList.toggle('selected', elem.isSameNode(event.target as HTMLElement));
+				elem.classList.toggle('selected', elem.isSameNode(target));
 			});
-			date.setTime(date.getTime() - date.getTimezoneOffset() * 60000);
-			this.inputElement.valueAsDate = date;
-			this.hasFocus = false;
+			this.inputElement.value = date;
+			this.isOpen = false;
 			this.inputElement.blur();
-		 	this.inputElement.ariaExpanded = 'false';
+			this.inputElement.setAttribute('aria-expanded', 'false')
 			this.inputElement.dispatchEvent(new Event('input'));
 		 	this.dropdownInstance?.destroy();
+		}
+	}
+
+	private selectMonth = (event: Event) => {
+		if (event.target instanceof HTMLTimeElement) {
+			const target = event.target;
+			this.monthView!.hidden = true;
+			this.yearView!.hidden = false;
 		}
 	}
 
@@ -120,29 +153,7 @@ class Calendar extends Widget {
 }
 
 
-class DjangoDatePicker {
-	// private readonly inputElement: HTMLInputElement;
-	// private readonly calendar: Calendar;
-
-	constructor(inputElement: HTMLInputElement) {
-		// this.inputElement = inputElement;
-		const fieldGroup = inputElement.closest('django-field-group');
-		if (!fieldGroup)
-			throw new Error(`Attempt to initialize ${inputElement} outside <django-formset>`);
-		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		if (!(calendarElement instanceof HTMLElement))
-			throw new Error(`Attempt to initialize ${inputElement} with sibling <ANY aria-label="calendar">`);
-		new Calendar(inputElement, calendarElement as HTMLElement);
-	}
-}
-
-
-const DP = Symbol('DatePickerElement');
-
-
 export class DatePickerElement extends HTMLInputElement {
-	private [DP]?: DjangoDatePicker;  // hides internal implementation
-
 	private connectedCallback() {
 		const fieldGroup = this.closest('django-field-group');
 		if (!fieldGroup)
@@ -151,6 +162,5 @@ export class DatePickerElement extends HTMLInputElement {
 		if (!(calendarElement instanceof HTMLElement))
 			throw new Error(`Attempt to initialize ${this} with sibling <ANY aria-label="calendar">`);
 		new Calendar(this, calendarElement as HTMLElement);
-
 	}
 }

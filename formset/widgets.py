@@ -321,7 +321,7 @@ class DatePicker(DateInput):
     template_name = 'formset/default/widgets/datepicker.html'
 
     def __init__(self, attrs=None):
-        default_attrs = {'type': 'text', 'is': 'django-datepicker', 'aria-expanded': 'false'}
+        default_attrs = {'type': 'text', 'is': 'django-datepicker', 'aria-expanded': 'false', 'aria-haspopup': 'dialog'}
         if attrs:
             default_attrs.update(**attrs)
         super().__init__(attrs=default_attrs)

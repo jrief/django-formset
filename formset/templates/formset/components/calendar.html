@@ -1,22 +1,22 @@
 <div class="control">
-	<button class="prev-month" type="button">
+	<button class="prev" type="button">
 		{% include "formset/icons/arrow-left.svg" %}
 	</button>
   <time datetime="{{ calendar.startdate|date:'c' }}">{{ calendar.startdate|date:'F Y' }}</time>
-	<button class="next-month" type="button">
+	<button class="next" type="button">
 		{% include "formset/icons/arrow-right.svg" %}
 	</button>
 </div>
-<ul class="weekdays">
+<ul class="weekdays" aria-label="month-view">
 {% for abbr, weekday in calendar.weekdays %}
 	<li><abbr title="{{ weekday }}">{{ abbr }}</abbr></li>
 {% endfor %}
-{% for date, classes in calendar.monthdays %}
-	<li data-date="{{ date|date:'Y' }}-{{ date|date:'m' }}-{{ date|date:'d' }}"{% if classes %} class="{{ classes }}"{% endif %}>{{ date.day }}</li>
+{% for date, day, classes in calendar.monthdays %}
+	<li data-date="{{ date }}"{% if classes %} class="{{ classes }}"{% endif %}>{{ day }}</li>
 {% endfor %}
 </ul>
 
-<ul class="months">
+<ul class="months" aria-label="year-view">
 {% for month in calendar.months %}
 	<li>{{ month }}</li>
 {% endfor %}

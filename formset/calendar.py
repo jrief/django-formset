@@ -2,6 +2,7 @@ import calendar
 from datetime import date
 
 from django.shortcuts import render
+from django.http.response import HttpResponseBadRequest
 from django.utils.formats import date_format
 
 
@@ -15,12 +16,13 @@ def get_calendar_context(firstweekday=calendar.MONDAY, start_date=None):
         'weekdays': [],
         'monthdays': [],
     }
+    monthdays = []
     for day in cal.itermonthdays3(start_date.year, start_date.month):
         monthday = date(*day)
+        monthdays.append(monthday)
         css_class = 'adjacent' if monthday.month != start_date.month else None
-        context['monthdays'].append((monthday, css_class))
-    for day, classes in context['monthdays'][:7]:
-        context['weekdays'].append((date_format(day, 'D'), date_format(day, 'l')))
+        context['monthdays'].append((monthday.isoformat()[:10], monthday.day, css_class))
+    context['weekdays'] = [(date_format(day, 'D'), date_format(day, 'l')) for day in monthdays[:7]]
     return context
 
 
@@ -30,7 +32,10 @@ class CalendarResponseMixin:
     """
     def get(self, request, **kwargs):
         if request.accepts('text/html') and 'calendar' in request.GET:
-            start_date = date.fromisoformat(request.GET.get('calendar'))
+            try:
+                start_date = date.fromisoformat(request.GET.get('calendar'))
+            except ValueError:
+                return HttpResponseBadRequest("Invalid parameter 'calendar'")
             context = {'calendar': get_calendar_context(start_date=start_date)}
             return render(request, 'formset/components/calendar.html', context)
         return super().get(request, **kwargs)
