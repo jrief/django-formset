@@ -18,8 +18,12 @@
 			background-color: transparent;
 			border: none;
 		}
-		time:hover {
-			cursor: pointer;
+		time {
+			width: 140px;
+			text-align: center;
+			&:hover {
+				cursor: pointer;
+			}
 		}
 		ul {
 			list-style: none;
@@ -42,6 +46,9 @@
 				&:hover {
 					opacity: 1;
 					background-color: #d0d0d0;
+				}
+				&[disabled] {
+					opacity: 0.5;
 				}
 			}
 		}

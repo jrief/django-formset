@@ -1,11 +1,15 @@
+{% load i18n %}
 <div class="control">
-	<button class="prev" type="button">
+	<button data-date="{{ calendar.prev_epoch }}" class="prev" type="button">
 		{% include "formset/icons/arrow-left.svg" %}
+	</button>
+	<button title="{% translate 'Today' %}" data-date="{{ calendar.today }}" class="today">
+		{% include "formset/icons/calendar-today.svg" %}
 	</button>
 {% with first_year=calendar.years|first last_year=calendar.years|last %}
 	<time datetime="{{ calendar.startdate|date:'c' }}">{{ first_year.1 }} – {{ last_year.1 }}</time>
 {% endwith %}
-	<button class="next" type="button">
+	<button data-date="{{ calendar.next_epoch }}" class="next" type="button">
 		{% include "formset/icons/arrow-right.svg" %}
 	</button>
 </div>

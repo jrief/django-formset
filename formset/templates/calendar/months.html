@@ -1,9 +1,13 @@
+{% load i18n %}
 <div class="control">
-	<button class="prev" type="button">
+	<button data-date="{{ calendar.prev_year }}" class="prev" type="button">
 		{% include "formset/icons/arrow-left.svg" %}
 	</button>
+	<button title="{% translate 'Today' %}" data-date="{{ calendar.today }}" class="today">
+		{% include "formset/icons/calendar-today.svg" %}
+	</button>
   <time datetime="{{ calendar.startdate|date:'c' }}">{{ calendar.startdate|date:'Y' }}</time>
-	<button class="next" type="button">
+	<button data-date="{{ calendar.next_year }}" class="next" type="button">
 		{% include "formset/icons/arrow-right.svg" %}
 	</button>
 </div>

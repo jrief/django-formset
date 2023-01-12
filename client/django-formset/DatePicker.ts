@@ -15,10 +15,9 @@ class Calendar extends Widget {
 	private readonly calendarElement: HTMLElement;
 	private readonly declaredStyles: HTMLStyleElement;
 	private viewMode = ViewMode.weeks;
-	// private monthView: HTMLUListElement | null = null;
-	// private yearView: HTMLUListElement | null = null;
 	private dropdownInstance?: Instance;
-	private startDate!: Date;
+	private minDate?: Date;
+	private maxDate?: Date;
 	private isOpen = false;
 
 	constructor(inputElement: HTMLInputElement, calendarElement: HTMLElement) {
@@ -28,8 +27,22 @@ class Calendar extends Widget {
 		this.declaredStyles = document.createElement('style');
 		this.declaredStyles.innerText = styles;
 		document.head.appendChild(this.declaredStyles);
+		this.setBounds();
 		this.installEventHandlers();
 		this.registerElement();
+	}
+
+	private setBounds() {
+		const minValue = this.inputElement.getAttribute('min');
+		if (minValue) {
+			this.minDate = new Date(minValue);
+			this.minDate.setTime(this.minDate.getTime() - this.minDate.getTimezoneOffset() * 60000);
+		}
+		const maxValue = this.inputElement.getAttribute('max');
+		if (maxValue) {
+			this.maxDate = new Date(maxValue);
+			this.maxDate.setTime(this.maxDate.getTime() - this.maxDate.getTimezoneOffset() * 60000);
+		}
 	}
 
 	private installEventHandlers() {
@@ -39,9 +52,14 @@ class Calendar extends Widget {
 		document.addEventListener('click', this.handleClick);
 	}
 
-	private setStartDate() {
-		this.startDate = new Date(this.calendarElement.querySelector('time')?.getAttribute('datetime') ?? '');
-		this.startDate.setTime(this.startDate.getTime() - this.startDate.getTimezoneOffset() * 60000);
+	private getDate(selector: string | Element) : Date {
+		const element = selector instanceof Element ? selector : this.calendarElement.querySelector(selector);
+		if (!(element instanceof Element))
+			throw new Error(`Element ${selector} is missing`);
+		const dateValue = element.getAttribute('data-date') ?? element.getAttribute('datetime');
+		const date = new Date(dateValue ?? '');
+		date.setTime(date.getTime() - date.getTimezoneOffset() * 60000);
+		return date;
 	}
 
 	private registerElement() {
@@ -59,40 +77,41 @@ class Calendar extends Widget {
 	}
 
 	private registerWeeksView() {
-		this.calendarElement.querySelector('button.prev')?.addEventListener('click', event => this.changeMonth(-1), {once: true});
+		this.calendarElement.querySelector('button.prev')?.addEventListener('click', this.paginate, {once: true});
+		this.calendarElement.querySelector('button.today')?.addEventListener('click', this.jumpToday, {once: true});
 		this.calendarElement.querySelector('time')?.addEventListener('click', this.switchMonthsView, {once: true});
-		this.calendarElement.querySelector('button.next')?.addEventListener('click', event => this.changeMonth(+1), {once: true});
+		this.calendarElement.querySelector('button.next')?.addEventListener('click', this.paginate, {once: true});
 		const today = new Date(Date.now());
 		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
-			const date = elem.getAttribute('data-date') ?? '';
-			const date1 = new Date(date);
+			const date1 = this.getDate(elem);
 			const date2 = new Date(date1.getTime() + 86400000);
 			elem.classList.toggle('today', today >= date1 && today < date2);
-			elem.classList.toggle('selected', date === this.inputElement.value);
-			elem.addEventListener('click', this.selectDate);
+			elem.classList.toggle('selected', elem.getAttribute('data-date') === this.inputElement.value);
+			if (this.minDate && date1 < this.minDate || this.maxDate && date1 > this.maxDate) {
+				elem.setAttribute('disabled', 'disabled');
+			} else {
+				elem.addEventListener('click', this.selectDate);
+			}
 		});
-		this.setStartDate();
 	}
 
 	private registerMonthsView() {
-		this.calendarElement.querySelector('button.prev')?.addEventListener('click', event => this.changeYear(-1), {once: true});
+		this.calendarElement.querySelector('button.prev')?.addEventListener('click', this.paginate, {once: true});
+		this.calendarElement.querySelector('button.today')?.addEventListener('click', this.jumpToday, {once: true});
 		this.calendarElement.querySelector('time')?.addEventListener('click', this.switchYearsView, {once: true});
-		this.calendarElement.querySelector('button.next')?.addEventListener('click', event => this.changeYear(+1), {once: true});
+		this.calendarElement.querySelector('button.next')?.addEventListener('click', this.paginate, {once: true});
 		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
-			const date = elem.getAttribute('data-date') ?? '';
 			elem.addEventListener('click', this.selectMonth);
 		});
-		this.setStartDate();
 	}
 
 	private registerYearsView() {
-		this.calendarElement.querySelector('button.prev')?.addEventListener('click', event => this.changeYear(-1), {once: true});
-		this.calendarElement.querySelector('button.next')?.addEventListener('click', event => this.changeYear(+1), {once: true});
+		this.calendarElement.querySelector('button.prev')?.addEventListener('click', this.paginate, {once: true});
+		this.calendarElement.querySelector('button.today')?.addEventListener('click', this.jumpToday, {once: true});
+		this.calendarElement.querySelector('button.next')?.addEventListener('click', this.paginate, {once: true});
 		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
-			const date = elem.getAttribute('data-date') ?? '';
 			elem.addEventListener('click', this.selectYear);
 		});
-		this.setStartDate();
 	}
 
 	private handleClick = (event: Event) => {
@@ -114,11 +133,6 @@ class Calendar extends Widget {
 		});
 		this.inputElement.setAttribute('aria-expanded', 'true')
 		this.isOpen = true;
-		const date = new Date(this.calendarElement.querySelector('time')?.getAttribute('datetime') ?? '');
-		date.setTime(date.getTime() - date.getTimezoneOffset() * 60000);
-		if (date.getTime() !== this.startDate.getTime()) {
-			this.fetchCalendar(this.startDate);
-		}
 	}
 
 	private handleBlur = (event: Event) => {
@@ -136,74 +150,70 @@ class Calendar extends Widget {
 		}
 	}
 
+	private jumpToday = (event: Event) => {
+		const button = this.expectButton(event.target);
+		this.viewMode = ViewMode.weeks;
+		this.fetchCalendar(this.getDate(button));
+	}
+
 	private selectDate = (event: Event) => {
-		if (event.target instanceof HTMLElement) {
+		if (event.target instanceof HTMLLIElement) {
 			const target = event.target;
-			const date = target.getAttribute('data-date') ?? '';
+			const dateValue = target.getAttribute('data-date') ?? '';
 			this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
 				elem.classList.toggle('selected', elem.isSameNode(target));
 			});
-			this.inputElement.value = date;
+			this.inputElement.value = dateValue;
 			this.isOpen = false;
 			this.inputElement.blur();
 			this.inputElement.setAttribute('aria-expanded', 'false')
 			this.inputElement.dispatchEvent(new Event('input'));
 		 	this.dropdownInstance?.destroy();
-			this.startDate = new Date(date);
-			this.startDate.setUTCDate(1);
-			this.startDate.setTime(this.startDate.getTime() - this.startDate.getTimezoneOffset() * 60000);
+			this.fetchCalendar(this.getDate(target));
 		}
 	}
 
 	private selectMonth = (event: Event) => {
 		if (event.target instanceof HTMLLIElement) {
-			const date = event.target.getAttribute('data-date') ?? '';
 			this.viewMode = ViewMode.weeks;
-			this.fetchCalendar(new Date(date));
+			this.fetchCalendar(this.getDate(event.target));
 		}
 	}
 
 	private selectYear = (event: Event) => {
-		if (event.target instanceof HTMLTimeElement) {
+		if (event.target instanceof HTMLLIElement) {
 			this.viewMode = ViewMode.months;
-			this.fetchCalendar(new Date(this.startDate));
+			this.fetchCalendar(this.getDate(event.target));
 		}
 	}
 
 	private switchMonthsView = (event: Event) => {
 		if (event.target instanceof HTMLTimeElement) {
 			this.viewMode = ViewMode.months;
-			this.fetchCalendar(new Date(this.startDate));
+			this.fetchCalendar(this.getDate(event.target));
 		}
 	}
 
 	private switchYearsView = (event: Event) => {
 		if (event.target instanceof HTMLTimeElement) {
 			this.viewMode = ViewMode.years;
-			this.fetchCalendar(new Date(this.startDate));
+			this.fetchCalendar(this.getDate(event.target));
 		}
 	}
 
-	private async changeMonth(dir: number) {
-		const newDate = new Date(this.startDate);
-		newDate.setTime(newDate.getTime() - newDate.getTimezoneOffset() * 60000);
-		if (this.startDate.getMonth() === 12 && dir > 0) {
-			newDate.setUTCMonth(1);
-			newDate.setUTCFullYear(newDate.getUTCFullYear() + 1);
-		} else if (this.startDate.getMonth() === 1 && dir < 0) {
-			newDate.setUTCMonth(12);
-			newDate.setUTCFullYear(newDate.getUTCFullYear() - 1);
-		} else {
-			newDate.setUTCMonth(newDate.getUTCMonth() + dir);
-		}
-		this.fetchCalendar(newDate);
+	private paginate = (event: Event) => {
+		const button = this.expectButton(event.target);
+		this.fetchCalendar(this.getDate(button));
 	}
 
-	private async changeYear(dir: number) {
-		const newDate = new Date(this.startDate);
-		newDate.setTime(newDate.getTime() - newDate.getTimezoneOffset() * 60000);
-		newDate.setUTCFullYear(newDate.getUTCFullYear() + dir);
-		this.fetchCalendar(newDate);
+	private expectButton(target: EventTarget | null) : HTMLButtonElement {
+		let button = target;
+		while (!(button instanceof HTMLButtonElement)) {
+			if (!(button instanceof Element))
+				throw new Error(`Element ${target} not part of button`);
+			button = button.parentElement;
+		}
+		return button;
 	}
 
 	private async fetchCalendar(newDate: Date) {
