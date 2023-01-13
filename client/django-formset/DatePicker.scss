@@ -33,6 +33,7 @@
 			display: grid;
 
 			> li {
+				line-height: 2rem;
 				&.adjacent {
 					color: #808080;
 				}

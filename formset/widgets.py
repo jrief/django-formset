@@ -15,7 +15,7 @@ from django.forms.widgets import DateTimeBaseInput, FileInput, Select, SelectMul
 from django.utils.timezone import datetime, now, utc
 from django.utils.translation import gettext_lazy as _
 
-from formset.calendar import get_calendar_context
+from formset.calendar import CalendarRenderer
 
 
 class SimpleModelChoiceIterator(ModelChoiceIterator):
@@ -320,13 +320,24 @@ class DatePicker(DateInput):
     """
     template_name = 'formset/default/widgets/datepicker.html'
 
-    def __init__(self, attrs=None):
+    def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {'type': 'text', 'is': 'django-datepicker', 'aria-expanded': 'false', 'aria-haspopup': 'dialog'}
         if attrs:
             default_attrs.update(**attrs)
+        if calendar_renderer:
+            self.calendar_renderer = calendar_renderer
+        else:
+            self.calendar_renderer = CalendarRenderer
         super().__init__(attrs=default_attrs)
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
-        context['calendar'] = get_calendar_context(start_date=value)
+        if isinstance(self.calendar_renderer, type):
+            calendar_renderer = self.calendar_renderer(start_datetime=value)
+        else:
+            calendar_renderer = self.calendar_renderer
+        context['calendar'] = calendar_renderer.get_context()
         return context
+
+    def render(self, name, value, attrs=None, renderer=None):
+        return super().render(name, value, attrs, renderer)

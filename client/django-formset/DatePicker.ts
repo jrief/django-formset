@@ -36,12 +36,10 @@ class Calendar extends Widget {
 		const minValue = this.inputElement.getAttribute('min');
 		if (minValue) {
 			this.minDate = new Date(minValue);
-			this.minDate.setTime(this.minDate.getTime() - this.minDate.getTimezoneOffset() * 60000);
 		}
 		const maxValue = this.inputElement.getAttribute('max');
 		if (maxValue) {
 			this.maxDate = new Date(maxValue);
-			this.maxDate.setTime(this.maxDate.getTime() - this.maxDate.getTimezoneOffset() * 60000);
 		}
 	}
 
@@ -58,7 +56,6 @@ class Calendar extends Widget {
 			throw new Error(`Element ${selector} is missing`);
 		const dateValue = element.getAttribute('data-date') ?? element.getAttribute('datetime');
 		const date = new Date(dateValue ?? '');
-		date.setTime(date.getTime() - date.getTimezoneOffset() * 60000);
 		return date;
 	}
 
@@ -74,6 +71,12 @@ class Calendar extends Widget {
 				this.registerYearsView();
 				break;
 		}
+		// insert the date of today into a text element inside the calendar icon
+		const textElem = this.calendarElement.querySelector('button.today > svg > text');
+		if (textElem instanceof SVGTextElement) {
+			const today = new Date(Date.now());
+			textElem.textContent = String(today.getDate());
+		}
 	}
 
 	private registerWeeksView() {
@@ -83,11 +86,10 @@ class Calendar extends Widget {
 		this.calendarElement.querySelector('button.next')?.addEventListener('click', this.paginate, {once: true});
 		const today = new Date(Date.now());
 		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
-			const date1 = this.getDate(elem);
-			const date2 = new Date(date1.getTime() + 86400000);
-			elem.classList.toggle('today', today >= date1 && today < date2);
+			const date = this.getDate(elem);
+			elem.classList.toggle('today', today.getDate() === date.getDate() && today.getMonth() === date.getMonth() && today.getFullYear() === date.getFullYear());
 			elem.classList.toggle('selected', elem.getAttribute('data-date') === this.inputElement.value);
-			if (this.minDate && date1 < this.minDate || this.maxDate && date1 > this.maxDate) {
+			if (this.minDate && date < this.minDate || this.maxDate && date > this.maxDate) {
 				elem.setAttribute('disabled', 'disabled');
 			} else {
 				elem.addEventListener('click', this.selectDate);
@@ -151,7 +153,7 @@ class Calendar extends Widget {
 	}
 
 	private jumpToday = (event: Event) => {
-		const button = this.expectButton(event.target);
+		const button = this.controlButton(event.target);
 		this.viewMode = ViewMode.weeks;
 		this.fetchCalendar(this.getDate(button));
 	}
@@ -202,11 +204,11 @@ class Calendar extends Widget {
 	}
 
 	private paginate = (event: Event) => {
-		const button = this.expectButton(event.target);
+		const button = this.controlButton(event.target);
 		this.fetchCalendar(this.getDate(button));
 	}
 
-	private expectButton(target: EventTarget | null) : HTMLButtonElement {
+	private controlButton(target: EventTarget | null) : HTMLButtonElement {
 		let button = target;
 		while (!(button instanceof HTMLButtonElement)) {
 			if (!(button instanceof Element))
