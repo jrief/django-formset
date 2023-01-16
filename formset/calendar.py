@@ -31,7 +31,7 @@ class CalendarRenderer:
 
     def get_context(self):
         cal = calendar.Calendar(self.firstweekday)
-        start_datetime = self.start_datetime  # .replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        start_datetime = self.start_datetime.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         context = {
             'startdate': start_datetime,
             'weekdays': [],
