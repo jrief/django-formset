@@ -146,7 +146,7 @@ class Calendar extends Widget {
 	private handleChange = (event: Event) => {
 		const newDate = new Date(this.inputElement.value);
 		if (isNaN(newDate.getTime())) {
-			this.inputElement.value = 'yyyy-mm-dd';  // enforce a pattern validation error
+			this.inputElement.value = this.inputElement.value.concat(' ');  // = this.inputElement.value;  // enforce a pattern validation error
 		} else {
 			this.fetchCalendar(newDate);
 		}

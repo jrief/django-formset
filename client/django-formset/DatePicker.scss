@@ -32,44 +32,56 @@
 			text-align: center;
 			display: grid;
 
+			&.hours {
+				grid-template-columns: repeat(6, 1fr);
+			}
+
+			&.weekdays, &.monthdays {
+				grid-template-columns: repeat(7, 1fr);
+			}
+
+			&.months {
+				grid-template-columns: repeat(3, 1fr);
+			}
+
+			&.years {
+				grid-template-columns: repeat(4, 1fr);
+			}
+
+			&.weekdays {
+				font-weight: bold;
+				padding-bottom: 0;
+				> li:not([disabled]):hover {
+					background-color: inherit;
+				}
+			}
+
 			> li {
 				line-height: 2rem;
+
 				&.adjacent {
 					color: #808080;
 				}
+
 				&.today {
 					border: 1px solid #a8a8a8;
 				}
+
 				&.selected {
 					background-color: #007bff;
 					color: white;
 				}
-				&:hover {
-					opacity: 1;
-					background-color: #d0d0d0;
-				}
+
 				&[disabled] {
 					opacity: 0.5;
 				}
-			}
-		}
 
-		.weekdays {
-			grid-template-columns: repeat(7, 1fr);
-			li:nth-child(n):nth-child(-n+7) {
-				font-weight: bold;
-				&:hover {
-					background-color: initial;
+				&:not([disabled]):hover {
+					opacity: 1;
+					background-color: #d0d0d0;
+					cursor: pointer;
 				}
 			}
-		}
-
-		.months {
-			grid-template-columns: repeat(3, 1fr);
-		}
-
-		.years {
-			grid-template-columns: repeat(4, 1fr);
 		}
 
 		abbr[title] {
