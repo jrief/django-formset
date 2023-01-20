@@ -1,7 +1,7 @@
 import os
 import struct
 from base64 import b16encode
-from datetime import date
+from datetime import date, timedelta
 from functools import reduce
 from operator import and_, or_
 
@@ -11,11 +11,12 @@ from django.core.files.uploadedfile import UploadedFile
 from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
+from django.forms.fields import DateTimeFormatsIterator
 from django.forms.widgets import DateTimeBaseInput, FileInput, Select, SelectMultiple, TextInput
 from django.utils.timezone import datetime, now, utc
 from django.utils.translation import gettext_lazy as _
 
-from formset.calendar import CalendarRenderer
+from formset.calendar import CalendarRenderer, ViewMode
 
 
 class SimpleModelChoiceIterator(ModelChoiceIterator):
@@ -318,7 +319,8 @@ class DatePicker(DateInput):
     """
     This is an enhancement for the ``DateInput`` widget, but with a customizable date-picker.
     """
-    template_name = 'formset/default/widgets/datepicker.html'
+    template_name = 'formset/default/widgets/datetimepicker.html'
+    interval = timedelta(days=1)
 
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {'type': 'text', 'is': 'django-datepicker', 'aria-expanded': 'false', 'aria-haspopup': 'dialog'}
@@ -336,8 +338,20 @@ class DatePicker(DateInput):
             calendar_renderer = self.calendar_renderer(start_datetime=value)
         else:
             calendar_renderer = self.calendar_renderer
-        context['calendar'] = calendar_renderer.get_context()
+        context['calendar'] = calendar_renderer.get_context(self.interval)
         return context
 
-    def render(self, name, value, attrs=None, renderer=None):
-        return super().render(name, value, attrs, renderer)
+
+class DateTimePicker(DatePicker):
+    """
+    This is an enhancement for the ``DateTimeInput`` widget, but with a customizable date- and time-picker.
+    """
+    interval = timedelta(hours=1)
+
+    def __init__(self, attrs=None, calendar_renderer=None):
+        default_attrs = {'is': 'django-datetimepicker', 'pattern': r'\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}'}
+        if attrs:
+            default_attrs.update(**attrs)
+        if 'step' in attrs:
+            self.interval = attrs['step']
+        super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)

@@ -1,5 +1,5 @@
 {% load i18n %}
-<div class="control">
+<div class="controls">
 	<button data-date="{{ calendar.prev_epoch }}" class="prev" type="button">
 		{% include "formset/icons/arrow-left.svg" %}
 	</button>
@@ -13,8 +13,10 @@
 		{% include "formset/icons/arrow-right.svg" %}
 	</button>
 </div>
-<ul class="years" aria-label="years-view">
+<div class="ranges" aria-label="years-view">
+	<ul class="years">
 {% for date, year in calendar.years %}
-	<li data-date="{{ date }}">{{ year }}</li>
+		<li data-date="{{ date }}">{{ year }}</li>
 {% endfor %}
-</ul>
+	</ul>
+</div>

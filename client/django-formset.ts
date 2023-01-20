@@ -1,7 +1,6 @@
 import '@ungap/custom-elements';
 import { DjangoFormsetElement } from "./django-formset/DjangoFormset";
 import { StyleHelpers } from './django-formset/helpers';
-import { DatePickerElement } from "./django-formset/DatePicker";
 
 
 window.addEventListener('DOMContentLoaded', (event) => {
@@ -54,9 +53,17 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	}
 	if (document.querySelector('input[is="django-datepicker"]')) {
 		promises.push(new Promise((resolve, reject) => {
-			import('./django-formset/DatePicker').then(({ DatePickerElement }) => {
+			import('./django-formset/DateTimePicker').then(({ DatePickerElement }) => {
 		 		window.customElements.define('django-datepicker', DatePickerElement, {extends: 'input'});
 				window.customElements.whenDefined('django-datepicker').then(() => resolve());
+			}).catch(err => reject(err));
+		}));
+	}
+	if (document.querySelector('input[is="django-datetimepicker"]')) {
+		promises.push(new Promise((resolve, reject) => {
+			import('./django-formset/DateTimePicker').then(({ DateTimePickerElement }) => {
+		 		window.customElements.define('django-datetimepicker', DateTimePickerElement, {extends: 'input'});
+				window.customElements.whenDefined('django-datetimepicker').then(() => resolve());
 			}).catch(err => reject(err));
 		}));
 	}

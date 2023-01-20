@@ -1,7 +1,8 @@
 import calendar
-from datetime import date
+from datetime import date, timedelta
 from enum import Enum
 
+from django.conf import settings
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.loader import get_template
 from django.utils.formats import date_format
@@ -9,6 +10,7 @@ from django.utils.timezone import datetime
 
 
 class ViewMode(Enum):
+    hours = 'h'
     weeks = 'w'
     months = 'm'
     years = 'y'
@@ -22,24 +24,48 @@ class ViewMode(Enum):
 
 
 class CalendarRenderer:
-    def __init__(self, firstweekday=calendar.MONDAY, start_datetime=None):
-        self.firstweekday = firstweekday
+    valid_intervals = [
+        None,
+        timedelta(minutes=5),
+        timedelta(minutes=10),
+        timedelta(minutes=15),
+        timedelta(minutes=20),
+        timedelta(minutes=30),
+        timedelta(hours=1),
+        timedelta(days=1),
+    ]
+
+    def __init__(self, firstweekday=None, start_datetime=None):
+        self.firstweekday = settings.FIRST_DAY_OF_WEEK if firstweekday is None else firstweekday
         if isinstance(start_datetime, datetime):
             self.start_datetime = start_datetime
         else:
             self.start_datetime = datetime.now()
 
-    def get_context(self):
+    def get_context(self, interval):
+        assert interval in self.valid_intervals, f"{interval} is not a valid interval for the calendar"
         cal = calendar.Calendar(self.firstweekday)
-        start_datetime = self.start_datetime.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        start_datetime = self.start_datetime
         context = {
             'startdate': start_datetime,
+            'shifts': [],
             'weekdays': [],
             'monthdays': [],
             'months': [],
             'years': [],
             'today': date.today().isoformat()[:10],
         }
+        for shift in range(0, 24, 6):
+            hours = []
+            for hour in range(shift, shift + 6):
+                hour_date = start_datetime.replace(hour=hour)
+                if interval and interval < timedelta(hours=1):
+                    minutes = [(hour_date.replace(minute=minute).isoformat()[:16], f'{minute:02d}')
+                               for minute in range(0, 60, int(interval.total_seconds() / 60))]
+                else:
+                    minutes = None
+                hours.append((hour_date.isoformat()[:16], hour, minutes))
+            context['shifts'].append(hours)
         if start_datetime.month == 1:
             context.update(
                 prev_month=start_datetime.replace(month=12, year=start_datetime.year - 1).isoformat()[:10],
@@ -51,9 +77,10 @@ class CalendarRenderer:
                 next_month=start_datetime.replace(month=1, year=start_datetime.year + 1).isoformat()[:10],
             )
         else:
+            safe_day = min(start_datetime.day, 28)  # prevent date arithmetic errors on adjacent months
             context.update(
-                prev_month=start_datetime.replace(month=start_datetime.month - 1).isoformat()[:10],
-                next_month=start_datetime.replace(month=start_datetime.month + 1).isoformat()[:10],
+                prev_month=start_datetime.replace(day=safe_day, month=start_datetime.month - 1).isoformat()[:10],
+                next_month=start_datetime.replace(day=safe_day, month=start_datetime.month + 1).isoformat()[:10],
             )
         start_epoch = int(start_datetime.year / 20) * 20
         context.update(
@@ -77,15 +104,17 @@ class CalendarRenderer:
         context['weekdays'] = [(date_format(day, 'D'), date_format(day, 'l')) for day in monthdays[:7]]
         return context
 
-    def render(self, view_mode):
-        if view_mode == ViewMode.weeks:
-            template_name = 'calendar/weeks.html'
+    def render(self, view_mode, interval):
+        if view_mode == ViewMode.hours:
+            template_name = 'calendar/hours.html'
+        elif view_mode == ViewMode.years:
+            template_name = 'calendar/years.html'
         elif view_mode == ViewMode.months:
             template_name = 'calendar/months.html'
         else:
-            template_name = 'calendar/years.html'
+            template_name = 'calendar/weeks.html'
         template = get_template(template_name)
-        context = {'calendar': self.get_context()}
+        context = {'calendar': self.get_context(interval)}
         return HttpResponse(template.render(context))
 
 
@@ -100,8 +129,12 @@ class CalendarResponseMixin:
             try:
                 start_datetime = datetime.fromisoformat(request.GET.get('date'))
                 view_mode = ViewMode.frommode(request.GET.get('mode'))
+                if 'interval' in request.GET:
+                    interval = timedelta(minutes=int(request.GET.get('interval')))
+                else:
+                    interval = None
             except (TypeError, ValueError):
                 return HttpResponseBadRequest("Invalid parameter 'calendar'")
             cal = self.calendar_renderer_class(start_datetime=start_datetime)
-            return cal.render(view_mode)
+            return cal.render(view_mode, interval)
         return super().get(request, **kwargs)
