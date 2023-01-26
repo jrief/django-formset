@@ -1,29 +1,32 @@
-{% load i18n %}
-<div class="controls">
+{% load i18n %}{% spaceless %}
+<div class="controls hours-view">
 	<button data-date="{{ calendar.prev_day }}" class="prev" type="button">
 		{% include "formset/icons/arrow-left.svg" %}
 	</button>
-	<button title="{% translate 'Today' %}" data-date="{{ calendar.today }}" class="today">
+	<time datetime="{{ calendar.startdate|date:'c' }}">{{ calendar.startdate|date:'j. F Y' }}</time>
+	<button data-date="{{ calendar.today }}" class="today" title="{% translate 'Today' %}">
 		{% include "formset/icons/calendar-today.svg" %}
 	</button>
-	<time datetime="{{ calendar.startdate|date:'c' }}">{{ calendar.startdate|date:'j. F Y' }}</time>
-	<button data-date="{{ calendar.next_year }}" class="next" type="button">
+	<button data-date="{{ calendar.next_day }}" class="next" type="button">
 		{% include "formset/icons/arrow-right.svg" %}
 	</button>
 </div>
 <div class="ranges" aria-label="hours-view">
 {% for shift in calendar.shifts %}
 	<ul class="hours">
-	{% for datetime, hour, _ in shift %}
-		<li aria-label="{{ datetime }}">{{ hour }}h</li>
+	{% for datetime, hour, minutes in shift %}
+		<li {% if minutes %}aria-label{% else %}data-date{% endif %}="{{ datetime }}">{{ hour }}h</li>
 	{% endfor %}
 	</ul>
 	{% for datetime, hour, minutes in shift %}
+		{% if minutes %}
 	<ul class="minutes" aria-labelledby="{{ datetime }}" hidden>
-		{% for datetime, minute in minutes %}
-		<li data-date="{{ datetime }}">{{ hour }}:{{ minute }}</li>
-		{% endfor %}
+			{% for datetime, minute in minutes %}
+		<li data-date="{{ datetime }}">{{ minute }}</li>
+			{% endfor %}
 	</ul>
+		{% endif %}
 	{% endfor %}
 {% endfor %}
 </div>
+{% endspaceless %}

@@ -1,35 +1,40 @@
-[is="django-datepicker"], [is="django-datetimepicker"] {
+@import "colors";
+
+:is([is="django-datepicker"], [is="django-datetimepicker"]) {
+	--dummy-style: none;
+
 	& + .dj-calendar {
-		width: 280px;
-		border: 1px solid lightgray;
 		box-shadow: lightgray 0 0 1rem;
-		border-radius: 6px;
-		background-color: white;
 
 		.controls {
 			display: flex;
 			justify-content: space-between;
-			padding: 0.5rem;
+			align-items: center;
 			border-bottom: 1px solid #d3d3d3;
 
 			button {
 				display: inline-flex;
 				background-color: transparent;
 				border: none;
+				padding: 0;
 			}
 
 			time {
-				width: 140px;
+				width: 150px;
 				text-align: center;
+			}
 
-				&:hover {
+			&:is(.hours-view, .weeks-view, .months-view) time:hover {
 					cursor: pointer;
-				}
+			}
+
+			&.years-view time {
+				opacity: .75;
 			}
 		}
 
 		.ranges {
-			padding: 0.5rem;
+			--dummy-style: none;
 
 			ul {
 				list-style: none;
@@ -37,17 +42,39 @@
 				padding: 0;
 				text-align: center;
 				display: grid;
+				gap: 2px;
 
 				&.hours {
 					grid-template-columns: repeat(6, 1fr);
-				}
-
-				&.minutes {
-					grid-template-columns: repeat(4, 1fr);
+					> li.preselected {
+						border: 1px solid lightgrey;
+						border-bottom-color: white;
+						border-top-left-radius: 5px;
+						border-top-right-radius: 5px;
+					}
 				}
 
 				&.weekdays, &.monthdays {
 					grid-template-columns: repeat(7, 1fr);
+				}
+
+				&.monthdays {
+					> li.adjacent {
+						color: $calendar-adjacent-color;
+					}
+
+					> li.today {
+						position: relative;
+						&::after {
+							position: absolute;
+							content: "";
+							bottom: 0;
+							right: 0;
+							border-style: solid;
+							border-width: 0 0 10px 10px;
+							border-color: transparent transparent $calendar-selected-background-color transparent;
+						}
+					}
 				}
 
 				&.months {
@@ -60,38 +87,36 @@
 
 				&.weekdays {
 					font-weight: bold;
-					padding-bottom: 0;
-
-					> li:not([disabled]):hover {
-						background-color: inherit;
-					}
 				}
 
-				> li {
-					line-height: 2rem;
+				&:not(.weekdays) {
+					--dummy-style: none;
 
-					&.adjacent {
-						color: #808080;
+					> li.selected {
+						background-color: $calendar-selected-background-color;
+						color: $calendar-selected-color;
+						&.today::after {
+							border-color: transparent transparent $calendar-selected-color transparent;;
+						}
 					}
 
-					&.today {
-						border: 1px solid #a8a8a8;
-					}
-
-					&.selected {
-						background-color: #007bff;
-						color: white;
-					}
-
-					&[disabled] {
+					> li[disabled] {
 						opacity: 0.5;
 					}
 
-					&:not([disabled]):hover {
+					> li:not([disabled]):hover {
 						opacity: 1;
-						background-color: #d0d0d0;
+						background-color: $calendar-hover-background-color;
 						cursor: pointer;
 					}
+				}
+
+				&.minutes {
+					font-size: smaller;
+					border: 1px solid lightgrey;
+					margin: -1px 0 3px;
+					padding: 0 5px;
+					line-height: inherit;
 				}
 			}
 

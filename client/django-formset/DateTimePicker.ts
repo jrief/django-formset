@@ -1,5 +1,5 @@
 import { createPopper, Instance } from '@popperjs/core';
-import { Widget } from './helpers';
+import { StyleHelpers, Widget } from './helpers';
 import styles from './DateTimePicker.scss';
 
 
@@ -15,7 +15,6 @@ class Calendar extends Widget {
 	private readonly inputElement: HTMLInputElement;
 	private readonly dateOnly: Boolean;
 	private readonly calendarElement: HTMLElement;
-	private readonly declaredStyles: HTMLStyleElement;
 	private viewMode?: ViewMode;
 	private dropdownInstance?: Instance;
 	private minDate?: Date;
@@ -33,11 +32,11 @@ class Calendar extends Widget {
 			this.calendarElement = document.createElement('div');
 			this.fetchCalendar(new Date(), ViewMode.weeks);
 		}
-		this.declaredStyles = document.createElement('style');
-		this.declaredStyles.innerText = `${styles}`;
-		document.head.appendChild(this.declaredStyles);
 		this.setBounds();
 		this.installEventHandlers();
+		const observer = new MutationObserver(() => this.registerElement());
+		observer.observe(this.calendarElement, {childList: true});
+		this.transferStyles();
 		this.registerElement();
 	}
 
@@ -79,6 +78,18 @@ class Calendar extends Widget {
 		this.inputElement.addEventListener('blur', this.handleBlur);
 		this.inputElement.addEventListener('change', this.handleChange);
 		document.addEventListener('click', this.handleClick);
+		document.addEventListener('keydown', event => {
+			if (event.key === 'Escape') {
+				this.close();
+			}
+		});
+	}
+
+	private close() {
+		this.isOpen = false;
+		this.inputElement.blur();
+		this.inputElement.setAttribute('aria-expanded', 'false')
+		this.dropdownInstance?.destroy();
 	}
 
 	private getDate(selector: string | Element) : Date {
@@ -93,6 +104,7 @@ class Calendar extends Widget {
 	private registerElement() {
 		this.viewMode = this.getViewMode();
 		this.calendarElement.querySelector('button.prev')?.addEventListener('click', this.paginate, {once: true});
+		this.calendarElement.querySelector('button.back')?.addEventListener('click', this.jumpBack, {once: true});
 		this.calendarElement.querySelector('button.today')?.addEventListener('click', this.jumpToday, {once: true});
 		this.calendarElement.querySelector('button.next')?.addEventListener('click', this.paginate, {once: true});
 		switch (this.viewMode) {
@@ -115,12 +127,35 @@ class Calendar extends Widget {
 			const today = new Date(Date.now());
 			textElem.textContent = String(today.getDate());
 		}
+
+		// since each datetime-picker can have different values, set this on element level
+		if (this.interval) {
+			const num = Math.min(60 / this.interval!, 6);
+			const gridTemplateColumns =  `repeat(${num}, 1fr)`
+			this.calendarElement.querySelectorAll('.ranges ul.minutes').forEach(minutesElement => {
+				(minutesElement as HTMLElement).style.gridTemplateColumns = gridTemplateColumns;
+			});
+		}
 	}
 
 	private registerHoursView() {
 		this.calendarElement.querySelector('time')?.addEventListener('click', this.switchWeeksView, {once: true});
 		this.calendarElement.querySelectorAll('li[aria-label]').forEach(elem => {
+			const label = elem.getAttribute('aria-label');
+			if (label!.replace('T', ' ').slice(0, 13) === this.inputElement.value.slice(0, 13)) {
+				elem.classList.add('preselected');
+				this.calendarElement.querySelector(`ul[aria-labelledby="${label}"]`)?.removeAttribute('hidden');
+			}
 			elem.addEventListener('click', this.selectHour);
+		});
+		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
+			const date = elem.getAttribute('data-date')!.replace('T', ' ');
+			elem.classList.toggle('selected', date === this.inputElement.value);
+			elem.addEventListener('click', event => {
+				if (event.target instanceof HTMLLIElement) {
+					this.selectDate(event.target);
+				}
+			}, {once: true});
 		});
 	}
 
@@ -130,7 +165,7 @@ class Calendar extends Widget {
 		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
 			const date = this.getDate(elem);
 			elem.classList.toggle('today', today.getDate() === date.getDate() && today.getMonth() === date.getMonth() && today.getFullYear() === date.getFullYear());
-			elem.classList.toggle('selected', elem.getAttribute('data-date') === this.inputElement.value);
+			elem.classList.toggle('selected', elem.getAttribute('data-date') === this.inputElement.value.slice(0, 10));
 			if (this.minDate && date < this.minDate || this.maxDate && date > this.maxDate) {
 				elem.setAttribute('disabled', 'disabled');
 			} else {
@@ -142,12 +177,14 @@ class Calendar extends Widget {
 	private registerMonthsView() {
 		this.calendarElement.querySelector('time')?.addEventListener('click', this.switchYearsView, {once: true});
 		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
+			elem.classList.toggle('selected', elem.getAttribute('data-date')!.slice(0, 7) === this.inputElement.value.slice(0, 7));
 			elem.addEventListener('click', this.selectMonth);
 		});
 	}
 
 	private registerYearsView() {
 		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
+			elem.classList.toggle('selected', elem.getAttribute('data-date')!.slice(0, 4) === this.inputElement.value.slice(0, 4));
 			elem.addEventListener('click', this.selectYear);
 		});
 	}
@@ -159,10 +196,7 @@ class Calendar extends Widget {
 				return;
 			element = element.parentElement;
 		}
-		this.isOpen = false;
-		this.inputElement.blur();
-		this.inputElement.setAttribute('aria-expanded', 'false')
-		this.dropdownInstance?.destroy();
+		this.close();
 	}
 
 	private handleFocus = (event: Event) => {
@@ -170,6 +204,7 @@ class Calendar extends Widget {
 			placement: 'bottom-start',
 		});
 		this.inputElement.setAttribute('aria-expanded', 'true')
+		this.inputElement.value = this.inputElement.value.trimEnd();  // remove white space eventually added by handleChange
 		this.isOpen = true;
 	}
 
@@ -182,7 +217,8 @@ class Calendar extends Widget {
 	private handleChange = (event: Event) => {
 		const newDate = new Date(this.inputElement.value);
 		if (isNaN(newDate.getTime())) {
-			this.inputElement.value = this.inputElement.value.concat(' ');  // = this.inputElement.value;  // enforce a pattern validation error
+			this.inputElement.value = this.inputElement.value.concat(' ');  // enforce a pattern validation error
+			this.close();
 		} else {
 			this.fetchCalendar(newDate, this.viewMode);
 		}
@@ -191,6 +227,22 @@ class Calendar extends Widget {
 	private jumpToday = (event: Event) => {
 		const button = this.controlButton(event.target);
 		this.fetchCalendar(this.getDate(button), ViewMode.weeks);
+	}
+
+	private jumpBack = (event: Event) => {
+		const date = this.getDate(this.controlButton(event.target));
+		if (this.viewMode === ViewMode.months) {
+			this.fetchCalendar(date, ViewMode.weeks);
+		} else if (this.viewMode === ViewMode.years) {
+			this.fetchCalendar(date, ViewMode.months);
+		} else {
+			this.fetchCalendar(date, this.viewMode);
+		}
+	}
+
+	private paginate = (event: Event) => {
+		const button = this.controlButton(event.target);
+		this.fetchCalendar(this.getDate(button), this.viewMode);
 	}
 
 	private selectDate(liElement: HTMLLIElement) {
@@ -204,26 +256,26 @@ class Calendar extends Widget {
 		this.inputElement.setAttribute('aria-expanded', 'false')
 		this.inputElement.dispatchEvent(new Event('input'));
 		this.dropdownInstance?.destroy();
-		this.fetchCalendar(this.getDate(liElement), this.viewMode);
 	}
 
 	private selectHour = (event: Event) => {
 		this.calendarElement.querySelectorAll('li[aria-label]').forEach(elem => {
-			elem.classList.remove('selected');
+			elem.classList.remove('selected', 'preselected');
 		});
 		this.calendarElement.querySelectorAll('ul[aria-labelledby]').forEach(elem => {
 			elem.setAttribute('hidden', 'hidden');
 		});
 		if (event.target instanceof HTMLLIElement) {
 			const liElem = event.target;
-			liElem.classList.add('selected');
 			const label = liElem.getAttribute('aria-label');
 			const ulElem = this.calendarElement.querySelector(`ul[aria-labelledby="${label}"]`);
 			if (ulElem) {
+				liElem.classList.add('preselected');
 				ulElem.removeAttribute('hidden');
 				ulElem.querySelectorAll('li[data-date]').forEach(elem => {
 					elem.addEventListener('click', event => {
 						if (event.target instanceof HTMLLIElement) {
+							event.target.classList.add('selected');
 							this.selectDate(event.target);
 						}
 					}, {once: true});
@@ -272,11 +324,6 @@ class Calendar extends Widget {
 		}
 	}
 
-	private paginate = (event: Event) => {
-		const button = this.controlButton(event.target);
-		this.fetchCalendar(this.getDate(button), this.viewMode);
-	}
-
 	private controlButton(target: EventTarget | null) : HTMLButtonElement {
 		let button = target;
 		while (!(button instanceof HTMLButtonElement)) {
@@ -302,11 +349,51 @@ class Calendar extends Widget {
 		if (response.status === 200) {
 			const innerHTML = await response.text();
 			this.calendarElement.innerHTML = innerHTML;
-			this.registerElement();
 		} else {
 			console.error(`Failed to fetch from ${this.endpoint} (status=${response.status})`);
 		}
+	}
 
+	private transferStyles() {
+		for (let k = 0; k < document.styleSheets.length; ++k) {
+			// prevent adding <styles> multiple times with the same content by checking if they already exist
+			const cssRule = document?.styleSheets?.item(k)?.cssRules?.item(0);
+			if (cssRule instanceof CSSStyleRule && cssRule.selectorText! === ':is([is="django-datepicker"], [is="django-datetimepicker"])')
+				return;
+		}
+		const declaredStyles = document.createElement('style');
+		declaredStyles.innerText = `${styles}`;
+		document.head.appendChild(declaredStyles);
+		const inputHeight = window.getComputedStyle(this.inputElement).getPropertyValue('height');
+		for (let index = 0; declaredStyles.sheet && index < declaredStyles.sheet.cssRules.length; index++) {
+			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
+			let extraStyles: string;
+			switch (cssRule.selectorText) {
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar':
+					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
+						'background-color', 'border', 'border-radius',
+						'font-family', 'font-size', 'font-strech', 'font-style', 'font-weight',
+						'letter-spacing', 'white-space', 'line-height']);
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .controls':
+					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
+						'padding']);
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .ranges':
+					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
+						'padding']);
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .ranges ul:not(.weekdays)':
+					extraStyles = `line-height: ${inputHeight};`;
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				default:
+					break;
+			}
+		}
 	}
 
 	protected formResetted(event: Event) {}

@@ -55,29 +55,34 @@ class CalendarRenderer:
             'years': [],
             'today': date.today().isoformat()[:10],
         }
+        interval = int(interval.total_seconds() / 60) if interval and interval < timedelta(hours=1) else None
         for shift in range(0, 24, 6):
             hours = []
             for hour in range(shift, shift + 6):
                 hour_date = start_datetime.replace(hour=hour)
-                if interval and interval < timedelta(hours=1):
-                    minutes = [(hour_date.replace(minute=minute).isoformat()[:16], f'{minute:02d}')
-                               for minute in range(0, 60, int(interval.total_seconds() / 60))]
-                else:
+                if interval is None:
                     minutes = None
+                else:
+                    minutes = [(hour_date.replace(minute=minute).isoformat()[:16], f'{hour}:{minute:02d}')
+                               for minute in range(0, 60, interval)]
                 hours.append((hour_date.isoformat()[:16], hour, minutes))
             context['shifts'].append(hours)
+        context.update(
+            prev_day=(start_datetime - timedelta(days=1)).isoformat()[:10],
+            next_day=(start_datetime + timedelta(days=1)).isoformat()[:10],
+        )
+        safe_day = min(start_datetime.day, 28)  # prevent date arithmetic errors on adjacent months
         if start_datetime.month == 1:
             context.update(
-                prev_month=start_datetime.replace(month=12, year=start_datetime.year - 1).isoformat()[:10],
-                next_month=start_datetime.replace(month=start_datetime.month + 1).isoformat()[:10],
+                prev_month=start_datetime.replace(day=safe_day, month=12, year=start_datetime.year - 1).isoformat()[:10],
+                next_month=start_datetime.replace(day=safe_day, month=start_datetime.month + 1).isoformat()[:10],
             )
         elif start_datetime.month == 12:
             context.update(
-                prev_month=start_datetime.replace(month=start_datetime.month - 1).isoformat()[:10],
-                next_month=start_datetime.replace(month=1, year=start_datetime.year + 1).isoformat()[:10],
+                prev_month=start_datetime.replace(day=safe_day, month=start_datetime.month - 1).isoformat()[:10],
+                next_month=start_datetime.replace(day=safe_day, month=1, year=start_datetime.year + 1).isoformat()[:10],
             )
         else:
-            safe_day = min(start_datetime.day, 28)  # prevent date arithmetic errors on adjacent months
             context.update(
                 prev_month=start_datetime.replace(day=safe_day, month=start_datetime.month - 1).isoformat()[:10],
                 next_month=start_datetime.replace(day=safe_day, month=start_datetime.month + 1).isoformat()[:10],
@@ -99,8 +104,10 @@ class CalendarRenderer:
         for day in cal.itermonthdays3(start_datetime.year, start_datetime.month):
             monthday = date(*day)
             monthdays.append(monthday)
-            css_class = 'adjacent' if monthday.month != start_datetime.month else None
-            context['monthdays'].append((monthday.isoformat()[:10], monthday.day, css_class))
+            css_classes = []
+            if monthday.month != start_datetime.month:
+                css_classes.append('adjacent')
+            context['monthdays'].append((monthday.isoformat()[:10], monthday.day, ' '.join(css_classes)))
         context['weekdays'] = [(date_format(day, 'D'), date_format(day, 'l')) for day in monthdays[:7]]
         return context
 

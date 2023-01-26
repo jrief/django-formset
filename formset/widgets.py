@@ -313,6 +313,7 @@ class DateInput(DateTimeBaseInput):
             return value.date().isoformat()
         if isinstance(value, date):
             return value.isoformat()
+        return value
 
 
 class DatePicker(DateInput):
@@ -354,4 +355,11 @@ class DateTimePicker(DatePicker):
             default_attrs.update(**attrs)
         if 'step' in attrs:
             self.interval = attrs['step']
+            assert self.interval in CalendarRenderer.valid_intervals, \
+                f"{self.interval} is not a valid interval for {self.__class__}"
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
+
+    def format_value(self, value):
+        if isinstance(value, datetime):
+            return value.strftime('%Y-%m-%d %H:%M')
+        return value
