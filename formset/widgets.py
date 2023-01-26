@@ -11,12 +11,11 @@ from django.core.files.uploadedfile import UploadedFile
 from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
-from django.forms.fields import DateTimeFormatsIterator
 from django.forms.widgets import DateTimeBaseInput, FileInput, Select, SelectMultiple, TextInput
 from django.utils.timezone import datetime, now, utc
 from django.utils.translation import gettext_lazy as _
 
-from formset.calendar import CalendarRenderer, ViewMode
+from formset.calendar import CalendarRenderer
 
 
 class SimpleModelChoiceIterator(ModelChoiceIterator):
