@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n %}{% spaceless %}
 <div class="controls months-view">
 	<button data-date="{{ calendar.prev_year }}" class="prev" type="button">
 		{% include "formset/icons/arrow-left.svg" %}
@@ -21,3 +21,4 @@
 {% endfor %}
 	</ul>
 </div>
+{% endspaceless %}

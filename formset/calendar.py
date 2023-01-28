@@ -42,18 +42,11 @@ class CalendarRenderer:
         else:
             self.start_datetime = datetime.now()
 
-    def get_context(self, interval):
-        assert interval in self.valid_intervals, f"{interval} is not a valid interval for the calendar"
-        cal = calendar.Calendar(self.firstweekday)
+    def get_context_hours(self, interval):
+        assert interval in self.valid_intervals, f"{interval} is not a valid interval for {self.__class__}"
         start_datetime = self.start_datetime
         context = {
-            'startdate': start_datetime,
             'shifts': [],
-            'weekdays': [],
-            'monthdays': [],
-            'months': [],
-            'years': [],
-            'today': date.today().isoformat()[:10],
         }
         interval = int(interval.total_seconds() / 60) if interval and interval < timedelta(hours=1) else None
         for shift in range(0, 24, 6):
@@ -71,6 +64,15 @@ class CalendarRenderer:
             prev_day=(start_datetime - timedelta(days=1)).isoformat()[:10],
             next_day=(start_datetime + timedelta(days=1)).isoformat()[:10],
         )
+        return context
+
+    def get_context_weeks(self):
+        cal = calendar.Calendar(self.firstweekday)
+        start_datetime = self.start_datetime
+        context = {
+            'weekdays': [],
+            'monthdays': [],
+        }
         safe_day = min(start_datetime.day, 28)  # prevent date arithmetic errors on adjacent months
         if start_datetime.month == 1:
             context.update(
@@ -87,19 +89,6 @@ class CalendarRenderer:
                 prev_month=start_datetime.replace(day=safe_day, month=start_datetime.month - 1).isoformat()[:10],
                 next_month=start_datetime.replace(day=safe_day, month=start_datetime.month + 1).isoformat()[:10],
             )
-        start_epoch = int(start_datetime.year / 20) * 20
-        context.update(
-            prev_year=start_datetime.replace(year=start_datetime.year - 1, month=1).isoformat()[:10],
-            next_year=start_datetime.replace(year=start_datetime.year + 1, month=1).isoformat()[:10],
-            prev_epoch=start_datetime.replace(year=start_epoch - 20, month=1).isoformat()[:10],
-            next_epoch=start_datetime.replace(year=start_epoch + 20, month=1).isoformat()[:10],
-        )
-        for y in range(start_epoch, start_epoch + 20):
-            year_date = date(y, 1, 1)
-            context['years'].append((year_date.isoformat()[:10], date_format(year_date, 'Y')))
-        for m in range(1, 13):
-            month_date = date(start_datetime.year, m, 1)
-            context['months'].append((month_date.isoformat()[:10], date_format(month_date, 'F')))
         monthdays = []
         for day in cal.itermonthdays3(start_datetime.year, start_datetime.month):
             monthday = date(*day)
@@ -111,18 +100,65 @@ class CalendarRenderer:
         context['weekdays'] = [(date_format(day, 'D'), date_format(day, 'l')) for day in monthdays[:7]]
         return context
 
-    def render(self, view_mode, interval):
+    def get_context_months(self):
+        start_datetime = self.start_datetime
+        context = {
+            'months': [],
+        }
+        context.update(
+            prev_year=start_datetime.replace(year=start_datetime.year - 1, month=1).isoformat()[:10],
+            next_year=start_datetime.replace(year=start_datetime.year + 1, month=1).isoformat()[:10],
+        )
+        for m in range(1, 13):
+            month_date = date(start_datetime.year, m, 1)
+            context['months'].append((month_date.isoformat()[:10], date_format(month_date, 'F')))
+        return context
+
+    def get_context_years(self):
+        start_datetime = self.start_datetime
+        context = {
+            'years': [],
+        }
+        start_epoch = int(start_datetime.year / 20) * 20
+        context.update(
+            prev_epoch=start_datetime.replace(year=start_epoch - 20, month=1).isoformat()[:10],
+            next_epoch=start_datetime.replace(year=start_epoch + 20, month=1).isoformat()[:10],
+        )
+        for y in range(start_epoch, start_epoch + 20):
+            year_date = date(y, 1, 1)
+            context['years'].append((year_date.isoformat()[:10], date_format(year_date, 'Y')))
+        return context
+
+    def get_context(self, interval=None):
+        context = {
+            'startdate': self.start_datetime,
+            'today': date.today().isoformat()[:10],
+        }
+        context.update(self.get_context_hours(interval))
+        context.update(self.get_context_weeks())
+        context.update(self.get_context_months())
+        context.update(self.get_context_years())
+        return context
+
+    def render(self, view_mode, interval=None):
+        context = {
+            'startdate': self.start_datetime,
+            'today': date.today().isoformat()[:10],
+        }
         if view_mode == ViewMode.hours:
             template_name = 'calendar/hours.html'
+            context.update(self.get_context_hours(interval))
         elif view_mode == ViewMode.years:
             template_name = 'calendar/years.html'
+            context.update(self.get_context_years())
         elif view_mode == ViewMode.months:
             template_name = 'calendar/months.html'
+            context.update(self.get_context_months())
         else:
             template_name = 'calendar/weeks.html'
+            context.update(self.get_context_weeks())
         template = get_template(template_name)
-        context = {'calendar': self.get_context(interval)}
-        return HttpResponse(template.render(context))
+        return template.render({'calendar': context})
 
 
 class CalendarResponseMixin:
@@ -143,5 +179,5 @@ class CalendarResponseMixin:
             except (TypeError, ValueError):
                 return HttpResponseBadRequest("Invalid parameter 'calendar'")
             cal = self.calendar_renderer_class(start_datetime=start_datetime)
-            return cal.render(view_mode, interval)
+            return HttpResponse(cal.render(view_mode, interval))
         return super().get(request, **kwargs)

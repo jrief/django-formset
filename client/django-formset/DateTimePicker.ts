@@ -76,6 +76,7 @@ class Calendar extends Widget {
 	private installEventHandlers() {
 		this.inputElement.addEventListener('focus', this.handleFocus);
 		this.inputElement.addEventListener('blur', this.handleBlur);
+		this.inputElement.addEventListener('input', this.handleInput);
 		this.inputElement.addEventListener('change', this.handleChange);
 		document.addEventListener('click', this.handleClick);
 		document.addEventListener('keydown', event => {
@@ -87,7 +88,6 @@ class Calendar extends Widget {
 
 	private close() {
 		this.isOpen = false;
-		this.inputElement.blur();
 		this.inputElement.setAttribute('aria-expanded', 'false')
 		this.dropdownInstance?.destroy();
 	}
@@ -131,8 +131,8 @@ class Calendar extends Widget {
 		// since each datetime-picker can have different values, set this on element level
 		if (this.interval) {
 			const num = Math.min(60 / this.interval!, 6);
-			const gridTemplateColumns =  `repeat(${num}, 1fr)`
-			this.calendarElement.querySelectorAll('.ranges ul.minutes').forEach(minutesElement => {
+			const gridTemplateColumns = `repeat(${num}, 1fr)`;
+			this.calendarElement.querySelectorAll('.ranges ul.;minutes').forEach(minutesElement => {
 				(minutesElement as HTMLElement).style.gridTemplateColumns = gridTemplateColumns;
 			});
 		}
@@ -197,6 +197,7 @@ class Calendar extends Widget {
 			element = element.parentElement;
 		}
 		this.close();
+		this.inputElement.blur();
 	}
 
 	private handleFocus = (event: Event) => {
@@ -214,11 +215,16 @@ class Calendar extends Widget {
 		}
 	}
 
+	private handleInput = (event: Event) => {
+		if (this.isOpen) {
+			this.close();
+		}
+	}
+
 	private handleChange = (event: Event) => {
 		const newDate = new Date(this.inputElement.value);
-		if (isNaN(newDate.getTime())) {
+		if (isNaN(newDate.getTime()) || newDate.toISOString().slice(0, 10) !== this.inputElement.value.slice(0, 10)) {
 			this.inputElement.value = this.inputElement.value.concat(' ');  // enforce a pattern validation error
-			this.close();
 		} else {
 			this.fetchCalendar(newDate, this.viewMode);
 		}
@@ -362,7 +368,7 @@ class Calendar extends Widget {
 				return;
 		}
 		const declaredStyles = document.createElement('style');
-		declaredStyles.innerText = `${styles}`;
+		declaredStyles.innerText = styles;
 		document.head.appendChild(declaredStyles);
 		const inputHeight = window.getComputedStyle(this.inputElement).getPropertyValue('height');
 		for (let index = 0; declaredStyles.sheet && index < declaredStyles.sheet.cssRules.length; index++) {
