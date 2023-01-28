@@ -1,7 +1,7 @@
 import os
 import struct
 from base64 import b16encode
-from datetime import date, timedelta
+from datetime import date, timedelta, timezone
 from functools import reduce
 from operator import and_, or_
 
@@ -12,7 +12,7 @@ from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
 from django.forms.widgets import DateTimeBaseInput, FileInput, Select, SelectMultiple, TextInput
-from django.utils.timezone import datetime, now, utc
+from django.utils.timezone import datetime, now
 from django.utils.translation import gettext_lazy as _
 
 from formset.calendar import CalendarRenderer
@@ -283,7 +283,7 @@ class UploadedFileInput(FileInput):
             size = file.tell()
             file.seek(0)
             # create pseudo unique prefix to avoid file name collisions
-            epoch = datetime(2022, 1, 1, tzinfo=utc)
+            epoch = datetime(2022, 1, 1, tzinfo=timezone.utc)
             prefix = b16encode(struct.pack('f', (now() - epoch).total_seconds())).decode('utf-8')
             filename = '.'.join((prefix, handle['name']))
             files[name] = UploadedFile(
