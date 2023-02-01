@@ -323,7 +323,13 @@ class DatePicker(DateInput):
     interval = timedelta(days=1)
 
     def __init__(self, attrs=None, calendar_renderer=None):
-        default_attrs = {'type': 'text', 'is': 'django-datepicker', 'aria-expanded': 'false', 'aria-haspopup': 'dialog'}
+        default_attrs = {
+            'type': 'text',
+            'is': 'django-datepicker',
+            'placeholder': "yyyy-mm-dd",
+            'aria-expanded': 'false',
+            'aria-haspopup': 'dialog'
+        }
         if attrs:
             default_attrs.update(**attrs)
         if calendar_renderer:
@@ -349,7 +355,11 @@ class DateTimePicker(DatePicker):
     interval = timedelta(hours=1)
 
     def __init__(self, attrs=None, calendar_renderer=None):
-        default_attrs = {'is': 'django-datetimepicker', 'pattern': r'\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}'}
+        default_attrs = {
+            'is': 'django-datetimepicker',
+            'pattern': r'\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}',
+            'placeholder': "yyyy-mm-dd HH:MM",
+        }
         if attrs:
             default_attrs.update(**attrs)
         if 'step' in attrs:
