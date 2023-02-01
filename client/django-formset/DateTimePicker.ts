@@ -132,14 +132,14 @@ class Calendar extends Widget {
 		if (this.interval) {
 			const num = Math.min(60 / this.interval!, 6);
 			const gridTemplateColumns = `repeat(${num}, 1fr)`;
-			this.calendarElement.querySelectorAll('.ranges ul.;minutes').forEach(minutesElement => {
+			this.calendarElement.querySelectorAll('.ranges ul.minutes').forEach(minutesElement => {
 				(minutesElement as HTMLElement).style.gridTemplateColumns = gridTemplateColumns;
 			});
 		}
 	}
 
 	private registerHoursView() {
-		this.calendarElement.querySelector('time')?.addEventListener('click', this.switchWeeksView, {once: true});
+		this.calendarElement.querySelector('button.extend')?.addEventListener('click', this.switchWeeksView, {once: true});
 		this.calendarElement.querySelectorAll('li[aria-label]').forEach(elem => {
 			const label = elem.getAttribute('aria-label');
 			if (label!.replace('T', ' ').slice(0, 13) === this.inputElement.value.slice(0, 13)) {
@@ -160,7 +160,7 @@ class Calendar extends Widget {
 	}
 
 	private registerWeeksView() {
-		this.calendarElement.querySelector('time')?.addEventListener('click', this.switchMonthsView, {once: true});
+		this.calendarElement.querySelector('button.extend')?.addEventListener('click', this.switchMonthsView, {once: true});
 		const today = new Date(Date.now());
 		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
 			const date = this.getDate(elem);
@@ -175,7 +175,7 @@ class Calendar extends Widget {
 	}
 
 	private registerMonthsView() {
-		this.calendarElement.querySelector('time')?.addEventListener('click', this.switchYearsView, {once: true});
+		this.calendarElement.querySelector('button.extend')?.addEventListener('click', this.switchYearsView, {once: true});
 		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
 			elem.classList.toggle('selected', elem.getAttribute('data-date')!.slice(0, 7) === this.inputElement.value.slice(0, 7));
 			elem.addEventListener('click', this.selectMonth);
@@ -218,6 +218,14 @@ class Calendar extends Widget {
 	private handleInput = (event: Event) => {
 		if (this.isOpen) {
 			this.close();
+		}
+		if (event instanceof InputEvent && event.inputType === 'insertText') {
+			if (this.inputElement.value.match(/^\d{4}$/) || this.inputElement.value.match(/^\d{4}-\d{2}$/)) {
+				this.inputElement.value = this.inputElement.value.concat('-');
+			} else if (this.inputElement.value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+				//this.inputElement.blur();
+				this.handleChange(event);
+			}
 		}
 	}
 

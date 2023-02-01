@@ -1,13 +1,15 @@
 {% load i18n %}{% spaceless %}
 <div class="controls hours-view">
-	<button data-date="{{ calendar.prev_day }}" class="prev" type="button">
+	<button data-date="{{ calendar.prev_day }}" class="prev" type="button" title="{% translate 'Previous day' %}">
 		{% include "formset/icons/arrow-left.svg" %}
 	</button>
-	<time datetime="{{ calendar.startdate|date:'c' }}">{{ calendar.startdate|date:'j. F Y' }}</time>
+	<button data-date="{{ calendar.startdate|date:'c' }}" class="extend" title="{% translate 'Extend period' %}">
+		<time datetime="{{ calendar.startdate|date:'c' }}">{{ calendar.startdate|date:'j. F Y' }}</time>
+	</button>
 	<button data-date="{{ calendar.today }}" class="today" title="{% translate 'Today' %}">
 		{% include "formset/icons/calendar-today.svg" %}
 	</button>
-	<button data-date="{{ calendar.next_day }}" class="next" type="button">
+	<button data-date="{{ calendar.next_day }}" class="next" type="button" title="{% translate 'Next day' %}">
 		{% include "formset/icons/arrow-right.svg" %}
 	</button>
 </div>

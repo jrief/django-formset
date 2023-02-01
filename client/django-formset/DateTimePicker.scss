@@ -17,15 +17,18 @@
 				background-color: transparent;
 				border: none;
 				padding: 0;
+				min-width: 28px;
+				&:hover {
+					background-color: $calendar-hover-background-color;
+				}
+				> svg {
+					margin: 0 auto;
+				}
 			}
 
 			time {
 				width: 150px;
 				text-align: center;
-			}
-
-			&:is(.hours-view, .weeks-view, .months-view) time:hover {
-					cursor: pointer;
 			}
 
 			&.years-view time {
@@ -122,7 +125,6 @@
 
 			abbr[title] {
 				text-decoration: none;
-				cursor: default;
 			}
 		}
 	}
