@@ -86,10 +86,10 @@ class FieldGroup {
 				case 'radio':
 					element.addEventListener('input', () => {
 						this.touch();
-						this.inputted()
+						this.inputted();
 					});
 					element.addEventListener('change', () => {
-						requiredAny ? this.validateCheckboxSelectMultiple() : this.validate()
+						requiredAny ? this.validateCheckboxSelectMultiple() : this.validate();
 					});
 					break;
 				case 'file':
