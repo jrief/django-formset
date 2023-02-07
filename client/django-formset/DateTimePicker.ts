@@ -11,6 +11,14 @@ enum ViewMode {
 }
 
 
+enum Direction {
+	up,
+	right,
+	down,
+	left,
+}
+
+
 class Calendar extends Widget {
 	private readonly inputElement: HTMLInputElement;
 	private readonly dateOnly: Boolean;
@@ -79,11 +87,7 @@ class Calendar extends Widget {
 		this.inputElement.addEventListener('input', this.handleInput);
 		this.inputElement.addEventListener('change', this.handleChange);
 		document.addEventListener('click', this.handleClick);
-		document.addEventListener('keydown', event => {
-			if (event.key === 'Escape') {
-				this.close();
-			}
-		});
+		document.addEventListener('keydown', this.handleKeypress);
 	}
 
 	private close() {
@@ -105,7 +109,7 @@ class Calendar extends Widget {
 		this.viewMode = this.getViewMode();
 		this.calendarElement.querySelector('button.prev')?.addEventListener('click', this.paginate, {once: true});
 		this.calendarElement.querySelector('button.back')?.addEventListener('click', this.jumpBack, {once: true});
-		this.calendarElement.querySelector('button.today')?.addEventListener('click', this.jumpToday, {once: true});
+		this.calendarElement.querySelector('button.today')?.addEventListener('click', this.selectToday, {once: true});
 		this.calendarElement.querySelector('button.next')?.addEventListener('click', this.paginate, {once: true});
 		switch (this.viewMode) {
 			case ViewMode.hours:
@@ -146,7 +150,11 @@ class Calendar extends Widget {
 				elem.classList.add('preselected');
 				this.calendarElement.querySelector(`ul[aria-labelledby="${label}"]`)?.removeAttribute('hidden');
 			}
-			elem.addEventListener('click', this.selectHour);
+			elem.addEventListener('click', (event: Event) => {
+				if (event.target instanceof HTMLLIElement) {
+					this.selectHour(event.target);
+				}
+			});
 		});
 		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
 			const date = elem.getAttribute('data-date')!.replace('T', ' ');
@@ -212,6 +220,8 @@ class Calendar extends Widget {
 	private handleBlur = (event: Event) => {
 		if (this.isOpen) {
 			this.inputElement.focus();
+		} else {
+			this.validate();
 		}
 	}
 
@@ -223,24 +233,176 @@ class Calendar extends Widget {
 			if (this.inputElement.value.match(/^\d{4}$/) || this.inputElement.value.match(/^\d{4}-\d{2}$/)) {
 				this.inputElement.value = this.inputElement.value.concat('-');
 			} else if (this.inputElement.value.match(/^\d{4}-\d{2}-\d{2}$/)) {
-				//this.inputElement.blur();
-				this.handleChange(event);
+				this.validate();
+				window.setTimeout(() => this.inputElement.blur(), 0);
 			}
 		}
 	}
 
 	private handleChange = (event: Event) => {
-		const newDate = new Date(this.inputElement.value);
-		if (isNaN(newDate.getTime()) || newDate.toISOString().slice(0, 10) !== this.inputElement.value.slice(0, 10)) {
-			this.inputElement.value = this.inputElement.value.concat(' ');  // enforce a pattern validation error
-		} else {
+		const newDate = this.validate();
+		if (newDate) {
 			this.fetchCalendar(newDate, this.viewMode);
 		}
 	}
 
-	private jumpToday = (event: Event) => {
-		const button = this.controlButton(event.target);
-		this.fetchCalendar(this.getDate(button), ViewMode.weeks);
+	private handleKeypress = async (event: KeyboardEvent) => {
+		const selectedItem = this.calendarElement.querySelector('.ranges .selected');
+		if (!this.isOpen || !selectedItem)
+			return;
+		switch (event.key) {
+			case 'ArrowUp':
+				await this.navigate(selectedItem, Direction.up);
+				break;
+			case 'ArrowRight':
+				await this.navigate(selectedItem, Direction.right);
+				break;
+			case 'ArrowDown':
+				await this.navigate(selectedItem, Direction.down);
+				break;
+			case 'ArrowLeft':
+				await this.navigate(selectedItem, Direction.left);
+				break;
+			case 'Escape':
+				this.close();
+				break;
+			default:
+				break;
+		}
+		event.preventDefault();
+	}
+
+	private readonly offsets = new Map<ViewMode, Map<Direction, number>>([
+		[ViewMode.weeks, new Map<Direction, number>([
+			[Direction.up, -7],
+			[Direction.right, +1],
+			[Direction.down, +7],
+			[Direction.left, -1],
+		])],
+		[ViewMode.months, new Map<Direction, number>([
+			[Direction.up, -3],
+			[Direction.right, +1],
+			[Direction.down, +3],
+			[Direction.left, -1],
+		])],
+		[ViewMode.years, new Map<Direction, number>([
+			[Direction.up, -4],
+			[Direction.right, +1],
+			[Direction.down, +4],
+			[Direction.left, -1],
+		])],
+	]);
+
+	private readonly deltas = new Map<ViewMode, Function>([
+		[ViewMode.weeks, function (direction: Direction, lastDate: Date) {
+			let nextDate : Date;
+			switch (direction) {
+				case Direction.up: case Direction.left:
+					nextDate = new Date(lastDate.getTime() - 86400000);
+					break;
+				case Direction.right: case Direction.down:
+					nextDate = new Date(lastDate.getTime() + 86400000);
+					break;
+			}
+			return nextDate;
+		}],
+		[ViewMode.months, function (direction: Direction, lastDate: Date) {
+			const nextDate = new Date(lastDate);
+			switch (direction) {
+				case Direction.up: case Direction.left:
+					nextDate.setFullYear(lastDate.getFullYear() - 1);
+					nextDate.setMonth(11);
+					break;
+				case Direction.right: case Direction.down:
+					nextDate.setFullYear(lastDate.getFullYear() + 1);
+					nextDate.setMonth(0);
+					break;
+			}
+			return nextDate;
+		}],
+		[ViewMode.years, function (direction: Direction, lastDate: Date) {
+			const nextDate = new Date(lastDate);
+			switch (direction) {
+				case Direction.up: case Direction.left:
+					nextDate.setFullYear(lastDate.getFullYear() - 1);
+					break;
+				case Direction.right: case Direction.down:
+					nextDate.setFullYear(lastDate.getFullYear() + 1);
+					break;
+			}
+			return nextDate;
+		}],
+	]);
+
+	private async navigateHourly(currentItem: Element, direction: Direction) {
+		const lastDate = this.getDate(currentItem);
+		if (this.interval) {
+			let nextDate : Date;
+			switch (direction) {
+				case Direction.up:
+					nextDate = new Date(lastDate.getTime() - (60 + lastDate.getTimezoneOffset()) * 60000);
+					break;
+				case Direction.right:
+					nextDate = new Date(lastDate.getTime() + (this.interval - lastDate.getTimezoneOffset()) * 60000);
+					break;
+				case Direction.down:
+					nextDate = new Date(lastDate.getTime() + (60 - lastDate.getTimezoneOffset()) * 60000);
+					break;
+				case Direction.left:
+					nextDate = new Date(lastDate.getTime() - (this.interval + lastDate.getTimezoneOffset()) * 60000);
+					break;
+			}
+			let nextItem = this.calendarElement.querySelector(`li[data-date="${nextDate.toISOString().slice(0, 16)}"]`);
+			if (!nextItem) {
+				await this.fetchCalendar(nextDate, this.viewMode);
+				nextItem = this.calendarElement.querySelector(`.ranges li[data-date="${nextDate.toISOString().slice(0, 16)}"]`);
+			}
+			if (nextItem instanceof HTMLLIElement) {
+				this.selectHour(nextItem);
+				this.setDate(nextItem);
+			}
+		}
+	}
+
+	private async navigate(currentItem: Element, direction: Direction) {
+		if (this.viewMode === ViewMode.hours) {
+			this.navigateHourly(currentItem, direction);
+		} else {
+			let nextItem : Element | null = currentItem;
+			let offset = this.offsets.get(this.viewMode as ViewMode)!.get(direction)!;
+			while (offset) {
+				const lastDate = this.getDate(nextItem!);
+				if (offset > 0) {
+					nextItem = nextItem!.nextElementSibling;
+					--offset;
+				} else {
+					nextItem = nextItem!.previousElementSibling;
+					++offset;
+				}
+				if (!nextItem) {
+					const nextDate = this.deltas.get(this.viewMode as ViewMode)!(direction, lastDate);
+					await this.fetchCalendar(nextDate, this.viewMode);
+					nextItem = this.calendarElement.querySelector(`.ranges li[data-date="${nextDate.toISOString().slice(0, 10)}"]`);
+				}
+			}
+			if (nextItem instanceof HTMLElement) {
+				this.setDate(nextItem);
+			}
+		}
+	}
+
+	private validate() : Date | undefined {
+		const newDate = this.getValidDate();
+		if (newDate)
+			return newDate;
+		// enforce a pattern validation error
+		this.inputElement.value = this.inputElement.value.concat(' ');
+	}
+
+	private getValidDate() : Date | undefined {
+		const newDate = new Date(this.inputElement.value);
+		if (!isNaN(newDate.getTime()) && newDate.toISOString().slice(0, 10) === this.inputElement.value.slice(0, 10))
+			return newDate;
 	}
 
 	private jumpBack = (event: Event) => {
@@ -259,42 +421,69 @@ class Calendar extends Widget {
 		this.fetchCalendar(this.getDate(button), this.viewMode);
 	}
 
-	private selectDate(liElement: HTMLLIElement) {
-		const dateValue = liElement.getAttribute('data-date') ?? '';
-		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
-			elem.classList.toggle('selected', elem.isSameNode(liElement));
-		});
-		this.inputElement.value = dateValue.replace('T', ' ');
-		this.isOpen = false;
-		this.inputElement.blur();
-		this.inputElement.setAttribute('aria-expanded', 'false')
-		this.inputElement.dispatchEvent(new Event('input'));
-		this.dropdownInstance?.destroy();
+	private selectToday = (event: Event) => {
+		const button = this.controlButton(event.target);
+		const dateValue = this.getDate(button);
+		if (this.dateOnly) {
+			this.inputElement.value = dateValue.toISOString().slice(0, 10);
+			const todayElem = this.calendarElement.querySelector(`li[data-date="${this.inputElement.value}"]`);
+			this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
+				elem.classList.toggle('selected', elem.isSameNode(todayElem));
+			});
+			this.close();
+			this.inputElement.blur();
+			this.inputElement.dispatchEvent(new Event('input'));
+		} else {
+			this.fetchCalendar(this.getDate(button), ViewMode.hours);
+		}
 	}
 
-	private selectHour = (event: Event) => {
+	private setDate(element: HTMLElement) {
+		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
+			elem.classList.toggle('selected', elem.isSameNode(element));
+		});
+		const dateValue = element.getAttribute('data-date') ?? '';
+		this.inputElement.value = dateValue.replace('T', ' ');
+	}
+
+	private selectDate(liElement: HTMLLIElement) {
+		this.setDate(liElement);
+		this.close();
+		this.inputElement.blur();
+		this.inputElement.dispatchEvent(new Event('input'));
+	}
+
+	private selectHour(liElement: HTMLLIElement) {
+		const selectMinute = (ulElem: HTMLUListElement) => {
+			ulElem.querySelectorAll('li[data-date]').forEach(elem => {
+				elem.addEventListener('click', event => {
+					if (event.target instanceof HTMLLIElement) {
+						event.target.classList.add('selected');
+						this.selectDate(event.target);
+					}
+				}, {once: true});
+			});
+		}
+
 		this.calendarElement.querySelectorAll('li[aria-label]').forEach(elem => {
 			elem.classList.remove('selected', 'preselected');
 		});
 		this.calendarElement.querySelectorAll('ul[aria-labelledby]').forEach(elem => {
-			elem.setAttribute('hidden', 'hidden');
+			elem.setAttribute('hidden', '');
 		});
-		if (event.target instanceof HTMLLIElement) {
-			const liElem = event.target;
-			const label = liElem.getAttribute('aria-label');
+		const label = liElement.getAttribute('aria-label');
+		if (label) {
 			const ulElem = this.calendarElement.querySelector(`ul[aria-labelledby="${label}"]`);
-			if (ulElem) {
-				liElem.classList.add('preselected');
+			if (ulElem instanceof HTMLUListElement) {
+				liElement.classList.add('preselected');
 				ulElem.removeAttribute('hidden');
-				ulElem.querySelectorAll('li[data-date]').forEach(elem => {
-					elem.addEventListener('click', event => {
-						if (event.target instanceof HTMLLIElement) {
-							event.target.classList.add('selected');
-							this.selectDate(event.target);
-						}
-					}, {once: true});
-				});
+				selectMinute(ulElem);
 			}
+		} else if (liElement.parentElement instanceof HTMLUListElement && liElement.parentElement.hasAttribute('aria-labelledby')) {
+			const labeledby = liElement.parentElement.getAttribute('aria-labelledby');
+			this.calendarElement.querySelector(`li[aria-label="${labeledby}"]`)?.classList.add('preselected');
+			liElement.parentElement.removeAttribute('hidden');
+			selectMinute(liElement.parentElement);
 		}
 	}
 
