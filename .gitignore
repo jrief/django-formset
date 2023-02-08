@@ -36,3 +36,4 @@ dist/
 docs/build/
 workdir/
 testapp/*.sqlite3
+TODO.md
