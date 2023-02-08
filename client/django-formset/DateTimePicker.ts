@@ -247,27 +247,45 @@ class Calendar extends Widget {
 	}
 
 	private handleKeypress = async (event: KeyboardEvent) => {
-		const selectedItem = this.calendarElement.querySelector('.ranges .selected');
-		if (!this.isOpen || !selectedItem)
+		if (!this.isOpen)
 			return;
+		let element = null;
 		switch (event.key) {
 			case 'ArrowUp':
-				await this.navigate(selectedItem, Direction.up);
+				await this.navigate(Direction.up);
 				break;
 			case 'ArrowRight':
-				await this.navigate(selectedItem, Direction.right);
+				await this.navigate(Direction.right);
 				break;
 			case 'ArrowDown':
-				await this.navigate(selectedItem, Direction.down);
+				await this.navigate(Direction.down);
 				break;
 			case 'ArrowLeft':
-				await this.navigate(selectedItem, Direction.left);
+				await this.navigate(Direction.left);
 				break;
 			case 'Escape':
 				this.close();
 				break;
-			default:
+			case 'PageUp':
+				element = this.calendarElement.querySelector('button.prev');
+				if (element) {
+					await this.fetchCalendar(this.getDate(element), this.viewMode);
+				}
 				break;
+			case 'PageDown':
+				element = this.calendarElement.querySelector('button.next');
+				if (element) {
+					await this.fetchCalendar(this.getDate(element), this.viewMode);
+				}
+				break;
+			case 'Enter':
+				element = this.calendarElement.querySelector('.ranges .selected');
+				if (element) {
+					this.selectDate(element);
+				}
+				break;
+			default:
+				return;
 		}
 		event.preventDefault();
 	}
@@ -364,7 +382,8 @@ class Calendar extends Widget {
 		}
 	}
 
-	private async navigate(currentItem: Element, direction: Direction) {
+	private async navigate(direction: Direction) {
+		const currentItem = this.calendarElement.querySelector('.ranges .selected') ?? this.calendarElement.querySelector('.ranges li[data-date]:nth-of-type(4)')!;
 		if (this.viewMode === ViewMode.hours) {
 			this.navigateHourly(currentItem, direction);
 		} else {
@@ -385,7 +404,7 @@ class Calendar extends Widget {
 					nextItem = this.calendarElement.querySelector(`.ranges li[data-date="${nextDate.toISOString().slice(0, 10)}"]`);
 				}
 			}
-			if (nextItem instanceof HTMLElement) {
+			if (nextItem) {
 				this.setDate(nextItem);
 			}
 		}
@@ -438,16 +457,20 @@ class Calendar extends Widget {
 		}
 	}
 
-	private setDate(element: HTMLElement) {
+	private setDate(element: Element) {
 		this.calendarElement.querySelectorAll('li[data-date]').forEach(elem => {
 			elem.classList.toggle('selected', elem.isSameNode(element));
 		});
 		const dateValue = element.getAttribute('data-date') ?? '';
-		this.inputElement.value = dateValue.replace('T', ' ');
+		if (this.dateOnly) {
+			this.inputElement.value = dateValue.slice(0, 10);
+		} else {
+			this.inputElement.value = dateValue.length === 10 ? dateValue.concat(' 00:00') : dateValue.replace('T', ' ');
+		}
 	}
 
-	private selectDate(liElement: HTMLLIElement) {
-		this.setDate(liElement);
+	private selectDate(element: Element) {
+		this.setDate(element);
 		this.close();
 		this.inputElement.blur();
 		this.inputElement.dispatchEvent(new Event('input'));
