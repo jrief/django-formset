@@ -17,7 +17,7 @@ RUN npm ci
 
 # install Python specific requirements
 RUN pip install django psycopg2-binary Pillow uWSGI docutils Pygments
-RUN pip install django-formset==0.13.1
+RUN pip install django-formset==0.13.2
 
 # copy project relevant files into container
 ADD testapp /web/testapp
