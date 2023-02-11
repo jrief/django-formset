@@ -132,7 +132,6 @@ class CalendarRenderer:
     def get_context(self, interval=None):
         context = {
             'startdate': self.start_datetime,
-            'today': date.today().isoformat()[:10],
         }
         context.update(self.get_context_hours(interval))
         context.update(self.get_context_weeks())
@@ -143,7 +142,6 @@ class CalendarRenderer:
     def render(self, view_mode, interval=None):
         context = {
             'startdate': self.start_datetime,
-            'today': date.today().isoformat()[:10],
         }
         if view_mode == ViewMode.hours:
             template_name = 'calendar/hours.html'

@@ -16,11 +16,11 @@ def test_render_hours():
     prev_button = next(controls.children)
     assert prev_button.attrs['data-date'] == '2023-01-17'
     assert 'prev' in prev_button.attrs['class']
-    current = prev_button.next_sibling
-    assert current.attrs['datetime'] == start_datetime.isoformat()
-    today = current.next_sibling
-    assert today.attrs['data-date'] == datetime.now().date().isoformat()
-    next_button = today.next_sibling
+    extend_button = prev_button.next_sibling
+    assert extend_button.attrs['data-date'] == start_datetime.isoformat()
+    today_button = extend_button.next_sibling
+    assert today_button
+    next_button = today_button.next_sibling
     assert next_button.attrs['data-date'] == '2023-01-19'
     assert 'next' in next_button.attrs['class']
 
@@ -43,11 +43,11 @@ def test_render_weeks():
     controls = soup.find(class_='controls')
     prev_button = next(controls.children)
     assert prev_button.attrs['data-date'] == '2022-12-18'
-    current = prev_button.next_sibling
-    assert current.attrs['datetime'] == start_datetime.isoformat()
-    today = current.next_sibling
-    assert today.attrs['data-date'] == datetime.now().date().isoformat()
-    next_button = today.next_sibling
+    extend_button = prev_button.next_sibling
+    assert extend_button.attrs['data-date'] == start_datetime.isoformat()
+    today_button = extend_button.next_sibling
+    assert today_button
+    next_button = today_button.next_sibling
     assert next_button.attrs['data-date'] == '2023-02-18'
 
     ranges = soup.find(class_='ranges')
@@ -71,11 +71,11 @@ def test_render_months():
     assert prev_button.attrs['data-date'] == '2022-01-18'
     back_button = prev_button.next_sibling
     assert back_button.attrs['data-date'] == '2023-01-18T00:00:00'
-    current = back_button.next_sibling
-    assert current.attrs['datetime'] == start_datetime.isoformat()
-    today = current.next_sibling
-    assert today.attrs['data-date'] == datetime.now().date().isoformat()
-    next_button = today.next_sibling
+    extend_button = back_button.next_sibling
+    assert extend_button.attrs['data-date'] == start_datetime.isoformat()
+    today_button = extend_button.next_sibling
+    assert today_button
+    next_button = today_button.next_sibling
     assert next_button.attrs['data-date'] == '2024-01-18'
 
     ranges = soup.find(class_='ranges')
@@ -97,9 +97,9 @@ def test_render_years():
     assert back_button.attrs['data-date'] == '2023-01-18T00:00:00'
     current = back_button.next_sibling
     assert current.attrs['datetime'] == start_datetime.isoformat()
-    today = current.next_sibling
-    assert today.attrs['data-date'] == datetime.now().date().isoformat()
-    next_button = today.next_sibling
+    today_button = current.next_sibling
+    assert today_button
+    next_button = today_button.next_sibling
     assert next_button.attrs['data-date'] == '2040-01-18'
 
     ranges = soup.find(class_='ranges')

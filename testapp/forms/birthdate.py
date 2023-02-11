@@ -18,7 +18,7 @@ class BirthdateForm(forms.Form):
         widget=DateTimePicker(attrs={
             'min': lambda: (now().date() - timedelta(days=1)).isoformat(),
             'max': lambda: (now().date() + timedelta(weeks=30)).isoformat(),
-            'step': timedelta(minutes=5),
+            'step': timedelta(minutes=60),
         }),
-        initial=datetime(2023, 2, 2, 9, 10),
+        initial=datetime(2023, 2, 12, 9, 0),
     )
