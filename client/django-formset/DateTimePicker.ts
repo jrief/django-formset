@@ -25,8 +25,12 @@ class Calendar extends Widget {
 	private readonly calendarElement: HTMLElement;
 	private viewMode?: ViewMode;
 	private dropdownInstance?: Instance;
-	private minDate?: Date;
-	private maxDate?: Date;
+	private minDayDate?: Date;
+	private maxDayDate?: Date;
+	private minMonthDate?: Date;
+	private maxMonthDate?: Date;
+	private minYearDate?: Date;
+	private maxYearDate?: Date;
 	private interval?: number;
 	private isOpen = false;
 	private prevSheetDate!: Date;
@@ -73,11 +77,22 @@ class Calendar extends Widget {
 	private setBounds() {
 		const minValue = this.inputElement.getAttribute('min');
 		if (minValue) {
-			this.minDate = new Date(minValue);
+			this.minDayDate = new Date(minValue);
+			this.minDayDate.setTime(this.minDayDate.getTime() + 60000 * this.minDayDate.getTimezoneOffset());
+			this.minMonthDate = new Date(this.minDayDate);
+			this.minMonthDate.setDate(1);
+			this.minYearDate = new Date(this.minMonthDate);
+			this.minYearDate.setMonth(0);
 		}
 		const maxValue = this.inputElement.getAttribute('max');
 		if (maxValue) {
-			this.maxDate = new Date(maxValue);
+			this.maxDayDate = new Date(maxValue);
+			this.maxDayDate.setTime(this.maxDayDate.getTime() + 60000 * this.maxDayDate.getTimezoneOffset());
+			this.maxMonthDate = new Date(this.maxDayDate);
+			this.maxMonthDate.setDate(1);
+			this.maxMonthDate.setMonth(this.maxMonthDate.getMonth() + 1);
+			this.maxYearDate = new Date(this.maxMonthDate);
+			this.maxYearDate.setMonth(12);
 		}
 		const step = this.inputElement.getAttribute('step');
 		if (step) {
@@ -189,7 +204,7 @@ class Calendar extends Widget {
 			const date = this.getDate(elem);
 			elem.classList.toggle('today', elem.getAttribute('data-date') === todayDateString);
 			elem.classList.toggle('selected', elem.getAttribute('data-date') === inputDateString);
-			if (this.minDate && date < this.minDate || this.maxDate && date > this.maxDate) {
+			if (this.minDayDate && date < this.minDayDate || this.maxDayDate && date > this.maxDayDate) {
 				elem.setAttribute('disabled', '');
 			} else {
 				elem.addEventListener('click', this.selectDay);
@@ -199,15 +214,25 @@ class Calendar extends Widget {
 
 	private registerMonthsView() {
 		this.calendarItems.forEach(elem => {
+			const date = this.getDate(elem);
 			elem.classList.toggle('selected', elem.getAttribute('data-date')!.slice(0, 7) === this.inputElement.value.slice(0, 7));
-			elem.addEventListener('click', this.selectMonth);
+			if (this.minMonthDate && date < this.minMonthDate || this.maxMonthDate && date > this.maxMonthDate) {
+				elem.setAttribute('disabled', '');
+			} else {
+				elem.addEventListener('click', this.selectMonth);
+			}
 		});
 	}
 
 	private registerYearsView() {
 		this.calendarItems.forEach(elem => {
+			const date = this.getDate(elem);
 			elem.classList.toggle('selected', elem.getAttribute('data-date')!.slice(0, 4) === this.inputElement.value.slice(0, 4));
-			elem.addEventListener('click', this.selectYear);
+			if (this.minYearDate && date < this.minYearDate || this.maxYearDate && date > this.maxYearDate) {
+				elem.setAttribute('disabled', '');
+			} else {
+				elem.addEventListener('click', this.selectYear);
+			}
 		});
 	}
 
@@ -264,6 +289,11 @@ class Calendar extends Widget {
 		if (!this.isOpen)
 			return;
 		let element = null;
+		const nextViewMode = new Map<ViewMode, ViewMode>([
+			[ViewMode.years, ViewMode.months],
+			[ViewMode.months, ViewMode.weeks],
+			[ViewMode.weeks, ViewMode.hours],
+		]);
 		switch (event.key) {
 			case 'ArrowUp':
 				await this.navigate(Direction.up);
@@ -295,7 +325,11 @@ class Calendar extends Widget {
 			case 'Enter':
 				element = this.calendarElement.querySelector('.ranges .selected');
 				if (element) {
-					this.selectDate(element);
+					if (this.viewMode === ViewMode.hours || this.viewMode === ViewMode.weeks && this.dateOnly) {
+						this.selectDate(element);
+					} else {
+						this.fetchCalendar(this.getDate(element), nextViewMode.get(this.viewMode!));
+					}
 				}
 				break;
 			default:
@@ -343,6 +377,7 @@ class Calendar extends Widget {
 				nextDate.setMonth(nextDate.getMonth() - 1);
 				break;
 			}
+			break;
 		  case ViewMode.years:
 			switch (direction) {
 			  case Direction.up:
@@ -358,16 +393,20 @@ class Calendar extends Widget {
 				nextDate.setFullYear(lastDate.getFullYear() - 1);
 				break;
 			}
+			break;
 		}
 		return nextDate;
 	}
 
 	private async navigate(direction: Direction) {
-		const selectedItem = this.calendarElement.querySelector('li[data-date].selected');
+		let selectedItem = this.calendarElement.querySelector('li[data-date].selected');
+		if (!selectedItem) {
+			selectedItem = this.calendarItems.item(this.calendarItems.length / 2);
+		}
 		if (selectedItem) {
 			const selectedDate = this.getDate(selectedItem);
 			const nextDate = this.getDelta(direction, selectedDate);
-			const dataDate = this.viewMode === ViewMode.hours ? (date: Date) => date.toISOString().slice(0, 16) : (date: Date) => date.toISOString().slice(0, 10);
+			const dataDate = (date: Date) => date.toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10);
 			let nextItem = this.calendarElement.querySelector(`.ranges li[data-date="${dataDate(nextDate)}"]`);
 			if (!nextItem) {
 				await this.fetchCalendar(nextDate, this.viewMode);
