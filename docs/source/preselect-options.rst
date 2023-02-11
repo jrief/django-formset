@@ -6,12 +6,12 @@ Preselect Options
 
 Sometimes there are thousands of options a user can choose from a select-field. Since this is not
 practical using the built-in HTML ``<select>``-element, **django-formset** offers the alternative
-:ref:`selectize`, with lookup- and lazy-loading functionality. Since the user has to type a word,
-at least partially, he already must know what he's looking for. This approach is not always
+:ref:`selectize`, with lookup- and lazy-loading functionality. But since the user has to type a
+word, at least partially, he already must know what he's looking for. This approach is not always
 practical. Consider an address form where a user must select a specific county. In the U.S., there
 are 3143 of them, many of them sharing the same name. For instance, there are 34 counties named
 "Washington", 26 named "Franklin" and 24 named "Lincoln". Using an auto-select field, would just
-show a long list of eponymous counties.
+show a long list of eponymous county names.
 
 To improve the user experience, we can add a field named "state" adjacent to the field named
 "county". Since the user usually knows in which state the desired county is located, that selection
