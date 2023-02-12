@@ -50,7 +50,7 @@
 				&.hours {
 					grid-template-columns: repeat(6, 1fr);
 					> li.preselected {
-						border: 2px solid #86b7fe;
+						border: 1px solid lightgrey;
 						border-bottom-color: white;
 						border-top-left-radius: 5px;
 						border-top-right-radius: 5px;
@@ -116,8 +116,8 @@
 
 				&.minutes {
 					font-size: smaller;
-					border: 2px solid #86b7fe;
-					margin: -2px 0 3px;
+					border: 1px solid lightgrey;
+					margin: -1px 0 3px;
 					padding: 0 5px;
 					line-height: inherit;
 				}

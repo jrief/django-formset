@@ -269,6 +269,9 @@ class Calendar extends Widget {
 			this.close();
 		}
 		if (event instanceof InputEvent && event.inputType === 'insertText') {
+			this.inputElement.value = this.inputElement.value.replace('--', '-');
+			this.inputElement.value = this.inputElement.value.replace('//', '/');
+			this.inputElement.value = this.inputElement.value.replace('..', '.');
 			if (this.inputElement.value.match(/^\d{4}$/) || this.inputElement.value.match(/^\d{4}-\d{2}$/)) {
 				this.inputElement.value = this.inputElement.value.concat('-');
 			} else if (this.inputElement.value.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -615,18 +618,30 @@ class Calendar extends Widget {
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .controls':
-					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
-						'padding']);
+					extraStyles = StyleHelpers.extractStyles(this.inputElement, ['padding']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .ranges':
-					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
-						'padding']);
+					extraStyles = StyleHelpers.extractStyles(this.inputElement, ['padding']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .ranges ul:not(.weekdays)':
 					extraStyles = `line-height: ${inputHeight};`;
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .ranges ul.hours > li.preselected':
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .ranges ul.minutes':
+					this.inputElement.style.transition = 'none';
+					this.inputElement.classList.add('-focus-');
+					extraStyles = StyleHelpers.extractStyles(this.inputElement, ['border-color']);
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					this.inputElement.classList.remove('-focus-');
+					this.inputElement.style.transition = '';
+					if (cssRule.selectorText === ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .ranges ul.hours > li.preselected') {
+						extraStyles = StyleHelpers.extractStyles(this.calendarElement, ['background-color']);
+						extraStyles = extraStyles.replace('background-color', 'border-bottom-color');
+						declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					}
 					break;
 				default:
 					break;
