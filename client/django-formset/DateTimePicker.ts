@@ -23,7 +23,13 @@ class Calendar extends Widget {
 	private readonly inputElement: HTMLInputElement;
 	private readonly dateOnly: Boolean;
 	private readonly calendarElement: HTMLElement;
-	private viewMode?: ViewMode;
+	private viewMode!: ViewMode;
+	private initialDate?: Date;
+	private dateTimeFormat?: Intl.DateTimeFormat;
+	private dateTimeRegExp?: RegExp;
+	private autoZeroRegExp?: RegExp;
+	private autoDelimiterRegExp?: RegExp;
+	private delimiter = '-';
 	private dropdownInstance?: Instance;
 	private minDayDate?: Date;
 	private maxDayDate?: Date;
@@ -44,6 +50,11 @@ class Calendar extends Widget {
 		super(inputElement);
 		this.inputElement = inputElement;
 		this.dateOnly = inputElement.getAttribute('is') === 'django-datepicker';
+		this.setDateTimeFormat();
+		if (this.inputElement.value) {
+			this.initialDate = new Date(inputElement.value);
+			this.inputElement.value = this.asString(this.initialDate);
+		}
 		if (calendarElement instanceof HTMLElement) {
 			this.calendarElement = calendarElement;
 		} else {
@@ -102,6 +113,86 @@ class Calendar extends Widget {
 		}
 	}
 
+	private setDateTimeFormat() {
+		const phBits = Array<string>();
+		const patBits = Array<string>();
+		const regexBits = Array<string>();
+		if (this.inputElement.getAttribute('date-format') === 'iso')
+			return this.setExtraAttributes('yyyy-mm-dd', '\\d{4}-\\d{2}-\\d{2}');
+
+		// try to determine the desired date format by evaluating the navigator's locale settings
+		this.dateTimeFormat = Intl.DateTimeFormat(navigator.language, {
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit',
+			hour12: false,
+			calendar: 'iso8601',
+		});
+		this.dateTimeFormat.formatToParts().forEach(part => {
+			switch (part.type) {
+				case 'day':
+					phBits.push('dd');
+					patBits.push('\\d{2}');
+					regexBits.push('(?<day>\\d{1,2})');
+					break;
+				case 'month':
+					phBits.push('mm');
+					patBits.push('\\d{2}');
+					regexBits.push('(?<month>\\d{1,2})');
+					break;
+				case 'year':
+					phBits.push('yyyy');
+					patBits.push('\\d{4}');
+					regexBits.push('(?<year>\\d{4})');
+					break;
+				case 'literal':
+					if (part.value === ' ' && !this.dateOnly) {
+						phBits.push(part.value);
+						patBits.push(part.value);
+						regexBits.push('\\s');
+					}
+					if (['.', '/', '-'].includes(part.value)) {
+						this.delimiter = part.value;
+						phBits.push(part.value);
+						patBits.push(part.value);
+						regexBits.push(part.value);
+					}
+					break;
+				case 'hour':
+					if (!this.dateOnly) {
+						phBits.push('HH');
+						patBits.push('\\d{2}');
+						regexBits.push('(?<hour>\\d{1,2})');
+					}
+					break;
+				case 'minute':
+					if (!this.dateOnly) {
+						phBits.push('MM');
+						patBits.push('\\d{2}');
+						regexBits.push('(?<minute>\\d{1,2})');
+					}
+					break;
+				default:
+					break;
+			}
+		});
+		this.dateTimeRegExp = new RegExp(regexBits.join(''));
+		this.autoZeroRegExp = new RegExp(this.delimiter === '.' ? '(\\d{1})\\.$' : '(\\d{1})/$');
+		this.autoDelimiterRegExp = new RegExp(this.delimiter === '.' ? '^(\\d{2})(?:\.\\d{2}|$)$' : '^(\\d{2})(?:/\\d{2}|$)$');
+		this.setExtraAttributes(phBits.join(''), patBits.join(''));
+	}
+
+	private setExtraAttributes(placeholder: string, pattern: string) {
+		if (!this.inputElement.hasAttribute('placeholder')) {
+			this.inputElement.setAttribute('placeholder', placeholder);
+		}
+		if (!this.inputElement.hasAttribute('pattern')) {
+			this.inputElement.setAttribute('pattern', pattern);
+		}
+	}
+
 	private installEventHandlers() {
 		this.inputElement.addEventListener('focus', this.handleFocus);
 		this.inputElement.addEventListener('blur', this.handleBlur);
@@ -115,6 +206,26 @@ class Calendar extends Widget {
 		this.isOpen = false;
 		this.inputElement.setAttribute('aria-expanded', 'false')
 		this.dropdownInstance?.destroy();
+	}
+
+	public asDate() : Date | undefined {
+		if (this.inputElement.value) {
+			if (this.dateTimeRegExp) {
+				const matches = this.inputElement.value.match(this.dateTimeRegExp);
+				if (matches && matches.groups) {
+					const newDate = new Date(parseInt(matches.groups.year), parseInt(matches.groups.month) - 1, parseInt(matches.groups.day));
+					newDate.setTime(newDate.getTime() - 60000 * newDate.getTimezoneOffset());
+					return newDate;
+				}
+			} else {
+				return new Date(this.inputElement.value);
+			}
+		}
+	}
+
+	public asString(date: Date) : string {
+		const dateString = this.dateTimeFormat ? this.dateTimeFormat.format(date) : date.toISOString();
+		return dateString.slice(0, this.dateOnly ? 10 : 16)
 	}
 
 	private getDate(selector: string | Element) : Date {
@@ -186,9 +297,11 @@ class Calendar extends Widget {
 			});
 		}
 
+		const selectedDate = this.asDate();
+		selectedDate?.setSeconds(0);
 		this.calendarItems.forEach(elem => {
-			const date = elem.getAttribute('data-date')!.replace('T', ' ');
-			elem.classList.toggle('selected', date === this.inputElement.value);
+			const date = new Date(elem.getAttribute('data-date') ?? '');
+			elem.classList.toggle('selected', date === selectedDate);
 			elem.addEventListener('click', event => {
 				if (event.target instanceof HTMLLIElement) {
 					this.selectDate(event.target);
@@ -199,13 +312,13 @@ class Calendar extends Widget {
 
 	private registerWeeksView() {
 		const todayDateString = this.todayDate.toISOString().slice(0, 10);
-		const inputDateString = this.inputElement.value.slice(0, 10);
+		const inputDateTime = this.asDate()?.getTime() ?? 0;
 		this.calendarItems.forEach(elem => {
 			const date = this.getDate(elem);
 			elem.classList.toggle('today', elem.getAttribute('data-date') === todayDateString);
-			elem.classList.toggle('selected', elem.getAttribute('data-date') === inputDateString);
+			elem.classList.toggle('selected', Math.abs(date.getTime() - inputDateTime) < 60000);
 			if (this.minDayDate && date < this.minDayDate || this.maxDayDate && date > this.maxDayDate) {
-				elem.setAttribute('disabled', '');
+				elem.toggleAttribute('disabled', true);
 			} else {
 				elem.addEventListener('click', this.selectDay);
 			}
@@ -217,7 +330,7 @@ class Calendar extends Widget {
 			const date = this.getDate(elem);
 			elem.classList.toggle('selected', elem.getAttribute('data-date')!.slice(0, 7) === this.inputElement.value.slice(0, 7));
 			if (this.minMonthDate && date < this.minMonthDate || this.maxMonthDate && date > this.maxMonthDate) {
-				elem.setAttribute('disabled', '');
+				elem.toggleAttribute('disabled', true);
 			} else {
 				elem.addEventListener('click', this.selectMonth);
 			}
@@ -229,7 +342,7 @@ class Calendar extends Widget {
 			const date = this.getDate(elem);
 			elem.classList.toggle('selected', elem.getAttribute('data-date')!.slice(0, 4) === this.inputElement.value.slice(0, 4));
 			if (this.minYearDate && date < this.minYearDate || this.maxYearDate && date > this.maxYearDate) {
-				elem.setAttribute('disabled', '');
+				elem.toggleAttribute('disabled', true);
 			} else {
 				elem.addEventListener('click', this.selectYear);
 			}
@@ -251,8 +364,12 @@ class Calendar extends Widget {
 		this.dropdownInstance = createPopper(this.inputElement, this.calendarElement, {
 			placement: 'bottom-start',
 		});
-		this.inputElement.setAttribute('aria-expanded', 'true')
-		this.inputElement.value = this.inputElement.value.trimEnd();  // remove white space eventually added by handleChange
+		this.inputElement.setAttribute('aria-expanded', 'true');
+		const prevValue = this.inputElement.value;
+		this.inputElement.value = prevValue.trimEnd();  // remove white space eventually added by handleChange
+		if (this.inputElement.value !== prevValue) {
+			this.inputElement.dispatchEvent(new Event('input'));  // triggers validation
+		}
 		this.isOpen = true;
 	}
 
@@ -269,14 +386,12 @@ class Calendar extends Widget {
 			this.close();
 		}
 		if (event instanceof InputEvent && event.inputType === 'insertText') {
-			this.inputElement.value = this.inputElement.value.replace('--', '-');
-			this.inputElement.value = this.inputElement.value.replace('//', '/');
-			this.inputElement.value = this.inputElement.value.replace('..', '.');
-			if (this.inputElement.value.match(/^\d{4}$/) || this.inputElement.value.match(/^\d{4}-\d{2}$/)) {
-				this.inputElement.value = this.inputElement.value.concat('-');
-			} else if (this.inputElement.value.match(/^\d{4}-\d{2}-\d{2}$/)) {
-				this.validate();
-				window.setTimeout(() => this.inputElement.blur(), 0);
+			this.inputElement.value = this.inputElement.value.replace(this.delimiter.concat(this.delimiter), this.delimiter);
+			if (this.autoZeroRegExp) {
+				this.inputElement.value = this.inputElement.value.replace(this.autoZeroRegExp, '0$&');
+			}
+			if (this.autoDelimiterRegExp && this.inputElement.value.match(this.autoDelimiterRegExp)) {
+				this.inputElement.value = this.inputElement.value.concat(this.delimiter);
 			}
 		}
 	}
@@ -331,7 +446,7 @@ class Calendar extends Widget {
 					if (this.viewMode === ViewMode.hours || this.viewMode === ViewMode.weeks && this.dateOnly) {
 						this.selectDate(element);
 					} else {
-						this.fetchCalendar(this.getDate(element), nextViewMode.get(this.viewMode!));
+						this.fetchCalendar(this.getDate(element), nextViewMode.get(this.viewMode)!);
 					}
 				}
 				break;
@@ -433,8 +548,8 @@ class Calendar extends Widget {
 	}
 
 	private getValidDate() : Date | undefined {
-		const newDate = new Date(this.inputElement.value);
-		if (!isNaN(newDate.getTime()) && newDate.toISOString().slice(0, 10) === this.inputElement.value.slice(0, 10))
+		const newDate = this.asDate();
+		if (newDate && !isNaN(newDate.getTime()) && this.asString(newDate) === this.inputElement.value)
 			return newDate;
 	}
 
@@ -492,13 +607,13 @@ class Calendar extends Widget {
 		this.calendarItems.forEach(elem => {
 			elem.classList.toggle('selected', elem.isSameNode(element));
 		});
-		const dateValue = element.getAttribute('data-date') ?? '';
+		const dateString = this.asString(new Date(element.getAttribute('data-date')!));
 		if (this.dateOnly) {
-			this.inputElement.value = dateValue.slice(0, 10);
-		} else if (dateValue.length === 10) {
-			this.inputElement.value = dateValue.concat(' 12:00');
+			this.inputElement.value = dateString.slice(0, 10);
+		} else if (dateString.length === 10) {
+			this.inputElement.value = dateString.concat(' 12:00');
 		} else {
-			this.inputElement.value = dateValue.replace('T', ' ');
+			this.inputElement.value = dateString.replace('T', ' ');
 		}
 	}
 
@@ -525,7 +640,7 @@ class Calendar extends Widget {
 			elem.classList.remove('selected', 'preselected');
 		});
 		this.calendarElement.querySelectorAll('ul[aria-labelledby]').forEach(elem => {
-			elem.setAttribute('hidden', '');
+			elem.toggleAttribute('hidden', true);
 		});
 		const label = liElement.getAttribute('aria-label');
 		if (label) {
@@ -575,12 +690,10 @@ class Calendar extends Widget {
 		return button;
 	}
 
-	private async fetchCalendar(newDate: Date, viewMode?: ViewMode) {
+	private async fetchCalendar(newDate: Date, viewMode: ViewMode) {
 		const query = new URLSearchParams('calendar');
 		query.set('date', newDate.toISOString().slice(0, 10));
-		if (viewMode) {
-			query.set('mode', viewMode);
-		}
+		query.set('mode', viewMode);
 		if (this.interval) {
 			query.set('interval', String(this.interval));
 		}
@@ -654,24 +767,33 @@ class Calendar extends Widget {
 	protected formSubmitted(event: Event) {}
 }
 
+const CAL = Symbol('DateTimePickerElement');
 
 export class DatePickerElement extends HTMLInputElement {
+	private [CAL]?: Calendar;  // hides internal implementation
+
 	private connectedCallback() {
 		const fieldGroup = this.closest('django-field-group');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		new Calendar(this, calendarElement);
+		this[CAL] = new Calendar(this, calendarElement);
+	}
+
+	public get valueAsDate() : Date | null {
+		return this[CAL]?.asDate() ?? null;
 	}
 }
 
 
 export class DateTimePickerElement extends HTMLInputElement {
+	private [CAL]?: Calendar;  // hides internal implementation
+
 	private connectedCallback() {
 		const fieldGroup = this.closest('django-field-group');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		new Calendar(this, calendarElement);
+		this[CAL] = new Calendar(this, calendarElement);
 	}
 }

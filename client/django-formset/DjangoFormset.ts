@@ -155,6 +155,12 @@ class FieldGroup {
 			if (element.type === 'file') {
 				return this.fileUploader!.uploadedFiles;
 			}
+			if (element instanceof HTMLInputElement && window.customElements.get('django-datepicker') && element.getAttribute('is') === 'django-datepicker') {
+				return element.valueAsDate?.toISOString().slice(0, 10) ?? '';
+			}
+			if (element instanceof HTMLInputElement && window.customElements.get('django-datetimepicker') && element.getAttribute('is') === 'django-datetimepicker') {
+				return element.valueAsDate?.toISOString().slice(0, 16) ?? '';
+			}
 			// all other input types just return their value
 			return element.value;
 		} else {
