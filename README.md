@@ -2,7 +2,7 @@
 
 This library handles single forms and collections of forms with a way better user experience than
 the internal Django implementation for
-[formsets](https://docs.djangoproject.com/en/stable/topics/forms/formsets/) can offers.
+[formsets](https://docs.djangoproject.com/en/stable/topics/forms/formsets/) offers.
 
 [![Build Status](https://github.com/jrief/django-formset/actions/workflows/tests.yml/badge.svg)](https://github.com/jrief/django-formset/actions)
 [![PyPI version](https://img.shields.io/pypi/v/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
