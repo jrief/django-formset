@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'secret_key')
 
-DEBUG = bool(os.getenv('DJANGO_DEBUG'))
+DEBUG = bool(os.getenv('DJANGO_DEBUG') == 'true')
 
 ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = ['https://django-formset.fly.dev']
@@ -50,6 +50,8 @@ else:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 USE_TZ = True
+
+TIME_ZONE = 'UTC'
 
 MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',

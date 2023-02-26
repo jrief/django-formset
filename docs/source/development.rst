@@ -25,12 +25,16 @@ tool-chain required to build the test application:
 	cd django-formset
 	python -m venv .venv
 	source .venv/bin/activate
+	pip install "Django==4.1.*"
 	pip install -r testapp/requirements.txt
 	pip install --no-deps -e .
-	npm install --also=dev
+	npm install --include=dev
 	npm run tag-attributes
 	npm run tailwindcss
-	npm run build
+	npm run esbuild
+	npm run compilescss
+	mkdir workdir
+	export DJANGO_DEBUG=true
 	testapp/manage.py migrate
 	testapp/manage.py runserver
 
