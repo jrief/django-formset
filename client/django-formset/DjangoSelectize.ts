@@ -258,7 +258,7 @@ class DjangoSelectize extends IncompleteSelect {
 const DS = Symbol('DjangoSelectize');
 
 export class DjangoSelectizeElement extends HTMLSelectElement {
-	private [DS]?: DjangoSelectize;  // hides internal implementation
+	private [DS]!: DjangoSelectize;  // hides internal implementation
 
 	private connectedCallback() {
 		this[DS] = new DjangoSelectize(this);
