@@ -296,8 +296,9 @@ class UploadedFileInput(FileInput):
 class DateInput(DateTimeBaseInput):
     """
     This is a replacement for Django's date widget ``django.forms.widgets.DateInput`` which renders
-    as ``<input type="text" ...>`` . Since we want to use the browsers built-in validation and
-    optionally its date-picker, we have to use this alternative implementation.
+    as ``<input type="text" ...>``.
+    Since we want to use the browsers built-in validation and optionally its date-picker, we have to
+    use this alternative implementation using input type ``date``.
     """
     template_name = 'django/forms/widgets/date.html'
 
@@ -315,7 +316,7 @@ class DateInput(DateTimeBaseInput):
         return value
 
 
-class DatePicker(DateInput):
+class DatePicker(DateTimeBaseInput):
     """
     This is an enhancement for the ``DateInput`` widget, but with a customizable date-picker.
     """
@@ -326,7 +327,6 @@ class DatePicker(DateInput):
         default_attrs = {
             'type': 'text',
             'is': 'django-datepicker',
-            'placeholder': "yyyy-mm-dd",
             'aria-expanded': 'false',
             'aria-haspopup': 'dialog'
         }
@@ -347,6 +347,11 @@ class DatePicker(DateInput):
         context['calendar'] = calendar_renderer.get_context(self.interval)
         return context
 
+    def format_value(self, value):
+        if isinstance(value, (date, datetime)):
+            return value.strftime('%Y-%m-%d')
+        return value
+
 
 class DateTimePicker(DatePicker):
     """
@@ -357,8 +362,6 @@ class DateTimePicker(DatePicker):
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'is': 'django-datetimepicker',
-            'pattern': r'\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}',
-            'placeholder': "yyyy-mm-dd HH:MM",
         }
         if attrs:
             default_attrs.update(**attrs)
