@@ -159,7 +159,7 @@ class FieldGroup {
 				return element.valueAsDate?.toISOString().slice(0, 10) ?? '';
 			}
 			if (element instanceof HTMLInputElement && window.customElements.get('django-datetimepicker') && element.getAttribute('is') === 'django-datetimepicker') {
-				return element.valueAsDate?.toISOString().slice(0, 16) ?? '';
+				return element.valueAsDate?.toISOString().replace('T', ' '). slice(0, 16) ?? '';
 			}
 			// all other input types just return their value
 			return element.value;
@@ -886,7 +886,8 @@ class DjangoForm {
 			this.errorList = placeholder.parentElement;
 			this.errorPlaceholder = this.errorList!.removeChild(placeholder);
 		}
-		this.element.addEventListener('reset', this.resetted);
+		this.element.addEventListener('submit', this.handleSubmit);
+		this.element.addEventListener('reset', this.handleReset);
 	}
 
 	aggregateValues(): Map<string, FieldValue> {
@@ -975,7 +976,12 @@ class DjangoForm {
 		this.element.reset();
 	}
 
-	private resetted = () => {
+	private handleSubmit = (event: Event) => {
+		event.preventDefault();
+		return false;
+	}
+
+	private handleReset = () => {
 		for (const fieldGroup of this.fieldGroups) {
 			fieldGroup.resetToInitial();
 		}
