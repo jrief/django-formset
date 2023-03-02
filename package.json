@@ -45,7 +45,7 @@
     "@ungap/custom-elements": "^1.1.1",
     "@webcomponents/webcomponentsjs": "^2.5.0",
     "autoprefixer": "^10.2.5",
-    "bootstrap": "^5.2.2",
+    "bootstrap": "^5.2.3",
     "bootstrap-icons": "^1.9.1",
     "bulma": "^0.9.4",
     "esbuild": "^0.15.12",
