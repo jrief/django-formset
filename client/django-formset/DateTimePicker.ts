@@ -95,8 +95,8 @@ class Calendar extends Widget {
 		}
 	}
 
-	private convertDate(date: Date) : Date {
-		if (this.localTime) {
+	private convertDate(date: Date, force=false) : Date {
+		if (this.localTime || force) {
 			date.setTime(date.getTime() - 60000 * date.getTimezoneOffset());
 		}
 		return date;
@@ -309,8 +309,7 @@ class Calendar extends Widget {
 		this.prevSheetDate = this.getDate('button.prev');
 		const narrowButton = this.calendarElement.querySelector('button.narrow');
 		this.narrowSheetDate = narrowButton ? this.getDate(narrowButton) : undefined;
-		this.todayDate = new Date(Date.now());
-		this.todayDate = new Date(this.todayDate.getTime() - 60000 * this.todayDate.getTimezoneOffset());
+		this.todayDate = this.convertDate(new Date(Date.now()), true);
 		this.nextSheetDate = this.getDate('button.next');
 		const extendButton = this.calendarElement.querySelector('button.extend');
 		this.extendSheetDate = extendButton ? this.getDate(extendButton) : undefined;
@@ -574,7 +573,7 @@ class Calendar extends Widget {
 			[Direction.down, +10080],
 			[Direction.left, -1440],
 		]);
-		const nextDate = new Date(lastDate.getTime() - 60000 * lastDate.getTimezoneOffset());
+		const nextDate = this.convertDate(lastDate, true);
 		switch (this.viewMode) {
 		  case ViewMode.hours:
 			return new Date(nextDate.getTime() + 60000 * deltaHours.get(direction)!);
