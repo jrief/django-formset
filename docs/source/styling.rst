@@ -109,7 +109,7 @@ Always remember to add
 
 .. code-block:: django
 
-	<script type="module" src="{% static 'formset/js/django-formset.min.js' %}"></script>
+	<script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
 
 anywhere inside the ``<head>``-element of the page.
 
