@@ -1,5 +1,11 @@
 ## Changes
 
+- 0.13.3
+  * Fix initialization problem: Webcomponents loaded through templates in a FormCollection with
+    multiple instances were not loaded.
+  * Fix problem in client code: Collections with siblings did not aggregate data for submission
+    correctly in all circumstances. 
+
 - 0.13.2
   * Add polyfill `@ungap/custom-elements` to fix compatibility issues on Safari.
 
