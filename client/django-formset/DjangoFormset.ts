@@ -1543,11 +1543,11 @@ export class DjangoFormset {
 			if (relPath.length === 1) {
 				// the leaf object
 				if (Array.isArray(entry)) {
-					if (entry.indexOf(dataValue) < 0) {
+					if (dataValue && !entry.includes(dataValue)) {
 						entry.push(dataValue);
 					}
 				} else {
-					entry[relPath[0]] = dataValue;
+					entry[relPath[0]] = dataValue ?? [];
 				}
 				return;
 			}
@@ -1577,7 +1577,7 @@ export class DjangoFormset {
 		// 1. extend body with empty arrays from Form Collections with siblings
 		for (const prefix of this.emptyCollectionPrefixes) {
 			const absPath = ['formset_data', ...prefix.split('.')];
-			dataValue = getDataValue(body, absPath) ?? [];
+			dataValue = getDataValue(body, absPath);
 			extendBody(body, absPath);
 		}
 
@@ -1594,7 +1594,7 @@ export class DjangoFormset {
 			extendBody(body, absPath);
 		}
 
-		// Extend data structure with extra data, for instance from buttons
+		// 3. extend data structure with extra data, for instance from buttons
 		return Object.assign({}, body, {_extra: extraData});
 	}
 
