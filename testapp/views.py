@@ -197,7 +197,7 @@ class DemoFormCollectionViewMixin(DemoViewMixin):
 
     def get_form_collection(self):
         """
-        This method replaces the form renderer by a specialized version is specified in css_classes.
+        This method replaces the form renderer by a specialized version which is specified in css_classes.
         Used to show how to style forms nested inside collections.
         """
         def traverse_holders(declared_holders, path=None):
