@@ -34,9 +34,9 @@ class FormsetErrorList(ErrorList):
 
 class HolderMixin:
     ignore_marked_for_removal = getattr(settings, 'FORMSET_IGNORE_MARKED_FOR_REMOVAL', False)
+    marked_for_removal = False
 
     def __init__(self, **kwargs):
-        self.marked_for_removal = False
         super().__init__(**kwargs)
 
     def replicate(self, data=None, initial=None, prefix=None, renderer=None, ignore_marked_for_removal=None):

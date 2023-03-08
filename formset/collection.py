@@ -195,10 +195,10 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
 
     def full_clean(self):
         if self.has_many:
-            self.cleaned_data = []
+            self.valid_holders = []
             self._errors = ErrorList()
             for index, data in enumerate(self.data):
-                cleaned_data = {}
+                valid_holders = {}
                 for name, declared_holder in self.declared_holders.items():
                     if name in data:
                         holder = declared_holder.replicate(
@@ -208,7 +208,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                         if holder.ignore_marked_for_removal and MARKED_FOR_REMOVAL in holder.data:
                             break
                         if holder.is_valid():
-                            cleaned_data[name] = holder.cleaned_data
+                            valid_holders[name] = holder
                         else:
                             self._errors.extend([{}] * (index - len(self._errors)))
                             self._errors.append({name: holder.errors})
@@ -217,17 +217,17 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                         self._errors.extend([{}] * (index - len(self._errors)))
                         self._errors.append({name: {NON_FIELD_ERRORS: ["Form data is missing."]}})
                 else:
-                    self.cleaned_data.append(cleaned_data)
-            if len(self.cleaned_data) < self.min_siblings:
+                    self.valid_holders.append(valid_holders)
+            if len(self.valid_holders) < self.min_siblings:
                 # can only happen, if client bypasses browser control
                 self._errors.clear()
                 self._errors.append({COLLECTION_ERRORS: ["Too few siblings."]})
-            if self.max_siblings and len(self.cleaned_data) > self.max_siblings:
+            if self.max_siblings and len(self.valid_holders) > self.max_siblings:
                 # can only happen, if client bypasses browser control
                 self._errors.clear()
                 self._errors.append({COLLECTION_ERRORS: ["Too many siblings."]})
         else:
-            self.cleaned_data = {}
+            self.valid_holders = {}
             self._errors = ErrorDict()
             for name, declared_holder in self.declared_holders.items():
                 if name in self.data:
@@ -236,7 +236,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                         ignore_marked_for_removal=self.ignore_marked_for_removal,
                     )
                     if holder.is_valid():
-                        self.cleaned_data[name] = holder.cleaned_data
+                        self.valid_holders[name] = holder
                     else:
                         self._errors.update({name: holder.errors})
                 else:
@@ -245,6 +245,18 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
 
     def clean(self):
         return self.cleaned_data
+
+    @property
+    def cleaned_data(self):
+        """
+        Return the cleaned data for this collection and nested forms/collections.
+        """
+        if not self.is_valid():
+            raise AttributeError(f"'{self.__class__}' object has no attribute 'cleaned_data'")
+        if self.has_many:
+            return [{name: holder.cleaned_data} for valid_holders in self.valid_holders for name, holder in valid_holders.items()]
+        else:
+            return {name: holder.cleaned_data for name, holder in self.valid_holders.items()}
 
     @property
     def has_many(self):
@@ -278,10 +290,11 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
 
     def construct_instance(self, main_object, cleaned_data):
         """
-        Construct the main object and its related objects from the nested dictionary of cleaned data.
-        Forms which do not correspond to the model given by the main object, are responsible themselves
-        to store the corresponding data inside their related models.
+        Construct the main object and its related objects from the nested dictionary defined
+        by `cleaned data`. Forms which do not correspond to the model given by the main object,
+        are responsible themselves to store the corresponding data inside their related models.
         """
+        assert self.is_valid(), f"Can not construct instance with invalid collection {self.__class__} object"
         for name, holder in self.declared_holders.items():
             if callable(getattr(holder, 'construct_instance', None)):
                 holder.construct_instance(main_object, self.cleaned_data[name])

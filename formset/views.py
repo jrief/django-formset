@@ -211,6 +211,10 @@ class FormCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCol
 
 
 class EditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, SingleObjectMixin, TemplateResponseMixin, View):
+    """
+    View for editing a class inheriting from `FormCollection` which binds to a single object.
+    """
+
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         return super().get(request, *args, **kwargs)
