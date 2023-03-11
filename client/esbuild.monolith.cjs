@@ -4,10 +4,10 @@ const sass = require('sass');
 const { build } = require('esbuild');
 
 build({
-  entryPoints: ['client/django-formset.ts'],
+  entryPoints: ['client/django-formset.monolith.ts'],
   bundle: true,
   minify: true,
-  outfile: 'formset/static/formset/js/django-formset.js',
+  outfile: 'formset/static/formset/js/django-formset.monolith.js',
   splitting: false,
   format: 'esm',
   plugins: [
