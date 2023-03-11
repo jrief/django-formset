@@ -451,7 +451,6 @@ def test_undo_redo(page, view, form, viewname):
 
 
 @pytest.mark.urls(__name__)
-# @pytest.mark.xfail(reason="On GitHub test runner this fails occasionally with no apparent reason.")
 @pytest.mark.parametrize('viewname', ['selectorP'])
 def test_selector_sorting(page, mocker, view, form, viewname):
     select_left_element = page.locator('django-formset .dj-dual-selector .left-column select')
