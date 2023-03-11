@@ -977,8 +977,9 @@ class DjangoForm {
 	}
 
 	private handleSubmit = (event: Event) => {
+		if (event.target instanceof HTMLFormElement && event.target.method === 'dialog')
+			return;
 		event.preventDefault();
-		return false;
 	}
 
 	private handleReset = () => {

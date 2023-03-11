@@ -252,6 +252,17 @@ namespace controls {
 			}, {once: true});
 		}
 
+		private handleSaveButton() {
+			const saveButton = this.formElement.elements.namedItem('save');
+			if (!(saveButton instanceof HTMLButtonElement))
+				return;
+			saveButton.addEventListener('click', () => {
+				if (this.formElement.checkValidity()) {
+					this.modalDialogElement.close('save');
+				}
+			});
+		}
+
 		private closeDialog(editor: Editor) {
 			const returnValue = this.modalDialogElement.returnValue;
 			if (returnValue === 'save') {
@@ -276,6 +287,7 @@ namespace controls {
 			this.urlInputElement.value = editor.getAttributes('link').href ?? '';
 			this.toggleRemoveButton(!!this.urlInputElement.value.length);
 			this.handleCloseButton();
+			this.handleSaveButton();
 			this.modalDialogElement.showModal();
 			this.modalDialogElement.addEventListener('close', () => this.closeDialog(editor), {once: true});
 		}
@@ -305,8 +317,6 @@ namespace controls {
 		}
 
 		protected openDialog(editor: Editor) {
-			//this.toggleRemoveButton(!!this.urlInputElement.value.length);
-			//this.handleCloseButton();
 			this.modalDialogElement.showModal();
 			this.modalDialogElement.addEventListener('close', () => this.closeDialog(editor), {once: true});
 		}
