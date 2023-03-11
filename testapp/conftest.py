@@ -21,8 +21,6 @@ class Connector:
 
         self.playwright = sync_playwright().start()
         self.browser = self.playwright.chromium.launch()
-        self.page = self.browser.new_page()
-        self.page.on('console', print_args)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -37,8 +35,22 @@ def connector(live_server):
 
 
 @pytest.fixture
-def page(connector, viewname):
-    connector.page.goto(connector.live_server.url + reverse(viewname))
-    django_formset = connector.page.locator('django-formset:defined')
+def locale():
+    return 'en-US'
+
+
+@pytest.fixture
+def language():
+    return 'en'
+
+
+@pytest.fixture()
+def page(connector, viewname, locale, language):
+    context = connector.browser.new_context(locale=locale)
+    context.add_cookies([{'name': 'django_language', 'value': language, 'domain': 'localhost', 'path': '/'}])
+    page = context.new_page()
+    # self.page.on('console', print_args)
+    page.goto(connector.live_server.url + reverse(viewname))
+    django_formset = page.locator('django-formset:defined')
     django_formset.wait_for()
-    return connector.page
+    return page

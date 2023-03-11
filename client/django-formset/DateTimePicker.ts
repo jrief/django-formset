@@ -336,11 +336,12 @@ class Calendar extends Widget {
 		// insert the date of today into a text element inside the calendar icon
 		const textElem = this.calendarElement.querySelector('button.today > svg > text');
 		if (textElem instanceof SVGTextElement) {
-			textElem.textContent = String(this.todayDate.getDate());
+			textElem.textContent = String((new Date()).getDate());
 		}
 	}
 
 	private registerHoursView() {
+		const todayHourString = this.todayDate.toISOString().slice(0, 13).concat(':00');
 		const inputDate = this.asDate();
 		const inputDateString = inputDate ? this.asUTCDate(inputDate).toISOString() : '';
 
@@ -369,6 +370,7 @@ class Calendar extends Widget {
 
 		this.calendarElement.querySelectorAll('li[aria-label]').forEach(elem => {
 			const label = elem.getAttribute('aria-label')!;
+			elem.classList.toggle('today', label === todayHourString);
 			const selector = `ul[aria-labelledby="${label}"]`;
 			if (label.slice(0, 13) === inputDateString.slice(0, 13)) {
 				elem.classList.add('preselected');
@@ -404,11 +406,14 @@ class Calendar extends Widget {
 	}
 
 	private registerMonthsView() {
+		const todayMonthString = this.todayDate.toISOString().slice(0, 7);
 		const inputDate = this.asDate();
 		const inputMonthString = inputDate ? this.asUTCDate(inputDate).toISOString().slice(0, 7) : null;
 		this.calendarItems.forEach(elem => {
 			const date = this.getDate(elem);
-			elem.classList.toggle('selected', elem.getAttribute('data-date')!.slice(0, 7) === inputMonthString);
+			const monthString = elem.getAttribute('data-date')?.slice(0, 7);
+			elem.classList.toggle('today', monthString === todayMonthString);
+			elem.classList.toggle('selected', monthString === inputMonthString);
 			if (this.minMonthDate && date < this.minMonthDate || this.maxMonthDate && date > this.maxMonthDate) {
 				elem.toggleAttribute('disabled', true);
 			} else {
@@ -418,11 +423,14 @@ class Calendar extends Widget {
 	}
 
 	private registerYearsView() {
+		const todayYearString = this.todayDate.toISOString().slice(0, 4);
 		const inputDate = this.asDate();
 		const inputYearString = inputDate ? this.asUTCDate(inputDate).toISOString().slice(0, 4) : null;
 		this.calendarItems.forEach(elem => {
 			const date = this.getDate(elem);
-			elem.classList.toggle('selected', elem.getAttribute('data-date')!.slice(0, 4) === inputYearString);
+			const yearString = elem.getAttribute('data-date')?.slice(0, 4);
+			elem.classList.toggle('today', yearString === todayYearString);
+			elem.classList.toggle('selected', yearString === inputYearString);
 			if (this.minYearDate && date < this.minYearDate || this.maxYearDate && date > this.maxYearDate) {
 				elem.toggleAttribute('disabled', true);
 			} else {
@@ -624,7 +632,10 @@ class Calendar extends Widget {
 			const selectedDate = this.getDate(selectedItem);
 			const nextDate = this.getDelta(direction, selectedDate);
 			const dataDate = (date: Date) => date.toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10);
-			let nextItem = this.calendarElement.querySelector(`.ranges li[data-date="${dataDate(nextDate)}"]`);
+			let nextItem: Element|null = null;
+			if (this.viewMode !== ViewMode.weeks || selectedDate.getMonth() === nextDate.getMonth()) {
+				nextItem = this.calendarElement.querySelector(`.ranges li[data-date="${dataDate(nextDate)}"]`);
+			}
 			if (!nextItem) {
 				await this.fetchCalendar(nextDate, this.viewMode);
 				nextItem = this.calendarElement.querySelector(`.ranges li[data-date="${dataDate(nextDate)}"]`);
