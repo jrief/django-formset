@@ -245,7 +245,6 @@ def test_datetimepicker_i18n(page, settings, viewname, language):
     expect(calendar).not_to_be_visible()
     page.locator('django-formset input[name="schedule"]').focus()
     sleep(0.2)
-    page.screenshot(path='screenshot.png')
     expect(calendar).to_be_visible()
     title = calendar.locator('.controls time[datetime]')
     wednesday = calendar.locator('.weekdays li:nth-of-type(3)')
