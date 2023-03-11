@@ -1,5 +1,5 @@
 {% load i18n %}{% spaceless %}
-{% if levels|length_is:1 %}
+{% if levels|length == 1 %}
 	{% with icon="formset/icons/heading"|add:levels.0|add:".svg" %}
 <button type="button" richtext-toggle="heading:{{ levels.0 }}" aria-label="{% translate 'Heading' %}">{% include icon %}</button>
 	{% endwith %}
