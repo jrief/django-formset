@@ -43,9 +43,10 @@ from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_per
 from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.state import StateForm, StatesForm
+from testapp.forms.company import CompanyCollection
 from testapp.forms.user import UserCollection, UserListCollection
 from testapp.forms.upload import UploadForm
-from testapp.models import AdvertisementModel, PersonModel, PollModel
+from testapp.models import AdvertisementModel, Company, PersonModel, PollModel
 
 
 parser = Parser()
@@ -237,6 +238,16 @@ class UserCollectionView(DemoFormCollectionViewMixin, EditCollectionView):
     def get_object(self, queryset=None):
         user, _ = self.model.objects.get_or_create(username='demo')
         return user
+
+
+class CompanyCollectionView(DemoFormCollectionViewMixin, EditCollectionView):
+    model = Company
+    collection_class = CompanyCollection
+    template_name = 'testapp/form-collection.html'
+
+    def get_object(self, queryset=None):
+        company = super().get_object(queryset)
+        return company
 
 
 demo_css_classes = {
@@ -478,6 +489,8 @@ urlpatterns = [
     path('pollcollection', DemoFormCollectionView.as_view(
         collection_class=PollCollection,
     ), kwargs={'group': 'collection', 'index': 18}, name='poll'),
+    path('company/<int:pk>/', CompanyCollectionView.as_view(),
+        kwargs={'group': 'collection', 'index': 18}, name='company'),
     path('user', UserCollectionView.as_view(
         collection_class=UserCollection
     ), kwargs={'group': 'model', 'index': 19}, name='user'),

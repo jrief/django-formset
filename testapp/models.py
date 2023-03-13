@@ -237,3 +237,55 @@ class County(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.state.code})"
+
+
+class Company(models.Model):
+    name = models.CharField(
+        verbose_name="Company Name",
+        max_length=50,
+    )
+
+    class Meta:
+        verbose_name = "Company"
+        verbose_name_plural = "Companies"
+
+    def __str__(self):
+        return self.name
+
+class Team(models.Model):
+    name = models.CharField(
+        verbose_name="Team Name",
+        max_length=50,
+    )
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name='teams',
+    )
+
+    class Meta:
+        verbose_name = "Team"
+        verbose_name_plural = "Teams"
+
+    def __str__(self):
+        return self.name
+
+class Member(models.Model):
+    name = models.CharField(
+        verbose_name="Member Name",
+        max_length=50,
+    )
+
+    team = models.ForeignKey(
+        Team,
+        on_delete=models.CASCADE,
+        related_name='members',
+    )
+
+    class Meta:
+        verbose_name = "Member"
+        verbose_name_plural = "Members"
+
+    def __str__(self):
+        return self.name
