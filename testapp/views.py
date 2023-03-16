@@ -245,10 +245,6 @@ class CompanyCollectionView(DemoFormCollectionViewMixin, EditCollectionView):
     collection_class = CompanyCollection
     template_name = 'testapp/form-collection.html'
 
-    def get_object(self, queryset=None):
-        company = super().get_object(queryset)
-        return company
-
 
 demo_css_classes = {
     'default': {'*': {}},
