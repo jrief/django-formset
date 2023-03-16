@@ -261,6 +261,8 @@ export class DjangoSelectizeElement extends HTMLSelectElement {
 	private [DS]?: DjangoSelectize;  // hides internal implementation
 
 	private connectedCallback() {
+		if ('tomselect' in this)
+			return;
 		this[DS] = new DjangoSelectize(this);
 	}
 }
