@@ -1602,7 +1602,7 @@ export class DjangoFormset {
 			const absPath = form.getAbsPath();
 			dataValue = getDataValue(this.data, absPath);
 			if (form.markedForRemoval) {
-				dataValue[MARKED_FOR_REMOVAL] = MARKED_FOR_REMOVAL;
+				dataValue[MARKED_FOR_REMOVAL] = true;
 			}
 			extendBody(body, absPath);
 		}
