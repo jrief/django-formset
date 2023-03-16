@@ -22,7 +22,7 @@ class SimplePersonForm(forms.Form):
     )
 
     first_name = fields.RegexField(
-        r'^[A-Z][a-z -]*$',
+        r'^[A-Z][ a-z\-]*$',
         label="First name",
         error_messages={'invalid': "A first name must start in upper case."},
         help_text="Must start in upper case followed by one or more lowercase characters.",

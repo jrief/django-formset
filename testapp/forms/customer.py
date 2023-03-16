@@ -19,7 +19,7 @@ class CustomerForm(Fieldset):
     )
 
     phone_number = fields.RegexField(
-        r'^\+?[0-9 .-]{4,25}$',
+        r'^\+?[ 0-9.\-]{4,25}$',
         label="Phone Number",
         error_messages={'invalid': "Phone number have 4-25 digits and may start with '+'."},
         required=False,

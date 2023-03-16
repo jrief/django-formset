@@ -32,7 +32,7 @@ class QuestionnaireForm(forms.Form):
     """
 
     full_name = fields.RegexField(
-        r'^[A-Z][a-z-]+\s[A-Za-z- ]{2,}$',
+        r'^[A-Z][a-z\-]+\s[ A-Za-z\-]{2,}$',
         label="First and last name",
         min_length=3,
         max_length=100,
