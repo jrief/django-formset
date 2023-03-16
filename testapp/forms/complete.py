@@ -71,7 +71,7 @@ class CompleteForm(forms.Form):
     )
 
     first_name = fields.RegexField(
-        r'^[A-Z][a-z -]*$',
+        r'^[A-Z][ a-z\-]*$',
         label="First name",
         error_messages={'invalid': "A first name must start in upper case."},
         help_text="Must start in upper case followed by one or more lowercase characters.",
@@ -96,7 +96,7 @@ class CompleteForm(forms.Form):
     )
 
     phone = fields.RegexField(
-        r'^\+?[0-9 .-]{4,25}$',
+        r'^\+?[ 0-9.\-]{4,25}$',
         label="Phone number",
         error_messages={'invalid': "Phone number have 4-25 digits and may start with '+'."},
         required=False,

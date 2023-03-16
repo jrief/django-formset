@@ -71,7 +71,7 @@ class DefaultContactCollection(FormCollection):
 
 class PhoneNumberForm(forms.Form):
     phone_number = fields.RegexField(
-        r'^[01+][0-9 .-]+$',
+        r'^[01+][ 0-9.\-]+$',
         label="Phone Number",
         min_length=2,
         max_length=20,
