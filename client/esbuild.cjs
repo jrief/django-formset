@@ -2,11 +2,15 @@ const inlineImportPlugin = require('./esbuild-plugin-inline-import');
 const path = require('path');
 const sass = require('sass');
 const { build } = require('esbuild');
+const buildOptions = require('yargs-parser')(process.argv.slice(2), {
+  boolean: ['debug', 'monolith'],
+});
 
 build({
-  entryPoints: ['client/django-formset.ts'],
+  entryPoints: [buildOptions.monolith ? 'client/django-formset.monolith.ts' : 'client/django-formset.ts'],
   bundle: true,
-  minify: true,
+  minify: !buildOptions.debug,
+  sourcemap: buildOptions.debug,
   outdir: 'formset/static/formset/js/',
   splitting: true,
   format: 'esm',
@@ -35,6 +39,5 @@ build({
     }),
   ],
   loader: {'.svg': 'text'},
-  sourcemap: true,
   target: ['es2020', 'chrome84', 'firefox84', 'safari14', 'edge84']
 }).catch(() => process.exit(1));
