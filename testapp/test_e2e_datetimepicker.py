@@ -7,7 +7,8 @@ from django.forms import fields, forms
 from django.utils.timezone import datetime
 from django.urls import path
 
-from formset.views import CalendarResponseMixin, FormView
+from formset.calendar import CalendarResponseMixin
+from formset.views import FormView
 from formset.widgets import DateTimePicker
 
 

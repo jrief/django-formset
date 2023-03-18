@@ -38,12 +38,12 @@ class UserContactForm(ModelForm):
         except ExtendUser.DoesNotExist:
             return {}
 
-    def construct_instance(self, main_object, data):
+    def construct_instance(self, main_object):
         try:
             extend_user = main_object.extend_user
         except ExtendUser.DoesNotExist:
             extend_user = ExtendUser(user=main_object)
-        form = UserContactForm(data=data, instance=extend_user)
+        form = UserContactForm(data=self.cleaned_data, instance=extend_user)
         if form.is_valid():
             construct_instance(form, extend_user)
             form.save()
@@ -63,13 +63,13 @@ class ContactsCollection(FormCollection):
         opts = self.declared_holders['contact']._meta
         return [{'contact': model_to_dict(contact, fields=opts.fields)} for contact in user.contacts.all()]
 
-    def construct_instance(self, user, data):
-        for data in data:
+    def construct_instance(self, user):
+        for data in self.cleaned_data:
             try:
                 contact_object = user.contacts.get(id=data['contact']['id'])
             except (KeyError, UserContact.DoesNotExist):
                 contact_object = UserContact(user=user)
-            form_class = self.declared_holders['contact'].__class__
+            form_class = self.valid_holders['contact'].__class__
             form = form_class(data=data['contact'], instance=contact_object)
             if form.is_valid():
                 if form.marked_for_removal:

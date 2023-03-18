@@ -245,12 +245,19 @@ class Company(models.Model):
         max_length=50,
     )
 
+    created_by = models.CharField(
+        editable=False,
+        max_length=40,
+        db_index=True,
+    )
+
     class Meta:
         verbose_name = "Company"
         verbose_name_plural = "Companies"
 
     def __str__(self):
         return self.name
+
 
 class Team(models.Model):
     name = models.CharField(
@@ -270,6 +277,7 @@ class Team(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Member(models.Model):
     name = models.CharField(

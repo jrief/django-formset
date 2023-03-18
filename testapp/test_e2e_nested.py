@@ -135,7 +135,7 @@ def test_nested_remove_inner_first(page, mocker, viewname):
                     'level3': [
                         {'campum': {
                             'agro': '' if viewname == 'nested' else 'dd',
-                            MARKED_FOR_REMOVAL: MARKED_FOR_REMOVAL
+                            MARKED_FOR_REMOVAL: True
                         }},
                         {'campum': {'agro': 'DD'}},
                         {'campum': {'agro': 'EE'}},

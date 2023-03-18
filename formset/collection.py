@@ -288,16 +288,16 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 object_data[name] = model_to_dict(main_object)
         return object_data
 
-    def construct_instance(self, main_object, cleaned_data):
+    def construct_instance(self, main_object):
         """
         Construct the main object and its related objects from the nested dictionary defined
         by `cleaned data`. Forms which do not correspond to the model given by the main object,
         are responsible themselves to store the corresponding data inside their related models.
         """
         assert self.is_valid(), f"Can not construct instance with invalid collection {self.__class__} object"
-        for name, holder in self.declared_holders.items():
+        for name, holder in self.valid_holders.items():
             if callable(getattr(holder, 'construct_instance', None)):
-                holder.construct_instance(main_object, self.cleaned_data[name])
+                holder.construct_instance(main_object)
             elif isinstance(holder, BaseModelForm):
                 opts = holder._meta
                 holder.cleaned_data = self.cleaned_data[name]

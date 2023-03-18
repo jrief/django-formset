@@ -22,10 +22,11 @@ from docutils.utils import new_document
 from docutils.parsers.rst import Parser
 from docutils.writers import get_writer_class
 
+from formset.calendar import CalendarResponseMixin
 from formset.utils import FormMixin
 from formset.views import (
-    CalendarResponseMixin, FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormViewMixin,
-    EditCollectionView
+    FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormCollectionViewMixin, FormViewMixin,
+    EditCollectionView, BulkEditCollectionView
 )
 
 from testapp.forms.address import AddressForm
@@ -43,7 +44,7 @@ from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_per
 from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.state import StateForm, StatesForm
-from testapp.forms.company import CompanyCollection
+from testapp.forms.company import CompanyCollection, CompaniesCollection
 from testapp.forms.user import UserCollection, UserListCollection
 from testapp.forms.upload import UploadForm
 from testapp.models import AdvertisementModel, Company, PersonModel, PollModel
@@ -113,7 +114,10 @@ class DemoViewMixin:
         context_data = super().get_context_data(**kwargs)
         if self.framework != 'default':
             context_data.update(framework=self.framework)
-        holder_class = self.collection_class if isinstance(self, (EditCollectionView, FormCollectionView)) else self.form_class
+        if isinstance(self, FormCollectionViewMixin):
+            holder_class = self.collection_class
+        else:
+            holder_class = self.form_class
         context_data.update(
             leaf_name=holder_class.__name__,
             **self.get_css_classes(),
@@ -245,9 +249,45 @@ class CompanyCollectionView(DemoFormCollectionViewMixin, EditCollectionView):
     collection_class = CompanyCollection
     template_name = 'testapp/form-collection.html'
 
+    def get_queryset(self):
+        if not self.request.session.session_key:
+            self.request.session.cycle_key()
+        queryset = super().get_queryset()
+        return queryset.filter(created_by=self.request.session.session_key)
+
     def get_object(self, queryset=None):
-        company = super().get_object(queryset)
-        return company
+        if queryset is None:
+            queryset = self.get_queryset()
+        return queryset.last()
+
+    def form_collection_valid(self, form_collection):
+        if not self.object:
+            self.object = self.model.objects.create(created_by=self.request.session.session_key)
+        return super().form_collection_valid(form_collection)
+
+
+class CompaniesCollectionView(DemoFormCollectionViewMixin, BulkEditCollectionView):
+    model = Company
+    collection_class = CompaniesCollection
+    template_name = 'testapp/form-collection.html'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if not self.request.session.session_key:
+            self.request.session.cycle_key()
+        return queryset.filter(created_by=self.request.session.session_key)
+
+    def form_collection_valid(self, form_collection):
+        response = super().form_collection_valid(form_collection)
+        # assign all instances to the current user
+        if not self.request.session.session_key:
+            self.request.session.cycle_key()
+        created_by = self.request.session.session_key
+        for holder in form_collection.valid_holders:
+            if holder['company'].instance.created_by != created_by:
+                holder['company'].instance.created_by = created_by
+                holder['company'].instance.save(update_fields=['created_by'])
+        return response
 
 
 demo_css_classes = {
@@ -489,7 +529,9 @@ urlpatterns = [
     path('pollcollection', DemoFormCollectionView.as_view(
         collection_class=PollCollection,
     ), kwargs={'group': 'collection', 'index': 18}, name='poll'),
-    path('company/<int:pk>/', CompanyCollectionView.as_view(),
+    path('company', CompanyCollectionView.as_view(),
+        kwargs={'group': 'collection', 'index': 18}, name='company'),
+    path('companies', CompaniesCollectionView.as_view(),
         kwargs={'group': 'collection', 'index': 18}, name='company'),
     path('user', UserCollectionView.as_view(
         collection_class=UserCollection

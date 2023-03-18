@@ -1,6 +1,8 @@
 import json
 
+from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
+from django.db.models import QuerySet
 from django.http.response import HttpResponseBadRequest, JsonResponse
 from django.utils.encoding import force_str
 from django.utils.functional import cached_property
@@ -8,7 +10,6 @@ from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormView as GenericFormView
 
-from formset.calendar import CalendarResponseMixin
 from formset.upload import FileUploadMixin
 from formset.widgets import DualSelector, Selectize
 
@@ -211,7 +212,8 @@ class FormCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCol
     pass
 
 
-class EditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, SingleObjectMixin, TemplateResponseMixin, View):
+class EditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, SingleObjectMixin,
+                         TemplateResponseMixin, View):
     """
     View for editing a class inheriting from `FormCollection` which binds to a single object.
     """
@@ -233,5 +235,53 @@ class EditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCol
 
     def form_collection_valid(self, form_collection):
         with transaction.atomic():
-            form_collection.construct_instance(self.object, form_collection.cleaned_data)
+            form_collection.construct_instance(self.object)
+        return super().form_collection_valid(form_collection)
+
+
+class BulkEditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin,
+                             TemplateResponseMixin, View):
+    """
+    View for editing a class inheriting from `FormCollection` which binds to multiple objects.
+    """
+    queryset = None
+    model = None
+    ordering = None
+
+    def get_ordering(self):
+        return self.ordering
+
+    def get_queryset(self):
+        if self.queryset is not None:
+            queryset = self.queryset
+            if isinstance(queryset, QuerySet):
+                queryset = queryset.all()
+        elif self.model is not None:
+            queryset = self.model._default_manager.all()
+        else:
+            class_name = self.__class__.__name__
+            raise ImproperlyConfigured(
+                f"{class_name} is missing a QuerySet. {class_name}.model, {class_name}.queryset, or override "
+                f"{class_name}.get_queryset()."
+            )
+        if ordering := self.get_ordering():
+            if isinstance(ordering, str):
+                ordering = (ordering,)
+            queryset = queryset.order_by(*ordering)
+        return queryset
+
+    def get_initial(self):
+        collection_class = self.get_collection_class()
+        initial = []
+        for object in self.get_queryset():
+            initial.append(collection_class().model_to_dict(object))
+        return initial
+
+    def form_collection_valid(self, form_collection):
+        if not callable(getattr(form_collection, 'construct_instances', None)):
+            raise ImproperlyConfigured(
+                f"{form_collection.__class__.__name__} is missing a method 'construct_instances'"
+            )
+        with transaction.atomic():
+            form_collection.construct_instances()
         return super().form_collection_valid(form_collection)

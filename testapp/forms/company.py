@@ -7,6 +7,11 @@ from testapp.models import Company, Member, Team
 
 
 class CompanyForm(ModelForm):
+    id = fields.IntegerField(
+        required=False,
+        widget=widgets.HiddenInput,
+    )
+
     class Meta:
         model = Company
         fields = '__all__'
@@ -35,8 +40,6 @@ class MemberForm(ModelForm):
 
 
 class MemberCollection(FormCollection):
-    ''' 2nd level - This level DOES NOT work - there are no initial member-forms
-    '''
     min_siblings = 0
     member = MemberForm()
     add_label = "Add Member"
@@ -46,70 +49,91 @@ class MemberCollection(FormCollection):
         return [{'member': model_to_dict(member, fields=fields)}
                 for member in team.members.all()]
 
-    def construct_instance(self, team, cleaned_data):
-        for data in cleaned_data:
+    def construct_instance(self, team):
+        for holder in self.valid_holders:
+            member_form = holder['member']
+            instance = member_form.instance
+            id = member_form.cleaned_data.get('id') or 0
             try:
-                member = team.members.get(id=data['member']['id'])
-            except (KeyError, Member.DoesNotExist):
-                member = Member(team=team)
-            form_class = self.declared_holders['member'].__class__
-            form = form_class(data=data['member'], instance=member)
-            if form.is_valid():
-                if form.marked_for_removal:
-                    member.delete()
+                instance = Member.objects.get(id=id)
+            except Member.DoesNotExist:
+                instance.id = None
+                instance.team = team
+            else:
+                if member_form.marked_for_removal:
+                    instance.delete()
+                    continue
                 else:
-                    construct_instance(form, member)
-                    form.save()
+                    member_form.instance = instance
+            construct_instance(member_form, instance)
+            member_form.save()
 
 
 class TeamCollection(FormCollection):
-    """ 1st level - This level works - saved objects are rendered
-    """
     min_siblings = 0
     team = TeamForm()
     members = MemberCollection()
+    legend = "Team"
     add_label = "Add Team"
 
     def model_to_dict(self, company):
         fields = self.declared_holders['team']._meta.fields
-        return  [{'team': model_to_dict(team, fields=fields)}
-            for team in company.teams.all()]
+        data = []
+        for team in company.teams.all():
+            data.append({
+                'team': model_to_dict(team, fields=fields),
+                'members': self.declared_holders['members'].model_to_dict(team),
+            })
+        return data
 
-    def construct_instance(self, company, cleaned_data):
-        for data in cleaned_data:
+    def construct_instance(self, company):
+        for holder in self.valid_holders:
+            team_form = holder['team']
+            instance = team_form.instance
+            id = team_form.cleaned_data['id'] or 0
             try:
-                team = company.teams.get(id=data['team']['id'])
-            except (KeyError, Team.DoesNotExist):
-                team = Team(company=company)
-            form_class = self.declared_holders['team'].__class__
-            form = form_class(data=data['team'], instance=team)
-            if form.is_valid():
-                if form.marked_for_removal:
-                    team.delete()
+                instance = Team.objects.get(id=id)
+            except Team.DoesNotExist:
+                instance.id = None
+                instance.company = company
+            else:
+                if team_form.marked_for_removal:
+                    instance.delete()
+                    continue
                 else:
-                    construct_instance(form, team)
-                    form.save()
+                    team_form.instance = instance
+            construct_instance(team_form, instance)
+            team_form.save()
+            holder['members'].construct_instance(instance)
 
 
 class CompanyCollection(FormCollection):
-    """ 0 level - Main edited object
-    """
-    form = CompanyForm()
+    company = CompanyForm()
     teams = TeamCollection()
 
-    def construct_instance(self, company, cleaned_data):
-        super().construct_instance(company, cleaned_data)
-        return
-        for data in cleaned_data:
+
+class CompaniesCollection(FormCollection):
+    company = CompanyForm()
+    teams = TeamCollection()
+    min_siblings = 1
+    legend = "Company"
+    add_label = "Add Company"
+
+    def construct_instances(self):
+        for holder in self.valid_holders:
+            company_form = holder['company']
+            instance = company_form.instance
+            id = company_form.cleaned_data['id'] or 0
             try:
-                team = company.teams.get(id=data['team']['id'])
-            except (KeyError, Team.DoesNotExist):
-                team = Team(company=company)
-            form_class = self.declared_holders['team'].__class__
-            form = form_class(data=data['team'], instance=team)
-            if form.is_valid():
-                if form.marked_for_removal:
-                    team.delete()
+                instance = Company.objects.get(id=id)
+            except Company.DoesNotExist:
+                instance.id = None
+            else:
+                if company_form.marked_for_removal:
+                    instance.delete()
+                    continue
                 else:
-                    construct_instance(form, team)
-                    form.save()
+                    company_form.instance = instance
+            construct_instance(company_form, instance)
+            company_form.save()
+            holder['teams'].construct_instance(instance)
