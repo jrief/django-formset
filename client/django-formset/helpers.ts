@@ -19,10 +19,18 @@ export namespace StyleHelpers {
 		document.head.appendChild(styleElement);
 		for (let index = 0; index < numStyleSheets; index++) {
 			const sheet = document.styleSheets[index];
-			for (let k = 0; k < sheet.cssRules.length; k++) {
-				const cssRule = sheet.cssRules.item(k);
-				if (cssRule) {
-					traverseStyles(cssRule, styleElement.sheet as CSSStyleSheet);
+			try {
+				for (let k = 0; k < sheet.cssRules.length; k++) {
+					const cssRule = sheet.cssRules.item(k);
+					if (cssRule) {
+						traverseStyles(cssRule, styleElement.sheet as CSSStyleSheet);
+					}
+				}
+			} catch (e) {
+				if (e instanceof DOMException) {
+					console.warn('Could not read stylesheet, try adding crossorigin="anonymous"', sheet, e)
+				} else {
+					throw e;
 				}
 			}
 		}
@@ -31,10 +39,18 @@ export namespace StyleHelpers {
 
 	function traverseStyles(cssRule: CSSRule, extraCSSStyleSheet: CSSStyleSheet) {
 		if (cssRule instanceof CSSImportRule) {
-			if (!cssRule.styleSheet)
-				return;
-			for (let subRule of cssRule.styleSheet.cssRules) {
-				traverseStyles(subRule, extraCSSStyleSheet);
+			try {
+				if (!cssRule.styleSheet)
+					return;
+				for (let subRule of cssRule.styleSheet.cssRules) {
+					traverseStyles(subRule, extraCSSStyleSheet);
+				}
+			} catch (e) {
+				if (e instanceof DOMException) {
+					console.warn('Could not traverse CSS import', cssRule, e)
+				} else {
+					throw e;
+				}
 			}
 		} else if (cssRule instanceof CSSStyleRule) {
 			if (!cssRule.selectorText)
