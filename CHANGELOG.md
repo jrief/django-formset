@@ -1,5 +1,13 @@
 ## Changes
 
+- 0.13.4
+  * Fix: On the Javascript console, library TonSelect complained to be initialized already, if more
+    than one `Selectize` or `SelectizeMultiple` widget were used.
+  * Some valid Python regular expressions were rejected by the Javascript implementation when used
+    as pattern in a `RegexField`.
+  * When building the project, now one can use the comman line options `--debug` and `--monolith` to
+    control how the client code shall be generated.
+
 - 0.13.3
   * Fix initialization problem: Webcomponents loaded through templates in a FormCollection with
     multiple instances were not loaded.
