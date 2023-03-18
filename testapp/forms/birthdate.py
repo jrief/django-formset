@@ -9,25 +9,25 @@ from formset.widgets import DatePicker, DateTimePicker
 class BirthdateForm(forms.Form):
     birthdate = fields.DateField(
         label="Birthdate",
-        initial=datetime(1981, 7, 9, tzinfo=utc),
+        initial=datetime(2021, 7, 9, tzinfo=utc),
         widget=DatePicker(attrs={
             # 'date-format': 'iso',
-            'min': datetime(2023, 2, 28).isoformat()[:16],
-            'max': datetime(2023, 3, 15).isoformat()[:16],
+            # 'min': datetime(2023, 2, 28).isoformat()[:16],
+            'max': lambda: now().date(),
         }),
     )
 
     schedule = fields.DateTimeField(
         label="Schedule",
         widget=DateTimePicker(attrs={
-            #'min': lambda: (now() - timedelta(days=3)).isoformat()[:16],
-            #'max': lambda: (now() + timedelta(days=3)).isoformat()[:16],
+            # 'min': lambda: (now() - timedelta(days=3)).isoformat()[:16],
+            # 'max': lambda: (now() + timedelta(days=3)).isoformat()[:16],
             'step': timedelta(minutes=10),
-            'date-format': 'iso',
+            #'date-format': 'iso',
             #'local-time': '',
         }),
         required=False,
-        initial=datetime(2023, 2, 28, 9, 40, tzinfo=utc),
+        #initial=datetime(2023, 2, 28, 9, 40, tzinfo=utc),
     )
 
     def clean_birthdate(self):
