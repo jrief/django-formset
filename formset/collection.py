@@ -54,6 +54,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     default_renderer = None
     prefix = None
     template_name = 'formset/default/collection.html'
+    instance = None
     min_siblings = None
     max_siblings = None
     extra_siblings = None
@@ -63,13 +64,15 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     add_label = None
     ignore_marked_for_removal = None
 
-    def __init__(self, data=None, initial=None, renderer=None, prefix=None, min_siblings=None,
+    def __init__(self, data=None, initial=None, renderer=None, prefix=None, instance=None, min_siblings=None,
                  max_siblings=None, extra_siblings=None, is_sortable=None, legend=None, help_text=None):
         self.data = MultiValueDict() if data is None else data
         self.initial = initial
         if prefix is not None:
             self.prefix = prefix
         self._errors = None  # Stores the errors after `clean()` has been called.
+        if instance:
+            self.instance = instance
         if min_siblings is not None:
             self.min_siblings = min_siblings
         if max_siblings is not None:
@@ -270,39 +273,40 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             renderer = FormRenderer()
         return super().render(template_name, context, renderer)
 
-    def model_to_dict(self, main_object):
+    def model_to_dict(self, instance):
         """
-        Create initial data from a main object. This then is used to fill the initial data from all its child
-        collections and forms.
-        Forms which do not correspond to the model given by the main object, are themselves responsible to
-        access the proper referenced models.
+        Create initial data from a starting instance. This instance may be traversed recusively and shall be used to
+        fill the initial data for all its sub-collections and forms.
+        Forms which do not correspond to the model given by the starting instance, are themselves responsible to
+        access the proper referenced models by following the reverse relations through the given foreign keys.
         """
         object_data = {}
         for name, holder in self.declared_holders.items():
             if callable(getattr(holder, 'model_to_dict', None)):
-                object_data[name] = holder.model_to_dict(main_object)
+                object_data[name] = holder.model_to_dict(instance)
             elif isinstance(holder, BaseModelForm):
                 opts = holder._meta
-                object_data[name] = model_to_dict(main_object, opts.fields, opts.exclude)
+                object_data[name] = model_to_dict(instance, opts.fields, opts.exclude)
             else:
-                object_data[name] = model_to_dict(main_object)
+                object_data[name] = model_to_dict(instance)
         return object_data
 
-    def construct_instance(self, main_object):
+    def construct_instance(self, instance):
         """
-        Construct the main object and its related objects from the nested dictionary defined
-        by `cleaned data`. Forms which do not correspond to the model given by the main object,
-        are responsible themselves to store the corresponding data inside their related models.
+        Construct the main instance and all its related objects from the nested dictionary. This method may only be
+        called after the current form collection has been validated, usually by calling `is_valid`.
+        Forms which do not correspond to the model given by the main instance, are responsible themselves to store the
+        corresponding data inside their related models.
         """
-        assert self.is_valid(), f"Can not construct instance with invalid collection {self.__class__} object"
+        assert not self._errors, f"Can not construct instance with invalid collection {self.__class__} object"
         for name, holder in self.valid_holders.items():
             if callable(getattr(holder, 'construct_instance', None)):
-                holder.construct_instance(main_object)
+                holder.construct_instance(instance)
             elif isinstance(holder, BaseModelForm):
                 opts = holder._meta
                 holder.cleaned_data = self.cleaned_data[name]
-                holder.instance = main_object
-                construct_instance(holder, main_object, opts.fields, opts.exclude)
+                holder.instance = instance
+                construct_instance(holder, instance, opts.fields, opts.exclude)
                 holder.save()
 
     __str__ = render

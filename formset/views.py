@@ -189,6 +189,8 @@ class FormCollectionViewMixin(FormsetResponseMixin):
         if self.request.method in ('POST', 'PUT') and self.request.content_type == 'application/json':
             body = json.loads(self.request.body)
             kwargs.update(data=body.get('formset_data'))
+            if callable(getattr(self, 'get_object', None)):
+                kwargs.update(instance=self.get_object())
         return collection_class(**kwargs)
 
     def get_collection_class(self):
