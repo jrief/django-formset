@@ -7,11 +7,6 @@ from testapp.models import Company, Member, Team
 
 
 class CompanyForm(ModelForm):
-    id = fields.IntegerField(
-        required=False,
-        widget=widgets.HiddenInput,
-    )
-
     class Meta:
         model = Company
         fields = '__all__'
@@ -111,9 +106,21 @@ class CompanyCollection(FormCollection):
     company = CompanyForm()
     teams = TeamCollection()
 
+    def full_clean(self):
+        self.declared_holders['company'].instance = self.instance
+        result = super().full_clean()
+        return result
+
+
+class CompanyPlusForm(CompanyForm):
+    id = fields.IntegerField(
+        required=False,
+        widget=widgets.HiddenInput,
+    )
+
 
 class CompaniesCollection(FormCollection):
-    company = CompanyForm()
+    company = CompanyPlusForm()
     teams = TeamCollection()
     min_siblings = 1
     legend = "Company"
@@ -137,3 +144,8 @@ class CompaniesCollection(FormCollection):
             construct_instance(company_form, instance)
             company_form.save()
             holder['teams'].construct_instance(instance)
+
+    def full_clean(self):
+        # self.declared_holders['company'].instance = self.instance
+        result = super().full_clean()
+        return result

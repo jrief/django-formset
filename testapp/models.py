@@ -243,6 +243,7 @@ class Company(models.Model):
     name = models.CharField(
         verbose_name="Company Name",
         max_length=50,
+        unique=True,
     )
 
     created_by = models.CharField(

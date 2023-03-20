@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
             name='Company',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, verbose_name='Company Name')),
+                ('name', models.CharField(max_length=50, unique=True, verbose_name='Company Name')),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
             ],
             options={
