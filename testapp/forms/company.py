@@ -102,9 +102,6 @@ class CompanyCollection(FormCollection):
     company = CompanyForm()
     teams = TeamCollection()
 
-    def assign_instance(self):
-        self.declared_holders['company'].instance = self.instance
-
 
 class CompanyPlusForm(CompanyForm):
     id = fields.IntegerField(
