@@ -201,11 +201,13 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             self.valid_holders = []
             self._errors = ErrorList()
             for index, data in enumerate(self.data):
+                instance = self.retrieve_instance(data)
                 valid_holders = {}
                 for name, declared_holder in self.declared_holders.items():
                     if name in data:
                         holder = declared_holder.replicate(
                             data=data[name],
+                            instance=instance,
                             ignore_marked_for_removal=self.ignore_marked_for_removal,
                         )
                         if holder.ignore_marked_for_removal and MARKED_FOR_REMOVAL in holder.data:
@@ -230,6 +232,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 self._errors.clear()
                 self._errors.append({COLLECTION_ERRORS: ["Too many siblings."]})
         else:
+            self.assign_instance()
             self.valid_holders = {}
             self._errors = ErrorDict()
             for name, declared_holder in self.declared_holders.items():
@@ -245,6 +248,16 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 else:
                     # can only happen, if client bypasses browser control
                     self._errors.update({name: {NON_FIELD_ERRORS: ["Form data is missing."]}})
+
+    def assign_instance(self):
+        """
+        Hook to assign the main object of to a single object collection.
+        """
+
+    def retrieve_instance(self, data):
+        """
+        Hook to retrieve the main object for a multi object collection.
+        """
 
     def clean(self):
         return self.cleaned_data

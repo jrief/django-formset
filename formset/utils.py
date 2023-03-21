@@ -39,7 +39,7 @@ class HolderMixin:
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def replicate(self, data=None, initial=None, prefix=None, renderer=None, ignore_marked_for_removal=None):
+    def replicate(self, data=None, initial=None, prefix=None, instance=None, renderer=None, ignore_marked_for_removal=None):
         replica = copy.copy(self)
         if hasattr(self, 'declared_holders'):
             replica.declared_holders = {
@@ -61,6 +61,8 @@ class HolderMixin:
             replica.initial = initial
         if prefix:
             replica.prefix = prefix
+        if instance:
+            replica.instance = instance
         if ignore_marked_for_removal is not None:
             replica.ignore_marked_for_removal = ignore_marked_for_removal
         if isinstance(replica.renderer, FormRenderer):

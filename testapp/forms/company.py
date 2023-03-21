@@ -106,10 +106,8 @@ class CompanyCollection(FormCollection):
     company = CompanyForm()
     teams = TeamCollection()
 
-    def full_clean(self):
+    def assign_instance(self):
         self.declared_holders['company'].instance = self.instance
-        result = super().full_clean()
-        return result
 
 
 class CompanyPlusForm(CompanyForm):
@@ -145,7 +143,9 @@ class CompaniesCollection(FormCollection):
             company_form.save()
             holder['teams'].construct_instance(instance)
 
-    def full_clean(self):
-        # self.declared_holders['company'].instance = self.instance
-        result = super().full_clean()
-        return result
+    def retrieve_instance(self, data):
+        if data := data.get('company'):
+            try:
+                return Company.objects.get(id=data.get('id') or 0)
+            except Company.DoesNotExist:
+                return Company(name=data.get('name'))
