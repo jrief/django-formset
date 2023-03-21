@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-02 08:26+0200\n"
+"POT-Creation-Date: 2023-03-21 08:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,36 +18,155 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: boundfield.py:115
+#: boundfield.py:160
 msgid "At least one checkbox must be selected."
 msgstr "Mindestens ein Kontrollkästchen muss aktiv sein."
 
-#: boundfield.py:132
+#: boundfield.py:177
 #, python-format
 msgid "Ensure this value has at most %(max_length)s characters."
 msgstr ""
 "Bitte sicherstellen, dass der Wert aus höchstens %(max_length)s Zeichen "
 "besteht."
 
-#: boundfield.py:139
+#: boundfield.py:184
 #, python-format
 msgid "Ensure this value has at least %(min_length)s characters."
 msgstr ""
 "Bitte sicherstellen, dass der Wert aus mindestens %(min_length)s Zeichen "
 "besteht."
 
-#: boundfield.py:153
+#: boundfield.py:198
 #, python-brace-format
 msgid "Input value must be a multiple of {step_value}."
-msgstr "Bitte sicherstellen, dass der Wert aus einem Vielfachen von {step_value} besteht."
+msgstr ""
+"Bitte sicherstellen, dass der Wert aus einem Vielfachen von {step_value} "
+"besteht."
 
-#: boundfield.py:162
+#: boundfield.py:207
 msgid "File upload still in progress."
 msgstr "Datei wird noch immer hochgeladen."
 
-#: boundfield.py:163
+#: boundfield.py:208
 msgid "File upload failed."
 msgstr "Datei-Upload ist fehlgeschlagen."
+
+#: richtext/controls.py:29
+#: templates/formset/default/buttons/richtext_heading.html:4
+#: templates/formset/default/buttons/richtext_heading.html:7
+#: templates/formset/default/buttons/richtext_heading.html:8
+msgid "Heading"
+msgstr "Überschrift"
+
+#: richtext/controls.py:47
+msgid "Bold"
+msgstr "Fett"
+
+#: richtext/controls.py:52
+msgid "Italic"
+msgstr "Kursiv"
+
+#: richtext/controls.py:57
+msgid "Underline"
+msgstr "Unterstrichen"
+
+#: richtext/controls.py:62
+msgid "Bullet List"
+msgstr "Stichwortliste"
+
+#: richtext/controls.py:67
+msgid "Ordered List"
+msgstr "Aufzählungsliste"
+
+#: richtext/controls.py:72
+msgid "Horizontal Rule"
+msgstr "Horizontale Linie"
+
+#: richtext/controls.py:77
+msgid "Clear Format"
+msgstr "Format zurücksetzen"
+
+#: richtext/controls.py:82
+msgid "Undo"
+msgstr "Rückgängig machen"
+
+#: richtext/controls.py:87
+msgid "Redo"
+msgstr "Nochmals machen"
+
+#: richtext/controls.py:92 richtext/dialogs.py:31
+msgid "Link"
+msgstr ""
+
+#: richtext/controls.py:98 richtext/dialogs.py:42
+msgid "Image"
+msgstr "Bild"
+
+#: richtext/controls.py:103
+msgid "Separator"
+msgstr "Trennzeichen"
+
+#: richtext/dialogs.py:22
+msgid "Edit Link"
+msgstr "Link ändern"
+
+#: richtext/dialogs.py:27
+msgid "Text"
+msgstr ""
+
+#: richtext/dialogs.py:37
+msgid "Edit Image"
+msgstr "Bild ändern"
+
+#: templates/calendar/hours.html:3
+msgid "Previous day"
+msgstr "Vorhergehender Tag"
+
+#: templates/calendar/hours.html:6 templates/calendar/months.html:9
+#: templates/calendar/weeks.html:6
+msgid "Extend period"
+msgstr "Zeitraum erweitern"
+
+#: templates/calendar/hours.html:9 templates/calendar/months.html:12
+#: templates/calendar/weeks.html:9 templates/calendar/years.html:12
+msgid "Today"
+msgstr "Heute"
+
+#: templates/calendar/hours.html:12
+msgid "Next day"
+msgstr "Nächster Tag"
+
+#: templates/calendar/months.html:3
+msgid "Previous year"
+msgstr "Vorhergehendes Jahr"
+
+#: templates/calendar/months.html:6
+msgid "Narrow down to weeks view"
+msgstr "Auf Wochenansicht einschränken"
+
+#: templates/calendar/months.html:15
+msgid "Next year"
+msgstr "Nächstes Jahr"
+
+#: templates/calendar/weeks.html:3
+msgid "Previous month"
+msgstr "Vorhergehender Monat"
+
+#: templates/calendar/weeks.html:12
+msgid "Next month"
+msgstr "Nächster Monat"
+
+#: templates/calendar/years.html:3
+msgid "Previous epoch"
+msgstr "Vorhergehende Epoche"
+
+#: templates/calendar/years.html:6
+msgid "Narrow down to months view"
+msgstr "Auf Jahresansicht einschränken"
+
+#: templates/calendar/years.html:15
+msgid "Next epoch"
+msgstr "Nächste Epoche"
 
 #: templates/formset/bootstrap/widgets/file.html:5
 #: templates/formset/bulma/widgets/file.html:5
@@ -95,8 +214,8 @@ msgstr "Herunterladen"
 
 #: templates/formset/bulma/widgets/dual_selector.html:6
 #: templates/formset/bulma/widgets/dual_selector.html:30
-#: templates/formset/default/widgets/dual_selector.html:16
-#: templates/formset/default/widgets/dual_selector.html:34
+#: templates/formset/default/widgets/dual_selector.html:11
+#: templates/formset/default/widgets/dual_selector.html:29
 msgid "Search …"
 msgstr "Suche …"
 
@@ -132,7 +251,7 @@ msgstr "Entfernen"
 msgid "Undo selected"
 msgstr "Wiederherstellen"
 
-#: templates/formset/default/widgets/dual_selector.html:9
+#: templates/formset/default/widgets/dual_selector.html:4
 #: templates/formset/default/widgets/selectize.html:15
 #, python-brace-format
 msgid "No results found for '${input}'"
@@ -154,6 +273,6 @@ msgstr "Größe"
 msgid "Remove item"
 msgstr "Entferne Option"
 
-#: widgets.py:83
+#: widgets.py:184
 msgid "Select"
 msgstr "Auswählen"
