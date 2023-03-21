@@ -44,22 +44,20 @@ class MemberCollection(FormCollection):
         return [{'member': model_to_dict(member, fields=fields)}
                 for member in team.members.all()]
 
+    def retrieve_instance(self, data):
+        if data := data.get('member'):
+            try:
+                return self.instance.members.get(id=data.get('id') or 0)
+            except Member.DoesNotExist:
+                return Member(name=data.get('name'), team=self.instance)
+
     def construct_instance(self, team):
         for holder in self.valid_holders:
             member_form = holder['member']
             instance = member_form.instance
-            id = member_form.cleaned_data.get('id') or 0
-            try:
-                instance = Member.objects.get(id=id)
-            except Member.DoesNotExist:
-                instance.id = None
-                instance.team = team
-            else:
-                if member_form.marked_for_removal:
-                    instance.delete()
-                    continue
-                else:
-                    member_form.instance = instance
+            if member_form.marked_for_removal:
+                instance.delete()
+                continue
             construct_instance(member_form, instance)
             member_form.save()
 
@@ -81,22 +79,20 @@ class TeamCollection(FormCollection):
             })
         return data
 
+    def retrieve_instance(self, data):
+        if data := data.get('team'):
+            try:
+                return self.instance.teams.get(id=data.get('id') or 0)
+            except Team.DoesNotExist:
+                return Team(name=data.get('name'), company=self.instance)
+
     def construct_instance(self, company):
         for holder in self.valid_holders:
             team_form = holder['team']
             instance = team_form.instance
-            id = team_form.cleaned_data['id'] or 0
-            try:
-                instance = Team.objects.get(id=id)
-            except Team.DoesNotExist:
-                instance.id = None
-                instance.company = company
-            else:
-                if team_form.marked_for_removal:
-                    instance.delete()
-                    continue
-                else:
-                    team_form.instance = instance
+            if team_form.marked_for_removal:
+                instance.delete()
+                continue
             construct_instance(team_form, instance)
             team_form.save()
             holder['members'].construct_instance(instance)
@@ -124,28 +120,20 @@ class CompaniesCollection(FormCollection):
     legend = "Company"
     add_label = "Add Company"
 
-    def construct_instances(self):
-        for holder in self.valid_holders:
-            company_form = holder['company']
-            instance = company_form.instance
-            id = company_form.cleaned_data['id'] or 0
-            try:
-                instance = Company.objects.get(id=id)
-            except Company.DoesNotExist:
-                instance.id = None
-            else:
-                if company_form.marked_for_removal:
-                    instance.delete()
-                    continue
-                else:
-                    company_form.instance = instance
-            construct_instance(company_form, instance)
-            company_form.save()
-            holder['teams'].construct_instance(instance)
-
     def retrieve_instance(self, data):
         if data := data.get('company'):
             try:
                 return Company.objects.get(id=data.get('id') or 0)
             except Company.DoesNotExist:
                 return Company(name=data.get('name'))
+
+    def construct_instances(self):
+        for holder in self.valid_holders:
+            company_form = holder['company']
+            instance = company_form.instance
+            if company_form.marked_for_removal:
+                instance.delete()
+                continue
+            construct_instance(company_form, instance)
+            company_form.save()
+            holder['teams'].construct_instance(instance)
