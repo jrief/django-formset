@@ -3,7 +3,7 @@ from time import sleep
 from django.core.exceptions import ValidationError
 from django.forms import fields, forms, models, widgets
 
-from formset.widgets import Selectize, SelectizeMultiple, UploadedFileInput
+from formset.widgets import DateInput, Selectize, SelectizeMultiple, UploadedFileInput
 
 from testapp.models import PersonModel
 
@@ -143,7 +143,7 @@ class ModelPersonForm(models.ModelForm):
         widgets = {
             'avatar': UploadedFileInput,
             'gender': widgets.RadioSelect,
-            'birth_date': widgets.DateInput,
+            'birth_date': DateInput,
             'opinion': Selectize(search_lookup='label__icontains'),
             'opinions': SelectizeMultiple(search_lookup='label__icontains', max_items=15),
         }
