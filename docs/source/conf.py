@@ -13,9 +13,10 @@
 import datetime
 import os
 import sys
+from django.conf import settings
 sys.path.insert(0, os.path.abspath(os.path.join(os.pardir, os.pardir)))
 from formset import __version__ as release  # noqa
-
+settings.configure()
 
 # -- Project information -----------------------------------------------------
 
@@ -29,6 +30,7 @@ author = 'Jacob Rief'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx.ext.autodoc',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

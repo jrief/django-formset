@@ -7,6 +7,10 @@ from formset.boundfield import ClassList
 
 
 class FormRenderer(DjangoTemplates):
+    """
+    The form renderer used for the proper representation of elements from **django-formset**.
+    """
+
     max_options_per_line = 0  # for multiple checkboxes and radio-selects
     exempt_feedback = False  # if True, exempt rendered field from feedback
     framework = 'default'

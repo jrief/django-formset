@@ -12,7 +12,7 @@ replace the default form renderer with an alternative one.
 .. _renderer: https://docs.djangoproject.com/en/4.0/ref/forms/renderers/#the-low-level-render-api
 
 Form Grid Example
------------------
+=================
 
 Say, we have a form to ask for the recipient's address:
 
@@ -54,14 +54,14 @@ Usually we prefer to keep the postal code and the destination city on the same r
 with the Bootstrap framework, we therefore want to use the `form grid`_ for form layouts that
 require multiple columns, varied widths, and additional alignment options.
 We therefore have to add the CSS classes ``row`` and ``col-XX`` to the wrapping elements, while
-rendering the form. One possibility would be to create a template and style each field individually;
-this is the method described in :ref:`field_by_field`. This however requires creating a template for
-each form, which contradicts the DRY-principle.
+rendering the form. One possibility would be to create a template and style each field individually,
+which is the procedure described in :ref:`field_by_field`. This however requires creating a template
+for each form, which contradicts the DRY-principle.
 
 .. _form grid: https://getbootstrap.com/docs/5.2/forms/layout/#form-grid
 
 We therefore parametrize the provided renderer class. For each supported CSS framework, there is a
-Form Renderer. For Bootstrap, that class can be found at
+specialized `FormRenderer` class. For Bootstrap, that class can be found at
 :class:`formset.renderers.bootstrap.FormRenderer`.
 
 We now can add that renderer to the above form class and parametrize it as follows
@@ -93,7 +93,7 @@ are not explicitly listed in that dictionary.
 
 
 Inline Form Example
--------------------
+===================
 
 By using slightly different parameters, a form can be rendered with labels and input fields side
 by side, rather than beneath each other. This can simply be achieved by replacing the form renderer
@@ -129,3 +129,11 @@ The same effect can be achieved by rendering this form, parametrizing our well k
 	    <button type="button" click="reset" class="ms-2 btn btn-warning">Reset to initial</button>
 	  </div>
 	</django-formset>
+
+
+API
+===
+
+**django-formset** provides a form renderer for each supported framework.
+
+.. autoclass:: formset.renderers.default.FormRenderer
