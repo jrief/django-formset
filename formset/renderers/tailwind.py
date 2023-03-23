@@ -106,6 +106,8 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox.html': _amend_checkbox,
         'django/forms/widgets/checkbox_select.html': _amend_checkbox_select,
         'django/forms/widgets/radio.html': _amend_radio,
+        'formset/default/widgets/datepicker.html': _amend_date_input,
+        'formset/default/widgets/datetimepicker.html': _amend_date_input,
         'formset/default/widgets/selectize.html': _amend_select,
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,
         'formset/default/fieldset.html': _amend_fieldset,
