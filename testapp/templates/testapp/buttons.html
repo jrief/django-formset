@@ -1,4 +1,4 @@
 <p>
-	<button type="button" click="{% if click_actions %}{{ click_actions }}{% else %}disable -> submit -> proceed !~ scrollToError{% endif %}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="button">Submit&ensp;<span class="dj-button-decorator"><i class="dj-icon">{% include "formset/icons/send.svg" %}</i></span></button>
+	<button type="button" click="{{ click_actions }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="button">Submit&ensp;<span class="dj-button-decorator"><i class="dj-icon">{% include "formset/icons/send.svg" %}</i></span></button>
 	<button type="button" click="reset">Reset to initial&ensp;<span class="dj-button-decorator"><i class="dj-icon">{% include "formset/icons/delete-back.svg" %}</i></button>
 </p>

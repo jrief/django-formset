@@ -146,6 +146,9 @@ class DemoViewMixin:
 
 class DemoFormViewMixin(DemoViewMixin, CalendarResponseMixin, IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin):
     template_name = 'testapp/native-form.html'
+    extra_context = {
+        'click_actions': 'disable -> submit -> reload !~ scrollToError'
+    }
     extra_doc = None
 
     def form_valid(self, form):
