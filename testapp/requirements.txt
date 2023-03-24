@@ -1,9 +1,9 @@
 alabaster==0.7.12
-asgiref==3.5.2
+asgiref==3.6.0
 attrs==21.4.0
 Babel==2.10.1
 beautifulsoup4==4.11.1
-certifi==2022.5.18.1
+certifi==2022.12.7
 charset-normalizer==2.0.12
 coverage==6.4.1
 docutils==0.18.1
@@ -16,8 +16,8 @@ Jinja2==3.1.2
 MarkupSafe==2.1.1
 mccabe==0.6.1
 packaging==21.3
-Pillow==9.1.1
-playwright==1.29.0
+Pillow==9.4.0
+playwright==1.31.1
 pluggy==1.0.0
 py==1.11.0
 pycodestyle==2.8.0
@@ -25,10 +25,12 @@ pyee==9.0.4
 pyflakes==2.4.0
 Pygments==2.12.0
 pyparsing==3.0.9
-pytest==7.1.2
-pytest-cov==3.0.0
+pytest==7.2.2
+pytest-base-url==2.0.0
 pytest-django==4.5.2
+pytest-cov==3.0.0
 pytest-mock==3.7.0
+pytest-playwright==0.3.2
 pytz==2022.1
 requests==2.27.1
 snowballstemmer==2.2.0

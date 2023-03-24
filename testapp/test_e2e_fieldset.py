@@ -13,6 +13,7 @@ urlpatterns = [
         collection_class=CustomerCollection,
         template_name='testapp/form-collection.html',
         success_url='/success',
+        extra_context = {'click_actions': 'submit -> proceed'},
     ), name='customer'),
 ]
 

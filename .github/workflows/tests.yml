@@ -10,6 +10,7 @@ on:
   pull_request:
     branches:
       - main
+      - version_1
     paths-ignore:
       - '**.md'
       - '**.rst'
@@ -20,7 +21,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
-        django-version: ["4.0.*", "4.1.*"]
+        django-version: ["4.0.*", "4.1.*", "4.2.*"]
         include:
           - node-version: "16.x"
           - build-client: "esbuild"
@@ -42,7 +43,7 @@ jobs:
       run: |
         npm install --include=dev
         python -m pip install --upgrade pip
-        python -m pip install "Django==${{ matrix.django-version }}"
+        python -m pip install --pre "Django==${{ matrix.django-version }}"
         python -m pip install -r testapp/requirements.txt
         playwright install
     - name: Build Parser

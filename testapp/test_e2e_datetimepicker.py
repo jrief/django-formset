@@ -3,6 +3,7 @@ from time import sleep
 import pytest
 from playwright.sync_api import expect
 
+from django import VERSION as DJANGO_VERSION
 from django.forms import fields, forms
 from django.utils.timezone import datetime
 from django.urls import path
@@ -259,8 +260,12 @@ def test_datetimepicker_i18n(page, settings, viewname, language):
         expect(title).to_have_text("février 2023")
         expect(wednesday).to_have_text("mer")
     elif language == 'es':
-        expect(title).to_have_text("febrero 2023")
-        expect(wednesday).to_have_text("mié")
+        if DJANGO_VERSION < (4, 1):
+            expect(title).to_have_text("Febrero 2023")
+            expect(wednesday).to_have_text("Mié")
+        else:
+            expect(title).to_have_text("febrero 2023")
+            expect(wednesday).to_have_text("mié")
     elif language == 'pt':
         expect(title).to_have_text("Fevereiro 2023")
         expect(wednesday).to_have_text("Qua")

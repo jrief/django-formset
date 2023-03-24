@@ -33,6 +33,7 @@ class DemoFormView(FormView):
     template_name = 'testapp/native-form.html'
     form_class=FullNameForm
     success_url = '/success'
+    extra_context = {'click_actions': 'submit -> proceed'}
 
 
 urlpatterns = [
