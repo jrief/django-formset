@@ -1,7 +1,7 @@
-from datetime import timedelta
+from datetime import timedelta, timezone
 
 from django.forms import fields, forms
-from django.utils.timezone import datetime, now, utc
+from django.utils.timezone import datetime, now
 
 from formset.widgets import DatePicker, DateTimePicker
 
@@ -9,7 +9,7 @@ from formset.widgets import DatePicker, DateTimePicker
 class BirthdateForm(forms.Form):
     birthdate = fields.DateField(
         label="Birthdate",
-        initial=datetime(2021, 7, 9, tzinfo=utc),
+        initial=datetime(2021, 7, 9, tzinfo=timezone.utc),
         widget=DatePicker(attrs={
             # 'date-format': 'iso',
             # 'min': datetime(2023, 2, 28).isoformat()[:16],
