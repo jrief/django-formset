@@ -120,8 +120,10 @@ class DemoViewMixin:
             holder_class = self.form_class
         context_data.update(
             leaf_name=holder_class.__name__,
+            valid_formset_data=self.request.session.get('valid_formset_data'),
             **self.get_css_classes(),
         )
+        self.request.session.pop('valid_formset_data', None)
         if holder_class.__doc__:
             template = settings.BASE_DIR / 'testapp/templates/docutils.txt'
             writer = get_writer_class('html5')()
