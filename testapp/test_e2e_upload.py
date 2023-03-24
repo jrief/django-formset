@@ -170,9 +170,18 @@ def test_interupt_upload(page, viewname):
         sleep(0.01)
         route.abort()
 
+    client = page.context.new_cdp_session(page)
+    client.send('Network.enable')
+    network_conditions = {
+        'offline': False,
+        'downloadThroughput': 9999,
+        'uploadThroughput': 999,
+        'latency': 20
+    }
+    client.send('Network.emulateNetworkConditions', network_conditions)
     field_group = page.locator('django-formset django-field-group')
     page.context.route('/upload', handle_route)
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
-    sleep(0.02)
+    sleep(0.2)
     error_placeholder = field_group.locator('.dj-errorlist .dj-placeholder')
     expect(error_placeholder).to_have_text("File upload failed.")
