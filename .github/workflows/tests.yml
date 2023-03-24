@@ -29,7 +29,6 @@ jobs:
           - build-client: "rollup"
             python-version: "3.8"
             django-version: "4.0.*"
-            node-version: "14.x"
 
     steps:
     - uses: actions/checkout@v2
