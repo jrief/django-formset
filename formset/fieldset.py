@@ -48,7 +48,7 @@ class Fieldset(FieldsetMixin, forms.Form):
     be used as such. Its purpose is to add visual elements to a `<form>`. Remember, a Form is just a
     data-abstraction layer, has no display properties and is not intended to be styled or anotated.
     On the other side, a <fieldset> may offer a `<legend>`, a border and the possibility to
-    show/hide or disable a set of fields. A `HTMLFieldSetElement` however does not has any field
+    show/hide or disable a set of fields. A `HTMLFieldSetElement` however does not have any field
     validation functionality, this is left to the `HTMLFormElement`.
     """
     def __repr__(self):

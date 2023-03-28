@@ -191,7 +191,7 @@ class BoundField(boundfield.BoundField):
             client_messages['range_overflow'] = server_messages.get('max_value', validators.MaxValueValidator.message) % data
         try:
             step_value = float(self.field.widget.attrs['step'])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, ValueError):
             pass
         else:
             data = {'step_value': step_value}
