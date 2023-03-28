@@ -829,7 +829,7 @@ class Calendar extends Widget {
 		for (let k = 0; k < document.styleSheets.length; ++k) {
 			// prevent adding <styles> multiple times with the same content by checking if they already exist
 			const cssRule = document?.styleSheets?.item(k)?.cssRules?.item(0);
-			if (cssRule instanceof CSSStyleRule && cssRule.selectorText! === ':is([is="django-datepicker"], [is="django-datetimepicker"])')
+			if (cssRule instanceof CSSStyleRule && cssRule.selectorText!.startsWith(':is([is="django-datepicker"], [is="django-datetimepicker"])'))
 				return;
 		}
 		const declaredStyles = document.createElement('style');
