@@ -2,6 +2,7 @@ import json
 import pytest
 from playwright.sync_api import expect
 from time import sleep
+from timeit import default_timer as timer
 
 from django.core.exceptions import ValidationError
 from django.forms import fields, Form
@@ -103,19 +104,23 @@ def test_button_remove_class(page, viewname):
 @pytest.mark.parametrize('viewname', ['test_button_3'])
 def test_button_toggle_class(page, viewname):
     """
-    toggleClass("button") -> delay(50) -> toggleClass("foo") -> delay(50) -> toggleClass("bar") -> delay(50) -> toggleClass("foo") -> delay(50) -> toggleClass("bar") -> delay(50)
+    toggleClass("button") -> delay(100) -> toggleClass("foo") -> delay(100) -> toggleClass("bar") -> delay(100) -> toggleClass("foo") -> delay(100) -> toggleClass("bar")
     """
-    button = page.locator('django-formset button').first
+    formset = page.locator('django-formset')
+    button = formset.locator('button[auto-disable]')
+    expect(button).to_have_class('button')
+    start = timer()
     button.click()
-    sleep(0.02)
-    expect(button).not_to_have_class('button')
-    sleep(0.05)
-    expect(button).to_have_class('foo')
-    sleep(0.05)
-    expect(button).to_have_class('foo bar')
-    sleep(0.05)
-    expect(button).to_have_class('bar')
-    sleep(0.05)
+    formset.locator('button[auto-disable]:not(.button)').wait_for()
+    assert timer() - start < 0.1
+    formset.locator('button.foo').wait_for()
+    assert timer() - start > 0.1
+    formset.locator('button.foo.bar').wait_for()
+    assert timer() - start > 0.2
+    formset.locator('button:not(.foo).bar').wait_for()
+    assert timer() - start > 0.3
+    formset.locator('button[auto-disable]:not(.foo.bar)').wait_for()
+    assert timer() - start > 0.4
     expect(button).to_have_class('button')
 
 
