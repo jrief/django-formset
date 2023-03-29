@@ -11,7 +11,7 @@ from django.urls import path
 from django.views.generic import FormView as GenericFormView
 
 from formset.views import IncompleteSelectResponseMixin, FormViewMixin
-from formset.widgets import DualSelector, Selectize, SelectizeMultiple, DualSortableSelector
+from formset.widgets import DualSelector, Selectize, SelectizeMultiple
 
 from testapp.models import County, CountyUnnormalized, State
 
@@ -111,9 +111,9 @@ def test_one_preselection(page, mocker, viewname):
     assert county_field.evaluate('elem => elem.value') == ''
     spy = mocker.spy(NativeFormView, 'get')
     state_field.select_option(label="Georgia")
-    sleep(0.1)
+    sleep(0.25)
     expect(county_field.locator('option')).to_have_count(0)
-    assert spy.called is True
+    spy.assert_called()
     assert spy.spy_return.status_code == 200
     content = json.loads(spy.spy_return.content)
     spy.reset_mock()
@@ -136,9 +136,9 @@ def test_multi_preselections(page, mocker, viewname):
     assert counties_field.evaluate('elem => elem.value') == ''
     spy = mocker.spy(NativeFormView, 'get')
     states_field.select_option(label=["Texas", "New York", "Kansas"])
-    sleep(0.25)
+    sleep(0.5)
     expect(counties_field.locator('option')).to_have_count(0)
-    assert spy.called is True
+    spy.assert_called()
     assert spy.spy_return.status_code == 200
     content = json.loads(spy.spy_return.content)
     spy.reset_mock()
@@ -155,7 +155,7 @@ def test_multi_preselections(page, mocker, viewname):
     expect(dropdown_element.locator(f'div[data-selectable][data-value="{zapata_county.id}"]')).to_have_count(0)
     page.locator('django-formset .ts-control input').type("zap")
     sleep(0.5)
-    assert spy.called is True
+    spy.assert_called()
     assert spy.spy_return.status_code == 200
     content = json.loads(spy.spy_return.content)
     spy.reset_mock()
@@ -173,7 +173,7 @@ def test_many_preselections(page, mocker, viewname):
     spy = mocker.spy(NativeFormView, 'get')
     states_field.select_option(label=["Oregon", "Minnesota", "North Carolina", "Nebraska"])
     sleep(0.25)
-    assert spy.called is True
+    spy.assert_called()
     assert spy.spy_return.status_code == 200
     content = json.loads(spy.spy_return.content)
     spy.reset_mock()
