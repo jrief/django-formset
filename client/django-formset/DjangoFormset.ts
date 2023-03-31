@@ -198,13 +198,20 @@ class FieldGroup {
 	}
 
 	private evalVisibility(attribute: string, visible: boolean): Function | null {
+		function isTruthy(expression: any) : boolean {
+			// since empty arrays evaluate to true, implement separately to examine for existance
+			// when using the file upload widget. Check https://262.ecma-international.org/5.1/#sec-11.9.3
+			// for details.
+			return Array.isArray(expression) ? expression.length !== 0 : Boolean(expression);
+		}
+
 		const attrValue = this.fieldElements[0]?.getAttribute(attribute);
 		if (typeof attrValue !== 'string')
 			return null;
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
 			return () => {
-				const isHidden = visible != Boolean(evalExpression.call(this));
+				const isHidden = visible != isTruthy(evalExpression.call(this));
 				if (this.element.hasAttribute('hidden') !== isHidden) {
 					this.fieldElements.forEach((elem, index) => elem.disabled = isHidden || this.initialDisabled[index]);
 					this.element.toggleAttribute('hidden', isHidden);
