@@ -14,15 +14,17 @@
 	</button>
 </div>
 <div class="ranges" aria-label="weeks-view">
+{% block ranges %}
 	<ul class="weekdays">
-{% for abbr, weekday in calendar.weekdays %}
+	{% for abbr, weekday in calendar.weekdays %}
 		<li><abbr title="{{ weekday }}">{{ abbr }}</abbr></li>
-{% endfor %}
+	{% endfor %}
 	</ul>
 	<ul class="monthdays">
-{% for date, day, classes in calendar.monthdays %}
+	{% for date, day, classes in calendar.monthdays %}
 		<li data-date="{{ date }}"{% if classes %} class="{{ classes }}"{% endif %}>{{ day }}</li>
-{% endfor %}
+	{% endfor %}
 	</ul>
+{% endblock %}
 </div>
 {% endspaceless %}

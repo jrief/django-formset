@@ -1,0 +1,14 @@
+{% extends "calendar/weeks.html" %}
+
+{% block ranges %}{% spaceless %}
+	<ul class="weekdays">
+	{% for abbr, weekday in calendar.weekdays %}
+		<li><abbr title="{{ weekday }}">{{ abbr }}</abbr></li>
+	{% endfor %}
+	</ul>
+	<ul class="monthdays">
+	{% for date, day, classes, phase in calendar.monthdays %}
+		<li data-date="{{ date }}"{% if classes %} class="{{ classes }}"{% endif %}>{{ phase }} <sub>{{ day }}</sub></li>
+	{% endfor %}
+	</ul>
+{% endspaceless %}{% endblock %}

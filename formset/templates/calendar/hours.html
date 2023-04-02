@@ -14,21 +14,23 @@
 	</button>
 </div>
 <div class="ranges" aria-label="hours-view">
-{% for shift in calendar.shifts %}
+{% block ranges %}
+	{% for shift in calendar.shifts %}
 	<ul class="hours">
-	{% for datetime, hour, minutes in shift %}
+		{% for datetime, hour, minutes in shift %}
 		<li {% if minutes %}aria-label{% else %}data-date{% endif %}="{{ datetime }}">{{ hour }}h</li>
-	{% endfor %}
+		{% endfor %}
 	</ul>
-	{% for datetime, hour, minutes in shift %}
-		{% if minutes %}
+		{% for datetime, hour, minutes in shift %}
+			{% if minutes %}
 	<ul class="minutes" aria-labelledby="{{ datetime }}" hidden>
-			{% for datetime, minute in minutes %}
+				{% for datetime, minute in minutes %}
 		<li data-date="{{ datetime }}">{{ minute }}</li>
-			{% endfor %}
+				{% endfor %}
 	</ul>
-		{% endif %}
+			{% endif %}
+		{% endfor %}
 	{% endfor %}
-{% endfor %}
+{% endblock %}
 </div>
 {% endspaceless %}
