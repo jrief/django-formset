@@ -48,7 +48,7 @@ jobs:
     - name: Build 🐍 Python 📦 Package
       run: python -m build --sdist --wheel --outdir dist/
     - name: Publish 🐍 Python 📦 Package to PyPI
-      if: startsWith(github.ref, 'refs/tags')
+      if: startsWith(github.ref, 'refs/tags') || startsWith(github.ref, 'refs/heads/releases')
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.PYPI_API_TOKEN_FORMSET }}
