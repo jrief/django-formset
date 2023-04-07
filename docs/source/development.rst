@@ -25,7 +25,7 @@ tool-chain required to build the test application:
 	cd django-formset
 	python -m venv .venv
 	source .venv/bin/activate
-	pip install "Django==4.1.*"
+	pip install Django
 	pip install -r testapp/requirements.txt
 	pip install --no-deps -e .
 	npm install --include=dev

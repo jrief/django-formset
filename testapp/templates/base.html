@@ -54,7 +54,7 @@
 				</label>
 			</div>
 			<div class="header-center">
-				<a href="index.html"><div class="brand">django-formset 0.13.4 documentation</div></a>
+				<a href="index.html"><div class="brand"><strong>{{ doc.config.project }}</strong> <small>{{ doc.config.release }}</small></div></a>
 			</div>
 			<div class="header-right">
 				<div class="theme-toggle-container theme-toggle-header">
@@ -76,7 +76,7 @@
 			<div class="sidebar-container">
 				<div class="sidebar-sticky">
 					<a class="sidebar-brand" href="/docs/">
-						<span class="sidebar-brand-text">django-formset 0.13.4 documentation</span>
+						<span class="sidebar-brand-text"><strong>{{ doc.config.project }}</strong> <small>{{ doc.config.release }}</small></span>
 					</a>
 					<form class="sidebar-search-container" method="get" action="/docs/search/" role="search">
 						<input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -149,7 +149,7 @@
 					<div class="bottom-of-page">
 						<div class="left-details">
 							<div class="copyright">
-								Copyright © Copyright 2023, Jacob Rief
+								{{ doc.config.copyright }}, {{ doc.config.author }}
 							</div>
 							Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and
 							<a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
@@ -178,7 +178,7 @@
 		</div>
 	</div>
 {% block regular_scripts %}
-	<script data-url_root="/docs/" id="documentation_options" src="{% static 'docs/_static/documentation_options.js' %}"></script>
+	<script data-url_root="/docs/" id="documentation_options" src="{% static 'docs/_static/scripts/documentation_options.js' %}"></script>
 	<script src="{% static 'docs/_static/doctools.js' %}"></script>
 	<script src="{% static 'docs/_static/sphinx_highlight.js' %}"></script>
 	<script src="{% static 'docs/_static/scripts/furo.js' %}"></script>
