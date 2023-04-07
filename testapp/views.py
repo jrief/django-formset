@@ -39,6 +39,7 @@ from testapp.forms.contact import (
 from testapp.forms.birthdate import BirthdateForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerCollection
+from testapp.forms.moon import MoonForm, MoonCalendarRenderer
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
 from testapp.forms.poll import ModelPollForm, PollCollection
@@ -514,6 +515,10 @@ urlpatterns = [
     path('birthdate', DemoFormView.as_view(
         form_class=BirthdateForm,
     ), kwargs={'group': 'form', 'index': 15}, name='birthdate'),
+    path('moon', DemoFormView.as_view(
+        form_class=MoonForm,
+        calendar_renderer_class=MoonCalendarRenderer,
+    ), kwargs={'group': 'form', 'index': 15}, name='moon'),
     path('counties', DemoFormView.as_view(
         form_class=CountyForm,
     ), kwargs={'group': 'form', 'index': 15}, name='counties'),

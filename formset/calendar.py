@@ -24,6 +24,7 @@ class ViewMode(Enum):
 
 
 class CalendarRenderer:
+    starting_view_mode = ViewMode.weeks
     valid_intervals = [
         None,
         timedelta(minutes=5),
@@ -132,6 +133,7 @@ class CalendarRenderer:
     def get_context(self, interval=None):
         context = {
             'startdate': self.start_datetime,
+            'template': self.get_template_name(self.starting_view_mode),
         }
         context.update(self.get_context_hours(interval))
         context.update(self.get_context_weeks())
@@ -139,23 +141,27 @@ class CalendarRenderer:
         context.update(self.get_context_years())
         return context
 
+    def get_template_name(self, view_mode):
+        return {
+            ViewMode.hours: 'calendar/hours.html',
+            ViewMode.years: 'calendar/years.html',
+            ViewMode.months: 'calendar/months.html',
+            ViewMode.weeks: 'calendar/weeks.html',
+        }[view_mode]
+
     def render(self, view_mode, interval=None):
         context = {
             'startdate': self.start_datetime,
         }
         if view_mode == ViewMode.hours:
-            template_name = 'calendar/hours.html'
             context.update(self.get_context_hours(interval))
         elif view_mode == ViewMode.years:
-            template_name = 'calendar/years.html'
             context.update(self.get_context_years())
         elif view_mode == ViewMode.months:
-            template_name = 'calendar/months.html'
             context.update(self.get_context_months())
         else:
-            template_name = 'calendar/weeks.html'
             context.update(self.get_context_weeks())
-        template = get_template(template_name)
+        template = get_template(self.get_template_name(view_mode))
         return template.render({'calendar': context})
 
 

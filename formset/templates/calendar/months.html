@@ -17,10 +17,12 @@
 	</button>
 </div>
 <div class="ranges" aria-label="months-view">
+{% block ranges %}
 	<ul class="months">
-{% for date, month in calendar.months %}
+	{% for date, month in calendar.months %}
 		<li data-date="{{ date }}">{{ month }}</li>
-{% endfor %}
+	{% endfor %}
 	</ul>
+{% endblock %}
 </div>
 {% endspaceless %}
