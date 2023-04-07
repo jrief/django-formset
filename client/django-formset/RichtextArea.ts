@@ -8,11 +8,15 @@ import { Heading, Level } from '@tiptap/extension-heading';
 import Bold from '@tiptap/extension-bold';
 import Italic from '@tiptap/extension-italic';
 import Underline from '@tiptap/extension-underline';
+import Blockquote from '@tiptap/extension-blockquote';
 import BulletList from '@tiptap/extension-bullet-list';
+import CodeBlock from '@tiptap/extension-code-block';
+import HardBreak from '@tiptap/extension-hard-break';
 import OrderedList from '@tiptap/extension-ordered-list';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
 import ListItem from '@tiptap/extension-list-item';
 import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
 import styles from './RichtextArea.scss';
 import { StyleHelpers } from './helpers';
@@ -72,6 +76,28 @@ namespace controls {
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleBulletList().run();
+		}
+	}
+
+	export class blockquoteAction extends Action {
+		public readonly extensions = [Blockquote];
+
+		clicked(editor: Editor) {
+			editor.chain().focus().toggleBlockquote().run();
+		}
+	}
+
+	export class codeBlockAction extends Action {
+		public readonly extensions = [CodeBlock];
+
+		clicked(editor: Editor) {
+			editor.chain().focus().toggleCodeBlock().run();
+		}
+	}
+
+	export class hardBreakAction extends Action {
+		clicked(editor: Editor) {
+			editor.chain().focus().setHardBreak().run();
 		}
 	}
 
@@ -379,6 +405,11 @@ class RichtextArea {
 
 	private registerCommands() : Array<Extension|Mark|Node> {
 		const extensions = new Set<Extension|Mark|Node>();
+		extensions.add(HardBreak);  // always add hard breaks via keyboard entry
+		const placeholderText = this.textAreaElement.getAttribute('placeholder');
+		if (placeholderText) {
+			extensions.add(Placeholder.configure({placeholder: placeholderText}));
+		}
 		this.menubarElement?.querySelectorAll('button[richtext-click]').forEach(button => {
 			if (!(button instanceof HTMLButtonElement))
 				return;

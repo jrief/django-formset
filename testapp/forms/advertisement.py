@@ -90,12 +90,16 @@ class AdvertisementForm(forms.Form):
         widget=RichTextarea(control_elements=[
             controls.Heading([1,2,3]),
             controls.Bold(),
+            controls.Blockquote(),
+            controls.CodeBlock(),
+            controls.HardBreak(),
             controls.Italic(),
             controls.Underline(),
             controls.Link(),
             controls.HorizontalRule(),
             controls.Separator(),
+            controls.ClearFormat(),
             controls.Redo(),
             controls.Undo(),
-        ]),
+        ], attrs={'placeholder': "Start typing …"}),
     )

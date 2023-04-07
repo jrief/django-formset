@@ -15,6 +15,7 @@ control_elements = [
     controls.Bold(),
     controls.Italic(),
     controls.Underline(),
+    controls.Blockquote(),
     controls.Link(),
     controls.HorizontalRule(),
     controls.Separator(),
@@ -128,6 +129,21 @@ def test_tiptap_heading(page, viewname, menubar, contenteditable):
     expect(submenu.locator('li:first-child')).to_have_class('active')
     expect(submenu.locator('li:nth-child(2)')).not_to_have_class('active')
     expect(submenu.locator('li:nth-child(3)')).not_to_have_class('active')
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['plain_richtext', 'json_richtext'])
+def test_tiptap_blockquote(page, viewname, menubar, contenteditable):
+    block = "Tiptap Block"
+    contenteditable.type(block)
+    assert contenteditable.inner_html() == f"<p>{block}</p>"
+    set_caret(page, 0)
+    menu_button = menubar.locator('[richtext-click="blockquote"]')
+    menu_button.click()
+    assert contenteditable.inner_html() == f"<blockquote><p>{block}</p></blockquote>"
+    contenteditable.click(position={'x': 100, 'y': 20})
+    set_caret(page, 5)
+    expect(menu_button).to_have_class('active')
 
 
 @pytest.mark.urls(__name__)

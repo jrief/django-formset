@@ -47,6 +47,21 @@ class Bold(ControlElement):
     label = _("Bold")
 
 
+class Blockquote(ControlElement):
+    name = 'blockquote'
+    label = _("Blockquote")
+
+
+class CodeBlock(ControlElement):
+    name = 'codeBlock'
+    label = _("Code Block")
+
+
+class HardBreak(ControlElement):
+    name = 'hardBreak'
+    label = _("Hard Break")
+
+
 class Italic(ControlElement):
     name = 'italic'
     label = _("Italic")

@@ -103,6 +103,14 @@
 
 		p {
 			margin-bottom: 0.5rem;
+
+			&.is-editor-empty:first-child::before {
+				color: $richtext-placeholder;
+				content: attr(data-placeholder);
+				float: left;
+				height: 0;
+				pointer-events: none;
+			}
 		}
 
 		li > p {
@@ -111,6 +119,17 @@
 
 		&:focus-visible {
 			outline: none;
+		}
+
+		blockquote {
+			border-left: 3px solid $richtext-placeholder;
+			padding-left: 1rem;
+		}
+
+		pre {
+			padding: 0.5rem 1rem;
+			background-color: $richtext-code-block;
+			font-family: monospace;
 		}
 
 		pre {
