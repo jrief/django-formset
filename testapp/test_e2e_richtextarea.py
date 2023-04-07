@@ -15,6 +15,7 @@ control_elements = [
     controls.Bold(),
     controls.Italic(),
     controls.Underline(),
+    controls.Blockquote(),
     controls.Link(),
     controls.HorizontalRule(),
     controls.Separator(),
@@ -97,7 +98,7 @@ def test_tiptap_marks(page, viewname, menubar, contenteditable, control):
     contenteditable.type(lorem)
     assert contenteditable.inner_html() == f"<p>{lorem}</p>"
     select_text(contenteditable.locator('p'), 6, 11)
-    button = menubar.locator(f'[richtext-toggle="{control[0]}"]')
+    button = menubar.locator(f'[richtext-click="{control[0]}"]')
     button.click()
     assert contenteditable.inner_html() == f"<p>{lorem[:6]}<{control[1]}>{lorem[6:11]}</{control[1]}>{lorem[11:]}</p>"
     contenteditable.click(position={'x': 2, 'y': 2})
@@ -112,12 +113,12 @@ def test_tiptap_heading(page, viewname, menubar, contenteditable):
     contenteditable.type(heading)
     assert contenteditable.inner_html() == f"<p>{heading}</p>"
     set_caret(page, 0)
-    menu_button = menubar.locator('[richtext-toggle="heading"]')
-    submenu = menubar.locator('[richtext-toggle="heading"] + ul[role="menu"]')
+    menu_button = menubar.locator('[richtext-click="heading"]')
+    submenu = menubar.locator('[richtext-click="heading"] + ul[role="menu"]')
     expect(submenu).not_to_be_visible()
     menu_button.click()
     expect(submenu).to_be_visible()
-    submenu.locator('[richtext-toggle="heading:1"]').click()
+    submenu.locator('[richtext-click="heading:1"]').click()
     assert contenteditable.inner_html() == f"<h1>{heading}</h1>"
     contenteditable.click(position={'x': 100, 'y': 20})
     set_caret(page, 5)
@@ -132,12 +133,27 @@ def test_tiptap_heading(page, viewname, menubar, contenteditable):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['plain_richtext', 'json_richtext'])
+def test_tiptap_blockquote(page, viewname, menubar, contenteditable):
+    block = "Tiptap Block"
+    contenteditable.type(block)
+    assert contenteditable.inner_html() == f"<p>{block}</p>"
+    set_caret(page, 0)
+    menu_button = menubar.locator('[richtext-click="blockquote"]')
+    menu_button.click()
+    assert contenteditable.inner_html() == f"<blockquote><p>{block}</p></blockquote>"
+    contenteditable.click(position={'x': 100, 'y': 20})
+    set_caret(page, 5)
+    expect(menu_button).to_have_class('active')
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['plain_richtext', 'json_richtext'])
 def test_tiptap_valid_link(page, viewname, menubar, contenteditable):
     clickme = "Click here"
     contenteditable.type(clickme)
     assert contenteditable.inner_html() == f"<p>{clickme}</p>"
     select_text(contenteditable.locator('p'), 6, 10)
-    menu_button = menubar.locator('[richtext-toggle="link"]')
+    menu_button = menubar.locator('[richtext-click="link"]')
     dialog = page.locator('dialog[richtext-opener="link"]')
     expect(dialog).not_to_be_visible()
     menu_button.click()
@@ -168,7 +184,7 @@ def test_tiptap_invalid_link(page, viewname, menubar, contenteditable):
     contenteditable.type(clickme)
     assert contenteditable.inner_html() == f"<p>{clickme}</p>"
     select_text(contenteditable.locator('p'), 6, 10)
-    menu_button = menubar.locator('[richtext-toggle="link"]')
+    menu_button = menubar.locator('[richtext-click="link"]')
     dialog = page.locator('dialog[richtext-opener="link"]')
     expect(dialog).not_to_be_visible()
     menu_button.click()
@@ -193,7 +209,7 @@ def test_tiptap_invalid_link(page, viewname, menubar, contenteditable):
 def test_tiptap_remove_link(page, viewname, menubar, contenteditable):
     assert contenteditable.inner_html() == '<p>Click <a target="_blank" rel="noopener noreferrer nofollow" href="https://example.org">here</a></p>'
     select_text(contenteditable.locator('p > a'), 0, 4)
-    menu_button = menubar.locator('[richtext-toggle="link"]')
+    menu_button = menubar.locator('[richtext-click="link"]')
     dialog = page.locator('dialog[richtext-opener="link"]')
     expect(dialog).not_to_be_visible()
     menu_button.click()
