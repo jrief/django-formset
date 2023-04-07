@@ -39,7 +39,7 @@
 				opacity: 1;
 				background-color: var(--button-active);
 			}
-			&[richtext-toggle="heading"] {
+			&[richtext-click="heading"] {
 				&:after {
 					border-bottom: 0;
 					border-left: 0.3em solid transparent;

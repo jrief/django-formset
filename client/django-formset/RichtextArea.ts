@@ -27,10 +27,10 @@ abstract class Action {
 	}
 
 	installEventHandler(editor: Editor) {
-		this.button.addEventListener('click', () => this.toggle(editor));
+		this.button.addEventListener('click', () => this.clicked(editor));
 	}
 
-	abstract toggle(editor: Editor): void;
+	abstract clicked(editor: Editor): void;
 
 	activate(editor: Editor, name: string) {
 		this.button.classList.toggle('active', editor.isActive(name));
@@ -46,7 +46,7 @@ namespace controls {
 	export class boldAction extends Action {
 		public readonly extensions = [Bold];
 
-		toggle(editor: Editor) {
+		clicked(editor: Editor) {
 			editor.chain().focus().toggleBold().run();
 		}
 	}
@@ -54,7 +54,7 @@ namespace controls {
 	export class italicAction extends Action {
 		public readonly extensions = [Italic];
 
-		toggle(editor: Editor) {
+		clicked(editor: Editor) {
 			editor.chain().focus().toggleItalic().run();
 		}
 	}
@@ -62,7 +62,7 @@ namespace controls {
 	export class underlineAction extends Action {
 		public readonly extensions = [Underline];
 
-		toggle(editor: Editor) {
+		clicked(editor: Editor) {
 			editor.chain().focus().toggleUnderline().run();
 		}
 	}
@@ -70,7 +70,7 @@ namespace controls {
 	export class bulletListAction extends Action {
 		public readonly extensions = [BulletList, ListItem];
 
-		toggle(editor: Editor) {
+		clicked(editor: Editor) {
 			editor.chain().focus().toggleBulletList().run();
 		}
 	}
@@ -78,7 +78,7 @@ namespace controls {
 	export class orderedListAction extends Action {
 		public readonly extensions = [OrderedList, ListItem];
 
-		toggle(editor: Editor) {
+		clicked(editor: Editor) {
 			editor.chain().focus().toggleOrderedList().run();
 		}
 	}
@@ -86,13 +86,13 @@ namespace controls {
 	export class horizontalRuleAction extends Action {
 		public readonly extensions = [HorizontalRule];
 
-		toggle(editor: Editor) {
+		clicked(editor: Editor) {
 			editor.chain().focus().setHorizontalRule().run();
 		}
 	}
 
 	export class clearFormatAction extends Action {
-		toggle(editor: Editor) {
+		clicked(editor: Editor) {
 			editor.chain().focus().clearNodes().unsetAllMarks().run();
 		}
 	}
@@ -100,7 +100,7 @@ namespace controls {
 	export class undoAction extends Action {
 		public readonly extensions = [History];
 
-		toggle(editor: Editor) {
+		clicked(editor: Editor) {
 			editor.commands.undo();
 		}
 	}
@@ -108,7 +108,7 @@ namespace controls {
 	export class redoAction extends Action {
 		public readonly extensions = [History];
 
-		toggle(editor: Editor) {
+		clicked(editor: Editor) {
 			editor.commands.redo();
 		}
 	}
@@ -120,12 +120,12 @@ namespace controls {
 		constructor(wrapperElement: HTMLElement, button: HTMLButtonElement) {
 			super(wrapperElement, button);
 			const levels: Array<Level> = [];
-			this.dropdownMenu = wrapperElement.querySelector('button[richtext-toggle="heading"] + [role="menu"]');
+			this.dropdownMenu = wrapperElement.querySelector('button[richtext-click="heading"] + [role="menu"]');
 			if (this.dropdownMenu) {
 				this.dropdownInstance = createPopper(this.button, this.dropdownMenu, {
 					placement: 'bottom-start',
 				});
-				this.dropdownMenu.querySelectorAll('[richtext-toggle^="heading:"]').forEach(element => {
+				this.dropdownMenu.querySelectorAll('[richtext-click^="heading:"]').forEach(element => {
 					levels.push(this.extractLevel(element));
 				});
 			} else {
@@ -137,9 +137,9 @@ namespace controls {
 		}
 
 		private extractLevel(element: Element) : Level {
-			const parts = element.getAttribute('richtext-toggle')?.split(':') ?? [];
+			const parts = element.getAttribute('richtext-click')?.split(':') ?? [];
 			if (parts.length !== 2)
-				throw new Error(`Element ${element} requires attribute 'richtext-toggle'.`);
+				throw new Error(`Element ${element} requires attribute 'richtext-click'.`);
 			const level = parseInt(parts[1]) as Level;
 			return level;
 		}
@@ -162,12 +162,12 @@ namespace controls {
 			}
 		}
 
-		toggle() {}
+		clicked() {}
 
 		private toggleMenu(editor: Editor, force?: boolean) {
 			const expanded = (force !== false && this.button.ariaExpanded === 'false');
 			this.button.ariaExpanded = expanded ? 'true' : 'false';
-			this.dropdownMenu?.querySelectorAll('[richtext-toggle^="heading:"]').forEach(element => {
+			this.dropdownMenu?.querySelectorAll('[richtext-click^="heading:"]').forEach(element => {
 				const level = this.extractLevel(element);
 				element.parentElement?.classList.toggle('active', editor.isActive('heading', {level}));
 			});
@@ -197,12 +197,12 @@ namespace controls {
 
 		constructor(wrapperElement: HTMLElement, button: HTMLButtonElement) {
 			super(wrapperElement, button);
-			const label = button.getAttribute('richtext-toggle') ?? '';
+			const label = button.getAttribute('richtext-click') ?? '';
 			this.modalDialogElement = wrapperElement.querySelector(`dialog[richtext-opener="${label}"]`)! as HTMLDialogElement;
 			this.formElement = this.modalDialogElement.querySelector('form[method="dialog"]')! as HTMLFormElement;
 		}
 
-		toggle = (editor: Editor) => this.openDialog(editor);
+		clicked = (editor: Editor) => this.openDialog(editor);
 		protected abstract openDialog(editor: Editor): void;
 	}
 
@@ -379,10 +379,10 @@ class RichtextArea {
 
 	private registerCommands() : Array<Extension|Mark|Node> {
 		const extensions = new Set<Extension|Mark|Node>();
-		this.menubarElement?.querySelectorAll('button[richtext-toggle]').forEach(button => {
+		this.menubarElement?.querySelectorAll('button[richtext-click]').forEach(button => {
 			if (!(button instanceof HTMLButtonElement))
 				return;
-			const parts = button.getAttribute('richtext-toggle')?.split(':') ?? [];
+			const parts = button.getAttribute('richtext-click')?.split(':') ?? [];
 			parts[1] = 'Action';
 			const actionName = parts.join('');
 			const ActionClass = (<any>controls)[actionName];
@@ -494,7 +494,7 @@ class RichtextArea {
 					]);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.dj-richtext-wrapper [role="menubar"] button[richtext-toggle="heading"] + ul[role="menu"]':
+				case '.dj-richtext-wrapper [role="menubar"] button[richtext-click="heading"] + ul[role="menu"]':
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
 						'border', 'z-index']);
 					const re = new RegExp('z-index:(\\d+);');
