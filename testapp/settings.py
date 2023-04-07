@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.staticfiles',
     'django.contrib.messages',
+    'sphinx_view',
     'formset',
     'testapp',
 ]
@@ -68,6 +69,7 @@ ROOT_URLCONF = 'testapp.urls'
 
 STATICFILES_DIRS = [
     ('node_modules', BASE_DIR / 'node_modules'),
+    ('docs', BASE_DIR / 'docs/build/json'),
 ]
 
 STATIC_ROOT = Path(os.getenv('DJANGO_STATIC_ROOT', BASE_DIR / 'staticfiles'))

@@ -1,8 +1,12 @@
+from pathlib import Path
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import include, path
+
+from sphinx_view import DocumentationView
 
 from formset import __version__
 
@@ -32,6 +36,13 @@ urlpatterns = [
     path('foundation/', include(('testapp.views', 'foundation'))),
     path('tailwind/', include(('testapp.views', 'tailwind'))),
     path('uikit/', include(('testapp.views', 'uikit'))),
+    path('docs<path:path>',
+        DocumentationView.as_view(
+            json_build_dir=Path(settings.BASE_DIR / 'docs/build/json'),
+            template_name='page.html',
+        ),
+        name="documentation",
+    ),
 ]
 urlpatterns.extend(static(
     settings.MEDIA_URL,

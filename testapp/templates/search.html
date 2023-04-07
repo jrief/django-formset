@@ -1,0 +1,16 @@
+{% extends base_template_name %}
+{% load static %}
+
+{% block title %}Search{% endblock title %}
+
+{% block doc %}
+	<div id="search-results"></div>
+{% endblock %}
+
+
+{% block regular_scripts %}
+	{{ block.super }}
+	<script src="{% static 'docs/_static/searchtools.js' %}"></script>
+	<script src="{% static 'docs/_static/language_data.js' %}"></script>
+	<script>Search.setIndex({{ search_index }});</script>
+{% endblock %}

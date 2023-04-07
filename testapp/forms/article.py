@@ -15,7 +15,6 @@ class ArticleForm(forms.Form):
     .. code-block:: python
 
         from django.forms import fields, forms
-        from formset.widgets import SlugInput
 
         class ArticleForm(...):
             ...
