@@ -14,7 +14,7 @@ from formset.renderers.uikit import FormRenderer as UIKitFormRenderer
 from formset.utils import FormMixin
 from formset.views import FormView
 
-from .forms.complete import CompleteForm, sample_complete_data
+from testapp.forms.complete import CompleteForm, sample_complete_data
 
 
 http_request = RequestFactory().get('/')

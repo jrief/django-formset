@@ -11,16 +11,17 @@ library.
 Introduction
 ============
 
-**django-formset** tries to solve a problem, which occurs in almost every project using the
-Django framework: The way forms are handled. Compared to the solutions most modern JavaScript
-frameworks offer nowadays, having to reload a page if a form does not validate, is *not*
-contemporary anymore. Therefore, Django developers often use a combination of one of these client
-frameworks together with the `Django REST framework`_, which then indeed provides a much better User
-eXperience. However, those JavaScript frameworks impose their own way of getting stuff done and
-usually don't share the same mindset with Django. For instance, in Django we distinguish between
-`bound and unbound forms`_. This concept however doesn't make sense in most JavaScript
-frameworks, and hence is not implemented. We therefore often must work around those problems, which
-leads to cumbersome and un-`DRY`_ solutions.
+**django-formset** attempty to solve a problem, which occurs in almost every project using the
+Django framework, specificcaly the way forms are handled.
+
+Compared to the solutions most modern JavaScript frameworks offer nowadays, having to reload a page
+if a form does not validate, is *not* contemporary anymore. Therefore, Django developers often use a
+combination of one of these client frameworks together with the `Django REST framework`_, which then
+indeed provides a much better User eXperience. However, those JavaScript frameworks impose their own
+way of getting stuff done and usually don't share the same mindset with Django. For instance, in
+Django we distinguish between `bound and unbound forms`_. This concept however doesn't make sense in
+most JavaScript frameworks, and hence is not implemented. We therefore often must work around those
+problems, which leads to cumbersome and un-`DRY`_ solutions.
 
 .. _Django REST framework: https://www.django-rest-framework.org/
 .. _bound and unbound forms: https://docs.djangoproject.com/en/stable/ref/forms/api/#bound-and-unbound-forms
@@ -99,17 +100,31 @@ Consider having a standard Django Form instance, say
 In Django, we typically render an instance of the above form using a template rendered by a
 FormView_. With this approach, data entered into the form fields must be sent to the server for
 validation. If one or more of those fields fail to validate, the form is re-rendered, annotating the
-fields containing invalid data with some error messages. The latter would require to fully reload
-the whole page. Looking at modern JavaScript frameworks, it is obvious that this approach isn't
-contemporary anymore.
+fields containing invalid data with a meaningful error message. The latter would require to fully
+reload the whole page. Looking at modern JavaScript frameworks, it is obvious that this approach
+isn't contemporary anymore.
 
 .. figure:: _static/animated-person-form.png
 	:width: 650px
 
 	Interacting with that form, shows validation errors immediately.
 
+.. django-view:: person
+
+	from django.forms.fields import CharField
+	from django.forms.forms import Form
+	from django.views.generic import FormView 
+
+	class PersonForm(Form):
+	    first_name = CharField()
+	    last_name = CharField()
+
+	class DemoFormView(FormView):
+	    form_class = PersonForm
+	    template_name = "docs/extended-form.html"
+
 With the web component ``<django-formset>`` we instead can use the above Django form and render it
-using a slightly modified Django view and a template such as
+using a slightly modified Django view and a template such as:
 
 .. code-block:: django
 

@@ -1,24 +1,25 @@
+import styles from './RichtextArea.scss';
 import { createPopper, Instance } from '@popperjs/core';
 import { Editor, Extension, Mark, Node } from '@tiptap/core';
-import Document from '@tiptap/extension-document';
-import History from '@tiptap/extension-history';
-import Paragraph from '@tiptap/extension-paragraph';
-import Text from '@tiptap/extension-text';
-import { Heading, Level } from '@tiptap/extension-heading';
-import Bold from '@tiptap/extension-bold';
-import Italic from '@tiptap/extension-italic';
-import Underline from '@tiptap/extension-underline';
 import Blockquote from '@tiptap/extension-blockquote';
+import Bold from '@tiptap/extension-bold';
 import BulletList from '@tiptap/extension-bullet-list';
 import CodeBlock from '@tiptap/extension-code-block';
+import Document from '@tiptap/extension-document';
 import HardBreak from '@tiptap/extension-hard-break';
-import OrderedList from '@tiptap/extension-ordered-list';
+import { Heading, Level } from '@tiptap/extension-heading';
+import History from '@tiptap/extension-history';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
-import ListItem from '@tiptap/extension-list-item';
-import Link from '@tiptap/extension-link';
-import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
-import styles from './RichtextArea.scss';
+import Italic from '@tiptap/extension-italic';
+import Link from '@tiptap/extension-link';
+import ListItem from '@tiptap/extension-list-item';
+import OrderedList from '@tiptap/extension-ordered-list';
+import Paragraph from '@tiptap/extension-paragraph';
+import Placeholder from '@tiptap/extension-placeholder';
+import Text from '@tiptap/extension-text';
+import { TextAlign, TextAlignOptions } from '@tiptap/extension-text-align';
+import Underline from '@tiptap/extension-underline';
 import { StyleHelpers } from './helpers';
 
 
@@ -142,6 +143,7 @@ namespace controls {
 	export class headingAction extends Action {
 		private readonly dropdownInstance?: Instance;
 		private readonly dropdownMenu: HTMLElement | null;
+		private readonly defaultIcon: Element;
 
 		constructor(wrapperElement: HTMLElement, button: HTMLButtonElement) {
 			super(wrapperElement, button);
@@ -160,6 +162,7 @@ namespace controls {
 			this.extensions.push(Heading.configure({
 				levels: levels,
 			}));
+			this.defaultIcon = this.button.querySelector('svg')?.cloneNode(true) as Element;
 		}
 
 		private extractLevel(element: Element) : Level {
@@ -190,6 +193,21 @@ namespace controls {
 
 		clicked() {}
 
+		activate(editor: Editor, name: string) {
+			let useDefault = true;
+			this.dropdownMenu?.querySelectorAll('[richtext-click^="heading:"]').forEach(element => {
+				const level = this.extractLevel(element);
+				const icon = element.querySelector('svg')?.cloneNode(true);
+				if (editor.isActive('heading', {level}) && icon) {
+					this.button.replaceChildren(icon);
+					useDefault = false;
+				}
+			});
+			if (useDefault) {
+				this.button.replaceChildren(this.defaultIcon);
+			}
+		}
+
 		private toggleMenu(editor: Editor, force?: boolean) {
 			const expanded = (force !== false && this.button.ariaExpanded === 'false');
 			this.button.ariaExpanded = expanded ? 'true' : 'false';
@@ -213,6 +231,104 @@ namespace controls {
 			}
 		}
 	}
+
+	export class alignmentAction extends Action {
+		private readonly dropdownInstance?: Instance;
+		private readonly dropdownMenu: HTMLElement | null;
+		private readonly defaultIcon: Element;
+
+		constructor(wrapperElement: HTMLElement, button: HTMLButtonElement) {
+			super(wrapperElement, button);
+			let options: TextAlignOptions = {
+				types: ['heading', 'paragraph'],
+				alignments: [],
+				defaultAlignment: '',
+			};
+			this.dropdownMenu = wrapperElement.querySelector('button[richtext-click="alignment"] + [role="menu"]');
+			if (this.dropdownMenu) {
+				this.dropdownInstance = createPopper(this.button, this.dropdownMenu, {
+					placement: 'bottom-start',
+				});
+				this.dropdownMenu.querySelectorAll('[richtext-click^="alignment:"]').forEach(element => {
+					options.alignments.push(this.extractAlignment(element));
+				});
+			} else {
+				options.alignments.push(this.extractAlignment(this.button));
+			}
+			this.defaultIcon = this.button.querySelector('svg')?.cloneNode(true) as Element;
+			this.extensions.push(TextAlign.configure(options));
+		}
+
+		private extractAlignment(element: Element) : string {
+			const parts = element.getAttribute('richtext-click')?.split(':') ?? [];
+			if (parts.length !== 2)
+				throw new Error(`Element ${element} requires attribute 'richtext-click'.`);
+			return parts[1];
+		}
+
+		installEventHandler(editor: Editor) {
+			if (this.dropdownMenu) {
+				this.button.addEventListener('click', () => this.toggleMenu(editor));
+				this.dropdownMenu.addEventListener('click', event => this.toggleItem(event, editor));
+				document.addEventListener('click', event => {
+					let element = event.target instanceof Element ? event.target : null;
+					while (element) {
+						if (element.isSameNode(this.button) || element.isSameNode(this.dropdownMenu))
+							return;
+						element = element.parentElement;
+					}
+					this.toggleMenu(editor, false);
+				});
+			} else {
+				this.button.addEventListener('click', event => this.toggleItem(event, editor));
+			}
+		}
+
+		clicked() {}
+
+		activate(editor: Editor, name: string) {
+			let useDefault = true;
+			this.dropdownMenu?.querySelectorAll('[richtext-click^="alignment:"]').forEach(element => {
+				const alignment = this.extractAlignment(element);
+				const icon = element.querySelector('svg')?.cloneNode(true);
+				if (editor.isActive({textAlign: alignment}) && icon) {
+					this.button.replaceChildren(icon);
+					useDefault = false;
+				}
+			});
+			if (useDefault) {
+				this.button.replaceChildren(this.defaultIcon);
+			}
+		}
+
+		private toggleMenu(editor: Editor, force?: boolean) {
+			const expanded = (force !== false && this.button.ariaExpanded === 'false');
+			this.button.ariaExpanded = expanded ? 'true' : 'false';
+			this.dropdownMenu?.querySelectorAll('[richtext-click^="alignment:"]').forEach(element => {
+				const alignment = this.extractAlignment(element);
+				element.parentElement?.classList.toggle('active', editor.isActive({textAlign: alignment}));
+			});
+			this.dropdownInstance?.update();
+		}
+
+		toggleItem(event: MouseEvent, editor: Editor) {
+			let element = event.target instanceof Element ? event.target : null;
+			while (element) {
+				if (element instanceof HTMLButtonElement || element instanceof HTMLAnchorElement) {
+					const alignment = this.extractAlignment(element);
+					editor.chain().focus().setTextAlign(alignment).run();
+					this.toggleMenu(editor, false);
+					const icon = element.querySelector('svg')?.cloneNode(true);
+					if (icon) {
+						this.button.replaceChildren(icon);
+					}
+					break;
+				}
+				element = element.parentElement;
+			}
+		}
+	}
+
 }
 
 
@@ -525,7 +641,7 @@ class RichtextArea {
 					]);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.dj-richtext-wrapper [role="menubar"] button[richtext-click="heading"] + ul[role="menu"]':
+				case '.dj-richtext-wrapper [role="menubar"] button[aria-haspopup="true"] + ul[role="menu"]':
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
 						'border', 'z-index']);
 					const re = new RegExp('z-index:(\\d+);');

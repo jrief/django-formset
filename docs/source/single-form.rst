@@ -5,8 +5,8 @@ Working with a single Form
 ==========================
 
 In Django we typically assign a single form to a `FormView`_ class. Requests arriving with method
-GET will create an empty or prefilled form instance and render it using the template specified in
-the view class. This view class then is connected to our URL router:
+GET will create an empty or initialized (prefilled) form instance and render it using the template
+specified by the view class. This view class then is connected to our URL router:
 
 .. _FormView: https://docs.djangoproject.com/en/stable/topics/class-based-views/generic-editing/#basic-forms
 
@@ -62,8 +62,11 @@ Using a Native Django Form
 ==========================
 
 Working with a native Django form, presumably is the most frequent use case. Here we add an
-instantiation of that form to the rendering context. Then that form instance is rendered using the
-special template tag ``render_form``. The template responsible for rendering shall be written as:
+instantiation of that form to the `rendering context`_. Then that form instance is rendered using
+the special template tag ``render_form``. The template responsible for rendering shall be written
+as:
+
+.. _rendering context: https://docs.djangoproject.com/en/stable/ref/templates/api/#playing-with-context
 
 .. code-block:: django
 
@@ -134,8 +137,9 @@ Using an Extended Django Form
 One of the tasks the templatetag ``render_form`` must do, is to modify the signature of the given
 form class. This is required, because the layout of the rendered HTML differs substantially from the
 default by the Django form field renderers. Sometimes however, we may prefer to render the complete
-form instance using its built-in ``__str__()``-method. In this use case, our form class has to
-additionally inherit from :class:`formset.utils.FormMixin`. Such a form could for instance be
+form instance using its built-in ``__str__()``-method. This typically happens, if the form is
+rendered by using the template expansion, ie. ``{{ form }}``. In this use case, our form class has
+to additionally inherit from :class:`formset.utils.FormMixin`. Such a form could for instance be
 defined as:
 
 .. code-block:: python
@@ -170,6 +174,11 @@ signature of the form class in Python code, rather than changing the code in the
 Another use case would be to have a form with more than one renderer, each configured differently.
 We then can reuse a Django template but for instance render the form with different CSS classes.
 If such a setup might make sense in your project, please check the section about :ref:`renderers`.
+
+
+.. django-view:: single
+
+	from django.forms.fields import CharField
 
 
 .. _field_by_field:

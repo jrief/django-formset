@@ -8,8 +8,8 @@ from django.views.generic.edit import CreateView, UpdateView
 
 from formset.views import FormViewMixin
 
-from .forms.person import ModelPersonForm
-from .models import OpinionModel, PersonModel
+from testapp.forms.person import ModelPersonForm
+from testapp.models import OpinionModel, PersonModel
 
 
 @pytest.fixture(params=[None, 'bootstrap', 'bulma', 'foundation', 'tailwind', 'uikit'])

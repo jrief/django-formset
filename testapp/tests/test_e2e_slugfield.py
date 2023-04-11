@@ -5,7 +5,7 @@ from django.urls import path
 
 from formset.views import FormView
 
-from .forms.article import ArticleForm
+from testapp.forms.article import ArticleForm
 
 
 class DemoFormView(FormView):

@@ -8,9 +8,9 @@ from formset.collection import FormCollection
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
 from formset.views import FormView, FormCollectionView
 
-from .forms.address import AddressForm
-from .forms.contact import SimpleContactCollection, PhoneNumberCollection
-from .forms.person import PersonForm, sample_person_data
+from testapp.forms.address import AddressForm
+from testapp.forms.contact import SimpleContactCollection, PhoneNumberCollection
+from testapp.forms.person import PersonForm, sample_person_data
 
 
 class ContactCollection(FormCollection):

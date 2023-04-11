@@ -40,6 +40,7 @@
     "@tiptap/extension-paragraph": "^2.0.2",
     "@tiptap/extension-placeholder": "^2.0.2",
     "@tiptap/extension-text": "^2.0.2",
+    "@tiptap/extension-text-align": "^2.0.2",
     "@tiptap/extension-underline": "^2.0.2",
     "@types/lodash.get": "^4.4.7",
     "@types/lodash.isequal": "^4.5.6",

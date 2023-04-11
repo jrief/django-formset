@@ -11,7 +11,7 @@ from django.urls import path
 
 from formset.views import FormView
 
-from .forms.upload import UploadForm
+from testapp.forms.upload import UploadForm
 
 
 class DemoFormView(FormView):

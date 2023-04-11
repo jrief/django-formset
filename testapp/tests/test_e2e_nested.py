@@ -6,7 +6,7 @@ from django.urls import path
 from formset.utils import MARKED_FOR_REMOVAL
 from formset.views import FormCollectionView
 
-from .forms.nested import NestedCollection
+from testapp.forms.nested import NestedCollection
 
 
 nested_collection_level1 = NestedCollection.declared_holders['level1'].replicate()
