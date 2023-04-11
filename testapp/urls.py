@@ -39,7 +39,7 @@ urlpatterns = [
     path('docs<path:path>',
         DocumentationView.as_view(
             json_build_dir=Path(settings.BASE_DIR / 'docs/build/json'),
-            template_name='page.html',
+            base_template_name='docs/base.html',
         ),
         name="documentation",
     ),
