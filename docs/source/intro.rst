@@ -109,7 +109,9 @@ isn't contemporary anymore.
 
 	Interacting with that form, shows validation errors immediately.
 
-.. django-view:: person
+
+.. django-view::
+	:urlpattern: path('person/', DemoFormView.as_view())
 
 	from django.forms.fields import CharField
 	from django.forms.forms import Form

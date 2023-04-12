@@ -176,11 +176,6 @@ We then can reuse a Django template but for instance render the form with differ
 If such a setup might make sense in your project, please check the section about :ref:`renderers`.
 
 
-.. django-view:: single
-
-	from django.forms.fields import CharField
-
-
 .. _field_by_field:
 
 Rendering a Django Form Field-by-Field
