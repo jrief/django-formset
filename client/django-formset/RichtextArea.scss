@@ -85,6 +85,13 @@
 		}
 	}
 
+	.character-count {
+		position: absolute;
+		bottom: 3px;
+		right: 6px;
+		color: $richtext-placeholder;
+	}
+
 	.ProseMirror {
 		border: none;
 		position: absolute;

@@ -4,6 +4,7 @@ import { Editor, Extension, Mark, Node } from '@tiptap/core';
 import Blockquote from '@tiptap/extension-blockquote';
 import Bold from '@tiptap/extension-bold';
 import BulletList from '@tiptap/extension-bullet-list';
+import CharacterCount from '@tiptap/extension-character-count';
 import CodeBlock from '@tiptap/extension-code-block';
 import Document from '@tiptap/extension-document';
 import HardBreak from '@tiptap/extension-hard-break';
@@ -21,6 +22,7 @@ import Text from '@tiptap/extension-text';
 import { TextAlign, TextAlignOptions } from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import { StyleHelpers } from './helpers';
+import template from 'lodash.template';
 
 
 abstract class Action {
@@ -529,6 +531,8 @@ class RichtextArea {
 	private readonly useJson: boolean = false;
 	private readonly editor: Editor;
 	private readonly initialValue: string | object;
+	private charaterCountTemplate?: Function;
+	private charaterCountDiv: HTMLElement | null = null;
 
 	constructor(wrapperElement: HTMLElement, textAreaElement: HTMLTextAreaElement) {
 		this.wrapperElement = wrapperElement;
@@ -552,18 +556,23 @@ class RichtextArea {
 		this.concealTextArea(wrapperElement);
 		// innerHTML must reflect the content, otherwise field validation complains about a missing value
 		this.textAreaElement.innerHTML = this.editor.getHTML();
+		this.contentUpdate();
 		this.installEventHandlers();
 	}
 
 	private createEditor(wrapperElement: HTMLElement, content: any) : Editor {
+		const extensions = new Array<Extension|Mark|Node>(
+			Document,
+			Paragraph,
+			Text,
+			HardBreak,  // always add hard breaks via keyboard entry
+		);
+		this.registerControlActions(extensions);
+		this.registerPlaceholder(extensions);
+		this.registerCharaterCount(extensions);
 		const editor = new Editor({
 			element: wrapperElement,
-			extensions: [
-				Document,
-				Paragraph,
-				Text,
-				...this.registerCommands(),
-			],
+			extensions: extensions,
 			content: content,
 			autofocus: false,
 			editable: !this.textAreaElement.disabled,
@@ -572,13 +581,7 @@ class RichtextArea {
 		return editor;
 	}
 
-	private registerCommands() : Array<Extension|Mark|Node> {
-		const extensions = new Array<Extension|Mark|Node>();
-		extensions.push(HardBreak);  // always add hard breaks via keyboard entry
-		const placeholderText = this.textAreaElement.getAttribute('placeholder');
-		if (placeholderText) {
-			extensions.push(Placeholder.configure({placeholder: placeholderText}));
-		}
+	private registerControlActions(extensions: Array<Extension|Mark|Node>) {
 		this.menubarElement?.querySelectorAll('button[richtext-click]').forEach(button => {
 			if (!(button instanceof HTMLButtonElement))
 				return;
@@ -597,10 +600,29 @@ class RichtextArea {
 		return extensions;
 	}
 
+	private registerPlaceholder(extensions: Array<Extension|Mark|Node>) {
+		const placeholderText = this.textAreaElement.getAttribute('placeholder');
+		if (!placeholderText)
+			return;
+		extensions.push(Placeholder.configure({placeholder: placeholderText}));
+	}
+
+	private registerCharaterCount(extensions: Array<Extension|Mark|Node>) {
+		const limit = parseInt(this.textAreaElement.getAttribute('maxlength') ?? '');
+		if (limit > 0) {
+			extensions.push(CharacterCount.configure({limit}));
+			this.charaterCountTemplate = template(`\${count}/${limit}`);
+			this.charaterCountDiv = document.createElement('div');
+			this.charaterCountDiv.classList.add('character-count');
+			this.wrapperElement.insertAdjacentElement('beforeend', this.charaterCountDiv);
+		}
+	}
+
 	private installEventHandlers() {
 		this.editor.on('focus', this.focused);
 		this.editor.on('update', this.updated);
 		this.editor.on('blur', this.blurred);
+		this.editor.on('update', this.contentUpdate);
 		this.editor.on('selectionUpdate', this.selectionUpdate);
 		const form = this.textAreaElement.form;
 		form!.addEventListener('reset', this.formResetted);
@@ -634,6 +656,13 @@ class RichtextArea {
 			this.wrapperElement.classList.remove('invalid');
 		}
 		this.textAreaElement.dispatchEvent(new Event('blur'));
+	}
+
+	private contentUpdate = () => {
+		if (this.charaterCountDiv && this.charaterCountTemplate) {
+			const context = {count: this.editor.storage.characterCount.characters()};
+			this.charaterCountDiv.innerHTML = this.charaterCountTemplate(context);
+		}
 	}
 
 	private selectionUpdate = () => {
