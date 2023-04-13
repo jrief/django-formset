@@ -4,6 +4,7 @@ import { Editor, Extension, Mark, Node } from '@tiptap/core';
 import Blockquote from '@tiptap/extension-blockquote';
 import Bold from '@tiptap/extension-bold';
 import BulletList from '@tiptap/extension-bullet-list';
+import CharacterCount from '@tiptap/extension-character-count';
 import CodeBlock from '@tiptap/extension-code-block';
 import Document from '@tiptap/extension-document';
 import HardBreak from '@tiptap/extension-hard-break';
@@ -578,6 +579,12 @@ class RichtextArea {
 		const placeholderText = this.textAreaElement.getAttribute('placeholder');
 		if (placeholderText) {
 			extensions.push(Placeholder.configure({placeholder: placeholderText}));
+		}
+		const maxlength = this.textAreaElement.getAttribute('maxlength');
+		if (maxlength) {
+			const limit = parseInt(maxlength);
+			extensions.push(CharacterCount.configure({limit}));
+			this.wrapperElement.insertAdjacentHTML('beforeend', `<div class="character-count">0/${limit}</div>`);
 		}
 		this.menubarElement?.querySelectorAll('button[richtext-click]').forEach(button => {
 			if (!(button instanceof HTMLButtonElement))
