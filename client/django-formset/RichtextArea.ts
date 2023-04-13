@@ -4,6 +4,7 @@ import { Editor, Extension, Mark, Node } from '@tiptap/core';
 import Blockquote from '@tiptap/extension-blockquote';
 import Bold from '@tiptap/extension-bold';
 import BulletList from '@tiptap/extension-bullet-list';
+import CharacterCount from '@tiptap/extension-character-count';
 import CodeBlock from '@tiptap/extension-code-block';
 import Document from '@tiptap/extension-document';
 import HardBreak from '@tiptap/extension-hard-break';
@@ -24,10 +25,12 @@ import { StyleHelpers } from './helpers';
 
 
 abstract class Action {
+	public readonly name: string;
 	protected readonly button: HTMLButtonElement;
-	public readonly extensions: Array<Extension|Mark|Node> = [];
+	protected readonly extensions: Array<Extension|Mark|Node> = [];
 
-	constructor(wrapperElement: HTMLElement, button: HTMLButtonElement) {
+	constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+		this.name = name;
 		this.button = button;
 	}
 
@@ -37,131 +40,136 @@ abstract class Action {
 
 	abstract clicked(editor: Editor): void;
 
-	activate(editor: Editor, name: string) {
-		this.button.classList.toggle('active', editor.isActive(name));
+	activate(editor: Editor) {
+		this.button.classList.toggle('active', editor.isActive(this.name));
 	}
 
 	deactivate() {
 		this.button.classList.remove('active');
 	}
+
+	extendExtensions(extensions: Array<Extension|Mark|Node>) {
+		this.extensions.forEach(e => {
+			if (!extensions.includes(e)) {
+				extensions.push(e)
+			}
+		});
+	}
 }
 
 
 namespace controls {
-	export class boldAction extends Action {
-		public readonly extensions = [Bold];
+	export class BoldAction extends Action {
+		protected readonly extensions = [Bold];
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleBold().run();
 		}
 	}
 
-	export class italicAction extends Action {
-		public readonly extensions = [Italic];
+	export class ItalicAction extends Action {
+		protected readonly extensions = [Italic];
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleItalic().run();
 		}
 	}
 
-	export class underlineAction extends Action {
-		public readonly extensions = [Underline];
+	export class UnderlineAction extends Action {
+		protected readonly extensions = [Underline];
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleUnderline().run();
 		}
 	}
 
-	export class bulletListAction extends Action {
-		public readonly extensions = [BulletList, ListItem];
+	export class BulletListAction extends Action {
+		protected readonly extensions = [BulletList, ListItem];
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleBulletList().run();
 		}
 	}
 
-	export class blockquoteAction extends Action {
-		public readonly extensions = [Blockquote];
+	export class BlockquoteAction extends Action {
+		protected readonly extensions = [Blockquote];
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleBlockquote().run();
 		}
 	}
 
-	export class codeBlockAction extends Action {
-		public readonly extensions = [CodeBlock];
+	export class CodeBlockAction extends Action {
+		protected readonly extensions = [CodeBlock];
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleCodeBlock().run();
 		}
 	}
 
-	export class hardBreakAction extends Action {
+	export class HardBreakAction extends Action {
 		clicked(editor: Editor) {
 			editor.chain().focus().setHardBreak().run();
 		}
 	}
 
-	export class orderedListAction extends Action {
-		public readonly extensions = [OrderedList, ListItem];
+	export class OrderedListAction extends Action {
+		protected readonly extensions = [OrderedList, ListItem];
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleOrderedList().run();
 		}
 	}
 
-	export class horizontalRuleAction extends Action {
-		public readonly extensions = [HorizontalRule];
+	export class HorizontalRuleAction extends Action {
+		protected readonly extensions = [HorizontalRule];
 
 		clicked(editor: Editor) {
 			editor.chain().focus().setHorizontalRule().run();
 		}
 	}
 
-	export class clearFormatAction extends Action {
+	export class ClearFormatAction extends Action {
 		clicked(editor: Editor) {
 			editor.chain().focus().clearNodes().unsetAllMarks().run();
 		}
 	}
 
-	export class undoAction extends Action {
-		public readonly extensions = [History];
+	export class UndoAction extends Action {
+		protected readonly extensions = [History];
 
 		clicked(editor: Editor) {
 			editor.commands.undo();
 		}
 	}
 
-	export class redoAction extends Action {
-		public readonly extensions = [History];
+	export class RedoAction extends Action {
+		protected readonly extensions = [History];
 
 		clicked(editor: Editor) {
 			editor.commands.redo();
 		}
 	}
 
-	export class headingAction extends Action {
+	export class HeadingAction extends Action {
 		private readonly dropdownInstance?: Instance;
 		private readonly dropdownMenu: HTMLElement | null;
+		private readonly dropdownItems: NodeListOf<Element> | [] = [];
 		private readonly defaultIcon: Element;
+		private readonly levels: Array<Level> = [];
 
-		constructor(wrapperElement: HTMLElement, button: HTMLButtonElement) {
-			super(wrapperElement, button);
-			const levels: Array<Level> = [];
-			this.dropdownMenu = wrapperElement.querySelector('button[richtext-click="heading"] + [role="menu"]');
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
+			this.dropdownMenu = button.nextElementSibling instanceof HTMLUListElement && button.nextElementSibling.role === 'menu' ? button.nextElementSibling : null;
 			if (this.dropdownMenu) {
 				this.dropdownInstance = createPopper(this.button, this.dropdownMenu, {
 					placement: 'bottom-start',
 				});
-				this.dropdownMenu.querySelectorAll('[richtext-click^="heading:"]').forEach(element => {
-					levels.push(this.extractLevel(element));
-				});
+				this.dropdownItems = this.dropdownMenu.querySelectorAll('[richtext-click^="heading:"]');
+				this.dropdownItems.forEach(element => this.levels.push(this.extractLevel(element)));
 			} else {
-				levels.push(this.extractLevel(this.button));
+				this.levels.push(this.extractLevel(this.button));
 			}
-			this.extensions.push(Heading.configure({
-				levels: levels,
-			}));
 			this.defaultIcon = this.button.querySelector('svg')?.cloneNode(true) as Element;
 		}
 
@@ -193,25 +201,46 @@ namespace controls {
 
 		clicked() {}
 
-		activate(editor: Editor, name: string) {
-			let useDefault = true;
-			this.dropdownMenu?.querySelectorAll('[richtext-click^="heading:"]').forEach(element => {
-				const level = this.extractLevel(element);
-				const icon = element.querySelector('svg')?.cloneNode(true);
-				if (editor.isActive('heading', {level}) && icon) {
-					this.button.replaceChildren(icon);
-					useDefault = false;
+		activate(editor: Editor) {
+			if (this.dropdownMenu) {
+				let isActive = false;
+				this.dropdownItems.forEach(element => {
+					const level = this.extractLevel(element);
+					const icon = element.querySelector('svg')?.cloneNode(true);
+					if (editor.isActive('heading', {level}) && icon) {
+						this.button.replaceChildren(icon);
+						isActive = true;
+					}
+				});
+				this.button.classList.toggle('active', isActive);
+				if (!isActive) {
+					this.button.replaceChildren(this.defaultIcon);
+				}
+			} else {
+				const level = this.extractLevel(this.button);
+				this.button.classList.toggle('active', editor.isActive('heading', {level}));
+			}
+		}
+
+		extendExtensions(extensions: Array<Extension|Mark|Node>) {
+			let unmergedOptions = true;
+			extensions.forEach(e => {
+				if (e.name === 'heading') {
+					e.options.levels.push(...this.levels);
+					unmergedOptions = false;
 				}
 			});
-			if (useDefault) {
-				this.button.replaceChildren(this.defaultIcon);
+			if (unmergedOptions) {
+				extensions.push(Heading.configure({
+					levels: this.levels,
+				}));
 			}
 		}
 
 		private toggleMenu(editor: Editor, force?: boolean) {
 			const expanded = (force !== false && this.button.ariaExpanded === 'false');
 			this.button.ariaExpanded = expanded ? 'true' : 'false';
-			this.dropdownMenu?.querySelectorAll('[richtext-click^="heading:"]').forEach(element => {
+			this.dropdownItems.forEach(element => {
 				const level = this.extractLevel(element);
 				element.parentElement?.classList.toggle('active', editor.isActive('heading', {level}));
 			});
@@ -225,6 +254,10 @@ namespace controls {
 					const level = this.extractLevel(element);
 					editor.chain().focus().setHeading({'level': level}).run();
 					this.toggleMenu(editor, false);
+					const icon = element.querySelector('svg')?.cloneNode(true);
+					if (icon) {
+						this.button.replaceChildren(icon);
+					}
 					break;
 				}
 				element = element.parentElement;
@@ -232,31 +265,32 @@ namespace controls {
 		}
 	}
 
-	export class alignmentAction extends Action {
+	export class AlignmentAction extends Action {
 		private readonly dropdownInstance?: Instance;
 		private readonly dropdownMenu: HTMLElement | null;
+		private readonly dropdownItems: NodeListOf<Element> | [] = [];
 		private readonly defaultIcon: Element;
+		private readonly options: TextAlignOptions = {
+			types: ['heading', 'paragraph'],
+			alignments: [],
+			defaultAlignment: '',
+		};
 
-		constructor(wrapperElement: HTMLElement, button: HTMLButtonElement) {
-			super(wrapperElement, button);
-			let options: TextAlignOptions = {
-				types: ['heading', 'paragraph'],
-				alignments: [],
-				defaultAlignment: '',
-			};
-			this.dropdownMenu = wrapperElement.querySelector('button[richtext-click="alignment"] + [role="menu"]');
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
+			this.dropdownMenu = button.nextElementSibling instanceof HTMLUListElement && button.nextElementSibling.role === 'menu' ? button.nextElementSibling : null;
 			if (this.dropdownMenu) {
 				this.dropdownInstance = createPopper(this.button, this.dropdownMenu, {
 					placement: 'bottom-start',
 				});
-				this.dropdownMenu.querySelectorAll('[richtext-click^="alignment:"]').forEach(element => {
-					options.alignments.push(this.extractAlignment(element));
+				this.dropdownItems = this.dropdownMenu.querySelectorAll('[richtext-click^="alignment:"]');
+				this.dropdownItems.forEach(element => {
+					this.options.alignments.push(this.extractAlignment(element));
 				});
 			} else {
-				options.alignments.push(this.extractAlignment(this.button));
+				this.options.alignments.push(this.extractAlignment(this.button));
 			}
 			this.defaultIcon = this.button.querySelector('svg')?.cloneNode(true) as Element;
-			this.extensions.push(TextAlign.configure(options));
 		}
 
 		private extractAlignment(element: Element) : string {
@@ -286,25 +320,44 @@ namespace controls {
 
 		clicked() {}
 
-		activate(editor: Editor, name: string) {
-			let useDefault = true;
-			this.dropdownMenu?.querySelectorAll('[richtext-click^="alignment:"]').forEach(element => {
-				const alignment = this.extractAlignment(element);
-				const icon = element.querySelector('svg')?.cloneNode(true);
-				if (editor.isActive({textAlign: alignment}) && icon) {
-					this.button.replaceChildren(icon);
-					useDefault = false;
+		activate(editor: Editor) {
+			if (this.dropdownMenu) {
+				let isActive = false;
+				this.dropdownItems.forEach(element => {
+					const alignment = this.extractAlignment(element);
+					const icon = element.querySelector('svg')?.cloneNode(true);
+					if (editor.isActive({textAlign: alignment}) && icon) {
+						this.button.replaceChildren(icon);
+						isActive = true;
+					}
+				});
+				// do not toggle dropdown button's class "active", because text is somehow always aligned
+				if (!isActive) {
+					this.button.replaceChildren(this.defaultIcon);
+				}
+			} else {
+				const alignment = this.extractAlignment(this.button);
+				this.button.classList.toggle('active', editor.isActive({textAlign: alignment}));
+			}
+		}
+
+		extendExtensions(extensions: Array<Extension|Mark|Node>) {
+			let unmergedOptions = true;
+			extensions.forEach(e => {
+				if (e.name === 'textAlign') {
+					e.options.alignments.push(...this.options.alignments);
+					unmergedOptions = false;
 				}
 			});
-			if (useDefault) {
-				this.button.replaceChildren(this.defaultIcon);
+			if (unmergedOptions) {
+				extensions.push(TextAlign.configure(this.options));
 			}
 		}
 
 		private toggleMenu(editor: Editor, force?: boolean) {
 			const expanded = (force !== false && this.button.ariaExpanded === 'false');
 			this.button.ariaExpanded = expanded ? 'true' : 'false';
-			this.dropdownMenu?.querySelectorAll('[richtext-click^="alignment:"]').forEach(element => {
+			this.dropdownItems.forEach(element => {
 				const alignment = this.extractAlignment(element);
 				element.parentElement?.classList.toggle('active', editor.isActive({textAlign: alignment}));
 			});
@@ -337,8 +390,8 @@ namespace controls {
 		protected readonly modalDialogElement: HTMLDialogElement;
 		protected readonly formElement: HTMLFormElement;
 
-		constructor(wrapperElement: HTMLElement, button: HTMLButtonElement) {
-			super(wrapperElement, button);
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
 			const label = button.getAttribute('richtext-click') ?? '';
 			this.modalDialogElement = wrapperElement.querySelector(`dialog[richtext-opener="${label}"]`)! as HTMLDialogElement;
 			this.formElement = this.modalDialogElement.querySelector('form[method="dialog"]')! as HTMLFormElement;
@@ -348,15 +401,16 @@ namespace controls {
 		protected abstract openDialog(editor: Editor): void;
 	}
 
-	export class linkAction extends FormDialogAction {
+
+	export class LinkAction extends FormDialogAction {
 		private readonly textInputElement: HTMLInputElement;
 		private readonly urlInputElement: HTMLInputElement;
 		public extensions = [Link.configure({
 			openOnClick: false
 		})];
 
-		constructor(wrapperElement: HTMLElement, button: HTMLButtonElement) {
-			super(wrapperElement, button);
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
 			this.textInputElement = this.formElement.elements.namedItem('text') as HTMLInputElement;
 			this.urlInputElement = this.formElement.elements.namedItem('url') as HTMLInputElement;
 			this.initialize();
@@ -443,8 +497,8 @@ namespace controls {
 			inline: false
 		})];
 
-		constructor(wrapperElement: HTMLElement, button: HTMLButtonElement) {
-			super(wrapperElement, button);
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
 			this.fileInputElement = this.formElement.elements.namedItem('image') as HTMLInputElement;
 		}
 
@@ -471,7 +525,7 @@ class RichtextArea {
 	private readonly textAreaElement: HTMLTextAreaElement;
 	public readonly wrapperElement: HTMLElement;
 	private readonly menubarElement: HTMLElement | null;
-	private readonly registeredCommands = new Map<string, Action>();
+	private readonly registeredActions = new Array<Action>();
 	private readonly declaredStyles: HTMLStyleElement;
 	private readonly useJson: boolean = false;
 	private readonly editor: Editor;
@@ -520,26 +574,34 @@ class RichtextArea {
 	}
 
 	private registerCommands() : Array<Extension|Mark|Node> {
-		const extensions = new Set<Extension|Mark|Node>();
-		extensions.add(HardBreak);  // always add hard breaks via keyboard entry
+		const extensions = new Array<Extension|Mark|Node>();
+		extensions.push(HardBreak);  // always add hard breaks via keyboard entry
 		const placeholderText = this.textAreaElement.getAttribute('placeholder');
 		if (placeholderText) {
-			extensions.add(Placeholder.configure({placeholder: placeholderText}));
+			extensions.push(Placeholder.configure({placeholder: placeholderText}));
+		}
+		const maxlength = this.textAreaElement.getAttribute('maxlength');
+		if (maxlength) {
+			const limit = parseInt(maxlength);
+			extensions.push(CharacterCount.configure({limit}));
+			this.wrapperElement.insertAdjacentHTML('beforeend', `<div class="character-count">0/${limit}</div>`);
 		}
 		this.menubarElement?.querySelectorAll('button[richtext-click]').forEach(button => {
 			if (!(button instanceof HTMLButtonElement))
 				return;
-			const parts = button.getAttribute('richtext-click')?.split(':') ?? [];
-			parts[1] = 'Action';
-			const actionName = parts.join('');
+			const richtextClick = button.getAttribute('richtext-click');
+			if (!richtextClick)
+				throw new Error("Missing attribute 'richtext-click' on action button");
+			const parts = richtextClick.split(':');
+			const actionName = parts[0].charAt(0).toUpperCase().concat(parts[0].slice(1), 'Action');
 			const ActionClass = (<any>controls)[actionName];
 			if (!(ActionClass?.prototype instanceof Action))
 				throw new Error(`Unknown action class '${actionName}'.`);
-			const actionInstance = new ActionClass(this.wrapperElement, button);
-			this.registeredCommands.set(parts[0], actionInstance);
-			(actionInstance as Action).extensions.forEach(e => extensions.add(e));
+			const actionInstance = new ActionClass(this.wrapperElement, richtextClick, button) as Action;
+			this.registeredActions.push(actionInstance);
+			actionInstance.extendExtensions(extensions);
 		});
-		return Array.from(extensions);
+		return extensions;
 	}
 
 	private installEventHandlers() {
@@ -550,7 +612,7 @@ class RichtextArea {
 		const form = this.textAreaElement.form;
 		form!.addEventListener('reset', this.formResetted);
 		form!.addEventListener('submitted', this.formSubmitted);
-		this.registeredCommands.forEach(command => command.installEventHandler(this.editor));
+		this.registeredActions.forEach(action => action.installEventHandler(this.editor));
 	}
 
 	private concealTextArea(wrapperElement: HTMLElement) {
@@ -569,9 +631,7 @@ class RichtextArea {
 	}
 
 	private blurred = () => {
-		this.registeredCommands.forEach((action) => {
-			action.deactivate();
-		});
+		this.registeredActions.forEach(action => action.deactivate());
 		this.wrapperElement.classList.remove('focused');
 		if (this.textAreaElement.required && this.editor.getText().length === 0) {
 			this.wrapperElement.classList.remove('valid');
@@ -584,9 +644,7 @@ class RichtextArea {
 	}
 
 	private selectionUpdate = () => {
-		this.registeredCommands.forEach((action, name) => {
-			action.activate(this.editor, name);
-		});
+		this.registeredActions.forEach(action => action.activate(this.editor));
 	}
 
 	private formResetted = () => {
