@@ -1,5 +1,6 @@
 import json
 import pytest
+from time import sleep
 
 from django.urls import path
 
@@ -32,6 +33,8 @@ def test_submit_customer(page, mocker, viewname):
     page.fill('#id_customer\\.address', "123, Lye Street")
     spy = mocker.spy(FormCollectionView, 'post')
     page.query_selector('django-formset button').click()
+    sleep(0.25)
+    assert spy.called
     response = json.loads(spy.call_args.args[1].body)
     assert response == {'formset_data': {
         'customer': {'name': "John Doe", 'address': "123, Lye Street", 'phone_number': ""},
@@ -47,6 +50,8 @@ def test_submit_no_customer(page, mocker, viewname):
     assert page.query_selector('django-formset > django-form-collection:first-of-type fieldset[hidden]') is not None
     spy = mocker.spy(FormCollectionView, 'post')
     page.query_selector('django-formset button').click()
+    sleep(0.25)
+    assert spy.called
     response = json.loads(spy.call_args.args[1].body)
     assert response == {'formset_data': {
         'customer': {'name': "", 'address': "", 'phone_number': ""},

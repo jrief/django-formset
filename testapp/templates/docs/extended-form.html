@@ -1,4 +1,6 @@
+{% load render_form from formsetify %}
+
 <django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}" csrf-token="{{ csrf_token }}">
-	{{ form }}
+	{% render_form form %}
 	{% include "./buttons.html" %}
 </django-formset>

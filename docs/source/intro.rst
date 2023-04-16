@@ -1,18 +1,11 @@
 .. _intro:
 
-Django-4.0 introduced a long awaited feature to render form fields using a template. Until version
-3.2 this was left to the infamous function ``BaseForm._html_output()``, which rendered the form
-fields hard-coded in HTML and hence there was little scope for modification. This new feature now
-makes it possible to write special renderers for adding functionality as implemented by this
-library.
-
-
 ============
 Introduction
 ============
 
-**django-formset** attempty to solve a problem, which occurs in almost every project using the
-Django framework, specificcaly the way forms are handled.
+**django-formset** attempts to solve a problem, which occurs in almost every project using the
+Django framework, specifically the way forms are handled.
 
 Compared to the solutions most modern JavaScript frameworks offer nowadays, having to reload a page
 if a form does not validate, is *not* contemporary anymore. Therefore, Django developers often use a
@@ -110,12 +103,12 @@ isn't contemporary anymore.
 	Interacting with that form, shows validation errors immediately.
 
 
-.. django-view::
-	:urlpattern: path('person/', DemoFormView.as_view())
+.. django-view:: person
+	:view-function: DemoFormView.as_view()
 
 	from django.forms.fields import CharField
 	from django.forms.forms import Form
-	from django.views.generic import FormView 
+	from formset.views import FormView 
 
 	class PersonForm(Form):
 	    first_name = CharField()
@@ -123,7 +116,7 @@ isn't contemporary anymore.
 
 	class DemoFormView(FormView):
 	    form_class = PersonForm
-	    template_name = "docs/extended-form.html"
+	    template_name = "extended-form.html"
 
 With the web component ``<django-formset>`` we instead can use the above Django form and render it
 using a slightly modified Django view and a template such as:

@@ -59,7 +59,7 @@ class JSONEncoder(DjangoJSONEncoder):
         if isinstance(o, (UploadedFile, FieldFile)):
             return o.name
         if isinstance(o, Model):
-            return str(o)
+            return repr(o)
         if isinstance(o, QuerySet):
             return [str(i) for i in o]
         return super().default(o)
@@ -76,7 +76,7 @@ def render_suburls(request, extra_context=None):
     }
     if extra_context:
         context.update(extra_context)
-    template = get_template('index.html')
+    template = get_template('testapp/index.html')
     return HttpResponse(template.render(context))
 
 
@@ -512,7 +512,7 @@ urlpatterns = [
     path('upload', DemoFormView.as_view(
         form_class=UploadForm,
     ), kwargs={'group': 'form', 'index': 15}, name='upload'),
-    path('birthdate', DemoFormView.as_view(
+    path('birthdate/', DemoFormView.as_view(
         form_class=BirthdateForm,
     ), kwargs={'group': 'form', 'index': 15}, name='birthdate'),
     path('moon', DemoFormView.as_view(

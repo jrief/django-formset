@@ -1,4 +1,4 @@
-{% extends "docs/base.html" %}
+{% extends "sphinx_view/base.html" %}
 {% load static %}
 
 {% block title %}Search{% endblock title %}
@@ -10,7 +10,7 @@
 
 {% block regular_scripts %}
 	{{ block.super }}
-	<script src="{% static 'docs/_static/scripts/searchtools.js' %}"></script>
-	<script src="{% static 'docs/_static/language_data.js' %}"></script>
+	<script src="{% static 'sphinx_view/js/searchtools.js' %}"></script>
+	<script src="{% static 'sphinx-view/_static/language_data.js' %}"></script>
 	<script>Search.setIndex({{ search_index }});</script>
 {% endblock %}
