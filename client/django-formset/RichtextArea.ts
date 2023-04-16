@@ -60,6 +60,8 @@ abstract class Action {
 
 
 namespace controls {
+	// basic control actions
+
 	export class BoldAction extends Action {
 		protected readonly extensions = [Bold];
 
@@ -387,6 +389,8 @@ namespace controls {
 
 
 namespace controls {
+	// control actions which require a modal dialog form
+
 	abstract class FormDialogAction extends Action {
 		protected readonly modalDialogElement: HTMLDialogElement;
 		protected readonly formElement: HTMLFormElement;

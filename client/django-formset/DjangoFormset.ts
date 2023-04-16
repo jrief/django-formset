@@ -682,11 +682,17 @@ class DjangoButton {
 
 	/**
 	 * For debugging purpose only: Intercept, log and forward the response object to the next handler.
+	 * @param selector: If selector points onto a valid element in the DOM, the server response is inserted.
  	 */
 	// @ts-ignore
-	private intercept() {
+	private intercept(selector?: string) {
 		return (response: Response) => {
-			console.info(response);
+			const element = selector ? document.querySelector(selector) : null;
+			if (element) {
+				element.innerHTML = JSON.stringify(response);
+			} else {
+				console.info(response);
+			}
 			return Promise.resolve(response);
 		}
 	}
