@@ -29,6 +29,7 @@ path as
 .. code-block:: python
 
 	STATICFILES_DIRS = [
+	    ...
 	    ('node_modules', BASE_DIR / 'node_modules'),
 	]
 

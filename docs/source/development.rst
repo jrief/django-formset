@@ -9,7 +9,7 @@ Developing in django-formset
 `PEG.js`_. The last two applications are required for the client part and make up about one third
 of the code base.
 
-The code can be found on GitHub_. Please use the issue tracker only the report bugs. For questions
+The code can be found on GitHub_. Please use the issue tracker only to report bugs. For questions
 and new ideas, please use the Discussion board.
 
 .. _TypeScript: https://www.typescriptlang.org/
@@ -35,11 +35,12 @@ tool-chain required to build the test application:
 	npm run compilescss
 	mkdir workdir
 	export DJANGO_DEBUG=true
+	make --directory=docs json
 	testapp/manage.py migrate
 	testapp/manage.py runserver
 
-Open http://localhost:8000/ in your browser. There is a long list of examples for all kinds of
-purposes.
+Open http://localhost:8000/ in your browser. This should show the same documentation you're
+currently reading.
 
 
 Setting up and running Tests
@@ -91,18 +92,26 @@ The client can be built in three ways:
 
 This creates a bundle of JavaScript modules. The main entry point is found in file
 ``formset/static/formset/django-formset.js``. This file only contains the core functionality, ie.
-that one, required for web component ``<django-formset>``. The JavaScript code for all other web
+that one, required for web component ``<django-formset>``. The JavaScript modules for all the other
 components, such as ``<select is="django-selectize">``, ``<django-dual-selector>``,
-``<textarea is="django-richtext">``, etc. is loaded *automatically* upon request.
+``<textarea is="django-richtext">``, etc. are loaded upon demand.
 
 This is the default setting.
 
 
-.. rubric:: ``npm run esbuild.monolith``
+.. rubric:: ``npm run esbuild -- --monolith``
 
 This creates one single monolithic JavaScript module, named
 ``formset/static/formset/django-formset.js``. In some circumstances this might be preferable over
 many splitted  modules.
+
+
+.. rubric:: ``npm run esbuild -- --debug``
+
+This compiles TypeScript to JavaScript without minimizing plus additional `source maps`_. This build
+target should be used during development of client side code. 
+
+.. _source maps: https://web.dev/source-maps/
 
 
 .. rubric:: ``npm run rollup``
