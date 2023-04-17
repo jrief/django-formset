@@ -686,12 +686,16 @@ class DjangoButton {
  	 */
 	// @ts-ignore
 	private intercept(selector?: string) {
-		return (response: Response) => {
+		return async (response: Response) => {
+			const body = {
+				request: this.formset.buildBody(),
+				response: await response.json(),
+			};
 			const element = selector ? document.querySelector(selector) : null;
 			if (element) {
-				element.innerHTML = JSON.stringify(response);
+				element.innerHTML = JSON.stringify(body, null,'  ');
 			} else {
-				console.info(response);
+				console.info(body);
 			}
 			return Promise.resolve(response);
 		}
@@ -1561,7 +1565,7 @@ export class DjangoFormset {
 		return isValid;
 	}
 
-	private buildBody(extraData?: Object) : Object {
+	public buildBody(extraData?: Object) : Object {
 		let dataValue: any;
 		// Build `body`-Object recursively.
 		// Deliberately ignore type-checking, because `body` must be build as POJO to be JSON serializable.
@@ -1635,6 +1639,7 @@ export class DjangoFormset {
 		if (formsAreValid) {
 			if (!this.endpoint)
 				throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
+			const body = this.buildBody(extraData);
 			try {
 				const headers = new Headers();
 				headers.append('Accept', 'application/json');
@@ -1645,7 +1650,7 @@ export class DjangoFormset {
 				const response = await fetch(this.endpoint, {
 					method: 'POST',
 					headers: headers,
-					body: JSON.stringify(this.buildBody(extraData)),
+					body: JSON.stringify(body),
 					signal: this.abortController.signal,
 				});
 				switch (response.status) {
