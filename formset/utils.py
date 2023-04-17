@@ -2,6 +2,10 @@ import copy
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import UploadedFile
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Model, QuerySet
+from django.db.models.fields.files import FieldFile
 from django.forms.utils import ErrorDict, ErrorList
 from django.utils.functional import cached_property
 
@@ -153,3 +157,14 @@ class FormMixin(FormDecoratorMixin, HolderMixin):
 
     def get_field(self, field_name):
         return self.fields[field_name]
+
+
+class JSONEncoder(DjangoJSONEncoder):
+    def default(self, o):
+        if isinstance(o, (UploadedFile, FieldFile)):
+            return o.name
+        if isinstance(o, Model):
+            return repr(o)
+        if isinstance(o, QuerySet):
+            return [repr(i) for i in o]
+        return super().default(o)
