@@ -116,7 +116,7 @@ isn't contemporary anymore.
 
 	class DemoFormView(FormView):
 	    form_class = PersonForm
-	    template_name = "extended-form.html"
+	    template_name = "form.html"
 
 With the web component ``<django-formset>`` we instead can use the above Django form and render it
 using a slightly modified Django view and a template such as:
