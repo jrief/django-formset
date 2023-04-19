@@ -566,17 +566,16 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private proceed(proceedUrl: string | undefined) {
-		return (response: Response) => {
+		return async (response: Response) => {
 			if (typeof proceedUrl === 'string' && proceedUrl.length > 0) {
 				location.href = proceedUrl;
 			} else if (response instanceof Response && response.status === 200) {
-				response.json().then(body => {
-					if (body.success_url) {
-						location.href = body.success_url;
-					} else {
-						console.warn("Neither a success-, nor a proceed-URL are given.");
-					}
-				});
+				const body = await response.clone().json();
+				if (body.success_url) {
+					location.href = body.success_url;
+				} else {
+					console.warn("Neither a success-, nor a proceed-URL are given.");
+				}
 			}
 			return Promise.resolve(response);
 		}
@@ -689,7 +688,7 @@ class DjangoButton {
 		return async (response: Response) => {
 			const body = {
 				request: this.formset.buildBody(),
-				response: await response.json(),
+				response: await response.clone().json(),
 			};
 			const element = selector ? document.querySelector(selector) : null;
 			if (element) {
@@ -1662,7 +1661,7 @@ export class DjangoFormset {
 						return response;
 					case 422:
 						this.clearErrors();
-						const body = await response.json();
+						const body = await response.clone().json();
 						this.reportErrors(body);
 						return response;
 					default:

@@ -3,5 +3,5 @@
 <django-formset endpoint="{{ request.path }}" force-submission="true" csrf-token="{{ csrf_token }}">
 	{% render_form form "tailwind" %}
 	{% include "./buttons.html" %}
-	<pre id="submit-data" class="empty:hidden w-full border border-indigo-500 rounded p-2"></pre>
+	<pre id="submit-data" class="empty:hidden w-full border border-indigo-500 bg-indigo-50 rounded p-2"></pre>
 </django-formset>
