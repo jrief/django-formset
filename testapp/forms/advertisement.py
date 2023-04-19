@@ -95,6 +95,7 @@ class AdvertisementForm(forms.Form):
             controls.HardBreak(),
             controls.Italic(),
             controls.Underline(),
+            controls.IndentFirstLine(),
             controls.Link(),
             controls.TextAlign(['left', 'center', 'right']),
             controls.HorizontalRule(),

@@ -82,6 +82,17 @@ class TextAlign(ControlElement):
         })
 
 
+class IndentFirstLine(ControlElement):
+    name = 'indentFirstLine'
+    label = _("Indent First Line")
+
+
+class OutdentFirstLine(ControlElement):
+    name = 'outdentFirstLine'
+    label = _("Outdent First Line")
+
+
+
 class Bold(ControlElement):
     name = 'bold'
     label = _("Bold")

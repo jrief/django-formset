@@ -20,6 +20,7 @@ import Paragraph from '@tiptap/extension-paragraph';
 import Placeholder from '@tiptap/extension-placeholder';
 import Text from '@tiptap/extension-text';
 import { TextAlign, TextAlignOptions } from '@tiptap/extension-text-align';
+import { FirstLineAlign, FirstLineAlignOptions } from './RichtextFirstLineAlign';
 import Underline from '@tiptap/extension-underline';
 import { StyleHelpers } from './helpers';
 import template from 'lodash.template';
@@ -111,8 +112,34 @@ namespace controls {
 	}
 
 	export class HardBreakAction extends Action {
+		// extension for HardBreak is always loaded
+
 		clicked(editor: Editor) {
 			editor.chain().focus().setHardBreak().run();
+		}
+	}
+
+	export class IndentFirstLineAction extends Action {
+		clicked(editor: Editor) {
+			editor.chain().focus().toggleIndent().run();
+		}
+
+		extendExtensions(extensions: Array<Extension|Mark|Node>) {
+			if (!extensions.includes(FirstLineAlign)) {
+				extensions.push(FirstLineAlign);
+			}
+		}
+	}
+
+	export class OutdentFirstLineAction extends Action {
+		clicked(editor: Editor) {
+			editor.chain().focus().toggleIndent().run();
+		}
+
+		extendExtensions(extensions: Array<Extension|Mark|Node>) {
+			if (!extensions.includes(FirstLineAlign)) {
+				extensions.push(FirstLineAlign);
+			}
 		}
 	}
 
