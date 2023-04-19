@@ -6,9 +6,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
-from django.forms.renderers import get_default_renderer
-from django.db.models import Model, QuerySet
+from django.db.models import Model
 from django.db.models.fields.files import FieldFile
+from django.forms.renderers import get_default_renderer
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import get_resolver, path, reverse
@@ -60,8 +60,8 @@ class JSONEncoder(DjangoJSONEncoder):
             return o.name
         if isinstance(o, Model):
             return str(o)
-        if isinstance(o, QuerySet):
-            return [str(i) for i in o]
+        if hasattr(o, '__iter__'):
+            return [self.default(i) for i in o]
         return super().default(o)
 
 
