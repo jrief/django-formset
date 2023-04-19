@@ -15,8 +15,8 @@ Django ``Form``-s.
 
 	intro
 	installation
-	single-form
 	django-formset
+	single-form
 	styling
 	buttons
 	collections

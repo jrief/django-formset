@@ -26,6 +26,7 @@ widgets, for five different CSS frameworks.
 * Rich textarea fields.
 * Slug input fields.
 * File upload fields with asynchronous upload and drag & drop support.
+* Date- and date-time pickers.
 
 Currently not supported widgets:
 
@@ -49,7 +50,7 @@ Say we have a typical Django form
 
 	from django.forms import forms, fields
 	
-	class RegisterPersonForm(forms.Form):
+	class PersonForm(forms.Form):
 	    first_name = fields.RegexField(
 	        r'^[A-Z][a-z -]+$',
 	        label="First name",
@@ -86,7 +87,7 @@ When rendered using the view class :class:`formset.views.FormView` together with
 	  <button type="button" click="submit -> proceed">Submit</button>
 	</django-formset>
 
-That form displays two text input fields, one for the person's first- and its last name. Here we
+that form displays two text input fields, one for the person's first- and its last name. Here we
 declared two constraints on the first two fields: The first name must start in upper case and
 contain at least one additional character in lower case, while the last name must consist of at
 least two, but no more than 50 characters. Additionally the user has to choose his gender using

@@ -18,10 +18,10 @@ router,
 
 	from formset.views import FormView
 	
-	class RegisterPersonFormView(FormView):
-	    template_name = 'path/to/register-person-form.html'
+	class PersonFormView(FormView):
+	    template_name = "form.html"
 	    form_class = RegisterPersonForm
-	    success_url = '/success'
+	    success_url = "/success"
 
 or use the class ``FormView`` directly in ``urls.py`` while defining the routing:
 
@@ -29,15 +29,15 @@ or use the class ``FormView`` directly in ``urls.py`` while defining the routing
 
 	urlpatterns = [
 	    ...
-	    path('register-person', FormView.as_view(
-	        template_name='path/to/register-person-form.html',
+	    path("person", FormView.as_view(
+	        template_name="form.html",
 	        form_class=RegisterPersonForm,
-	        success_url = '/success',
+	        success_url = "/success",
 	    )),
 	    ...
 	]
 
-In this example, the endpoint would point onto ``/register-person``, but in order to make our form
+In this example, the endpoint would point onto ``/person``, but in order to make our form
 rendering templates reusable, we'd rather write
 
 .. code-block:: django
@@ -48,6 +48,15 @@ rendering templates reusable, we'd rather write
 
 We can do this, because the endpoint is located on the same URL as the view rendering the form.
 
+.. rubric:: CSRF token
+
+Since the JavaScript implementing web component ``<django-formset>`` communicates with the server
+using the `fetch function`_ , having a hidden input field containing the CSRF-token doesn't make
+sense. Instead we pass that token value as an attribute to the web component ``<django-formset>``.
+Since that value is available in the rendering context, we always add it as
+``<django-formset csrf-token="{{ csrf_token }}">``.
+
+.. _fetch function: https://developer.mozilla.org/en-US/docs/Web/API/fetch
 
 .. rubric:: Enforcing Form Submission
 
