@@ -4,6 +4,10 @@ import json
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import UploadedFile
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Model, QuerySet
+from django.db.models.fields.files import FieldFile
 from django.forms.renderers import get_default_renderer
 from django.http import HttpResponse
 from django.template.loader import get_template
@@ -48,6 +52,17 @@ from testapp.models import AdvertisementModel, Company, PersonModel, PollModel
 
 
 parser = Parser()
+
+
+class JSONEncoder(DjangoJSONEncoder):
+    def default(self, o):
+        if isinstance(o, (UploadedFile, FieldFile)):
+            return o.name
+        if isinstance(o, Model):
+            return repr(o)
+        if hasattr(o, '__iter__'):
+            return [self.default(i) for i in o]
+        return super().default(o)
 
 
 def render_suburls(request, extra_context=None):

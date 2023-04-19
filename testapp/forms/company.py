@@ -48,7 +48,7 @@ class MemberCollection(FormCollection):
         if data := data.get('member'):
             try:
                 return self.instance.members.get(id=data.get('id') or 0)
-            except Member.DoesNotExist:
+            except (Member.DoesNotExist, ValueError):
                 return Member(name=data.get('name'), team=self.instance)
 
     def construct_instance(self, team):
@@ -83,7 +83,7 @@ class TeamCollection(FormCollection):
         if data := data.get('team'):
             try:
                 return self.instance.teams.get(id=data.get('id') or 0)
-            except Team.DoesNotExist:
+            except (Team.DoesNotExist, ValueError):
                 return Team(name=data.get('name'), company=self.instance)
 
     def construct_instance(self, company):
