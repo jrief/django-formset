@@ -275,6 +275,7 @@ class Team(models.Model):
     class Meta:
         verbose_name = "Team"
         verbose_name_plural = "Teams"
+        unique_together = ['name', 'company']
 
     def __str__(self):
         return self.name
@@ -295,6 +296,7 @@ class Member(models.Model):
     class Meta:
         verbose_name = "Member"
         verbose_name_plural = "Members"
+        unique_together = ['name', 'team']
 
     def __str__(self):
         return self.name
