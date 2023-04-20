@@ -46,9 +46,12 @@ remains the same, independently of the CSS framework.
 
 Say we have a typical Django form
 
-.. code-block:: python
+.. django-view:: register_person
+	:view-function: RegisterPersonView.as_view()
+	:caption: Render an unstyled form.
+	:hide-view:
 
-	from django.forms import forms, fields
+	from django.forms import fields, forms, widgets
 	
 	class PersonForm(forms.Form):
 	    first_name = fields.RegexField(
@@ -76,6 +79,11 @@ Say we have a typical Django form
 	        label="Authorized to sign?",
 	    )
 
+	class RegisterPersonView(FormView):
+	    form_class = RegisterPersonForm
+	    template_name = "unstyled-form.html"
+	    success_url = "/success"
+
 When rendered using the view class :class:`formset.views.FormView` together with this template 
 
 .. code-block:: django
@@ -92,6 +100,8 @@ declared two constraints on the first two fields: The first name must start in u
 contain at least one additional character in lower case, while the last name must consist of at
 least two, but no more than 50 characters. Additionally the user has to choose his gender using
 two radio input fields and a mandatory checkbox input to accept the terms and conditions.
+
+.. django-referred-view:: register_person
 
 .. image:: _static/unstyled-form.png
   :width: 560
