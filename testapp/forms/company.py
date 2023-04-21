@@ -22,6 +22,10 @@ class TeamForm(ModelForm):
         model = Team
         fields = ['id', 'name']
 
+    def _get_validation_exclusions(self):
+        # Django excludes missing fields from unique validation, but self.instance.company is set
+        return super()._get_validation_exclusions().difference({'company'})
+
 
 class MemberForm(ModelForm):
     id = fields.IntegerField(
@@ -32,6 +36,10 @@ class MemberForm(ModelForm):
     class Meta:
         model = Member
         fields = ['id', 'name']
+
+    def _get_validation_exclusions(self):
+        # Django excludes missing fields from unique validation, but self.instance.team is set
+        return super()._get_validation_exclusions().difference({'team'})
 
 
 class MemberCollection(FormCollection):

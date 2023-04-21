@@ -47,6 +47,15 @@ class FormCollectionMeta(MediaDefiningClass):
         return new_class
 
 
+class ErrorList(ErrorList):
+    def insert(self, index, error):
+        if index < len(self):
+            self[index] = error
+        else:
+            self.extend([{}] * (index - len(self)))
+            self.append(error)
+
+
 class BaseFormCollection(HolderMixin, RenderableMixin):
     """
     The main implementation of all the FormCollection logic.
@@ -201,6 +210,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             self.valid_holders = []
             self._errors = ErrorList()
             for index, data in enumerate(self.data):
+                if data is None:
+                    continue
                 instance = self.retrieve_instance(data)
                 valid_holders = {}
                 for name, declared_holder in self.declared_holders.items():
@@ -215,12 +226,10 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                         if holder.is_valid():
                             valid_holders[name] = holder
                         else:
-                            self._errors.extend([{}] * (index - len(self._errors)))
-                            self._errors.append({name: holder.errors})
+                            self._errors.insert(index, {name: holder.errors})
                     else:
                         # can only happen, if client bypasses browser control
-                        self._errors.extend([{}] * (index - len(self._errors)))
-                        self._errors.append({name: {NON_FIELD_ERRORS: ["Form data is missing."]}})
+                        self._errors.insert(index, {name: {NON_FIELD_ERRORS: ["Form data is missing."]}})
                 else:
                     self.valid_holders.append(valid_holders)
             if len(self.valid_holders) < self.min_siblings:
