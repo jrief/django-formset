@@ -47,15 +47,6 @@ class FormCollectionMeta(MediaDefiningClass):
         return new_class
 
 
-class ErrorList(ErrorList):
-    def insert(self, index, error):
-        if index < len(self):
-            self[index] = error
-        else:
-            self.extend([{}] * (index - len(self)))
-            self.append(error)
-
-
 class BaseFormCollection(HolderMixin, RenderableMixin):
     """
     The main implementation of all the FormCollection logic.
@@ -203,7 +194,18 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
 
     def is_valid(self):
         """Return True if all forms in this collection are valid."""
-        return not self.errors
+        def is_valid(errors):
+            if isinstance(errors, dict):
+                return all(is_valid(e) for e in errors.values())
+            if isinstance(errors, list):
+                return all(is_valid(e) for e in errors)
+            assert isinstance(errors, str)
+            return False
+
+        if self._errors is None:
+            self.full_clean()
+        return is_valid(self._errors)
+
 
     def full_clean(self):
         if self.has_many:
@@ -214,6 +216,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     continue
                 instance = self.retrieve_instance(data)
                 valid_holders = {}
+                errors = ErrorDict()
                 for name, declared_holder in self.declared_holders.items():
                     if name in data:
                         holder = declared_holder.replicate(
@@ -225,13 +228,13 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                             break
                         if holder.is_valid():
                             valid_holders[name] = holder
-                        else:
-                            self._errors.insert(index, {name: holder.errors})
+                        errors[name] = holder._errors
                     else:
                         # can only happen, if client bypasses browser control
-                        self._errors.insert(index, {name: {NON_FIELD_ERRORS: ["Form data is missing."]}})
+                        errors[name] = {NON_FIELD_ERRORS: ["Form data is missing."]}
                 else:
                     self.valid_holders.append(valid_holders)
+                    self._errors.append(errors)
             if len(self.valid_holders) < self.min_siblings:
                 # can only happen, if client bypasses browser control
                 self._errors.clear()
@@ -245,23 +248,24 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             self._errors = ErrorDict()
             for name, declared_holder in self.declared_holders.items():
                 if name in self.data:
+                    instance = self.retrieve_instance(self.data[name])
                     holder = declared_holder.replicate(
                         data=self.data[name],
-                        instance=self.instance,
+                        instance=instance,
                         ignore_marked_for_removal=self.ignore_marked_for_removal,
                     )
                     if holder.is_valid():
                         self.valid_holders[name] = holder
-                    else:
-                        self._errors.update({name: holder.errors})
+                    self._errors[name] = holder._errors
                 else:
                     # can only happen, if client bypasses browser control
-                    self._errors.update({name: {NON_FIELD_ERRORS: ["Form data is missing."]}})
+                    self._errors[name] = {NON_FIELD_ERRORS: ["Form data is missing."]}
 
     def retrieve_instance(self, data):
         """
         Hook to retrieve the main object for a multi object collection.
         """
+        return self.instance
 
     def clean(self):
         return self.cleaned_data
@@ -315,7 +319,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         Forms which do not correspond to the model given by the main instance, are responsible themselves to store the
         corresponding data inside their related models.
         """
-        assert not self._errors, f"Can not construct instance with invalid collection {self.__class__} object"
+        assert self.is_valid(), f"Can not construct instance with invalid collection {self.__class__} object"
         for name, holder in self.valid_holders.items():
             if callable(getattr(holder, 'construct_instance', None)):
                 holder.construct_instance(instance)

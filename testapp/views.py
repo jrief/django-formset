@@ -265,7 +265,9 @@ class CompanyCollectionView(DemoFormCollectionViewMixin, EditCollectionView):
     def get_object(self, queryset=None):
         if queryset is None:
             queryset = self.get_queryset()
-        return queryset.last()
+        if object := queryset.last():
+            return object
+        return self.model(created_by=self.request.session.session_key)
 
     def form_collection_valid(self, form_collection):
         if not self.object:
