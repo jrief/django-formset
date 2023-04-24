@@ -164,6 +164,7 @@ class CompaniesCollection(FormCollection):
             construct_instance(company_form, instance)
             try:
                 company_form.save()
-            except IntegrityError:
-                holder._errors
-            holder['teams'].construct_instance(instance)
+            except IntegrityError as err:
+                company_form._update_errors(err)
+            else:
+                holder['teams'].construct_instance(instance)

@@ -290,4 +290,8 @@ class BulkEditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, For
             )
         with transaction.atomic():
             form_collection.construct_instances()
-        return super().form_collection_valid(form_collection)
+        # integrity errors may occur during construction, hence revalidate collection
+        if form_collection.is_valid():
+            return super().form_collection_valid(form_collection)
+        else:
+            return self.form_collection_invalid(form_collection)
