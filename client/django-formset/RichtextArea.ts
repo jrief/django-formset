@@ -19,8 +19,10 @@ import OrderedList from '@tiptap/extension-ordered-list';
 import Paragraph from '@tiptap/extension-paragraph';
 import Placeholder from '@tiptap/extension-placeholder';
 import Text from '@tiptap/extension-text';
+import TextStyle from '@tiptap/extension-text-style';
 import { TextAlign, TextAlignOptions } from '@tiptap/extension-text-align';
-import { FirstLineAlign, FirstLineAlignOptions } from './RichtextFirstLineAlign';
+import { TextIndent, TextIndentOptions } from './RichtextIndent';
+import { Color, ColorOptions } from './RichtextColor';
 import Underline from '@tiptap/extension-underline';
 import { StyleHelpers } from './helpers';
 import template from 'lodash.template';
@@ -119,29 +121,54 @@ namespace controls {
 		}
 	}
 
+	export class TextColorAction extends Action {
+		protected extensions = [Color];
+
+		clicked(editor: Editor) {
+			editor.chain().focus().setColor('#a00000').run();
+		}
+	}
+
 	export class IndentFirstLineAction extends Action {
+		private readonly options: TextIndentOptions = {
+			types: ['heading', 'paragraph'],
+		};
+
 		clicked(editor: Editor) {
-			editor.chain().focus().toggleIndent().run();
+			if (editor.isActive('textIndent')) {
+				editor.chain().focus().unsetIndent().run();
+			} else {
+				editor.chain().focus().setTextIndent('3em').run();
+			}
+		}
+
+		activate(editor: Editor) {
+			this.button.classList.toggle('active', editor.isActive({textIndent: '3em'}));
 		}
 
 		extendExtensions(extensions: Array<Extension|Mark|Node>) {
-			if (!extensions.includes(FirstLineAlign)) {
-				extensions.push(FirstLineAlign);
+			if (!extensions.includes(TextIndent)) {
+			 	extensions.push(TextIndent.configure(this.options));
 			}
 		}
 	}
 
-	export class OutdentFirstLineAction extends Action {
-		clicked(editor: Editor) {
-			editor.chain().focus().toggleIndent().run();
-		}
-
-		extendExtensions(extensions: Array<Extension|Mark|Node>) {
-			if (!extensions.includes(FirstLineAlign)) {
-				extensions.push(FirstLineAlign);
-			}
-		}
-	}
+	// export class OutdentFirstLineAction extends Action {
+	// 	clicked(editor: Editor) {
+	// 		const fe = editor.chain().focus();
+	// 		if (fe.getIndent()) {
+	// 			fe.setIndent('-3em').run();
+	// 		} else {
+	// 			fe.unsetIndent().run();
+	// 		}
+	// 	}
+	//
+	// 	extendExtensions(extensions: Array<Extension|Mark|Node>) {
+	// 		if (!extensions.includes(TextIndent)) {
+	// 		 	extensions.push(TextIndent);
+	// 		}
+	// 	}
+	// }
 
 	export class OrderedListAction extends Action {
 		protected readonly extensions = [OrderedList, ListItem];
@@ -295,7 +322,7 @@ namespace controls {
 		}
 	}
 
-	export class AlignmentAction extends Action {
+	export class TextAlignAction extends Action {
 		private readonly dropdownInstance?: Instance;
 		private readonly dropdownMenu: HTMLElement | null;
 		private readonly dropdownItems: NodeListOf<Element> | [] = [];
@@ -597,6 +624,7 @@ class RichtextArea {
 			Paragraph,
 			Text,
 			HardBreak,  // always add hard breaks via keyboard entry
+			TextStyle,  // always add <span> elements for extra styling
 		);
 		this.registerControlActions(extensions);
 		this.registerPlaceholder(extensions);

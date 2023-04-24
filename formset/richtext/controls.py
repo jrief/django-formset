@@ -44,7 +44,7 @@ class Heading(ControlElement):
 
 
 class TextAlign(ControlElement):
-    name = 'heading'
+    name = 'textAlign'
     label = _("Text Align")
     alignments = ['left', 'center', 'right', 'justify']
     template_name = 'formset/{framework}/buttons/richtext_align.html'
@@ -82,6 +82,11 @@ class TextAlign(ControlElement):
         })
 
 
+class TextColor(ControlElement):
+    name = 'textColor'
+    label = _("Text Color")
+
+
 class IndentFirstLine(ControlElement):
     name = 'indentFirstLine'
     label = _("Indent First Line")
@@ -90,7 +95,6 @@ class IndentFirstLine(ControlElement):
 class OutdentFirstLine(ControlElement):
     name = 'outdentFirstLine'
     label = _("Outdent First Line")
-
 
 
 class Bold(ControlElement):
