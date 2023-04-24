@@ -1,3 +1,5 @@
+from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
 from django.forms import fields, widgets
 from django.forms.models import ModelForm, construct_instance, model_to_dict
 
@@ -22,9 +24,12 @@ class TeamForm(ModelForm):
         model = Team
         fields = ['id', 'name']
 
-    def _get_validation_exclusions(self):
-        # Django excludes missing fields from unique validation, but self.instance.company is set
-        return super()._get_validation_exclusions().difference({'company'})
+    def validate_unique(self):
+        exclude = self._get_validation_exclusions().difference({'company'})
+        try:
+            self.instance.validate_unique(exclude=exclude)
+        except ValidationError as e:
+            self._update_errors(e)
 
 
 class MemberForm(ModelForm):
@@ -37,9 +42,12 @@ class MemberForm(ModelForm):
         model = Member
         fields = ['id', 'name']
 
-    def _get_validation_exclusions(self):
-        # Django excludes missing fields from unique validation, but self.instance.team is set
-        return super()._get_validation_exclusions().difference({'team'})
+    def validate_unique(self):
+        exclude = self._get_validation_exclusions().difference({'team'})
+        try:
+            self.instance.validate_unique(exclude=exclude)
+        except ValidationError as e:
+            self._update_errors(e)
 
 
 class MemberCollection(FormCollection):
@@ -67,7 +75,10 @@ class MemberCollection(FormCollection):
                 instance.delete()
                 continue
             construct_instance(member_form, instance)
-            member_form.save()
+            try:
+                member_form.save()
+            except IntegrityError as err:
+                member_form._update_errors(err)
 
 
 class TeamCollection(FormCollection):
@@ -78,13 +89,14 @@ class TeamCollection(FormCollection):
     add_label = "Add Team"
 
     def model_to_dict(self, company):
-        fields = self.declared_holders['team']._meta.fields
         data = []
-        for team in company.teams.all():
-            data.append({
-                'team': model_to_dict(team, fields=fields),
-                'members': self.declared_holders['members'].model_to_dict(team),
-            })
+        if company.id:
+            fields = self.declared_holders['team']._meta.fields
+            for team in company.teams.all():
+                data.append({
+                    'team': model_to_dict(team, fields=fields),
+                    'members': self.declared_holders['members'].model_to_dict(team),
+                })
         return data
 
     def retrieve_instance(self, data):
@@ -102,13 +114,23 @@ class TeamCollection(FormCollection):
                 instance.delete()
                 continue
             construct_instance(team_form, instance)
-            team_form.save()
-            holder['members'].construct_instance(instance)
+            try:
+                team_form.save()
+            except IntegrityError as err:
+                team_form._update_errors(err)
+            else:
+                holder['members'].construct_instance(instance)
 
 
 class CompanyCollection(FormCollection):
     company = CompanyForm()
     teams = TeamCollection()
+
+    def construct_instance(self, instance):
+        if instance.pk is None:
+            instance = self.instance
+        instance.save()
+        super().construct_instance(instance)
 
 
 class CompanyPlusForm(CompanyForm):
@@ -140,5 +162,9 @@ class CompaniesCollection(FormCollection):
                 instance.delete()
                 continue
             construct_instance(company_form, instance)
-            company_form.save()
-            holder['teams'].construct_instance(instance)
+            try:
+                company_form.save()
+            except IntegrityError as err:
+                company_form._update_errors(err)
+            else:
+                holder['teams'].construct_instance(instance)

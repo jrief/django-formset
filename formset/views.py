@@ -207,7 +207,7 @@ class FormCollectionViewMixin(FormsetResponseMixin):
         return JsonResponse({'success_url': self.get_success_url()})
 
     def form_collection_invalid(self, form_collection):
-        return JsonResponse(form_collection.errors, status=422, safe=False)
+        return JsonResponse(form_collection._errors, status=422, safe=False)
 
 
 class FormCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin, TemplateResponseMixin, View):
@@ -238,7 +238,11 @@ class EditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCol
     def form_collection_valid(self, form_collection):
         with transaction.atomic():
             form_collection.construct_instance(self.object)
-        return super().form_collection_valid(form_collection)
+        # integrity errors may occur during construction, hence revalidate collection
+        if form_collection.is_valid():
+            return super().form_collection_valid(form_collection)
+        else:
+            return self.form_collection_invalid(form_collection)
 
 
 class BulkEditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin,
@@ -286,4 +290,8 @@ class BulkEditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, For
             )
         with transaction.atomic():
             form_collection.construct_instances()
-        return super().form_collection_valid(form_collection)
+        # integrity errors may occur during construction, hence revalidate collection
+        if form_collection.is_valid():
+            return super().form_collection_valid(form_collection)
+        else:
+            return self.form_collection_invalid(form_collection)
