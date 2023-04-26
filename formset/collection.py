@@ -211,7 +211,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         if self.has_many:
             self.valid_holders = []
             self._errors = ErrorList()
-            for index, data in enumerate(self.data):
+            for data in self.data:
                 if data is None:
                     continue
                 instance = self.retrieve_instance(data)

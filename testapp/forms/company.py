@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.utils import IntegrityError
 from django.forms import fields, widgets
 from django.forms.models import ModelForm, construct_instance, model_to_dict
@@ -77,8 +78,10 @@ class MemberCollection(FormCollection):
             construct_instance(member_form, instance)
             try:
                 member_form.save()
-            except IntegrityError as err:
-                member_form._update_errors(err)
+            except IntegrityError:
+                unique_checks, _ = instance._get_unique_checks()
+                errors = instance.unique_error_message(*unique_checks[0])
+                member_form._update_errors(errors)
 
 
 class TeamCollection(FormCollection):
@@ -116,8 +119,10 @@ class TeamCollection(FormCollection):
             construct_instance(team_form, instance)
             try:
                 team_form.save()
-            except IntegrityError as err:
-                team_form._update_errors(err)
+            except IntegrityError:
+                unique_checks, _ = instance._get_unique_checks()
+                errors = instance.unique_error_message(*unique_checks[0])
+                team_form._update_errors(errors)
             else:
                 holder['members'].construct_instance(instance)
 
