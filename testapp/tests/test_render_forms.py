@@ -137,8 +137,7 @@ def test_simple_collection_post():
     response = view(http_request)
     assert response.status_code == 422
     body = json.loads(response.content)
-    assert 'person' not in body
-    assert body['profession']['company'] == ["This field is required."]
+    assert body == {'person': {}, 'profession': {'company': ['This field is required.']}}
 
     # fix the
     formset_data['profession']['company'] = "Django Formset Inc."
