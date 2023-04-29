@@ -4,6 +4,8 @@ from django.forms.models import BaseModelForm, construct_instance, model_to_dict
 from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
 from django.forms.widgets import MediaDefiningClass
 from django.utils.datastructures import MultiValueDict
+from django.utils.text import get_text_list
+from django.utils.translation import gettext_lazy
 
 from formset.exceptions import FormCollectionError
 from formset.renderers.default import FormRenderer
@@ -100,6 +102,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             if isinstance(self.default_renderer, type):
                 renderer = renderer()
         self.renderer = renderer
+        self.unique_fields = {self.related_field} if hasattr(self, 'related_field') else set()
 
     def iter_single(self):
         for name, declared_holder in self.declared_holders.items():
@@ -235,6 +238,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 else:
                     self.valid_holders.append(valid_holders)
                     self._errors.append(errors)
+            self.validate_unique()
             if len(self.valid_holders) < self.min_siblings:
                 # can only happen, if client bypasses browser control
                 self._errors.clear()
@@ -260,6 +264,57 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 else:
                     # can only happen, if client bypasses browser control
                     self._errors[name] = {NON_FIELD_ERRORS: ["Form data is missing."]}
+
+    def validate_unique(self):
+        all_unique_checks = set()
+        for valid_holders in self.valid_holders:
+            for name, holder in valid_holders.items():
+                if isinstance(holder, BaseModelForm):
+                    exclude = holder._get_validation_exclusions().difference(self.unique_fields)
+                    unique_checks, date_checks = holder.instance._get_unique_checks(
+                        exclude=exclude,
+                        include_meta_constraints=True,
+                    )
+                    all_unique_checks.update(unique_checks)
+
+        # Do each of the unique checks (unique and unique_together)
+        for uclass, unique_check in all_unique_checks:
+            seen_data = set()
+            for valid_holders in self.valid_holders:
+                errors = []
+                for name, holder in valid_holders.items():
+                    # Get the data for the set of fields that must be unique among the forms in this collection.
+                    row_data = [
+                        field if field in self.unique_fields else holder.cleaned_data[field]
+                        for field in unique_check
+                        if field in holder.cleaned_data
+                    ]
+                    # Reduce Model instances to their primary key values
+                    row_data = tuple(
+                        f._get_pk_val() if hasattr(f, "_get_pk_val")
+                        # Prevent "unhashable type: list" errors later on.
+                        else tuple(f) if isinstance(f, list) else f
+                        for f in row_data
+                    )
+                    if row_data and None not in row_data:
+                        # if we've already seen it then we have a uniqueness failure
+                        if row_data in seen_data:
+                            # poke error messages into the right places and mark the form as invalid
+                            errors.append(self.get_unique_error_message(unique_check))
+                            holder._errors[NON_FIELD_ERRORS] = errors
+                            # Remove the data from the cleaned_data dict since it was invalid.
+                            for field in unique_check:
+                                if field in holder.cleaned_data:
+                                    del holder.cleaned_data[field]
+                        # mark the data as seen
+                        seen_data.add(row_data)
+
+    def get_unique_error_message(self, unique_check):
+        if len(unique_check) == 1:
+            return gettext_lazy("Please correct the duplicate data for {0}.").format(*unique_check)
+        else:
+            fields = get_text_list(unique_check, gettext_lazy("and"))
+            return gettext_lazy("Please correct the duplicate data for {0}, which must be unique.").format(fields)
 
     def retrieve_instance(self, data):
         """
