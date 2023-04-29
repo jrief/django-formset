@@ -1,5 +1,3 @@
-from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.utils import IntegrityError
 from django.forms import fields, widgets
 from django.forms.models import ModelForm, construct_instance, model_to_dict
@@ -25,13 +23,6 @@ class TeamForm(ModelForm):
         model = Team
         fields = ['id', 'name']
 
-    def validate_unique(self):
-        exclude = self._get_validation_exclusions().difference({'company'})
-        try:
-            self.instance.validate_unique(exclude=exclude)
-        except ValidationError as e:
-            self._update_errors(e)
-
 
 class MemberForm(ModelForm):
     id = fields.IntegerField(
@@ -43,18 +34,13 @@ class MemberForm(ModelForm):
         model = Member
         fields = ['id', 'name']
 
-    def validate_unique(self):
-        exclude = self._get_validation_exclusions().difference({'team'})
-        try:
-            self.instance.validate_unique(exclude=exclude)
-        except ValidationError as e:
-            self._update_errors(e)
-
 
 class MemberCollection(FormCollection):
     min_siblings = 0
     member = MemberForm()
+    legend = "Members"
     add_label = "Add Member"
+    related_field = 'team'
 
     def model_to_dict(self, team):
         fields = self.declared_holders['member']._meta.fields
@@ -78,18 +64,17 @@ class MemberCollection(FormCollection):
             construct_instance(member_form, instance)
             try:
                 member_form.save()
-            except IntegrityError:
-                unique_checks, _ = instance._get_unique_checks()
-                errors = instance.unique_error_message(*unique_checks[0])
-                member_form._update_errors(errors)
+            except IntegrityError as error:
+                member_form._update_errors(error)
 
 
 class TeamCollection(FormCollection):
     min_siblings = 0
     team = TeamForm()
     members = MemberCollection()
-    legend = "Team"
+    legend = "Teams"
     add_label = "Add Team"
+    related_field = 'company'
 
     def model_to_dict(self, company):
         data = []
@@ -119,10 +104,8 @@ class TeamCollection(FormCollection):
             construct_instance(team_form, instance)
             try:
                 team_form.save()
-            except IntegrityError:
-                unique_checks, _ = instance._get_unique_checks()
-                errors = instance.unique_error_message(*unique_checks[0])
-                team_form._update_errors(errors)
+            except IntegrityError as error:
+                team_form._update_errors(error)
             else:
                 holder['members'].construct_instance(instance)
 
@@ -169,7 +152,7 @@ class CompaniesCollection(FormCollection):
             construct_instance(company_form, instance)
             try:
                 company_form.save()
-            except IntegrityError as err:
-                company_form._update_errors(err)
+            except IntegrityError as error:
+                company_form._update_errors(error)
             else:
                 holder['teams'].construct_instance(instance)
