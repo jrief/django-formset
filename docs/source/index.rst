@@ -33,6 +33,7 @@ Django ``Form``-s.
 	slug-input
 	development
 	contributing
+	chat-gpt
 
 Indices and tables
 ==================
