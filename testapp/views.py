@@ -293,17 +293,13 @@ class CompaniesCollectionView(DemoFormCollectionViewMixin, BulkEditCollectionVie
         return queryset.filter(created_by=self.request.session.session_key)
 
     def form_collection_valid(self, form_collection):
-        response = super().form_collection_valid(form_collection)
         # assign all instances to the current user
-        if response.status_code == 200:
-            if not self.request.session.session_key:
-                self.request.session.cycle_key()
-            created_by = self.request.session.session_key
-            for holder in form_collection.valid_holders:
-                if holder['company'].instance.created_by != created_by:
-                    holder['company'].instance.created_by = created_by
-                    holder['company'].instance.save(update_fields=['created_by'])
-        return response
+        if not self.request.session.session_key:
+            self.request.session.cycle_key()
+        created_by = self.request.session.session_key
+        for holder in form_collection.valid_holders:
+            holder['company'].instance.created_by = created_by
+        return super().form_collection_valid(form_collection)
 
 
 demo_css_classes = {
