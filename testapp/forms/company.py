@@ -76,6 +76,12 @@ class CompanyPlusForm(CompanyForm):
         widget=widgets.HiddenInput,
     )
 
+    created_by = fields.CharField(
+        required=False,
+        widget=widgets.HiddenInput,
+        help_text="Dummy field required to distinguish the namespace of companies for each user",
+    )
+
 
 class CompaniesCollection(FormCollection):
     company = CompanyPlusForm()
