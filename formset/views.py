@@ -278,18 +278,13 @@ class BulkEditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, For
 
     def get_initial(self):
         collection_class = self.get_collection_class()
-        initial = []
-        for object in self.get_queryset():
-            initial.append(collection_class().model_to_dict(object))
+        queryset = self.get_queryset()
+        initial = collection_class().models_to_list(queryset)
         return initial
 
     def form_collection_valid(self, form_collection):
-        if not callable(getattr(form_collection, 'construct_instances', None)):
-            raise ImproperlyConfigured(
-                f"{form_collection.__class__.__name__} is missing a method 'construct_instances'"
-            )
         with transaction.atomic():
-            form_collection.construct_instances()
+            form_collection.construct_instance()
         # integrity errors may occur during construction, hence revalidate collection
         if form_collection.is_valid():
             return super().form_collection_valid(form_collection)

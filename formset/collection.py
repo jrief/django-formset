@@ -1,4 +1,5 @@
 from django.core.exceptions import NON_FIELD_ERRORS
+from django.db.utils import IntegrityError
 from django.forms.forms import BaseForm
 from django.forms.models import BaseModelForm, construct_instance, model_to_dict
 from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
@@ -102,7 +103,6 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             if isinstance(self.default_renderer, type):
                 renderer = renderer()
         self.renderer = renderer
-        self.unique_fields = {self.related_field} if hasattr(self, 'related_field') else set()
 
     def iter_single(self):
         for name, declared_holder in self.declared_holders.items():
@@ -266,11 +266,12 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     self._errors[name] = {NON_FIELD_ERRORS: ["Form data is missing."]}
 
     def validate_unique(self):
+        unique_fields = {self.related_field} if getattr(self, 'related_field', None) else set()
         all_unique_checks = set()
         for valid_holders in self.valid_holders:
             for name, holder in valid_holders.items():
                 if isinstance(holder, BaseModelForm):
-                    exclude = holder._get_validation_exclusions().difference(self.unique_fields)
+                    exclude = holder._get_validation_exclusions().difference(unique_fields)
                     unique_checks, date_checks = holder.instance._get_unique_checks(
                         exclude=exclude,
                         include_meta_constraints=True,
@@ -285,16 +286,16 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 for name, holder in valid_holders.items():
                     # Get the data for the set of fields that must be unique among the forms in this collection.
                     row_data = [
-                        field if field in self.unique_fields else holder.cleaned_data[field]
+                        field if field in unique_fields else holder.cleaned_data[field]
                         for field in unique_check
                         if field in holder.cleaned_data
                     ]
                     # Reduce Model instances to their primary key values
                     row_data = tuple(
-                        f._get_pk_val() if hasattr(f, "_get_pk_val")
+                        d._get_pk_val() if hasattr(d, '_get_pk_val')
                         # Prevent "unhashable type: list" errors later on.
-                        else tuple(f) if isinstance(f, list) else f
-                        for f in row_data
+                        else tuple(d) if isinstance(d, list) else d
+                        for d in row_data
                     )
                     if row_data and None not in row_data:
                         # if we've already seen it then we have a uniqueness failure
@@ -358,32 +359,83 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         """
         object_data = {}
         for name, holder in self.declared_holders.items():
-            if callable(getattr(holder, 'model_to_dict', None)):
-                object_data[name] = holder.model_to_dict(instance)
-            elif isinstance(holder, BaseModelForm):
-                opts = holder._meta
-                object_data[name] = model_to_dict(instance, opts.fields, opts.exclude)
+            if getattr(holder, 'has_many', False):
+                if related_manager := getattr(instance, holder._name, None):
+                    try:
+                        queryset = related_manager.all()
+                    except ValueError:
+                        pass
+                    else:
+                        object_data[name] = holder.models_to_list(queryset)
             else:
-                object_data[name] = model_to_dict(instance)
+                if callable(getattr(holder, 'model_to_dict', None)):
+                    object_data[name] = holder.model_to_dict(instance)
+                elif isinstance(holder, BaseModelForm):
+                    opts = holder._meta
+                    object_data[name] = model_to_dict(instance, opts.fields, opts.exclude)
+                else:
+                    object_data[name] = model_to_dict(instance)
         return object_data
 
-    def construct_instance(self, instance):
+    def models_to_list(self, queryset):
         """
-        Construct the main instance and all its related objects from the nested dictionary. This method may only be
-        called after the current form collection has been validated, usually by calling `is_valid`.
-        Forms which do not correspond to the model given by the main instance, are responsible themselves to store the
-        corresponding data inside their related models.
+        Create initial data from a queryset. This queryset is traversed recusively and shall be
+        used to fill the initial data for this collection and all its sub-collections and forms.
+
+        Forms and Collections which do not correspond to the model given by the starting instance,
+        are responsible themselves to override this method in order to access the proper referenced
+        models by following the reverse relations through the given foreign keys.
+        """
+        assert self.has_many, "Method `models_to_list()` can be applied only on a collection with siblings"
+        data = [self.model_to_dict(instance) for instance in queryset.all()]
+        return data
+
+    def construct_instance(self, instance=None):
+        """
+        Construct the main instance and all its related objects from the nested dictionary. This
+        method may only be called after the current form collection has been validated, usually by
+        calling `is_valid`.
+
+        Forms and Collections which do not correspond to the model given by the starting instance,
+        are responsible themselves to override this method in order to store the corresponding data
+        inside their related models.
         """
         assert self.is_valid(), f"Can not construct instance with invalid collection {self.__class__} object"
-        for name, holder in self.valid_holders.items():
-            if callable(getattr(holder, 'construct_instance', None)):
-                holder.construct_instance(instance)
-            elif isinstance(holder, BaseModelForm):
-                opts = holder._meta
-                holder.cleaned_data = self.cleaned_data[name]
-                holder.instance = instance
-                construct_instance(holder, instance, opts.fields, opts.exclude)
-                holder.save()
+        if self.has_many:
+            for valid_holders in self.valid_holders:
+                # first, handle holders which are forms
+                for name, holder in valid_holders.items():
+                    if not isinstance(holder, BaseModelForm):
+                        continue
+                    if holder.marked_for_removal:
+                        holder.instance.delete()
+                        continue
+                    construct_instance(holder, holder.instance)
+                    if getattr(self, 'related_field', None):
+                        setattr(holder.instance, self.related_field, instance)
+                    try:
+                        holder.save()
+                    except (IntegrityError, ValueError) as error:
+                        # some errors are caught only after attempting to save
+                        holder._update_errors(error)
+
+                # next, handle holders which are sub-collections
+                for name, holder in valid_holders.items():
+                    if callable(getattr(holder, 'construct_instance', None)):
+                        holder.construct_instance(holder.instance)
+        else:
+            for name, holder in self.valid_holders.items():
+                if callable(getattr(holder, 'construct_instance', None)):
+                    holder.construct_instance(instance)
+                elif isinstance(holder, BaseModelForm):
+                    opts = holder._meta
+                    holder.cleaned_data = self.cleaned_data[name]
+                    holder.instance = instance
+                    construct_instance(holder, instance, opts.fields, opts.exclude)
+                    try:
+                        holder.save()
+                    except IntegrityError as error:
+                        holder._update_errors(error)
 
     __str__ = render
     __html__ = render
