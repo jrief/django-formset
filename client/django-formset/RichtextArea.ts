@@ -22,7 +22,8 @@ import Text from '@tiptap/extension-text';
 import TextStyle from '@tiptap/extension-text-style';
 import { TextAlign, TextAlignOptions } from '@tiptap/extension-text-align';
 import { TextIndent, TextIndentOptions } from './RichtextIndent';
-import { Color, ColorOptions } from './RichtextColor';
+import { TextMargin, TextMarginOptions } from './RichtextMargin';
+import { Color, ColorOptions } from '@tiptap/extension-color';
 import Underline from '@tiptap/extension-underline';
 import { StyleHelpers } from './helpers';
 import template from 'lodash.template';
@@ -70,6 +71,7 @@ namespace controls {
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleBold().run();
+			this.activate(editor);
 		}
 	}
 
@@ -78,6 +80,7 @@ namespace controls {
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleItalic().run();
+			this.activate(editor);
 		}
 	}
 
@@ -86,6 +89,7 @@ namespace controls {
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleUnderline().run();
+			this.activate(editor);
 		}
 	}
 
@@ -94,6 +98,7 @@ namespace controls {
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleBulletList().run();
+			this.activate(editor);
 		}
 	}
 
@@ -102,6 +107,7 @@ namespace controls {
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleBlockquote().run();
+			this.activate(editor);
 		}
 	}
 
@@ -110,6 +116,7 @@ namespace controls {
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleCodeBlock().run();
+			this.activate(editor);
 		}
 	}
 
@@ -118,6 +125,7 @@ namespace controls {
 
 		clicked(editor: Editor) {
 			editor.chain().focus().setHardBreak().run();
+			this.activate(editor);
 		}
 	}
 
@@ -126,55 +134,82 @@ namespace controls {
 
 		clicked(editor: Editor) {
 			editor.chain().focus().setColor('#a00000').run();
+			this.activate(editor);
 		}
 	}
 
-	export class IndentFirstLineAction extends Action {
+	export class TextIndentAction extends Action {
 		private readonly options: TextIndentOptions = {
 			types: ['heading', 'paragraph'],
 		};
+		private readonly indent: string;
+
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
+			const parts = name.split(':');
+			this.indent = parts[1] ?? '';
+		}
 
 		clicked(editor: Editor) {
-			if (editor.isActive('textIndent')) {
-				editor.chain().focus().unsetIndent().run();
+			if (editor.isActive({textIndent: this.indent})) {
+				editor.chain().focus().unsetTextIndent().run();
 			} else {
-				editor.chain().focus().setTextIndent('3em').run();
+				editor.chain().focus().setTextIndent(this.indent).run();
 			}
+			this.activate(editor);
 		}
 
 		activate(editor: Editor) {
-			this.button.classList.toggle('active', editor.isActive({textIndent: '3em'}));
+			this.button.classList.toggle('active', editor.isActive({textIndent: this.indent}));
 		}
 
 		extendExtensions(extensions: Array<Extension|Mark|Node>) {
-			if (!extensions.includes(TextIndent)) {
-			 	extensions.push(TextIndent.configure(this.options));
+			if (!extensions.filter(e => e.name === 'textIndent').length) {
+				extensions.push(TextIndent.configure(this.options));
 			}
 		}
 	}
 
-	// export class OutdentFirstLineAction extends Action {
-	// 	clicked(editor: Editor) {
-	// 		const fe = editor.chain().focus();
-	// 		if (fe.getIndent()) {
-	// 			fe.setIndent('-3em').run();
-	// 		} else {
-	// 			fe.unsetIndent().run();
-	// 		}
-	// 	}
-	//
-	// 	extendExtensions(extensions: Array<Extension|Mark|Node>) {
-	// 		if (!extensions.includes(TextIndent)) {
-	// 		 	extensions.push(TextIndent);
-	// 		}
-	// 	}
-	// }
+	export class TextMarginAction extends Action {
+		private readonly options: TextMarginOptions = {
+			types: ['heading', 'paragraph'],
+		};
+		private readonly indent: string;
+
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
+			const parts = name.split(':');
+			this.indent = parts[1] ?? '';
+		}
+
+		clicked(editor: Editor) {
+			if (this.indent === 'increase') {
+				editor.chain().focus().increaseTextMargin().run();
+			} else if (this.indent === 'decrease') {
+				editor.chain().focus().decreaseTextMargin().run();
+			} else {
+				editor.chain().focus().unsetTextMargin().run();
+			}
+			this.activate(editor);
+		}
+
+		activate(editor: Editor) {
+			this.button.classList.toggle('active', editor.isActive({textMargin: this.indent}));
+		}
+
+		extendExtensions(extensions: Array<Extension|Mark|Node>) {
+			if (!extensions.filter(e => e.name === 'textMargin').length) {
+				extensions.push(TextMargin.configure(this.options));
+			}
+		}
+	}
 
 	export class OrderedListAction extends Action {
 		protected readonly extensions = [OrderedList, ListItem];
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleOrderedList().run();
+			this.activate(editor);
 		}
 	}
 
@@ -189,6 +224,7 @@ namespace controls {
 	export class ClearFormatAction extends Action {
 		clicked(editor: Editor) {
 			editor.chain().focus().clearNodes().unsetAllMarks().run();
+			this.activate(editor);
 		}
 	}
 
@@ -309,7 +345,8 @@ namespace controls {
 			while (element) {
 				if (element instanceof HTMLButtonElement || element instanceof HTMLAnchorElement) {
 					const level = this.extractLevel(element);
-					editor.chain().focus().setHeading({'level': level}).run();
+					editor.chain().focus().setHeading({level: level}).run();
+					this.activate(editor);
 					this.toggleMenu(editor, false);
 					const icon = element.querySelector('svg')?.cloneNode(true);
 					if (icon) {
@@ -427,6 +464,7 @@ namespace controls {
 				if (element instanceof HTMLButtonElement || element instanceof HTMLAnchorElement) {
 					const alignment = this.extractAlignment(element);
 					editor.chain().focus().setTextAlign(alignment).run();
+					this.activate(editor);
 					this.toggleMenu(editor, false);
 					const icon = element.querySelector('svg')?.cloneNode(true);
 					if (icon) {
@@ -648,7 +686,7 @@ class RichtextArea {
 			if (!richtextClick)
 				throw new Error("Missing attribute 'richtext-click' on action button");
 			const parts = richtextClick.split(':');
-			const actionName = parts[0].charAt(0).toUpperCase().concat(parts[0].slice(1), 'Action');
+			const actionName = `${parts[0].charAt(0).toUpperCase()}${parts[0].slice(1)}Action`;
 			const ActionClass = (<any>controls)[actionName];
 			if (!(ActionClass?.prototype instanceof Action))
 				throw new Error(`Unknown action class '${actionName}'.`);

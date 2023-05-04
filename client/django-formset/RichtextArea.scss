@@ -118,6 +118,35 @@
 				height: 0;
 				pointer-events: none;
 			}
+
+			&[data-text="indent"] {
+				text-indent: 3em;
+			}
+			&[data-text="outdent"] {
+				text-indent: -3em;
+				margin-left: 3em;
+			}
+			&[data-text-indent="1"] {
+				padding-left: 2em;
+			}
+			&[data-text-indent="2"] {
+				padding-left: 4em;
+			}
+			&[data-text-indent="3"] {
+				padding-left: 6em;
+			}
+			&[data-text-indent="4"] {
+				padding-left: 8em;
+			}
+			&[data-text-indent="5"] {
+				padding-left: 10em;
+			}
+			&[data-text-indent="6"] {
+				padding-left: 10em;
+			}
+			&[data-text-indent="7"] {
+				padding-left: 10em;
+			}
 		}
 
 		li > p {

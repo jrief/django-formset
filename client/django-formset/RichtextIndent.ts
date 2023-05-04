@@ -33,7 +33,7 @@ export const TextIndent = Extension.create<TextIndentOptions>({
 						if (!attributes.textIndent)
 							return {}
 						return {
-							style: `text-indent: ${attributes.textIndent};`,
+							'data-text': attributes.textIndent,
 						}
 					},
 				},
@@ -43,10 +43,10 @@ export const TextIndent = Extension.create<TextIndentOptions>({
 
 	addCommands() {
 		return {
-			setTextIndent: (indent: string) => ({ commands }) => {
-				return this.options.types.every(type => commands.updateAttributes(type, {'textIndent': indent}));
+			setTextIndent: (indent: string) => ({commands}) => {
+				return this.options.types.every(type => commands.updateAttributes(type, {textIndent: indent}));
 			},
-			unsetTextIndent: () => ({ commands }) => {
+			unsetTextIndent: () => ({commands}) => {
 				return this.options.types.every(type => commands.resetAttributes(type, ['textIndent']));
 			},
 		}
