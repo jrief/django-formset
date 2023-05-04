@@ -291,13 +291,20 @@ class CompaniesCollectionView(DemoFormCollectionViewMixin, BulkEditCollectionVie
             self.request.session.cycle_key()
         return queryset.filter(created_by=self.request.session.session_key)
 
+    def get_form_collection(self):
+        form_collection = super().get_form_collection()
+        if self.request.method == 'POST':
+            # when posting, assign all instances to the current user
+            if not self.request.session.session_key:
+                self.request.session.cycle_key()
+            created_by = self.request.session.session_key
+            for data in form_collection.data:
+                data['company']['created_by'] = created_by
+        return form_collection
+
     def form_collection_valid(self, form_collection):
-        # assign all instances to the current user
-        if not self.request.session.session_key:
-            self.request.session.cycle_key()
-        created_by = self.request.session.session_key
         for holder in form_collection.valid_holders:
-            holder['company'].instance.created_by = created_by
+            holder['company'].instance.created_by = self.request.session.session_key
         return super().form_collection_valid(form_collection)
 
 
