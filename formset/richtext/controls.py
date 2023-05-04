@@ -15,13 +15,20 @@ class ControlElement:
         ]
         return select_template(templates)
 
-    def render(self, renderer):
+    def render(self, renderer, context=None):
         template = self.get_template(renderer)
-        context = {}
-        if name := getattr(self, 'name', None):
-            context.update(name=name)
+        if context is None:
+            context = {}
         if label := getattr(self, 'label', None):
             context.update(label=label)
+        if name := getattr(self, 'name', None):
+            context.update(name=name)
+        if icon := getattr(self, 'icon', None):
+            context.update(icon=icon)
+        elif name:
+            context.update(icon=f'formset/icons/{name.lower()}.svg')
+        else:
+            context.update(icon=f'formset/icons/questionmark.svg')
         return template.render(context)
 
 
@@ -80,6 +87,39 @@ class TextAlign(ControlElement):
             'alignments': self.alignments,
             'default_alignment': self.default_alignment,
         })
+
+
+class TextColor(ControlElement):
+    name = 'textColor'
+    label = _("Text Color")
+
+
+class TextIndent(ControlElement):
+    def __init__(self, indent='indent'):
+        if indent == 'indent':
+            self.name = 'textIndent:indent'
+            self.label = _("Indent First Line")
+            self.icon = 'formset/icons/indentfirstline.svg'
+        elif indent == 'outdent':
+            self.name = 'textIndent:outdent'
+            self.label = _("Outdent First Line")
+            self.icon = 'formset/icons/outdentfirstline.svg'
+        else:
+            raise ImproperlyConfigured("Misconfigured argument: indent")
+
+
+class TextMargin(ControlElement):
+    def __init__(self, indent):
+        if indent == 'increase':
+            self.name = 'textMargin:increase'
+            self.label = _("Increase Margin")
+            self.icon = 'formset/icons/increasemargin.svg'
+        elif indent == 'decrease':
+            self.name = 'textMargin:decrease'
+            self.label = _("Decrease Margin")
+            self.icon = 'formset/icons/decreasemargin.svg'
+        else:
+            raise ImproperlyConfigured("Misconfigured argument: indent")
 
 
 class Bold(ControlElement):
