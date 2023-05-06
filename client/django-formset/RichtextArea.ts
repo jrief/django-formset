@@ -168,6 +168,7 @@ namespace controls {
 	export class TextMarginAction extends Action {
 		private readonly options: TextMarginOptions = {
 			types: ['heading', 'paragraph'],
+			maxIndentLevel: 5,
 		};
 		private readonly indent: string;
 
