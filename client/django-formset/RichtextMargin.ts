@@ -2,6 +2,7 @@ import { Extension } from '@tiptap/core'
 
 export interface TextMarginOptions {
 	types: string[],
+	maxIndentLevel: number;
 }
 
 declare module '@tiptap/core' {
@@ -16,17 +17,11 @@ declare module '@tiptap/core' {
 
 export const TextMargin = Extension.create<TextMarginOptions>({
 	name: 'textMargin',
-	indentLevel: 0,
 
 	addOptions() {
 		return {
 			types: [],
-		}
-	},
-
-	addStorage() {
-		return {
-			indentLevel: 0,
+			maxIndentLevel: 8,
 		}
 	},
 
@@ -36,7 +31,7 @@ export const TextMargin = Extension.create<TextMarginOptions>({
 			attributes: {
 				textMargin: {
 					default: null,
-					parseHTML: element => element.style.margin,
+					parseHTML: element => Number(element.getAttribute('data-text-indent')) ?? null,
 					renderHTML: attributes => {
 						if (!attributes.textMargin)
 							return {}
@@ -51,15 +46,17 @@ export const TextMargin = Extension.create<TextMarginOptions>({
 
 	addCommands() {
 		return {
-			increaseTextMargin: () => ({editor, commands}) => {
-				editor.storage.textMargin.indentLevel = Math.min(editor.storage.textMargin.indentLevel + 1, 7);
-				return this.options.types.every(type => commands.updateAttributes(type, {textMargin: editor.storage.textMargin.indentLevel}));
+			increaseTextMargin: () => ({commands}) => {
+				const indentLevel = (this.editor.getAttributes('paragraph').textMargin ?? 0) + 1;
+				if (indentLevel < this.options.maxIndentLevel)
+					return this.options.types.every(type => commands.updateAttributes(type, {textMargin: indentLevel}));
+				return true;
 			},
-			decreaseTextMargin: () => ({editor, commands}) => {
-				editor.storage.textMargin.indentLevel = Math.max(editor.storage.textMargin.indentLevel - 1, 0);
-				if (editor.storage.textMargin.indentLevel === 0)
-					return this.options.types.every(type => commands.resetAttributes(type, ['textMargin']));
-				return this.options.types.every(type => commands.updateAttributes(type, {textMargin: editor.storage.textMargin.indentLevel}));
+			decreaseTextMargin: () => ({commands}) => {
+				const indentLevel = (this.editor.getAttributes('paragraph').textMargin ?? 0) - 1;
+				if (indentLevel > 0)
+					return this.options.types.every(type => commands.updateAttributes(type, {textMargin: indentLevel}));
+				return this.options.types.every(type => commands.resetAttributes(type, ['textMargin']));
 			},
 			unsetTextMargin: () => ({commands}) => {
 				return this.options.types.every(type => commands.resetAttributes(type, ['textMargin']));
