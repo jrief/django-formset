@@ -6,12 +6,6 @@ from formset.collection import FormCollection
 from testapp.models import Company, Member, Team
 
 
-class CompanyForm(ModelForm):
-    class Meta:
-        model = Company
-        fields = '__all__'
-
-
 class MemberForm(ModelForm):
     id = fields.IntegerField(
         required=False,
@@ -63,6 +57,12 @@ class TeamCollection(FormCollection):
                 return self.instance.teams.get(id=data.get('id') or 0)
             except (Team.DoesNotExist, ValueError):
                 return Team(name=data.get('name'), company=self.instance)
+
+
+class CompanyForm(ModelForm):
+    class Meta:
+        model = Company
+        fields = '__all__'
 
 
 class CompanyCollection(FormCollection):
