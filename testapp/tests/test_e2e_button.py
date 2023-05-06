@@ -117,8 +117,10 @@ def test_button_toggle_class(page, viewname):
     assert timer() - start > 0.1
     formset.locator('button.foo.bar').wait_for()
     assert timer() - start > 0.2
+    sleep(0.01)
     formset.locator('button.bar:not(.foo)').wait_for()
     assert timer() - start > 0.3
+    sleep(0.01)
     formset.locator('button[auto-disable]:not(.foo):not(.bar)').wait_for()
     assert timer() - start > 0.4
     expect(button).to_have_class('button')
