@@ -2,27 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-h1 {
-	@apply text-3xl font-bold mb-1 mt-6;
-}
-h2 {
-	@apply text-2xl font-bold mb-1 mt-4;
-}
-h3 {
-	@apply text-xl font-bold mb-1 mt-3;
-}
-h4, h5, h6 {
-	@apply text-lg font-bold mb-1 mt-2;
-}
-a.reference {
-	@apply text-blue-700 hover:underline;
-}
-p {
-	@apply mt-2 mb-3;
-}
-ol.simple, ul.simple {
-	@apply space-y-1 list-disc ml-5;
-}
 .formset-label {
 	@apply text-sm text-gray-600;
 }
