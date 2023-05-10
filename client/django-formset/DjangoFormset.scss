@@ -23,7 +23,7 @@ django-formset {
 	$feedback-fields: list.join($feedback-input-fields, (select, textarea));
 	$has-feedback: ':not(.dj-exempt-feedback)';
 
-	.dj-errorlist {
+	ul.dj-errorlist {
 		list-style: none;
 		margin-top: 0;
 		margin-bottom: 0;
@@ -34,7 +34,8 @@ django-formset {
 
 	&.dj-feedback-errors django-field-group.dj-touched:not(.dj-submitted) {
 		@each $field in $feedback-fields {
-			> #{$field}#{$has-feedback}:invalid:not(:focus) {
+			$selector: "#{$field}#{$has-feedback}:invalid:not(:focus)";
+			>#{$selector}, :not(django-field-group)>#{$selector} {
 				border-color: var(--django-formset-color-invalid);
 				background-image: var(--django-formset-icon-invalid);
 			}
@@ -44,7 +45,8 @@ django-formset {
 	&.dj-feedback-warnings {
 		django-field-group.dj-dirty:not(.dj-submitted) {
 			@each $field in $feedback-fields {
-				> #{$field}#{$has-feedback}:invalid:focus {
+				$selector: "#{$field}#{$has-feedback}:invalid:focus";
+				>#{$selector}, :not(django-field-group)>#{$selector} {
 					background-image: var(--django-formset-icon-warning);
 				}
 			}
@@ -52,7 +54,8 @@ django-formset {
 		&:not(.dj-feedback-errors) {
 			django-field-group.dj-dirty:not(.dj-submitted) {
 				@each $field in $feedback-fields {
-					> #{$field}#{$has-feedback}:invalid {
+					$selector: "#{$field}#{$has-feedback}:invalid";
+					>#{$selector}, :not(django-field-group)>#{$selector} {
 						background-image: var(--django-formset-icon-warning);
 					}
 				}
@@ -62,12 +65,14 @@ django-formset {
 
 	&.dj-feedback-success django-field-group.dj-dirty {
 		@each $field in $feedback-fields {
-			> #{$field}#{$has-feedback}:valid:not(:focus) {
+			$selector: "#{$field}#{$has-feedback}:valid:not(:focus)";
+			>#{$selector}, :not(django-field-group)>#{$selector} {
 				border-color: var(--django-formset-color-valid);
 			}
 		}
 		@each $field in $feedback-input-fields {
-			> #{$field}#{$has-feedback}:valid {
+			$selector: "#{$field}#{$has-feedback}:valid";
+			>#{$selector}, :not(django-field-group)>#{$selector} {
 				background-image: var(--django-formset-icon-valid) !important;
 			}
 		}
