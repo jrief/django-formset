@@ -29,16 +29,30 @@ of the data provided by a client's submission.
 Simple Collection
 =================
 
-We use this kind of collection, if we just want to group two or more forms together.
+We use this kind of collection, if we just want to group forms together. This can be useful, if you
+want
 
-.. code-block:: python
-	:caption: my_forms.py
+.. code-block:: django-view
 
+	from django.forms import fields, forms, widgets
 	from formset.collection import FormCollection
 
-	class MyFormCollection(FormCollection):
-	    form1 = MyForm1()
-	    form2 = MyForm2()
+	class ChemistryForm(forms.Form):
+	    ph_value = fields.FloatField(
+	        label="pH value",
+	        min=0.0,
+	        max=14.0,
+	        step=0.1,
+	    )
+
+	class ElectricityForm(forms.Form):
+	    resistance = fields.PositiveIntegerField(
+	        label="Resistance in Ω",
+	    )
+
+	class ApparatusCollection(FormCollection):
+	    substance = ChemistryForm()
+	    conductivity = ElectricityForm()
 
 .. note::
 	The above example will render the form with the default style. To render the form with a specific

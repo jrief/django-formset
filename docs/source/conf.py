@@ -31,6 +31,7 @@ author = 'Jacob Rief'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx_toolbox.assets',
     'sphinx_view',
 ]
 
@@ -54,3 +55,5 @@ html_static_path = ['_static']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
+
+assets_dir = os.path.abspath(os.path.join(os.pardir, os.pardir))

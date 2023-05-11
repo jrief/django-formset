@@ -1,0 +1,9 @@
+{% load render_form from formsetify %}
+
+<django-formset endpoint="{{ request.path }}" force-submission="true" csrf-token="{{ csrf_token }}" class="bootstrap">
+	<div class="container">
+	{% render_form form "bootstrap" field_classes="row mb-2" label_classes="col-sm-3" control_classes="col-sm-9" %}
+		<div class="offset-sm-3">{% include "./buttons-bootstrap.html" %}</div>
+	</div>
+	<pre id="{{ pre_id }}-data" class="formset-submit-data"></pre>
+</django-formset>

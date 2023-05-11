@@ -1,7 +1,0 @@
-{% load render_form from formsetify %}
-
-<django-formset endpoint="{{ request.path }}" force-submission="true" csrf-token="{{ csrf_token }}" id="jacob">
-	{% render_form form %}
-	{% include "./buttons.html" %}
-	<pre id="submit-data" class="empty:hidden w-full border border-indigo-500 bg-indigo-50 rounded p-2"></pre>
-</django-formset>

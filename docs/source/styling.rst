@@ -44,18 +44,19 @@ our website. This requires us to write the CSS ourselves. If we use one of the k
 then instead we will proceed with one of the specialized renderers. The concept for rendering a form
 remains the same, independently of the CSS framework.
 
-Say we have a typical Django form
+Say we have a typical Django form, such as
 
-.. django-view:: register_person
-	:view-function: RegisterPersonView.as_view()
+.. django-view:: register_person_default
+	:view-function: RegisterPersonView.as_view(extra_context={'pre_id': 'person-form-result'})
 	:caption: Render an unstyled form.
 	:hide-view:
 
 	from django.forms import fields, forms, widgets
+	from formset.views import FormView 
 	
-	class PersonForm(forms.Form):
+	class RegisterPersonForm(forms.Form):
 	    first_name = fields.RegexField(
-	        r'^[A-Z][a-z -]+$',
+	        r'^[A-Z][-a-z ]+$',
 	        label="First name",
 	        error_messages={'invalid': "A first name must start in upper case."},
 	        help_text="Must start in upper case followed by one or more lowercase characters.",
@@ -81,7 +82,7 @@ Say we have a typical Django form
 
 	class RegisterPersonView(FormView):
 	    form_class = RegisterPersonForm
-	    template_name = "unstyled-form.html"
+	    template_name = "form.html"
 	    success_url = "/success"
 
 When rendered using the view class :class:`formset.views.FormView` together with this template 
@@ -101,11 +102,7 @@ contain at least one additional character in lower case, while the last name mus
 least two, but no more than 50 characters. Additionally the user has to choose his gender using
 two radio input fields and a mandatory checkbox input to accept the terms and conditions.
 
-.. django-referred-view:: register_person
-
-.. image:: _static/unstyled-form.png
-  :width: 560
-  :alt: Unstyled Form
+.. django-referred-view:: register_person_default
 
 Styling this form now is up to you. Use this as a starting point, if you edit the CSS of your
 project anyway. There are a few HTML tags and CSS classes, which might help styling:
@@ -141,9 +138,9 @@ In the template from above, we simply replace the templatetag against
 
 and get the same form instance rendered in a much nicer looking way:
 
-.. image:: _static/bootstrap-form.png
-  :width: 560
-  :alt: Bootstrap Form
+.. django-view:: register_person_bootstrap
+	:view-function: RegisterPersonView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'bs-person-form'}, form_kwargs={'auto_id': 'bs_id_%s'})
+	:hide-code:
 
 Compared to the unstyled form shown in the previous section, we notice that the radio fields
 are inlined and that the checkbox is positioned before its label. This is intended behavior.
@@ -169,11 +166,11 @@ to the templatetag
 	  </div>
 	</django-formset>
 
-and we get a form rendered as
+and we get a form rendered as:
 
-.. image:: _static/styling-bootstrap-inline.png
-  :width: 560
-  :alt: Bootstrap Form
+.. django-view:: inline_person_bootstrap
+	:view-function: RegisterPersonView.as_view(extra_context={'pre_id': 'inline-person-form'}, form_kwargs={'auto_id': 'ilbs_id_%s'}, template_name="form-bootstrap-inline.html")
+	:hide-code:
 
 
 Inlining Radio Buttons and Multiple Checkboxes
@@ -185,7 +182,13 @@ few of them. The default threshold is 4 and can be modified with the parameter
 
 .. code-block:: django
 
-	  {% render_form form "bootstrap" max_options_per_line=3 %}
+	  {% render_form form "bootstrap" max_options_per_line=1 %}
+
+and we get the radio fields of our form rendered as:
+
+.. django-view:: max_options_person_bootstrap
+	:view-function: RegisterPersonView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'mobs-person-form'}, form_kwargs={'auto_id': 'mobs_id_%s'}, template_name="form-max-options.html")
+	:hide-code:
 
 If the number of radio buttons and/or multiple checkboxes exceeds this threshold, those fields are
 rendered below each other.
@@ -207,9 +210,11 @@ In the template from above, we simply replace the templatetag against
 
 and get the form instance rendered as:
 
-.. image:: _static/bulma-person-form.png
-  :width: 560
+.. figure:: _static/bulma-person-form.png
+  :width: 80%
   :alt: Bulma Form
+
+  For practical reasons, this is only a screenshot.
 
 
 Foundation
@@ -229,9 +234,11 @@ In the template from above, we simply replace the templatetag against
 
 and get the form instance rendered as:
 
-.. image:: _static/foundation-person-form.png
-  :width: 560
+.. figure:: _static/foundation-person-form.png
+  :width: 80%
   :alt: Foundation Form
+
+  For practical reasons, this is only a screenshot.
 
 .. note:: Foundation currently does not get full support.
 
@@ -257,11 +264,11 @@ or replace them against our individually styled ones. The form then is rendered 
 	...
 	{% render_form form "tailwind" %}
 
-and looks as expected 
+and get rendered as expected: 
 
-.. image:: _static/tailwind-person-form.png
-  :width: 560
-  :alt: Tailwind Form
+.. django-view:: register_person_tailwind
+	:view-function: RegisterPersonView.as_view(extra_context={'framework': 'tailwind', 'pre_id': 'tw-person-form'}, form_kwargs={'auto_id': 'tw_id_%s'})
+	:hide-code:
 
 To adopt the form element styles, **django-formset** provides these CSS classes:
 
@@ -278,6 +285,9 @@ To adopt the form element styles, **django-formset** provides these CSS classes:
 * ``dj-choose-file``: Styling of the button to open the file browser.
 * ``dj-delete-file``: Styling of the button to delete a selected file.
 * ``dj-download-file``: Styling of the button to download a selected file.
+
+Please use the file :asset:`tailwind-styles.css <assets/tailwind-styles.css>` as a starting point.
+
 
 
 UIKit

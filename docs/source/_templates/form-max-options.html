@@ -1,7 +1,7 @@
 {% load render_form from formsetify %}
 
 <django-formset endpoint="{{ request.path }}" force-submission="true" csrf-token="{{ csrf_token }}"{% if framework %} class="{{ framework }}"{% endif %}>
-	{% render_form form framework %}
+	{% render_form form framework max_options_per_line=1 %}
 	{% with infix=framework|default:"base" %}
 		{% include "./buttons-"|add:infix|add:".html" %}
 	{% endwith %}

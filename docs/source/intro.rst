@@ -78,7 +78,7 @@ contraints on how these names have to be written. This form then is rendered and
 slightly modified Django view:
 
 .. django-view:: person
-	:view-function: PersonFormView.as_view()
+	:view-function: PersonFormView.as_view(extra_context={'framework': 'tailwind'})
 	:caption: Interacting with a form shows validation errors immediately.
 
 	from django.core.exceptions import ValidationError
@@ -87,7 +87,7 @@ slightly modified Django view:
 	
 	class PersonForm(forms.Form):
 	    first_name = fields.RegexField(
-	        r'^[A-Z][a-z -]+$',
+	        r'^[A-Z][\-a-z ]+$',
 	        label="First name",
 	        error_messages={'invalid': "A first name must start in upper case."},
 	        help_text="Must start in upper case followed by one or more lowercase characters.",
@@ -102,7 +102,8 @@ slightly modified Django view:
 
 	    def clean(self):
 	        cd = self.cleaned_data
-	        if cd["first_name"].lower().startswith("john") and cd['last_name'].lower().startswith("doe"):
+	        if cd.get("first_name", "").lower().startswith("john") \
+	            and cd.get("last_name", "").lower().startswith("doe"):
 	            raise ValidationError("John Doe is an undesirable person")
 	        return cd
 
