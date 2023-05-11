@@ -91,6 +91,8 @@ class FormsetResponseMixin:
 
 
 class FormViewMixin(FormsetResponseMixin):
+    form_kwargs = None
+
     def get_success_url(self):
         """
         In **django-formset**, the success_url may be None and set inside the templates.
@@ -108,6 +110,8 @@ class FormViewMixin(FormsetResponseMixin):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+        if self.form_kwargs:
+            kwargs.update(**self.form_kwargs)
         if self._request_body:
             kwargs['data'] = self._request_body.get('formset_data')
         return kwargs
