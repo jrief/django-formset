@@ -199,6 +199,13 @@ as possible to the way Django handles forms, models and views**. It therefore is
 existing Django form declarations with a minimal modification to existing code.
 
 
+License
+=======
+
+**django-formset** is licensed under the MIT public license. Please consult the the appropriate file
+in the repository for details.
+
+
 Contributing
 ============
 

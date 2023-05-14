@@ -31,17 +31,25 @@ In this example we use two forms nested in a ``FormCollection``. Remember, a ``F
 exactly as a ``Form`` instance and can be used as a replacement, although with additional styling
 possibilities.
 
-.. code-block:: python
+.. django-view:: import
+	:hide-code:
+	:hide-view:
+
+	from formset.renderers.bootstrap import FormRenderer
+
+.. django-view:: fieldset
+	:view-function: CustomerView.as_view(extra_context={'framework': 'bootstrap'}, collection_kwargs={'renderer': FormRenderer(field_css_classes='mb-3')})
 
 	from django.forms import fields, forms
 	from formset.fieldset import Fieldset
 	from formset.collection import FormCollection
-	
+	from formset.views import FormCollectionView
+
 	class CustomerForm(Fieldset):
 	    legend = "Customer"
 	    hide_if = 'register.no_customer'
-	    recipient = fields.CharField()
-	    address = fields.CharField()
+	    recipient = fields.CharField(label="Recipient", required=False)
+	    address = fields.CharField(label="Address", required=False)
 	
 	class RegisterForm(forms.Form):
 	    no_customer = fields.BooleanField(
@@ -53,11 +61,10 @@ possibilities.
 	    customer = CustomerForm()
 	    register = RegisterForm()
 
-When rendered, this Form Collection may look like:
-
-.. image:: _static/bootstrap-fieldset.png
-  :width: 660
-  :alt: Fieldset
+	class CustomerView(FormCollectionView):
+	    collection_class = CustomerCollection
+	    template_name = "form-collection.html"
+	    success_url = "/success"
 
 The interesting part of this collection is that we can hide the fieldset by clicking on the
 checkbox named "I'm not a customer". This means that by using conditionals, we can dynamically

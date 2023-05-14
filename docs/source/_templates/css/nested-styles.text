@@ -3,8 +3,13 @@ django-formset.tailwind {
 }
 django-formset.bootstrap {
 	@nested-import "node_modules/bootstrap/dist/css/bootstrap.min.css";
+	django-form-collection[sibling-position] .remove-collection {
+		top: 0;
+	}
 }
+@nested-import "formset/static/formset/css/collections.css";
 @nested-import "formset/static/formset/css/bootstrap5-extra.css";
+
 
 .formset-submit-data {
 	width: 100%;
