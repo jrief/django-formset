@@ -90,6 +90,14 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	});
 	domLookup(document);
 
+	const foundIds = new Set<string>();
+	document.querySelectorAll('django-formset [id]').forEach(element => {
+		const foundId = element.getAttribute('id')!;
+		if (foundIds.has(foundId))
+			throw new Error(`There are at least two elements with attribute id="${foundId}"`);
+		foundIds.add(foundId);
+	});
+
 	Promise.all(promises).then(() => {
 		window.customElements.define('django-formset', DjangoFormsetElement);
 		window.customElements.whenDefined('django-formset').then(() => {
