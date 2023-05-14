@@ -26,6 +26,10 @@ def initialize_counties(apps, schema_editor):
         County.objects.create(state=state, name=county.county_name)
 
 
+def initialize_reporters(apps, schema_editor):
+    call_command('loaddata', settings.BASE_DIR / 'testapp/fixtures/reporters.json', verbosity=0)
+
+
 class Migration(migrations.Migration):
 
     initial = True
@@ -190,6 +194,25 @@ class Migration(migrations.Migration):
                 'unique_together': {('name', 'team')},
             },
         ),
+        migrations.CreateModel(
+            name='Reporter',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('full_name', models.CharField(max_length=70)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Article',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('pub_date', models.DateField()),
+                ('headline', models.CharField(max_length=200)),
+                ('content', models.TextField()),
+                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
+                ('reporter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='testapp.reporter')),
+            ],
+        ),
         migrations.RunPython(initialize_opinions, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(initialize_counties, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(initialize_reporters, reverse_code=migrations.RunPython.noop),
     ]
