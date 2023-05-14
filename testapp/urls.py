@@ -32,9 +32,9 @@ urlpatterns = [
     path('foundation/', include(('testapp.views', 'foundation'))),
     path('tailwind/', include(('testapp.views', 'tailwind'))),
     path('uikit/', include(('testapp.views', 'uikit'))),
-    path('', include(('sphinx_view.urls', 'sphinx-view'))),
 ]
 urlpatterns.extend(static(
     settings.MEDIA_URL,
     document_root=settings.MEDIA_ROOT
 ))
+urlpatterns.append(path('', include(('sphinx_view.urls', 'sphinx-view'))))
