@@ -316,6 +316,21 @@ class DateInput(DateTimeBaseInput):
         return value
 
 
+class DateTimeLocalInput(DateTimeBaseInput):
+    template_name = 'django/forms/widgets/date.html'
+
+    def __init__(self, attrs=None):
+        default_attrs = {'type': 'datetime-local', 'pattern': r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}'}
+        if attrs:
+            default_attrs.update(**attrs)
+        super().__init__(attrs=default_attrs)
+
+    def format_value(self, value):
+        if isinstance(value, datetime):
+            return value.isoformat()[:16]
+        return value
+
+
 class DatePicker(DateTimeBaseInput):
     """
     This is an enhancement for the ``DateInput`` widget, but with a customizable date-picker.
