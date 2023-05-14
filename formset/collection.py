@@ -55,6 +55,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     The main implementation of all the FormCollection logic.
     """
     default_renderer = None
+    auto_id = 'id_%s'
     prefix = None
     template_name = 'formset/default/collection.html'
     instance = None
@@ -67,10 +68,13 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     add_label = None
     ignore_marked_for_removal = None
 
-    def __init__(self, data=None, initial=None, renderer=None, prefix=None, instance=None, min_siblings=None,
-                 max_siblings=None, extra_siblings=None, is_sortable=None, legend=None, help_text=None):
+    def __init__(self, data=None, initial=None, renderer=None, auto_id=None, prefix=None, instance=None,
+                 min_siblings=None, max_siblings=None, extra_siblings=None, is_sortable=None, legend=None,
+                 help_text=None):
         self.data = MultiValueDict() if data is None else data
         self.initial = initial
+        if auto_id is not None:
+            self.auto_id = auto_id
         if prefix is not None:
             self.prefix = prefix
         self._errors = None  # Stores the errors after `clean()` has been called.
@@ -114,6 +118,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 initial = declared_holder.initial
             holder = declared_holder.replicate(
                 initial=initial,
+                auto_id=self.auto_id,
                 prefix=prefix,
                 renderer=self.renderer,
                 ignore_marked_for_removal=self.ignore_marked_for_removal,
@@ -143,6 +148,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     initial = declared_holder.initial
                 holder = declared_holder.replicate(
                     initial=initial,
+                    auto_id=self.auto_id,
                     prefix=prefix,
                     renderer=self.renderer,
                     ignore_marked_for_removal=self.ignore_marked_for_removal,

@@ -39,7 +39,8 @@ class HolderMixin:
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def replicate(self, data=None, initial=None, prefix=None, instance=None, renderer=None, ignore_marked_for_removal=None):
+    def replicate(self, data=None, initial=None, auto_id=None, prefix=None, instance=None, renderer=None,
+                  ignore_marked_for_removal=None):
         replica = copy.copy(self)
         if hasattr(self, 'declared_holders'):
             replica.declared_holders = {
@@ -59,6 +60,8 @@ class HolderMixin:
             replica.files.clear()
         if initial:
             replica.initial = initial
+        if auto_id:
+            replica.auto_id = auto_id
         if prefix:
             replica.prefix = prefix
         if instance:
