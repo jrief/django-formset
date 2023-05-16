@@ -215,13 +215,13 @@ with siblings.
 	:view-function: ApparatusTimestampView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'atc-result'}, collection_kwargs={'auto_id': 'atc_id_%s', 'initial': {'logs': [{'log': {'timestamp': '2023-03-31T16:55'}}]}, 'renderer': FormRenderer(field_css_classes='mb-3')})
 
 	from django.utils.timezone import now
-	from formset.widgets import DateTimeLocalInput
+	from formset.widgets import DateTimeInput
 
 	class LogForm(forms.Form):
 	    timestamp = fields.DateTimeField(
 	        label="Timestamp",
 	        initial=now,
-	        widget=DateTimeLocalInput,
+	        widget=DateTimeInput,
 	    )
 
 	class LogCollection(FormCollection):

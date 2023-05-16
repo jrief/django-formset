@@ -316,7 +316,7 @@ class DateInput(DateTimeBaseInput):
         return value
 
 
-class DateTimeLocalInput(DateTimeBaseInput):
+class DateTimeInput(DateTimeBaseInput):
     template_name = 'django/forms/widgets/date.html'
 
     def __init__(self, attrs=None):

@@ -210,6 +210,15 @@ class Migration(migrations.Migration):
                 ('content', models.TextField()),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
                 ('reporter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='testapp.reporter')),
+                ('teaser', models.FileField(blank=True, upload_to='images')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Annotation',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('content', models.CharField(max_length=200)),
+                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
             ],
         ),
         migrations.RunPython(initialize_opinions, reverse_code=migrations.RunPython.noop),

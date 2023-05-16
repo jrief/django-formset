@@ -91,6 +91,11 @@ class FormsetResponseMixin:
 
 
 class FormViewMixin(FormsetResponseMixin):
+    """
+    Add this mixin to a view class inheriting from one of the Django form view classes. It serves to respond
+    with a JsonResponse rather than a HttpResponse whenever a form submission validates or fails.
+    """
+
     form_kwargs = None
 
     def get_success_url(self):

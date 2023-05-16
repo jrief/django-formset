@@ -2,6 +2,7 @@
 # !!! DO NOT EDIT !!!
 from django.urls import path
 from formset.renderers.bootstrap import FormRenderer
+from testapp.mixins import SessionModelFormViewMixin
 {%- for module in modules %}
 from . import {{ module }}
 {%- endfor %}
@@ -9,7 +10,11 @@ from . import {{ module }}
 urlpatterns = [
 {%- for module, view_functions in urlpatterns.items() %}
     {%- for view_name, view_function in view_functions.items() %}
+        {%- if view_function.startswith('type(') %}
+    path('{{ module }}.{{ view_name }}/', {{ view_function }}, name='{{ module }}.{{ view_name }}'),
+        {%- else %}
     path('{{ module }}.{{ view_name }}/', {{ module }}.{{ view_function }}, name='{{ module }}.{{ view_name }}'),
+        {%- endif %}
     {%- endfor %}
 {%- endfor %}
 ]
