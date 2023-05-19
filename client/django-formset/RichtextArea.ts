@@ -130,11 +130,107 @@ namespace controls {
 	}
 
 	export class TextColorAction extends Action {
-		protected extensions = [Color];
+		private readonly dropdownInstance?: Instance;
+		private readonly dropdownMenu: HTMLElement;
+		private readonly dropdownItems: NodeListOf<Element> | [] = [];
+		private readonly colors: Array<string|null> = [];
 
-		clicked(editor: Editor) {
-			editor.chain().focus().setColor('#a00000').run();
-			this.activate(editor);
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
+			if (!(button.nextElementSibling instanceof HTMLUListElement) || button.nextElementSibling.role !== 'menu')
+				throw new Error('Text color requires a sibling element <ul role="menu">…</ul>');
+			this.dropdownMenu = button.nextElementSibling;
+			this.dropdownInstance = createPopper(this.button, this.dropdownMenu, {
+				placement: 'bottom-start',
+			});
+			this.dropdownItems = this.dropdownMenu.querySelectorAll('[richtext-click^="color:"]');
+			this.dropdownItems.forEach(element => this.colors.push(this.extractColor(element)));
+		}
+
+		private extractColor(element: Element) : string | null {
+			const parts = element.getAttribute('richtext-click')?.split(':') ?? [];
+			if (parts.length !== 2)
+				throw new Error(`Element ${element} requires attribute 'richtext-click'.`);
+			if (parts[1] === 'null')
+				return null;
+			if (parts[1].match(/^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)/))
+				return parts[1];
+			throw new Error(`${parts[1]} is not a valid color.`);
+		}
+
+		installEventHandler(editor: Editor) {
+			if (this.dropdownMenu) {
+				this.button.addEventListener('click', () => this.toggleMenu(editor));
+				this.dropdownMenu.addEventListener('click', event => this.toggleItem(event, editor));
+				document.addEventListener('click', event => {
+					let element = event.target instanceof Element ? event.target : null;
+					while (element) {
+						if (element.isSameNode(this.button) || element.isSameNode(this.dropdownMenu))
+							return;
+						element = element.parentElement;
+					}
+					this.toggleMenu(editor, false);
+				});
+			} else {
+				this.button.addEventListener('click', event => this.toggleItem(event, editor));
+			}
+		}
+
+		clicked() {}
+
+		activate(editor: Editor) {
+			let isActive = false;
+			const rect = this.button.querySelector('svg .color');
+			this.dropdownItems.forEach(element => {
+				const color = this.extractColor(element);
+				if (color) {
+					if (editor.isActive({color: color})) {
+						rect?.setAttribute('fill', color);
+						isActive = true
+					}
+				}
+			});
+			this.button.classList.toggle('active', isActive);
+			if (!isActive) {
+				rect?.removeAttribute('fill');
+			}
+		}
+
+		extendExtensions(extensions: Array<Extension|Mark|Node>) {
+			let unmergedOptions = true;
+			extensions.forEach(e => {
+				if (e.name === 'color')
+					throw new Error("RichtextArea allows only one control element with 'textColor'.");
+			});
+			extensions.push(Color.configure({types: ['textStyle']}));
+		}
+
+		private toggleMenu(editor: Editor, force?: boolean) {
+			const expanded = (force !== false && this.button.ariaExpanded === 'false');
+			this.button.ariaExpanded = expanded ? 'true' : 'false';
+			this.dropdownItems.forEach(element => {
+				const color = this.extractColor(element);
+				element.parentElement?.classList.toggle('active', editor.isActive({color: color}));
+			});
+			this.dropdownInstance?.update();
+		}
+
+		toggleItem(event: MouseEvent, editor: Editor) {
+			let element = event.target instanceof Element ? event.target : null;
+			while (element) {
+				if (element instanceof HTMLAnchorElement) {
+					const color = this.extractColor(element);
+					if (color) {
+						editor.chain().focus().setColor(color).run();
+					} else {
+						editor.chain().focus().unsetColor().run();
+					}
+					this.activate(editor);
+					this.toggleMenu(editor, false);
+					break;
+				}
+				element = element.parentElement;
+			}
 		}
 	}
 

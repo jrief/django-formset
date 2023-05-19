@@ -1,3 +1,5 @@
+import re
+
 from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import select_template
 from django.utils.translation import gettext_lazy as _
@@ -92,6 +94,23 @@ class TextAlign(ControlElement):
 class TextColor(ControlElement):
     name = 'textColor'
     label = _("Text Color")
+    template_name = 'formset/{framework}/buttons/richtext_color.html'
+    colors = [None]
+
+    def __init__(self, colors):
+        if not isinstance(colors, (list, tuple)) or len(colors) == 0:
+            raise ImproperlyConfigured("TextColor() requires a list with at least one color")
+        pattern = re.compile(r'^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)$')
+        for color in colors:
+            if not re.match(pattern, color):
+                raise ImproperlyConfigured(f"Given color {color} is not in format rgb(r, g, b)")
+        self.colors.extend(colors)
+
+    def render(self, renderer):
+        template = self.get_template(renderer)
+        return template.render({
+            'colors': self.colors,
+        })
 
 
 class TextIndent(ControlElement):
