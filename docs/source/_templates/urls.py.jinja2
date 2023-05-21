@@ -2,7 +2,7 @@
 # !!! DO NOT EDIT !!!
 from django.urls import path
 from formset.renderers.bootstrap import FormRenderer
-from testapp.mixins import SessionModelFormViewMixin
+from testapp.demo_helpers import SessionFormCollectionViewMixin, SessionModelFormViewMixin
 {%- for module in modules %}
 from . import {{ module }}
 {%- endfor %}

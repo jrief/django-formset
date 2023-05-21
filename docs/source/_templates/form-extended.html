@@ -1,9 +1,9 @@
-{% load render_form from formsetify %}
-
+{% block main-content %}
 <django-formset endpoint="{{ request.path }}" force-submission="true" csrf-token="{{ csrf_token }}"{% if framework %} class="{{ framework }}"{% endif %}>
-	{% render_form form framework max_options_per_line=1 %}
+	{{ form }}
 	{% with infix=framework|default:"base" %}
 		{% include "./buttons-"|add:infix|add:".html" %}
 	{% endwith %}
 	<pre id="{{ pre_id }}-data" class="formset-submit-data"></pre>
 </django-formset>
+{% endblock %}

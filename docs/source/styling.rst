@@ -169,7 +169,7 @@ to the templatetag
 and we get a form rendered as:
 
 .. django-view:: inline_person_bootstrap
-	:view-function: RegisterPersonView.as_view(extra_context={'pre_id': 'inline-person-form'}, form_kwargs={'auto_id': 'ilbs_id_%s'}, template_name="form-bootstrap-inline.html")
+	:view-function: RegisterPersonView.as_view(extra_context={'pre_id': 'inline-person-form', 'framework': 'bootstrap', 'field_css_classes': 'row mb-2', 'label_css_classes': 'col-sm-3', 'control_css_classes': 'col-sm-9'}, form_kwargs={'auto_id': 'ilbs_id_%s'})
 	:hide-code:
 
 
@@ -187,7 +187,7 @@ few of them. The default threshold is 4 and can be modified with the parameter
 and we get the radio fields of our form rendered as:
 
 .. django-view:: max_options_person_bootstrap
-	:view-function: RegisterPersonView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'mobs-person-form'}, form_kwargs={'auto_id': 'mobs_id_%s'}, template_name="form-max-options.html")
+	:view-function: RegisterPersonView.as_view(extra_context={'framework': 'bootstrap', 'max_options_per_line': 1, 'pre_id': 'mobs-person-form'}, form_kwargs={'auto_id': 'mobs_id_%s'})
 	:hide-code:
 
 If the number of radio buttons and/or multiple checkboxes exceeds this threshold, those fields are
@@ -240,7 +240,7 @@ and get the form instance rendered as:
 
   For practical reasons, this is only a screenshot.
 
-.. note:: Foundation currently does not get full support.
+.. note:: Foundation currently is not fully support.
 
 
 Tailwind

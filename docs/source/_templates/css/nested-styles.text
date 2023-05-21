@@ -3,13 +3,31 @@ django-formset.tailwind {
 }
 django-formset.bootstrap {
 	@nested-import "node_modules/bootstrap/dist/css/bootstrap.min.css";
-	django-form-collection[sibling-position] .remove-collection {
-		top: 0;
-	}
+    .add-collection {
+        margin-top: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    .collection-siblings {
+        border-bottom: 1px solid rgb(206, 212, 218);
+        margin-bottom: -9px;
+    }
 }
 @nested-import "formset/static/formset/css/collections.css";
 @nested-import "formset/static/formset/css/bootstrap5-extra.css";
 
+django-form-collection[sibling-position] {
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
+}
+django-form-collection[sibling-position]:not(:last-of-type) {
+	border-bottom: 1px dashed rgb(206, 212, 218);
+}
+django-form-collection[sibling-position] > .remove-collection {
+	top: 0.25rem;
+}
+django-form-collection[sibling-position] > .collection-drag-handle ~ .remove-collection {
+	top: 0.375rem;
+}
 
 .formset-submit-data {
 	width: 100%;

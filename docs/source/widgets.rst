@@ -4,6 +4,17 @@
 Alternative Widgets
 ===================
 
+**django-formset** ships with a set of alternative widgets for various purposes. This is because
+Django, out of the box, only supports pure HTML input fields which, from a usability point of view
+are not that conventient nowadays. To fill this gap, many JavaScript frameworks offer better suited
+widgets, but they usually require to write extra client code, contrdicting the DRY principle.
+
+Many alternative widgets have to communicate with a server endpoint in order to fetch additional
+data. This is the reason, why some of the views require a mixin class to handle that extra endpoint.
+Therefore with **django-formset** the developer can compleately focus on the server side. Here is
+a of currently implemented widgets:
+
+
 .. rubric:: Replacing Widgets for Choice Fields
 
 These widgets are the :class:`formset.widget.Selectize`, :class:`formset.widget.SelectizeMultiple`,
@@ -25,7 +36,8 @@ inside the form's ``Meta`` class:
 	        }
 
 Please read the sections :ref:`selectize` and :ref:`dual-selector` for details about enhancing
-the ``<select>`` and ``<select multiple="multiple">`` widgets.
+the ``<select>`` and ``<select multiple="multiple">`` widgets. Views implementing these widgets
+must inherit from :class:`formset.views.IncompleteSelectResponseMixin`.
 
 
 .. rubric:: Replacing Widgets for File- and Image Fields
@@ -34,7 +46,8 @@ In case we want to map a model field of type ``django.db.models.FileField`` or
 ``django.db.models.ImageField``, we **must** replace the default input widget by
 ``formset.widgets.UploadedFileInput``. This is required because in **django-formset** files are
 *uploaded before* form submission. Please read the section :ref:`uploading` for details about file
-uploading.
+uploading. Views implementing this widgets must inherit from
+:class:`formset.upload.FileUploadMixin`.
 
 .. code-block:: python
 
@@ -82,5 +95,11 @@ These widgets are the :class:`formset.widget.DateInput`, :class:`formset.widget.
 
 Django by default uses a field such as ``<input type="text" …>`` to accept dates as input. This
 means that the conversion from a string in potentially different formats, must be done by Django
-itself. Modern browsers however offer input fields of type ``date`` and ``datetime-local``. There
-the value is *always* submitted using the ISO format, avoiding ambiguities.
+itself. Modern browsers however offer input fields such as ``<input … type="date">`` and
+``<input … type="datetime-local">``. When this value is submitted, it *always* uses the ISO format.
+Django instead allows different date and date-time formats which can lead to ambiguities.
+
+The first two widgets use the browsers own implemented date-picker capabilities. The latter two are
+implemented by **django-formset**. In some situations, developers might want to use their own HTML
+representation and styles for those pickers. Since those calendar sheets are rendered by Django, the
+views implementing these widgets must inherit from :class:`formset.calendar.CalendarResponseMixin`.

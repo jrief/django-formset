@@ -22,6 +22,13 @@ file upload, a unique and signed handle is returned to the client. On form submi
 then is used to refer to the previously uploaded file inside the temporary folder. If the form
 validation passed successfully, that file then is moved to its final destination.
 
+ It allows us to visually upload a file, which means that the
+    uploaded payload is pre-submitted and a thumbnailed depiction is rendered. Since the uploaded
+    file already waits in a temporary location on the server, the final form submission also is a
+    lot faster.
+
+
+
 
 Example
 -------
@@ -29,10 +36,11 @@ Example
 A Django form accepting files for upload can be converted easily to **django-formset**'s
 asynchronous file uploads, simply by replacing the widget.
 
-.. code-block:: python
+.. django-view:: upload_form
+	:view-function: UploadView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'upload-result'})
 
 	from django.forms import forms, fields
-	
+	from formset.views import FormView 
 	from formset.widgets import UploadedFileInput
 	
 	class UploadForm(forms.Form):
@@ -42,12 +50,14 @@ asynchronous file uploads, simply by replacing the widget.
 	        required=True,
 	    )
 
-Remember, the Django view accepting the form data, must inherit from
-:class:`formset.views.FileUploadMixin`. No extra endpoint is required to activate this feature.
+	class UploadView(FormView):
+	    form_class = UploadForm
+	    template_name = "form.html"
+	    success_url = "/success"
 
-.. image:: _static/bootstrap-upload.gif
-  :width: 760
-  :alt: File Upload
+Remember, the Django view accepting the form data, must inherit from
+:class:`formset.upload.FileUploadMixin`. The class :class:`formset.views.FormView` already derives
+from it. No extra endpoint is required to activate this feature.
 
 If an uploaded file contains an image renderable by the browser, that image is resized on the server
 and a thumbnail version is returned to the client. For other file types, a symbolic icon is

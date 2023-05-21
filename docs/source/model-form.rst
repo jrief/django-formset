@@ -10,6 +10,7 @@ Say, we use a model similar to that described in the Django documentation, ie.
 ``myapp.models.Article``:
 
 .. code-block:: python
+	:caption: models.py
 
 	from django.db import models
 
@@ -39,6 +40,7 @@ client-side validation of inputted dates. The field ``content`` is overridden by
 ``RichtextArea``, allowing to format the text using various styles.
 
 .. django-view:: article_form
+	:caption: forms.py
 
 	from django.forms.models import ModelForm
 	from formset.richtext.widgets import RichTextarea
@@ -67,6 +69,7 @@ Django for `updating models`_:
 
 .. django-view:: article_view
 	:view-function: type('ArticleEditView', (SessionModelFormViewMixin, model_form.ArticleEditView), {}).as_view(extra_context={'framework': 'bootstrap'})
+	:caption: views.py
 
 	from django.views.generic import UpdateView
 	from formset.upload import FileUploadMixin
@@ -160,8 +163,8 @@ The form and view classes required to edit this model then may look something li
 	        return super().form_valid(form)
 
 In method ``get_context_data`` we determine, whether a new object shall be added or an existing
-object shall be changed. This information is added to the rendering context. That view then is
-rendered by a template with button settings, which depend on the context data:
+object shall be changed. This context data then is added to the rendering context and the view then
+is rendered by a template with button settings, depending on these values:
 
 .. code-block:: django
 	:caption: crud-form.html
@@ -184,3 +187,51 @@ is clicked. We use that extra information in our view to distinguish between cre
 deleting an instance. 
 
 .. django-referred-view:: annotation
+
+In a real world application, this above example is oversimplified. Normally, one has to distinguish
+between an add view and various details views using a unique key as identifier. If the above view 
+would be connected to a URL router, the patterns may be defined as:
+
+.. code-block:: python
+
+	urlpatterns = [
+	    ...
+	    path('', AnnotationEditView.as_view(),  # list view not handled here
+	        name='list-annotation'
+	    ),
+	    path('add/', AnnotationEditView.as_view(extra_context={'add': True}),
+	        name='add-annotation',
+	    ),
+	    path('<int:pk>/', AnnotationEditView.as_view(extra_context={'change': True}),
+	        name='change-annotation',
+	    ),
+	    ...
+	]
+
+In the view class itself, the two methods ``get_object()`` and ``get_success_url()`` must be adopted
+as well. Here it's up to the developer to decide how the workflow should look like, after an object
+has been successfully saved.
+
+.. code-block:: python
+
+	class AnnotationEditView(FormViewMixin, UpdateView):
+	    ...
+	    extra_context = None
+
+	    def get_object(self, queryset=None):
+	        if queryset is None:
+	            queryset = self.get_queryset()
+	        # use `querset` and `self.form_kwargs` to find the object to change
+	        ...
+
+	    def get_success_url():
+	        if extra_data := self.get_extra_data():
+	            # use `extra_data` to determine the success_url
+	            ...
+
+In a real world application, please remember to check if the current user has proper add-, change-
+and delete permissions. The Django views running inside this documenation use the session-ID to
+assign saved objects to their users.
+
+.. note:: The list view is not handled explicitly here, because it doesn't differ compared to a
+	classic Django view.
