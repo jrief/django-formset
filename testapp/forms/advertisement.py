@@ -95,7 +95,7 @@ class AdvertisementForm(forms.Form):
             controls.HardBreak(),
             controls.Italic(),
             controls.Underline(),
-            # controls.TextColor(),
+            controls.TextColor(['rgb(160, 0, 0)', 'rgb(0, 160, 0)', 'rgb(0, 0, 160)']),
             controls.TextIndent(),
             controls.TextIndent('outdent'),
             controls.TextMargin('increase'),

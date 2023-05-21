@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Model, QuerySet
+from django.db.models import Model
 from django.db.models.fields.files import FieldFile
 from django.forms.renderers import get_default_renderer
 from django.http import HttpResponse
@@ -29,6 +29,7 @@ from formset.views import (
     EditCollectionView, BulkEditCollectionView
 )
 
+from testapp.demo_helpers import SessionFormCollectionViewMixin
 from testapp.forms.address import AddressForm
 from testapp.forms.advertisement import AdvertisementForm, AdvertisementModelForm
 from testapp.forms.article import ArticleForm
@@ -251,31 +252,13 @@ class UserCollectionView(DemoFormCollectionViewMixin, EditCollectionView):
         return user
 
 
-class CompanyCollectionView(DemoFormCollectionViewMixin, EditCollectionView):
+class CompanyCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
     model = Company
     collection_class = CompanyCollection
     template_name = 'testapp/form-collection.html'
     extra_context = {
         'click_actions': 'disable -> submit -> reload !~ scrollToError'
     }
-
-    def get_queryset(self):
-        if not self.request.session.session_key:
-            self.request.session.cycle_key()
-        queryset = super().get_queryset()
-        return queryset.filter(created_by=self.request.session.session_key)
-
-    def get_object(self, queryset=None):
-        if queryset is None:
-            queryset = self.get_queryset()
-        if object := queryset.last():
-            return object
-        return self.model(created_by=self.request.session.session_key)
-
-    def form_collection_valid(self, form_collection):
-        if not self.object:
-            self.object = self.model.objects.create(created_by=self.request.session.session_key)
-        return super().form_collection_valid(form_collection)
 
 
 class CompaniesCollectionView(DemoFormCollectionViewMixin, BulkEditCollectionView):

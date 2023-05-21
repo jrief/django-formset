@@ -6,6 +6,8 @@ from formset.richtext.fields import RichTextField
 
 from .article import Article, Reporter
 from .annotation import Annotation
+from .company import Company, Department, Team
+from .user import ExtendUser, User
 
 
 class PayloadModel(models.Model):
@@ -140,21 +142,6 @@ class WeightedOpinion(models.Model):
         return f'<{self.__class__.__name__}: [{self.weight}] "{self.opinion.label}">'
 
 
-class ExtendUser(models.Model):
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='extend_user',
-    )
-
-    phone_number = models.CharField(
-        verbose_name="Phone Number",
-        max_length=25,
-        blank=True,
-        null=True,
-    )
-
-
 class UserContact(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -240,66 +227,3 @@ class County(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.state.code})"
-
-
-class Company(models.Model):
-    name = models.CharField(
-        verbose_name="Company Name",
-        max_length=50,
-    )
-
-    created_by = models.CharField(
-        editable=False,
-        max_length=40,
-        db_index=True,
-    )
-
-    class Meta:
-        verbose_name = "Company"
-        verbose_name_plural = "Companies"
-        unique_together = ['name', 'created_by']
-
-    def __str__(self):
-        return self.name
-
-
-class Team(models.Model):
-    name = models.CharField(
-        verbose_name="Team Name",
-        max_length=50,
-    )
-
-    company = models.ForeignKey(
-        Company,
-        on_delete=models.CASCADE,
-        related_name='teams',
-    )
-
-    class Meta:
-        verbose_name = "Team"
-        verbose_name_plural = "Teams"
-        unique_together = ['name', 'company']
-
-    def __str__(self):
-        return self.name
-
-
-class Member(models.Model):
-    name = models.CharField(
-        verbose_name="Member Name",
-        max_length=50,
-    )
-
-    team = models.ForeignKey(
-        Team,
-        on_delete=models.CASCADE,
-        related_name='members',
-    )
-
-    class Meta:
-        verbose_name = "Member"
-        verbose_name_plural = "Members"
-        unique_together = ['name', 'team']
-
-    def __str__(self):
-        return self.name

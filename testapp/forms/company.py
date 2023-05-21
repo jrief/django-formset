@@ -3,33 +3,7 @@ from django.forms.models import ModelForm
 
 from formset.collection import FormCollection
 
-from testapp.models import Company, Member, Team
-
-
-class MemberForm(ModelForm):
-    id = fields.IntegerField(
-        required=False,
-        widget=widgets.HiddenInput,
-    )
-
-    class Meta:
-        model = Member
-        fields = ['id', 'name']
-
-
-class MemberCollection(FormCollection):
-    min_siblings = 0
-    member = MemberForm()
-    legend = "Members"
-    add_label = "Add Member"
-    related_field = 'team'
-
-    def retrieve_instance(self, data):
-        if data := data.get('member'):
-            try:
-                return self.instance.members.get(id=data.get('id') or 0)
-            except (AttributeError, Member.DoesNotExist, ValueError):
-                return Member(name=data.get('name'), team=self.instance)
+from testapp.models.company import Company, Department, Team
 
 
 class TeamForm(ModelForm):
@@ -46,17 +20,43 @@ class TeamForm(ModelForm):
 class TeamCollection(FormCollection):
     min_siblings = 0
     team = TeamForm()
-    members = MemberCollection()
     legend = "Teams"
     add_label = "Add Team"
-    related_field = 'company'
+    related_field = 'department'
 
     def retrieve_instance(self, data):
         if data := data.get('team'):
             try:
                 return self.instance.teams.get(id=data.get('id') or 0)
             except (AttributeError, Team.DoesNotExist, ValueError):
-                return Team(name=data.get('name'), company=self.instance)
+                return Team(name=data.get('name'), department=self.instance)
+
+
+class DepartmentForm(ModelForm):
+    id = fields.IntegerField(
+        required=False,
+        widget=widgets.HiddenInput,
+    )
+
+    class Meta:
+        model = Department
+        fields = ['id', 'name']
+
+
+class DepartmentCollection(FormCollection):
+    min_siblings = 0
+    department = DepartmentForm()
+    teams = TeamCollection()
+    legend = "Departments"
+    add_label = "Add Department"
+    related_field = 'company'
+
+    def retrieve_instance(self, data):
+        if data := data.get('department'):
+            try:
+                return self.instance.departments.get(id=data.get('id') or 0)
+            except (AttributeError, Department.DoesNotExist, ValueError):
+                return Department(name=data.get('name'), company=self.instance)
 
 
 class CompanyForm(ModelForm):
@@ -67,7 +67,7 @@ class CompanyForm(ModelForm):
 
 class CompanyCollection(FormCollection):
     company = CompanyForm()
-    teams = TeamCollection()
+    departments = DepartmentCollection()
 
 
 class CompanyPlusForm(CompanyForm):
@@ -85,7 +85,7 @@ class CompanyPlusForm(CompanyForm):
 
 class CompaniesCollection(FormCollection):
     company = CompanyPlusForm()
-    teams = TeamCollection()
+    departments = DepartmentCollection()
     min_siblings = 1
     legend = "Company"
     add_label = "Add Company"
