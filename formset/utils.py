@@ -136,7 +136,8 @@ class FormDecoratorMixin:
 
 class FormMixin(FormDecoratorMixin, HolderMixin):
     """
-    Mixin class to be added to a native Django Form. This is required to add
+    Mixin class to be added to a native Django Form. This is required to overwrite
+    some form methods provided by Django
     """
 
     def add_prefix(self, field_name):
