@@ -380,7 +380,7 @@ class DateTimePicker(DatePicker):
         }
         if attrs:
             default_attrs.update(**attrs)
-        if 'step' in attrs:
+        if attrs and 'step' in attrs:
             self.interval = attrs['step']
             assert self.interval in CalendarRenderer.valid_intervals, \
                 f"{self.interval} is not a valid interval for {self.__class__}"
