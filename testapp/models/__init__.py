@@ -1,12 +1,13 @@
 from django.conf import settings
 from django.db import models
 
-from formset.fields import SortableManyToManyField
 from formset.richtext.fields import RichTextField
 
 from .article import Article, Reporter
 from .annotation import Annotation
 from .company import Company, Department, Team
+from .county import County, CountyUnnormalized, State
+from .poll import OpinionModel, PollModel, WeightedOpinion
 from .user import ExtendUser, User
 
 
@@ -18,24 +19,6 @@ class PayloadModel(models.Model):
         max_length=40,
         db_index=True,
     )
-
-
-class OpinionModel(models.Model):
-    tenant = models.PositiveSmallIntegerField()
-
-    label = models.CharField(
-        "Opinion",
-        max_length=50,
-    )
-
-    class Meta:
-        unique_together = ['tenant', 'label']
-
-    def __str__(self):
-        return self.label
-
-    def __repr__(self):
-        return f'<{self.__class__.__name__}: "{self.label}">'
 
 
 class PersonModel(models.Model):
@@ -104,44 +87,6 @@ class PersonModel(models.Model):
     )
 
 
-class PollModel(models.Model):
-    weighted_opinions = SortableManyToManyField(
-        OpinionModel,
-        through='testapp.WeightedOpinion',
-        verbose_name="Weighted Opinions",
-    )
-
-    created_by = models.CharField(
-        editable=False,
-        max_length=40,
-        db_index=True,
-    )
-
-
-class WeightedOpinion(models.Model):
-    poll = models.ForeignKey(
-        PollModel,
-        on_delete=models.CASCADE,
-    )
-
-    opinion = models.ForeignKey(
-        OpinionModel,
-        on_delete=models.CASCADE,
-    )
-
-    weight = models.BigIntegerField(
-        "Weighted Opinion",
-        default=0,
-        db_index=True,
-    )
-
-    class Meta:
-        ordering = ['weight']
-
-    def __repr__(self):
-        return f'<{self.__class__.__name__}: [{self.weight}] "{self.opinion.label}">'
-
-
 class UserContact(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -165,65 +110,3 @@ class AdvertisementModel(models.Model):
         max_length=40,
         db_index=True,
     )
-
-
-class CountyUnnormalized(models.Model):
-    state_code = models.CharField(
-        verbose_name="State code",
-        max_length=2,
-    )
-
-    state_name = models.CharField(
-        verbose_name="State name",
-        max_length=20,
-        db_index=True,
-    )
-
-    county_name = models.CharField(
-        verbose_name="County name",
-        max_length=30,
-    )
-
-    class Meta:
-        ordering = ['state_name', 'county_name']
-
-
-    def __str__(self):
-        return f"{self.county_name} ({self.state_code})"
-
-
-class State(models.Model):
-    code = models.CharField(
-        verbose_name="Code",
-        max_length=2,
-    )
-
-    name = models.CharField(
-        verbose_name="Name",
-        max_length=20,
-        db_index=True,
-    )
-
-    class Meta:
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
-
-
-class County(models.Model):
-    state = models.ForeignKey(
-        State,
-        on_delete=models.CASCADE,
-    )
-
-    name = models.CharField(
-        verbose_name="Name",
-        max_length=30,
-    )
-
-    class Meta:
-        ordering = ['state', 'name']
-
-    def __str__(self):
-        return f"{self.name} ({self.state.code})"
