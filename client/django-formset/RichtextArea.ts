@@ -19,11 +19,10 @@ import OrderedList from '@tiptap/extension-ordered-list';
 import Paragraph from '@tiptap/extension-paragraph';
 import Placeholder from '@tiptap/extension-placeholder';
 import Text from '@tiptap/extension-text';
-import TextStyle from '@tiptap/extension-text-style';
 import { TextAlign, TextAlignOptions } from '@tiptap/extension-text-align';
 import { TextIndent, TextIndentOptions } from './tiptap-extensions/indent';
 import { TextMargin, TextMarginOptions } from './tiptap-extensions/margin';
-import { Color, ColorOptions } from '@tiptap/extension-color';
+import { TextColor, TextColorOptions } from './tiptap-extensions/color';
 import Underline from '@tiptap/extension-underline';
 import { StyleHelpers } from './helpers';
 import template from 'lodash.template';
@@ -134,6 +133,11 @@ namespace controls {
 		private readonly dropdownMenu: HTMLElement;
 		private readonly dropdownItems: NodeListOf<Element> | [] = [];
 		private readonly colors: Array<string|null> = [];
+		private allowedClasses: Array<string> = [];
+		// private readonly options: TextColorOptions = {
+		// 	//types: ['textStyle'],
+		//
+		// };
 
 		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
 			super(wrapperElement, name, button);
@@ -153,8 +157,15 @@ namespace controls {
 				throw new Error(`Element ${element} requires attribute 'richtext-click'.`);
 			if (parts[1] === 'null')
 				return null;
-			if (parts[1].match(/^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)/))
+			if (parts[1].match(/^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)$/)) {
+				if (this.allowedClasses.length !== 0)
+					throw new Error(`In element ${element} can not mix class based with style based colors.`);
 				return parts[1];
+			}
+			if (parts[1].match(/^-?[_a-zA-Z]+[_a-zA-Z0-9-]*$/)) {
+				this.allowedClasses.push(parts[1]);
+				return parts[1];
+			}
 			throw new Error(`${parts[1]} is not a valid color.`);
 		}
 
@@ -180,29 +191,38 @@ namespace controls {
 
 		activate(editor: Editor) {
 			let isActive = false;
-			const rect = this.button.querySelector('svg .color');
+			const rect = this.button.querySelector('svg > rect');
 			this.dropdownItems.forEach(element => {
 				const color = this.extractColor(element);
 				if (color) {
-					if (editor.isActive({color: color})) {
-						rect?.setAttribute('fill', color);
+					if (editor.isActive({textColor: color})) {
+						if (this.allowedClasses.length !== 0) {
+							rect?.classList.forEach(value => rect.classList.remove(value));
+							rect?.classList.add(color);
+						} else {
+							rect?.setAttribute('fill', color);
+						}
 						isActive = true
 					}
 				}
 			});
 			this.button.classList.toggle('active', isActive);
 			if (!isActive) {
-				rect?.removeAttribute('fill');
+				if (this.allowedClasses.length !== 0) {
+					rect?.classList.forEach(value => rect.classList.remove(value));
+				} else {
+					rect?.removeAttribute('fill');
+				}
 			}
 		}
 
 		extendExtensions(extensions: Array<Extension|Mark|Node>) {
 			let unmergedOptions = true;
 			extensions.forEach(e => {
-				if (e.name === 'color')
+				if (e.name === 'textColor')
 					throw new Error("RichtextArea allows only one control element with 'textColor'.");
 			});
-			extensions.push(Color.configure({types: ['textStyle']}));
+			extensions.push(TextColor.configure(/*{this.allowedClasses}*/));
 		}
 
 		private toggleMenu(editor: Editor, force?: boolean) {
@@ -210,7 +230,7 @@ namespace controls {
 			this.button.ariaExpanded = expanded ? 'true' : 'false';
 			this.dropdownItems.forEach(element => {
 				const color = this.extractColor(element);
-				element.parentElement?.classList.toggle('active', editor.isActive({color: color}));
+				element.parentElement?.classList.toggle('active', editor.isActive({textColor: color}));
 			});
 			this.dropdownInstance?.update();
 		}
@@ -759,7 +779,7 @@ class RichtextArea {
 			Paragraph,
 			Text,
 			HardBreak,  // always add hard breaks via keyboard entry
-			TextStyle,  // always add <span> elements for extra styling
+			// TextStyle,  // always add <span> elements for extra styling
 		);
 		this.registerControlActions(extensions);
 		this.registerPlaceholder(extensions);

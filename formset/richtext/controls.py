@@ -96,20 +96,29 @@ class TextColor(ControlElement):
     label = _("Text Color")
     template_name = 'formset/{framework}/buttons/richtext_color.html'
     colors = [None]
+    class_based = None
 
     def __init__(self, colors):
         if not isinstance(colors, (list, tuple)) or len(colors) == 0:
             raise ImproperlyConfigured("TextColor() requires a list with at least one color")
-        pattern = re.compile(r'^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)$')
+        rgb_pattern = re.compile(r'^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)$')
+        class_pattern = re.compile(r'^-?[_a-zA-Z]+[_a-zA-Z0-9-]*$')
         for color in colors:
-            if not re.match(pattern, color):
-                raise ImproperlyConfigured(f"Given color {color} is not in format rgb(r, g, b)")
+            if re.match(rgb_pattern, color):
+                if self.class_based is True:
+                    raise ImproperlyConfigured(f"Given color {color} is not in format rgb(r, g, b)")
+                self.class_based = False
+            elif re.match(class_pattern, color):
+                if self.class_based is False:
+                    raise ImproperlyConfigured(f"Given color {color} does not look like a valid CSS class name")
+                self.class_based = True
         self.colors.extend(colors)
 
     def render(self, renderer):
         template = self.get_template(renderer)
         return template.render({
             'colors': self.colors,
+            'class_based': self.class_based,
         })
 
 
