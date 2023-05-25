@@ -13,21 +13,27 @@ The **django-formset** library provides a widget, which can be used as a drop-in
 HTML element ``<textarea>``, implemented as web component. In a Django form's ``CharField``, we just
 have to replace the built-in widget against :class:`formset.richtext.widgets.RichTextarea`.
 
-.. code-block:: python
+.. django-view:: blog_form
 
 	from django.forms import fields, forms
-	from formset.richtext.widgets RichTextarea
+	from formset.richtext.widgets import RichTextarea
 
-	class SomeForm(forms.Form):
+	class BlogForm(forms.Form):
 	    text = fields.CharField(widget=RichTextarea)
 
 This widget can be configured in various ways in order to specifically enable the currently
-implemented formatting options. With the default settings and using the Bootstrap renderer, this
-textarea will show up like:
+implemented formatting options. With the default settings, this textarea will show up like:
 
-.. image:: _static/bootstrap-textarea.png
-  :width: 760
-  :alt: RichTextarea widget
+.. django-view:: blog_view
+	:view-function: BlogView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'blog-result'}, form_kwargs={'auto_id': 'bl_id_%s'})
+	:hide-code:
+
+	from formset.views import FormView 
+
+	class BlogView(FormView):
+	    form_class = BlogForm
+	    template_name = "form.html"
+	    success_url = "/success"
 
 
 Configuration

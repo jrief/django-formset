@@ -29,9 +29,9 @@ Django ``Form``-s.
 	uploading
 	selectize
 	dual-selector
-	preselect-options
 	richtext
 	slug-input
+	date-time-picker
 	development
 	contributing
 	chat-gpt

@@ -16,18 +16,15 @@ to be uploaded, the maximum size a client can upload to the server must be share
 
 Therefore **django-formset** handles file uploads asynchronously. This means that the payload of a
 file is uploaded to the server as soon as the user opens the file dialog or drags a file on the
-area nearby the file input button. While the payload of that file is transferred, the user can fill
-out other fields. The uploaded file is stored in a temporary folder on the server. After successful
-file upload, a unique and signed handle is returned to the client. On form submission, this handle
-then is used to refer to the previously uploaded file inside the temporary folder. If the form
-validation passed successfully, that file then is moved to its final destination.
+area nearby the file input button. In addition, we get a visual feedback on the progress of the
+current upload. After the file upload has finished, a depiction of it is rendered inisde the drag
+area. This is either a thumbnailed image or an icon symbolizing the type of file.
 
- It allows us to visually upload a file, which means that the
-    uploaded payload is pre-submitted and a thumbnailed depiction is rendered. Since the uploaded
-    file already waits in a temporary location on the server, the final form submission also is a
-    lot faster.
-
-
+While the payload of that file is transferred, the user can fill out other fields. The uploaded file
+is stored in a temporary folder on the server. After successful file upload, a unique and signed
+handle is returned to the client. On form submission, this handle then is used to refer to the
+previously uploaded file inside the temporary folder. If the form validation passed successfully,
+that file then is moved to its final destination.
 
 
 Example

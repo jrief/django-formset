@@ -69,3 +69,7 @@ possibilities.
 The interesting part of this collection is that we can hide the fieldset by clicking on the
 checkbox named "I'm not a customer". This means that by using conditionals, we can dynamically
 adjust the visibility of a complete form.
+
+Remember to make the fields in the fieldset optional. Otherwise if the fieldset is hidden, the form
+submission will fail without being able to give feedback which fields are missing. If you need a
+specific validation logic, add it to the form's ``clean()``-method.

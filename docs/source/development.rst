@@ -33,6 +33,7 @@ tool-chain required to build the test application:
 	npm run tailwindcss
 	npm run esbuild
 	npm run compilescss
+	npm run docscss
 	mkdir workdir
 	export DJANGO_DEBUG=true
 	make --directory=docs json

@@ -121,8 +121,8 @@ When rendered in a Bootstrap-5 environment, that form will look like:
 	:view-function: AddressView.as_view(extra_context={'framework': 'bootstrap'}, form_kwargs={'renderer': FormRenderer(field_css_classes='row mb-3', label_css_classes='col-sm-3', control_css_classes='col-sm-9')})
 	:hide-code:
 
-The same effect can be achieved by rendering this form, parametrizing our well known templatetag
-``render_form``:
+In this example we don't use any field specific CSS classes, therefor we can achieve the same effect
+by rendering this form using our well known templatetag ``render_form`` with these parameters:
 
 .. code-block:: django
 
@@ -133,6 +133,13 @@ The same effect can be achieved by rendering this form, parametrizing our well k
 	    <button type="button" click="reset" class="ms-2 btn btn-warning">Reset to initial</button>
 	  </div>
 	</django-formset>
+
+
+Rendering Collections
+=====================
+
+When rendering form collections we have to specify at least one default renderer, otherwise all
+member forms will be rendered unstyled.
 
 
 API

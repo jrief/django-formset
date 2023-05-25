@@ -11,6 +11,18 @@ django-formset.bootstrap {
         border-bottom: 1px solid rgb(206, 212, 218);
         margin-bottom: -9px;
     }
+    .dj-dual-selector {
+        input {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        :is(select, django-sortable-select) {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+            margin-top: -1px;
+            width: 100% !important;
+        }
+    }
 }
 @nested-import "formset/static/formset/css/collections.css";
 @nested-import "formset/static/formset/css/bootstrap5-extra.css";
