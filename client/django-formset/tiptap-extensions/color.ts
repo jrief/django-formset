@@ -1,8 +1,9 @@
-import {Mark} from '@tiptap/core';
+// Do not mix this Tiptap extension with `@tiptap/extension-text-style`
+// as they interfere making this extension unusable
+import { Mark } from '@tiptap/core';
 
 export interface TextColorOptions {
-	//HTMLAttributes: Record<string, any>,
-	//allowedClasses: string[],
+	allowedClasses: string[],
 }
 
 declare module '@tiptap/core' {
@@ -19,8 +20,7 @@ export const TextColor = Mark.create<TextColorOptions>({
 
 	addOptions() {
 		return {
-			//HTMLAttributes: {style: 'color'},
-			//allowedClasses: [],
+			allowedClasses: [],
 		}
 	},
 
@@ -29,13 +29,20 @@ export const TextColor = Mark.create<TextColorOptions>({
 			textColor: {
 				default: null,
 				parseHTML: element => {
-					console.log(element.style.color);
-					return element.style.color;
+					if (this.options.allowedClasses.length === 0)
+						return element.style.color;
+					for (let cssClass of this.options.allowedClasses) {
+						if (element.classList.contains(cssClass))
+							return cssClass;
+					}
 				},
 				renderHTML: attributes => {
-					console.log(attributes);
+					if (this.options.allowedClasses.length === 0)
+						return {
+							style: `color: ${attributes.textColor};`,
+						}
 					return {
-						style: `color: ${attributes.textColor};`,
+						class: attributes.textColor,
 					}
 				},
 			},
@@ -43,31 +50,24 @@ export const TextColor = Mark.create<TextColorOptions>({
 	},
 
 	parseHTML() {
-		// return [
-		// 	{
-		// 		tag: 'span',
-		// 		//style: 'color',
-		// 		getAttrs: value => {
-		// 			console.log(value);
-		// 			return /^(rgb\(\d{1,3}, \d{1,3}, \d{1,3}\))$/.test(value as string) && null;
-		// 		}
-		// 	},
-		// ];
 		return [{
 			tag: 'span',
-			//style: 'color',
 			getAttrs: element => {
-				console.log(element);
-				const hasStyles = (element as HTMLElement).hasAttribute('style')
-				if (!hasStyles)
-					return false;
-				return {};
+				if (element instanceof HTMLElement) {
+					if (this.options.allowedClasses.length === 0) {
+						if (/^rgb\(\d{1,3},\s\d{1,3},\s\d{1,3}\)$/.test(element.style.color))
+							return {};
+					} else {
+						if (this.options.allowedClasses.some(cssClass => element.classList.contains(cssClass)))
+							return {};
+					}
+				}
+				return false;
 			},
-		}]
+		}];
 	},
 
 	renderHTML({HTMLAttributes}) {
-		console.log(HTMLAttributes);
 		return ['span', HTMLAttributes, 0];
 	},
 

@@ -134,10 +134,6 @@ namespace controls {
 		private readonly dropdownItems: NodeListOf<Element> | [] = [];
 		private readonly colors: Array<string|null> = [];
 		private allowedClasses: Array<string> = [];
-		// private readonly options: TextColorOptions = {
-		// 	//types: ['textStyle'],
-		//
-		// };
 
 		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
 			super(wrapperElement, name, button);
@@ -148,25 +144,33 @@ namespace controls {
 				placement: 'bottom-start',
 			});
 			this.dropdownItems = this.dropdownMenu.querySelectorAll('[richtext-click^="color:"]');
-			this.dropdownItems.forEach(element => this.colors.push(this.extractColor(element)));
+			this.collecColors();
 		}
 
-		private extractColor(element: Element) : string | null {
+		private collecColors() {
+			this.dropdownItems.forEach(element => {
+				const color = this.extractColor(element);
+				if (!color)
+					return;
+				if (/^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)$/.test(color)) {
+					if (this.allowedClasses.length !== 0)
+						throw new Error(`In element ${element} can not mix class based with style based colors.`);
+					this.colors.push(color);
+				} else if (/^-?[_a-zA-Z]+[_a-zA-Z0-9-]*$/.test(color)) {
+					this.allowedClasses.push(color);
+				} else {
+					throw new Error(`${color} is not a valid color.`);
+				}
+			});
+		}
+
+		private extractColor(element: Element) {
 			const parts = element.getAttribute('richtext-click')?.split(':') ?? [];
 			if (parts.length !== 2)
 				throw new Error(`Element ${element} requires attribute 'richtext-click'.`);
 			if (parts[1] === 'null')
 				return null;
-			if (parts[1].match(/^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)$/)) {
-				if (this.allowedClasses.length !== 0)
-					throw new Error(`In element ${element} can not mix class based with style based colors.`);
-				return parts[1];
-			}
-			if (parts[1].match(/^-?[_a-zA-Z]+[_a-zA-Z0-9-]*$/)) {
-				this.allowedClasses.push(parts[1]);
-				return parts[1];
-			}
-			throw new Error(`${parts[1]} is not a valid color.`);
+			return parts[1];
 		}
 
 		installEventHandler(editor: Editor) {
@@ -196,11 +200,11 @@ namespace controls {
 				const color = this.extractColor(element);
 				if (color) {
 					if (editor.isActive({textColor: color})) {
-						if (this.allowedClasses.length !== 0) {
+						if (this.allowedClasses.length === 0) {
+							rect?.setAttribute('fill', color);
+						} else {
 							rect?.classList.forEach(value => rect.classList.remove(value));
 							rect?.classList.add(color);
-						} else {
-							rect?.setAttribute('fill', color);
 						}
 						isActive = true
 					}
@@ -208,10 +212,10 @@ namespace controls {
 			});
 			this.button.classList.toggle('active', isActive);
 			if (!isActive) {
-				if (this.allowedClasses.length !== 0) {
-					rect?.classList.forEach(value => rect.classList.remove(value));
-				} else {
+				if (this.allowedClasses.length === 0) {
 					rect?.removeAttribute('fill');
+				} else {
+					rect?.classList.forEach(value => rect.classList.remove(value));
 				}
 			}
 		}
@@ -222,7 +226,7 @@ namespace controls {
 				if (e.name === 'textColor')
 					throw new Error("RichtextArea allows only one control element with 'textColor'.");
 			});
-			extensions.push(TextColor.configure(/*{this.allowedClasses}*/));
+			extensions.push(TextColor.configure({allowedClasses: this.allowedClasses}));
 		}
 
 		private toggleMenu(editor: Editor, force?: boolean) {
