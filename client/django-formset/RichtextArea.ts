@@ -22,7 +22,9 @@ import Text from '@tiptap/extension-text';
 import { TextAlign, TextAlignOptions } from '@tiptap/extension-text-align';
 import { TextIndent, TextIndentOptions } from './tiptap-extensions/indent';
 import { TextMargin, TextMarginOptions } from './tiptap-extensions/margin';
-import { TextColor, TextColorOptions } from './tiptap-extensions/color';
+import { TextColor } from './tiptap-extensions/color';
+import { Procurator } from './tiptap-extensions/procurator';
+
 import Underline from '@tiptap/extension-underline';
 import { StyleHelpers } from './helpers';
 import template from 'lodash.template';
@@ -615,8 +617,55 @@ namespace controls {
 			this.formElement = this.modalDialogElement.querySelector('form[method="dialog"]')! as HTMLFormElement;
 		}
 
+		protected initialize() {
+			if (!this.formElement)
+				throw new Error(`${this} requires a <form method="dialog">`);
+		}
+
+		protected handleCloseButton() {
+			const closeButton = this.formElement.elements.namedItem('close');
+			if (!(closeButton instanceof HTMLButtonElement))
+				return;
+			closeButton.addEventListener('click', () => {
+				this.modalDialogElement.close('close')
+			}, {once: true});
+		}
+
+		protected handleSaveButton() {
+			const saveButton = this.formElement.elements.namedItem('save');
+			if (!(saveButton instanceof HTMLButtonElement))
+				return;
+			saveButton.addEventListener('click', () => {
+				if (this.formElement.checkValidity()) {
+					this.modalDialogElement.close('save');
+				}
+			});
+		}
+
+		protected toggleRemoveButton(condidtion: boolean) {
+			const removeButton = this.formElement.elements.namedItem('remove');
+			if (!(removeButton instanceof HTMLButtonElement))
+				return;
+			if (condidtion) {
+				removeButton.removeAttribute('hidden');
+				removeButton.addEventListener('click', () => {
+					this.modalDialogElement.close('remove');
+				});
+			} else {
+				removeButton.setAttribute('hidden', 'hidden');
+			}
+		}
+
+		protected openDialog(editor: Editor) {
+			this.handleCloseButton();
+			this.handleSaveButton();
+			this.modalDialogElement.showModal();
+			this.modalDialogElement.addEventListener('close', () => this.closeDialog(editor), {once: true});
+		}
+
+		protected abstract closeDialog(editor: Editor): void;
+
 		clicked = (editor: Editor) => this.openDialog(editor);
-		protected abstract openDialog(editor: Editor): void;
 	}
 
 
@@ -634,50 +683,25 @@ namespace controls {
 			this.initialize();
 		}
 
-		private initialize() {
-			if (!this.formElement)
-				throw new Error('LinkDialog requires a <form method="dialog">');
+		protected initialize() {
+			super.initialize();
 			if (!(this.textInputElement instanceof HTMLInputElement))
 				throw new Error('<form method="dialog"> requires field <input name="text">');
 			if (!(this.urlInputElement instanceof HTMLInputElement))
 				throw new Error('<form method="dialog"> requires field <input name="url">');
 		}
 
-		private toggleRemoveButton(condidtion: boolean) {
-			const removeButton = this.formElement.elements.namedItem('remove');
-			if (!(removeButton instanceof HTMLButtonElement))
-				return;
-			if (condidtion) {
-				removeButton.removeAttribute('hidden');
-				removeButton.addEventListener('click', () => {
-					this.modalDialogElement.close('remove');
-				});
-			} else {
-				removeButton.setAttribute('hidden', 'hidden');
-			}
+		protected openDialog(editor: Editor) {
+			const {selection, doc} = editor.view.state;
+			if (selection.from === selection.to)
+				return;  // nothing selected
+			super.openDialog(editor);
+			this.textInputElement.value = doc.textBetween(selection.from, selection.to, '');
+			this.urlInputElement.value = editor.getAttributes('link').href ?? '';
+			this.toggleRemoveButton(!!this.urlInputElement.value.length);
 		}
 
-		private handleCloseButton() {
-			const closeButton = this.formElement.elements.namedItem('close');
-			if (!(closeButton instanceof HTMLButtonElement))
-				return;
-			closeButton.addEventListener('click', () => {
-				this.modalDialogElement.close('close')
-			}, {once: true});
-		}
-
-		private handleSaveButton() {
-			const saveButton = this.formElement.elements.namedItem('save');
-			if (!(saveButton instanceof HTMLButtonElement))
-				return;
-			saveButton.addEventListener('click', () => {
-				if (this.formElement.checkValidity()) {
-					this.modalDialogElement.close('save');
-				}
-			});
-		}
-
-		private closeDialog(editor: Editor) {
+		protected closeDialog(editor: Editor) {
 			const returnValue = this.modalDialogElement.returnValue;
 			if (returnValue === 'save') {
 				const selection = editor.view.state.selection;
@@ -692,21 +716,60 @@ namespace controls {
 			// reset form to be pristine for the next invocation
 			this.formElement.reset();
 		}
+	}
+
+
+	export class PlaceholderAction extends FormDialogAction {
+		public extensions = [Procurator.configure()];
+		private readonly variableInputElement: HTMLInputElement;
+		private readonly sampleInputElement: HTMLInputElement;
+
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
+			this.variableInputElement = this.formElement.elements.namedItem('variable') as HTMLInputElement;
+			this.sampleInputElement = this.formElement.elements.namedItem('sample') as HTMLInputElement;
+			this.initialize();
+		}
+
+		protected initialize() {
+			super.initialize();
+			if (!(this.variableInputElement instanceof HTMLInputElement))
+				throw new Error('<form method="dialog"> requires field <input name="variable">');
+			if (!(this.sampleInputElement instanceof HTMLInputElement))
+				throw new Error('<form method="dialog"> requires field <input name="sample">');
+		}
+
+		activate(editor: Editor) {
+			this.button.classList.toggle('active', editor.isActive('procurator'));
+		}
 
 		protected openDialog(editor: Editor) {
 			const {selection, doc} = editor.view.state;
 			if (selection.from === selection.to)
 				return;  // nothing selected
-			this.textInputElement.value = doc.textBetween(selection.from, selection.to, '');
-			this.urlInputElement.value = editor.getAttributes('link').href ?? '';
-			this.toggleRemoveButton(!!this.urlInputElement.value.length);
-			this.handleCloseButton();
-			this.handleSaveButton();
-			this.modalDialogElement.showModal();
-			this.modalDialogElement.addEventListener('close', () => this.closeDialog(editor), {once: true});
+			super.openDialog(editor);
+			this.variableInputElement.value = editor.getAttributes('procurator').variable ?? '';
+			this.sampleInputElement.value = doc.textBetween(selection.from, selection.to, '');
+			this.toggleRemoveButton(!!this.variableInputElement.value.length);
+		}
+
+		protected closeDialog(editor: Editor) {
+			const returnValue = this.modalDialogElement.returnValue;
+			if (returnValue === 'save') {
+				const selection = editor.view.state.selection;
+				const sample = this.sampleInputElement.value ? this.sampleInputElement.value : this.variableInputElement.value;
+				editor.chain().focus()
+					.extendMarkRange('procurator')
+					.setPlaceholder({variable: this.variableInputElement.value})
+					.insertContentAt({from: selection.from, to: selection.to}, sample)
+					.run();
+			} else if (returnValue === 'remove') {
+				editor.chain().focus().extendMarkRange('procurator').unsetPlaceholder().run();
+			}
+			// reset form to be pristine for the next invocation
+			this.formElement.reset();
 		}
 	}
-
 
 	export class ImageAction extends FormDialogAction {
 		// unfinished
@@ -718,9 +781,21 @@ namespace controls {
 		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
 			super(wrapperElement, name, button);
 			this.fileInputElement = this.formElement.elements.namedItem('image') as HTMLInputElement;
+			this.initialize();
 		}
 
-		private closeDialog(editor: Editor) {
+		protected initialize() {
+			super.initialize();
+			if (!(this.fileInputElement instanceof HTMLInputElement))
+				throw new Error('<form method="dialog"> requires field <input name="text">');
+		}
+
+		protected openDialog(editor: Editor) {
+			this.modalDialogElement.showModal();
+			this.modalDialogElement.addEventListener('close', () => this.closeDialog(editor), {once: true});
+		}
+
+		protected closeDialog(editor: Editor) {
 			const returnValue = this.modalDialogElement.returnValue;
 			if (returnValue === 'save') {
 				const imgElement = this.modalDialogElement.querySelector('.dj-dropbox img') as HTMLImageElement;
@@ -728,11 +803,6 @@ namespace controls {
 			} else if (returnValue === 'remove') {
 				editor.chain().focus().extendMarkRange('link').unsetLink().run();
 			}
-		}
-
-		protected openDialog(editor: Editor) {
-			this.modalDialogElement.showModal();
-			this.modalDialogElement.addEventListener('close', () => this.closeDialog(editor), {once: true});
 		}
 	}
 

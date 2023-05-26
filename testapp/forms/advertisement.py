@@ -104,6 +104,7 @@ class AdvertisementForm(forms.Form):
             controls.Link(),
             controls.TextAlign(['left', 'center', 'right']),
             controls.HorizontalRule(),
+            controls.Placeholder(),
             controls.Separator(),
             controls.ClearFormat(),
             controls.Redo(),

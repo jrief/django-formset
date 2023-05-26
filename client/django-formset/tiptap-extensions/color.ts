@@ -38,12 +38,8 @@ export const TextColor = Mark.create<TextColorOptions>({
 				},
 				renderHTML: attributes => {
 					if (this.options.allowedClasses.length === 0)
-						return {
-							style: `color: ${attributes.textColor};`,
-						}
-					return {
-						class: attributes.textColor,
-					}
+						return {style: `color: ${attributes.textColor};`};
+					return {class: attributes.textColor};
 				},
 			},
 		};

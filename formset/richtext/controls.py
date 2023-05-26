@@ -4,7 +4,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import select_template
 from django.utils.translation import gettext_lazy as _
 
-from formset.richtext.dialogs import ImageFormDialog, LinkFormDialog
+from formset.richtext.dialogs import ImageFormDialog, LinkFormDialog, PlaceholderFormDialog
 
 
 class ControlElement:
@@ -220,6 +220,12 @@ class Image(ControlElement):
     name = 'image'
     label = _("Image")
     dialog_class = ImageFormDialog
+
+
+class Placeholder(ControlElement):
+    name = 'placeholder'
+    label = _("Placeholder")
+    dialog_class = PlaceholderFormDialog
 
 
 class Separator(ControlElement):
