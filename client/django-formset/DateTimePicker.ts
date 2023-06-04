@@ -1,5 +1,5 @@
-import { createPopper, Instance } from '@popperjs/core';
-import { StyleHelpers, Widget } from './helpers';
+import {autoUpdate, computePosition, flip, shift} from '@floating-ui/dom';
+import {StyleHelpers, Widget} from './helpers';
 import styles from './DateTimePicker.scss';
 
 
@@ -33,7 +33,7 @@ class Calendar extends Widget {
 	private autoSpaceRegExp?: RegExp;
 	private autoColonRegExp?: RegExp;
 	private delimiter = '-';
-	private dropdownInstance?: Instance;
+	private cleanup?: Function;
 	private minDate?: Date;
 	private maxDate?: Date;
 	private minWeekDate?: Date;
@@ -264,8 +264,10 @@ class Calendar extends Widget {
 
 	private close() {
 		this.isOpen = false;
-		this.inputElement.setAttribute('aria-expanded', 'false')
-		this.dropdownInstance?.destroy();
+		this.inputElement.setAttribute('aria-expanded', 'false');
+		if (this.cleanup) {
+			this.cleanup();
+		}
 	}
 
 	private asDate() : Date | undefined {
@@ -440,6 +442,8 @@ class Calendar extends Widget {
 	}
 
 	private handleClick = (event: Event) => {
+		if (!this.isOpen)
+			return;
 		let element = event.target instanceof Element ? event.target : null;
 		while (element) {
 			if (element.isSameNode(this.calendarElement) || element.isSameNode(this.inputElement))
@@ -450,10 +454,17 @@ class Calendar extends Widget {
 		this.inputElement.blur();
 	}
 
+	private updatePosition = () => {
+		computePosition(this.inputElement, this.calendarElement, {
+			middleware: [flip(), shift()],
+		}).then(({y}) => Object.assign(this.calendarElement.style, {top: `${y}px`}));
+	}
+
 	private handleFocus = (event: Event) => {
-		this.dropdownInstance = createPopper(this.inputElement, this.calendarElement, {
-			placement: 'bottom-start',
-		});
+		if (this.isOpen)
+			return;
+		this.calendarElement.parentElement!.style.position = 'relative';
+		this.cleanup = autoUpdate(this.inputElement, this.calendarElement, this.updatePosition);
 		this.inputElement.setAttribute('aria-expanded', 'true');
 		const prevValue = this.inputElement.value;
 		this.inputElement.value = prevValue.trimEnd();  // remove white space eventually added by failed validation
