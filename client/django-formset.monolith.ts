@@ -30,6 +30,14 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	window.customElements.define('django-datetimepicker', DateTimePickerElement, {extends: 'input'});
 	customElementNames.push('django-datetimepicker');
 
+	const foundIds = new Set<string>();
+	document.querySelectorAll('django-formset [id]').forEach(element => {
+		const foundId = element.getAttribute('id')!;
+		if (foundIds.has(foundId))
+			throw new Error(`There are at least two elements with attribute id="${foundId}"`);
+		foundIds.add(foundId);
+	});
+
 	const promises = customElementNames.map(name => window.customElements.whenDefined(name));
 	Promise.all(promises).then(() => {
 		window.customElements.define('django-formset', DjangoFormsetElement);
