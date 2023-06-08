@@ -2,7 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
 from django.template.loader import get_template
-from django.urls import include, path, re_path
+from django.urls import include, path
 
 from formset import __version__
 
