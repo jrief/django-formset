@@ -18,22 +18,25 @@ Django ``Form``-s.
 	django-formset
 	single-form
 	styling
+	default-widgets
+	alternative-widgets
 	buttons
+	withholding-feedback
 	collections
 	fieldsets
 	model-form
 	model-collections
-	widgets
-	renderers
+	form-renderer
 	conditionals
 	uploading
 	selectize
 	dual-selector
 	richtext
 	slug-input
-	date-time-picker
+	calendar
 	development
 	contributing
+	history
 	chat-gpt
 
 Indices and tables

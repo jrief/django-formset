@@ -151,8 +151,8 @@ One of the most prominent use-cases is to edit a model object together with chil
 to itself. By children we mean objects which point onto the main object using a Django
 `ForeignKey`_. Let's again explain this using an example. Say, we want to create models for the
 organization chart of a company. There is a model for a company, which may consist of different
-departments, which themselvs can have different teams. In relational models this usually is done
-using a foreign key. For demonstration purposes the remainig part of the models is very lean and
+departments, which themselves can have different teams. In relational models this usually is done
+using a foreign key. For demonstration purposes the remaining part of the models is very lean and
 only stores their names.
 
 .. code-block:: python
@@ -177,7 +177,7 @@ only stores their names.
 	    class Meta:
 	        unique_together = ['name', 'department']
 
-We immediatly see that these models have a hierarchy of three levels. In classic Django, creating a
+We immediately see that these models have a hierarchy of three levels. In classic Django, creating a
 form to edit them altogether is not an easy task. To solve this, **django-formset** offers the
 possibility to let form collections have siblings. We then can create forms and collection to edit
 the company, its departments and their teams as:
@@ -245,10 +245,10 @@ the company, its departments and their teams as:
 	    company = CompanyForm()
 	    departments = DepartmentCollection()
 
-Es we expect, we see that every Django model is represented by its form. Since we want to edit more
-instances of the same model type, we somehow need a way to distinguish them. This is were the form
-field named ``id`` comes into play. It is a hidden ``IntegerField`` and represent the primary key of
-the model instances ``Department`` or ``Team``. Since newly created instances haven't any primary
+As we expect, we see that every Django model is represented by its form. Since we want to edit more
+instances of the same model type, we somehow need a way to distinguish them. This is where the form
+field named ``id`` comes into play. It is a hidden ``IntegerField`` and represents the primary key
+of the model instances ``Department`` or ``Team``. Since newly created instances haven't any primary
 key yet, it is marked with ``required=False`` to make it optional.
 
 .. django-view:: company_view
@@ -273,7 +273,7 @@ We recall that in the form declaration, we added a hidden field named ``id`` to 
 primary key. During submission, we therefore must find the link between instances of type
 ``Department`` to its ``Company``, or between instances of type ``Team`` to their ``Department``.
 Forms which have been added using the buttons "Add Team" or "Add Department" have an empty ``id``
-field, because for ovious reasons, no primary key yet exists. For this to work we therefore have to
+field, because for obvious reasons, no primary key yet exists. For this to work we therefore have to
 implement a custom method ``retrieve_instance(data)``. This method is responsible to retrieve the
 wanted instance from the database, or if that hidden field is empty, must create an unsaved empty
 model instance. Forms which have been deleted using the trash symbol on the upper right corner of
@@ -283,9 +283,9 @@ After a submitted form has been successfully validated, the ``EditCollectionView
 ``form_collection_valid(form_collection)`` passing a nested structure of collections and their
 associated forms. If the default implementation, doesn't match your needs, this method can be
 overwritten by a customized implementation. If, as in this example, models are interconnected by a
-straight relationship, the default implemenataion will probably suffice. Remember, that for more
+straight relationship, the default implementation will probably suffice. Remember, that for more
 complicated relationships, you can always overwrite methods ``construct_instance(…)`` and
-``model_to_dict(…)`` to customize to conversion from the model instances to their forms and vice
+``model_to_dict(…)`` to customize the conversion from the model instances to their forms and vice
 versa.
 
 

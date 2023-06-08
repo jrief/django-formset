@@ -202,7 +202,7 @@ adjacent fields for preselecting options:
 This form shows the usage of two adjacent fields, where the first field's value is used to filter
 the options for the next field. Here with the field **state**, the user can make a preselection of
 one or more states. When the state is changed, the other field **county** gets filled with all
-counties belonging to one of the selectd states.
+counties belonging to one of the selected states.
 
 To enable this feature, widget ``DualSelector`` accepts the optional argument ``filter_by`` which
 contains a dictionary such as ``{'state': 'state__id'}`` defining the lookup expression on the given
@@ -216,8 +216,8 @@ queryset. Here each key maps to an adjacent field and its value contains a looku
 	    form_class = FilteredCountyForm
 
 Setting up forms using filters, can improve the user experience, because it reduces the available
-options to user must choose from. This might be a more friendly alternative rather than using option
-groups.
+options the user must choose from. This might be a more friendly alternative rather than using
+option groups.
 
 
 Sortable Dual Selector Widget
@@ -312,5 +312,5 @@ panel can be dragged to set their weight:
 	    success_url = '/success'
 
 .. note:: After submission, the opinion mapping is stored in the database together with the chosen
-	sorting. Therefore after reloading this page, the same order of opinions will we shown in the
+	sorting. Therefore after reloading this page, the same order of opinions will be shown in the
 	right select panel.

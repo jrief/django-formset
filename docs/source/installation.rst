@@ -33,7 +33,8 @@ lookup path as
 	    ('node_modules', BASE_DIR / 'node_modules'),
 	]
 
-By doing so, the CSS file for Bootstrap can for instance be included as
+Assure that ``BASE_DIR`` points onto the root of your project. By doing so, the CSS file for
+Bootstrap can for instance be included as
 
 .. code-block:: django
 

@@ -25,12 +25,12 @@ Say, we use a model similar to that described in the Django documentation, ie.
 	    teaser = models.FileField(upload_to='images', blank=True)
 
 We then use that model to create a form class. There however is a caveat: Some Django widgets used
-for rendering HTML fields shall or must be replaced by alternative widgets offerend by the 
-**django-formset**-library. This is because, compared to their pure HTML counterpart, they greately
+for rendering HTML fields shall or must be replaced by alternative widgets offered by the 
+**django-formset**-library. This is because, compared to their pure HTML counterpart, they greatly
 enhance the user experience functionality of many input elements. When using a ``FileField``, the
 widget *must* be replaced, because an asynchronous file upload otherwise wouldn't work.
 
-More on this topic can be found in :ref:`widgets`.
+More on this topic can be found in :ref:`alternative-widgets`.
 
 The form to edit the above model ``Article`` shall optionally override field ``reporter`` which
 contains more than 900 entries and therefore is user unfriendly to be rendered by a HTML
@@ -230,7 +230,7 @@ has been successfully saved.
 	            ...
 
 In a real world application, please remember to check if the current user has proper add-, change-
-and delete permissions. The Django views running inside this documenation use the session-ID to
+and delete permissions. The Django views running inside this documentation use the session-ID to
 assign saved objects to their users.
 
 .. note:: The list view is not handled explicitly here, because it doesn't differ compared to a

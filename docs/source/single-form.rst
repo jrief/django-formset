@@ -55,8 +55,8 @@ the form template to decide how to proceed. Usually we will then load the page p
 In section :ref:`buttons` it is explained in detail, how to proceed with the response received by
 the form view.
 
-Processing the server's response on the client also prevents users to accidentally submit the form
-data twice, in case they click on the browser's reload button.
+Processing the server's response on the client also prevents users from accidentally submitting the
+form data twice, in case they click on the browser's reload button.
 
 A Django form using **django-formset** can be rendered using three different methods:
 
@@ -108,10 +108,10 @@ Compared to the way the native Django form renderer works, we see a few differen
 obvious one is that input fields are not wrapped into their ``<form>``-element. Instead they refer
 to the form they belong to by ID using the attribute ``form="id_personform"``. This is so
 that forms can logically be nested into each other. Remember that it is invalid HTML to nest one
-``<form>``-element into another one, but using this trick we can mimic that behviour.
+``<form>``-element into another one, but using this trick we can mimic that behavior.
 
 Also note that each input field is wrapped into a ``<django-field-group>``-element. Even though this
-tag may look like another web component, it just is a non-visual HTML element. Its purpose is to
+tag may look like another web component, it is just a non-visual HTML element. Its purpose is to
 group one or more input elements (in Django we name them widgets) belonging to one field together.
 Remember that in HTML radios and multiple checkboxes have more than one input element, but in Django
 they are considered as a single form field.
@@ -161,7 +161,7 @@ Such a form could for instance be defined as:
 	    default_renderer = FormRenderer()
 	    first_name = fields.CharField(...)
 
-This form uses the Tailwind form renderer, so that all its fields, lables and groups use the CSS
+This form uses the Tailwind form renderer, so that all its fields, labels and groups use the CSS
 classes proposed by Tailwind. The template required to render such a form then shall look like:
 
 .. code-block:: django
@@ -181,7 +181,8 @@ signature of the form class in Python code, rather than changing the code in the
 
 Another use case would be to have a form with more than one renderer, each configured differently.
 We then can reuse a Django template but for instance render the form with different CSS classes.
-If such a setup might make sense in your project, please check the section about :ref:`renderers`.
+If such a setup might make sense in your project, please check the section about
+:ref:`form-renderer`.
 
 
 .. _field_by_field:
@@ -227,4 +228,4 @@ not. We can then further specialize our rendering logic, depending on which fiel
 Rendering a form field-by-field shall only be used as a last resort, because it inhibits the reuse
 of the rendering templates. If fields have to be styled explicitly, for instance to place the input
 field for the postal code on the same line as the input field for the "city", then a better approach
-is to adopt the :ref:`renderers`.
+is to adopt the :ref:`form-renderer`.

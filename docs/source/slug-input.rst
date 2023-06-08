@@ -8,7 +8,7 @@ This widget is used to create a "slug" using the value of another input field, w
 text field. It usually is used as the browser's counterpart for a Django SlugField_.
 
 The Django Admin provides such client-side functionality, where one can specify that (slug) field to
-be prepopulated using the content of another text input field. To emulate a similar behavior,
+be pre populated using the content of another text input field. To emulate a similar behavior,
 **django-formset** provides a special widget named ``SlugInput``.
 
 .. _SlugField: https://docs.djangoproject.com/en/stable/ref/forms/fields/#slugfield

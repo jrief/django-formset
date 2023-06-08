@@ -1,8 +1,8 @@
-.. _renderers:
+.. _form-renderer:
 
-==============
-Form Renderers
-==============
+=============
+Form Renderer
+=============
 
 Since Django-4.0 each form can specify its own renderer_. This is important, because it separates
 the representation layer from the logical layer of forms. And it allows us to render the same form
@@ -77,7 +77,7 @@ simplifies down to:
 When rendered in a Bootstrap-5 environment, that form will look like
 
 .. django-view:: address_view
-	:view-function: AddressView.as_view(extra_context={'framework': 'bootstrap'})
+	:view-function: AddressView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'address-result'}, form_kwargs={'auto_id': 'af_id_%s'})
 	:hide-code:
 
 	from formset.views import FormView 
@@ -118,7 +118,7 @@ using these parameters.
 When rendered in a Bootstrap-5 environment, that form will look like:
 
 .. django-view:: address_inline
-	:view-function: AddressView.as_view(extra_context={'framework': 'bootstrap'}, form_kwargs={'renderer': FormRenderer(field_css_classes='row mb-3', label_css_classes='col-sm-3', control_css_classes='col-sm-9')})
+	:view-function: AddressView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'address-inline-result'}, form_kwargs={'renderer': FormRenderer(field_css_classes='row mb-3', label_css_classes='col-sm-3', control_css_classes='col-sm-9'), 'auto_id': 'ai_id_%s'})
 	:hide-code:
 
 In this example we don't use any field specific CSS classes, therefor we can achieve the same effect
@@ -141,10 +141,82 @@ Rendering Collections
 When rendering form collections we have to specify at least one default renderer, otherwise all
 member forms will be rendered unstyled.
 
+Say that we have a collection with two forms, one to ask for the users names, the other for its
+preferences.
 
-API
-===
+.. django-view:: double_renderer
+	:view-function: DoubleCollectionView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'collection-result'})
+	:emphasize-lines: 34
 
-**django-formset** provides a form renderer for each supported framework.
+	from django.forms import fields, forms, widgets
+	from formset.collection import FormCollection
+	from formset.renderers.bootstrap import FormRenderer
+	from formset.views import FormCollectionView
 
-.. autoclass:: formset.renderers.default.FormRenderer
+	class UserForm(forms.Form):
+	    legend = "Assigned License"
+	    first_name = fields.RegexField(
+	        r"^[A-Z][a-z -]+$",
+	        label="First name"
+	    )
+	    last_name = fields.CharField(
+	        label="Last name",
+	        min_length=2,
+	        max_length=50
+	    )
+
+	class PreferencesForm(forms.Form):
+	    eating = fields.ChoiceField(
+	        choices=[("🥗", "Vegan"), ("🧀", "Vegetarian"), ("🍗", "Carnivore")],
+	        widget=widgets.RadioSelect,
+	    )
+	    drinking = fields.MultipleChoiceField(
+	        choices=[
+	            ("🚰", "Water"), ("🥛", "Milk"),
+	            ("☕️", "Coffee"), ("🍵", "Tee"),
+	            ("🍺", "Beer"), ("🥃", "Whisky"),
+	            ("🥂", "White wine"), ("🍷", "Red wine"),
+	        ],
+	        widget=widgets.CheckboxSelectMultiple,
+	    )
+
+	class DoubleCollection(FormCollection):
+	    default_renderer = FormRenderer(field_css_classes='mb-3')
+	    user = UserForm()
+	    preferences = PreferencesForm()
+
+	class DoubleCollectionView(FormCollectionView):
+	    collection_class = DoubleCollection
+	    template_name = "form-collection.html"
+	    success_url = "/success"
+
+These two forms are rendered using the Bootstrap ``FormRenderer`` class as defined through the
+argument ``default_renderer``.
+
+
+Using multiple Renderers
+========================
+
+Sometimes using the same renderer for all form members does not produce the wanted results. We then
+can overwrite the default renderer on a per member class as shown in this example:
+
+.. django-view:: double_renderer_collection2
+
+	class AlternativeCollection(FormCollection):
+	    user = UserForm(renderer=FormRenderer(field_css_classes='mb-3'))
+	    preferences = PreferencesForm(
+	        renderer=FormRenderer(form_css_classes='row', field_css_classes='col'),
+	    )
+
+.. django-view:: double_renderer_view2
+	:view-function: AlternativeCollectionView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'collection2-result'}, collection_kwargs={'auto_id': 'c2_id_%s'})
+	:hide-code:
+
+	class AlternativeCollectionView(FormCollectionView):
+	    collection_class = AlternativeCollection
+	    template_name = "form-collection.html"
+	    success_url = "/success"
+
+Here instead of using a default form renderer for the collection ``AlternativeCollection``, we pass
+individually configured renderers to each form member of that collection. This also works for
+collection members and can be applied to nested collections as well.

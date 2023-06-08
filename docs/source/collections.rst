@@ -207,8 +207,8 @@ The parameter ``extra_siblings`` tells us how many empty collections the parent 
 with. If unset, it defaults to 0, which means that the user must explicitly add a new sibling by
 clicking on the "Add" button below the last sibling.
 
-Say that our apparatus shall take a measurement from time to time and we want to keep track when
-that happend. We thererfore add a form with a timestamp field and add this form to a collection
+Say that our apparatus shall take a measurement from time to time and we want to keep track of when
+that happened. We therefore add a form with a timestamp field and add this form to a collection
 with siblings.
 
 .. django-view:: with_siblings
@@ -247,7 +247,7 @@ If on the other side that child collection was just added by clicking on the "Ad
 last sibling, then that collection will be deleted immediately. This is because for initialized
 collections, while submitting we have to keep a placeholder in order to tell the server how to
 change the underlying model. This can be tried out in the above example. The first form named
-"Timestamp" is shadowed when deleted. Forms which just have been added are removed immediatly. 
+"Timestamp" is shadowed when deleted. Forms which just have been added are removed immediately. 
 
 .. rubric:: Ignore collections marked for removal
 

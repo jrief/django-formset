@@ -10,8 +10,8 @@ such as paragraphs, headings, emphasized and bold text, ordered and bulleted lis
 More text formatting options will be implemented in the future.
 
 The **django-formset** library provides a widget, which can be used as a drop-in replacement for the
-HTML element ``<textarea>``, implemented as web component. In a Django form's ``CharField``, we just
-have to replace the built-in widget against :class:`formset.richtext.widgets.RichTextarea`.
+HTML element ``<textarea>``, implemented as a web component. In a Django form's ``CharField``, we
+just have to replace the built-in widget against :class:`formset.richtext.widgets.RichTextarea`.
 
 .. django-view:: blog_form
 
@@ -129,7 +129,7 @@ to separate the other buttons visually using a vertical bar.
 Implementation
 ==============
 
-This richtext area is based on the `Tiptap framework`_. This framework offers many more formatting
+This rich text area is based on the `Tiptap framework`_. This framework offers many more formatting
 options than currently implemented by the **django-formset** library. In the near future I will add
 many more of those control elements. Please help me to implement them by contributing to these
 projects.
@@ -168,7 +168,7 @@ Storing rich text as JSON
 
 Since HTML content has an implicit tree structure, an alternative approach to HTML is to keep this
 hierarchy unaltered when storing. The best suited format for this is JSON. This approach has the
-advantage, that HTML is rendered during runtime, allowing to adopt the result as needed.
+advantage that HTML is rendered during runtime, allowing to adopt the result as needed.
 
 **django-formset** provides a special model field class
 :class:`formset.richtext.fields.RichTextField`. It shall be used as a replacement to Django's model

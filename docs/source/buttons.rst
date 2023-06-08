@@ -29,7 +29,7 @@ button therefore may look like
 Action Queues
 =============
 
-Here we regognize 4 actions: ``disable``, ``submit``, ``proceed`` and ``scrollToError``. Let's
+Here we recognize four actions: ``disable``, ``submit``, ``proceed`` and ``scrollToError``. Let's
 explain their functionality:
 
 * In ``disable``, the button disables itself. This is useful to prevent double submissions and
@@ -99,9 +99,9 @@ as queued actions for buttons in **django-formset**:
 * ``intercept`` intercepts the response object after submission and prints it onto the browser
   console. This is only useful for debugging purposes.
 * ``intercept("<dom-selector>")`` prints the intercepted submission to a HTML element as specified
-  by the ``<dom-selector>``. This documentation make heavy use of that feature.
+  by the ``<dom-selector>``. This documentation makes heavy use of that feature.
 
-By combining these button actions, we gain a huge set of possibilities to greately improve the user
+By combining these button actions, we gain a huge set of possibilities to greatly improve the user
 experience. If for instance, form processing takes more than say one second, we shall somehow
 signal to the user that the submission might take some time. This is where the ``spinner`` action
 renders a spinning wheel. After a successful submission, we might want to signalize to the user that
@@ -148,7 +148,7 @@ This is an example of a ``click`` action on a button for a form requiring some p
 
 Here we use the checkbox to emulate a successful and a failing server side form validation.
 
-.. note:: This view behind this action, emulates heavy form processing by waiting for 1.5 seconds.
+.. note:: The view behind this action, emulates heavy form processing by waiting for 1.5 seconds.
 	After the form was successfully submitted, the okay tick waits for another 1.5 seconds before
 	proceeding. Since this action view has no associated success page, the current page is just
 	reloaded.

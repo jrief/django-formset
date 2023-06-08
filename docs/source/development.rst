@@ -9,8 +9,8 @@ Developing in django-formset
 `PEG.js`_. The last two applications are required for the client part and make up about one third
 of the code base.
 
-The code can be found on GitHub_. Please use the issue tracker only to report bugs. For questions
-and new ideas, please use the Discussion board.
+The code can be found on GitHub_. Please use the issue tracker **only** to report bugs. For
+questions and new ideas, please use the discussion board.
 
 .. _TypeScript: https://www.typescriptlang.org/
 .. _PEG.js: https://peggyjs.org/documentation.html
@@ -27,6 +27,7 @@ tool-chain required to build the test application:
 	source .venv/bin/activate
 	pip install Django
 	pip install -r testapp/requirements.txt
+	pip install https://github.com/jrief/django-sphinx-view/archive/refs/heads/main.zip
 	pip install --no-deps -e .
 	npm install --include=dev
 	npm run tag-attributes

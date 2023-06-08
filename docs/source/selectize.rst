@@ -45,7 +45,8 @@ the special widget :class:`formset.widgets.Selectize`:
 	            (2019, "København"),
 	            (2020, "Virtual"),
 	            (2022, "Porto"),
-	            (2023, "Edingburgh"),
+	            (2023, "Edinburgh"),
+	            (2024, "Vigo"),
 	        ],
 	        widget=Selectize,
 	    )
@@ -121,7 +122,7 @@ Grouping Select Options
 Sometimes it may be desirable to group options the user may select from.
 
 In the United States there are 3143 counties, many of them sharing the same name. When rendering
-them inside a select box, it would be rather unclear, which county belongs to which state. For this
+them inside a select box, it would be rather unclear which county belongs to which state. For this
 purpose, HTML provides the element ``<optgroup>``. Other than visually grouping options to select
 from, this element has no other effect. Fortunately our ``Selectize`` widget mimicks that feature
 and so we can even group all counties by state by rewriting our form as:
@@ -199,7 +200,7 @@ adjacent fields for preselecting options:
 This form shows the usage of two adjacent fields, where the first field's value is used to filter
 the options for the next field. Here with the field **state**, the user can make a preselection of
 the state. When the state is changed, the other field **county** gets filled with all counties
-belonging to the selectd state.
+belonging to the selected state.
 
 To enable this feature, widget ``Selectize`` accepts the optional argument ``filter_by`` which
 contains a dictionary such as ``{'state': 'state__id'}`` defining the lookup expression on the given
@@ -265,7 +266,7 @@ Handling ForeignKey and ManyToManyField
 
 If we create a form out of a Django model, we explicitly have to tell it to either use the
 ``Selectize`` or the ``SelectizeMultiple`` widget. Otherwise Django will use the default HTML
-``<select>`` or ``<select multiple>`` fields, which are not user friedly for big datasets.
+``<select>`` or ``<select multiple>`` fields, which are not user friendly for big datasets.
 
 Say that we have an address model using  a foreign key to existing cities:
 

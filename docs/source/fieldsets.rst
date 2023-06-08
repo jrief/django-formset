@@ -19,7 +19,7 @@ From a technical point of view, a fieldset behaves exactly like a single form an
 must be wrapped inside a ``<form>``-element. If we want to use more than one fieldset, then we have
 to group them using :ref:`collections`, just as we would do with normal forms.
 
-Another purpose of using fieldsets, appart from adding a border and legend to a form, is to use
+Another purpose of using fieldsets, apart from adding a border and legend to a form, is to use
 :ref:`conditionals`. This allows us to hide or disable the whole fieldset depending on the context
 of other fields.
 

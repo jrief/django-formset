@@ -198,6 +198,8 @@ When designing this library, one of the main goals was to **keep the programming
 as possible to the way Django handles forms, models and views**. It therefore is possible to reuse
 existing Django form declarations with a minimal modification to existing code.
 
+For details on why this project exists, please refer to section about the :ref:`history`.
+
 
 License
 =======
