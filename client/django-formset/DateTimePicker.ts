@@ -898,7 +898,7 @@ class Calendar extends Widget {
 		const date = this.asDate();
 		if (date) {
 			if (!this.localTime) {
-				date.setTime(date.getTime() + 60000 * date.getTimezoneOffset());
+				date.setTime(date.getTime() - 60000 * date.getTimezoneOffset());
 			}
 			return date;
 		}

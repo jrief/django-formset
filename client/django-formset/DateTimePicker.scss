@@ -120,6 +120,10 @@
 					margin: -1px 0 3px;
 					padding: 0 5px;
 					line-height: inherit;
+
+					> li {
+						width: inherit;
+					}
 				}
 
 				> li.today {
