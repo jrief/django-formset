@@ -125,11 +125,11 @@
 			}
 			&[data-text="outdent"] {
 				text-indent: -3em;
-				margin-left: 3em;
+				padding-left: 3em;
 			}
 			@for $indent from 1 through 10 {
 				&[data-text-indent="#{$indent}"] {
-					padding-left: #{2 * $indent}em;
+					margin-left: #{2 * $indent}em;
 				}
 			}
 		}
@@ -145,6 +145,11 @@
 		blockquote {
 			border-left: 3px solid $richtext-placeholder;
 			padding-left: 1rem;
+		}
+
+		output[role="placeholder"] {
+			background-color: $richtext-code-block;
+			box-shadow: inset 0 0 5px $richtext-output;
 		}
 
 		pre {

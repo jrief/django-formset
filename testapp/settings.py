@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'formset',
     'testapp',
+    'sphinx_view',
 ]
 
 if os.getenv('DATABASE_ENGINE') == 'postgres':
@@ -68,6 +69,7 @@ ROOT_URLCONF = 'testapp.urls'
 
 STATICFILES_DIRS = [
     ('node_modules', BASE_DIR / 'node_modules'),
+    ('sphinx-view', BASE_DIR / 'docs/build/json'),
 ]
 
 STATIC_ROOT = Path(os.getenv('DJANGO_STATIC_ROOT', BASE_DIR / 'staticfiles'))
@@ -80,7 +82,7 @@ MEDIA_URL = '/media/'
 
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    'DIRS': [BASE_DIR / 'tests/templates'],
+    'DIRS': [BASE_DIR / 'docs/source/_templates'],
     'APP_DIRS': True,
     'OPTIONS': {
         'context_processors': [

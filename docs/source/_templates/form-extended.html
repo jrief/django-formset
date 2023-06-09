@@ -1,0 +1,9 @@
+{% block main-content %}
+<django-formset endpoint="{{ request.path }}" force-submission="true" csrf-token="{{ csrf_token }}"{% if framework %} class="{{ framework }}"{% endif %}>
+	{{ form }}
+	{% with infix=framework|default:"base" %}
+		{% include "./buttons-"|add:infix|add:".html" %}
+	{% endwith %}
+	<pre id="{{ pre_id }}-data" class="formset-submit-data"></pre>
+</django-formset>
+{% endblock %}

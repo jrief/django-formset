@@ -11,7 +11,7 @@ from django.db.models.fields.files import FieldFile
 from django.forms.renderers import get_default_renderer
 from django.http import HttpResponse
 from django.template.loader import get_template
-from django.urls import get_resolver, path, reverse
+from django.urls import get_resolver, path
 from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
 from django.views.generic import DetailView, FormView, TemplateView, UpdateView
@@ -29,6 +29,7 @@ from formset.views import (
     EditCollectionView, BulkEditCollectionView
 )
 
+from testapp.demo_helpers import SessionFormCollectionViewMixin
 from testapp.forms.address import AddressForm
 from testapp.forms.advertisement import AdvertisementForm, AdvertisementModelForm
 from testapp.forms.article import ArticleForm
@@ -59,24 +60,22 @@ class JSONEncoder(DjangoJSONEncoder):
         if isinstance(o, (UploadedFile, FieldFile)):
             return o.name
         if isinstance(o, Model):
-            return str(o)
+            return repr(o)
         if hasattr(o, '__iter__'):
             return [self.default(i) for i in o]
         return super().default(o)
 
 
 def render_suburls(request, extra_context=None):
-    all_views = ((v[0][0][0], v[2]) for v in get_resolver(__name__).reverse_dict.values())
-    all_views = filter(lambda t: t[0] and 'index' in t[1], all_views)
-    all_views = functools.reduce(lambda l, t: l.append(t) or l if t not in l else l, all_views, [])
-    all_views = sorted(all_views, key=lambda t: t[1]['index'])
+    all_urls = filter(lambda url: url, (v[0][0][0] for v in get_resolver(__name__).reverse_dict.values()))
+    all_urls = functools.reduce(lambda l, t: l.append(t) or l if t not in l else l, all_urls, [])
     context = {
         'framework': request.resolver_match.app_name,
-        'all_urls': [t[0] for t in all_views],
+        'all_urls': all_urls,
     }
     if extra_context:
         context.update(extra_context)
-    template = get_template('index.html')
+    template = get_template('testapp/index.html')
     return HttpResponse(template.render(context))
 
 
@@ -95,7 +94,7 @@ class SuccessView(TemplateView):
 
 class DemoViewMixin:
     def get_success_url(self):
-        return reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
+        return '/success'
 
     @property
     def framework(self):
@@ -200,6 +199,9 @@ class DemoModelFormView(DemoFormViewMixin, UpdateView):
 class DemoFormCollectionViewMixin(DemoViewMixin):
     template_name = 'testapp/form-collection.html'
     extra_doc = None
+    extra_context = {
+        'click_actions': 'disable -> submit -> reload !~ scrollToError'
+    }
 
     def get_collection_class(self):
         collection_class = super().get_collection_class()
@@ -250,31 +252,13 @@ class UserCollectionView(DemoFormCollectionViewMixin, EditCollectionView):
         return user
 
 
-class CompanyCollectionView(DemoFormCollectionViewMixin, EditCollectionView):
+class CompanyCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
     model = Company
     collection_class = CompanyCollection
     template_name = 'testapp/form-collection.html'
     extra_context = {
         'click_actions': 'disable -> submit -> reload !~ scrollToError'
     }
-
-    def get_queryset(self):
-        if not self.request.session.session_key:
-            self.request.session.cycle_key()
-        queryset = super().get_queryset()
-        return queryset.filter(created_by=self.request.session.session_key)
-
-    def get_object(self, queryset=None):
-        if queryset is None:
-            queryset = self.get_queryset()
-        if object := queryset.last():
-            return object
-        return self.model(created_by=self.request.session.session_key)
-
-    def form_collection_valid(self, form_collection):
-        if not self.object:
-            self.object = self.model.objects.create(created_by=self.request.session.session_key)
-        return super().form_collection_valid(form_collection)
 
 
 class CompaniesCollectionView(DemoFormCollectionViewMixin, BulkEditCollectionView):
@@ -463,7 +447,7 @@ than placing them below each other.
 
 urlpatterns = [
     path('', render_suburls),
-    path('success', SuccessView.as_view(), name='form_data_valid'),
+    # path('success', SuccessView.as_view(), name='form_data_valid'),
     path('tiptap/<int:pk>', DetailView.as_view(
         model=AdvertisementModel,
         template_name='testapp/tiptap.html',
@@ -471,109 +455,107 @@ urlpatterns = [
     path('complete.native', DemoFormView.as_view(
         form_class=CompleteForm,
         extra_doc=extra_doc_native,
-    ), kwargs={'group': 'form', 'index': 1}, name='complete.native'),
+    ), name='complete.native'),
     path('complete.extended', DemoFormView.as_view(
         form_class=CompleteForm,
         template_name='testapp/extended-form.html',
         extra_doc=extra_doc_extended,
-    ), kwargs={'group': 'form', 'index': 2}, name='complete.extended'),
+    ), name='complete.extended'),
     path('complete.field-by-field', DemoFormView.as_view(
         form_class=CompleteForm,
         template_name='testapp/field-by-field.html',
         extra_doc=extra_doc_field_by_field,
-    ), kwargs={'group': 'form', 'index': 3}, name='complete.field-by-field'),
+    ), name='complete.field-by-field'),
     path('complete.horizontal', DemoFormView.as_view(
         form_class=CompleteForm,
         extra_doc=extra_doc_horizontal,
-    ), kwargs={'group': 'form', 'index': 4}, name='complete.horizontal'),
+    ), name='complete.horizontal'),
     path('address', DemoFormView.as_view(
         form_class=AddressForm,
-    ), kwargs={'group': 'form', 'index': 5}, name='address'),
+    ), name='address'),
     path('article', DemoFormView.as_view(
         form_class=ArticleForm,
-    ), kwargs={'group': 'form', 'index': 5}, name='article'),
+    ), name='article'),
     path('opinion', DemoFormView.as_view(
         form_class=OpinionForm,
-    ), kwargs={'group': 'form', 'index': 6}, name='opinion'),
+    ), name='opinion'),
     path('questionnaire', DemoFormView.as_view(
         form_class=QuestionnaireForm,
-    ), kwargs={'group': 'form', 'index': 7}, name='questionnaire'),
+    ), name='questionnaire'),
     path('simplecontact', DemoFormCollectionView.as_view(
         collection_class=SimpleContactCollection,
         initial={'person': sample_person_data},
-    ), kwargs={'group': 'collection', 'index': 8}, name='simplecontact'),
+    ), name='simplecontact'),
     path('customer', DemoFormCollectionView.as_view(
         collection_class=CustomerCollection,
-    ), kwargs={'group': 'collection', 'index': 9}, name='customer'),
+    ), name='customer'),
     path('contact', DemoFormCollectionView.as_view(
         collection_class=ContactCollection,
         initial={'person': sample_person_data, 'numbers': [{'number': {'phone_number': "+1 234 567 8900"}}]},
-    ), kwargs={'group': 'collection', 'index': 10}, name='contact'),
+    ), name='contact'),
     path('contactlist', DemoFormCollectionView.as_view(
         collection_class=ContactCollectionList,
-    ), kwargs={'group': 'collection', 'index': 11}, name='contactlist'),
+    ), name='contactlist'),
     path('sortablecontact', DemoFormCollectionView.as_view(
         collection_class=SortableContactCollection,
-    ), kwargs={'group': 'sortable', 'index': 12}, name='sortablecontact'),
+    ), name='sortablecontact'),
     path('sortablecontactlist', DemoFormCollectionView.as_view(
         collection_class=SortableContactCollectionList,
-    ), kwargs={'group': 'sortable', 'index': 13}, name='sortablecontactlist'),
+    ), name='sortablecontactlist'),
     path('intermediatecontactlist', DemoFormCollectionView.as_view(
         collection_class=IntermediateContactCollectionList,
-    ), kwargs={'group': 'sortable', 'index': 14}, name='intermediatecontactlist'),
+    ), name='intermediatecontactlist'),
     path('upload', DemoFormView.as_view(
         form_class=UploadForm,
-    ), kwargs={'group': 'form', 'index': 15}, name='upload'),
-    path('birthdate', DemoFormView.as_view(
+    ), name='upload'),
+    path('birthdate/', DemoFormView.as_view(
         form_class=BirthdateForm,
-    ), kwargs={'group': 'form', 'index': 15}, name='birthdate'),
+    ), name='birthdate'),
     path('moon', DemoFormView.as_view(
         form_class=MoonForm,
         calendar_renderer_class=MoonCalendarRenderer,
-    ), kwargs={'group': 'form', 'index': 15}, name='moon'),
+    ), name='moon'),
     path('counties', DemoFormView.as_view(
         form_class=CountyForm,
-    ), kwargs={'group': 'form', 'index': 15}, name='counties'),
+    ), name='counties'),
     path('state', DemoFormView.as_view(
         form_class=StateForm,
-    ), kwargs={'group': 'form', 'index': 15}, name='state'),
+    ), name='state'),
     path('states', DemoFormView.as_view(
         form_class=StatesForm,
-    ), kwargs={'group': 'form', 'index': 15}, name='states'),
+    ), name='states'),
     path('person', DemoModelFormView.as_view(
         form_class=ModelPersonForm,
         model=PersonModel,
-    ), kwargs={'group': 'model', 'index': 16}, name='person'),
+    ), name='person'),
     path('poll', DemoModelFormView.as_view(
         form_class=ModelPollForm,
         model=PollModel,
-    ), kwargs={'group': 'model', 'index': 17}, name='poll'),
+    ), name='poll'),
     path('pollcollection', DemoFormCollectionView.as_view(
         collection_class=PollCollection,
-    ), kwargs={'group': 'collection', 'index': 18}, name='poll'),
-    path('company', CompanyCollectionView.as_view(),
-        kwargs={'group': 'collection', 'index': 18}, name='company'),
-    path('companies', CompaniesCollectionView.as_view(),
-        kwargs={'group': 'collection', 'index': 18}, name='company'),
+    ), name='poll'),
+    path('company', CompanyCollectionView.as_view(), name='company'),
+    path('companies', CompaniesCollectionView.as_view(), name='company'),
     path('user', UserCollectionView.as_view(
         collection_class=UserCollection
-    ), kwargs={'group': 'model', 'index': 19}, name='user'),
+    ), name='user'),
     path('userlist', UserCollectionView.as_view(
         collection_class=UserListCollection
-    ), kwargs={'group': 'model', 'index': 19}, name='userlist'),
+    ), name='userlist'),
     path('advertisementmodel', DemoModelFormView.as_view(
         form_class=AdvertisementModelForm,
         model=AdvertisementModel,
-    ), kwargs={'group': 'model', 'index': 19}, name='advertisementmodel'),
+    ), name='advertisementmodel'),
     path('advertisementform', DemoFormView.as_view(
         form_class=AdvertisementForm,
         #initial={'text': initial_html},
-    ), kwargs={'group': 'form', 'index': 19}, name='advertisementform'),
+    ), name='advertisementform'),
     path('button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',
         extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)'},
-    ), kwargs={'group': 'button', 'index': 20}, name='button-actions'),
+    ), name='button-actions'),
 ]
 
 # this creates permutations of forms to show how to withhold which feedback
@@ -606,5 +588,5 @@ for length in range(len(withhold_feedbacks) + 1):
                     'force_submission': force_submission,
                 },
                 extra_doc='\n'.join(extra_docs),
-            ), kwargs={'group': 'feedback', 'index': length + 21})
+            ))
         )

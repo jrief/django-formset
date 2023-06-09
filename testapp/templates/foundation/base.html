@@ -8,7 +8,6 @@
 	<title>Django-Formset Demo</title>
 	<link rel="icon" href="data:,">
 	<link href="{% static 'testapp/css/foundation.css' %}" rel="stylesheet" type="text/css" media="screen">
-	<link href="{% static 'testapp/css/docutils.css' %}" rel="stylesheet" type="text/css" media="screen">
 	<script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
 </head>
 
@@ -25,7 +24,7 @@
 		</div>
 		{{ doc }}
 		<div class="grid-x align-center">
-			{% block "main-content" %}{% endblock %}
+			{% block main-content %}{% endblock %}
 			{% include "testapp/formset-data.html" %}
 		</div>
 	</div>

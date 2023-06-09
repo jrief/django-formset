@@ -23,16 +23,18 @@ and add this app to the project's ``settings.py``:
 
 .. rubric:: Include Stylesheets
 
-If the CSS framework to be used is installed via ``npm``, I strongly suggest to configure the lookup
-path as
+If the CSS framework to be used is installed via ``npm``, it is strongly suggest to configure the
+lookup path as
 
 .. code-block:: python
 
 	STATICFILES_DIRS = [
+	    ...
 	    ('node_modules', BASE_DIR / 'node_modules'),
 	]
 
-By doing so, the CSS file for Bootstrap can for instance be included as
+Assure that ``BASE_DIR`` points onto the root of your project. By doing so, the CSS file for
+Bootstrap (and all other assets in ``node_modules``) can be included as
 
 .. code-block:: django
 
@@ -48,9 +50,10 @@ Other CSS frameworks behave similarly. Except for Tailwind CSS, **django-formset
 two very short CSS files. This is because it relies on the styling definitions of the underlying CSS
 framework rather than imposing their own styles on the components shipped with this library.
 
-.. note:: When loading CSS files from other domains such as a CDN or Google Fonts, then use
-	`<link href="…" crossorigin="anonymous">`. This is because **django-formset** parses some CSS
-	rules, but Google Chrome refuses to do that for files from foreign origins.
+When loading CSS files from other domains such as a CDN or Google Fonts, then use
+``<link href="https://cdn.somedomain.xyz" crossorigin="anonymous">``. This is because
+**django-formset** parses some CSS rules, but Google Chrome refuses to do that for files from
+foreign origins.
 
 There are two optional CSS files, which might be imported depending on the application's setup:
 
@@ -68,13 +71,10 @@ This adds borders, backgrounds and some icons to form collections. Mandatory if 
 with :ref:`collections-with-siblings`, otherwise neither an "Add" nor a "Delete" button will be
 rendered. This style definition style sheet can be applied to all CSS frameworks. 
 
-Only one JavaScript file has to be included into the head or body of the main template:
-
 .. rubric:: Include JavaScript
 
-Many components from Bootstrap require their own JavaScript. This can optionally be included in a
-very similar way as shown for the CSS above. One JavaScript file which always must be included is
-that one, providing the functionality of our web component:
+Only one JavaScript file must be included into the head or body of the main template. It is the file
+providing the functionality of our web component:
 
 .. code-block:: django
 

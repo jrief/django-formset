@@ -13,10 +13,10 @@
 import datetime
 import os
 import sys
-from django.conf import settings
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.pardir, os.pardir)))
 from formset import __version__ as release  # noqa
-settings.configure()
+os.environ['DJANGO_SETTINGS_MODULE'] = 'testapp.settings'
 
 # -- Project information -----------------------------------------------------
 
@@ -31,10 +31,9 @@ author = 'Jacob Rief'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx_toolbox.assets',
+    'sphinx_view',
 ]
-
-# Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -47,9 +46,14 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'furo'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# Add any paths that contain templates here, relative to this directory.
+templates_path = ['_templates']
+
+assets_dir = os.path.abspath(os.path.join(os.pardir, os.pardir))

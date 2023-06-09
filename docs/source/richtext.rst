@@ -10,24 +10,30 @@ such as paragraphs, headings, emphasized and bold text, ordered and bulleted lis
 More text formatting options will be implemented in the future.
 
 The **django-formset** library provides a widget, which can be used as a drop-in replacement for the
-HTML element ``<textarea>``, implemented as web component. In a Django form's ``CharField``, we just
-have to replace the built-in widget against :class:`formset.richtext.widgets.RichTextarea`.
+HTML element ``<textarea>``, implemented as a web component. In a Django form's ``CharField``, we
+just have to replace the built-in widget against :class:`formset.richtext.widgets.RichTextarea`.
 
-.. code-block:: python
+.. django-view:: blog_form
 
 	from django.forms import fields, forms
-	from formset.richtext.widgets RichTextarea
+	from formset.richtext.widgets import RichTextarea
 
-	class SomeForm(forms.Form):
+	class BlogForm(forms.Form):
 	    text = fields.CharField(widget=RichTextarea)
 
 This widget can be configured in various ways in order to specifically enable the currently
-implemented formatting options. With the default settings and using the Bootstrap renderer, this
-textarea will show up like:
+implemented formatting options. With the default settings, this textarea will show up like:
 
-.. image:: _static/bootstrap-textarea.png
-  :width: 760
-  :alt: RichTextarea widget
+.. django-view:: blog_view
+	:view-function: BlogView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'blog-result'}, form_kwargs={'auto_id': 'bl_id_%s'})
+	:hide-code:
+
+	from formset.views import FormView 
+
+	class BlogView(FormView):
+	    form_class = BlogForm
+	    template_name = "form.html"
+	    success_url = "/success"
 
 
 Configuration
@@ -96,7 +102,7 @@ The class :class:`formset.richtext.controls.HorizontalRule` can be used to add a
 between paragraphs of text. It can't be further configured.
 
 
-.. rubric:: ClearFormat
+.. rubric:: Clear Format
 
 The class :class:`formset.richtext.controls.ClearFormat` can be used to remove the current format
 settings of selected text. It can't be further configured.
@@ -114,16 +120,49 @@ The class :class:`formset.richtext.controls.Link` can be used to add a hyperlink
 of some text. When choosing this option, a modal dialog pops up and the user can enter a URL.
 
 
+.. rubric:: Subscript
+
+The class :class:`formset.richtext.controls.Subscript` can be used to mark text as subscript, which
+renders the selected text smaller and below the baseline.
+
+
+.. rubric:: Superscript
+
+The class :class:`formset.richtext.controls.Superscript` can be used to mark text as superscript,
+which renders the selected text smaller and above the baseline.
+
+
 .. rubric:: Separator
 
 The class :class:`formset.richtext.controls.Separator` has no functional purpose. It can be used
 to separate the other buttons visually using a vertical bar.
 
 
+.. rubric:: Text Color
+
+The class :class:`formset.richtext.controls.TextColor` can be used to mark text in different colors.
+It offers two different modes: Styles and CSS classes. When used with styles, the control element
+must be initialized with colors in rgb format, for instance
+
+.. code-block:: python
+
+    TextColor(['rgb(255, 0, 0)', 'rgb(0, 255, 0)', 'rgb(0, 0, 255)']) 
+
+this will offer text in three colors, red, green and blue. When used with classes, the control
+element must be initialized with arbitrary CSS classes, for instance
+
+.. code-block:: python
+
+    TextColor(['text-red', 'text-green', 'text-blue']) 
+
+The implementor then is responsible for setting the text color in its CSS file for these classes.
+Style- and class-based initialization can not be interchanged.
+
+
 Implementation
 ==============
 
-This richtext area is based on the `Tiptap framework`_. This framework offers many more formatting
+This rich text area is based on the `Tiptap framework`_. This framework offers many more formatting
 options than currently implemented by the **django-formset** library. In the near future I will add
 many more of those control elements. Please help me to implement them by contributing to these
 projects.
@@ -162,7 +201,7 @@ Storing rich text as JSON
 
 Since HTML content has an implicit tree structure, an alternative approach to HTML is to keep this
 hierarchy unaltered when storing. The best suited format for this is JSON. This approach has the
-advantage, that HTML is rendered during runtime, allowing to adopt the result as needed.
+advantage that HTML is rendered during runtime, allowing to adopt the result as needed.
 
 **django-formset** provides a special model field class
 :class:`formset.richtext.fields.RichTextField`. It shall be used as a replacement to Django's model

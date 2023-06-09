@@ -1,8 +1,10 @@
+import re
+
 from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import select_template
 from django.utils.translation import gettext_lazy as _
 
-from formset.richtext.dialogs import ImageFormDialog, LinkFormDialog
+from formset.richtext.dialogs import ImageFormDialog, LinkFormDialog, PlaceholderFormDialog
 
 
 class ControlElement:
@@ -51,7 +53,7 @@ class Heading(ControlElement):
 
 
 class TextAlign(ControlElement):
-    name = 'heading'
+    name = 'textAlign'
     label = _("Text Align")
     alignments = ['left', 'center', 'right', 'justify']
     template_name = 'formset/{framework}/buttons/richtext_align.html'
@@ -92,6 +94,32 @@ class TextAlign(ControlElement):
 class TextColor(ControlElement):
     name = 'textColor'
     label = _("Text Color")
+    template_name = 'formset/{framework}/buttons/richtext_color.html'
+    colors = [None]
+    class_based = None
+
+    def __init__(self, colors):
+        if not isinstance(colors, (list, tuple)) or len(colors) == 0:
+            raise ImproperlyConfigured("TextColor() requires a list with at least one color")
+        rgb_pattern = re.compile(r'^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)$')
+        class_pattern = re.compile(r'^-?[_a-zA-Z]+[_a-zA-Z0-9-]*$')
+        for color in colors:
+            if re.match(rgb_pattern, color):
+                if self.class_based is True:
+                    raise ImproperlyConfigured(f"Given color {color} is not in format rgb(r, g, b)")
+                self.class_based = False
+            elif re.match(class_pattern, color):
+                if self.class_based is False:
+                    raise ImproperlyConfigured(f"Given color {color} does not look like a valid CSS class name")
+                self.class_based = True
+        self.colors.extend(colors)
+
+    def render(self, renderer):
+        template = self.get_template(renderer)
+        return template.render({
+            'colors': self.colors,
+            'class_based': self.class_based,
+        })
 
 
 class TextIndent(ControlElement):
@@ -172,6 +200,16 @@ class ClearFormat(ControlElement):
     label = _("Clear Format")
 
 
+class Subscript(ControlElement):
+    name = 'subscript'
+    label = _("Subscript")
+
+
+class Superscript(ControlElement):
+    name = 'superscript'
+    label = _("Superscript")
+
+
 class Undo(ControlElement):
     name = 'undo'
     label = _("Undo")
@@ -192,6 +230,12 @@ class Image(ControlElement):
     name = 'image'
     label = _("Image")
     dialog_class = ImageFormDialog
+
+
+class Placeholder(ControlElement):
+    name = 'placeholder'
+    label = _("Placeholder")
+    dialog_class = PlaceholderFormDialog
 
 
 class Separator(ControlElement):

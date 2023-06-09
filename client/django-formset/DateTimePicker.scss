@@ -1,10 +1,14 @@
 @import "colors";
 
 :is([is="django-datepicker"], [is="django-datetimepicker"]) {
-	--dummy-style: none;
+	--dummy-style: none;  // required by Calendar.transferStyles()
 
 	& + .dj-calendar {
 		box-shadow: lightgray 0 0 1rem;
+		width: max-content;
+		position: absolute;
+		top: 0;
+		left: 0;
 
 		[hidden] {
 			display: none !important;
@@ -86,22 +90,27 @@
 				&:not(.weekdays) {
 					--dummy-style: none;
 
-					> li.selected {
-						background-color: $calendar-selected-background-color;
-						color: $calendar-selected-color;
-						&.today::after {
-							border-color: transparent transparent $calendar-selected-color transparent;;
+					> li {
+						width: 2em;
+
+						&.selected {
+							background-color: $calendar-selected-background-color;
+							color: $calendar-selected-color;
+
+							&.today::after {
+								border-color: transparent transparent $calendar-selected-color transparent;;
+							}
 						}
-					}
 
-					> li[disabled] {
-						opacity: 0.5;
-					}
+						&[disabled] {
+							opacity: 0.5;
+						}
 
-					> li:not([disabled]):hover {
-						opacity: 1;
-						background-color: $calendar-hover-background-color;
-						cursor: pointer;
+						&:not([disabled]):hover {
+							opacity: 1;
+							background-color: $calendar-hover-background-color;
+							cursor: pointer;
+						}
 					}
 				}
 
@@ -111,6 +120,10 @@
 					margin: -1px 0 3px;
 					padding: 0 5px;
 					line-height: inherit;
+
+					> li {
+						width: inherit;
+					}
 				}
 
 				> li.today {

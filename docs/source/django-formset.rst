@@ -18,10 +18,10 @@ router,
 
 	from formset.views import FormView
 	
-	class RegisterPersonFormView(FormView):
-	    template_name = 'path/to/register-person-form.html'
+	class PersonFormView(FormView):
+	    template_name = "form.html"
 	    form_class = RegisterPersonForm
-	    success_url = '/success'
+	    success_url = "/success"
 
 or use the class ``FormView`` directly in ``urls.py`` while defining the routing:
 
@@ -29,15 +29,15 @@ or use the class ``FormView`` directly in ``urls.py`` while defining the routing
 
 	urlpatterns = [
 	    ...
-	    path('register-person', FormView.as_view(
-	        template_name='path/to/register-person-form.html',
+	    path("person", FormView.as_view(
+	        template_name="form.html",
 	        form_class=RegisterPersonForm,
-	        success_url = '/success',
+	        success_url = "/success",
 	    )),
 	    ...
 	]
 
-In this example, the endpoint would point onto ``/register-person``, but in order to make our form
+In this example, the endpoint would point onto ``/person``, but in order to make our form
 rendering templates reusable, we'd rather write
 
 .. code-block:: django
@@ -48,6 +48,15 @@ rendering templates reusable, we'd rather write
 
 We can do this, because the endpoint is located on the same URL as the view rendering the form.
 
+.. rubric:: CSRF token
+
+Since the JavaScript implementing web component ``<django-formset>`` communicates with the server
+using the `fetch function`_ , having a hidden input field containing the CSRF-token doesn't make
+sense. Instead we pass that token value as an attribute to the web component ``<django-formset>``.
+Since that value is available in the rendering context, we always add it as
+``<django-formset csrf-token="{{ csrf_token }}">``.
+
+.. _fetch function: https://developer.mozilla.org/en-US/docs/Web/API/fetch
 
 .. rubric:: Enforcing Form Submission
 
@@ -75,28 +84,5 @@ An optional attribute to this web component is ``withhold-feedback``. By setting
 ``messages``, ``errors``, ``warnings``, ``success``, or any combination of thereof, we can withhold
 the feedback, which is shown immediately after the user types into a field or when a field loses
 focus. When combining two or more "withhold feedback" values, separate them by spaces, for instance 
-``withhold-feedback="warnings success"``.
-
-Adding ``messages`` to ``withhold-feedback="..."`` means that the error message below the field
-will not be rendered when the user blurs a field with invalid data. 
-
-Adding ``errors`` to ``withhold-feedback="..."`` means that the border does not change color
-(usually red) and the field does not show an alert symbol, when the user blurs a field with invalid
-data.
-
-Adding ``warning`` to ``withhold-feedback="..."`` means that the field does not show a warning
-symbol (usually orange), when a field has focus, but its content does not contain valid data (yet).
-If only attribute ``errors`` has been added to ``withhold-feedback="..."``, then the warning symbol
-will remain even if the field loses focus.
-
-Adding ``success`` to ``withhold-feedback="..."`` means, that the border does not change color
-(usually green) and the field does not show a success symbol, when the user blurs a field with
-valid data.
-
-The attribute ``withhold-feedback="..."`` only has effect while editing the form fields. Whenever
-the user clicks on the submit button of a form containing invalid data, then all fields which
-did not validate, will show their error message together with an alert symbol and an alert border
-(usually red).
-
-Non-field errors need more validation logic and therefore are always determined on the server,
-usually by the ``clean()``-method of the form class.
+``withhold-feedback="warnings success"``. More on this can be found in section
+:ref:`withholding-feedback`.

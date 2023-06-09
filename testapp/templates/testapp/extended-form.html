@@ -1,6 +1,6 @@
 {% extends framework|default:"testapp"|add:"/base.html" %}
 
-{% block "main-content" %}
+{% block main-content %}
 <django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}" csrf-token="{{ csrf_token }}">
 	{{ form }}
 	{% include framework|default:"testapp"|add:"/buttons.html" %}

@@ -18,11 +18,14 @@ import ListItem from '@tiptap/extension-list-item';
 import OrderedList from '@tiptap/extension-ordered-list';
 import Paragraph from '@tiptap/extension-paragraph';
 import Placeholder from '@tiptap/extension-placeholder';
+import Subscript from '@tiptap/extension-subscript';
+import Superscript from '@tiptap/extension-superscript';
 import Text from '@tiptap/extension-text';
 import { TextAlign, TextAlignOptions } from '@tiptap/extension-text-align';
-import { TextIndent, TextIndentOptions } from './RichtextIndent';
-import { TextMargin, TextMarginOptions } from './RichtextMargin';
-import { Color, ColorOptions } from '@tiptap/extension-color';
+import { TextIndent, TextIndentOptions } from './tiptap-extensions/indent';
+import { TextMargin, TextMarginOptions } from './tiptap-extensions/margin';
+import { TextColor } from './tiptap-extensions/color';
+import { Procurator } from './tiptap-extensions/procurator';
 import Underline from '@tiptap/extension-underline';
 import { StyleHelpers } from './helpers';
 import template from 'lodash.template';
@@ -63,6 +66,8 @@ abstract class Action {
 
 
 namespace controls {
+	// basic control actions
+
 	export class BoldAction extends Action {
 		protected readonly extensions = [Bold];
 
@@ -77,6 +82,26 @@ namespace controls {
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleItalic().run();
+			this.activate(editor);
+		}
+	}
+
+	export class SubscriptAction extends Action {
+		protected readonly extensions = [Subscript];
+
+		clicked(editor: Editor) {
+			editor.chain().focus().unsetSuperscript().run();
+			editor.chain().focus().toggleSubscript().run();
+			this.activate(editor);
+		}
+	}
+
+	export class SuperscriptAction extends Action {
+		protected readonly extensions = [Superscript];
+
+		clicked(editor: Editor) {
+			editor.chain().focus().unsetSubscript().run();
+			editor.chain().focus().toggleSuperscript().run();
 			this.activate(editor);
 		}
 	}
@@ -118,6 +143,8 @@ namespace controls {
 	}
 
 	export class HardBreakAction extends Action {
+		// extension for HardBreak is always loaded
+
 		clicked(editor: Editor) {
 			editor.chain().focus().setHardBreak().run();
 			this.activate(editor);
@@ -125,11 +152,132 @@ namespace controls {
 	}
 
 	export class TextColorAction extends Action {
-		protected extensions = [Color];
+		private readonly dropdownInstance?: Instance;
+		private readonly dropdownMenu: HTMLElement;
+		private readonly dropdownItems: NodeListOf<Element> | [] = [];
+		private readonly colors: Array<string|null> = [];
+		private allowedClasses: Array<string> = [];
 
-		clicked(editor: Editor) {
-			editor.chain().focus().setColor('#a00000').run();
-			this.activate(editor);
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
+			if (!(button.nextElementSibling instanceof HTMLUListElement) || button.nextElementSibling.role !== 'menu')
+				throw new Error('Text color requires a sibling element <ul role="menu">…</ul>');
+			this.dropdownMenu = button.nextElementSibling;
+			this.dropdownInstance = createPopper(this.button, this.dropdownMenu, {
+				placement: 'bottom-start',
+			});
+			this.dropdownItems = this.dropdownMenu.querySelectorAll('[richtext-click^="color:"]');
+			this.collecColors();
+		}
+
+		private collecColors() {
+			this.dropdownItems.forEach(element => {
+				const color = this.extractColor(element);
+				if (!color)
+					return;
+				if (/^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)$/.test(color)) {
+					if (this.allowedClasses.length !== 0)
+						throw new Error(`In element ${element} can not mix class based with style based colors.`);
+					this.colors.push(color);
+				} else if (/^-?[_a-zA-Z]+[_a-zA-Z0-9-]*$/.test(color)) {
+					this.allowedClasses.push(color);
+				} else {
+					throw new Error(`${color} is not a valid color.`);
+				}
+			});
+		}
+
+		private extractColor(element: Element) {
+			const parts = element.getAttribute('richtext-click')?.split(':') ?? [];
+			if (parts.length !== 2)
+				throw new Error(`Element ${element} requires attribute 'richtext-click'.`);
+			if (parts[1] === 'null')
+				return null;
+			return parts[1];
+		}
+
+		installEventHandler(editor: Editor) {
+			if (this.dropdownMenu) {
+				this.button.addEventListener('click', () => this.toggleMenu(editor));
+				this.dropdownMenu.addEventListener('click', event => this.toggleItem(event, editor));
+				document.addEventListener('click', event => {
+					let element = event.target instanceof Element ? event.target : null;
+					while (element) {
+						if (element.isSameNode(this.button) || element.isSameNode(this.dropdownMenu))
+							return;
+						element = element.parentElement;
+					}
+					this.toggleMenu(editor, false);
+				});
+			} else {
+				this.button.addEventListener('click', event => this.toggleItem(event, editor));
+			}
+		}
+
+		clicked() {}
+
+		activate(editor: Editor) {
+			let isActive = false;
+			const rect = this.button.querySelector('svg > rect');
+			this.dropdownItems.forEach(element => {
+				const color = this.extractColor(element);
+				if (color) {
+					if (editor.isActive({textColor: color})) {
+						if (this.allowedClasses.length === 0) {
+							rect?.setAttribute('fill', color);
+						} else {
+							rect?.classList.forEach(value => rect.classList.remove(value));
+							rect?.classList.add(color);
+						}
+						isActive = true
+					}
+				}
+			});
+			this.button.classList.toggle('active', isActive);
+			if (!isActive) {
+				if (this.allowedClasses.length === 0) {
+					rect?.removeAttribute('fill');
+				} else {
+					rect?.classList.forEach(value => rect.classList.remove(value));
+				}
+			}
+		}
+
+		extendExtensions(extensions: Array<Extension|Mark|Node>) {
+			let unmergedOptions = true;
+			extensions.forEach(e => {
+				if (e.name === 'textColor')
+					throw new Error("RichtextArea allows only one control element with 'textColor'.");
+			});
+			extensions.push(TextColor.configure({allowedClasses: this.allowedClasses}));
+		}
+
+		private toggleMenu(editor: Editor, force?: boolean) {
+			const expanded = (force !== false && this.button.ariaExpanded === 'false');
+			this.button.ariaExpanded = expanded ? 'true' : 'false';
+			this.dropdownItems.forEach(element => {
+				const color = this.extractColor(element);
+				element.parentElement?.classList.toggle('active', editor.isActive({textColor: color}));
+			});
+			this.dropdownInstance?.update();
+		}
+
+		toggleItem(event: MouseEvent, editor: Editor) {
+			let element = event.target instanceof Element ? event.target : null;
+			while (element) {
+				if (element instanceof HTMLAnchorElement) {
+					const color = this.extractColor(element);
+					if (color) {
+						editor.chain().focus().setColor(color).run();
+					} else {
+						editor.chain().focus().unsetColor().run();
+					}
+					this.activate(editor);
+					this.toggleMenu(editor, false);
+					break;
+				}
+				element = element.parentElement;
+			}
 		}
 	}
 
@@ -355,7 +503,7 @@ namespace controls {
 		}
 	}
 
-	export class AlignmentAction extends Action {
+	export class TextAlignAction extends Action {
 		private readonly dropdownInstance?: Instance;
 		private readonly dropdownMenu: HTMLElement | null;
 		private readonly dropdownItems: NodeListOf<Element> | [] = [];
@@ -477,6 +625,8 @@ namespace controls {
 
 
 namespace controls {
+	// control actions which require a modal dialog form
+
 	abstract class FormDialogAction extends Action {
 		protected readonly modalDialogElement: HTMLDialogElement;
 		protected readonly formElement: HTMLFormElement;
@@ -488,8 +638,55 @@ namespace controls {
 			this.formElement = this.modalDialogElement.querySelector('form[method="dialog"]')! as HTMLFormElement;
 		}
 
+		protected initialize() {
+			if (!this.formElement)
+				throw new Error(`${this} requires a <form method="dialog">`);
+		}
+
+		protected handleCloseButton() {
+			const closeButton = this.formElement.elements.namedItem('close');
+			if (!(closeButton instanceof HTMLButtonElement))
+				return;
+			closeButton.addEventListener('click', () => {
+				this.modalDialogElement.close('close')
+			}, {once: true});
+		}
+
+		protected handleSaveButton() {
+			const saveButton = this.formElement.elements.namedItem('save');
+			if (!(saveButton instanceof HTMLButtonElement))
+				return;
+			saveButton.addEventListener('click', () => {
+				if (this.formElement.checkValidity()) {
+					this.modalDialogElement.close('save');
+				}
+			});
+		}
+
+		protected toggleRemoveButton(condidtion: boolean) {
+			const removeButton = this.formElement.elements.namedItem('remove');
+			if (!(removeButton instanceof HTMLButtonElement))
+				return;
+			if (condidtion) {
+				removeButton.removeAttribute('hidden');
+				removeButton.addEventListener('click', () => {
+					this.modalDialogElement.close('remove');
+				});
+			} else {
+				removeButton.setAttribute('hidden', 'hidden');
+			}
+		}
+
+		protected openDialog(editor: Editor) {
+			this.handleCloseButton();
+			this.handleSaveButton();
+			this.modalDialogElement.showModal();
+			this.modalDialogElement.addEventListener('close', () => this.closeDialog(editor), {once: true});
+		}
+
+		protected abstract closeDialog(editor: Editor): void;
+
 		clicked = (editor: Editor) => this.openDialog(editor);
-		protected abstract openDialog(editor: Editor): void;
 	}
 
 
@@ -507,50 +704,25 @@ namespace controls {
 			this.initialize();
 		}
 
-		private initialize() {
-			if (!this.formElement)
-				throw new Error('LinkDialog requires a <form method="dialog">');
+		protected initialize() {
+			super.initialize();
 			if (!(this.textInputElement instanceof HTMLInputElement))
 				throw new Error('<form method="dialog"> requires field <input name="text">');
 			if (!(this.urlInputElement instanceof HTMLInputElement))
 				throw new Error('<form method="dialog"> requires field <input name="url">');
 		}
 
-		private toggleRemoveButton(condidtion: boolean) {
-			const removeButton = this.formElement.elements.namedItem('remove');
-			if (!(removeButton instanceof HTMLButtonElement))
-				return;
-			if (condidtion) {
-				removeButton.removeAttribute('hidden');
-				removeButton.addEventListener('click', () => {
-					this.modalDialogElement.close('remove');
-				});
-			} else {
-				removeButton.setAttribute('hidden', 'hidden');
-			}
+		protected openDialog(editor: Editor) {
+			const {selection, doc} = editor.view.state;
+			if (selection.from === selection.to)
+				return;  // nothing selected
+			super.openDialog(editor);
+			this.textInputElement.value = doc.textBetween(selection.from, selection.to, '');
+			this.urlInputElement.value = editor.getAttributes('link').href ?? '';
+			this.toggleRemoveButton(!!this.urlInputElement.value.length);
 		}
 
-		private handleCloseButton() {
-			const closeButton = this.formElement.elements.namedItem('close');
-			if (!(closeButton instanceof HTMLButtonElement))
-				return;
-			closeButton.addEventListener('click', () => {
-				this.modalDialogElement.close('close')
-			}, {once: true});
-		}
-
-		private handleSaveButton() {
-			const saveButton = this.formElement.elements.namedItem('save');
-			if (!(saveButton instanceof HTMLButtonElement))
-				return;
-			saveButton.addEventListener('click', () => {
-				if (this.formElement.checkValidity()) {
-					this.modalDialogElement.close('save');
-				}
-			});
-		}
-
-		private closeDialog(editor: Editor) {
+		protected closeDialog(editor: Editor) {
 			const returnValue = this.modalDialogElement.returnValue;
 			if (returnValue === 'save') {
 				const selection = editor.view.state.selection;
@@ -565,21 +737,60 @@ namespace controls {
 			// reset form to be pristine for the next invocation
 			this.formElement.reset();
 		}
+	}
+
+
+	export class PlaceholderAction extends FormDialogAction {
+		public extensions = [Procurator.configure()];
+		private readonly variableInputElement: HTMLInputElement;
+		private readonly sampleInputElement: HTMLInputElement;
+
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
+			this.variableInputElement = this.formElement.elements.namedItem('variable') as HTMLInputElement;
+			this.sampleInputElement = this.formElement.elements.namedItem('sample') as HTMLInputElement;
+			this.initialize();
+		}
+
+		protected initialize() {
+			super.initialize();
+			if (!(this.variableInputElement instanceof HTMLInputElement))
+				throw new Error('<form method="dialog"> requires field <input name="variable">');
+			if (!(this.sampleInputElement instanceof HTMLInputElement))
+				throw new Error('<form method="dialog"> requires field <input name="sample">');
+		}
+
+		activate(editor: Editor) {
+			this.button.classList.toggle('active', editor.isActive('procurator'));
+		}
 
 		protected openDialog(editor: Editor) {
 			const {selection, doc} = editor.view.state;
 			if (selection.from === selection.to)
 				return;  // nothing selected
-			this.textInputElement.value = doc.textBetween(selection.from, selection.to, '');
-			this.urlInputElement.value = editor.getAttributes('link').href ?? '';
-			this.toggleRemoveButton(!!this.urlInputElement.value.length);
-			this.handleCloseButton();
-			this.handleSaveButton();
-			this.modalDialogElement.showModal();
-			this.modalDialogElement.addEventListener('close', () => this.closeDialog(editor), {once: true});
+			super.openDialog(editor);
+			this.variableInputElement.value = editor.getAttributes('procurator').variable ?? '';
+			this.sampleInputElement.value = doc.textBetween(selection.from, selection.to, '');
+			this.toggleRemoveButton(!!this.variableInputElement.value.length);
+		}
+
+		protected closeDialog(editor: Editor) {
+			const returnValue = this.modalDialogElement.returnValue;
+			if (returnValue === 'save') {
+				const selection = editor.view.state.selection;
+				const sample = this.sampleInputElement.value ? this.sampleInputElement.value : this.variableInputElement.value;
+				editor.chain().focus()
+					.extendMarkRange('procurator')
+					.setPlaceholder({variable: this.variableInputElement.value})
+					.insertContentAt({from: selection.from, to: selection.to}, sample)
+					.run();
+			} else if (returnValue === 'remove') {
+				editor.chain().focus().extendMarkRange('procurator').unsetPlaceholder().run();
+			}
+			// reset form to be pristine for the next invocation
+			this.formElement.reset();
 		}
 	}
-
 
 	export class ImageAction extends FormDialogAction {
 		// unfinished
@@ -591,9 +802,21 @@ namespace controls {
 		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
 			super(wrapperElement, name, button);
 			this.fileInputElement = this.formElement.elements.namedItem('image') as HTMLInputElement;
+			this.initialize();
 		}
 
-		private closeDialog(editor: Editor) {
+		protected initialize() {
+			super.initialize();
+			if (!(this.fileInputElement instanceof HTMLInputElement))
+				throw new Error('<form method="dialog"> requires field <input name="text">');
+		}
+
+		protected openDialog(editor: Editor) {
+			this.modalDialogElement.showModal();
+			this.modalDialogElement.addEventListener('close', () => this.closeDialog(editor), {once: true});
+		}
+
+		protected closeDialog(editor: Editor) {
 			const returnValue = this.modalDialogElement.returnValue;
 			if (returnValue === 'save') {
 				const imgElement = this.modalDialogElement.querySelector('.dj-dropbox img') as HTMLImageElement;
@@ -601,11 +824,6 @@ namespace controls {
 			} else if (returnValue === 'remove') {
 				editor.chain().focus().extendMarkRange('link').unsetLink().run();
 			}
-		}
-
-		protected openDialog(editor: Editor) {
-			this.modalDialogElement.showModal();
-			this.modalDialogElement.addEventListener('close', () => this.closeDialog(editor), {once: true});
 		}
 	}
 
@@ -656,6 +874,7 @@ class RichtextArea {
 			Paragraph,
 			Text,
 			HardBreak,  // always add hard breaks via keyboard entry
+			// TextStyle,  // always add <span> elements for extra styling
 		);
 		this.registerControlActions(extensions);
 		this.registerPlaceholder(extensions);

@@ -1,13 +1,13 @@
 {% load static %}
 <!DOCTYPE html>
 <html dir="ltr" lang="en">
+
 <head>
 	<meta charset="utf-8"/>
 	<title>Django-Formset Demo</title>
 	<link rel="icon" href="data:,">
 	<link href="{% static 'formset/css/collections.css' %}" rel="stylesheet" type="text/css" media="screen">
 	<link href="{% static 'testapp/css/debug.css' %}" rel="stylesheet" type="text/css" media="screen">
-	<link href="{% static 'testapp/css/docutils.css' %}" rel="stylesheet" type="text/css" media="screen">
 	<script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
 </head>
 <body>
@@ -17,7 +17,8 @@
 		/ <strong>{{ leaf_name }}</strong>
 	</div>
 	{{ doc }}
-	{% block "main-content" %}{% endblock %}
+	{% block main-content %}{% endblock %}
 	{% include "testapp/formset-data.html" %}
 </body>
+
 </html>

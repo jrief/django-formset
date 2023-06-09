@@ -3,6 +3,7 @@ module.exports = {
   content: [
     'formset/templates/formset/tailwind/**/*.html',
     'testapp/templates/tailwind/*.html',
+    'docs/source/_templates/*.html',
   ],
   safelist: [
     // CSS classes referenced in Python code, hence unreachable by Tailwind's HTML parser

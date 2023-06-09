@@ -26,6 +26,10 @@ def initialize_counties(apps, schema_editor):
         County.objects.create(state=state, name=county.county_name)
 
 
+def initialize_reporters(apps, schema_editor):
+    call_command('loaddata', settings.BASE_DIR / 'testapp/fixtures/reporters.json', verbosity=0)
+
+
 class Migration(migrations.Migration):
 
     initial = True
@@ -42,19 +46,6 @@ class Migration(migrations.Migration):
                 ('text', formset.richtext.fields.RichTextField()),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
             ],
-        ),
-        migrations.CreateModel(
-            name='Company',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, verbose_name='Company Name')),
-                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
-            ],
-            options={
-                'verbose_name': 'Company',
-                'verbose_name_plural': 'Companies',
-                'unique_together': {('name', 'created_by')},
-            },
         ),
         migrations.CreateModel(
             name='CountyUnnormalized',
@@ -125,19 +116,6 @@ class Migration(migrations.Migration):
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='contacts', to=settings.AUTH_USER_MODEL)),
             ],
         ),
-        migrations.CreateModel(
-            name='Team',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, verbose_name='Team Name')),
-                ('company', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='teams', to='testapp.company')),
-            ],
-            options={
-                'verbose_name': 'Team',
-                'verbose_name_plural': 'Teams',
-                'unique_together': {('name', 'company')},
-            },
-        ),
         migrations.AddField(
             model_name='pollmodel',
             name='weighted_opinions',
@@ -159,14 +137,6 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='ExtendUser',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('phone_number', models.CharField(blank=True, max_length=25, null=True, verbose_name='Phone Number')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='extend_user', to=settings.AUTH_USER_MODEL)),
-            ],
-        ),
-        migrations.CreateModel(
             name='County',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -178,18 +148,94 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Member',
+            name='Reporter',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, verbose_name='Member Name')),
-                ('team', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='members', to='testapp.team')),
+                ('full_name', models.CharField(max_length=70)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Article',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('pub_date', models.DateField()),
+                ('headline', models.CharField(max_length=200)),
+                ('content', models.TextField()),
+                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
+                ('reporter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='testapp.reporter')),
+                ('teaser', models.FileField(blank=True, upload_to='images')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Annotation',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('content', models.CharField(max_length=200)),
+                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='User',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('username', models.CharField(help_text='Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.', max_length=150, verbose_name='Username')),
+                ('first_name', models.CharField(blank=True, max_length=150, verbose_name='First name')),
+                ('last_name', models.CharField(blank=True, max_length=150, verbose_name='Last name')),
+                ('email', models.EmailField(blank=True, max_length=254, verbose_name='Email address')),
+                ('is_staff', models.BooleanField(default=False, help_text='Designates whether the user can log into this admin site.', verbose_name='Staff status')),
+                ('is_active', models.BooleanField(default=True, help_text='Designates whether this user should be treated as active.', verbose_name='active')),
+                ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
+                ('is_superuser', models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='superuser status')),
+                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ExtendUser',
+            fields=[
+                ('phone_number', models.CharField(blank=True, max_length=25, null=True, verbose_name='Phone Number')),
+                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, related_name='extend_user', serialize=False, to='testapp.user')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Company',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=50, verbose_name='Company name')),
+                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
             ],
             options={
-                'verbose_name': 'Member',
-                'verbose_name_plural': 'Members',
-                'unique_together': {('name', 'team')},
+                'verbose_name': 'Company',
+                'verbose_name_plural': 'Companies',
+                'unique_together': {('name', 'created_by')},
+            },
+        ),
+        migrations.CreateModel(
+            name='Department',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=50, verbose_name='Department name')),
+                ('company', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='departments', to='testapp.company')),
+            ],
+            options={
+                'verbose_name': 'Department',
+                'verbose_name_plural': 'Departments',
+                'unique_together': {('name', 'company')},
+            },
+        ),
+        migrations.CreateModel(
+            name='Team',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=50, verbose_name='Team name')),
+                ('department', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='teams', to='testapp.department')),
+            ],
+            options={
+                'verbose_name': 'Team',
+                'verbose_name_plural': 'Teams',
+                'unique_together': {('name', 'department')},
             },
         ),
         migrations.RunPython(initialize_opinions, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(initialize_counties, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(initialize_reporters, reverse_code=migrations.RunPython.noop),
     ]

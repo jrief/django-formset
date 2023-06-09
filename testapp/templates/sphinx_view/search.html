@@ -1,0 +1,16 @@
+{% extends "sphinx_view/base.html" %}
+{% load static %}
+
+{% block title %}Search{% endblock title %}
+
+{% block main-content %}
+	<div id="search-results"></div>
+{% endblock %}
+
+
+{% block regular_scripts %}
+	{{ block.super }}
+	<script src="{% static 'sphinx_view/js/searchtools.js' %}"></script>
+	<script src="{% static 'sphinx-view/_static/language_data.js' %}"></script>
+	<script>Search.setIndex({{ search_index }});</script>
+{% endblock %}

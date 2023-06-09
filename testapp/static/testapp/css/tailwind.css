@@ -1,5 +1,5 @@
-@import "../../formset/css/tailwind.css";
-@import "../../formset/css/collections.css";
+@import "/static/formset/css/tailwind.css";
+@import "/static/formset/css/collections.css";
 
 :root {
 	--border-color: rgb(209 213 219);

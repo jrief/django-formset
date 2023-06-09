@@ -11,17 +11,13 @@ Between those two select fields, six buttons are located. With the first four, o
 options from left to right and vice versa. The last two buttons can be used to undo and/or redo a
 missed assignment.
 
-.. image:: _static/dual-selector.png
-  :width: 760
-  :alt: DualSelector widget
-
 
 Features
 ========
 
 The **DualSelector** widget is well known to Django admin users. There it is named
-filter_horizontal_ which is a somehow misleading name. In **django-formset**, this widget however
-offers many more features than its Django's counterpart.
+filter_horizontal_ which in my opinion is a somehow misleading name. In **django-formset**, this
+widget however offers many more features than its Django's counterpart.
 
 .. _filter_horizontal: https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_horizontal
 
@@ -59,37 +55,58 @@ Usage
 =====
 
 The **DualSelector** can be used as a widget together with Django's choice fields of type
-MultipleChoiceField_ and ModelMultipleChoiceField_. When declaring a form, it shall be added
+MultipleChoiceField_ or ModelMultipleChoiceField_. When declaring a form, it shall be added
 as widget to the field's arguments
-
-.. code-block:: python
-
-	from django.forms import fields, forms, models, widgets
-	from formset.widgets import DualSelector
-
-	class PersonForm(forms.Form):
-	    # other fields
-
-	    friends = models.ModelMultipleChoiceField(
-	        queryset=Person.objects.all(),
-	        widget=DualSelector(search_lookup='name__icontains'),
-	    )
-
-Since this field can perform remote lookups, we must tell it how to look for entries in the
-database. Here we use a simple Django query lookup string. There is no need for a special
-endpoint, but the view handling the form must inherit from
-:class:`formset.views.IncompleteSelectResponseMixin`.
 
 .. _MultipleChoiceField: https://docs.djangoproject.com/en/stable/ref/forms/fields/#multiplechoicefield
 .. _ModelMultipleChoiceField: https://docs.djangoproject.com/en/stable/ref/forms/fields/#django.forms.ModelMultipleChoiceField
+
+.. django-view:: county_form
+
+	from django.forms import fields, forms, models, widgets
+	from formset.widgets import DualSelector
+	from testapp.models import County
+
+	class CountyForm(forms.Form):
+	    county = models.ModelMultipleChoiceField(
+	        queryset=County.objects.all(),
+	        widget=DualSelector(search_lookup='name__icontains'),
+	    )
+
+If the queryset delivers more than 250 entries, the widget begins to load more entries as soon as
+the user scrolls to the end of the select field. This also happens when typing into the left search
+field. Therefore the view controlling forms with this field, must offer an endpoint to perform these
+remote lookups to look for entries in the database. There is no need for a special endpoint, but the
+view handling the form must inherit from :class:`formset.views.IncompleteSelectResponseMixin`.
+
+Here we instantiate the widget :class:`formset.widgets.DualSelector` using the following arguments:
+
+* ``search_lookup``: A Django `lookup expression`_. For choice fields with more than 50 options,
+  this instructs the **django-formset**-library on how to look for other entries in the database. 
+* ``group_field_name`` in combination with option groups. This field is used to determine the group
+  name. See below.
+* ``filter_by`` is a dictionary to filter options based on the value of other field(s). See below.
+
+.. _lookup expression: https://docs.djangoproject.com/en/stable/ref/models/lookups/#lookup-reference
+
+.. django-view:: county_view
+	:view-function: CountyView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'county-result'}, form_kwargs={'auto_id': 'co_id_%s'})
+	:hide-code:
+
+	from formset.views import FormView 
+
+	class CountyView(FormView):
+	    form_class = CountyForm
+	    template_name = "form.html"
+	    success_url = "/success"
 
 
 Comparison with SelectizeMultiple
 ---------------------------------
 
-The **DualSelector** widget can be considered as the big sibling of the :ref:`selectize-multiple`
-widget. Both widgets use the same lookup interface and hence can arbitrarily be swapped out against
-each other, by changing the widget argument in the choice field. 
+The **DualSelector** widget can be considered as the big sibling of the :ref:`selectize-multiple`.
+Both widgets use the same lookup interface and hence can arbitrarily be swapped out against each
+other, by changing the widget argument in the choice field. 
 
 From a usability point of view, the **SelectizeMultiple** widget probably is easier to understand,
 especially for inexperienced users. It is best suited when only a few options (say, less than 15)
@@ -102,71 +119,105 @@ selectable options. It also might make sense to use this widget, whenever some k
 functionality is required.
 
 
-Grouping Options
-================  
+Grouping Select Options
+=======================  
 
-Sometimes it may be desirable to group options the user may select from. As an example, consider the
-use case where we want to choose one or more counties in the United States. Here we use two models
-with a simple relationship:
+Sometimes it may be desirable to group options the user may select from.
 
-.. code-block:: python
-	:caption: models.py
+In the United States there are 3143 counties, many of them sharing the same name. When rendering
+them inside a select box, it would be rather unclear, which county belongs to which state. For this
+purpose, HTML provides the element ``<optgroup>``. Other than visually grouping options to select
+from, this element has no other effect. Fortunately our ``DualSelector`` widget mimicks that feature
+and so we can even group all counties by state by rewriting our form as:
 
-	class State(models.Model):
-	    code = models.CharField(max_length=2)
-	
-	    name = models.CharField(
-	        max_length=20,
-	        db_index=True,
-	    )
-	
-	    class Meta:
-	        ordering = ['name']
-	
-	    def __str__(self):
-	        return self.name
-	
-	
-	class County(models.Model):
-	    state = models.ForeignKey(
-	        State,
-	        on_delete=models.CASCADE,
-	    )
-	
-	    name = models.CharField(max_length=30)
-	
-	    class Meta:
-	        ordering = ['state', 'name']
-	
-	    def __str__(self):
-	        return f"{self.name} ({self.state.code})"
+.. django-view:: grouped_county_form
 
-Since there are 3143 counties, many of them using the same name, it would be really confusing to
-show them in a simple list of options. Instead we typically would render them grouped by state. To
-achieve this, we have to tell the field ``counties`` how to group them, by using the attribute
-``group_field_name``. This sets up the ``DualSelector``-widget to use the named field from the model
-specified by the queryset for grouping.
-
-.. code-block:: python
-	:caption: forms.py
-
-	class PersonForm(models.ModelForm):
-	    # other fields
-
-	    counties = models.ModelChoiceField(
+	class GroupedCountyForm(forms.Form):
+	    county = models.ModelMultipleChoiceField(
+	        label="County",
 	        queryset=County.objects.all(),
 	        widget=DualSelector(
 	            search_lookup='name__icontains',
 	            group_field_name='state',
 	        ),
+	        required=True,
 	    )
+
+.. django-view:: grouped_county_view
+	:view-function: GroupedCountyView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'grouped-county-result'}, form_kwargs={'auto_id': 'gc_id_%s'})
+	:hide-code:
+
+	class GroupedCountyView(CountyView):
+	    form_class = GroupedCountyForm
+
+Since there are 3143 counties, many of them using the same name, it is confusing to show them in a
+simple list of options. Instead we prefer to render them grouped by state. To achieve this, we have
+to tell the field ``counties`` how to group them, by using the attribute ``group_field_name``. This
+sets up the ``DualSelector``-widget to use the named field from the model specified by the queryset
+for grouping.
 
 When rendered, the ``<option>`` elements then are grouped inside ``<optgroup>``-s using the state's
 name as their label:
 
-.. image:: _static/dual-selector-optgroups.png
-  :width: 760
-  :alt: Dual Selector with option groups
+
+Filtering Select Options
+========================
+
+As we have seen in the previous example, even grouping too many options might not be a user-friendly
+solution. This is because the user has to type a word, at least partially. So the user already must
+know what he’s looking for. This approach is not always practical. Many of the counties share the
+same name. For instance, there are 34 counties named “Washington”, 26 named “Franklin” and 24 named
+“Lincoln”. Using an auto-select field, would just show a long list of eponymous county names.
+
+Since the user usually knows in which state the desired county is located, that selection field then
+offers a reduced set of options, namely the counties of just that state. Therefore let's use
+adjacent fields for preselecting options:
+
+.. django-view:: filtered_county_form
+
+	from formset.widgets import DualSelector, SelectizeMultiple
+	from testapp.models import State
+
+	class FilteredCountyForm(forms.Form):
+	    state = models.ModelMultipleChoiceField(
+	        label="State",
+	        queryset=State.objects.all(),
+	        widget=SelectizeMultiple(
+	            search_lookup='name__icontains',
+	        ),
+	        required=False,
+	        help_text="Select up to 5 states",
+	    )
+
+	    county = models.ModelMultipleChoiceField(
+	        label="County",
+	        queryset=County.objects.all(),
+	        widget=DualSelector(
+	            search_lookup=['name__icontains'],
+	            filter_by={'state': 'state__id'},
+	        ),
+	        required=True,
+	    )
+
+This form shows the usage of two adjacent fields, where the first field's value is used to filter
+the options for the next field. Here with the field **state**, the user can make a preselection of
+one or more states. When the state is changed, the other field **county** gets filled with all
+counties belonging to one of the selected states.
+
+To enable this feature, widget ``DualSelector`` accepts the optional argument ``filter_by`` which
+contains a dictionary such as ``{'state': 'state__id'}`` defining the lookup expression on the given
+queryset. Here each key maps to an adjacent field and its value contains a lookup expression.
+
+.. django-view:: filtered_county_view
+	:view-function: FilteredCountyView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'filtered-county-result'}, form_kwargs={'auto_id': 'fc_id_%s'})
+	:hide-code:
+
+	class FilteredCountyView(CountyView):
+	    form_class = FilteredCountyForm
+
+Setting up forms using filters, can improve the user experience, because it reduces the available
+options the user must choose from. This might be a more friendly alternative rather than using
+option groups.
 
 
 Sortable Dual Selector Widget
@@ -179,7 +230,7 @@ special field ``SortableManyToManyField`` becomes useful.
 
 .. _fields to that intermediate mapping model: https://docs.djangoproject.com/en/stable/topics/db/models/#intermediary-manytomany
 
-Consider the case of a poll application where a user can select one or more opinions. We therefore
+As example, consider a poll application where a user can select one or more opinions. We therefore
 need a many-to-many relationship between the poll entity and the chosen opinions, so we typically
 would use a ``ManyToManyField`` to represent this relationship. However, users shall also be allowed
 to weigh their chosen opinions. We can handle this by providing our own intermediate many-to-many
@@ -229,13 +280,14 @@ same as for the ``DualSelector`` widget as explained above, but options inside t
 can be sorted by dragging. This ordering value then is stored in the field named ``weight`` used for
 ordering.
 
-.. code-block:: python
+.. django-view:: poll_form
+	:caption: forms.py
 
 	from django.forms import models
 	from formset.widgets import DualSortableSelector
 	from testapp.models import PollModel
 
-	class ModelPollForm(models.ModelForm):
+	class PollForm(models.ModelForm):
 	    class Meta:
 	        model = PollModel
 	        fields = '__all__'
@@ -243,9 +295,22 @@ ordering.
 	            'weighted_opinions': DualSortableSelector(search_lookup='label__icontains'),
 	        }
 
-When rendered this widget looks exactly the same as the ``DualSelector`` but options in its right
+When rendered this widget looks like any other ``DualSelector``-widget, but options in its right
 panel can be dragged to set their weight:
 
-.. image:: _static/dual-sortable-selector.gif
-  :width: 600
-  :alt: DualSortableSelector widget
+.. django-view:: poll_view
+	:view-function: type('ArticleEditView', (SessionModelFormViewMixin, dual_selector.PollView), {}).as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'poll-result'}, form_kwargs={'auto_id': 'po_id_%s'})
+	:caption: views.py
+
+	from django.views.generic import UpdateView
+	from formset.views import FormViewMixin, IncompleteSelectResponseMixin
+
+	class PollView(IncompleteSelectResponseMixin, FormViewMixin, UpdateView):
+	    model = PollModel
+	    form_class = PollForm
+	    template_name = 'form.html'
+	    success_url = '/success'
+
+.. note:: After submission, the opinion mapping is stored in the database together with the chosen
+	sorting. Therefore after reloading this page, the same order of opinions will be shown in the
+	right select panel.

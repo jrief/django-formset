@@ -566,17 +566,16 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private proceed(proceedUrl: string | undefined) {
-		return (response: Response) => {
+		return async (response: Response) => {
 			if (typeof proceedUrl === 'string' && proceedUrl.length > 0) {
 				location.href = proceedUrl;
 			} else if (response instanceof Response && response.status === 200) {
-				response.json().then(body => {
-					if (body.success_url) {
-						location.href = body.success_url;
-					} else {
-						console.warn("Neither a success-, nor a proceed-URL are given.");
-					}
-				});
+				const body = await response.clone().json();
+				if (body.success_url) {
+					location.href = body.success_url;
+				} else {
+					console.warn("Neither a success-, nor a proceed-URL are given.");
+				}
 			}
 			return Promise.resolve(response);
 		}
@@ -682,11 +681,21 @@ class DjangoButton {
 
 	/**
 	 * For debugging purpose only: Intercept, log and forward the response object to the next handler.
+	 * @param selector: If selector points onto a valid element in the DOM, the server response is inserted.
  	 */
 	// @ts-ignore
-	private intercept() {
-		return (response: Response) => {
-			console.info(response);
+	private intercept(selector?: string) {
+		return async (response: Response) => {
+			const body = {
+				request: this.formset.buildBody(),
+				response: await response.clone().json(),
+			};
+			const element = selector ? document.querySelector(selector) : null;
+			if (element) {
+				element.innerHTML = JSON.stringify(body, null,'  ');
+			} else {
+				console.info(body);
+			}
 			return Promise.resolve(response);
 		}
 	}
@@ -1555,7 +1564,7 @@ export class DjangoFormset {
 		return isValid;
 	}
 
-	private buildBody(extraData?: Object) : Object {
+	public buildBody(extraData?: Object) : Object {
 		let dataValue: any;
 		// Build `body`-Object recursively.
 		// Deliberately ignore type-checking, because `body` must be build as POJO to be JSON serializable.
@@ -1629,6 +1638,7 @@ export class DjangoFormset {
 		if (formsAreValid) {
 			if (!this.endpoint)
 				throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
+			const body = this.buildBody(extraData);
 			try {
 				const headers = new Headers();
 				headers.append('Accept', 'application/json');
@@ -1639,7 +1649,7 @@ export class DjangoFormset {
 				const response = await fetch(this.endpoint, {
 					method: 'POST',
 					headers: headers,
-					body: JSON.stringify(this.buildBody(extraData)),
+					body: JSON.stringify(body),
 					signal: this.abortController.signal,
 				});
 				switch (response.status) {
@@ -1651,7 +1661,7 @@ export class DjangoFormset {
 						return response;
 					case 422:
 						this.clearErrors();
-						const body = await response.json();
+						const body = await response.clone().json();
 						this.reportErrors(body);
 						return response;
 					default:

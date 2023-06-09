@@ -91,6 +91,13 @@ class FormsetResponseMixin:
 
 
 class FormViewMixin(FormsetResponseMixin):
+    """
+    Add this mixin to a view class inheriting from one of the Django form view classes. It serves to respond
+    with a JsonResponse rather than a HttpResponse whenever a form submission validates or fails.
+    """
+
+    form_kwargs = None
+
     def get_success_url(self):
         """
         In **django-formset**, the success_url may be None and set inside the templates.
@@ -108,6 +115,8 @@ class FormViewMixin(FormsetResponseMixin):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+        if self.form_kwargs:
+            kwargs.update(**self.form_kwargs)
         if self._request_body:
             kwargs['data'] = self._request_body.get('formset_data')
         return kwargs
@@ -160,6 +169,7 @@ class FormCollectionViewMixin(FormsetResponseMixin):
     collection_class = None
     success_url = None
     initial = {}
+    collection_kwargs = None
 
     def get(self, request, *args, **kwargs):
         """Handle GET requests: instantiate blank versions of the forms in the collection."""
@@ -181,11 +191,17 @@ class FormCollectionViewMixin(FormsetResponseMixin):
         collection_class = self.get_collection_class()
         return collection_class().get_field(field_path)
 
-    def get_form_collection(self):
-        collection_class = self.get_collection_class()
+    def get_collection_kwargs(self):
         kwargs = {
             'initial': self.get_initial(),
         }
+        if self.collection_kwargs:
+            kwargs.update(**self.collection_kwargs)
+        return kwargs
+
+    def get_form_collection(self):
+        collection_class = self.get_collection_class()
+        kwargs = self.get_collection_kwargs()
         if self.request.method in ('POST', 'PUT') and self.request.content_type == 'application/json':
             body = json.loads(self.request.body)
             kwargs.update(data=body.get('formset_data'))
@@ -210,7 +226,8 @@ class FormCollectionViewMixin(FormsetResponseMixin):
         return JsonResponse(form_collection._errors, status=422, safe=False)
 
 
-class FormCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin, TemplateResponseMixin, View):
+class FormCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin,
+                         TemplateResponseMixin, View):
     pass
 
 
