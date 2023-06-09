@@ -19,14 +19,20 @@ RUN npm ci
 RUN pip install django psycopg2-binary Pillow uWSGI docutils Sphinx sphinx-toolbox
 RUN pip install https://github.com/pradyunsg/furo/archive/refs/heads/main.zip
 RUN pip install https://github.com/jrief/django-sphinx-view/archive/refs/heads/main.zip
-RUN pip install --pre django-formset==1.0.dev1
 
 # copy project relevant files into container
-ADD testapp /web/testapp
-ADD docs /web/docs
 ADD assets /web/assets
+ADD docs /web/docs
+ADD formset /web/formset
+ADD testapp /web/testapp
 COPY .deployment/uwsgi.ini /etc/uwsgi.ini
 COPY .deployment/entrypoint.sh /web/entrypoint.sh
+
+# compile assets
+RUN npm run tag-attributes
+RUN npm run compilescss
+RUN npm run tailwindcss
+RUN npm run esbuild
 
 # create documentation
 RUN npm run docscss
