@@ -5,7 +5,7 @@ WORKDIR /web
 
 # install packages outside of PyPI
 RUN apt-get upgrade -y
-RUN apt-get install -y curl
+RUN apt-get install -y curl make
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
 RUN apt-get install -y nodejs
 RUN pip install --upgrade pip
@@ -16,13 +16,19 @@ COPY package-lock.json /web/package-lock.json
 RUN npm ci
 
 # install Python specific requirements
-RUN pip install django psycopg2-binary Pillow uWSGI docutils Pygments
-RUN pip install django-formset==0.13.3
+RUN pip install django psycopg2-binary Pillow uWSGI docutils Sphinx
+RUN pip install https://github.com/pradyunsg/furo/archive/refs/heads/main.zip
+RUN pip install https://github.com/jrief/django-sphinx-view/archive/refs/heads/main.zip
+RUN pip install --pre django-formset==1.0.dev1
 
 # copy project relevant files into container
 ADD testapp /web/testapp
 COPY .deployment/uwsgi.ini /etc/uwsgi.ini
 COPY .deployment/entrypoint.sh /web/entrypoint.sh
+
+# create documentation
+RUN npm run docscss
+RUN make --directory=docs json
 
 # handle static and media files
 ENV DJANGO_STATIC_ROOT=/web/staticfiles
