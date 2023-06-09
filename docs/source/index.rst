@@ -39,6 +39,19 @@ Django ``Form``-s.
 	history
 	chat-gpt
 
+Project Home
+============
+
+The complete source for **django-formset** is available on GitHub at
+https://github.com/jrief/django-formset 
+
+
+License
+=======
+
+**django-formset** is licensed according to the MIT public license.
+
+
 Indices and tables
 ==================
 

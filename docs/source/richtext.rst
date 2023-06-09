@@ -102,7 +102,7 @@ The class :class:`formset.richtext.controls.HorizontalRule` can be used to add a
 between paragraphs of text. It can't be further configured.
 
 
-.. rubric:: ClearFormat
+.. rubric:: Clear Format
 
 The class :class:`formset.richtext.controls.ClearFormat` can be used to remove the current format
 settings of selected text. It can't be further configured.
@@ -120,10 +120,43 @@ The class :class:`formset.richtext.controls.Link` can be used to add a hyperlink
 of some text. When choosing this option, a modal dialog pops up and the user can enter a URL.
 
 
+.. rubric:: Subscript
+
+The class :class:`formset.richtext.controls.Subscript` can be used to mark text as subscript, which
+renders the selected text smaller and below the baseline.
+
+
+.. rubric:: Superscript
+
+The class :class:`formset.richtext.controls.Superscript` can be used to mark text as superscript,
+which renders the selected text smaller and above the baseline.
+
+
 .. rubric:: Separator
 
 The class :class:`formset.richtext.controls.Separator` has no functional purpose. It can be used
 to separate the other buttons visually using a vertical bar.
+
+
+.. rubric:: Text Color
+
+The class :class:`formset.richtext.controls.TextColor` can be used to mark text in different colors.
+It offers two different modes: Styles and CSS classes. When used with styles, the control element
+must be initialized with colors in rgb format, for instance
+
+.. code-block:: python
+
+    TextColor(['rgb(255, 0, 0)', 'rgb(0, 255, 0)', 'rgb(0, 0, 255)']) 
+
+this will offer text in three colors, red, green and blue. When used with classes, the control
+element must be initialized with arbitrary CSS classes, for instance
+
+.. code-block:: python
+
+    TextColor(['text-red', 'text-green', 'text-blue']) 
+
+The implementor then is responsible for setting the text color in its CSS file for these classes.
+Style- and class-based initialization can not be interchanged.
 
 
 Implementation

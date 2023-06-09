@@ -125,7 +125,7 @@ In the United States there are 3143 counties, many of them sharing the same name
 them inside a select box, it would be rather unclear which county belongs to which state. For this
 purpose, HTML provides the element ``<optgroup>``. Other than visually grouping options to select
 from, this element has no other effect. Fortunately our ``Selectize`` widget mimicks that feature
-and so we can even group all counties by state by rewriting our form as:
+and so we can group all counties by state by rewriting our form as:
 
 .. django-view:: grouped_county_form
 
@@ -148,11 +148,9 @@ and so we can even group all counties by state by rewriting our form as:
 	class GroupedCountyView(SelectizeView):
 	    form_class = GroupedCountyForm
 
-Since there are 3143 counties, many of them using the same name, it is confusing to show them in a
-simple list of options. Instead we prefer to render them grouped by state. To achieve this, we have
-to tell the field ``counties`` how to group them, by using the attribute ``group_field_name``. This
-sets up the ``Selectize``-widget to use the named field from the model specified by the queryset
-for grouping.
+Here we grouped the counties by state. To achieve this, we have to change the widget in the field
+``county`` and configure how to group them. By using the attribute ``group_field_name``, the
+``Selectize``-widget uses the named field from the model specified by the queryset for grouping.
 
 When rendered, the ``<option>`` elements then are grouped inside ``<optgroup>``-s using the state's
 name as their label:
@@ -162,14 +160,14 @@ Filtering Select Options
 ------------------------
 
 As we have seen in the previous example, even grouping too many options might not be a user-friendly
-solution. This is because the user has to type a word, at least partially. So the user already must
-know what he’s looking for. This approach is not always practical. Many of the counties share the
-same name. For instance, there are 34 counties named “Washington”, 26 named “Franklin” and 24 named
-“Lincoln”. Using an auto-select field, would just show a long list of eponymous county names.
+solution. This is because the user has to type a string, at least partially. So the user already
+must know what he’s looking for. This approach is not always practical. Many of the counties share
+the same name. For instance, there are 34 counties named “Washington”, 26 named “Franklin” and 24
+named “Lincoln”. Using an auto-select field, would just show a long list of eponymous county names.
 
-Since the user usually knows in which state the desired county is located, that selection field then
-offers a reduced set of options, namely the counties of just that state. Therefore let's use
-adjacent fields for preselecting options:
+In many use cases, the user usually knows in which state the desired county is located. So it would
+be practical if the selection field offers a reduced set of options, namely the counties of just
+that state. Therefore let's create a form with adjacent fields for preselecting options:
 
 .. django-view:: filtered_county_form
 
@@ -185,7 +183,6 @@ adjacent fields for preselecting options:
 	        ),
 	        required=False,
 	    )
-
 	    county = models.ModelChoiceField(
 	        label="County",
 	        queryset=County.objects.all(),
@@ -200,9 +197,9 @@ adjacent fields for preselecting options:
 This form shows the usage of two adjacent fields, where the first field's value is used to filter
 the options for the next field. Here with the field **state**, the user can make a preselection of
 the state. When the state is changed, the other field **county** gets filled with all counties
-belonging to the selected state.
+belonging to that selected state.
 
-To enable this feature, widget ``Selectize`` accepts the optional argument ``filter_by`` which
+To enable this feature, the widget ``Selectize`` accepts the optional argument ``filter_by`` which
 contains a dictionary such as ``{'state': 'state__id'}`` defining the lookup expression on the given
 queryset. Here each key maps to an adjacent field and its value contains a lookup expression.
 
@@ -220,8 +217,8 @@ groups.
 
 .. _selectize-multiple:
 
-SelectizeMultiple Widget
-========================
+Selectize Multiple Widget
+=========================
 
 If the form field for "``county``" shall accept more than one selection, in Django we replace it by
 a :class:`django.forms.fields.MultipleChoiceField`. The widget then used to handle such an input
