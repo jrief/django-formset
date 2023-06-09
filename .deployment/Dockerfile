@@ -29,6 +29,7 @@ COPY .deployment/uwsgi.ini /etc/uwsgi.ini
 COPY .deployment/entrypoint.sh /web/entrypoint.sh
 
 # compile assets
+RUN chmod ug+w /web/assets
 RUN npm run tag-attributes
 RUN npm run compilescss
 RUN npm run tailwindcss
