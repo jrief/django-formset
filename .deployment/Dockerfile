@@ -23,6 +23,7 @@ RUN pip install --pre django-formset==1.0.dev1
 
 # copy project relevant files into container
 ADD testapp /web/testapp
+ADD docs /web/docs
 COPY .deployment/uwsgi.ini /etc/uwsgi.ini
 COPY .deployment/entrypoint.sh /web/entrypoint.sh
 
