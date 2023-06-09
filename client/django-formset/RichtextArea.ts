@@ -18,13 +18,14 @@ import ListItem from '@tiptap/extension-list-item';
 import OrderedList from '@tiptap/extension-ordered-list';
 import Paragraph from '@tiptap/extension-paragraph';
 import Placeholder from '@tiptap/extension-placeholder';
+import Subscript from '@tiptap/extension-subscript';
+import Superscript from '@tiptap/extension-superscript';
 import Text from '@tiptap/extension-text';
 import { TextAlign, TextAlignOptions } from '@tiptap/extension-text-align';
 import { TextIndent, TextIndentOptions } from './tiptap-extensions/indent';
 import { TextMargin, TextMarginOptions } from './tiptap-extensions/margin';
 import { TextColor } from './tiptap-extensions/color';
 import { Procurator } from './tiptap-extensions/procurator';
-
 import Underline from '@tiptap/extension-underline';
 import { StyleHelpers } from './helpers';
 import template from 'lodash.template';
@@ -81,6 +82,26 @@ namespace controls {
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleItalic().run();
+			this.activate(editor);
+		}
+	}
+
+	export class SubscriptAction extends Action {
+		protected readonly extensions = [Subscript];
+
+		clicked(editor: Editor) {
+			editor.chain().focus().unsetSuperscript().run();
+			editor.chain().focus().toggleSubscript().run();
+			this.activate(editor);
+		}
+	}
+
+	export class SuperscriptAction extends Action {
+		protected readonly extensions = [Superscript];
+
+		clicked(editor: Editor) {
+			editor.chain().focus().unsetSubscript().run();
+			editor.chain().focus().toggleSuperscript().run();
 			this.activate(editor);
 		}
 	}

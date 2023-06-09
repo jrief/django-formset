@@ -200,6 +200,16 @@ class ClearFormat(ControlElement):
     label = _("Clear Format")
 
 
+class Subscript(ControlElement):
+    name = 'subscript'
+    label = _("Subscript")
+
+
+class Superscript(ControlElement):
+    name = 'superscript'
+    label = _("Superscript")
+
+
 class Undo(ControlElement):
     name = 'undo'
     label = _("Undo")

@@ -42,6 +42,8 @@
     "@tiptap/extension-ordered-list": "^2.0.3",
     "@tiptap/extension-paragraph": "^2.0.3",
     "@tiptap/extension-placeholder": "^2.0.3",
+    "@tiptap/extension-subscript": "^2.0.3",
+    "@tiptap/extension-superscript": "^2.0.3",
     "@tiptap/extension-text": "^2.0.3",
     "@tiptap/extension-text-align": "^2.0.3",
     "@tiptap/extension-text-style": "^2.0.3",
