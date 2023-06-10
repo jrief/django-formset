@@ -5,9 +5,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'secret_key')
 
-DEBUG = bool(os.getenv('DJANGO_DEBUG') == 'true')
+DEBUG = os.getenv('DJANGO_DEBUG', '').lower() in ['true', '1', 'yes']
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*'] if DEBUG else ['django-formset.fly.dev']
 CSRF_TRUSTED_ORIGINS = ['https://django-formset.fly.dev']
 
 INSTALLED_APPS = [
