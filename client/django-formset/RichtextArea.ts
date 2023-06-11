@@ -65,6 +65,52 @@ abstract class Action {
 }
 
 
+abstract class DropdownAction extends Action {
+	protected readonly dropdownMenu: HTMLUListElement | null;
+	protected readonly dropdownItems: NodeListOf<Element> | [] = [];
+
+	constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement, itemsSelector: string) {
+		super(wrapperElement, name, button);
+		if (this.button.nextElementSibling instanceof HTMLUListElement && this.button.nextElementSibling.role === 'menu') {
+			this.dropdownMenu = this.button.nextElementSibling;
+			this.dropdownItems = this.dropdownMenu.querySelectorAll(itemsSelector);
+		} else {
+			this.dropdownMenu = null;
+		}
+	}
+
+	installEventHandler(editor: Editor) {
+		if (this.dropdownMenu) {
+			this.button.addEventListener('click', () => this.toggleMenu(editor));
+			this.dropdownMenu.addEventListener('click', event => this.toggleItem(event, editor));
+			document.addEventListener('click', event => {
+				let element = event.target instanceof Element ? event.target : null;
+				while (element) {
+					if (element.isSameNode(this.button) || element.isSameNode(this.dropdownMenu))
+						return;
+					element = element.parentElement;
+				}
+				this.toggleMenu(editor, false);
+			});
+		} else {
+			this.button.addEventListener('click', event => this.toggleItem(event, editor));
+		}
+	}
+
+	protected toggleMenu(editor: Editor, force?: boolean) {
+		if (this.dropdownMenu) {
+			const expanded = (force !== false && this.button.ariaExpanded === 'false');
+			this.button.ariaExpanded = expanded ? 'true' : 'false';
+			computePosition(this.button, this.dropdownMenu).then(
+				({x, y}) => Object.assign(this.dropdownMenu!.style, {left: `${x}px`, top: `${y}px`})
+			);
+		}
+	}
+
+	protected abstract toggleItem(event: MouseEvent, editor: Editor) : void;
+}
+
+
 namespace controls {
 	// basic control actions
 
@@ -151,18 +197,14 @@ namespace controls {
 		}
 	}
 
-	export class TextColorAction extends Action {
-		private readonly dropdownMenu: HTMLElement;
-		private readonly dropdownItems: NodeListOf<Element> | [] = [];
+	export class TextColorAction extends DropdownAction {
 		private readonly colors: Array<string|null> = [];
 		private allowedClasses: Array<string> = [];
 
 		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
-			super(wrapperElement, name, button);
-			if (!(this.button.nextElementSibling instanceof HTMLUListElement) || this.button.nextElementSibling.role !== 'menu')
+			super(wrapperElement, name, button, '[richtext-click^="color:"]');
+			if (!(button.nextElementSibling instanceof HTMLUListElement) || button.nextElementSibling.role !== 'menu')
 				throw new Error('Text color requires a sibling element <ul role="menu">…</ul>');
-			this.dropdownMenu = this.button.nextElementSibling;
-			this.dropdownItems = this.dropdownMenu.querySelectorAll('[richtext-click^="color:"]');
 			this.collecColors();
 		}
 
@@ -190,24 +232,6 @@ namespace controls {
 			if (parts[1] === 'null')
 				return null;
 			return parts[1];
-		}
-
-		installEventHandler(editor: Editor) {
-			if (this.dropdownMenu) {
-				this.button.addEventListener('click', () => this.toggleMenu(editor));
-				this.dropdownMenu.addEventListener('click', event => this.toggleItem(event, editor));
-				document.addEventListener('click', event => {
-					let element = event.target instanceof Element ? event.target : null;
-					while (element) {
-						if (element.isSameNode(this.button) || element.isSameNode(this.dropdownMenu))
-							return;
-						element = element.parentElement;
-					}
-					this.toggleMenu(editor, false);
-				});
-			} else {
-				this.button.addEventListener('click', event => this.toggleItem(event, editor));
-			}
 		}
 
 		clicked() {}
@@ -248,19 +272,15 @@ namespace controls {
 			extensions.push(TextColor.configure({allowedClasses: this.allowedClasses}));
 		}
 
-		private toggleMenu(editor: Editor, force?: boolean) {
-			const expanded = (force !== false && this.button.ariaExpanded === 'false');
-			this.button.ariaExpanded = expanded ? 'true' : 'false';
+		protected toggleMenu(editor: Editor, force?: boolean) {
+			super.toggleMenu(editor, force);
 			this.dropdownItems.forEach(element => {
 				const color = this.extractColor(element);
 				element.parentElement?.classList.toggle('active', editor.isActive({textColor: color}));
 			});
-			computePosition(this.button, this.dropdownMenu).then(
-				({x, y}) => Object.assign(this.dropdownMenu.style, {left: `${x}px`, top: `${y}px`})
-			);
 		}
 
-		toggleItem(event: MouseEvent, editor: Editor) {
+		protected toggleItem(event: MouseEvent, editor: Editor) {
 			let element = event.target instanceof Element ? event.target : null;
 			while (element) {
 				if (element instanceof HTMLAnchorElement) {
@@ -386,17 +406,13 @@ namespace controls {
 		}
 	}
 
-	export class HeadingAction extends Action {
-		private readonly dropdownMenu: HTMLElement | null;
-		private readonly dropdownItems: NodeListOf<Element> | [] = [];
+	export class HeadingAction extends DropdownAction {
 		private readonly defaultIcon: Element;
 		private readonly levels: Array<Level> = [];
 
 		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
-			super(wrapperElement, name, button);
-			this.dropdownMenu = button.nextElementSibling instanceof HTMLUListElement && button.nextElementSibling.role === 'menu' ? button.nextElementSibling : null;
+			super(wrapperElement, name, button, '[richtext-click^="heading:"]');
 			if (this.dropdownMenu) {
-				this.dropdownItems = this.dropdownMenu.querySelectorAll('[richtext-click^="heading:"]');
 				this.dropdownItems.forEach(element => this.levels.push(this.extractLevel(element)));
 			} else {
 				this.levels.push(this.extractLevel(this.button));
@@ -410,24 +426,6 @@ namespace controls {
 				throw new Error(`Element ${element} requires attribute 'richtext-click'.`);
 			const level = parseInt(parts[1]) as Level;
 			return level;
-		}
-
-		installEventHandler(editor: Editor) {
-			if (this.dropdownMenu) {
-				this.button.addEventListener('click', () => this.toggleMenu(editor));
-				this.dropdownMenu.addEventListener('click', event => this.toggleItem(event, editor));
-				document.addEventListener('click', event => {
-					let element = event.target instanceof Element ? event.target : null;
-					while (element) {
-						if (element.isSameNode(this.button) || element.isSameNode(this.dropdownMenu))
-							return;
-						element = element.parentElement;
-					}
-					this.toggleMenu(editor, false);
-				});
-			} else {
-				this.button.addEventListener('click', event => this.toggleItem(event, editor));
-			}
 		}
 
 		clicked() {}
@@ -468,21 +466,15 @@ namespace controls {
 			}
 		}
 
-		private toggleMenu(editor: Editor, force?: boolean) {
-			const expanded = (force !== false && this.button.ariaExpanded === 'false');
-			this.button.ariaExpanded = expanded ? 'true' : 'false';
+		protected toggleMenu(editor: Editor, force?: boolean) {
+			super.toggleMenu(editor, force);
 			this.dropdownItems.forEach(element => {
 				const level = this.extractLevel(element);
 				element.parentElement?.classList.toggle('active', editor.isActive('heading', {level}));
 			});
-			if (this.dropdownMenu) {
-				computePosition(this.button, this.dropdownMenu).then(
-					({x, y}) => Object.assign(this.dropdownMenu!.style, {left: `${x}px`, top: `${y}px`})
-				);
-			}
 		}
 
-		toggleItem(event: MouseEvent, editor: Editor) {
+		protected toggleItem(event: MouseEvent, editor: Editor) {
 			let element = event.target instanceof Element ? event.target : null;
 			while (element) {
 				if (element instanceof HTMLButtonElement || element instanceof HTMLAnchorElement) {
@@ -501,9 +493,7 @@ namespace controls {
 		}
 	}
 
-	export class TextAlignAction extends Action {
-		private readonly dropdownMenu: HTMLElement | null;
-		private readonly dropdownItems: NodeListOf<Element> | [] = [];
+	export class TextAlignAction extends DropdownAction {
 		private readonly defaultIcon: Element;
 		private readonly options: TextAlignOptions = {
 			types: ['heading', 'paragraph'],
@@ -512,10 +502,8 @@ namespace controls {
 		};
 
 		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
-			super(wrapperElement, name, button);
-			this.dropdownMenu = button.nextElementSibling instanceof HTMLUListElement && button.nextElementSibling.role === 'menu' ? button.nextElementSibling : null;
+			super(wrapperElement, name, button, '[richtext-click^="alignment:"]');
 			if (this.dropdownMenu) {
-				this.dropdownItems = this.dropdownMenu.querySelectorAll('[richtext-click^="alignment:"]');
 				this.dropdownItems.forEach(element => {
 					this.options.alignments.push(this.extractAlignment(element));
 				});
@@ -530,24 +518,6 @@ namespace controls {
 			if (parts.length !== 2)
 				throw new Error(`Element ${element} requires attribute 'richtext-click'.`);
 			return parts[1];
-		}
-
-		installEventHandler(editor: Editor) {
-			if (this.dropdownMenu) {
-				this.button.addEventListener('click', () => this.toggleMenu(editor));
-				this.dropdownMenu.addEventListener('click', event => this.toggleItem(event, editor));
-				document.addEventListener('click', event => {
-					let element = event.target instanceof Element ? event.target : null;
-					while (element) {
-						if (element.isSameNode(this.button) || element.isSameNode(this.dropdownMenu))
-							return;
-						element = element.parentElement;
-					}
-					this.toggleMenu(editor, false);
-				});
-			} else {
-				this.button.addEventListener('click', event => this.toggleItem(event, editor));
-			}
 		}
 
 		clicked() {}
@@ -586,21 +556,15 @@ namespace controls {
 			}
 		}
 
-		private toggleMenu(editor: Editor, force?: boolean) {
-			const expanded = (force !== false && this.button.ariaExpanded === 'false');
-			this.button.ariaExpanded = expanded ? 'true' : 'false';
+		protected toggleMenu(editor: Editor, force?: boolean) {
+			super.toggleMenu(editor, force);
 			this.dropdownItems.forEach(element => {
 				const alignment = this.extractAlignment(element);
 				element.parentElement?.classList.toggle('active', editor.isActive({textAlign: alignment}));
 			});
-			if (this.dropdownMenu) {
-				computePosition(this.button, this.dropdownMenu).then(
-					({x, y}) => Object.assign(this.dropdownMenu!.style, {left: `${x}px`, top: `${y}px`})
-				);
-			}
 		}
 
-		toggleItem(event: MouseEvent, editor: Editor) {
+		protected toggleItem(event: MouseEvent, editor: Editor) {
 			let element = event.target instanceof Element ? event.target : null;
 			while (element) {
 				if (element instanceof HTMLButtonElement || element instanceof HTMLAnchorElement) {

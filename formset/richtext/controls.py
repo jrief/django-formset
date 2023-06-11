@@ -95,7 +95,6 @@ class TextColor(ControlElement):
     name = 'textColor'
     label = _("Text Color")
     template_name = 'formset/{framework}/buttons/richtext_color.html'
-    colors = [None]
     class_based = None
 
     def __init__(self, colors):
@@ -112,6 +111,7 @@ class TextColor(ControlElement):
                 if self.class_based is False:
                     raise ImproperlyConfigured(f"Given color {color} does not look like a valid CSS class name")
                 self.class_based = True
+        self.colors = [None]  # the default color
         self.colors.extend(colors)
 
     def render(self, renderer):
