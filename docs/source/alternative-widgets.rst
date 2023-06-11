@@ -110,7 +110,5 @@ In addition to these two widgets **django-formset** offers two more alternatives
 In some situations, developers might want to use their own HTML representation and styles for
 date- and datetime-pickers. Since those calendar sheets are rendered by Django, developers have
 full control over the rendering of those widgets and can even use their own context to add
-additional information.
-
-Please read the section :ref:`calendar` on details about these two alternative widgets. Views
-implementing the latter, must inherit from :class:`formset.calendar.CalendarResponseMixin`.
+additional information. Please read the section :ref:`calendar` on details about these two
+alternative widgets.

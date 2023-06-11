@@ -138,6 +138,25 @@ The class :class:`formset.richtext.controls.Separator` has no functional purpose
 to separate the other buttons visually using a vertical bar.
 
 
+.. rubric:: Text Align
+
+The class :class:`formset.richtext.controls.TextAlign` can be used to align a block of text. It must
+be initialized as
+
+.. code-block:: python
+
+	TextAlign(['left', 'center', 'right', 'justify])
+
+this will create a drop down menu offering these three options. As an alternative one can for
+instance use
+
+.. code-block:: python
+
+	TextAlign('right')
+
+which creates a single button to align the selectd text box to the right.
+
+
 .. rubric:: Text Color
 
 The class :class:`formset.richtext.controls.TextColor` can be used to mark text in different colors.
@@ -153,10 +172,104 @@ element must be initialized with arbitrary CSS classes, for instance
 
 .. code-block:: python
 
-    TextColor(['text-red', 'text-green', 'text-blue']) 
+	TextColor(['text-red', 'text-green', 'text-blue']) 
 
 The implementor then is responsible for setting the text color in its CSS file for these classes.
 Style- and class-based initialization can not be interchanged.
+
+
+.. rubric:: Text Indent
+
+The class :class:`formset.richtext.controls.TextIndent` can be used to indent and outdent the first
+line of a text block. It must be initialized as
+
+.. code-block:: python
+
+    TextIndent('indent')  # to indent the first line
+    TextIndent('outdent')  # to indent all but the first line 
+
+
+.. rubric:: Text Margin
+
+The class :class:`formset.richtext.controls.TextMargin` can be used to indent and dedent a text
+block. It must be initialized as
+
+.. code-block:: python
+
+    TextMargin('increase')  # to increase the left margin
+    TextIndent('decrease')  # to decrease the left margin 
+
+
+.. rubric:: Blockquote
+
+The class :class:`formset.richtext.controls.Blockquote` can be used to mark a text block as quoted
+by adding a thick border on its left.
+
+
+.. rubric:: Code Block
+
+The class :class:`formset.richtext.controls.CodeBlock` can be used to mark a text block as a code
+block. This is useful to show samples of code.
+
+
+.. rubric:: Hard Break
+
+The class :class:`formset.richtext.controls.Hardbreak` can be used to add a hard break to a
+paragraph, ie. add a `<br>`.
+
+
+.. rubric:: Additional Attributes
+
+By adding ``maxlength`` to the widget's attributes, we can limit the number of characters to be
+entered into this text field. This will also visually show how many characters are left.
+
+By adding ``placeholder="Some text"`` to the widget's attributes, we can add a placeholder to the
+text field. This will disappear as soon as we start typing.
+
+
+Using all Control Elements
+--------------------------
+
+If used with all of the described control elements, the editor may look like:
+
+.. django-view:: editor_form
+
+	from formset.richtext import controls
+
+	class EditorForm(forms.Form):
+	    text = fields.CharField(widget=RichTextarea(
+	        control_elements=[
+	            controls.Heading([1,2,3]),
+	            controls.Bold(),
+	            controls.Blockquote(),
+	            controls.CodeBlock(),
+	            controls.HardBreak(),
+	            controls.Italic(),
+	            controls.Underline(),
+	            controls.TextColor(['rgb(212, 0, 0)', 'rgb(0, 212, 0)', 'rgb(0, 0, 212)']),
+	            controls.TextIndent(),
+	            controls.TextIndent('outdent'),
+	            controls.TextMargin('increase'),
+	            controls.TextMargin('decrease'),
+	            controls.Link(),
+	            controls.TextAlign(['left', 'center', 'right']),
+	            controls.HorizontalRule(),
+	            controls.Subscript(),
+	            controls.Superscript(),
+	            controls.Separator(),
+	            controls.ClearFormat(),
+	            controls.Redo(),
+	            controls.Undo(),
+	        ],
+	        attrs={'placeholder': "Start typing …", 'maxlength': 250},
+	    ))
+
+.. django-view:: editor_view
+	:view-function: EditorView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'editor-result'}, form_kwargs={'auto_id': 'ef_id_%s'})
+	:hide-code:
+
+	class EditorView(BlogView):
+	    form_class = EditorForm
 
 
 Implementation
@@ -164,8 +277,8 @@ Implementation
 
 This rich text area is based on the `Tiptap framework`_. This framework offers many more formatting
 options than currently implemented by the **django-formset** library. In the near future I will add
-many more of those control elements. Please help me to implement them by contributing to these
-projects.
+them in a similar way to the existing control elements. Please help me to implement them by
+contributing to this project.
 
 .. _Tiptap framework: https://tiptap.dev/
 

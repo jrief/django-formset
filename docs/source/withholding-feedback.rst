@@ -65,8 +65,9 @@ Withhold Validation Tick
 	:view-function: PersonView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'person-wf-success', 'withhold_feedback': 'success'}, form_kwargs={'auto_id': 'wfs_id_%s'})
 	:hide-code:
 
-In this example we use ``withhold-feedback="success"`` to not change the field border to green and
-to withhold tick on the right, whenever a form field with valid data loses focus.
+In this example we use ``withhold-feedback="success"``. Whenever a form field with valid data loses
+focus, the field border does not change to green and no tick is rendered on the right part of the
+field.
 
 
 Withhold Error Messages
@@ -76,9 +77,9 @@ Withhold Error Messages
 	:view-function: PersonView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'person-wf-messages', 'withhold_feedback': 'messages'}, form_kwargs={'auto_id': 'wfm_id_%s'})
 	:hide-code:
 
-In this example we use ``withhold-feedback="messages"`` to withhold the red error message, which
-appears below all form fields containing invalid data, whenever they lose focus. Note that this only
-applies to client-side form validation. Whenever the server rejects a submitted form containing
+In this example we use ``withhold-feedback="messages"`` to withhold the red error message. Whenever
+a form field with invalid data loses focus, no message is rendered below that field. Note that this
+only applies to client-side form validation. Whenever the server rejects a submitted form containing
 invalid data, those messages are still rendered below those fields. 
 
 
@@ -89,10 +90,11 @@ Withhold Error Symbol
 	:view-function: PersonView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'person-wf-errors', 'withhold_feedback': 'errors'}, form_kwargs={'auto_id': 'wfe_id_%s'})
 	:hide-code:
 
-In this example we use ``withhold-feedback="errors"`` to withhold the red field border and the
-encircled exclamation mark on the right, whenever a form field with invalid data loses focus. Note
-that this only applies to client-side form validation. Whenever the server rejects a submitted form
-containing invalid data, those fields are still rendered using the "error" feedback. 
+In this example we use ``withhold-feedback="errors"`` to withhold the red field border. Whenever
+a form field with invalid data loses focus, no red encircled exclamation mark appears on the right
+and the border color does not change to red. Note that this only applies to client-side form
+validation. Whenever the server rejects a submitted form containing invalid data, those fields are
+still rendered using the "error" feedback. 
 
 
 Withhold Warning Symbol
@@ -102,10 +104,10 @@ Withhold Warning Symbol
 	:view-function: PersonView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'person-wf-warnings', 'withhold_feedback': 'warnings'}, form_kwargs={'auto_id': 'wfw_id_%s'})
 	:hide-code:
 
-In this example we use ``withhold-feedback="warnings"`` to withhold the orange warning triangle on
-the right, whenever a focused form field does not contains valid data (yet). If attribute ``errors``
-has been added to ``withhold-feedback="…"``, then this warning symbol will remain even if the field
-loses focus.
+In this example we use ``withhold-feedback="warnings"`` to withhold the orange warning triangle.
+Whenever a focused form field does not contain valid data (yet), no warning triangle is rendered
+on the right side of that field. If attribute ``errors`` has been added to
+``withhold-feedback="…"``, then this warning symbol will remain even if the field loses focus.
 
 
 Server-Side Validation

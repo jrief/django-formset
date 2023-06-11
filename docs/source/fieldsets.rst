@@ -38,7 +38,7 @@ possibilities.
 	from formset.renderers.bootstrap import FormRenderer
 
 .. django-view:: fieldset
-	:view-function: CustomerView.as_view(extra_context={'framework': 'bootstrap'}, collection_kwargs={'renderer': FormRenderer(field_css_classes='mb-3')})
+	:view-function: CustomerView.as_view(extra_context={'framework': 'bootstrap'}, collection_kwargs={'renderer': FormRenderer(field_css_classes='mb-3', fieldset_css_classes='border rounded p-3 mb-3')})
 
 	from django.forms import fields, forms
 	from formset.fieldset import Fieldset

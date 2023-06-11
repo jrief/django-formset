@@ -81,6 +81,9 @@ Django for `updating models`_:
 	    template_name = 'form.html'
 	    success_url = '/success'
 
+.. note:: After submission, the content of these form fields is stored in the database. Therefore
+	after reloading this page, the same content will reappear in the form.
+
 This view class inherits from ``UpdateView``, which is responsible for displaying the form and
 validating the submitted data, just as we would do it using a classic Django view class. The other
 three mixin classes serve the following purposes:
