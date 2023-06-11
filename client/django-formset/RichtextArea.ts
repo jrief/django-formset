@@ -1,5 +1,5 @@
 import styles from './RichtextArea.scss';
-import { createPopper, Instance } from '@popperjs/core';
+import { computePosition } from '@floating-ui/dom';
 import { Editor, Extension, Mark, Node } from '@tiptap/core';
 import Blockquote from '@tiptap/extension-blockquote';
 import Bold from '@tiptap/extension-bold';
@@ -152,7 +152,6 @@ namespace controls {
 	}
 
 	export class TextColorAction extends Action {
-		private readonly dropdownInstance?: Instance;
 		private readonly dropdownMenu: HTMLElement;
 		private readonly dropdownItems: NodeListOf<Element> | [] = [];
 		private readonly colors: Array<string|null> = [];
@@ -160,12 +159,9 @@ namespace controls {
 
 		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
 			super(wrapperElement, name, button);
-			if (!(button.nextElementSibling instanceof HTMLUListElement) || button.nextElementSibling.role !== 'menu')
+			if (!(this.button.nextElementSibling instanceof HTMLUListElement) || this.button.nextElementSibling.role !== 'menu')
 				throw new Error('Text color requires a sibling element <ul role="menu">…</ul>');
-			this.dropdownMenu = button.nextElementSibling;
-			this.dropdownInstance = createPopper(this.button, this.dropdownMenu, {
-				placement: 'bottom-start',
-			});
+			this.dropdownMenu = this.button.nextElementSibling;
 			this.dropdownItems = this.dropdownMenu.querySelectorAll('[richtext-click^="color:"]');
 			this.collecColors();
 		}
@@ -259,7 +255,9 @@ namespace controls {
 				const color = this.extractColor(element);
 				element.parentElement?.classList.toggle('active', editor.isActive({textColor: color}));
 			});
-			this.dropdownInstance?.update();
+			computePosition(this.button, this.dropdownMenu).then(
+				({x, y}) => Object.assign(this.dropdownMenu.style, {left: `${x}px`, top: `${y}px`})
+			);
 		}
 
 		toggleItem(event: MouseEvent, editor: Editor) {
@@ -389,7 +387,6 @@ namespace controls {
 	}
 
 	export class HeadingAction extends Action {
-		private readonly dropdownInstance?: Instance;
 		private readonly dropdownMenu: HTMLElement | null;
 		private readonly dropdownItems: NodeListOf<Element> | [] = [];
 		private readonly defaultIcon: Element;
@@ -399,9 +396,6 @@ namespace controls {
 			super(wrapperElement, name, button);
 			this.dropdownMenu = button.nextElementSibling instanceof HTMLUListElement && button.nextElementSibling.role === 'menu' ? button.nextElementSibling : null;
 			if (this.dropdownMenu) {
-				this.dropdownInstance = createPopper(this.button, this.dropdownMenu, {
-					placement: 'bottom-start',
-				});
 				this.dropdownItems = this.dropdownMenu.querySelectorAll('[richtext-click^="heading:"]');
 				this.dropdownItems.forEach(element => this.levels.push(this.extractLevel(element)));
 			} else {
@@ -481,7 +475,11 @@ namespace controls {
 				const level = this.extractLevel(element);
 				element.parentElement?.classList.toggle('active', editor.isActive('heading', {level}));
 			});
-			this.dropdownInstance?.update();
+			if (this.dropdownMenu) {
+				computePosition(this.button, this.dropdownMenu).then(
+					({x, y}) => Object.assign(this.dropdownMenu!.style, {left: `${x}px`, top: `${y}px`})
+				);
+			}
 		}
 
 		toggleItem(event: MouseEvent, editor: Editor) {
@@ -504,7 +502,6 @@ namespace controls {
 	}
 
 	export class TextAlignAction extends Action {
-		private readonly dropdownInstance?: Instance;
 		private readonly dropdownMenu: HTMLElement | null;
 		private readonly dropdownItems: NodeListOf<Element> | [] = [];
 		private readonly defaultIcon: Element;
@@ -518,9 +515,6 @@ namespace controls {
 			super(wrapperElement, name, button);
 			this.dropdownMenu = button.nextElementSibling instanceof HTMLUListElement && button.nextElementSibling.role === 'menu' ? button.nextElementSibling : null;
 			if (this.dropdownMenu) {
-				this.dropdownInstance = createPopper(this.button, this.dropdownMenu, {
-					placement: 'bottom-start',
-				});
 				this.dropdownItems = this.dropdownMenu.querySelectorAll('[richtext-click^="alignment:"]');
 				this.dropdownItems.forEach(element => {
 					this.options.alignments.push(this.extractAlignment(element));
@@ -599,7 +593,11 @@ namespace controls {
 				const alignment = this.extractAlignment(element);
 				element.parentElement?.classList.toggle('active', editor.isActive({textAlign: alignment}));
 			});
-			this.dropdownInstance?.update();
+			if (this.dropdownMenu) {
+				computePosition(this.button, this.dropdownMenu).then(
+					({x, y}) => Object.assign(this.dropdownMenu!.style, {left: `${x}px`, top: `${y}px`})
+				);
+			}
 		}
 
 		toggleItem(event: MouseEvent, editor: Editor) {

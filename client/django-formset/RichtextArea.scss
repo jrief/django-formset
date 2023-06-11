@@ -56,10 +56,15 @@
 				}
 				& + ul[role="menu"] {
 					display: none;
+					position: absolute;
+					width: max-content;
+					top: 0;
+					left: 0;
 					padding: inherit;
 					list-style: none;
 					background-color: inherit;
 					border-color: black;
+
 					> li {
 						background-color: inherit;
 						opacity: var(--button-opacity);
