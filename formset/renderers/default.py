@@ -2,6 +2,7 @@ import copy
 import types
 
 from django.forms.renderers import DjangoTemplates
+from django.utils.html import format_html
 
 from formset.boundfield import ClassList
 
@@ -113,7 +114,7 @@ class FormRenderer(DjangoTemplates):
 
     @classmethod
     def _copy_context(cls, context):
-        """"
+        """
         Make a semi-deep copy of context. This is required since the amend-methods
         modify the context before rendering. Python's `copy.deepcopy()` doesn't work
         here, because the File field's _io.BufferedReader can't be pickled.
@@ -132,3 +133,26 @@ class FormRenderer(DjangoTemplates):
             context = types.MethodType(context_modifier, self)(context)
         template = self.get_template(template_name)
         return template.render(context, request=request).strip()
+
+
+def richtext_attributes(attrs):
+    """
+    Converts the internal representation of node attributes into a specific string such as
+    ``style="prop: value"`` or ``class="specfic-css-class"``. This is to enforce paragraph
+    styling according to the CSS framework's best practice.
+    """
+    styles = {}
+    for key, value in attrs.items():
+        if not value:
+            continue
+        if key == 'textIndent' and value == 'indent':
+            styles.update({'text-indent': '3em'})
+        elif key == 'textIndent' and value == 'outdent':
+            styles.update({'text-indent': '-3em', 'padding': '3em'})
+        elif key == 'textMargin':
+            styles.update({'margin': f'{2 * value}em'})
+        elif key == 'textAlign':
+            styles.update({'text-align': value})
+    if styles:
+        return format_html(' style="{}"', ' '.join(f'{prop}: {val};' for prop, val in styles.items()))
+    return ''

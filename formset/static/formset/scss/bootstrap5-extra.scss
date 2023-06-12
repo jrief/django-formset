@@ -86,3 +86,16 @@ django-formset {
 		}
 	}
 }
+
+.text-indent {
+	text-indent: 3em;
+}
+.text-outdent {
+	text-indent: -3em;
+	padding-left: 3em;
+}
+@for $indent from 1 through 10 {
+	.text-margin-#{$indent} {
+		margin-left: #{2 * $indent}em;
+	}
+}

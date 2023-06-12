@@ -42,6 +42,9 @@ export const TextColor = Mark.create<TextColorOptions>({
 					return {class: attributes.textColor};
 				},
 			},
+			classBased: {
+				default: this.options.allowedClasses.length !== 0,
+			},
 		};
 	},
 
@@ -70,7 +73,7 @@ export const TextColor = Mark.create<TextColorOptions>({
 	addCommands() {
 		return {
 			setColor: (color: string) => ({commands}) => {
-				return commands.setMark(this.name, {textColor: color});
+				return commands.setMark(this.name, {textColor: color, classBased: this.options.allowedClasses.length !== 0});
 			},
 			unsetColor: () => ({commands}) => {
 				return commands.unsetMark(this.name);
