@@ -1,0 +1,9 @@
+{% extends "./native-form.html" %}
+{% load render_form from formsetify %}
+{% load richtext %}
+
+{% block main-content %}
+	{{ block.super }}
+	<br/>
+	<div>{% render_richtext object.text framework='bootstrap' %}</div>
+{% endblock %}
