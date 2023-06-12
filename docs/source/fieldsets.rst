@@ -38,7 +38,7 @@ possibilities.
 	from formset.renderers.bootstrap import FormRenderer
 
 .. django-view:: fieldset
-	:view-function: CustomerView.as_view(extra_context={'framework': 'bootstrap'}, collection_kwargs={'renderer': FormRenderer(field_css_classes='mb-3', fieldset_css_classes='border rounded p-3 mb-3')})
+	:view-function: CustomerView.as_view(extra_context={'framework': 'bootstrap'})
 
 	from django.forms import fields, forms
 	from formset.fieldset import Fieldset
@@ -60,11 +60,18 @@ possibilities.
 	class CustomerCollection(FormCollection):
 	    customer = CustomerForm()
 	    register = RegisterForm()
+	    default_renderer = FormRenderer(
+	        field_css_classes='mb-3',
+	        fieldset_css_classes='border rounded p-3 mb-3',
+	    )
 
 	class CustomerView(FormCollectionView):
 	    collection_class = CustomerCollection
 	    template_name = "form-collection.html"
 	    success_url = "/success"
+
+.. note:: Bootstrap hides the border of fieldsets. Therefore in this example, we added a default
+	renderer, to set the proper CSS classes for the given fieldset.
 
 The interesting part of this collection is that we can hide the fieldset by clicking on the
 checkbox named "I'm not a customer". This means that by using conditionals, we can dynamically
