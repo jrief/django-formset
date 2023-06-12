@@ -4,7 +4,7 @@ from formset.richtext.fields import RichTextField
 
 
 class BlogModel(models.Model):
-    text = RichTextField()
+    body = RichTextField()
 
     created_by = models.CharField(
         editable=False,

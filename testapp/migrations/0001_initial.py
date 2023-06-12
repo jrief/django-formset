@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
             name='BlogModel',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', formset.richtext.fields.RichTextField()),
+                ('body', formset.richtext.fields.RichTextField()),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
             ],
         ),

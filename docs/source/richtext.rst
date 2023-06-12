@@ -161,13 +161,13 @@ which creates a single button to align the selectd text box to the right.
 
 The class :class:`formset.richtext.controls.TextColor` can be used to mark text in different colors.
 It offers two different modes: Styles and CSS classes. When used with styles, the control element
-must be initialized with colors in rgb format, for instance
+must be initialized with colors in rgb format, for instance:
 
 .. code-block:: python
 
     TextColor(['rgb(255, 0, 0)', 'rgb(0, 255, 0)', 'rgb(0, 0, 255)']) 
 
-this will offer text in three colors, red, green and blue. When used with classes, the control
+This will offer text in three colors, red, green and blue. When used with classes, the control
 element must be initialized with arbitrary CSS classes, for instance
 
 .. code-block:: python
@@ -227,62 +227,6 @@ By adding ``placeholder="Some text"`` to the widget's attributes, we can add a p
 text field. This will disappear as soon as we start typing.
 
 
-Using all Control Elements
---------------------------
-
-If used with all of the described control elements, the editor may look like:
-
-.. django-view:: editor_form
-
-	from formset.richtext import controls
-
-	class EditorForm(forms.Form):
-	    text = fields.CharField(widget=RichTextarea(
-	        control_elements=[
-	            controls.Heading([1,2,3]),
-	            controls.Bold(),
-	            controls.Blockquote(),
-	            controls.CodeBlock(),
-	            controls.HardBreak(),
-	            controls.Italic(),
-	            controls.Underline(),
-	            controls.TextColor(['rgb(212, 0, 0)', 'rgb(0, 212, 0)', 'rgb(0, 0, 212)']),
-	            controls.TextIndent(),
-	            controls.TextIndent('outdent'),
-	            controls.TextMargin('increase'),
-	            controls.TextMargin('decrease'),
-	            controls.Link(),
-	            controls.TextAlign(['left', 'center', 'right']),
-	            controls.HorizontalRule(),
-	            controls.Subscript(),
-	            controls.Superscript(),
-	            controls.Separator(),
-	            controls.ClearFormat(),
-	            controls.Redo(),
-	            controls.Undo(),
-	        ],
-	        attrs={'placeholder': "Start typing …", 'maxlength': 250},
-	    ))
-
-.. django-view:: editor_view
-	:view-function: EditorView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'editor-result'}, form_kwargs={'auto_id': 'ef_id_%s'})
-	:hide-code:
-
-	class EditorView(BlogView):
-	    form_class = EditorForm
-
-
-Implementation
-==============
-
-This rich text area is based on the `Tiptap framework`_. This framework offers many more formatting
-options than currently implemented by the **django-formset** library. In the near future I will add
-them in a similar way to the existing control elements. Please help me to implement them by
-contributing to this project.
-
-.. _Tiptap framework: https://tiptap.dev/
-
-
 Richtext as a Model Field
 =========================
 
@@ -308,6 +252,11 @@ template filter `{{ …|safe }}`_.
 .. _django.utils.safestring.mark_safe: https://docs.djangoproject.com/en/stable/ref/utils/#django.utils.safestring.mark_safe
 .. _{{ …|safe }}: https://docs.djangoproject.com/en/4.1/ref/templates/builtins/#safe
 
+While this is a quick and fast solution, we shall always keep in mind that storing plain HTML inside
+a database field, prevents us from transforming the stored information into the final format while
+rendering. This means that the stored HTML is rendered as-is. As an alternative we can store that
+data as JSON.
+
 
 Storing rich text as JSON
 -------------------------
@@ -322,16 +271,84 @@ field class ``TextField``. This model field provides the widget ``RichTextarea``
 settings. Often that might not be the desired configuration, and it may be necessary to re-declare
 that widget, while creating the form from the model.
 
-Since the content is stored in JSON, it has to be converted to HTML before being rendered. For this
+In this example we use a model with one field for storing the rich text entered by the user:
+
+.. code-block:: python
+	:caption: models.py
+
+	from django.db.models import Model
+	from formset.richtext.fields import RichTextField
+	
+	class BlogModel(Model):
+	    body = RichTextField()
+
+We then use that model to create a Django ModelForm. For demonstration purposes we configure all
+available control elements. Such a configured editor then will look like: 
+
+.. django-view:: editor_form
+	:caption: forms.py
+
+	from django.forms.models import ModelForm
+	from formset.richtext import controls
+	from testapp.models import BlogModel
+
+	class EditorForm(ModelForm):
+	    class Meta:
+	        model = BlogModel
+	        fields = '__all__'
+	        widgets = {
+	            'body': RichTextarea(control_elements=[
+	                controls.Heading([1,2,3]),
+	                controls.Bold(),
+	                controls.Blockquote(),
+	                controls.CodeBlock(),
+	                controls.HardBreak(),
+	                controls.Italic(),
+	                controls.Underline(),
+	                controls.TextColor(['rgb(212, 0, 0)', 'rgb(0, 212, 0)', 'rgb(0, 0, 212)']),
+	                controls.TextIndent(),
+	                controls.TextIndent('outdent'),
+	                controls.TextMargin('increase'),
+	                controls.TextMargin('decrease'),
+	                controls.Link(),
+	                controls.TextAlign(['left', 'center', 'right']),
+	                controls.HorizontalRule(),
+	                controls.Subscript(),
+	                controls.Superscript(),
+	                controls.Separator(),
+	                controls.ClearFormat(),
+	                controls.Redo(),
+	                controls.Undo(),
+	            ], attrs={'placeholder': "Start typing …", 'maxlength': 2000}),
+	        }
+
+.. django-view:: editor_view
+	:view-function: EditorView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'editor-result'}, form_kwargs={'auto_id': 'ef_id_%s'})
+	:hide-code:
+
+	from django.views.generic import UpdateView
+	from formset.views import FormViewMixin, IncompleteSelectResponseMixin
+	from testapp.demo_helpers import SessionModelFormViewMixin
+
+	class EditorView(SessionModelFormViewMixin, FormViewMixin, UpdateView):
+	    model = BlogModel
+	    form_class = EditorForm
+	    template_name = 'form.html'
+	    success_url = '/success'
+
+.. note:: After submission, the content of this form is stored in the database. Therefore after
+	reloading this page, the same content will reappear in the form.
+
+Since the content is stored in JSON, it must be converted to HTML before being rendered. For this
 purpose **django-formset** offers a templatetag, which can be used such as:
 
 .. code-block:: django
 
 	{% load richtext %}
 	
-	{% render_richtext obj.content %}
+	{% render_richtext obj.body %}
 
-Here ``obj`` is a Django model instance with a field of type ``RichTextField``.
+Here ``obj`` is a Django model instance with the field ``body`` of type ``RichTextField``.
 
 
 Overriding the Renderer
@@ -391,3 +408,17 @@ When rendered by the default ``richtext/doc.html`` template, its output looks li
 .. code-block:: html
 
 	<p>This is <strong>bold</strong> <em>and italic</em> text.</p> 
+
+
+Implementation Details
+======================
+
+This rich text area is based on the `headless Tiptap editor`_. This framework offers many more
+formatting options than currently implemented by the **django-formset** library. In the near future
+I will add them in a similar way to the existing control elements. Please help me to implement them
+by contributing to this project.
+
+.. _headless Tiptap editor: https://tiptap.dev/
+
+With Tiptap it even is possible to create application specific control elements, which thanks to the
+internal JSON structure, then can be transformed to any imaginable HTML.
