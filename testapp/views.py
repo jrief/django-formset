@@ -554,36 +554,3 @@ urlpatterns = [
         extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)'},
     ), name='button-actions'),
 ]
-
-# this creates permutations of forms to show how to withhold which feedback
-withhold_feedbacks = ['messages', 'errors', 'warnings', 'success']
-extra_doc_withhold = {
-    'messages': "that error messages below the field will not be rendered when the user blurs a field with "
-                "invalid data.",
-    'errors': "that the border does not change color (usually red) and the field does not show an alert symbol, "
-              "when the user blurs a field with invalid data.",
-    'warnings': "that the field does not show a warning symbol (usually orange), when a field has focus, "
-                "but its content does not contain valid data (yet). If only ``errors`` has been added to "
-                "``withhold-feedback=\"...\"``, then the warning symbol will remain even if the field looses focus.",
-    'success': "that the border does not change color (usually green) and the field does not show a success symbol,"
-               "when the user blurs a field with valid data.",
-}
-for length in range(len(withhold_feedbacks) + 1):
-    for withhold_feedback in itertools.combinations(withhold_feedbacks, length):
-        suffix = '.' + ''.join(w[0] for w in withhold_feedback) if length else ''
-        if withhold_feedback:
-            extra_docs = ['------', '', 'Using ``withhold-feedback="{}"`` means:'.format(' '.join(withhold_feedback)), '']
-        else:
-            extra_docs = []
-        extra_docs.extend([f'* {extra_doc_withhold[w]}' for w in withhold_feedback])
-        force_submission = suffix == '.mews'  # just for testing
-        urlpatterns.append(
-            path(f'withhold{suffix}', DemoFormView.as_view(
-                form_class=SimplePersonForm,
-                extra_context={
-                    'withhold_feedback': ' '.join(withhold_feedback),
-                    'force_submission': force_submission,
-                },
-                extra_doc='\n'.join(extra_docs),
-            ))
-        )
