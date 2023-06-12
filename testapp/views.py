@@ -1,5 +1,4 @@
 import functools
-import itertools
 import json
 
 from django.conf import settings
@@ -14,7 +13,7 @@ from django.template.loader import get_template
 from django.urls import get_resolver, path
 from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
-from django.views.generic import DetailView, FormView, TemplateView, UpdateView
+from django.views.generic import FormView, TemplateView, UpdateView
 
 from docutils.frontend import OptionParser
 from docutils.io import StringOutput
@@ -31,8 +30,9 @@ from formset.views import (
 
 from testapp.demo_helpers import SessionFormCollectionViewMixin
 from testapp.forms.address import AddressForm
-from testapp.forms.advertisement import AdvertisementForm, AdvertisementModelForm
+from testapp.forms.advertisement import AdvertisementForm
 from testapp.forms.article import ArticleForm
+from testapp.forms.blog import BlogModelForm
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import (
     SimpleContactCollection, ContactCollection, ContactCollectionList, IntermediateContactCollectionList,
@@ -49,7 +49,7 @@ from testapp.forms.state import StateForm, StatesForm
 from testapp.forms.company import CompanyCollection, CompaniesCollection
 from testapp.forms.user import UserCollection, UserListCollection
 from testapp.forms.upload import UploadForm
-from testapp.models import AdvertisementModel, Company, PersonModel, PollModel
+from testapp.models import BlogModel, Company, PersonModel, PollModel
 
 
 parser = Parser()
@@ -448,10 +448,6 @@ than placing them below each other.
 urlpatterns = [
     path('', render_suburls),
     # path('success', SuccessView.as_view(), name='form_data_valid'),
-    path('tiptap/<int:pk>', DetailView.as_view(
-        model=AdvertisementModel,
-        template_name='testapp/tiptap.html',
-    )),
     path('complete.native', DemoFormView.as_view(
         form_class=CompleteForm,
         extra_doc=extra_doc_native,
@@ -543,14 +539,15 @@ urlpatterns = [
     path('userlist', UserCollectionView.as_view(
         collection_class=UserListCollection
     ), name='userlist'),
-    path('advertisementmodel', DemoModelFormView.as_view(
-        form_class=AdvertisementModelForm,
-        model=AdvertisementModel,
-    ), name='advertisementmodel'),
-    path('advertisementform', DemoFormView.as_view(
+    path('blog', DemoModelFormView.as_view(
+        form_class=BlogModelForm,
+        model=BlogModel,
+        template_name='testapp/native-form-tiptap.html'
+    ), name='blog'),
+    path('advertisement', DemoFormView.as_view(
         form_class=AdvertisementForm,
         #initial={'text': initial_html},
-    ), name='advertisementform'),
+    ), name='advertisement'),
     path('button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',

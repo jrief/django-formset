@@ -1,12 +1,11 @@
 from django.conf import settings
 from django.db import models
 
-from formset.richtext.fields import RichTextField
-
 from .article import Article, Reporter
 from .annotation import Annotation
 from .company import Company, Department, Team
 from .county import County, CountyUnnormalized, State
+from .blog import BlogModel
 from .poll import OpinionModel, PollModel, WeightedOpinion
 from .user import ExtendUser, User
 
@@ -99,14 +98,4 @@ class UserContact(models.Model):
         max_length=25,
         blank=True,
         null=True,
-    )
-
-
-class AdvertisementModel(models.Model):
-    text = RichTextField()
-
-    created_by = models.CharField(
-        editable=False,
-        max_length=40,
-        db_index=True,
     )
