@@ -94,15 +94,30 @@ have to map the widget in the ``Meta`` class of the form class instantiating the
 Widgets for Date- and DateTime Fields
 =====================================
 
-Django by default uses a field such as ``<input type="text" …>`` to accept dates as input. This
-means that the conversion from a string in potentially different formats, must be done by Django
-itself. Modern browsers however offer input fields such as ``<input … type="date">`` and
-``<input … type="datetime-local">``, and implement their own date- and datetime-pickers. Whenever a
-value is submitted from these widgets, it *always* uses the ISO format. Django instead allows
-different date- and datetime formats, and this can lead to ambiguities.
+Django by default uses HTML fields such as ``<input type="text" …>`` to accept dates as input. This
+means that the conversion from a string in potentially different formats, must be done by the server
+which usually does not know where the user is located. Modern browsers however offer input fields
+such as ``<input … type="date">`` and ``<input … type="datetime-local">``, and implement their own
+date- and datetime-pickers. Whenever a value is submitted from these widgets, they *always* use the
+ISO format. Django instead allows different date- and datetime formats, and this can lead to
+ambiguities. It therefore is recommended to replace the widgets for Django's DateField_ and
+DateTimeField_ against widgets which are more user friendly and widely supported by all browsers.
 
-These widgets can be imported from :class:`formset.widget.DateInput` and
-:class:`formset.widget.DateTimeInput`
+.. _DateField: https://docs.djangoproject.com/en/stable/ref/models/fields/#datefield
+.. _DateTimeField: https://docs.djangoproject.com/en/stable/ref/models/fields/#datetimefield
+
+.. code-block:: python
+
+	from formset.widget import DateInput, DateTimeInput
+
+	class ArticleForm(ModelForm):
+	    class Meta:
+	        ...
+	        widgets = {
+	            'date': DateInput(),
+	            'timestamp': DateTimeInput(),
+	            ...
+	        }
 
 In addition to these two widgets **django-formset** offers two more alternatives, namely
 :class:`formset.widget.DatePicker` and :class:`formset.widget.DateTimePicker`.
