@@ -103,7 +103,7 @@ def test_form_validity(page, bound_form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', views.keys())
 def test_touch_input_field(page, form, viewname):
-    field_group = page.query_selector('django-formset django-field-group')
+    field_group = page.query_selector('django-formset [role="group"]')
     assert 'dj-untouched' in field_group.get_attribute('class')
     assert 'dj-pristine' in field_group.get_attribute('class')
     assert 'dj-touched' not in field_group.get_attribute('class')
@@ -233,7 +233,7 @@ def test_email_field(page):
     assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is not None
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_text = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder').inner_text()
+    placeholder_text = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == "Enter a valid email address."
 
 
@@ -272,7 +272,7 @@ def test_integer_field(page):
     assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is not None
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_text = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder').inner_text()
+    placeholder_text = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == "Ensure this value is less than or equal to 4."
     input_elem.click()
     page.keyboard.press('Backspace')
@@ -283,7 +283,7 @@ def test_integer_field(page):
     assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is not None
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_text = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder').inner_text()
+    placeholder_text = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == "Value too low."
 
 
@@ -316,7 +316,7 @@ def test_float_field(page):
     assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is not None
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_text = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder').inner_text()
+    placeholder_text = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == "Input value must be a multiple of 0.5."
 
 
@@ -369,7 +369,7 @@ def test_boolean_field(page, mocker):
     assert page.query_selector('django-formset form:invalid') is not None
     assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is None
     assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is not None
-    placeholder_field = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder')
+    placeholder_field = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder')
     assert placeholder_field.inner_text() == ""
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     assert placeholder_field.inner_text() == "This field is required."
@@ -476,7 +476,7 @@ urlpatterns.append(
 def test_radiochoice_field(page, mocker):
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_field = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder')
+    placeholder_field = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder')
     assert placeholder_field.inner_text() == ""
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     assert placeholder_field.inner_text() == "This field is required."
@@ -513,7 +513,7 @@ urlpatterns.append(
 def test_multichoice_field(page, mocker):
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_field = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder')
+    placeholder_field = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder')
     assert placeholder_field.inner_text() == ""
     input_elem_a = page.query_selector('django-formset .dj-form input[value="a"]')
     input_elem_a.click()
@@ -550,7 +550,7 @@ urlpatterns.append(
 def test_textarea(page, mocker):
     assert page.query_selector('django-formset form:valid') is None
     assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_field = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder')
+    placeholder_field = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder')
     assert placeholder_field.inner_text() == ""
     textarea_elem = page.query_selector('django-formset .dj-form textarea')
     textarea_elem.click()

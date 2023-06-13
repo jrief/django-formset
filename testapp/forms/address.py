@@ -29,7 +29,7 @@ class AddressForm(forms.Form):
 
     This overwrites the renderer for this Form class. Here the CSS classes for the named fields ``postal_code`` and
     ``city`` replace the given defaults in the HTML element wrapping the input field(s),
-    ie. ``<django-field-group class="...">``. The key value ``'*'`` is used as a wildcard matching all other field
+    ie. ``<div role="group" class="...">``. The key value ``'*'`` is used as a wildcard matching all other field
     names.
     """
 

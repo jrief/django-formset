@@ -81,7 +81,7 @@ export abstract class Widget {
 	protected readonly fieldGroup: Element;
 
 	constructor(element: HTMLInputElement | HTMLSelectElement) {
-		const fieldGroup = element.closest('django-field-group');
+		const fieldGroup = element.closest('[role="group"]');
 		const form = element.form;
 		const formset = element.closest('django-formset');
 		if (!fieldGroup || !form || !formset)

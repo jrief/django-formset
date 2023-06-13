@@ -1,10 +1,12 @@
 ## Changes
 
 - 1.0
-  * **Breaking changes:** Class `FormCollection` is validated as complete entity and only after all
+  * **Breaking change:** Class `FormCollection` is validated as complete entity and only after all
     checks passed, models are created out of the cleaned data. This means that the method 
     `construct_instance` and `model_to_dict` changed their signature. Please read the docs on how to
     use them now.
+  * **Breaking change:** In all rendered forms, `<django-field-group>` is replaced against
+    `<div role="group">` because self-declared elements shall only be used as web components.
   * The documentation now is interactive integrating the many working examples. 
   * Add view class `BulkEditCollectionView` to edit a collection with siblings without any main
     object. Also add method `models_to_list` as a counterpart to `model_to_dict` for list views.

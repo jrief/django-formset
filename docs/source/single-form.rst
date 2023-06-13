@@ -91,14 +91,14 @@ our form. When rendered, the above form will roughly turn into HTML such as:
 	  <form id="id_personform"></form>
 	  <div class="rounded-xl dj-form">
 	    <div class="dj-form-errors"><ul class="dj-errorlist"></ul></div>
-	    <django-field-group class="mb-5 dj-required">
+	    <div role="group" class="mb-5 dj-required">
 	      <label class="formset-label">First name:</label>
 	      <input class="formset-text-input" form="id_personform" type="text" name="first_name" required="" pattern="^[A-Z][a-z -]+$">
 	      <div role="alert" class="dj-field-errors">
 	        <django-error-messages value_missing="This field is required." type_mismatch="A first name must start in upper case." pattern_mismatch="A first name must start in upper case." bad_input="Null characters are not allowed."></django-error-messages>
 	        <ul class="dj-errorlist"><li class="dj-placeholder"></li></ul>
 	      </div>
-	    </django-field-group>
+	    </div>
 	    <!-- other form fields snipped away -->
 	  </div>
 	  <button type="button" click="submit -> proceed">Submit</button>
@@ -110,17 +110,17 @@ to the form they belong to by ID using the attribute ``form="id_personform"``. T
 that forms can logically be nested into each other. Remember that it is invalid HTML to nest one
 ``<form>``-element into another one, but using this trick we can mimic that behavior.
 
-Also note that each input field is wrapped into a ``<django-field-group>``-element. Even though this
+Also note that each input field is wrapped into a ``<div role="group">``-element. Even though this
 tag may look like another web component, it is just a non-visual HTML element. Its purpose is to
 group one or more input elements (in Django we name them widgets) belonging to one field together.
 Remember that in HTML radios and multiple checkboxes have more than one input element, but in Django
 they are considered as a single form field.
 
 Moreover, CSS frameworks such as Bootstrap require to `group`_ the label and their input fields
-into one HTML element, typically a ``<div>``. This is what the ``<django-field-group>`` does, in
+into one HTML element, typically a ``<div>``. This is what the ``<div role="group">`` does, in
 addition to grouping the input elements. When adding the parameter ``field_classes="mb-5"`` to the
 templatetag ``render_form``, that CSS class is added to each instance of the group, ie. it then is
-rendered as ``<django-field-group class="mb-5">``.
+rendered as ``<div role="group" class="mb-5">``.
 
 .. _group: https://getbootstrap.com/docs/5.2/forms/form-control/
 
@@ -222,7 +222,7 @@ form class as described in the previous section. If the form instance already in
 :class:`formset.utils.FormMixin`, then this operation can be skipped.
 
 We then iterate over all form fields. Here we must distinguish between hidden and visible input
-fields. While the latter shall be wrapped inside a ``<django-field-group>`` each, the former shall
+fields. While the latter shall be wrapped inside a ``<div role="group">`` each, the former shall
 not. We can then further specialize our rendering logic, depending on which field we want to render.
 
 Rendering a form field-by-field shall only be used as a last resort, because it inhibits the reuse

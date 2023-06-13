@@ -73,7 +73,7 @@ def test_upload_image(page, mocker, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_pdf(page, viewname):
-    dropbox = page.locator('django-formset .dj-form django-field-group figure.dj-dropbox')
+    dropbox = page.locator('django-formset .dj-form [role="group"] figure.dj-dropbox')
     expect(dropbox).to_be_visible()
     page.set_input_files('#id_avatar', 'testapp/assets/dummy.pdf')
     expect(dropbox.locator('img')).to_have_attribute('src', '/static/formset/icons/file-pdf.svg')
@@ -83,7 +83,7 @@ def test_upload_pdf(page, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_broken_image(page, viewname):
-    dropbox = page.locator('django-formset .dj-form django-field-group figure.dj-dropbox')
+    dropbox = page.locator('django-formset .dj-form [role="group"] figure.dj-dropbox')
     expect(dropbox).to_be_visible()
     expect(dropbox.locator('figcaption')).not_to_be_visible()
     page.set_input_files('#id_avatar', 'testapp/assets/broken-image.jpg')
@@ -94,7 +94,7 @@ def test_upload_broken_image(page, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_required(page, viewname):
-    field_group = page.locator('django-formset django-field-group')
+    field_group = page.locator('django-formset [role="group"]')
     page.locator('django-formset').evaluate('elem => elem.submit()')
     error_placeholder = field_group.locator('.dj-errorlist .dj-placeholder')
     expect(error_placeholder).to_have_text("This field is required.")
@@ -104,7 +104,7 @@ def test_upload_required(page, viewname):
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_delete_uploaded_file(page, viewname):
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
-    dropbox = page.locator('django-formset .dj-form django-field-group figure.dj-dropbox')
+    dropbox = page.locator('django-formset .dj-form [role="group"] figure.dj-dropbox')
     expect(dropbox.locator('img')).to_be_visible()
     delete_button = dropbox.locator('figcaption a.dj-delete-file')
     delete_button.click()
@@ -115,7 +115,7 @@ def test_delete_uploaded_file(page, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_progressbar(page, viewname):
-    field_group = page.locator('django-formset django-field-group')
+    field_group = page.locator('django-formset [role="group"]')
     client = page.context.new_cdp_session(page)
     client.send('Network.enable')
     network_conditions = {
@@ -146,7 +146,7 @@ def test_upload_progressbar(page, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_in_progress(page):
-    field_group = page.locator('django-formset django-field-group')
+    field_group = page.locator('django-formset [role="group"]')
     client = page.context.new_cdp_session(page)
     client.send('Network.enable')
     network_conditions = {
@@ -168,5 +168,5 @@ def test_upload_in_progress(page):
 def test_interupt_upload(page, viewname):
     page.context.route('/upload', lambda route: route.abort())
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
-    error_placeholder = page.locator('django-formset django-field-group .dj-errorlist .dj-placeholder')
+    error_placeholder = page.locator('django-formset [role="group"] .dj-errorlist .dj-placeholder')
     expect(error_placeholder).to_have_text("File upload failed.")

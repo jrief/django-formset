@@ -149,7 +149,7 @@
 	}
 }
 
-:host-context(django-field-group.dj-touched) .ts-wrapper {
+:host-context([role="group"].dj-touched) .ts-wrapper {
 	&.has-items:not(.input-active) .ts-control {
 		border-color: var(--django-formset-color-valid);
 	}
@@ -159,7 +159,7 @@
 	}
 }
 
-:host-context(django-field-group.dj-submitted) .ts-wrapper {
+:host-context([role="group"].dj-submitted) .ts-wrapper {
 	&.invalid .ts-control {
 		border-color: var(--django-formset-color-invalid);
 	}

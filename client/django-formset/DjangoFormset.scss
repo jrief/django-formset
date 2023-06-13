@@ -32,10 +32,10 @@ django-formset {
 		color: var(--django-formset-color-invalid);
 	}
 
-	&.dj-feedback-errors django-field-group.dj-touched:not(.dj-submitted) {
+	&.dj-feedback-errors [role="group"].dj-touched:not(.dj-submitted) {
 		@each $field in $feedback-fields {
 			$selector: "#{$field}#{$has-feedback}:invalid:not(:focus)";
-			>#{$selector}, :not(django-field-group)>#{$selector} {
+			>#{$selector}, :not([role="group"])>#{$selector} {
 				border-color: var(--django-formset-color-invalid);
 				background-image: var(--django-formset-icon-invalid);
 			}
@@ -43,19 +43,19 @@ django-formset {
 	}
 
 	&.dj-feedback-warnings {
-		django-field-group.dj-dirty:not(.dj-submitted) {
+		[role="group"].dj-dirty:not(.dj-submitted) {
 			@each $field in $feedback-fields {
 				$selector: "#{$field}#{$has-feedback}:invalid:focus";
-				>#{$selector}, :not(django-field-group)>#{$selector} {
+				>#{$selector}, :not([role="group"])>#{$selector} {
 					background-image: var(--django-formset-icon-warning);
 				}
 			}
 		}
 		&:not(.dj-feedback-errors) {
-			django-field-group.dj-dirty:not(.dj-submitted) {
+			[role="group"].dj-dirty:not(.dj-submitted) {
 				@each $field in $feedback-fields {
 					$selector: "#{$field}#{$has-feedback}:invalid";
-					>#{$selector}, :not(django-field-group)>#{$selector} {
+					>#{$selector}, :not([role="group"])>#{$selector} {
 						background-image: var(--django-formset-icon-warning);
 					}
 				}
@@ -63,22 +63,22 @@ django-formset {
 		}
 	}
 
-	&.dj-feedback-success django-field-group.dj-dirty {
+	&.dj-feedback-success [role="group"].dj-dirty {
 		@each $field in $feedback-fields {
 			$selector: "#{$field}#{$has-feedback}:valid:not(:focus)";
-			>#{$selector}, :not(django-field-group)>#{$selector} {
+			>#{$selector}, :not([role="group"])>#{$selector} {
 				border-color: var(--django-formset-color-valid);
 			}
 		}
 		@each $field in $feedback-input-fields {
 			$selector: "#{$field}#{$has-feedback}:valid";
-			>#{$selector}, :not(django-field-group)>#{$selector} {
+			>#{$selector}, :not([role="group"])>#{$selector} {
 				background-image: var(--django-formset-icon-valid) !important;
 			}
 		}
 	}
 
-	django-field-group {
+	[role="group"] {
 		display: block;
 
 		&[hidden] {

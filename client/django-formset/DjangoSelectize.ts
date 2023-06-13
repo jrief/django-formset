@@ -214,7 +214,7 @@ class DjangoSelectize extends IncompleteSelect {
 					}
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case ':host-context(django-field-group.dj-submitted) .ts-wrapper.invalid.focus .ts-control':
+				case ':host-context([role="group"].dj-submitted) .ts-wrapper.invalid.focus .ts-control':
 					tomInput.style.transition = 'none';
 					tomInput.classList.add('-focus-', '-invalid-', 'is-invalid');  // is-invalid is a Bootstrap hack
 					extraStyles = StyleHelpers.extractStyles(tomInput, [

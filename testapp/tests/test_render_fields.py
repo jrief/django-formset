@@ -121,7 +121,7 @@ def check_field(framework, form, field_name, soup, initial):
         assert placeholder_elem is not None
         return
 
-    field_group = field_elem.find_parent('django-field-group')
+    field_group = field_elem.find_parent('div', role='group')
     assert field_group is not None
     if bf.field.required:
         if allow_multiple_selected and widget_type == 'checkbox':

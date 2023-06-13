@@ -278,7 +278,7 @@ def test_submit_invalid_form(page, mocker, view, form, viewname):
     submit_button = page.query_selector('django-formset button[click]')
     submit_button.click()
     assert spy.called is False
-    error_ph = page.query_selector('django-formset django-field-group ul.dj-errorlist > li.dj-placeholder')
+    error_ph = page.query_selector('django-formset [role="group"] ul.dj-errorlist > li.dj-placeholder')
     assert error_ph is not None
     assert error_ph.text_content() == form.fields['model_choice'].error_messages['required']
 
@@ -295,7 +295,7 @@ def test_force_submit_invalid_form(page, mocker, view, form, viewname):
     assert request['formset_data']['model_choice'] == []
     response = json.loads(spy.spy_return.content)
     assert response['model_choice'] == [form.fields['model_choice'].error_messages['required']]
-    error_ph = page.query_selector('django-formset django-field-group ul.dj-errorlist > li.dj-placeholder')
+    error_ph = page.query_selector('django-formset [role="group"] ul.dj-errorlist > li.dj-placeholder')
     assert error_ph is not None
     assert error_ph.text_content() == form.fields['model_choice'].error_messages['required']
 
@@ -324,7 +324,7 @@ def test_reset_selector(page, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0'])
 def test_touch_selector(page, form, viewname):
-    field_group = page.query_selector('django-formset django-field-group')
+    field_group = page.query_selector('django-formset [role="group"]')
     assert 'dj-untouched' in field_group.get_attribute('class')
     assert 'dj-pristine' in field_group.get_attribute('class')
     assert 'dj-touched' not in field_group.get_attribute('class')

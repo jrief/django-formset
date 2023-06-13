@@ -36,7 +36,7 @@ def test_person_form_get():
     form_wrapper = soup.find('div', class_='dj-form')
     assert form_wrapper is not None
     assert 'row' in form_wrapper.attrs['class']
-    field_group_elems = form_wrapper.find_all('django-field-group')
+    field_group_elems = form_wrapper.find_all('div', role='group')
     assert len(field_group_elems) == 3
     assert all(map(lambda elem: 'mb-2' in elem.attrs['class'], field_group_elems))
     assert 'col-12' in field_group_elems[0].attrs['class']
@@ -84,7 +84,7 @@ def test_simple_collection_get(initial):
     assert form_elem.attrs['name'] == 'person'
     assert form_elem.attrs['id'] == 'id_person'
     form_wrapper = collection_elems[0].find('div', class_='dj-form')
-    field_group_elems = form_wrapper.find_all('django-field-group')
+    field_group_elems = form_wrapper.find_all('div', role='group')
     assert len(field_group_elems) == 2
     input_elems = form_wrapper.find_all('input')
     assert len(input_elems) == 2
@@ -101,7 +101,7 @@ def test_simple_collection_get(initial):
     assert form_elem.attrs['name'] == 'profession'
     assert form_elem.attrs['id'] == 'id_profession'
     form_wrapper = collection_elems[1].find('div', class_='dj-form')
-    field_group_elems = form_wrapper.find_all('django-field-group')
+    field_group_elems = form_wrapper.find_all('div', role='group')
     assert len(field_group_elems) == 2
     input_elems = form_wrapper.find_all('input')
     assert len(input_elems) == 2

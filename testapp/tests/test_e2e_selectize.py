@@ -128,7 +128,7 @@ def test_changing_value(page, form, viewname):
     assert input_element.is_visible()
     assert input_element.get_attribute('placeholder') == 'Select'
     assert input_element.evaluate('elem => elem.value') == ''
-    field_group_element = page.query_selector('django-formset django-field-group')
+    field_group_element = page.query_selector('django-formset [role="group"]')
     assert field_group_element is not None
     assert 'dj-pristine' in field_group_element.get_attribute('class')
     assert 'dj-dirty' not in field_group_element.get_attribute('class')
@@ -173,7 +173,7 @@ def test_add_multiple(page, form, viewname):
     assert input_element.is_visible()
     assert input_element.get_attribute('placeholder') == 'Select any'
     assert input_element.evaluate('elem => elem.value') == ''
-    field_group_element = page.query_selector('django-formset django-field-group')
+    field_group_element = page.query_selector('django-formset [role="group"]')
     assert field_group_element is not None
     assert 'dj-pristine' in field_group_element.get_attribute('class')
     assert 'dj-untouched' in field_group_element.get_attribute('class')
@@ -220,7 +220,7 @@ def test_change_multiple(page, form, viewname):
     values = select_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
     assert len(values) == 4
     assert set(values) == set(str(i) for i in get_initial_opinions().values_list('id', flat=True))
-    field_group_element = page.query_selector('django-formset django-field-group')
+    field_group_element = page.query_selector('django-formset [role="group"]')
     assert field_group_element is not None
     assert 'dj-pristine' in field_group_element.get_attribute('class')
     assert 'dj-untouched' in field_group_element.get_attribute('class')
@@ -259,7 +259,7 @@ def test_lookup_value(page, mocker, form, viewname):
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_submit_missing(page, view, form, viewname):
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
-    placeholder_text = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder').inner_text()
+    placeholder_text = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == Field.default_error_messages['required']
 
 
@@ -305,7 +305,7 @@ def test_submit_invalid(page, mocker, view, form, viewname):
     response = json.loads(spy.spy_return.content)
     error_message = models.ModelChoiceField.default_error_messages['invalid_choice']
     assert response == {'model_choice': [error_message]}
-    placeholder_text = page.query_selector('django-field-group ul.dj-errorlist > li.dj-placeholder').inner_text()
+    placeholder_text = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder').inner_text()
     assert placeholder_text == error_message
     initial_opinion.tenant = 1  # reset to initial tenant
     initial_opinion.save(update_fields=['tenant'])
@@ -338,7 +338,7 @@ def test_reset_selectize(page, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize0'])
 def test_touch_selectize(page, form, viewname):
-    field_group = page.query_selector('django-formset django-field-group')
+    field_group = page.query_selector('django-formset [role="group"]')
     assert 'dj-untouched' in field_group.get_attribute('class')
     assert 'dj-pristine' in field_group.get_attribute('class')
     assert 'dj-touched' not in field_group.get_attribute('class')

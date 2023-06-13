@@ -912,7 +912,7 @@ export class DatePickerElement extends HTMLInputElement {
 	private [CAL]!: Calendar;  // hides internal implementation
 
 	private connectedCallback() {
-		const fieldGroup = this.closest('django-field-group');
+		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
@@ -929,7 +929,7 @@ export class DateTimePickerElement extends HTMLInputElement {
 	private [CAL]!: Calendar;  // hides internal implementation
 
 	private connectedCallback() {
-		const fieldGroup = this.closest('django-field-group');
+		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');

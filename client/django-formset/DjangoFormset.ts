@@ -45,7 +45,7 @@ class FieldErrorMessages extends Map<ErrorKey, string>{
 		super();
 		const element = fieldGroup.element.querySelector('django-error-messages');
 		if (!element)
-			throw new Error(`<django-field-group> for '${fieldGroup.name}' requires one <django-error-messages> tag.`);
+			throw new Error(`<div role="group"> for '${fieldGroup.name}' requires one <django-error-messages> tag.`);
 		for (const attr of element.getAttributeNames()) {
 			const clientKey = attr.replace(/([_][a-z])/g, (group) => group.toUpperCase().replace('_', ''));
 			const clientValue = element.getAttribute(attr);
@@ -77,7 +77,7 @@ class FieldGroup {
 		this.errorMessages = new FieldErrorMessages(this);
 		const requiredAny = element.classList.contains('dj-required-any');
 
-		// <django-field-group> can contain one or more <input type="checkbox"> or <input type="radio"> elements
+		// <div role="group"> can contain one or more <input type="checkbox"> or <input type="radio"> elements
 		const allowedInputs = (i: Element) => i instanceof HTMLInputElement && i.name && i.form === form.element && i.type !== 'hidden';
 		const inputElements = Array.from(element.getElementsByTagName('INPUT')).filter(allowedInputs) as Array<HTMLInputElement>;
 		for (const element of inputElements) {
@@ -105,7 +105,7 @@ class FieldGroup {
 		}
 		this.fieldElements = Array<FieldElement>(0).concat(inputElements);
 
-		// <django-field-group> can contain at most one <select> element
+		// <div role="group"> can contain at most one <select> element
 		const allowedSelects = (s: Element) => s instanceof HTMLSelectElement && s.name && s.form === form.element;
 		const selectElement = Array.from(element.getElementsByTagName('SELECT')).filter(allowedSelects).at(0);
 		if (selectElement instanceof HTMLSelectElement) {
@@ -118,7 +118,7 @@ class FieldGroup {
 			this.fieldElements.push(selectElement);
 		}
 
-		// <django-field-group> can contain at most one <textarea> element
+		// <div role="group"> can contain at most one <textarea> element
 		const allowedTextAreas = (t: Element) => t instanceof HTMLTextAreaElement && t.name && t.form === form.element;
 		const textAreaElement = Array.from(element.getElementsByTagName('TEXTAREA')).filter(allowedTextAreas).at(0);
 		if (textAreaElement instanceof HTMLTextAreaElement) {
@@ -911,7 +911,7 @@ class DjangoForm {
 		for (const fieldGroup of this.fieldGroups) {
 			data.set(fieldGroup.name, fieldGroup.aggregateValue());
 		}
-		// hidden fields are not handled by a django-field-group
+		// hidden fields are not handled by a <div role="group">
 		for (const element of this.hiddenInputFields.filter(e => e.type === 'hidden')) {
 			data.set(element.name, element.value);
 		}
@@ -1462,7 +1462,7 @@ export class DjangoFormset {
 			if (djangoForms.length > 1)
 				throw new Error(`More than one form has id="${formId}"`);
 			const djangoForm = djangoForms[0];
-			const fieldGroupElement = fieldElement.closest('django-field-group');
+			const fieldGroupElement = fieldElement.closest('[role="group"]');
 			if (fieldGroupElement) {
 				if (djangoForm.fieldGroups.filter(fg => fg.element === fieldGroupElement).length === 0) {
 					djangoForm.fieldGroups.push(new FieldGroup(djangoForm, fieldGroupElement as HTMLElement));
