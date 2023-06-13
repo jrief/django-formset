@@ -14,6 +14,8 @@
     out of a collection.
   * Class `FormCollection` performs a unique validating check while performing a `full_clean`.
   * Add a date- and datetime picker rendered by the server using the Python `Calendar` class.
+  * Widget ``UploadedFileInput`` accepts `{…, max-size: <bytes>, …}` in its `attrs` to limit the
+    uploadable file size.
   * Add control elements for to RichTextarea: `TextAlign`, `TextColor`, `TextIndent`, `TextMargin`,
     `Blockquote`, `Codeblock`, `HardBreak`, `Subscript`, `Superscript`, `Placeholder`.
   * Add check to determine if the same id is used by more than one field inside `<django-formset…>`

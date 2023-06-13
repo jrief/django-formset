@@ -11,11 +11,14 @@ export class FileUploadWidget {
 	private readonly emptyDropboxItem: HTMLDivElement;
 	private readonly observer: MutationObserver;
 	private readonly initialData: Array<Object>;
+	private readonly maxUploadSize: number;
 	public uploadedFiles: Array<Object>;
 
 	constructor(fieldGroup: FieldGroup, inputElement: HTMLInputElement) {
 		this.fieldGroup = fieldGroup;
 		this.inputElement = inputElement;
+
+		this.maxUploadSize = parseInt(this.inputElement.getAttribute('max-size') ?? '0');
 
 		this.dropbox = this.fieldGroup.element.querySelector('figure.dj-dropbox') as HTMLElement;
 		if (!this.dropbox)
@@ -102,7 +105,7 @@ export class FileUploadWidget {
 		return new Promise<void>((resolve, reject) => {
 			// Django currently can't handle multiple file uploads, restrict to first file
 			const file = files.item(0);
-			if (file) {
+			if (file && (!this.maxUploadSize || file.size <= this.maxUploadSize)) {
 				this.uploadFile(file, this.dropbox.clientHeight).then(response => {
 					this.uploadedFiles = [response];
 					this.renderDropbox();

@@ -43,7 +43,10 @@ asynchronous file uploads, simply by replacing the widget.
 	class UploadForm(forms.Form):
 	    avatar = fields.FileField(
 	        label="Avatar",
-	        widget=UploadedFileInput,
+	        widget=UploadedFileInput(attrs={
+	            'max-size': 1024 * 1024,
+	        }),
+	        help_text="Please do not upload files larger than 1MB",
 	        required=True,
 	    )
 
