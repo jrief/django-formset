@@ -20,6 +20,8 @@ def render_richtext(data, doc_template='richtext/doc.html', framework='default')
 
 
 def render_attributes(context, attrs):
+    if not isinstance(attrs, dict):
+        return ''
     framework = context.get('framework', 'default')
     try:
         richtext_attributes = import_string(f'formset.renderers.{framework}.richtext_attributes')
