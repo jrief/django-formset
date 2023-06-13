@@ -195,7 +195,7 @@ def test_tiptap_invalid_link(page, viewname, menubar, contenteditable):
     expect(link_input).to_have_value("")
     link_input.type("www.example.org")
     dialog.click(position={'x': 1, 'y': 1})
-    placeholder = dialog.locator('#id_dialog_edit_link-url + .dj-field-errors .dj-placeholder')
+    placeholder = dialog.locator('#id_text_dialog_edit_link-url + .dj-field-errors .dj-placeholder')
     expect(placeholder).to_have_text("Enter a valid URL.")
     dialog.locator('button[name="save"]').click()
     expect(dialog).to_be_visible()
