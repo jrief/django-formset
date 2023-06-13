@@ -106,7 +106,7 @@ Similar widgets can be found in the Django admin to make many-to-many relations 
 * The right part of the widget can be filtered as well.
 * The widget has a redo/undo functionality in case the user mistakenly selected wrong option(s).
 * Optionally, selected options in the right part of the widget can be sorted. This order then is
-  can be refelected in an
+  reflected in an
   [extra field](https://docs.djangoproject.com/en/stable/topics/db/models/#intermediary-manytomany)
    on the many-to-many relationship.
 
