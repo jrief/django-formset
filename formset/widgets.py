@@ -125,7 +125,7 @@ class IncompleteSelectMixin:
     def _options_model_choice(self, name, values, attrs=None):
         values_list = [str(val) for val in values]
         optgroups, counter = [], 0
-        for counter, (val, label) in enumerate(self.choices, counter):
+        for val, label in self.choices:
             if counter == self.max_prefetch_choices:
                 break
             if not isinstance(val, ModelChoiceIteratorValue):
@@ -134,13 +134,15 @@ class IncompleteSelectMixin:
             if selected := val in values_list:
                 values_list.remove(val)
             optgroups.append((None, [{'value': val, 'label': label, 'selected': selected}], counter))
-        for counter, val in enumerate(values_list, counter):
+            counter += 1
+        for val in values_list:
             try:
                 obj = self.choices.queryset.get(pk=val)
             except ObjectDoesNotExist:
                 continue
             label = self.choices.field.label_from_instance(obj)
             optgroups.append((None, [{'value': str(val), 'label': label, 'selected': True}], counter))
+            counter += 1
         return optgroups
 
     def _optgroups_model_choice(self, name, values, attrs=None):
@@ -240,6 +242,30 @@ class DualSortableSelector(DualSelector):
         context = super().get_context(name, value, attrs)
         context['is_sortable'] = True
         return context
+    def _options_model_choice(self, name, values, attrs=None):
+        values_list = [str(val) for val in values]
+        optgroups, counter = [], 0
+        # first create options from values_list, otherwise order is lost
+        for val in values_list:
+            try:
+                obj = self.choices.queryset.get(pk=val)
+            except ObjectDoesNotExist:
+                continue
+            label = self.choices.field.label_from_instance(obj)
+            optgroups.append((None, [{'value': str(val), 'label': label, 'selected': True}], counter))
+            counter += 1
+        # then add remaining options up to max_prefetch_choices
+        for val, label in self.choices:
+            if counter >= self.max_prefetch_choices:
+                break
+            if not isinstance(val, ModelChoiceIteratorValue):
+                continue
+            val = str(val)
+            if val in values_list:
+                continue
+            optgroups.append((None, [{'value': val, 'label': label, 'selected': False}], counter))
+            counter += 1
+        return optgroups
 
 
 class SlugInput(TextInput):
