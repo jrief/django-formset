@@ -7,7 +7,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'secret_key')
 
 DEBUG = os.getenv('DJANGO_DEBUG', '').lower() in ['true', '1', 'yes']
 
-ALLOWED_HOSTS = ['*'] if DEBUG else ['django-formset.fly.dev']
+ALLOWED_HOSTS = ['*'] if DEBUG else ['localhost', 'django-formset.fly.dev']
 CSRF_TRUSTED_ORIGINS = ['https://django-formset.fly.dev']
 
 INSTALLED_APPS = [
