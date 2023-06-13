@@ -226,17 +226,17 @@ Sortable Dual Selector Widget
 By default, Django handles the necessary mapping model for a many-to-many relation by itself.
 In some situations one might want to add additional `fields to that intermediate mapping model`_,
 for example to sort the selected opinions according to the user's preference. This is where the
-special field ``SortableManyToManyField`` becomes useful.
+special model field :class:`formset.fields.SortableManyToManyField` becomes useful.
 
 .. _fields to that intermediate mapping model: https://docs.djangoproject.com/en/stable/topics/db/models/#intermediary-manytomany
 
 As example, consider a poll application where a user can select one or more opinions. We therefore
 need a many-to-many relationship between the poll entity and the chosen opinions, so we typically
 would use a ``ManyToManyField`` to represent this relationship. However, users shall also be allowed
-to weigh their chosen opinions. We can handle this by providing our own intermediate many-to-many
+to *weigh* their chosen opinions. We can handle this by providing our own intermediate many-to-many
 mapping model named ``WeightedOpinion``, which contains two foreign keys, one onto our
 ``PollModel``, the other onto our ``OpinionModel`` and additionally a number field to specify the
-weighting .
+weighting.
 
 .. code-block:: python
 
@@ -296,7 +296,8 @@ ordering.
 	        }
 
 When rendered this widget looks like any other ``DualSelector``-widget, but options in its right
-panel can be dragged to set their weight:
+panel can be dragged to change their order. On submission that ordering then is used to set the
+value of the ``weight`` field in model ``WeightedOpinion``.
 
 .. django-view:: poll_view
 	:view-function: type('ArticleEditView', (SessionModelFormViewMixin, dual_selector.PollView), {}).as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'poll-result'}, form_kwargs={'auto_id': 'po_id_%s'})
