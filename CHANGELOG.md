@@ -7,7 +7,9 @@
     use them now.
   * **Breaking change:** In all rendered forms, `<django-field-group>` is replaced against
     `<div role="group">` because self-declared elements shall only be used as web components.
-  * The documentation now is interactive integrating the many working examples. 
+  * The documentation now is interactive integrating the many working examples.
+  * Fix: In `DualSortableSelector` the initial ordering of options, sometimes did not correspond to
+    the intermediate's model entries. 
   * Add view class `BulkEditCollectionView` to edit a collection with siblings without any main
     object. Also add method `models_to_list` as a counterpart to `model_to_dict` for list views.
   * Constructor of `FormCollection` additionally accepts `auto_id`. This can be used to set the
