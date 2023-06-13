@@ -166,7 +166,7 @@ def test_upload_in_progress(page):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_interupt_upload(page, viewname):
-    page.context.route('/upload', lambda route: route.abort())
+    page.route('/upload', lambda route: route.abort())
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
     error_placeholder = page.locator('django-formset [role="group"] .dj-errorlist .dj-placeholder')
     expect(error_placeholder).to_have_text("File upload failed.")
