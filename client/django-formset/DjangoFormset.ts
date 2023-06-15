@@ -43,9 +43,9 @@ class BoundValue {
 class FieldErrorMessages extends Map<ErrorKey, string>{
 	constructor(fieldGroup: FieldGroup) {
 		super();
-		const element = fieldGroup.element.querySelector('django-error-messages');
+		const element = fieldGroup.element.querySelector('meta[name="error-messages"]');
 		if (!element)
-			throw new Error(`<div role="group"> for '${fieldGroup.name}' requires one <django-error-messages> tag.`);
+			throw new Error(`<div role="group"> for '${fieldGroup.name}' requires one <meta name="error-messages"> tag.`);
 		for (const attr of element.getAttributeNames()) {
 			const clientKey = attr.replace(/([_][a-z])/g, (group) => group.toUpperCase().replace('_', ''));
 			const clientValue = element.getAttribute(attr);

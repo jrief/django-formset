@@ -7,6 +7,9 @@
     use them now.
   * **Breaking change:** In all rendered forms, `<django-field-group>` is replaced against
     `<div role="group">` because self-declared elements shall only be used as web components.
+  * **Breaking change:** In all rendered forms groups, `<django-error-messages>` is replaced against
+    `<meta name="error-messages">` because self-declared elements shall only be used as web
+    components.
   * The documentation now is interactive integrating the many working examples.
   * Fix: In `DualSortableSelector` the initial ordering of options, sometimes did not correspond to
     the intermediate's model entries. 

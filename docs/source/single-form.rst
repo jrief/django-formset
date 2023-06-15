@@ -95,7 +95,7 @@ our form. When rendered, the above form will roughly turn into HTML such as:
 	      <label class="formset-label">First name:</label>
 	      <input class="formset-text-input" form="id_personform" type="text" name="first_name" required="" pattern="^[A-Z][a-z -]+$">
 	      <div role="alert" class="dj-field-errors">
-	        <django-error-messages value_missing="This field is required." type_mismatch="A first name must start in upper case." pattern_mismatch="A first name must start in upper case." bad_input="Null characters are not allowed."></django-error-messages>
+	        <meta name="error-messages" value_missing="This field is required." type_mismatch="A first name must start in upper case." pattern_mismatch="A first name must start in upper case." bad_input="Null characters are not allowed." />
 	        <ul class="dj-errorlist"><li class="dj-placeholder"></li></ul>
 	      </div>
 	    </div>
@@ -124,7 +124,7 @@ rendered as ``<div role="group" class="mb-5">``.
 
 .. _group: https://getbootstrap.com/docs/5.2/forms/form-control/
 
-Another unknown HTML-element in the rendered form is ``<django-error-messages ...>``. This element
+Another unknown HTML-element in the rendered form is ``<meta name="error-messages" …/>``. This element
 simply keeps all the potential error messages, in case a field validation fails on the client.
 Remember that HTML5 introduced a bunch of `form controls`_ which are mapped to their Django
 counterparts. If, for instance, the pattern of an input field of ``type="text"`` does not match the
