@@ -981,7 +981,7 @@ class RichtextArea {
 					break;
 				case '.dj-richtext-wrapper .ProseMirror':
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
-						'font-family', 'font-size', 'font-strech', 'font-style', 'font-weight', 'letter-spacing',
+						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight', 'letter-spacing',
 						'white-space', 'line-height', 'overflow', 'padding']);
 					extraStyles = extraStyles.concat(`top:${buttonGroupHeight + 1}px;`);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);

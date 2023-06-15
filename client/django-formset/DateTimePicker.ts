@@ -137,12 +137,12 @@ class Calendar extends Widget {
 		const regexBits = Array<string>();
 		if (this.inputElement.getAttribute('date-format') === 'iso') {
 			this.autoZeroRegExps.length = this.autoDelimiterRegExps.length = 0;
-			this.autoZeroRegExps.push(new RegExp( '^(\\d{4}-)(\\d{1}-)$'));
-			this.autoZeroRegExps.push(new RegExp( '^(\\d{4}-\\d{2}-)(\\d{1}\\s)$'));
+			this.autoZeroRegExps.push(new RegExp( '^(\\d{4}-)(\\d-)$'));
+			this.autoZeroRegExps.push(new RegExp( '^(\\d{4}-\\d{2}-)(\\d\\s)$'));
 			this.autoDelimiterRegExps.push(new RegExp('^\\d{4}$'));
 			this.autoDelimiterRegExps.push(new RegExp('^\\d{4}-\\d{2}$'));
 			if (!this.dateOnly) {
-				this.autoZeroRegExps.push(new RegExp( '^(\\d{4}-\\d{2}-\\d{2}\\s)(\\d{1}:)$'));
+				this.autoZeroRegExps.push(new RegExp( '^(\\d{4}-\\d{2}-\\d{2}\\s)(\\d:)$'));
 				this.autoSpaceRegExp = new RegExp( '^\\d{4}-\\d{2}-\\d{2}$');
 				this.autoColonRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}\\s\\d{2}$');
 			}
@@ -223,20 +223,20 @@ class Calendar extends Widget {
 		this.autoZeroRegExps.length = this.autoDelimiterRegExps.length = 0;
 		this.autoDelimiterRegExps.push(new RegExp('^\\d{2}$'));
 		if (this.delimiter === '.') {
-			this.autoZeroRegExps.push(new RegExp( '^(\\D*)(\\d{1}\\.)$'));
-			this.autoZeroRegExps.push(new RegExp( '^(\\d{2}\\.)(\\d{1}\\.)$'));
+			this.autoZeroRegExps.push(new RegExp( '^(\\D*)(\\d\\.)$'));
+			this.autoZeroRegExps.push(new RegExp( '^(\\d{2}\\.)(\\d\\.)$'));
 			this.autoDelimiterRegExps.push(new RegExp('^\\d{2}\\.\\d{2}$'));
 			if (!this.dateOnly) {
-				this.autoZeroRegExps.push(new RegExp( '^(\\d{2}\\.\\d{2}\\.\\d{4}\\s)(\\d{1}:)$'));
+				this.autoZeroRegExps.push(new RegExp( '^(\\d{2}\\.\\d{2}\\.\\d{4}\\s)(\\d:)$'));
 				this.autoSpaceRegExp = new RegExp( '^(\\d{2}\\.\\d{2}\\.\\d{4})$');
 				this.autoColonRegExp = new RegExp('^\\d{2}\\.\\d{2}\\.\\d{4}\\s\\d{2}$');
 			}
 		} else {
-			this.autoZeroRegExps.push(new RegExp( '^(\\D*)(\\d{1}/)$'));
-			this.autoZeroRegExps.push(new RegExp( '^(\\d{2}/)(\\d{1}/)$'));
+			this.autoZeroRegExps.push(new RegExp( '^(\\D*)(\\d/)$'));
+			this.autoZeroRegExps.push(new RegExp( '^(\\d{2}/)(\\d/)$'));
 			this.autoDelimiterRegExps.push(new RegExp('^\\d{2}/\\d{2}$'));
 			if (!this.dateOnly) {
-				this.autoZeroRegExps.push(new RegExp( '^(\\d{2}/\\d{2}/\\d{4}\\s)(\\d{1}:)$'));
+				this.autoZeroRegExps.push(new RegExp( '^(\\d{2}/\\d{2}/\\d{4}\\s)(\\d:)$'));
 				this.autoSpaceRegExp = new RegExp( '^(\\d{2}/\\d{2}/\\d{4})$');
 				this.autoColonRegExp = new RegExp('^\\d{2}/\\d{2}/\\d{4}\\s\\d{2}$');
 			}
@@ -460,7 +460,7 @@ class Calendar extends Widget {
 		}).then(({y}) => Object.assign(this.calendarElement.style, {top: `${y}px`}));
 	}
 
-	private handleFocus = (event: Event) => {
+	private handleFocus = () => {
 		if (this.isOpen)
 			return;
 		this.calendarElement.parentElement!.style.position = 'relative';
@@ -474,7 +474,7 @@ class Calendar extends Widget {
 		this.isOpen = true;
 	}
 
-	private handleBlur = (event: Event) => {
+	private handleBlur = () => {
 		if (this.isOpen) {
 			this.inputElement.focus();
 		} else {
@@ -510,7 +510,7 @@ class Calendar extends Widget {
 		}
 	}
 
-	private handleChange = (event: Event) => {
+	private handleChange = () => {
 		const newDate = this.validate();
 		if (newDate) {
 			this.fetchCalendar(newDate, this.viewMode);
@@ -564,7 +564,7 @@ class Calendar extends Widget {
 					if (this.viewMode === ViewMode.hours || this.viewMode === ViewMode.weeks && this.dateOnly) {
 						this.selectDate(element);
 					} else {
-						this.fetchCalendar(this.getDate(element), nextViewMode.get(this.viewMode)!);
+						await this.fetchCalendar(this.getDate(element), nextViewMode.get(this.viewMode)!);
 					}
 				}
 				break;
@@ -779,8 +779,8 @@ class Calendar extends Widget {
 				selectMinute(ulElem);
 			}
 		} else if (liElement.parentElement instanceof HTMLUListElement && liElement.parentElement.hasAttribute('aria-labelledby')) {
-			const labeledby = liElement.parentElement.getAttribute('aria-labelledby');
-			this.calendarElement.querySelector(`li[aria-label="${labeledby}"]`)?.classList.add('preselected');
+			const labelledby = liElement.parentElement.getAttribute('aria-labelledby');
+			this.calendarElement.querySelector(`li[aria-label="${labelledby}"]`)?.classList.add('preselected');
 			liElement.parentElement.removeAttribute('hidden');
 			selectMinute(liElement.parentElement);
 		}
@@ -829,8 +829,7 @@ class Calendar extends Widget {
 			method: 'GET',
 		});
 		if (response.status === 200) {
-			const innerHTML = await response.text();
-			this.calendarElement.innerHTML = innerHTML;
+			this.calendarElement.innerHTML = await response.text();
 		} else {
 			console.error(`Failed to fetch from ${this.endpoint} (status=${response.status})`);
 		}
@@ -854,7 +853,7 @@ class Calendar extends Widget {
 				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar':
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border', 'border-radius',
-						'font-family', 'font-size', 'font-strech', 'font-style', 'font-weight',
+						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
 						'letter-spacing', 'white-space', 'line-height']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;

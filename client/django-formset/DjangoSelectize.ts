@@ -161,7 +161,7 @@ class DjangoSelectize extends IncompleteSelect {
 			switch (cssRule.selectorText) {
 				case '.ts-wrapper':
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'font-family', 'font-size', 'font-strech', 'font-style', 'font-weight',
+						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
 						'letter-spacing', 'white-space']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
