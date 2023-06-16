@@ -93,7 +93,7 @@ When rendered using the view class :class:`formset.views.FormView` together with
 
 	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {% render_form form %}
-	  <button type="button" click="submit -> proceed">Submit</button>
+	  <button type="button" df-click="submit -> proceed">Submit</button>
 	</django-formset>
 
 that form displays two text input fields, one for the person's first- and its last name. Here we
@@ -162,7 +162,7 @@ to the templatetag
 	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {% render_form form "bootstrap" field_classes="row mb-3" label_classes="col-sm-3" control_classes="col-sm-9" %}
 	  <div class="offset-sm-3">
-	    <button type="button" click="submit -> proceed">Submit</button>
+	    <button type="button" df-click="submit -> proceed">Submit</button>
 	  </div>
 	</django-formset>
 

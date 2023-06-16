@@ -3,7 +3,7 @@
 <django-formset endpoint="{{ request.path }}" force-submission="true" csrf-token="{{ csrf_token }}" class="bootstrap">
 	{% render_form form "bootstrap" %}
 	<p>
-		<button type="button" click="{{ button_actions }}" class="btn btn-primary my-2">
+		<button type="button" df-click="{{ button_actions }}" class="btn btn-primary my-2">
 			Submit
 			<span class="dj-button-decorator">{% include "icons/send.svg" %}</span>
 		</button>

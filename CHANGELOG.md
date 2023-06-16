@@ -1,8 +1,8 @@
 ## Changes
 
 - 1.0
-  * **Breaking change:** Class `FormCollection` is validated as complete entity and only after all
-    checks passed, models are created out of the cleaned data. This means that the method 
+  * **Breaking change:** Class `FormCollection` is validated entirely and only after all checks
+    passed, models are created out of the cleaned data. This means that the method
     `construct_instance` and `model_to_dict` changed their signature. Please read the docs on how to
     use them now.
   * **Breaking change:** In all rendered forms, `<django-field-group>` is replaced against
@@ -10,6 +10,8 @@
   * **Breaking change:** In all rendered forms groups, `<django-error-messages>` is replaced against
     `<meta name="error-messages">` because self-declared elements shall only be used as web
     components.
+  * **Breaking change:** Attribute `click`, which is used to specify action queues in submit
+    buttons, has been renamed to `df-click` in order to prevent naming collisions.
   * The documentation now is interactive integrating the many working examples.
   * Fix: In `DualSortableSelector` the initial ordering of options, sometimes did not correspond to
     the intermediate's model entries. 

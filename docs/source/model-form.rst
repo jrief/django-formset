@@ -175,10 +175,10 @@ is rendered by a template with button settings, depending on these values:
 	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {% render_form form %}
 	  {% if add %}
-	    <button type="button" click="submit({add: true}) -> proceed">{% trans "Add" %}</button>
+	    <button type="button" df-click="submit({add: true}) -> proceed">{% trans "Add" %}</button>
 	  {% else %}
-	    <button type="button" click="submit({update: true}) -> proceed">{% trans "Update" %}</button>
-	    <button type="button" click="submit({delete: true}) -> proceed">{% trans "Delete" %}</button>
+	    <button type="button" df-click="submit({update: true}) -> proceed">{% trans "Update" %}</button>
+	    <button type="button" df-click="submit({delete: true}) -> proceed">{% trans "Delete" %}</button>
 	  {% endif %}
 	</django-formset>
 

@@ -140,7 +140,7 @@ this view shall contain HTML with a structure similar to this:
 
 	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {{ form_collection }}
-	  <button type="button" click="submit -> proceed !~ scrollToError">Submit</button>
+	  <button type="button" df-click="submit -> proceed !~ scrollToError">Submit</button>
 	</django-formset>
 
 

@@ -69,8 +69,8 @@ simplifies down to:
 	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {{ form }}
 	  <p class="mt-3">
-	    <button type="button" click="submit -> proceed" class="btn btn-primary">Submit</button>
-	    <button type="button" click="reset" class="ms-2 btn btn-warning">Reset to initial</button>
+	    <button type="button" df-click="submit -> proceed" class="btn btn-primary">Submit</button>
+	    <button type="button" df-click="reset" class="ms-2 btn btn-warning">Reset to initial</button>
 	  </p>
 	</django-formset>
 
@@ -129,8 +129,8 @@ by rendering this form using our well known templatetag ``render_form`` with the
 	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {% render_form form "bootstrap" field_classes="row mb-3" label_classes="col-sm-3" control_classes="col-sm-9" %}
 	  <div class="offset-sm-3">
-	    <button type="button" click="submit -> proceed" class="btn btn-primary">Submit</button>
-	    <button type="button" click="reset" class="ms-2 btn btn-warning">Reset to initial</button>
+	    <button type="button" df-click="submit -> proceed" class="btn btn-primary">Submit</button>
+	    <button type="button" df-click="reset" class="ms-2 btn btn-warning">Reset to initial</button>
 	  </div>
 	</django-formset>
 

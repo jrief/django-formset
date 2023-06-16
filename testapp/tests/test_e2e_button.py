@@ -153,7 +153,7 @@ def test_button_scroll_to_error(page, viewname):
     input_elem.type("invalid")
     input_elem.evaluate('elem => elem.blur()')
     button_elem = page.locator('django-formset button').first
-    success_chain, reject_chain = button_elem.get_attribute('click').split('!~')
+    success_chain, reject_chain = button_elem.get_attribute('df-click').split('!~')
     assert 'submit' in success_chain
     assert 'scrollToError' in reject_chain
     window_handle = page.evaluate_handle('() => Promise.resolve(window)')

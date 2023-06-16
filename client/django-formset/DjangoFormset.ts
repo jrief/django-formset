@@ -466,7 +466,7 @@ class DjangoButton {
 		this.bummerElement = document.createElement('i');
 		this.bummerElement.classList.add('dj-icon', 'dj-bummer');
 		this.bummerElement.innerHTML = bummerIcon;
-		this.parseActionsQueue(element.getAttribute('click'));
+		this.parseActionsQueue(element.getAttribute('df-click'));
 		element.addEventListener('click', this.clicked);
 	}
 
@@ -806,7 +806,7 @@ class DjangoButton {
 			createActions(this.successActions, ast.successChain);
 			createActions(this.rejectActions, ast.rejectChain);
 		} catch (error) {
-			throw new Error(`Error while parsing <button click="${actionsQueue}">: ${error}.`);
+			throw new Error(`Error while parsing <button df-click="${actionsQueue}">: ${error}.`);
 		}
 	}
 
@@ -1522,7 +1522,7 @@ export class DjangoFormset {
 	private findButtons() {
 		this.buttons.length = 0;
 		for (const element of this.element.getElementsByTagName('BUTTON')) {
-			if (element.hasAttribute('click')) {
+			if (element.hasAttribute('df-click')) {
 				this.buttons.push(new DjangoButton(this, element as HTMLButtonElement));
 			}
 		}

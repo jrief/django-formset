@@ -48,7 +48,7 @@ getDataValue
 
 
 // ----- B. Actions -----
-// The starting rule for <button `click="..."` ...>.
+// The starting rule for <button `df-click="..."` ...>.
 
 Actions
   = successChain:chain _ '!~' _ rejectChain:chain _

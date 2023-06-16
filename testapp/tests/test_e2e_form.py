@@ -44,7 +44,7 @@ urlpatterns = [
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['full_name'])
 def test_field_required_error(page, viewname):
-    submit_button = page.locator('button[click]').first
+    submit_button = page.locator('button[df-click]').first
     submit_button.click()
     error_placeholder = page.locator('#id_full_name + .dj-field-errors > .dj-errorlist > .dj-placeholder')
     expect(error_placeholder).to_have_text("This field is required.")
@@ -55,7 +55,7 @@ def test_field_required_error(page, viewname):
 def test_field_pattern_error(page, viewname):
     input_field = page.locator('#id_full_name')
     input_field.type("jane")
-    submit_button = page.locator('button[click]').first
+    submit_button = page.locator('button[df-click]').first
     submit_button.click()
     error_placeholder = page.locator('#id_full_name + .dj-field-errors > .dj-errorlist > .dj-placeholder')
     expect(error_placeholder).to_have_text("Enter a valid value.")
@@ -66,7 +66,7 @@ def test_field_pattern_error(page, viewname):
 def test_form_submission_error(page, viewname):
     input_field = page.locator('#id_full_name')
     input_field.type("jane miller")
-    submit_button = page.locator('button[click]').first
+    submit_button = page.locator('button[df-click]').first
     submit_button.click()
     sleep(0.2)
     error_placeholder = page.locator('#id_fullnameform + .dj-form .dj-form-errors > .dj-errorlist > .dj-placeholder')

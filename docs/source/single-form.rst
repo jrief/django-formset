@@ -78,7 +78,7 @@ special template tag ``render_form``. The template responsible for rendering sha
 
 	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {% render_form form "tailwind" field_classes="mb-2" form_classes="rounded-xl" %}
-	  <button type="button" click="submit -> proceed">Submit</button>
+	  <button type="button" df-click="submit -> proceed">Submit</button>
 	</django-formset>
 
 What we see here is that in addition to the form object, we pass a few CSS classes to the renderer.
@@ -101,7 +101,7 @@ our form. When rendered, the above form will roughly turn into HTML such as:
 	    </div>
 	    <!-- other form fields snipped away -->
 	  </div>
-	  <button type="button" click="submit -> proceed">Submit</button>
+	  <button type="button" df-click="submit -> proceed">Submit</button>
 	</django-formset>
 
 Compared to the way the native Django form renderer works, we see a few differences here: The most
@@ -169,7 +169,7 @@ classes proposed by Tailwind. The template required to render such a form then s
 
 	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {{ form }}
-	  <button type="button" click="submit -> proceed">Submit</button>
+	  <button type="button" df-click="submit -> proceed">Submit</button>
 	</django-formset>
 
 Let's discuss these lines of HTML code step by step:
@@ -212,7 +212,7 @@ different manners. Let's have a look at such a template:
 	      {% include "formset/default/field_group.html" %}
 	    {% endif %}
 	  {% endfor %}
-	  <button type="button" click="submit -> proceed">Submit</button>
+	  <button type="button" df-click="submit -> proceed">Submit</button>
 	</django-formset>
 
 Let's discuss these lines of HTML code step by step:

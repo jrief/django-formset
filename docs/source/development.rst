@@ -70,7 +70,7 @@ Then run the testsuite
 Building the Parser
 ===================
 
-The content of the button attribute ``click``, and the input field and fieldset attributes
+The content of the button attribute ``df-click``, and the input field and fieldset attributes
 ``show-if``, ``hide-if`` and ``disable-if`` are parsed before being evaluated by the code
 implementing the web component. This parser is generated using PEG.js and compiles to a pure
 TypeScript module. The grammar describing this proprietary syntax can be found in

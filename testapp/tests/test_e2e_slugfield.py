@@ -49,7 +49,7 @@ def test_invalid_slug_field(page, viewname):
     assert title_field.evaluate('elem => elem.value') == ""
     slug_field = page.locator('django-formset input[name="slug"]')
     assert slug_field.evaluate('elem => elem.value') == ""
-    submit_button = page.locator('django-formset button[click]').first
+    submit_button = page.locator('django-formset button[df-click]').first
     submit_button.click()
     expect(page.locator('django-formset input[name="title"]:valid')).not_to_be_visible()
     expect(page.locator('django-formset input[name="slug"]:valid')).not_to_be_visible()

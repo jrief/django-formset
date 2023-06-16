@@ -125,8 +125,8 @@ rendering that form.
 
 	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {% render_form form "tailwind" %}
-	  <button type="button" click="submit">Submit</button>
-	  <button type="button" click="reset">Reset to initial</button>
+	  <button type="button" df-click="submit">Submit</button>
+	  <button type="button" df-click="reset">Reset to initial</button>
 	</django-formset>
 
 When looking at the rendered HTML code, there are a few things, which admittedly, may seem unusual

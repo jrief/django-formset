@@ -259,7 +259,7 @@ def test_submit_valid_form(page, mocker, view, form, viewname):
     select_right_element.query_selector('option[value="{}"]'.format(left_option_values[50])).dblclick()
     assert len(select_right_element.query_selector_all('option')) == 14
     spy = mocker.spy(view.view_class, 'post')
-    submit_button = page.query_selector('django-formset button[click]')
+    submit_button = page.query_selector('django-formset button[df-click]')
     submit_button.click()
     sleep(0.15)
     assert spy.called is True
@@ -275,7 +275,7 @@ def test_submit_valid_form(page, mocker, view, form, viewname):
 @pytest.mark.parametrize('viewname', ['selector1'])
 def test_submit_invalid_form(page, mocker, view, form, viewname):
     spy = mocker.spy(view.view_class, 'post')
-    submit_button = page.query_selector('django-formset button[click]')
+    submit_button = page.query_selector('django-formset button[df-click]')
     submit_button.click()
     assert spy.called is False
     error_ph = page.query_selector('django-formset [role="group"] ul.dj-errorlist > li.dj-placeholder')
@@ -287,7 +287,7 @@ def test_submit_invalid_form(page, mocker, view, form, viewname):
 @pytest.mark.parametrize('viewname', ['selectorF'])
 def test_force_submit_invalid_form(page, mocker, view, form, viewname):
     spy = mocker.spy(view.view_class, 'post')
-    submit_button = page.query_selector('django-formset button[click]')
+    submit_button = page.query_selector('django-formset button[df-click]')
     submit_button.click()
     sleep(0.15)
     assert spy.called is True
@@ -477,7 +477,7 @@ def test_selector_sorting(page, mocker, view, form, viewname):
     sleep(0.2)  # animation is set to 150ms
     page.locator('django-formset .dj-dual-selector .control-column button.dj-undo-selected').click()
     spy = mocker.spy(view.view_class, 'post')
-    page.locator('django-formset button[click]').first.click()
+    page.locator('django-formset button[df-click]').first.click()
     sleep(0.2)  # animation is set to 150ms
     assert spy.called is True
     request = json.loads(spy.call_args.args[1].body)

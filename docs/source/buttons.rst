@@ -22,7 +22,7 @@ button therefore may look like
 	<django-formset …>
 	  <!-- some forms with fields -->
 	  …
-	  <button click="disable -> submit -> proceed !~ scrollToError">Submit</button>
+	  <button df-click="disable -> submit -> proceed !~ scrollToError">Submit</button>
 	</django-formset>
 
 
@@ -110,11 +110,11 @@ everything is okay, before proceeding to the next page without notification. Thi
 want to signalize to the user that it failed. This is where the ``bummer`` action displays an
 animated failure.
 
-This is an example of a ``click`` action on a button for a form requiring some processing time:
+This is an example of a ``df-click`` action on a button for a form requiring some processing time:
 
 .. code-block:: html
 
-	<button type="button" click="disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(5000)">
+	<button type="button" df-click="disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(5000)">
 	    Submit
 	    <span class="dj-button-decorator"><img class="dj-icon" src="/path/to/icon" /></span>
 	</button>
@@ -175,15 +175,15 @@ This is the final part of the template rendering the detail view of our blog pos
 	  <django-formset endpoint="{{ editview_url }}" csrf-token="{{ csrf_token }}">
 	    {# no <form> element is rendered here, because single field `published` is handled through action buttons #}
 	    {% if post.published %}
-	      <button type="button" click="submit({published: false}) -> proceed">
+	      <button type="button" df-click="submit({published: false}) -> proceed">
 	        Unpublish Post
 	      </button>
 	    {% else %}
-	      <button type="button" click="submit({published: true}) -> proceed">
+	      <button type="button" df-click="submit({published: true}) -> proceed">
 	        Publish Post
 	      </button>
 	    {% endif %}
-	      <button type="button" click="proceed('{{ editview_url }}')">
+	      <button type="button" df-click="proceed('{{ editview_url }}')">
 	        Change Post
 	      </button>
 	  </django-formset>
