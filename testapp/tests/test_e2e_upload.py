@@ -162,7 +162,7 @@ def test_upload_in_progress(page):
     error_placeholder = field_group.locator('.dj-errorlist .dj-placeholder')
     expect(error_placeholder).to_have_text("File upload still in progress.")
 
-
+@pytest.mark.xfail(reason="playwright does not abort route since version 1.31")
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_interupt_upload(page, viewname):
