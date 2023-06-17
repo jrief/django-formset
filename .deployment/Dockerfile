@@ -13,7 +13,7 @@ RUN pip install --upgrade pip
 # install Node specific requirements
 COPY package.json /web/package.json
 COPY package-lock.json /web/package-lock.json
-RUN npm ci
+RUN /usr/local/bin/npm ci
 
 # install Python specific requirements
 RUN pip install django psycopg2-binary Pillow uWSGI docutils Sphinx sphinx-toolbox
@@ -30,13 +30,13 @@ COPY .deployment/uwsgi.ini /etc/uwsgi.ini
 COPY .deployment/entrypoint.sh /web/entrypoint.sh
 
 # compile assets
-RUN npm run tag-attributes
-RUN npm run compilescss
-RUN npm run tailwindcss
-RUN npm run esbuild
+RUN /usr/local/bin/npm run tag-attributes
+RUN /usr/local/bin/npm run compilescss
+RUN /usr/local/bin/npm run tailwindcss
+RUN /usr/local/bin/npm run esbuild
 
 # create documentation
-RUN npm run docscss
+RUN /usr/local/bin/npm run docscss
 RUN make --directory=docs json
 
 # handle static and media files
