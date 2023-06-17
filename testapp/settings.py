@@ -19,8 +19,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'formset',
     'testapp',
-    'sphinx_view',
 ]
+try:
+    import sphinx_view
+except ImportError:
+    pass
+else:
+    INSTALLED_APPS.append('sphinx_view')
 
 if os.getenv('DATABASE_ENGINE') == 'postgres':
     DATABASES = {

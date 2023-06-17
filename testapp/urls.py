@@ -37,4 +37,5 @@ urlpatterns.extend(static(
     settings.MEDIA_URL,
     document_root=settings.MEDIA_ROOT
 ))
-urlpatterns.append(path('', include(('sphinx_view.urls', 'sphinx-view'))))
+if 'sphinx_view' in settings.INSTALLED_APPS:
+    urlpatterns.append(path('', include(('sphinx_view.urls', 'sphinx-view'))))

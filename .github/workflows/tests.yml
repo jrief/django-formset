@@ -46,7 +46,6 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install --pre "Django==${{ matrix.django-version }}"
         python -m pip install -r testapp/requirements.txt
-        python -m pip install https://github.com/jrief/django-sphinx-view/archive/refs/heads/main.zip
         playwright install
     - name: Build Parser
       run: |
