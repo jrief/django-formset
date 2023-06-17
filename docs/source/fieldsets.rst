@@ -47,7 +47,7 @@ possibilities.
 
 	class CustomerForm(Fieldset):
 	    legend = "Customer"
-	    hide_if = 'register.no_customer'
+	    hide_condition = 'register.no_customer'
 	    recipient = fields.CharField(label="Recipient", required=False)
 	    address = fields.CharField(label="Address", required=False)
 	

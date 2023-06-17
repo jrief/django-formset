@@ -12,6 +12,9 @@
     components.
   * **Breaking change:** Attribute `click`, which is used to specify action queues in submit
     buttons, has been renamed to `df-click` in order to prevent naming collisions.
+  * **Breaking change:** Attributes `show-if`, `hide-if` and `disable-if` which are used to hide or
+    disable fields, fieldsets and buttons, have been renamed to `df-show`,  `df-hide` and
+    `df-disable` in order to prevent naming collisions.
   * The documentation now is interactive integrating the many working examples.
   * Fix: In `DualSortableSelector` the initial ordering of options, sometimes did not correspond to
     the intermediate's model entries. 

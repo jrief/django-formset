@@ -136,7 +136,7 @@ class FieldGroup {
 			this.validateBoundField();
 		}
 		this.pristineValue = new BoundValue(this.aggregateValue());
-		this.updateVisibility = this.evalVisibility('show-if', true) ?? this.evalVisibility('hide-if', false) ?? function() {};
+		this.updateVisibility = this.evalVisibility('df-show', true) ?? this.evalVisibility('df-hide', false) ?? function() {};
 		this.updateDisabled = this.evalDisable();
 		this.untouch();
 		this.setPristine();
@@ -218,12 +218,12 @@ class FieldGroup {
 				}
 			};
 		} catch (error) {
-			throw new Error(`Error while parsing <... show-if/hide-if="${attrValue}">: ${error}.`);
+			throw new Error(`Error while parsing <... df-show/hide="${attrValue}">: ${error}.`);
 		}
 	}
 
 	private evalDisable(): Function {
-		const attrValue = this.fieldElements[0]?.getAttribute('disable-if');
+		const attrValue = this.fieldElements[0]?.getAttribute('df-disable');
 		if (typeof attrValue !== 'string')
 			return () => {};
 		try {
@@ -233,7 +233,7 @@ class FieldGroup {
 				this.fieldElements.forEach((elem, index) => elem.disabled = disable || this.initialDisabled[index]);
 			}
 		} catch (error) {
-			throw new Error(`Error while parsing <... disable-if="${attrValue}">: ${error}.`);
+			throw new Error(`Error while parsing <... df-disable="${attrValue}">: ${error}.`);
 		}
 	}
 
@@ -836,7 +836,7 @@ class DjangoFieldset {
 	constructor(form: DjangoForm, element: HTMLFieldSetElement) {
 		this.form = form;
 		this.element = element;
-		this.updateVisibility = this.evalVisibility('show-if', true) ?? this.evalVisibility('hide-if', false) ?? function() {};
+		this.updateVisibility = this.evalVisibility('df-show', true) ?? this.evalVisibility('df-hide', false) ?? function() {};
 		this.updateDisabled = this.evalDisable();
 	}
 
@@ -853,19 +853,19 @@ class DjangoFieldset {
 				}
 			}
 		} catch (error) {
-			throw new Error(`Error while parsing <fieldset show-if/hide-if="${attrValue}">: ${error}.`);
+			throw new Error(`Error while parsing <fieldset df-show/hide="${attrValue}">: ${error}.`);
 		}
 	}
 
 	private evalDisable(): Function {
-		const attrValue = this.element.getAttribute('disable-if');
+		const attrValue = this.element.getAttribute('df-disable');
 		if (typeof attrValue !== 'string')
 			return () => {};
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
 			return () => this.element.disabled = evalExpression.call(this);
 		} catch (error) {
-			throw new Error(`Error while parsing <fieldset disable-if="${attrValue}">: ${error}.`);
+			throw new Error(`Error while parsing <fieldset df-disable="${attrValue}">: ${error}.`);
 		}
 	}
 

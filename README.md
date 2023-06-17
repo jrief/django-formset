@@ -160,8 +160,8 @@ handled with seemingly the same form (although in the background those are separ
 Since each formset holds its state (the current value of their fields), that information can be used
 to conditionally hide or disable other fields or even a complete fieldset.
 
-By adding the special attributes `show-if="condition"`, `hide-if="condition"` or
-`disable-if="condition"` on an input fields or on a fieldsets, one can hide or disable these marked
+By adding the special attributes `df-show="condition"`, `df-hide="condition"` or
+`df-disable="condition"` on an input fields or on a fieldsets, one can hide or disable these marked
 fields. This `condition` can be any expression evaluating the current field values of the formset.
 
 

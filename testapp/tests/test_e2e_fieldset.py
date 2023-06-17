@@ -24,7 +24,7 @@ urlpatterns = [
 def test_submit_customer(page, mocker, viewname):
     customer_collections = page.query_selector_all('django-formset > django-form-collection')
     assert len(customer_collections) == 2
-    fieldset = customer_collections[0].query_selector('fieldset[hide-if]')
+    fieldset = customer_collections[0].query_selector('fieldset[df-hide]')
     assert fieldset is not None
     legend = fieldset.query_selector('legend')
     assert legend.text_content() == "Customer"
@@ -45,7 +45,7 @@ def test_submit_customer(page, mocker, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['customer'])
 def test_submit_no_customer(page, mocker, viewname):
-    assert page.query_selector('django-formset > django-form-collection:first-of-type fieldset[hide-if]') is not None
+    assert page.query_selector('django-formset > django-form-collection:first-of-type fieldset[df-hide]') is not None
     page.click('#id_register\\.no_customer')
     assert page.query_selector('django-formset > django-form-collection:first-of-type fieldset[hidden]') is not None
     spy = mocker.spy(FormCollectionView, 'post')

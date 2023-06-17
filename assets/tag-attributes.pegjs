@@ -2,7 +2,7 @@
 // Build file `client/components/django-formset/actions.ts` using `npm run pegjs`
 
 // ----- A. Expression -----
-// The starting rule for `<field-group show-if="..."` and `hide-if="..."`.
+// The starting rule for `<div role="group" df-show="..."` and `df-hide="..."`.
 
 Expression
   = _ head:Factor _ tail:(_ Operator _ Expression)* _ {
