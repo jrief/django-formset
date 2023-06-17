@@ -19,7 +19,12 @@ From a technical point of view, a fieldset behaves exactly like a single form an
 must be wrapped inside a ``<form>``-element. If we want to use more than one fieldset, then we have
 to group them using :ref:`collections`, just as we would do with normal forms.
 
-Another purpose of using fieldsets, apart from adding a border and legend to a form, is to use
+A fieldset accepts the optional string attribute ``legend``. This then is rendered as a
+``<legend>``-element inside the ``<fieldset>``. A fieldset also accepts the optional string
+attribute ``help_text``. This is rendered as a muted ``<p>``-element after the last field but inside
+that fieldset.
+
+Another purpose of using fieldsets, apart from adding a border and a legend to a form, is to use
 :ref:`conditionals`. This allows us to hide or disable the whole fieldset depending on the context
 of other fields.
 
@@ -27,9 +32,11 @@ of other fields.
 Example
 =======
 
-In this example we use two forms nested in a ``FormCollection``. Remember, a ``Fieldset`` behaves
+In this example we use two forms, a fieldset to ask for some customer's personal data and a form
+with just one Boolean field, both nested in a ``FormCollection``. Remember, a ``Fieldset`` behaves
 exactly as a ``Form`` instance and can be used as a replacement, although with additional styling
-possibilities.
+possibilities. Here we group those two forms into one collection named ``CustomerCollection`` to
+build one submittable entity.
 
 .. django-view:: import
 	:hide-code:
@@ -73,9 +80,11 @@ possibilities.
 .. note:: Bootstrap hides the border of fieldsets. Therefore in this example, we added a default
 	renderer, to set the proper CSS classes for the given fieldset.
 
-The interesting part of this collection is that we can hide the fieldset by clicking on the
+The interesting part of this collection is that we can hide the entire fieldset by clicking on the
 checkbox named "I'm not a customer". This means that by using conditionals, we can dynamically
-adjust the visibility of a complete form.
+adjust the visibility of a complete fieldset. In this example we add
+``hide_condition = 'register.no_customer'`` to the class ``CustomerForm``. Whenever someone clicks
+onto that checkbox, the whole upper fieldset is hidden.
 
 Remember to make the fields in the fieldset optional. Otherwise if the fieldset is hidden, the form
 submission will fail without being able to give feedback which fields are missing. If you need a
