@@ -1,7 +1,7 @@
+from django.utils.html import format_html
+
 from formset.boundfield import ClassList
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
-
-from django.utils.html import format_html
 
 
 class FormRenderer(DefaultFormRenderer):
