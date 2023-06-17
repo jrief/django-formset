@@ -36,10 +36,10 @@ explain their functionality:
   should be used whenever possible.
 * In ``submit``, the content of the form(s) inside the ``<django-formset>`` is submitted to the
   server through the given endpoint. This function can take extra values which are submitted along
-  with the form data. If for example we use ``submit({foo: "bar"})`` then that extra data is submit
-  along with the form's payload and will be available to our ``FormView`` instance, which connected
-  to the given endpoint. From inside that ``FormView`` instance the submitted extra data can then be
-  accessed by calling ``self.get_extra_data()``. 
+  with the form data. If for example we use ``submit({foo: "bar"})`` then that extra data is
+  submitted along with the form's payload and will be available to our ``FormView`` instance, which
+  is connected to the given endpoint. From inside that ``FormView`` instance the submitted extra
+  data can then be accessed by calling ``self.get_extra_data()``. 
 * If the submission was successful, ``proceed`` tells the client what to do next. If called without
   arguments, the default is to load the page given by the ``success_url`` provided by our Django
   view handling the request. If instead we use ``proceed("/path/to/success/page")``, that page is
@@ -215,3 +215,18 @@ What we do here is to bypass form validation if we find out that besides "form d
 buttons from above. 
 
 This neat trick allows us to reuse the edit view class for a similar purpose.
+
+.. _auto-disable_buttons: 
+
+Auto-Disable Buttons
+====================
+
+By adding the Boolean attribute ``auto-disable`` to any ``<button …>``, that button element remains
+disabled until the complete formset contains valid data. This can be used to prevent users from
+submitting forms with missing fields or fields containing invalid data.
+
+From a usability consideration, this setting should only be used, if the form contains very few
+fields and these fields must always be visible together with that button. To the user it then must
+be immediately clear that this button is disabled, *because* some nearby fields are missing. If that
+can't be guaranteed, it is better to let the user submit a form containing invalid data and then
+scroll to the first field, which doesn't.

@@ -20,6 +20,8 @@ and add this app to the project's ``settings.py``:
 	    ...
 	]
 
+.. note:: If you upgrade from version 0.13 or lower, please read the :ref:`changes` as in version 1
+	there some breaking changes have been introduced.
 
 .. rubric:: Include Stylesheets
 

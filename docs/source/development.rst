@@ -130,6 +130,32 @@ the bundle takes much longer and the output sizes are comparable. For reasons of
 sample of the unit tests is run using this setup.
 
 
+Building the Documentation
+==========================
+
+Thanks to the django-sphinx-view_ project, the documentation of **django-formset** can be built
+using embedded functional forms. During development this is very helpful, because the examples
+now sit side-by-side with documentation describing them.
+
+.. _django-sphinx-view: https://noumenal.es/django-sphinx-view/
+
+In order for this to work, please run 
+
+.. code-block:: shell
+
+	make -C docs json
+	npm run docscss
+	python manage.py runserver
+
+The first command builds the documentation as a set of JSON and Python files. They then are loaded
+by the **django-sphinx-view** module.
+
+The second command builds some specially formatted CSS files. They are required, so that Tailwind-,
+Bootstrap- and the Furo-themes do not interfere with each other.
+
+The third command starts the Django application with integrated documentation.
+
+
 Running the Django Test App
 ===========================
 

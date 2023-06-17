@@ -115,8 +115,8 @@ Server-Side Validation
 
 The attribute ``withhold-feedback="…"`` only has effect while editing the form fields. Whenever
 the user clicks on the submit button of a form containing invalid data, then all fields which
-did not validate, will show their error message together with an alert symbol and an alert border
-(usually red).
+did not validate using the Django ``clean…``-methods, will show their error message together with an
+alert symbol and a red border.
 
 Non-field errors need more validation logic and therefore are *always* detected by the server
 implementation, usually by the ``clean()``-method of the form class.

@@ -53,17 +53,17 @@ framework. This presumably is more future proof and open to a much wider Django 
 The new API was insprired by `Django Crispy Forms`_. I especially liked their template filter and
 templatetag, both named ``crispy`` to render a complete form object. In **django-formset** the
 template filter ``formsetify`` and the templatetag ``render_form`` behave in a similar way. A major
-difference to **django-crispy-forms** is, that they use a class named ``FormHelper`` which must be
+difference to **django-crispy-forms** is that they use a class named ``FormHelper`` which must be
 added to the form class in order to style forms. This delegates the responsibility for rendering to
 the form class itself. In contrast, **django-formset** uses Django's internal `form rendering API`_,
 separating the layout from the validation logic.
 
-Another library which inspired me, is `Django Rest Framework`_. Here I specially like the way
+Another library which inspired me, is `Django Rest Framework`_. Here I especially like the way
 serializers can be nested into each other. In **django-formset**, nested form collections
-re-implement this idea. It might be possible to build **django-formset** as a pure widget library on
-top of DRF, any maybe I will do that in the future. However, currently I just want to reuse the
-existing and perfectly working form validation functionality built into Django, but with an enhanced
-layer of usability on top.
+re-implement this idea. It might even be possible to build **django-formset** as a pure widget
+library on top of DRF, and maybe someday I will implement that. However, currently I just want to
+reuse the existing and perfectly working form validation functionality built into Django, but with
+an enhanced layer of usability on top.
 
 .. _Django Crispy Forms: https://github.com/django-crispy-forms/django-crispy-forms
 .. _form rendering API: https://docs.djangoproject.com/en/stable/ref/forms/renderers/

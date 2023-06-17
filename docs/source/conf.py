@@ -21,7 +21,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'testapp.settings'
 # -- Project information -----------------------------------------------------
 
 project = 'django-formset'
-copyright = datetime.date.today().strftime(' Copyright %Y, Jacob Rief')
+copyright = datetime.date.today().strftime(' Copyright %Y')
 author = 'Jacob Rief'
 
 # -- General configuration ---------------------------------------------------
