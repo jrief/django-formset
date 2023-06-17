@@ -405,34 +405,6 @@ templatetag:
 """
 
 
-extra_doc_field_by_field = """
-By rendering field-by-field, we get an even more fine grained control over how each field is rendered.
-
-This way we can render each field in a different manner depending on its name or type. Such a template
-might look like:
-
-.. code-block:: django
-
-	{% load formsetify %}
-	...
-	{% formsetify form %}
-	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
-	  <form id="{{ form.form_id }}"></form>
-	  {% include "formset/non_field_errors.html" %}
-	  {% for field in form %}
-	    {% if field.is_hidden %}
-	      {{ field }}
-	    {% elif field.name == "my_special_field" %}
-	      {% include "myproject/my_special_field.html" %}
-	    {% else %}
-	      {% include "formset/default/field_group.html" %}
-	    {% endif %}
-	  {% endfor %}
-	  <button type="button" click="submit -> proceed">Submit</button>
-	</django-formset>
-"""
-
-
 extra_doc_horizontal = """
 Here we render a Django Form instance using the template tag with different CSS classes:
 
@@ -460,7 +432,6 @@ urlpatterns = [
     path('complete.field-by-field', DemoFormView.as_view(
         form_class=CompleteForm,
         template_name='testapp/field-by-field.html',
-        extra_doc=extra_doc_field_by_field,
     ), name='complete.field-by-field'),
     path('complete.horizontal', DemoFormView.as_view(
         form_class=CompleteForm,
