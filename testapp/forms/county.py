@@ -2,7 +2,7 @@ from django.forms import fields, forms, models
 
 from formset.widgets import DualSelector, DualSortableSelector, Selectize, SelectizeMultiple
 
-from testapp.models import County, CountyUnnormalized
+from testapp.models import County
 
 
 class CountyForm(forms.Form):

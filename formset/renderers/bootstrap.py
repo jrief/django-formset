@@ -1,3 +1,5 @@
+from django.utils.html import format_html
+
 from formset.boundfield import ClassList
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
 
@@ -84,6 +86,8 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox.html': _amend_checkbox,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
+        'formset/default/widgets/datepicker.html': _amend_input,
+        'formset/default/widgets/datetimepicker.html': _amend_input,
         'formset/default/widgets/file.html': _amend_file,
         'formset/default/widgets/selectize.html': _amend_select,
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,
@@ -91,3 +95,28 @@ class FormRenderer(DefaultFormRenderer):
         'formset/default/collection.html': _amend_collection,
         'formset/default/widgets/richtextarea.html': _amend_input,
     })
+
+
+def richtext_attributes(attrs):
+    """
+    Converts the internal representation of node attributes into a specific string such as
+    ``class="specfic-css-class"``. This enforces paragraph styling according to Bootstrap's best practice.
+    """
+    classes = []
+    for key, value in attrs.items():
+        if not value:
+            continue
+        if key == 'textIndent' and value == 'indent':
+            classes.append('text-indent')
+        elif key == 'textIndent' and value == 'outdent':
+            classes.append('text-outdent')
+        elif key == 'textMargin':
+            classes.append(f'text-margin-{value}')
+        elif key == 'textAlign' and value == 'left':
+            classes.append('text-start')
+        elif key == 'textAlign' and value == 'center':
+            classes.append('text-center')
+        elif key == 'textAlign' and value == 'right':
+            classes.append('text-end')
+    attributes = format_html(' class="{}"', ' '.join(classes)) if classes else ''
+    return attributes

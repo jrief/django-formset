@@ -1,9 +1,8 @@
+{% load render_attributes from richtext %}
 {% if node.content %}
-<p>
+<p{% render_attributes node.attrs %}>
 	{% for item in node.content %}
-		{% with template="./"|add:item.type|lower|add:".html" %}
-			{% include template with node=item %}
-		{% endwith %}
+		{% with template="./"|add:item.type|lower|add:".html" %}{% include template with node=item %}{% endwith %}
 	{% endfor %}
 </p>
 {% endif %}

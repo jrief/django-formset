@@ -15,24 +15,43 @@ Django ``Form``-s.
 
 	intro
 	installation
-	single-form
 	django-formset
+	single-form
 	styling
+	default-widgets
+	alternative-widgets
 	buttons
+	withholding-feedback
 	collections
 	fieldsets
 	model-form
 	model-collections
-	renderers
+	form-renderer
 	conditionals
 	uploading
 	selectize
 	dual-selector
-	preselect-options
 	richtext
 	slug-input
+	calendar
 	development
 	contributing
+	changes
+	history
+	chat-gpt
+
+Project Home
+============
+
+The complete source for **django-formset** is available on GitHub at
+https://github.com/jrief/django-formset 
+
+
+License
+=======
+
+**django-formset** is licensed according to the MIT public license.
+
 
 Indices and tables
 ==================

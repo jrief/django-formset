@@ -1,0 +1,4 @@
+<p{% block button_row_classes %}{% endblock %}>
+	<button type="button" df-click="submit -> intercept('#{{ pre_id }}-data') !~ intercept('#{{ pre_id }}-data')" class="{% block submit_classes %}{% endblock %}">Submit</button>
+	<button type="button" df-click="reset" class="{% block reset_classes %}{% endblock %}">Reset to initial</button>
+</p>

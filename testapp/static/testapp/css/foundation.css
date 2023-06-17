@@ -1,7 +1,7 @@
 @import "../../node_modules/foundation-sites/dist/css/foundation.min.css";
 @import "../../formset/css/collections.css";
 
-django-formset django-field-group .dj-errorlist {
+django-formset [role="group"] .dj-errorlist {
 	margin-top: -0.75rem;
 	margin-bottom: 0.75rem;
 	}

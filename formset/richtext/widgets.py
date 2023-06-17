@@ -41,8 +41,10 @@ class RichTextarea(Textarea):
     def render(self, name, value, attrs=None, renderer=None):
         context = self.get_context(name, value, attrs)
         control_panel = format_html_join('', '{0}', ((elm.render(renderer),) for elm in self.control_elements))
+        auto_id = '{id}_dialog_%s'.format(**attrs)
         modal_dialogs = format_html_join('\n', '{0}', (
-            (format_html('<dialog richtext-opener="{0}">{1}</dialog>', elm.name, elm.dialog_class(renderer=renderer)),)
+            (format_html('<dialog richtext-opener="{0}">{1}</dialog>',
+                         elm.name, elm.dialog_class(renderer=renderer, auto_id=auto_id)),)
             for elm in self.control_elements if getattr(elm, 'dialog_class', None))
         )
         context.update(

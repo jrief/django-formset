@@ -1,7 +1,7 @@
 {% extends framework|default:"testapp"|add:"/base.html" %}
 {% load formsetify %}
 
-{% block "main-content" %}
+{% block main-content %}
 <django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}" csrf-token="{{ csrf_token }}">
 	{% formsetify form framework form_classes=form_css_classes field_classes=field_css_classes label_classes=label_css_classes|default:None control_classes=control_css_classes %}
 	<form id="{{ form.form_id }}"></form>

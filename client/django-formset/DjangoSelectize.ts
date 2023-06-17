@@ -161,7 +161,7 @@ class DjangoSelectize extends IncompleteSelect {
 			switch (cssRule.selectorText) {
 				case '.ts-wrapper':
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'font-family', 'font-size', 'font-strech', 'font-style', 'font-weight',
+						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
 						'letter-spacing', 'white-space']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
@@ -214,7 +214,7 @@ class DjangoSelectize extends IncompleteSelect {
 					}
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case ':host-context(django-field-group.dj-submitted) .ts-wrapper.invalid.focus .ts-control':
+				case ':host-context([role="group"].dj-submitted) .ts-wrapper.invalid.focus .ts-control':
 					tomInput.style.transition = 'none';
 					tomInput.classList.add('-focus-', '-invalid-', 'is-invalid');  // is-invalid is a Bootstrap hack
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
@@ -258,7 +258,7 @@ class DjangoSelectize extends IncompleteSelect {
 const DS = Symbol('DjangoSelectize');
 
 export class DjangoSelectizeElement extends HTMLSelectElement {
-	private [DS]?: DjangoSelectize;  // hides internal implementation
+	private [DS]!: DjangoSelectize;  // hides internal implementation
 
 	private connectedCallback() {
 		if ('tomselect' in this)

@@ -5,18 +5,23 @@ import { StyleHelpers } from './django-formset/helpers';
 
 window.addEventListener('DOMContentLoaded', (event) => {
 	const pseudoStylesElement = StyleHelpers.convertPseudoClasses();
-	const promises = Array<Promise<unknown>>();
+	const promises = Array<Promise<void>>();
+
+	function defineComponent(resolve: Function, selector: string, newComponent: CustomElementConstructor, options: ElementDefinitionOptions|undefined=undefined) {
+		if (customElements.get(selector) instanceof Function) {
+			resolve();
+		} else {
+			window.customElements.define(selector, newComponent, options);
+			window.customElements.whenDefined(selector).then(() => resolve());
+		}
+	}
 
 	function domLookup(fragmentRoot: Document | DocumentFragment) {
+		// remember to always reflect imports below here also in django-formset.monolith.ts
 		if (fragmentRoot.querySelector('select[is="django-selectize"]')) {
 			promises.push(new Promise((resolve, reject) => {
 				import('./django-formset/DjangoSelectize').then(({DjangoSelectizeElement}) => {
-					if (customElements.get('django-selectize') instanceof Function) {
-						resolve();
-					} else {
-						window.customElements.define('django-selectize', DjangoSelectizeElement, {extends: 'select'});
-						window.customElements.whenDefined('django-selectize').then(() => resolve());
-					}
+					defineComponent(resolve, 'django-selectize', DjangoSelectizeElement, {extends: 'select'});
 				}).catch(err => reject(err));
 			}));
 		}
@@ -44,50 +49,59 @@ window.addEventListener('DOMContentLoaded', (event) => {
 		} else if (fragmentRoot.querySelector('select[is="django-dual-selector"]')) {
 			promises.push(new Promise((resolve, reject) => {
 				import('./django-formset/DualSelector').then(({DualSelectorElement}) => {
-					if (customElements.get('django-dual-selector') instanceof Function) {
-						resolve();
-					} else {
-						window.customElements.define('django-dual-selector', DualSelectorElement, {extends: 'select'});
-						window.customElements.whenDefined('django-dual-selector').then(() => resolve());
-					}
+					defineComponent(resolve, 'django-dual-selector', DualSelectorElement, {extends: 'select'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('textarea[is="django-richtext"]')) {
 			promises.push(new Promise((resolve, reject) => {
 				import('./django-formset/RichtextArea').then(({RichTextAreaElement}) => {
-					if (customElements.get('django-richtext') instanceof Function) {
-						resolve();
-					} else {
-						window.customElements.define('django-richtext', RichTextAreaElement, {extends: 'textarea'});
-						window.customElements.whenDefined('django-richtext').then(() => resolve());
-					}
+					defineComponent(resolve, 'django-richtext', RichTextAreaElement, {extends: 'textarea'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('input[is="django-slug"]')) {
 			promises.push(new Promise((resolve, reject) => {
 				import('./django-formset/DjangoSlug').then(({DjangoSlugElement}) => {
-					if (customElements.get('django-slug') instanceof Function) {
-						resolve();
-					} else {
-						window.customElements.define('django-slug', DjangoSlugElement, {extends: 'input'});
-						window.customElements.whenDefined('django-slug').then(() => resolve());
-					}
+					defineComponent(resolve, 'django-slug', DjangoSlugElement, {extends: 'input'});
+				}).catch(err => reject(err));
+			}));
+		}
+		if (fragmentRoot.querySelector('input[is="django-datepicker"]')) {
+			promises.push(new Promise((resolve, reject) => {
+				import('./django-formset/DateTimePicker').then(({DatePickerElement}) => {
+					defineComponent(resolve, 'django-datepicker', DatePickerElement, {extends: 'input'});
+				}).catch(err => reject(err));
+			}));
+		}
+		if (fragmentRoot.querySelector('input[is="django-datetimepicker"]')) {
+			promises.push(new Promise((resolve, reject) => {
+				import('./django-formset/DateTimePicker').then(({DateTimePickerElement}) => {
+					defineComponent(resolve, 'django-datetimepicker', DateTimePickerElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
 	}
 
-	document.querySelectorAll('template.empty-collection').forEach(templateElement => {
-		if (templateElement.content instanceof DocumentFragment) {
-			domLookup(templateElement.content);
+	document.querySelectorAll('template.empty-collection').forEach(element => {
+		if (element instanceof HTMLTemplateElement && element.content instanceof DocumentFragment) {
+			domLookup(element.content);
 		}
 	});
 	domLookup(document);
 
+	const foundIds = new Set<string>();
+	document.querySelectorAll('django-formset [id]').forEach(element => {
+		const foundId = element.getAttribute('id')!;
+		if (foundIds.has(foundId))
+			throw new Error(`There are at least two elements with attribute id="${foundId}"`);
+		foundIds.add(foundId);
+	});
+
 	Promise.all(promises).then(() => {
 		window.customElements.define('django-formset', DjangoFormsetElement);
-		pseudoStylesElement.remove();
+		window.customElements.whenDefined('django-formset').then(() => {
+			pseudoStylesElement.remove();
+		});
 	}).catch(error => console.error(`Failed to initialize django-formset: ${error}`));
 });

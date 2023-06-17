@@ -5,9 +5,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'secret_key')
 
-DEBUG = bool(os.getenv('DJANGO_DEBUG'))
+DEBUG = os.getenv('DJANGO_DEBUG', '').lower() in ['true', '1', 'yes']
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*'] if DEBUG else ['localhost', 'django-formset.fly.dev']
 CSRF_TRUSTED_ORIGINS = ['https://django-formset.fly.dev']
 
 INSTALLED_APPS = [
@@ -20,6 +20,12 @@ INSTALLED_APPS = [
     'formset',
     'testapp',
 ]
+try:
+    import sphinx_view
+except ImportError:
+    pass
+else:
+    INSTALLED_APPS.append('sphinx_view')
 
 if os.getenv('DATABASE_ENGINE') == 'postgres':
     DATABASES = {
@@ -51,18 +57,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 USE_TZ = True
 
+TIME_ZONE = 'UTC'
+
 MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
 ]
+
+USE_I18N = True
 
 ROOT_URLCONF = 'testapp.urls'
 
 STATICFILES_DIRS = [
     ('node_modules', BASE_DIR / 'node_modules'),
+    ('sphinx-view', BASE_DIR / 'docs/build/json'),
 ]
 
 STATIC_ROOT = Path(os.getenv('DJANGO_STATIC_ROOT', BASE_DIR / 'staticfiles'))
@@ -75,7 +87,7 @@ MEDIA_URL = '/media/'
 
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    'DIRS': [BASE_DIR / 'tests/templates'],
+    'DIRS': [BASE_DIR / 'docs/source/_templates'],
     'APP_DIRS': True,
     'OPTIONS': {
         'context_processors': [

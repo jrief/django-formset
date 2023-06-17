@@ -1,5 +1,40 @@
 ## Changes
 
+- 1.0
+  * **Breaking change:** Class `FormCollection` is validated entirely and only after all checks
+    passed, models are created out of the cleaned data. This means that the method
+    `construct_instance` and `model_to_dict` changed their signature. Please read the docs on how to
+    use them now.
+  * **Breaking change:** In all rendered forms, `<django-field-group>` is replaced against
+    `<div role="group">` because self-declared elements shall only be used as web components.
+  * **Breaking change:** In all rendered forms groups, `<django-error-messages>` is replaced against
+    `<meta name="error-messages">` because self-declared elements shall only be used as web
+    components.
+  * **Breaking change:** Attribute `click`, which is used to specify action queues in submit
+    buttons, has been renamed to `df-click` in order to prevent naming collisions.
+  * **Breaking change:** Attributes `show-if`, `hide-if` and `disable-if` which are used to hide or
+    disable fields, fieldsets and buttons, have been renamed to `df-show`,  `df-hide` and
+    `df-disable` in order to prevent naming collisions.
+  * The documentation now is interactive integrating the many working examples.
+  * Fix: In `DualSortableSelector` the initial ordering of options, sometimes did not correspond to
+    the intermediate's model entries. 
+  * Add view class `BulkEditCollectionView` to edit a collection with siblings without any main
+    object. Also add method `models_to_list` as a counterpart to `model_to_dict` for list views.
+  * Constructor of `FormCollection` additionally accepts `auto_id`. This can be used to set the
+    format of the `id` field in form fields.
+  * Constructor of `FormCollection` additionally accepts `instance`. This helps to build the models
+    out of a collection.
+  * Class `FormCollection` performs a unique validating check while performing a `full_clean`.
+  * Add a date- and datetime picker rendered by the server using the Python `Calendar` class.
+  * Widget ``UploadedFileInput`` accepts `{…, max-size: <bytes>, …}` in its `attrs` to limit the
+    uploadable file size.
+  * Add control elements for to RichTextarea: `TextAlign`, `TextColor`, `TextIndent`, `TextMargin`,
+    `Blockquote`, `Codeblock`, `HardBreak`, `Subscript`, `Superscript`, `Placeholder`.
+  * Add check to determine if the same id is used by more than one field inside `<django-formset…>`
+    elements on a single page.
+  * In `RichtextArea` replace `popper.js` against `floating-ui`.
+    
+
 - 0.13.4
   * Fix: On the Javascript console, library TonSelect complained to be initialized already, if more
     than one `Selectize` or `SelectizeMultiple` widget were used.

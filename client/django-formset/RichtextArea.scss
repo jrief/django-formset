@@ -5,6 +5,7 @@
 	--button-opacity: #{$richtext-button-opacity};
 
 	position: relative;
+	overflow: auto;
 
 	[role="menubar"] {
 		border: none;
@@ -39,7 +40,7 @@
 				opacity: 1;
 				background-color: var(--button-active);
 			}
-			&[richtext-toggle="heading"] {
+			&[aria-haspopup="true"] {
 				&:after {
 					border-bottom: 0;
 					border-left: 0.3em solid transparent;
@@ -55,10 +56,15 @@
 				}
 				& + ul[role="menu"] {
 					display: none;
+					position: absolute;
+					width: max-content;
+					top: 0;
+					left: 0;
 					padding: inherit;
 					list-style: none;
 					background-color: inherit;
 					border-color: black;
+
 					> li {
 						background-color: inherit;
 						opacity: var(--button-opacity);
@@ -85,6 +91,13 @@
 		}
 	}
 
+	.character-count {
+		position: absolute;
+		bottom: 3px;
+		right: 6px;
+		color: $richtext-placeholder;
+	}
+
 	.ProseMirror {
 		border: none;
 		position: absolute;
@@ -103,6 +116,27 @@
 
 		p {
 			margin-bottom: 0.5rem;
+
+			&.is-editor-empty:first-child::before {
+				color: $richtext-placeholder;
+				content: attr(data-placeholder);
+				float: left;
+				height: 0;
+				pointer-events: none;
+			}
+
+			&[data-text="indent"] {
+				text-indent: 3em;
+			}
+			&[data-text="outdent"] {
+				text-indent: -3em;
+				padding-left: 3em;
+			}
+			@for $indent from 1 through 10 {
+				&[data-text-indent="#{$indent}"] {
+					margin-left: #{2 * $indent}em;
+				}
+			}
 		}
 
 		li > p {
@@ -111,6 +145,22 @@
 
 		&:focus-visible {
 			outline: none;
+		}
+
+		blockquote {
+			border-left: 3px solid $richtext-placeholder;
+			padding-left: 1rem;
+		}
+
+		output[role="placeholder"] {
+			background-color: $richtext-code-block;
+			box-shadow: inset 0 0 5px $richtext-output;
+		}
+
+		pre {
+			padding: 0.5rem 1rem;
+			background-color: $richtext-code-block;
+			font-family: monospace;
 		}
 
 		pre {

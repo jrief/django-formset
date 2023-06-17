@@ -1,0 +1,10 @@
+
+.text-red {
+	color: rgb(192, 0, 0);
+}
+.text-green {
+	color: rgb(0, 192, 0);
+}
+.text-blue {
+	color: rgb(0, 0, 192);
+}

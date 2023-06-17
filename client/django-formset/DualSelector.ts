@@ -395,14 +395,14 @@ export class DualSelector extends IncompleteSelect {
 
 		// set background-color to transparent, so that the shadow on a focused input/select field is not cropped
 		let extraStyles = StyleHelpers.extractStyles(this.selectLeftElement, ['background-color']);
-		sheet.insertRule(`django-formset django-field-group .dj-dual-selector .left-column{${extraStyles}}`, 0);
+		sheet.insertRule(`django-formset [role="group"] .dj-dual-selector .left-column{${extraStyles}}`, 0);
 		extraStyles = StyleHelpers.extractStyles(this.selectRightElement, ['background-color']);
-		sheet.insertRule(`django-formset django-field-group .dj-dual-selector .right-column{${extraStyles}}`, 1);
+		sheet.insertRule(`django-formset [role="group"] .dj-dual-selector .right-column{${extraStyles}}`, 1);
 		sheet.insertRule('.dj-dual-selector select, .dj-dual-selector input{background-color: transparent;}', 2);
 
 		// prevent <select multiple> to have different heights depending on the having at least one <option>
 		extraStyles = StyleHelpers.extractStyles(this.selectLeftElement, ['height']);
-		sheet.insertRule(`django-formset django-field-group .dj-dual-selector select{${extraStyles}}`, 3);
+		sheet.insertRule(`django-formset [role="group"] .dj-dual-selector select{${extraStyles}}`, 3);
 	}
 
 	protected formResetted(event: Event) {
@@ -449,7 +449,7 @@ export class DualSelector extends IncompleteSelect {
 const DS = Symbol('DualSelectorElement');
 
 export class DualSelectorElement extends HTMLSelectElement {
-	private [DS]?: DualSelector;  // hides internal implementation
+	private [DS]!: DualSelector;  // hides internal implementation
 
 	connectedCallback() {
 		this[DS] = new DualSelector(this, 'django-dual-selector');

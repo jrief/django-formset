@@ -1,5 +1,5 @@
 from django.forms import forms
-from django.forms.fields import CharField, ImageField, URLField
+from django.forms.fields import CharField, ImageField, RegexField, URLField
 from django.forms.widgets import URLInput
 from django.utils.translation import gettext_lazy as _
 
@@ -41,4 +41,20 @@ class ImageFormDialog(DialogForm):
     image = ImageField(
         label=_("Image"),
         widget=UploadedFileInput(),
+    )
+
+
+class PlaceholderFormDialog(DialogForm):
+    modal_title = _("Edit Placeholder")
+    method = 'dialog'
+    prefix = 'edit_placeholder'
+
+    variable = RegexField(
+        regex=r'^[A-Za-z_][0-9A-Za-z_\.]{0,254}$',
+        label=_("Variable Name"),
+    )
+
+    sample = CharField(
+        label=_("Sample Text"),
+        required=False,
     )

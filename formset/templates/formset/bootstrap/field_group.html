@@ -1,5 +1,5 @@
 {% spaceless %}
-<django-field-group{% with css_classes=field.css_classes %}{% if css_classes %} class="{{ css_classes }}"{% endif %}{% endwith %}>
+<div role="group"{% with css_classes=field.css_classes %}{% if css_classes %} class="{{ css_classes }}"{% endif %}{% endwith %}>
 	{{ field.label_tag }}
 	{% if control_css_classes %}<div class="{{ control_css_classes }}">{% endif %}
 	{{ field }}
@@ -8,5 +8,5 @@
 	{% if help_text %}<span class="form-text text-muted">{{ help_text }}</span>{% endif %}
 	{% endwith %}
 	{% if control_css_classes %}</div>{% endif %}
-</django-field-group>
+</div>
 {% endspaceless %}

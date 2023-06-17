@@ -1,0 +1,166 @@
+{% load static %}
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+
+<head>
+	<title>{% block title %}{{ doc.title|striptags }}django-formset{% endblock title %}</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<meta name="color-scheme" content="light dark">
+	<link rel="icon" href="data:,">
+	<link rel="stylesheet" type="text/css" href="{% static 'sphinx-view/_static/pygments.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'sphinx-view/_static/styles/furo.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'sphinx-view/_static/styles/furo-extensions.css' %}">
+	<style>
+  body {
+		--color-code-background: #f8f8f8;
+		--color-code-foreground: black;
+	}
+	@media not print {
+		body[data-theme="dark"] {
+			--color-code-background: #202020;
+			--color-code-foreground: #d0d0d0;
+		}
+		@media (prefers-color-scheme: dark) {
+			body:not([data-theme="light"]) {
+				--color-code-background: #202020;
+				--color-code-foreground: #d0d0d0;
+			}
+		}
+	}
+	</style>
+	<link rel="stylesheet" type="text/css" href="{% static 'sphinx-view/_static/styles/nested-styles.css' %}">
+	<script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
+</head>
+
+<body>
+	<script>document.body.dataset.theme = localStorage.getItem("theme") || "auto";</script>
+	{% include "icons.html" %}
+	<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+	<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+	<label class="overlay sidebar-overlay" for="__navigation">
+		<div class="visually-hidden">Hide navigation sidebar</div>
+	</label>
+	<label class="overlay toc-overlay" for="__toc">
+		<div class="visually-hidden">Hide table of contents sidebar</div>
+	</label>
+
+	<div class="page">
+		<header class="mobile-header scrolled">
+			<div class="header-left">
+				<label class="nav-overlay-icon" for="__navigation">
+					<div class="visually-hidden">Toggle site navigation sidebar</div>
+					<i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+				</label>
+			</div>
+			<div class="header-center">
+				<a href="index.html"><div class="brand"><strong>{{ doc.config.project }}</strong> <small>{{ doc.config.release }}</small></div></a>
+			</div>
+			<div class="header-right">
+				<div class="theme-toggle-container theme-toggle-header">
+					<button class="theme-toggle">
+						<div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+						<svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+						<svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+						<svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+					</button>
+				</div>
+				<label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+					<div class="visually-hidden">Toggle table of contents sidebar</div>
+					<i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+				</label>
+			</div>
+		</header>
+
+		<aside class="sidebar-drawer">
+			<div class="sidebar-container">
+				<div class="sidebar-sticky">
+					<a class="sidebar-brand" href="{% url 'sphinx-view:root' %}">
+						<span class="sidebar-brand-text"><strong>{{ doc.config.project }}</strong> <small>{{ doc.config.release }}</small></span>
+					</a>
+					<form class="sidebar-search-container" method="get" action="{% url 'sphinx-view:search' %}" role="search">
+						<input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+						<input type="hidden" name="check_keywords" value="yes">
+						<input type="hidden" name="area" value="default">
+					</form>
+					<div id="searchbox"></div>
+					<div class="sidebar-scroll">
+						<div class="sidebar-tree">
+							{% block sidebar %}{{ doc.furo_navigation_tree|safe }}{% endblock sidebar %}
+						</div>
+					</div>
+				</div>
+			</div>
+		</aside>
+
+		<div class="main">
+			<div class="content">
+
+				{% block main-content %}
+				{% endblock %}
+
+				<footer>
+					<div class="related-pages">
+						<a class="next-page" href="{{ doc.next.link }}">
+							<div class="page-info">
+								<div class="context">
+									<span>Next</span>
+								</div>
+								<div class="title">{{ doc.next.title|safe }}</div>
+							</div>
+							<svg class="furo-related-icon">
+								<use href="#svg-arrow-right"></use>
+							</svg>
+						</a>
+						<a class="prev-page" href="{{ doc.prev.link }}">
+							<svg class="furo-related-icon">
+								<use href="#svg-arrow-right"></use>
+							</svg>
+							<div class="page-info">
+								<div class="context">
+									<span>Previous</span>
+								</div>
+								<div class="title">{{ doc.prev.title|safe }}</div>
+							</div>
+						</a>
+					</div>
+					<div class="bottom-of-page">
+						<div class="left-details">
+							<div class="copyright">
+								{{ doc.config.copyright }}, {{ doc.config.author }}
+							</div>
+							Made with <a href="https://noumenal.es/django-sphinx-view/">django-sphinx-view</a>
+							and <a href="https://github.com/pradyunsg/furo">Furo Theme</a>.
+						</div>
+						<div class="right-details"></div>
+					</div>
+				</footer>
+
+			</div>
+
+			<aside class="toc-drawer{% if doc.furo_hide_toc %} no-toc{% endif %}">
+				{% if not doc.furo_hide_toc %}
+				<div class="toc-sticky toc-scroll">
+					<div class="toc-title-container">
+						<span class="toc-title">On this page</span>
+					</div>
+					<div class="toc-tree-container">
+						<div class="toc-tree">
+							{% block toc %}{{ doc.toc|safe }}{% endblock %}
+						</div>
+					</div>
+				</div>
+				{% endif %}
+			</aside>
+
+		</div>
+	</div>
+{% block regular_scripts %}
+	<script data-url_root="{% url 'sphinx-view:root' %}" id="documentation_options" src="{% static 'sphinx_view/js/documentation_options.js' %}"></script>
+	<script src="{% static 'sphinx-view/_static/doctools.js' %}"></script>
+	<script src="{% static 'sphinx-view/_static/sphinx_highlight.js' %}"></script>
+	<script src="{% static 'sphinx-view/_static/scripts/furo.js' %}"></script>
+{% endblock %}
+</body>
+
+</html>

@@ -43,9 +43,9 @@ class BoundValue {
 class FieldErrorMessages extends Map<ErrorKey, string>{
 	constructor(fieldGroup: FieldGroup) {
 		super();
-		const element = fieldGroup.element.querySelector('django-error-messages');
+		const element = fieldGroup.element.querySelector('meta[name="error-messages"]');
 		if (!element)
-			throw new Error(`<django-field-group> for '${fieldGroup.name}' requires one <django-error-messages> tag.`);
+			throw new Error(`<div role="group"> for '${fieldGroup.name}' requires one <meta name="error-messages"> tag.`);
 		for (const attr of element.getAttributeNames()) {
 			const clientKey = attr.replace(/([_][a-z])/g, (group) => group.toUpperCase().replace('_', ''));
 			const clientValue = element.getAttribute(attr);
@@ -77,7 +77,7 @@ class FieldGroup {
 		this.errorMessages = new FieldErrorMessages(this);
 		const requiredAny = element.classList.contains('dj-required-any');
 
-		// <django-field-group> can contain one or more <input type="checkbox"> or <input type="radio"> elements
+		// <div role="group"> can contain one or more <input type="checkbox"> or <input type="radio"> elements
 		const allowedInputs = (i: Element) => i instanceof HTMLInputElement && i.name && i.form === form.element && i.type !== 'hidden';
 		const inputElements = Array.from(element.getElementsByTagName('INPUT')).filter(allowedInputs) as Array<HTMLInputElement>;
 		for (const element of inputElements) {
@@ -86,10 +86,10 @@ class FieldGroup {
 				case 'radio':
 					element.addEventListener('input', () => {
 						this.touch();
-						this.inputted()
+						this.inputted();
 					});
 					element.addEventListener('change', () => {
-						requiredAny ? this.validateCheckboxSelectMultiple() : this.validate()
+						requiredAny ? this.validateCheckboxSelectMultiple() : this.validate();
 					});
 					break;
 				case 'file':
@@ -105,7 +105,7 @@ class FieldGroup {
 		}
 		this.fieldElements = Array<FieldElement>(0).concat(inputElements);
 
-		// <django-field-group> can contain at most one <select> element
+		// <div role="group"> can contain at most one <select> element
 		const allowedSelects = (s: Element) => s instanceof HTMLSelectElement && s.name && s.form === form.element;
 		const selectElement = Array.from(element.getElementsByTagName('SELECT')).filter(allowedSelects).at(0);
 		if (selectElement instanceof HTMLSelectElement) {
@@ -118,7 +118,7 @@ class FieldGroup {
 			this.fieldElements.push(selectElement);
 		}
 
-		// <django-field-group> can contain at most one <textarea> element
+		// <div role="group"> can contain at most one <textarea> element
 		const allowedTextAreas = (t: Element) => t instanceof HTMLTextAreaElement && t.name && t.form === form.element;
 		const textAreaElement = Array.from(element.getElementsByTagName('TEXTAREA')).filter(allowedTextAreas).at(0);
 		if (textAreaElement instanceof HTMLTextAreaElement) {
@@ -136,7 +136,7 @@ class FieldGroup {
 			this.validateBoundField();
 		}
 		this.pristineValue = new BoundValue(this.aggregateValue());
-		this.updateVisibility = this.evalVisibility('show-if', true) ?? this.evalVisibility('hide-if', false) ?? function() {};
+		this.updateVisibility = this.evalVisibility('df-show', true) ?? this.evalVisibility('df-hide', false) ?? function() {};
 		this.updateDisabled = this.evalDisable();
 		this.untouch();
 		this.setPristine();
@@ -154,6 +154,12 @@ class FieldGroup {
 			}
 			if (element.type === 'file') {
 				return this.fileUploader!.uploadedFiles;
+			}
+			if (element instanceof HTMLInputElement && window.customElements.get('django-datepicker') && element.getAttribute('is') === 'django-datepicker') {
+				return element.valueAsDate?.toISOString().slice(0, 10) ?? '';
+			}
+			if (element instanceof HTMLInputElement && window.customElements.get('django-datetimepicker') && element.getAttribute('is') === 'django-datetimepicker') {
+				return element.valueAsDate?.toISOString().replace('T', ' '). slice(0, 16) ?? '';
 			}
 			// all other input types just return their value
 			return element.value;
@@ -192,25 +198,32 @@ class FieldGroup {
 	}
 
 	private evalVisibility(attribute: string, visible: boolean): Function | null {
+		function isTruthy(expression: any) : boolean {
+			// since empty arrays evaluate to true, implement separately to examine for existance
+			// when using the file upload widget. Check https://262.ecma-international.org/5.1/#sec-11.9.3
+			// for details.
+			return Array.isArray(expression) ? expression.length !== 0 : Boolean(expression);
+		}
+
 		const attrValue = this.fieldElements[0]?.getAttribute(attribute);
 		if (typeof attrValue !== 'string')
 			return null;
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
 			return () => {
-				const isHidden = visible != Boolean(evalExpression.call(this));
+				const isHidden = visible != isTruthy(evalExpression.call(this));
 				if (this.element.hasAttribute('hidden') !== isHidden) {
 					this.fieldElements.forEach((elem, index) => elem.disabled = isHidden || this.initialDisabled[index]);
 					this.element.toggleAttribute('hidden', isHidden);
 				}
 			};
 		} catch (error) {
-			throw new Error(`Error while parsing <... show-if/hide-if="${attrValue}">: ${error}.`);
+			throw new Error(`Error while parsing <... df-show/hide="${attrValue}">: ${error}.`);
 		}
 	}
 
 	private evalDisable(): Function {
-		const attrValue = this.fieldElements[0]?.getAttribute('disable-if');
+		const attrValue = this.fieldElements[0]?.getAttribute('df-disable');
 		if (typeof attrValue !== 'string')
 			return () => {};
 		try {
@@ -220,7 +233,7 @@ class FieldGroup {
 				this.fieldElements.forEach((elem, index) => elem.disabled = disable || this.initialDisabled[index]);
 			}
 		} catch (error) {
-			throw new Error(`Error while parsing <... disable-if="${attrValue}">: ${error}.`);
+			throw new Error(`Error while parsing <... df-disable="${attrValue}">: ${error}.`);
 		}
 	}
 
@@ -453,7 +466,7 @@ class DjangoButton {
 		this.bummerElement = document.createElement('i');
 		this.bummerElement.classList.add('dj-icon', 'dj-bummer');
 		this.bummerElement.innerHTML = bummerIcon;
-		this.parseActionsQueue(element.getAttribute('click'));
+		this.parseActionsQueue(element.getAttribute('df-click'));
 		element.addEventListener('click', this.clicked);
 	}
 
@@ -553,17 +566,16 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private proceed(proceedUrl: string | undefined) {
-		return (response: Response) => {
+		return async (response: Response) => {
 			if (typeof proceedUrl === 'string' && proceedUrl.length > 0) {
 				location.href = proceedUrl;
 			} else if (response instanceof Response && response.status === 200) {
-				response.json().then(body => {
-					if (body.success_url) {
-						location.href = body.success_url;
-					} else {
-						console.warn("Neither a success-, nor a proceed-URL are given.");
-					}
-				});
+				const body = await response.clone().json();
+				if (body.success_url) {
+					location.href = body.success_url;
+				} else {
+					console.warn("Neither a success-, nor a proceed-URL are given.");
+				}
 			}
 			return Promise.resolve(response);
 		}
@@ -669,11 +681,21 @@ class DjangoButton {
 
 	/**
 	 * For debugging purpose only: Intercept, log and forward the response object to the next handler.
+	 * @param selector: If selector points onto a valid element in the DOM, the server response is inserted.
  	 */
 	// @ts-ignore
-	private intercept() {
-		return (response: Response) => {
-			console.info(response);
+	private intercept(selector?: string) {
+		return async (response: Response) => {
+			const body = {
+				request: this.formset.buildBody(),
+				response: await response.clone().json(),
+			};
+			const element = selector ? document.querySelector(selector) : null;
+			if (element) {
+				element.innerHTML = JSON.stringify(body, null,'  ');
+			} else {
+				console.info(body);
+			}
 			return Promise.resolve(response);
 		}
 	}
@@ -784,7 +806,7 @@ class DjangoButton {
 			createActions(this.successActions, ast.successChain);
 			createActions(this.rejectActions, ast.rejectChain);
 		} catch (error) {
-			throw new Error(`Error while parsing <button click="${actionsQueue}">: ${error}.`);
+			throw new Error(`Error while parsing <button df-click="${actionsQueue}">: ${error}.`);
 		}
 	}
 
@@ -814,7 +836,7 @@ class DjangoFieldset {
 	constructor(form: DjangoForm, element: HTMLFieldSetElement) {
 		this.form = form;
 		this.element = element;
-		this.updateVisibility = this.evalVisibility('show-if', true) ?? this.evalVisibility('hide-if', false) ?? function() {};
+		this.updateVisibility = this.evalVisibility('df-show', true) ?? this.evalVisibility('df-hide', false) ?? function() {};
 		this.updateDisabled = this.evalDisable();
 	}
 
@@ -831,19 +853,19 @@ class DjangoFieldset {
 				}
 			}
 		} catch (error) {
-			throw new Error(`Error while parsing <fieldset show-if/hide-if="${attrValue}">: ${error}.`);
+			throw new Error(`Error while parsing <fieldset df-show/hide="${attrValue}">: ${error}.`);
 		}
 	}
 
 	private evalDisable(): Function {
-		const attrValue = this.element.getAttribute('disable-if');
+		const attrValue = this.element.getAttribute('df-disable');
 		if (typeof attrValue !== 'string')
 			return () => {};
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
 			return () => this.element.disabled = evalExpression.call(this);
 		} catch (error) {
-			throw new Error(`Error while parsing <fieldset disable-if="${attrValue}">: ${error}.`);
+			throw new Error(`Error while parsing <fieldset df-disable="${attrValue}">: ${error}.`);
 		}
 	}
 
@@ -880,7 +902,8 @@ class DjangoForm {
 			this.errorList = placeholder.parentElement;
 			this.errorPlaceholder = this.errorList!.removeChild(placeholder);
 		}
-		this.element.addEventListener('reset', this.resetted);
+		this.element.addEventListener('submit', this.handleSubmit);
+		this.element.addEventListener('reset', this.handleReset);
 	}
 
 	aggregateValues(): Map<string, FieldValue> {
@@ -888,7 +911,7 @@ class DjangoForm {
 		for (const fieldGroup of this.fieldGroups) {
 			data.set(fieldGroup.name, fieldGroup.aggregateValue());
 		}
-		// hidden fields are not handled by a django-field-group
+		// hidden fields are not handled by a <div role="group">
 		for (const element of this.hiddenInputFields.filter(e => e.type === 'hidden')) {
 			data.set(element.name, element.value);
 		}
@@ -969,7 +992,13 @@ class DjangoForm {
 		this.element.reset();
 	}
 
-	private resetted = () => {
+	private handleSubmit = (event: Event) => {
+		if (event.target instanceof HTMLFormElement && event.target.method === 'dialog')
+			return;
+		event.preventDefault();
+	}
+
+	private handleReset = () => {
 		for (const fieldGroup of this.fieldGroups) {
 			fieldGroup.resetToInitial();
 		}
@@ -1433,7 +1462,7 @@ export class DjangoFormset {
 			if (djangoForms.length > 1)
 				throw new Error(`More than one form has id="${formId}"`);
 			const djangoForm = djangoForms[0];
-			const fieldGroupElement = fieldElement.closest('django-field-group');
+			const fieldGroupElement = fieldElement.closest('[role="group"]');
 			if (fieldGroupElement) {
 				if (djangoForm.fieldGroups.filter(fg => fg.element === fieldGroupElement).length === 0) {
 					djangoForm.fieldGroups.push(new FieldGroup(djangoForm, fieldGroupElement as HTMLElement));
@@ -1493,7 +1522,7 @@ export class DjangoFormset {
 	private findButtons() {
 		this.buttons.length = 0;
 		for (const element of this.element.getElementsByTagName('BUTTON')) {
-			if (element.hasAttribute('click')) {
+			if (element.hasAttribute('df-click')) {
 				this.buttons.push(new DjangoButton(this, element as HTMLButtonElement));
 			}
 		}
@@ -1535,7 +1564,7 @@ export class DjangoFormset {
 		return isValid;
 	}
 
-	private buildBody(extraData?: Object) : Object {
+	public buildBody(extraData?: Object) : Object {
 		let dataValue: any;
 		// Build `body`-Object recursively.
 		// Deliberately ignore type-checking, because `body` must be build as POJO to be JSON serializable.
@@ -1589,7 +1618,7 @@ export class DjangoFormset {
 			const absPath = form.getAbsPath();
 			dataValue = getDataValue(this.data, absPath);
 			if (form.markedForRemoval) {
-				dataValue[MARKED_FOR_REMOVAL] = MARKED_FOR_REMOVAL;
+				dataValue[MARKED_FOR_REMOVAL] = true;
 			}
 			extendBody(body, absPath);
 		}
@@ -1609,6 +1638,7 @@ export class DjangoFormset {
 		if (formsAreValid) {
 			if (!this.endpoint)
 				throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
+			const body = this.buildBody(extraData);
 			try {
 				const headers = new Headers();
 				headers.append('Accept', 'application/json');
@@ -1619,7 +1649,7 @@ export class DjangoFormset {
 				const response = await fetch(this.endpoint, {
 					method: 'POST',
 					headers: headers,
-					body: JSON.stringify(this.buildBody(extraData)),
+					body: JSON.stringify(body),
 					signal: this.abortController.signal,
 				});
 				switch (response.status) {
@@ -1631,7 +1661,7 @@ export class DjangoFormset {
 						return response;
 					case 422:
 						this.clearErrors();
-						const body = await response.json();
+						const body = await response.clone().json();
 						this.reportErrors(body);
 						return response;
 					default:

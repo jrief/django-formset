@@ -1,10 +1,10 @@
 {% spaceless %}
-<django-field-group{% with css_classes=field.css_classes %}{% if css_classes %} class="{{ css_classes }}"{% endif %}{% endwith %}>
+<div role="group"{% with css_classes=field.css_classes %}{% if css_classes %} class="{{ css_classes }}"{% endif %}{% endwith %}>
 	{{ field.label_tag }}
 	{{ field }}
 	{% with help_text=field.help_text %}
 		{% if help_text %}<span class="uk-text-meta">{{ help_text }}</span>{% endif %}
 	{% endwith %}
 	{{ field.errors }}
-</django-field-group>
+</div>
 {% endspaceless %}

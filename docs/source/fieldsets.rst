@@ -19,7 +19,12 @@ From a technical point of view, a fieldset behaves exactly like a single form an
 must be wrapped inside a ``<form>``-element. If we want to use more than one fieldset, then we have
 to group them using :ref:`collections`, just as we would do with normal forms.
 
-Another purpose of using fieldsets, appart from adding a border and legend to a form, is to use
+A fieldset accepts the optional string attribute ``legend``. This then is rendered as a
+``<legend>``-element inside the ``<fieldset>``. A fieldset also accepts the optional string
+attribute ``help_text``. This is rendered as a muted ``<p>``-element after the last field but inside
+that fieldset.
+
+Another purpose of using fieldsets, apart from adding a border and a legend to a form, is to use
 :ref:`conditionals`. This allows us to hide or disable the whole fieldset depending on the context
 of other fields.
 
@@ -27,21 +32,31 @@ of other fields.
 Example
 =======
 
-In this example we use two forms nested in a ``FormCollection``. Remember, a ``Fieldset`` behaves
+In this example we use two forms, a fieldset to ask for some customer's personal data and a form
+with just one Boolean field, both nested in a ``FormCollection``. Remember, a ``Fieldset`` behaves
 exactly as a ``Form`` instance and can be used as a replacement, although with additional styling
-possibilities.
+possibilities. Here we group those two forms into one collection named ``CustomerCollection`` to
+build one submittable entity.
 
-.. code-block:: python
+.. django-view:: import
+	:hide-code:
+	:hide-view:
+
+	from formset.renderers.bootstrap import FormRenderer
+
+.. django-view:: fieldset
+	:view-function: CustomerView.as_view(extra_context={'framework': 'bootstrap'})
 
 	from django.forms import fields, forms
 	from formset.fieldset import Fieldset
 	from formset.collection import FormCollection
-	
+	from formset.views import FormCollectionView
+
 	class CustomerForm(Fieldset):
 	    legend = "Customer"
-	    hide_if = 'register.no_customer'
-	    recipient = fields.CharField()
-	    address = fields.CharField()
+	    hide_condition = 'register.no_customer'
+	    recipient = fields.CharField(label="Recipient", required=False)
+	    address = fields.CharField(label="Address", required=False)
 	
 	class RegisterForm(forms.Form):
 	    no_customer = fields.BooleanField(
@@ -52,13 +67,25 @@ possibilities.
 	class CustomerCollection(FormCollection):
 	    customer = CustomerForm()
 	    register = RegisterForm()
+	    default_renderer = FormRenderer(
+	        field_css_classes='mb-3',
+	        fieldset_css_classes='border rounded p-3 mb-3',
+	    )
 
-When rendered, this Form Collection may look like:
+	class CustomerView(FormCollectionView):
+	    collection_class = CustomerCollection
+	    template_name = "form-collection.html"
+	    success_url = "/success"
 
-.. image:: _static/bootstrap-fieldset.png
-  :width: 660
-  :alt: Fieldset
+.. note:: Bootstrap hides the border of fieldsets. Therefore in this example, we added a default
+	renderer, to set the proper CSS classes for the given fieldset.
 
-The interesting part of this collection is that we can hide the fieldset by clicking on the
+The interesting part of this collection is that we can hide the entire fieldset by clicking on the
 checkbox named "I'm not a customer". This means that by using conditionals, we can dynamically
-adjust the visibility of a complete form.
+adjust the visibility of a complete fieldset. In this example we add
+``hide_condition = 'register.no_customer'`` to the class ``CustomerForm``. Whenever someone clicks
+onto that checkbox, the whole upper fieldset is hidden.
+
+Remember to make the fields in the fieldset optional. Otherwise if the fieldset is hidden, the form
+submission will fail without being able to give feedback which fields are missing. If you need a
+specific validation logic, add it to the form's ``clean()``-method.

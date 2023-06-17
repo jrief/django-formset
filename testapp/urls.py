@@ -24,7 +24,7 @@ def render_landing(request):
 
 
 urlpatterns = [
-    path('', render_landing),
+    # path('', render_landing),
     path('success', lambda request: HttpResponse('<h1>Form data succesfully submitted</h1>'), name='form_data_valid'),
     path('default/', include(('testapp.views', 'default'))),
     path('bootstrap/', include(('testapp.views', 'bootstrap'))),
@@ -37,3 +37,5 @@ urlpatterns.extend(static(
     settings.MEDIA_URL,
     document_root=settings.MEDIA_ROOT
 ))
+if 'sphinx_view' in settings.INSTALLED_APPS:
+    urlpatterns.append(path('', include(('sphinx_view.urls', 'sphinx-view'))))

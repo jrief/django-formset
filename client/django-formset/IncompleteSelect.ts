@@ -1,27 +1,13 @@
+import { Widget } from './helpers';
 
-export abstract class IncompleteSelect {
-	private readonly endpoint?: string;
-	private readonly fieldName?: string;
+
+export abstract class IncompleteSelect extends Widget {
 	protected isIncomplete: boolean;
-	protected readonly fieldGroup: Element;
 	protected filterByValues = new Map<string, string | string[]>();
 
 	constructor(element: HTMLSelectElement) {
-		const fieldGroup = element.closest('django-field-group');
-		const form = element.form;
-		const formset = element.closest('django-formset');
-		if (!fieldGroup || !form || !formset)
-			throw new Error("Attempt to initialize <django-selectize> outside <django-formset>");
-		this.fieldGroup = fieldGroup;
+		super(element);
 		this.isIncomplete = element.hasAttribute('incomplete');
-		if (this.isIncomplete) {
-			// select fields marked as "uncomplete" will fetch additional data from their backend
-			const formName = form.getAttribute('name') ?? '__default__';
-			this.endpoint = formset.getAttribute('endpoint') ?? '';
-			this.fieldName = `${formName}.${element.getAttribute('name')}`;
-		}
-		form.addEventListener('reset', event => this.formResetted(event));
-		form.addEventListener('submitted', event => this.formSubmitted(event));
 	}
 
 	protected setupFilters(element: HTMLSelectElement) {

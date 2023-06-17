@@ -1,0 +1,20 @@
+{% load i18n %}{% spaceless %}
+{% if alignments|length == 1 %}
+	{% with icon="formset/icons/align-"|add:default_alignment|add:".svg" %}
+<button type="button" richtext-click="textAlign:{{ default_alignment }}" aria-label="{% translate 'Text Align' %}">{% include icon %}</button>
+	{% endwith %}
+{% else %}
+	{% with icon="formset/icons/align-"|add:default_alignment|add:".svg" %}
+<button type="button" richtext-click="textAlign" aria-label="{% translate 'Text Align' %}" aria-haspopup="true" aria-expanded="false">{% include icon %}</button>
+	{% endwith %}
+<ul{% block dropdown_menu_class %}{% endblock %} role="menu" aria-labelledby="{% translate 'Text Align' %}">
+	{% for alignment in alignments %}
+	<li{% block dropdown_menu_item %}{% endblock %}>
+		{% with icon="formset/icons/align-"|add:alignment|add:".svg" %}
+		<a richtext-click="alignment:{{ alignment }}">{% include icon %}</a>
+		{% endwith %}
+	</li>
+	{% endfor %}
+</ul>
+{% endif %}
+{% endspaceless %}

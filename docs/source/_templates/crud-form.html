@@ -1,0 +1,24 @@
+{% load render_form from formsetify %}
+
+<django-formset endpoint="{{ request.path }}" force-submission="true" csrf-token="{{ csrf_token }}" class="bootstrap">
+	{% render_form form "bootstrap" %}
+	<p>
+	{% if add %}
+		<button type="button" df-click="submit({add: true}) -> intercept('#{{ pre_id }}-data') -> okay(5000) -> reload !~ intercept('#{{ pre_id }}-data') -> bummer(2000)" class="btn btn-primary my-2">
+			Add Annotation
+			<span class="dj-button-decorator">{% include "icons/send-plus.svg" %}</span>
+		</button>
+	{% elif change %}
+		<button type="button" df-click="submit({update: true}) -> intercept('#{{ pre_id }}-data') -> okay(5000) -> reload !~ intercept('#{{ pre_id }}-data') -> bummer(2000)" class="btn btn-primary my-2">
+			Change Annotation
+			<span class="dj-button-decorator">{% include "icons/send.svg" %}</span>
+		</button>
+		<button type="button" df-click="submit({delete: true}) -> intercept('#{{ pre_id }}-data') -> okay(5000) -> reload !~ intercept('#{{ pre_id }}-data') -> bummer(2000)" class="btn btn-danger ms-2 my-2">
+			Delete Annotation
+			<span class="dj-button-decorator">{% include "icons/trash.svg" %}</span>
+		</button>
+	{% endif %}
+		<button type="button" df-click="reset" class="btn btn-warning ms-2 my-2">Reset to initial</button>
+	</p>
+	<pre id="{{ pre_id }}-data" class="formset-submit-data"></pre>
+</django-formset>

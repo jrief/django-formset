@@ -5,24 +5,25 @@ from formset.utils import FormMixin
 
 
 class FieldsetMixin(FormMixin):
-    show_if = None
-    hide_if = None
-    disable_if = None
+    show_condition = None
+    hide_condition = None
+    disable_condition = None
     legend = None
     help_text = None
     template_name = 'formset/default/fieldset.html'
 
     def __init__(self, **kwargs):
-        show_if = kwargs.pop('show_if', None)
-        hide_if = kwargs.pop('hide_if', None)
-        if show_if and hide_if:
-            raise ImproperlyConfigured(f"class {self.__class__} can accept either `show_if` or `hide_if`, but not both.")
-        if show_if:
-            self.show_if = show_if
-        elif hide_if:
-            self.hide_if = hide_if
-        if disable_if := kwargs.pop('disable_if', None):
-            self.disable_if = disable_if
+        show_condition = kwargs.pop('show_condition', None)
+        hide_condition = kwargs.pop('hide_condition', None)
+        if show_condition and hide_condition:
+            msg = f"class {self.__class__} can accept either `show_condition` or `hide_condition`, but not both."
+            raise ImproperlyConfigured(msg)
+        if show_condition:
+            self.show_condition = show_condition
+        elif hide_condition:
+            self.hide_condition = hide_condition
+        if disable_condition := kwargs.pop('disable_condition', None):
+            self.disable_condition = disable_condition
         if legend := kwargs.pop('legend', None):
             self.legend = legend
         if help_text := kwargs.pop('help_text', None):
@@ -33,9 +34,9 @@ class FieldsetMixin(FormMixin):
         context = super().get_context()
         context.update(
             form_id=self.form_id,
-            show_if=self.show_if,
-            hide_if=self.hide_if,
-            disable_if=self.disable_if,
+            show_condition=self.show_condition,
+            hide_condition=self.hide_condition,
+            disable_condition=self.disable_condition,
             legend=self.legend,
             help_text=self.help_text,
         )
@@ -48,7 +49,7 @@ class Fieldset(FieldsetMixin, forms.Form):
     be used as such. Its purpose is to add visual elements to a `<form>`. Remember, a Form is just a
     data-abstraction layer, has no display properties and is not intended to be styled or anotated.
     On the other side, a <fieldset> may offer a `<legend>`, a border and the possibility to
-    show/hide or disable a set of fields. A `HTMLFieldSetElement` however does not has any field
+    show/hide or disable a set of fields. A `HTMLFieldSetElement` however does not have any field
     validation functionality, this is left to the `HTMLFormElement`.
     """
     def __repr__(self):

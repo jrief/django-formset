@@ -19,11 +19,11 @@ django-formset {
 	--django-formset-icon-valid: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 16" fill="#{$django-formset-color-valid}"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg>');
 
 	$feedback-input-fields: 'input[type=email]', 'input[type=text]', 'input[type=number]', 'input[type=date]',
-		'input[type=url]', 'input[type=password]';
+		 'input[type=datetime-local]', 'input[type=url]', 'input[type=password]';
 	$feedback-fields: list.join($feedback-input-fields, (select, textarea));
 	$has-feedback: ':not(.dj-exempt-feedback)';
 
-	.dj-errorlist {
+	ul.dj-errorlist {
 		list-style: none;
 		margin-top: 0;
 		margin-bottom: 0;
@@ -32,9 +32,10 @@ django-formset {
 		color: var(--django-formset-color-invalid);
 	}
 
-	&.dj-feedback-errors django-field-group.dj-touched:not(.dj-submitted) {
+	&.dj-feedback-errors [role="group"].dj-touched:not(.dj-submitted) {
 		@each $field in $feedback-fields {
-			> #{$field}#{$has-feedback}:invalid:not(:focus) {
+			$selector: "#{$field}#{$has-feedback}:invalid:not(:focus)";
+			>#{$selector}, :not([role="group"])>#{$selector} {
 				border-color: var(--django-formset-color-invalid);
 				background-image: var(--django-formset-icon-invalid);
 			}
@@ -42,17 +43,19 @@ django-formset {
 	}
 
 	&.dj-feedback-warnings {
-		django-field-group.dj-dirty:not(.dj-submitted) {
+		[role="group"].dj-dirty:not(.dj-submitted) {
 			@each $field in $feedback-fields {
-				> #{$field}#{$has-feedback}:invalid:focus {
+				$selector: "#{$field}#{$has-feedback}:invalid:focus";
+				>#{$selector}, :not([role="group"])>#{$selector} {
 					background-image: var(--django-formset-icon-warning);
 				}
 			}
 		}
 		&:not(.dj-feedback-errors) {
-			django-field-group.dj-dirty:not(.dj-submitted) {
+			[role="group"].dj-dirty:not(.dj-submitted) {
 				@each $field in $feedback-fields {
-					> #{$field}#{$has-feedback}:invalid {
+					$selector: "#{$field}#{$has-feedback}:invalid";
+					>#{$selector}, :not([role="group"])>#{$selector} {
 						background-image: var(--django-formset-icon-warning);
 					}
 				}
@@ -60,20 +63,22 @@ django-formset {
 		}
 	}
 
-	&.dj-feedback-success django-field-group.dj-dirty {
+	&.dj-feedback-success [role="group"].dj-dirty {
 		@each $field in $feedback-fields {
-			> #{$field}#{$has-feedback}:valid:not(:focus) {
+			$selector: "#{$field}#{$has-feedback}:valid:not(:focus)";
+			>#{$selector}, :not([role="group"])>#{$selector} {
 				border-color: var(--django-formset-color-valid);
 			}
 		}
 		@each $field in $feedback-input-fields {
-			> #{$field}#{$has-feedback}:valid {
+			$selector: "#{$field}#{$has-feedback}:valid";
+			>#{$selector}, :not([role="group"])>#{$selector} {
 				background-image: var(--django-formset-icon-valid) !important;
 			}
 		}
 	}
 
-	django-field-group {
+	[role="group"] {
 		display: block;
 
 		&[hidden] {
@@ -102,12 +107,13 @@ django-formset {
 			background-repeat: no-repeat !important;
 			background-position: center right !important;
 			background-origin: content-box !important;
-			&[type="date"] {
+			&[type="date"], &[type="datetime-local"] {
 				position: relative;
 				&::-webkit-datetime-edit-fields-wrapper {
-					margin-left: 2em;
+					margin-left: 1.75em;
 				}
 				&::-webkit-calendar-picker-indicator {
+					cursor: pointer;
 					position: absolute;
 					left: 0.75em;
 				}

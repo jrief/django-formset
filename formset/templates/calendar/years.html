@@ -1,0 +1,28 @@
+{% load i18n %}{% spaceless %}
+<div class="controls years-view">
+	<button data-date="{{ calendar.prev_epoch }}" class="prev" type="button" title="{% translate 'Previous epoch' %}">
+		{% include "formset/icons/arrow-left.svg" %}
+	</button>
+	<button data-date="{{ calendar.startdate|date:'c' }}" class="narrow" title="{% translate 'Narrow down to months view' %}">
+		{% include "formset/icons/arrow-up.svg" %}
+	</button>
+{% with first_year=calendar.years|first last_year=calendar.years|last %}
+	<time datetime="{{ calendar.startdate|date:'c' }}">{{ first_year.1 }} – {{ last_year.1 }}</time>
+{% endwith %}
+	<button class="today" title="{% translate 'Today' %}">
+		{% include "formset/icons/calendar-today.svg" %}
+	</button>
+	<button data-date="{{ calendar.next_epoch }}" class="next" type="button" title="{% translate 'Next epoch' %}">
+		{% include "formset/icons/arrow-right.svg" %}
+	</button>
+</div>
+<div class="ranges" aria-label="years-view">
+{% block ranges %}
+	<ul class="years">
+	{% for date, year in calendar.years %}
+		<li data-date="{{ date }}">{{ year }}</li>
+	{% endfor %}
+	</ul>
+{% endblock %}
+</div>
+{% endspaceless %}

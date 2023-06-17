@@ -16,58 +16,82 @@ framework agnostic.
 
 
 Usage with fixed Number of Choices
-----------------------------------
+==================================
 
-Assume, we have an address form defining a ChoiceField_ to choose from a city. If this number of
-cities exceeds say 25, we should consider to render the select box using the special widget
-:class:`formset.widgets.Selectize`:
+Assume, we have an address form defining a ChoiceField_ to choose one of the past European Django
+conferences. If this number exceeds say 25, then we should consider to render the select box using
+the special widget :class:`formset.widgets.Selectize`:
 
 .. _ChoiceField: https://docs.djangoproject.com/en/stable/ref/forms/fields/#django.forms.ChoiceField 
 
-.. code-block:: python
+.. django-view:: conference_form
 
 	from django.forms import fields, forms, widgets
 	from formset.widgets import Selectize
 
-	class AddressForm(forms.Form):
-	    # other fields
-
-	    city = fields.ChoiceField(
-	        choice=[(1, "London"), (2, "New York"), (3, "Tokyo"), (4, "Sidney"), (5, "Vienna")],
+	class ConferenceForm(forms.Form):
+	    venue = fields.ChoiceField(
+	        choices=[
+	            (2009, "Praha"),
+	            (2010, "Berlin"),
+	            (2011, "Amsterdam"),
+	            (2012, "Zürich"),
+	            (2013, "Warszawa"),
+	            (2014, "Île des Embiez"),
+	            (2015, "Cardiff"),
+	            (2016, "Budapest"),
+	            (2017, "Firenze"),
+	            (2018, "Heidelberg"),
+	            (2019, "København"),
+	            (2020, "Virtual"),
+	            (2022, "Porto"),
+	            (2023, "Edinburgh"),
+	            (2024, "Vigo"),
+	        ],
 	        widget=Selectize,
 	    )
 
-This widget waits for the user to type some characters into the input field for "``city``". If the
+This widget waits for the user to type some characters into the input field for "``venue``". If the
 entered string matches the name of one or more cities (even partially), then a list of options is
 generated containing the matching cities. By adding more characters to the input field, that list
 will shrink to only a few or eventually no entry. This makes the selection simple and comfortable.
 
+.. django-view:: conference_view
+	:view-function: SelectizeView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'conference-result'}, form_kwargs={'auto_id': 'cf_id_%s'})
+	:hide-code:
+
+	from formset.views import FormView 
+
+	class SelectizeView(FormView):
+	    form_class = ConferenceForm
+	    template_name = "form.html"
+	    success_url = "/success"
+
 
 Usage with dynamic Number of Choices
-------------------------------------
+====================================
 
-Sometimes we don't want to handle the choices using a static list. For instance, when we store them
-in a Django model, we point a foreign key onto the chosen entry of that model. The above example
-then can be rewritten by replacing the ChoiceField_ against a ModelChoiceField_. Instead of
+Often we can't handle the choices using a static list. This happens for instance, when we store them
+in a Django model. We then point a foreign key onto the chosen entry of that model. The above
+example then can be rewritten by replacing the ChoiceField_ against a ModelChoiceField_. Instead of
 ``choices`` this field then requires an argument ``queryset``. For the form we defined above, we
-use a Django model named ``Cities`` with ``name`` as identifier. All cities we can select from,
+use a Django model named ``County`` with ``name`` as identifier. All counties we can select from,
 are now stored in a database table.
 
 .. _ModelChoiceField: https://docs.djangoproject.com/en/stable/ref/forms/fields/#django.forms.ModelChoiceField 
 
-.. code-block:: python
+.. django-view:: county_form
 
 	from django.forms import fields, forms, models, widgets
 	from formset.widgets import Selectize
+	from testapp.models import County
 
-	class AddressForm(forms.Form):
-	    # other fields
-
-	    city = models.ModelChoiceField(
-	        queryset=Cities.objects.all(),
+	class CountyForm(forms.Form):
+	    county = models.ModelChoiceField(
+	        queryset=County.objects.all(),
 	        widget=Selectize(
 	            search_lookup='name__icontains',
-	            placeholder="Choose a city",
+	            placeholder="Select a county",
 	        ),
 	    )
 
@@ -75,55 +99,158 @@ Here we instantiate the widget :class:`formset.widgets.Selectize` using the foll
 
 * ``search_lookup``: A Django `lookup expression`_. For choice fields with more than 50 options,
   this instructs the **django-formset**-library on how to look for other entries in the database. 
+* ``group_field_name`` in combination with option groups. This field is used to determine the group
+  name. See below.
+* ``filter_by`` is a dictionary to filter options based on the value of other field(s). See below.
 * ``placeholder``: The empty label shown in the select field, when no option is selected.
 * ``attrs``: A Python dictionary of extra attributes to be added to the rendered ``<select>``
   element.
 
 .. _lookup expression: https://docs.djangoproject.com/en/stable/ref/models/lookups/#lookup-reference
 
+.. django-view:: county_view
+	:view-function: CountyView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'county-result'}, form_kwargs={'auto_id': 'co_id_%s'})
+	:hide-code:
 
-Endpoint for Dynamic Queries 
-----------------------------
-
-In comparison to other libraries offering autocomplete fields, such as `Django-Select2`_,
-**django-formset** does not require adding an explicit endpoint to the URL routing. Instead it
-shares the same endpoint for form submission as for querying for extra options out of the database.
-This means that the form containing a field using the ``Selectize`` widget *must* be controlled by
-a view inheriting from :class:`formset.views.IncompleteSelectResponseMixin`.
-
-.. note:: The default view offered by **django-formset**, :class:`formset.views.FormView` already
-	inherits from ``IncompleteSelectResponseMixin``.
-
-.. _Django-Select2: https://django-select2.readthedocs.io/en/latest/
+	class CountyView(SelectizeView):
+	    form_class = CountyForm
 
 
-Implementation Details
-----------------------
+Grouping Select Options
+-----------------------
 
-The client part of the ``Selectize`` widget relies on Tom-Select_ which itself is a fork of the
-popular `Selectize.js`_-library, but rewritten in pure TypeScript and without any other external
-dependencies. This made it suitable for the client part of **django-formset**, which itself is a
-self-contained JavaScript library compiled out of TypeScript.
+Sometimes it may be desirable to group options the user may select from.
 
-.. _Tom-Select: https://tom-select.js.org/
-.. _Selectize.js: https://selectize.dev/
+In the United States there are 3143 counties, many of them sharing the same name. When rendering
+them inside a select box, it would be rather unclear which county belongs to which state. For this
+purpose, HTML provides the element ``<optgroup>``. Other than visually grouping options to select
+from, this element has no other effect. Fortunately our ``Selectize`` widget mimicks that feature
+and so we can group all counties by state by rewriting our form as:
+
+.. django-view:: grouped_county_form
+
+	class GroupedCountyForm(forms.Form):
+	    county = models.ModelChoiceField(
+	        label="County",
+	        queryset=County.objects.all(),
+	        widget=Selectize(
+	            search_lookup='name__icontains',
+	            group_field_name='state',
+	            placeholder="Select a county"
+	        ),
+	        required=True,
+	    )
+
+.. django-view:: grouped_county_view
+	:view-function: GroupedCountyView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'grouped-county-result'}, form_kwargs={'auto_id': 'gc_id_%s'})
+	:hide-code:
+
+	class GroupedCountyView(SelectizeView):
+	    form_class = GroupedCountyForm
+
+Here we grouped the counties by state. To achieve this, we have to change the widget in the field
+``county`` and configure how to group them. By using the attribute ``group_field_name``, the
+``Selectize``-widget uses the named field from the model specified by the queryset for grouping.
+
+When rendered, the ``<option>`` elements then are grouped inside ``<optgroup>``-s using the state's
+name as their label:
+
+
+Filtering Select Options
+------------------------
+
+As we have seen in the previous example, even grouping too many options might not be a user-friendly
+solution. This is because the user has to type a string, at least partially. So the user already
+must know what he’s looking for. This approach is not always practical. Many of the counties share
+the same name. For instance, there are 34 counties named “Washington”, 26 named “Franklin” and 24
+named “Lincoln”. Using an auto-select field, would just show a long list of eponymous county names.
+
+In many use cases, the user usually knows in which state the desired county is located. So it would
+be practical if the selection field offers a reduced set of options, namely the counties of just
+that state. Therefore let's create a form with adjacent fields for preselecting options:
+
+.. django-view:: filtered_county_form
+
+	from testapp.models import State
+
+	class FilteredCountyForm(forms.Form):
+	    state = models.ModelChoiceField(
+	        label="State",
+	        queryset=State.objects.all(),
+	        widget=Selectize(
+	            search_lookup='name__icontains',
+	            placeholder="First, select a state"
+	        ),
+	        required=False,
+	    )
+	    county = models.ModelChoiceField(
+	        label="County",
+	        queryset=County.objects.all(),
+	        widget=Selectize(
+	            search_lookup=['name__icontains'],
+	            filter_by={'state': 'state__id'},
+	            placeholder="Then, select a county"
+	        ),
+	        required=True,
+	    )
+
+This form shows the usage of two adjacent fields, where the first field's value is used to filter
+the options for the next field. Here with the field **state**, the user can make a preselection of
+the state. When the state is changed, the other field **county** gets filled with all counties
+belonging to that selected state.
+
+To enable this feature, the widget ``Selectize`` accepts the optional argument ``filter_by`` which
+contains a dictionary such as ``{'state': 'state__id'}`` defining the lookup expression on the given
+queryset. Here each key maps to an adjacent field and its value contains a lookup expression.
+
+.. django-view:: filtered_county_view
+	:view-function: FilteredCountyView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'filtered-county-result'}, form_kwargs={'auto_id': 'fc_id_%s'})
+	:hide-code:
+
+	class FilteredCountyView(SelectizeView):
+	    form_class = FilteredCountyForm
+
+Setting up forms using filters, can improve the user experience, because it reduces the available
+options to user must choose from. This might be a more friendly alternative rather than using option
+groups.
+
 
 .. _selectize-multiple:
 
-SelectizeMultiple Widget
-========================
+Selectize Multiple Widget
+=========================
 
-If the form field for "``city``" shall accept more than one selection, in Django we replace it by a
-:class:`django.forms.fields.MultipleChoiceField`. The widget then used to handle such an input field
-also must be replaced. **django-formset** offers the special widget
+If the form field for "``county``" shall accept more than one selection, in Django we replace it by
+a :class:`django.forms.fields.MultipleChoiceField`. The widget then used to handle such an input
+field also must be replaced. For this purpose **django-formset** offers the special widget
 :class:`formset.widgets.SelectizeMultiple` to handle more than one option to select from. From a
-functional point of view, this behaves similar to the Selectize widget described before. But instead
-of replacing a chosen option by another one, selected options are lined up to build a set of
-options.
+functional point of view, this behaves similar to the ``Selectize`` widget described before. But
+instead of replacing a chosen option by another one, selected options are lined up to build a set of
+options. Again, we can group and filter the given options, as shown in the two previous examples.
+This example rewrites the grouped options with a ``SelectizeMultiple`` widget: 
 
-.. image:: _static/selectize-multiple.png
-  :width: 760
-  :alt: SelectizeMultiple widget
+.. django-view:: grouped_counties_form
+
+	from formset.widgets import SelectizeMultiple
+
+	class GroupedCountiesForm(forms.Form):
+	    county = models.ModelMultipleChoiceField(
+	        label="County",
+	        queryset=County.objects.all(),
+	        widget=SelectizeMultiple(
+	            search_lookup='name__icontains',
+	            group_field_name='state',
+	            placeholder="Select up to 5 counties"
+	        ),
+	        required=True,
+	    )
+
+.. django-view:: grouped_counties_view
+	:view-function: GroupedCountiesView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'grouped-counties-result'}, form_kwargs={'auto_id': 'gmc_id_%s'})
+	:hide-code:
+
+	class GroupedCountiesView(SelectizeView):
+	    form_class = GroupedCountiesForm
 
 By default a ``SelectizeMultiple`` widget can accept up to 5 different options. This limit can be
 adjusted by increasing the argument of ``max_items``. This value however shall not exceed more than
@@ -135,8 +262,10 @@ Handling ForeignKey and ManyToManyField
 =======================================  
 
 If we create a form out of a Django model, we explicitly have to tell it to either use the
-``Selectize`` or the ``SelectizeMultiple`` widget. Say that we have an address model using 
-a foreign key to existing cities
+``Selectize`` or the ``SelectizeMultiple`` widget. Otherwise Django will use the default HTML
+``<select>`` or ``<select multiple>`` fields, which are not user friendly for big datasets.
+
+Say that we have an address model using  a foreign key to existing cities:
 
 .. code-block:: python
 
@@ -188,75 +317,32 @@ example, we'd have to replace the ``Selectize`` widget against ``SelectizeMultip
 	            'cities': SelectizeMultiple(search_lookup='label__icontains'),
 	        }
 
-Remember that the view connecting this form must inherit from
-:class:`formset.views.IncompleteSelectResponseMixin`. This mixin class also handles the Ajax
-endpoint for the :ref:`dual-selector`. Therefore, the only task we have to do when switching from a
-``SelectizeMultiple`` to a ``DualSelector`` widget, is to rewrite the widget mapping in the form's
-``Meta``-class.
+Endpoint for Dynamic Queries 
+============================
+
+Remember that all views connecting forms using the ``Selectize`` or ``SelectizeMultiple`` widget
+must inherit from :class:`formset.views.IncompleteSelectResponseMixin`. This mixin handles the
+endpoint for our lookups.
+
+In comparison to other libraries offering autocomplete fields, such as `Django-Select2`_,
+**django-formset** does not require developers to add an explicit endpoint to the URL routing.
+Instead it shares the same endpoint for form submission as for querying for extra options out of the
+database. This means that the form containing a field using the ``Selectize`` widget *must* be
+controlled by a view inheriting from :class:`formset.views.IncompleteSelectResponseMixin`.
+
+.. note:: The default view offered by **django-formset**, :class:`formset.views.FormView` already
+	inherits from ``IncompleteSelectResponseMixin``.
+
+.. _Django-Select2: https://django-select2.readthedocs.io/en/latest/
 
 
-Grouping Options
-================  
+Implementation Details
+======================
 
-Sometimes it may be desirable to group options the user may select from. As an example, consider the
-use case where we want to choose a county in the United States. Here we use two models with a simple
-relationship:
+The client part of the ``Selectize`` widget relies on Tom-Select_ which itself is a fork of the
+popular `Selectize.js`_-library, but rewritten in pure TypeScript and without any other external
+dependencies. This made it suitable for the client part of **django-formset**, which itself is a
+self-contained JavaScript library compiled out of TypeScript.
 
-.. code-block:: python
-	:caption: models.py
-
-	class State(models.Model):
-	    code = models.CharField(max_length=2)
-	
-	    name = models.CharField(
-	        max_length=20,
-	        db_index=True,
-	    )
-	
-	    class Meta:
-	        ordering = ['name']
-	
-	    def __str__(self):
-	        return self.name
-	
-	
-	class County(models.Model):
-	    state = models.ForeignKey(
-	        State,
-	        on_delete=models.CASCADE,
-	    )
-	
-	    name = models.CharField(max_length=30)
-	
-	    class Meta:
-	        ordering = ['state', 'name']
-	
-	    def __str__(self):
-	        return f"{self.name} ({self.state.code})"
-
-Since there are 3143 counties, many of them using the same name, it would be really confusing to
-show them in a simple list of options. Instead we typically would render them grouped by state. To
-achieve this, we have to tell the field ``county`` how to group them, by using the attribute
-``group_field_name``. This sets up the ``Selectize``-widget to use the named field from the model
-specified by the queryset for grouping.
-
-.. code-block:: python
-	:caption: forms.py
-
-	class AddressForm(models.ModelForm):
-	    # other fields
-
-	    county = models.ModelChoiceField(
-	        queryset=County.objects.all(),
-	        widget=Selectize(
-	            search_lookup='name__icontains',
-	            group_field_name='state',
-	        ),
-	    )
-
-When rendered, the ``<option>`` elements then are grouped inside ``<optgroup>``-s using the state's
-name as their label:
-
-.. image:: _static/selectize-optgroups.png
-  :width: 760
-  :alt: Selectize with option groups
+.. _Tom-Select: https://tom-select.js.org/
+.. _Selectize.js: https://selectize.dev/

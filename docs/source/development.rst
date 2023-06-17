@@ -9,8 +9,8 @@ Developing in django-formset
 `PEG.js`_. The last two applications are required for the client part and make up about one third
 of the code base.
 
-The code can be found on GitHub_. Please use the issue tracker only the report bugs. For questions
-and new ideas, please use the Discussion board.
+The code can be found on GitHub_. Please use the issue tracker **only** to report bugs. For
+questions and new ideas, please use the discussion board.
 
 .. _TypeScript: https://www.typescriptlang.org/
 .. _PEG.js: https://peggyjs.org/documentation.html
@@ -25,17 +25,24 @@ tool-chain required to build the test application:
 	cd django-formset
 	python -m venv .venv
 	source .venv/bin/activate
+	pip install Django
 	pip install -r testapp/requirements.txt
+	pip install https://github.com/jrief/django-sphinx-view/archive/refs/heads/main.zip
 	pip install --no-deps -e .
-	npm install --also=dev
+	npm install --include=dev
 	npm run tag-attributes
 	npm run tailwindcss
-	npm run build
+	npm run esbuild
+	npm run compilescss
+	npm run docscss
+	mkdir workdir
+	export DJANGO_DEBUG=true
+	make --directory=docs json
 	testapp/manage.py migrate
 	testapp/manage.py runserver
 
-Open http://localhost:8000/ in your browser. There is a long list of examples for all kinds of
-purposes.
+Open http://localhost:8000/ in your browser. This should show the same documentation you're
+currently reading.
 
 
 Setting up and running Tests
@@ -63,8 +70,8 @@ Then run the testsuite
 Building the Parser
 ===================
 
-The content of the button attribute ``click``, and the input field and fieldset attributes
-``show-if``, ``hide-if`` and ``disable-if`` are parsed before being evaluated by the code
+The content of the button attribute ``df-click``, and the input field and fieldset attributes
+``df-show``, ``df-hide`` and ``df-disable`` are parsed before being evaluated by the code
 implementing the web component. This parser is generated using PEG.js and compiles to a pure
 TypeScript module. The grammar describing this proprietary syntax can be found in
 ``assets/tag-attributes.pegjs``. The final parser is generated using ``npm run tag-attributes``
@@ -87,18 +94,26 @@ The client can be built in three ways:
 
 This creates a bundle of JavaScript modules. The main entry point is found in file
 ``formset/static/formset/django-formset.js``. This file only contains the core functionality, ie.
-that one, required for web component ``<django-formset>``. The JavaScript code for all other web
+that one, required for web component ``<django-formset>``. The JavaScript modules for all the other
 components, such as ``<select is="django-selectize">``, ``<django-dual-selector>``,
-``<textarea is="django-richtext">``, etc. is loaded *automatically* upon request.
+``<textarea is="django-richtext">``, etc. are loaded upon demand.
 
 This is the default setting.
 
 
-.. rubric:: ``npm run esbuild.monolith``
+.. rubric:: ``npm run esbuild -- --monolith``
 
 This creates one single monolithic JavaScript module, named
 ``formset/static/formset/django-formset.js``. In some circumstances this might be preferable over
 many splitted  modules.
+
+
+.. rubric:: ``npm run esbuild -- --debug``
+
+This compiles TypeScript to JavaScript without minimizing plus additional `source maps`_. This build
+target should be used during development of client side code. 
+
+.. _source maps: https://web.dev/source-maps/
 
 
 .. rubric:: ``npm run rollup``
@@ -113,6 +128,32 @@ rollup_ + babel_ + terser_.
 I haven't found any compelling reason why to use ``rollup`` instead of ``esbuild``, since building
 the bundle takes much longer and the output sizes are comparable. For reasons of code hygiene, one
 sample of the unit tests is run using this setup.
+
+
+Building the Documentation
+==========================
+
+Thanks to the django-sphinx-view_ project, the documentation of **django-formset** can be built
+using embedded functional forms. During development this is very helpful, because the examples
+now sit side-by-side with documentation describing them.
+
+.. _django-sphinx-view: https://noumenal.es/django-sphinx-view/
+
+In order for this to work, please run 
+
+.. code-block:: shell
+
+	make -C docs json
+	npm run docscss
+	python manage.py runserver
+
+The first command builds the documentation as a set of JSON and Python files. They then are loaded
+by the **django-sphinx-view** module.
+
+The second command builds some specially formatted CSS files. They are required, so that Tailwind-,
+Bootstrap- and the Furo-themes do not interfere with each other.
+
+The third command starts the Django application with integrated documentation.
 
 
 Running the Django Test App

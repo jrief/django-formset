@@ -1,0 +1,12 @@
+{% load i18n %}{% spaceless %}
+<button type="button" richtext-click="textColor" aria-label="{% translate 'Text Color' %}" aria-haspopup="true" aria-expanded="false">{% include "formset/icons/textcolor.svg" %}</button>
+<ul{% block dropdown_menu_class %}{% endblock %} role="menu" aria-labelledby="{% translate 'Text Color' %}">
+	{% for color in colors %}
+	<li{% block dropdown_menu_item %}{% endblock %}>
+		<a {% if color %}richtext-click="color:{{ color }}" {% if class_based %}class="{{ color }}"{% else %}style="color: {{ color }};"{% endif %}{% else %}richtext-click="color:null"{% endif %}>
+			{% include "formset/icons/letters.svg" %}
+		</a>
+	</li>
+	{% endfor %}
+</ul>
+{% endspaceless %}

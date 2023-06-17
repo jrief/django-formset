@@ -1,6 +1,8 @@
 import json
 
+from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
+from django.db.models import QuerySet
 from django.http.response import HttpResponseBadRequest, JsonResponse
 from django.utils.encoding import force_str
 from django.utils.functional import cached_property
@@ -89,6 +91,13 @@ class FormsetResponseMixin:
 
 
 class FormViewMixin(FormsetResponseMixin):
+    """
+    Add this mixin to a view class inheriting from one of the Django form view classes. It serves to respond
+    with a JsonResponse rather than a HttpResponse whenever a form submission validates or fails.
+    """
+
+    form_kwargs = None
+
     def get_success_url(self):
         """
         In **django-formset**, the success_url may be None and set inside the templates.
@@ -106,6 +115,8 @@ class FormViewMixin(FormsetResponseMixin):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+        if self.form_kwargs:
+            kwargs.update(**self.form_kwargs)
         if self._request_body:
             kwargs['data'] = self._request_body.get('formset_data')
         return kwargs
@@ -158,6 +169,7 @@ class FormCollectionViewMixin(FormsetResponseMixin):
     collection_class = None
     success_url = None
     initial = {}
+    collection_kwargs = None
 
     def get(self, request, *args, **kwargs):
         """Handle GET requests: instantiate blank versions of the forms in the collection."""
@@ -179,14 +191,22 @@ class FormCollectionViewMixin(FormsetResponseMixin):
         collection_class = self.get_collection_class()
         return collection_class().get_field(field_path)
 
-    def get_form_collection(self):
-        collection_class = self.get_collection_class()
+    def get_collection_kwargs(self):
         kwargs = {
             'initial': self.get_initial(),
         }
+        if self.collection_kwargs:
+            kwargs.update(**self.collection_kwargs)
+        return kwargs
+
+    def get_form_collection(self):
+        collection_class = self.get_collection_class()
+        kwargs = self.get_collection_kwargs()
         if self.request.method in ('POST', 'PUT') and self.request.content_type == 'application/json':
             body = json.loads(self.request.body)
             kwargs.update(data=body.get('formset_data'))
+            if callable(getattr(self, 'get_object', None)):
+                kwargs.update(instance=self.get_object())
         return collection_class(**kwargs)
 
     def get_collection_class(self):
@@ -203,14 +223,20 @@ class FormCollectionViewMixin(FormsetResponseMixin):
         return JsonResponse({'success_url': self.get_success_url()})
 
     def form_collection_invalid(self, form_collection):
-        return JsonResponse(form_collection.errors, status=422, safe=False)
+        return JsonResponse(form_collection._errors, status=422, safe=False)
 
 
-class FormCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin, TemplateResponseMixin, View):
+class FormCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin,
+                         TemplateResponseMixin, View):
     pass
 
 
-class EditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, SingleObjectMixin, TemplateResponseMixin, View):
+class EditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, SingleObjectMixin,
+                         TemplateResponseMixin, View):
+    """
+    View for editing a class inheriting from `FormCollection` which binds to a single object.
+    """
+
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         return super().get(request, *args, **kwargs)
@@ -228,5 +254,56 @@ class EditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCol
 
     def form_collection_valid(self, form_collection):
         with transaction.atomic():
-            form_collection.construct_instance(self.object, form_collection.cleaned_data)
-        return super().form_collection_valid(form_collection)
+            form_collection.construct_instance(self.object)
+        # integrity errors may occur during construction, hence revalidate collection
+        if form_collection.is_valid():
+            return super().form_collection_valid(form_collection)
+        else:
+            return self.form_collection_invalid(form_collection)
+
+
+class BulkEditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin,
+                             TemplateResponseMixin, View):
+    """
+    View for editing a class inheriting from `FormCollection` which binds to multiple objects.
+    """
+    queryset = None
+    model = None
+    ordering = None
+
+    def get_ordering(self):
+        return self.ordering
+
+    def get_queryset(self):
+        if self.queryset is not None:
+            queryset = self.queryset
+            if isinstance(queryset, QuerySet):
+                queryset = queryset.all()
+        elif self.model is not None:
+            queryset = self.model._default_manager.all()
+        else:
+            class_name = self.__class__.__name__
+            raise ImproperlyConfigured(
+                f"{class_name} is missing a QuerySet. {class_name}.model, {class_name}.queryset, or override "
+                f"{class_name}.get_queryset()."
+            )
+        if ordering := self.get_ordering():
+            if isinstance(ordering, str):
+                ordering = (ordering,)
+            queryset = queryset.order_by(*ordering)
+        return queryset
+
+    def get_initial(self):
+        collection_class = self.get_collection_class()
+        queryset = self.get_queryset()
+        initial = collection_class().models_to_list(queryset)
+        return initial
+
+    def form_collection_valid(self, form_collection):
+        with transaction.atomic():
+            form_collection.construct_instance()
+        # integrity errors may occur during construction, hence revalidate collection
+        if form_collection.is_valid():
+            return super().form_collection_valid(form_collection)
+        else:
+            return self.form_collection_invalid(form_collection)

@@ -1,20 +1,19 @@
 import functools
-import itertools
 import json
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
-from django.forms.renderers import get_default_renderer
-from django.db.models import Model, QuerySet
+from django.db.models import Model
 from django.db.models.fields.files import FieldFile
+from django.forms.renderers import get_default_renderer
 from django.http import HttpResponse
 from django.template.loader import get_template
-from django.urls import get_resolver, path, reverse
+from django.urls import get_resolver, path
 from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
-from django.views.generic import DetailView, FormView, TemplateView, UpdateView
+from django.views.generic import FormView, TemplateView, UpdateView
 
 from docutils.frontend import OptionParser
 from docutils.io import StringOutput
@@ -22,27 +21,35 @@ from docutils.utils import new_document
 from docutils.parsers.rst import Parser
 from docutils.writers import get_writer_class
 
+from formset.calendar import CalendarResponseMixin
 from formset.utils import FormMixin
 from formset.views import (
-    FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormViewMixin, EditCollectionView)
+    FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormCollectionViewMixin, FormViewMixin,
+    EditCollectionView, BulkEditCollectionView
+)
 
+from testapp.demo_helpers import SessionFormCollectionViewMixin
 from testapp.forms.address import AddressForm
-from testapp.forms.advertisement import AdvertisementForm, AdvertisementModelForm
+from testapp.forms.advertisement import AdvertisementForm
 from testapp.forms.article import ArticleForm
+from testapp.forms.blog import BlogModelForm
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import (
     SimpleContactCollection, ContactCollection, ContactCollectionList, IntermediateContactCollectionList,
     SortableContactCollection, SortableContactCollectionList)
+from testapp.forms.birthdate import BirthdateForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerCollection
+from testapp.forms.moon import MoonForm, MoonCalendarRenderer
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
 from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.state import StateForm, StatesForm
+from testapp.forms.company import CompanyCollection, CompaniesCollection
 from testapp.forms.user import UserCollection, UserListCollection
 from testapp.forms.upload import UploadForm
-from testapp.models import AdvertisementModel, PersonModel, PollModel
+from testapp.models import BlogModel, Company, PersonModel, PollModel
 
 
 parser = Parser()
@@ -53,24 +60,22 @@ class JSONEncoder(DjangoJSONEncoder):
         if isinstance(o, (UploadedFile, FieldFile)):
             return o.name
         if isinstance(o, Model):
-            return str(o)
-        if isinstance(o, QuerySet):
-            return [str(i) for i in o]
+            return repr(o)
+        if hasattr(o, '__iter__'):
+            return [self.default(i) for i in o]
         return super().default(o)
 
 
 def render_suburls(request, extra_context=None):
-    all_views = ((v[0][0][0], v[2]) for v in get_resolver(__name__).reverse_dict.values())
-    all_views = filter(lambda t: t[0] and 'index' in t[1], all_views)
-    all_views = functools.reduce(lambda l, t: l.append(t) or l if t not in l else l, all_views, [])
-    all_views = sorted(all_views, key=lambda t: t[1]['index'])
+    all_urls = filter(lambda url: url, (v[0][0][0] for v in get_resolver(__name__).reverse_dict.values()))
+    all_urls = functools.reduce(lambda l, t: l.append(t) or l if t not in l else l, all_urls, [])
     context = {
         'framework': request.resolver_match.app_name,
-        'all_urls': [t[0] for t in all_views],
+        'all_urls': all_urls,
     }
     if extra_context:
         context.update(extra_context)
-    template = get_template('index.html')
+    template = get_template('testapp/index.html')
     return HttpResponse(template.render(context))
 
 
@@ -89,7 +94,7 @@ class SuccessView(TemplateView):
 
 class DemoViewMixin:
     def get_success_url(self):
-        return reverse(f'{self.request.resolver_match.app_name}:form_data_valid')
+        return '/success'
 
     @property
     def framework(self):
@@ -109,11 +114,16 @@ class DemoViewMixin:
         context_data = super().get_context_data(**kwargs)
         if self.framework != 'default':
             context_data.update(framework=self.framework)
-        holder_class = self.collection_class if isinstance(self, (EditCollectionView, FormCollectionView)) else self.form_class
+        if isinstance(self, FormCollectionViewMixin):
+            holder_class = self.collection_class
+        else:
+            holder_class = self.form_class
         context_data.update(
             leaf_name=holder_class.__name__,
+            valid_formset_data=self.request.session.get('valid_formset_data'),
             **self.get_css_classes(),
         )
+        self.request.session.pop('valid_formset_data', None)
         if holder_class.__doc__:
             template = settings.BASE_DIR / 'testapp/templates/docutils.txt'
             writer = get_writer_class('html5')()
@@ -136,8 +146,11 @@ class DemoViewMixin:
         pass
 
 
-class DemoFormViewMixin(DemoViewMixin, IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin):
+class DemoFormViewMixin(DemoViewMixin, CalendarResponseMixin, IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin):
     template_name = 'testapp/native-form.html'
+    extra_context = {
+        'click_actions': 'disable -> submit -> reload !~ scrollToError'
+    }
     extra_doc = None
 
     def form_valid(self, form):
@@ -186,6 +199,9 @@ class DemoModelFormView(DemoFormViewMixin, UpdateView):
 class DemoFormCollectionViewMixin(DemoViewMixin):
     template_name = 'testapp/form-collection.html'
     extra_doc = None
+    extra_context = {
+        'click_actions': 'disable -> submit -> reload !~ scrollToError'
+    }
 
     def get_collection_class(self):
         collection_class = super().get_collection_class()
@@ -234,6 +250,46 @@ class UserCollectionView(DemoFormCollectionViewMixin, EditCollectionView):
     def get_object(self, queryset=None):
         user, _ = self.model.objects.get_or_create(username='demo')
         return user
+
+
+class CompanyCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
+    model = Company
+    collection_class = CompanyCollection
+    template_name = 'testapp/form-collection.html'
+    extra_context = {
+        'click_actions': 'disable -> submit -> reload !~ scrollToError'
+    }
+
+
+class CompaniesCollectionView(DemoFormCollectionViewMixin, BulkEditCollectionView):
+    model = Company
+    collection_class = CompaniesCollection
+    template_name = 'testapp/form-collection.html'
+    extra_context = {
+        'click_actions': 'disable -> submit -> reload !~ scrollToError'
+    }
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if not self.request.session.session_key:
+            self.request.session.cycle_key()
+        return queryset.filter(created_by=self.request.session.session_key)
+
+    def get_form_collection(self):
+        form_collection = super().get_form_collection()
+        if self.request.method == 'POST':
+            # when posting, assign all instances to the current user
+            if not self.request.session.session_key:
+                self.request.session.cycle_key()
+            created_by = self.request.session.session_key
+            for data in form_collection.data:
+                data['company']['created_by'] = created_by
+        return form_collection
+
+    def form_collection_valid(self, form_collection):
+        for holder in form_collection.valid_holders:
+            holder['company'].instance.created_by = self.request.session.session_key
+        return super().form_collection_valid(form_collection)
 
 
 demo_css_classes = {
@@ -349,34 +405,6 @@ templatetag:
 """
 
 
-extra_doc_field_by_field = """
-By rendering field-by-field, we get an even more fine grained control over how each field is rendered.
-
-This way we can render each field in a different manner depending on its name or type. Such a template
-might look like:
-
-.. code-block:: django
-
-	{% load formsetify %}
-	...
-	{% formsetify form %}
-	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
-	  <form id="{{ form.form_id }}"></form>
-	  {% include "formset/non_field_errors.html" %}
-	  {% for field in form %}
-	    {% if field.is_hidden %}
-	      {{ field }}
-	    {% elif field.name == "my_special_field" %}
-	      {% include "myproject/my_special_field.html" %}
-	    {% else %}
-	      {% include "formset/default/field_group.html" %}
-	    {% endif %}
-	  {% endfor %}
-	  <button type="button" click="submit -> proceed">Submit</button>
-	</django-formset>
-"""
-
-
 extra_doc_horizontal = """
 Here we render a Django Form instance using the template tag with different CSS classes:
 
@@ -391,137 +419,109 @@ than placing them below each other.
 
 urlpatterns = [
     path('', render_suburls),
-    path('success', SuccessView.as_view(), name='form_data_valid'),
-    path('tiptap/<int:pk>', DetailView.as_view(
-        model=AdvertisementModel,
-        template_name='testapp/tiptap.html',
-    )),
+    # path('success', SuccessView.as_view(), name='form_data_valid'),
     path('complete.native', DemoFormView.as_view(
         form_class=CompleteForm,
         extra_doc=extra_doc_native,
-    ), kwargs={'group': 'form', 'index': 1}, name='complete.native'),
+    ), name='complete.native'),
     path('complete.extended', DemoFormView.as_view(
         form_class=CompleteForm,
         template_name='testapp/extended-form.html',
         extra_doc=extra_doc_extended,
-    ), kwargs={'group': 'form', 'index': 2}, name='complete.extended'),
+    ), name='complete.extended'),
     path('complete.field-by-field', DemoFormView.as_view(
         form_class=CompleteForm,
         template_name='testapp/field-by-field.html',
-        extra_doc=extra_doc_field_by_field,
-    ), kwargs={'group': 'form', 'index': 3}, name='complete.field-by-field'),
+    ), name='complete.field-by-field'),
     path('complete.horizontal', DemoFormView.as_view(
         form_class=CompleteForm,
         extra_doc=extra_doc_horizontal,
-    ), kwargs={'group': 'form', 'index': 4}, name='complete.horizontal'),
+    ), name='complete.horizontal'),
     path('address', DemoFormView.as_view(
         form_class=AddressForm,
-    ), kwargs={'group': 'form', 'index': 5}, name='address'),
+    ), name='address'),
     path('article', DemoFormView.as_view(
         form_class=ArticleForm,
-    ), kwargs={'group': 'form', 'index': 5}, name='article'),
+    ), name='article'),
     path('opinion', DemoFormView.as_view(
         form_class=OpinionForm,
-    ), kwargs={'group': 'form', 'index': 6}, name='opinion'),
+    ), name='opinion'),
     path('questionnaire', DemoFormView.as_view(
         form_class=QuestionnaireForm,
-    ), kwargs={'group': 'form', 'index': 7}, name='questionnaire'),
+    ), name='questionnaire'),
     path('simplecontact', DemoFormCollectionView.as_view(
         collection_class=SimpleContactCollection,
         initial={'person': sample_person_data},
-    ), kwargs={'group': 'collection', 'index': 8}, name='simplecontact'),
+    ), name='simplecontact'),
     path('customer', DemoFormCollectionView.as_view(
         collection_class=CustomerCollection,
-    ), kwargs={'group': 'collection', 'index': 9}, name='customer'),
+    ), name='customer'),
     path('contact', DemoFormCollectionView.as_view(
         collection_class=ContactCollection,
         initial={'person': sample_person_data, 'numbers': [{'number': {'phone_number': "+1 234 567 8900"}}]},
-    ), kwargs={'group': 'collection', 'index': 10}, name='contact'),
+    ), name='contact'),
     path('contactlist', DemoFormCollectionView.as_view(
         collection_class=ContactCollectionList,
-    ), kwargs={'group': 'collection', 'index': 11}, name='contactlist'),
+    ), name='contactlist'),
     path('sortablecontact', DemoFormCollectionView.as_view(
         collection_class=SortableContactCollection,
-    ), kwargs={'group': 'sortable', 'index': 12}, name='sortablecontact'),
+    ), name='sortablecontact'),
     path('sortablecontactlist', DemoFormCollectionView.as_view(
         collection_class=SortableContactCollectionList,
-    ), kwargs={'group': 'sortable', 'index': 13}, name='sortablecontactlist'),
+    ), name='sortablecontactlist'),
     path('intermediatecontactlist', DemoFormCollectionView.as_view(
         collection_class=IntermediateContactCollectionList,
-    ), kwargs={'group': 'sortable', 'index': 14}, name='intermediatecontactlist'),
+    ), name='intermediatecontactlist'),
     path('upload', DemoFormView.as_view(
         form_class=UploadForm,
-    ), kwargs={'group': 'form', 'index': 15}, name='upload'),
+    ), name='upload'),
+    path('birthdate/', DemoFormView.as_view(
+        form_class=BirthdateForm,
+    ), name='birthdate'),
+    path('moon', DemoFormView.as_view(
+        form_class=MoonForm,
+        calendar_renderer_class=MoonCalendarRenderer,
+    ), name='moon'),
     path('counties', DemoFormView.as_view(
         form_class=CountyForm,
-    ), kwargs={'group': 'form', 'index': 15}, name='counties'),
+    ), name='counties'),
     path('state', DemoFormView.as_view(
         form_class=StateForm,
-    ), kwargs={'group': 'form', 'index': 15}, name='state'),
+    ), name='state'),
     path('states', DemoFormView.as_view(
         form_class=StatesForm,
-    ), kwargs={'group': 'form', 'index': 15}, name='states'),
+    ), name='states'),
     path('person', DemoModelFormView.as_view(
         form_class=ModelPersonForm,
         model=PersonModel,
-    ), kwargs={'group': 'model', 'index': 16}, name='person'),
+    ), name='person'),
     path('poll', DemoModelFormView.as_view(
         form_class=ModelPollForm,
         model=PollModel,
-    ), kwargs={'group': 'model', 'index': 17}, name='poll'),
+    ), name='poll'),
     path('pollcollection', DemoFormCollectionView.as_view(
         collection_class=PollCollection,
-    ), kwargs={'group': 'collection', 'index': 18}, name='poll'),
+    ), name='poll'),
+    path('company', CompanyCollectionView.as_view(), name='company'),
+    path('companies', CompaniesCollectionView.as_view(), name='company'),
     path('user', UserCollectionView.as_view(
         collection_class=UserCollection
-    ), kwargs={'group': 'model', 'index': 19}, name='user'),
+    ), name='user'),
     path('userlist', UserCollectionView.as_view(
         collection_class=UserListCollection
-    ), kwargs={'group': 'model', 'index': 19}, name='userlist'),
-    path('advertisementmodel', DemoModelFormView.as_view(
-        form_class=AdvertisementModelForm,
-        model=AdvertisementModel,
-    ), kwargs={'group': 'model', 'index': 19}, name='advertisementmodel'),
-    path('advertisementform', DemoFormView.as_view(
+    ), name='userlist'),
+    path('blog', DemoModelFormView.as_view(
+        form_class=BlogModelForm,
+        model=BlogModel,
+        template_name='testapp/native-form-tiptap.html'
+    ), name='blog'),
+    path('advertisement', DemoFormView.as_view(
         form_class=AdvertisementForm,
         #initial={'text': initial_html},
-    ), kwargs={'group': 'form', 'index': 19}, name='advertisementform'),
+    ), name='advertisement'),
     path('button-actions', DemoFormView.as_view(
         form_class=ButtonActionsForm,
         template_name='testapp/button-actions.html',
         extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)'},
-    ), kwargs={'group': 'button', 'index': 20}, name='button-actions'),
+    ), name='button-actions'),
 ]
-
-# this creates permutations of forms to show how to withhold which feedback
-withhold_feedbacks = ['messages', 'errors', 'warnings', 'success']
-extra_doc_withhold = {
-    'messages': "that error messages below the field will not be rendered when the user blurs a field with "
-                "invalid data.",
-    'errors': "that the border does not change color (usually red) and the field does not show an alert symbol, "
-              "when the user blurs a field with invalid data.",
-    'warnings': "that the field does not show a warning symbol (usually orange), when a field has focus, "
-                "but its content does not contain valid data (yet). If only ``errors`` has been added to "
-                "``withhold-feedback=\"...\"``, then the warning symbol will remain even if the field looses focus.",
-    'success': "that the border does not change color (usually green) and the field does not show a success symbol,"
-               "when the user blurs a field with valid data.",
-}
-for length in range(len(withhold_feedbacks) + 1):
-    for withhold_feedback in itertools.combinations(withhold_feedbacks, length):
-        suffix = '.' + ''.join(w[0] for w in withhold_feedback) if length else ''
-        if withhold_feedback:
-            extra_docs = ['------', '', 'Using ``withhold-feedback="{}"`` means:'.format(' '.join(withhold_feedback)), '']
-        else:
-            extra_docs = []
-        extra_docs.extend([f'* {extra_doc_withhold[w]}' for w in withhold_feedback])
-        force_submission = suffix == '.mews'  # just for testing
-        urlpatterns.append(
-            path(f'withhold{suffix}', DemoFormView.as_view(
-                form_class=SimplePersonForm,
-                extra_context={
-                    'withhold_feedback': ' '.join(withhold_feedback),
-                    'force_submission': force_submission,
-                },
-                extra_doc='\n'.join(extra_docs),
-            ), kwargs={'group': 'feedback', 'index': length + 21})
-        )

@@ -107,7 +107,7 @@ export class SortableSelectElement extends HTMLElement {
 				case 'django-sortable-select':
 					extraStyles = StyleHelpers.extractStyles(selectElement, [
 						'display', 'width', 'height', 'border', 'box-shadow', 'outline', 'overflow',
-						'font-family', 'font-size', 'font-strech', 'font-style', 'font-weight',
+						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
 						'letter-spacing', 'white-space', 'line-height']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;

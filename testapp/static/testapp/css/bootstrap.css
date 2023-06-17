@@ -3,6 +3,10 @@
 @import "/static/formset/css/collections.css";
 @import "/static/formset/css/bootstrap5-extra.css";
 
+.container {
+	margin-bottom: 250px;
+}
+
 django-form-collection[sibling-position] {
 	padding-top: 0.5rem;
 	padding-bottom: 0.5rem;

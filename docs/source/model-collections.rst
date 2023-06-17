@@ -4,7 +4,7 @@
 Creating Collections from related Models
 ========================================
 
-In more complex setups, we often want to change the contents of related models altogether. This is
+In more complex setups, we might want to change the contents of related models altogether. This is
 when we start to use Form Collections to edit more than one `ModelForm`_. This is similar to what
 Django's `Model formsets`_ functionality is intended for, but implemented in a more flexible way.
 
@@ -12,13 +12,15 @@ Django's `Model formsets`_ functionality is intended for, but implemented in a m
 One-to-One Relations
 ====================
 
-Let's start with a simple example. Say that we want to extend the `Django User model`_ with extra
-fields, for instance a phone number field. Since we don't want to `substitute the User model`_
-against our own implementation, instead we must extend it using a `one-to-one relation`_.
+Let's start with a simple example. Say that we want to extend the `Django User model`_ with an extra
+field, for instance a phone number field. Since we don't want to `substitute the User model`_
+against a customized implementation, instead we must extend it using a `one-to-one relation`_.
 
 .. code-block:: python
+	:caption: models.py
 
 	from django.conf import settings
+	from django.db import models
 
 	class ExtendUser(models.Model):
 	    user = models.OneToOneField(
@@ -34,28 +36,46 @@ against our own implementation, instead we must extend it using a `one-to-one re
 	        null=True,
 	    )
 
-In a typical application we would like to edit this model together with the default ``User`` model.
+In a typical application we might want to edit this model together with the default ``User`` model.
 If we do this in the Django admin, we have to create an `InlineModelAdmin`_ with exactly one extra
 form in the formset. This however implies that our model ``ExtendUser`` has a foreign relation
-with the ``User`` model rather than a one-to-one relation[#1]_. In **django-formset** we handle this 
-by declaring one ``ModelForm`` for ``User`` and ``ExtendUser`` each, and then group those two forms
-into one ``FormCollection``.
+with the ``User`` model rather than a one-to-one relation [#f1]_ . In **django-formset** we can handle
+this  by declaring one ``ModelForm`` for ``User`` and ``ExtendUser`` each, and then group those two
+forms into one ``FormCollection``.
 
-.. code-block:: python
+.. django-view:: user_collection
+	:hide-view:
+	:caption: collections.py
 
-	from django.contrib.auth import get_user_model
-	from django.forms.models import ModelForm
+	from django.forms.models import ModelForm, construct_instance, model_to_dict
 	from formset.collection import FormCollection
+	from testapp.models import ExtendUser, User
 
 	class UserForm(ModelForm):
 	    class Meta:
-	        model = get_user_model()
+	        model = User
 	        fields = '__all__'
 
 	class ExtendUserForm(ModelForm):
 	    class Meta:
 	        model = ExtendUser
 	        fields = ['phone_number']
+
+	    def model_to_dict(self, user):
+	        try:
+	            return model_to_dict(user.extend_user, fields=self._meta.fields, exclude=self._meta.exclude)
+	        except ExtendUser.DoesNotExist:
+	            return {}
+	
+	    def construct_instance(self, user):
+	        try:
+	            extend_user = user.extend_user
+	        except ExtendUser.DoesNotExist:
+	            extend_user = ExtendUser(user=user)
+	        form = ExtendUserForm(data=self.cleaned_data, instance=extend_user)
+	        if form.is_valid():
+	            construct_instance(form, extend_user)
+	            form.save()
 
 	class UserCollection(FormCollection):
 	    user = UserForm()
@@ -64,85 +84,63 @@ into one ``FormCollection``.
 When this form collection is rendered and completed by the user, the submitted data from both forms
 in this collection is, as expected, unrelated. We therefore have to tell one of the two forms, how
 their generating models relate to each other. For this to work, each ``FormCollection`` and each
-Django ``Form`` can implement two methods, ``model_to_dict`` and ``construct_instance``.
+Django ``Form`` can implement two methods, ``model_to_dict(…)`` and ``construct_instance(…)``.
 
-
-.. rubric:: ``model_to_dict(main_object, fields=None, exclude=None)``
+.. rubric:: ``model_to_dict(main_object)``
 
 This method creates the initial data for a form starting from ``main_object`` as reference. It is
-inspired by Django's global function ``model_to_dict(instance, fields=None, exclude=None)`` which
+inspired by the Django global function ``model_to_dict(instance, fields=None, exclude=None)`` which
 returns a dict containing the data in argument ``instance`` suitable for passing as a form's
 ``initial`` keyword argument.
 
 The ``main_object`` is determined by the view (inheriting from
-:class:`formset.views.EditCollectionView`) which handles our form collection ``UserCollection``,
-using the ``get_object``-method (usually by resolving a primary key or slug). 
+:class:`formset.views.EditCollectionView`) which handles our collection named ``UserCollection``,
+using the ``get_object()``-method (usually by resolving a primary key or slug). 
 
+.. rubric:: ``construct_instance(main_object)``
 
-.. rubric:: ``construct_instance(main_object, data)``
-
-This method takes the ``cleaned_data`` from a validated form and applies it to one of the model
-objects which are related with the ``main_object``. It is inspired by Django's global function 
+This method takes the ``cleaned_data`` from the validated form and applies it to one of the model
+objects which are related with the ``main_object``. It is inspired by the Django global function 
 ``construct_instance(form, instance, fields=None, exclude=None)`` which constructs and returns a
 model instance from the bound ``form``'s ``cleaned_data``, but does not save the returned instance
 to the database.
 
-Since form collections can be nested, method ``model_to_dict`` can be used to recursively create a
-dictionary to initialize the forms, starting from a main model object. After receiving the submitted
-form data by the client, method ``construct_instance`` can be used to recursively traverse the
-``cleaned_data`` dictionary returned by the rendered form collection, in order to construct the
+Since form collections can be nested, method ``model_to_dict(…)`` can be used to recursively create
+a dictionary to initialize the forms, starting from a main model object. After receiving the
+submitted form data by the client, method ``construct_instance`` can be used to recursively traverse
+the ``cleaned_data`` dictionary returned by the rendered form collection, in order to construct the
 model objects somehow related to the ``main_object``.
 
-To get the example from above to work, we therefore have to implement those two methods in our
-``ExtendUserForm``:
-
-.. code-block:: python
-
-	from django.forms.models import construct_instance, model_to_dict
-
-	class ExtendUserForm(ModelForm):
-	    ...
-
-	    def model_to_dict(self, user):
-	        try:
-	            return model_to_dict(user.extend_user, fields=['phone_number'])
-	        except ExtendUser.DoesNotExist:
-	            return {}
-	
-	    def construct_instance(self, main_object, data):
-	        try:
-	            extend_user = main_object.extend_user
-	        except ExtendUser.DoesNotExist:
-	            extend_user = ExtendUser(user=main_object)
-	        form = ExtendUserForm(data=data, instance=extend_user)
-	        if form.is_valid():
-	            construct_instance(form, extend_user)
-	            form.save()
-
-What both of these methods do, is to resolve the relation starting from the main object, in this
-case the ``User`` object. Since we have a one-to-one relation, there can only be *no* or *one*
+To get this example to work, we therefore have to implement those two methods in our
+``ExtendUserForm``. They both resolve the relation starting from the main object, in this
+case the ``User`` object. Since we have a *one-to-one* relation, there can only be *no* or *one*
 related ``ExtendUser`` object. If there is none, create it.
 
-The view class serving as endpoint for ``UserCollection`` then can be written as
+Finally, our ``UserCollection`` must be served by a Django view class. Since this is a common use
+case, **django-formset** offers the class :class:`formset.views.EditCollectionView` which is
+specialized in editing related models starting from a dedicated object. The latter usually is
+determined by using a unique identifier, for instance its primary key or a slug.
 
-.. code-block:: python
+.. django-view:: extend_user
+	:view-function: type('UserCollectionView', (SessionFormCollectionViewMixin, model_collections.UserCollectionView), {}).as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'extend-user'}, collection_kwargs={'renderer': FormRenderer(field_css_classes='mb-3')})
+	:caption: views.py
 
-	from django.contrib.auth import get_user_model
 	from formset.views import EditCollectionView
+	from testapp.models.user import User
 
 	class UserCollectionView(EditCollectionView):
-	    model = get_user_model()
+	    model = User
 	    collection_class = UserCollection
 	    template_name = 'form-collection.html'
 
-and added to the ``urlpatterns`` in the usual way. The template referenced by that view shall
-contain HTML with containing something such as:
+This view then must be connected to the ``urlpatterns`` in the usual way. The template referenced by
+this view shall contain HTML with a structure similar to this:
 
 .. code-block:: django
 
 	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
 	  {{ form_collection }}
-	  <button type="button" click="submit -> proceed !~ scrollToError">Submit</button>
+	  <button type="button" df-click="submit -> proceed !~ scrollToError">Submit</button>
 	</django-formset>
 
 
@@ -151,64 +149,147 @@ One-to-Many Relations
 
 One of the most prominent use-cases is to edit a model object together with child objects referring
 to itself. By children we mean objects which point onto the main object using a Django
-`ForeignKey`_. Let's again explain this using an example. Say, we want to extend the previous
-example and allow more than one phone number per user. For this we replace the ``OneToOneField`` for
-our model field ``user`` against a ``ForeignKey``. In practice, this means that we now have a
-flexible list of phone numbers instead of just one. To solve this, **django-formset** offers the
-possibility to let form collections have siblings. We then can rewrite our collection as:
+`ForeignKey`_. Let's again explain this using an example. Say, we want to create models for the
+organization chart of a company. There is a model for a company, which may consist of different
+departments, which themselves can have different teams. In relational models this usually is done
+using a foreign key. For demonstration purposes the remaining part of the models is very lean and
+only stores their names.
 
 .. code-block:: python
+	:caption: models.py
 
-	class ExtendUserForm(ModelForm):
-	    id = IntegerField(required=False, widget=HiddenInput)
-
-	    class Meta:
-	        model = ExtendUser
-	        fields = ['phone_number']
-
-	class ExtendCollection(FormCollection):
-	    min_siblings = 0
-	    extend = ExtendUserForm()
-
-	    def model_to_dict(self, user):
-	        opts = self.declared_holders['contact']._meta
-	        return [{'contact': model_to_dict(contact, fields=opts.fields)}
-	                for contact in user.contacts.all()]
+	from django.db import models
 	
-	    def construct_instance(self, user, data):
-	        for data in data:
+	class Company(models.Model):
+	    name = models.CharField(verbose_name="Company name", max_length=50)
+	
+	class Department(models.Model):
+	    name = models.CharField(verbose_name="Department name", max_length=50)
+	    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+	
+	    class Meta:
+	        unique_together = ['name', 'company']
+	
+	class Team(models.Model):
+	    name = models.CharField(verbose_name="Team name", max_length=50)
+	    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+	
+	    class Meta:
+	        unique_together = ['name', 'department']
+
+We immediately see that these models have a hierarchy of three levels. In classic Django, creating a
+form to edit them altogether is not an easy task. To solve this, **django-formset** offers the
+possibility to let form collections have siblings. We then can create forms and collection to edit
+the company, its departments and their teams as:
+
+
+.. django-view:: company_collection
+	:hide-view:
+	:caption: collections.py
+
+	from django.forms.fields import IntegerField
+	from django.forms.widgets import HiddenInput
+	from django.forms.models import ModelForm
+	from formset.collection import FormCollection
+	from testapp.models import Company, Department, Team
+	
+	class TeamForm(ModelForm):
+	    id = IntegerField(required=False, widget=HiddenInput)
+	
+	    class Meta:
+	        model = Team
+	        fields = ['id', 'name']
+	
+	class TeamCollection(FormCollection):
+	    min_siblings = 0
+	    team = TeamForm()
+	    legend = "Teams"
+	    add_label = "Add Team"
+	    related_field = 'department'
+	
+	    def retrieve_instance(self, data):
+	        if data := data.get('team'):
 	            try:
-	                contact_object = user.contacts.get(id=data['contact']['id'])
-	            except (KeyError, UserContact.DoesNotExist):
-	                contact_object = UserContact(user=user)
-	            form_class = self.declared_holders['contact'].__class__
-	            form = form_class(data=data['contact'], instance=contact_object)
-	            if form.is_valid():
-	                if form.marked_for_removal:
-	                    contact_object.delete()
-	                else:
-	                    construct_instance(form, contact_object)
-	                    form.save()
+	                return self.instance.teams.get(id=data.get('id') or 0)
+	            except (AttributeError, Team.DoesNotExist, ValueError):
+	                return Team(name=data.get('name'), department=self.instance)
+	
+	class DepartmentForm(ModelForm):
+	    id = IntegerField(required=False, widget=HiddenInput)
+	
+	    class Meta:
+	        model = Department
+	        fields = ['id', 'name']
+	
+	class DepartmentCollection(FormCollection):
+	    min_siblings = 0
+	    department = DepartmentForm()
+	    teams = TeamCollection()
+	    legend = "Departments"
+	    add_label = "Add Department"
+	    related_field = 'company'
+	
+	    def retrieve_instance(self, data):
+	        if data := data.get('department'):
+	            try:
+	                return self.instance.departments.get(id=data.get('id') or 0)
+	            except (AttributeError, Department.DoesNotExist, ValueError):
+	                return Department(name=data.get('name'), company=self.instance)
+	
+	class CompanyForm(ModelForm):
+	    class Meta:
+	        model = Company
+	        fields = '__all__'
+	
+	class CompanyCollection(FormCollection):
+	    company = CompanyForm()
+	    departments = DepartmentCollection()
 
-	class UserCollection(FormCollection):
-	    user = UserForm()
-	    extend_list = ExtendCollection()
+As we expect, we see that every Django model is represented by its form. Since we want to edit more
+instances of the same model type, we somehow need a way to distinguish them. This is where the form
+field named ``id`` comes into play. It is a hidden ``IntegerField`` and represents the primary key
+of the model instances ``Department`` or ``Team``. Since newly created instances haven't any primary
+key yet, it is marked with ``required=False`` to make it optional.
 
-Here we also have to implement the two methods ``model_to_dict`` and ``construct_instance``
-ourselves. Since the collection class ``ExtendCollection`` is declared to allow siblings, its
-children forms are rendered as many times as objects of type ``ExtendUser`` point onto the main
-object, in short the ``User`` object.
+.. django-view:: company_view
+	:view-function: type('CompanyCollectionView', (SessionFormCollectionViewMixin, model_collections.CompanyCollectionView), {}).as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'company-collection'}, collection_kwargs={'renderer': FormRenderer(field_css_classes='mb-2')})
+	:swap-code:
+	:caption: views.py
 
-Here method ``model_to_dict`` instantiates a list. This list is a serialized representation of all
-objects of type ``ExtendUser`` referring to the ``User`` (main) object.
+	class CompanyCollectionView(EditCollectionView):
+	    model = Company
+	    collection_class = CompanyCollection
+	    template_name = 'form-collection.html'
 
-After a submitted form has been validated, we start constructing as many models of type
-``ExtendUser``, as the collections provides. Since we must link each form to its associated
-object, each sub-form contains the primary key of that object as a hidden field. Forms which have
-been deleted by the user are marked for removal and will be removed from the main object.
+.. rubric:: ``related_field``
+
+In this example we have to implement the attribute ``related_field``. This is because
+**django-formset** otherwise does not know how the ``DepartmentCollection`` is related to model
+``Company``, and how the ``TeamCollection`` is related to model ``Department``. 
+
+.. rubric:: ``retrieve_instance(data)``
+
+We recall that in the form declaration, we added a hidden field named ``id`` to keep track of the
+primary key. During submission, we therefore must find the link between instances of type
+``Department`` to its ``Company``, or between instances of type ``Team`` to their ``Department``.
+Forms which have been added using the buttons "Add Team" or "Add Department" have an empty ``id``
+field, because for obvious reasons, no primary key yet exists. For this to work we therefore have to
+implement a custom method ``retrieve_instance(data)``. This method is responsible to retrieve the
+wanted instance from the database, or if that hidden field is empty, must create an unsaved empty
+model instance. Forms which have been deleted using the trash symbol on the upper right corner of
+each form, are marked for removal and will be removed from the associated object.
+
+After a submitted form has been successfully validated, the ``EditCollectionView`` calls the method
+``form_collection_valid(form_collection)`` passing a nested structure of collections and their
+associated forms. If the default implementation, doesn't match your needs, this method can be
+overwritten by a customized implementation. If, as in this example, models are interconnected by a
+straight relationship, the default implementation will probably suffice. Remember, that for more
+complicated relationships, you can always overwrite methods ``construct_instance(…)`` and
+``model_to_dict(…)`` to customize the conversion from the model instances to their forms and vice
+versa.
 
 
-.. _[#1]: In technical terms, a one-to-one relation *is a* foreign key with an additional unique
+.. [#f1] In technical terms, a one-to-one relation *is a* foreign key with an additional unique
 	constraint.
 
 .. _ModelForm: https://docs.djangoproject.com/en/stable/topics/forms/modelforms/

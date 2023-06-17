@@ -4,12 +4,12 @@
 Submit Button Controls
 ======================
 
-In HTML each form must be submitted through a user defined action. This normally is done using
-either an input field, or a button with type submit. This ``<button type="submit">Submit</button>``
+In HTML each form must be submitted through a user defined action. Normally it's done either using
+an input field, or a button with type submit. This ``<button type="submit">Submit</button>``
 or ``<input type="submit" value="Submit">`` must be placed inside the ``<form>...</form>``-element. 
 
 **django-formset** has a different approach: Submit buttons shall be able to do *much more* than
-just triggering an event, which then proceeds with submitting its form content to the server.
+just triggering *the* event, which then proceeds with submitting its form content to the server.
 Instead, a button when clicked, can perform a whole chain of actions. This allows us to trigger more
 than one event, whenever a user clicks on a button.
 
@@ -17,27 +17,29 @@ All controlling buttons must be placed inside the ``<django-formset>``-element. 
 button therefore may look like
 
 .. code-block:: django
+	:emphasize-lines: 4
 
 	<django-formset …>
 	  <!-- some forms with fields -->
 	  …
-	  <button click="disable -> submit -> proceed !~ scrollToError">Submit</button>
+	  <button df-click="disable -> submit -> proceed !~ scrollToError">Submit</button>
 	</django-formset>
 
 
 Action Queues
 =============
 
-What we see here are 4 actions: ``disable``, ``submit``, ``proceed`` and ``scrollToError``. Let's
+Here we recognize four actions: ``disable``, ``submit``, ``proceed`` and ``scrollToError``. Let's
 explain their functionality:
 
 * In ``disable``, the button disables itself. This is useful to prevent double submissions and
   should be used whenever possible.
 * In ``submit``, the content of the form(s) inside the ``<django-formset>`` is submitted to the
   server through the given endpoint. This function can take extra values which are submitted along
-  with the form data. If for example we use ``submit({foo: "bar"})`` then that extra submit data
-  is available in our ``FormView`` instance connected to the given endpoint. That extra submitted
-  data then can be accessed by calling ``self.get_extra_data()``. 
+  with the form data. If for example we use ``submit({foo: "bar"})`` then that extra data is
+  submitted along with the form's payload and will be available to our ``FormView`` instance, which
+  is connected to the given endpoint. From inside that ``FormView`` instance the submitted extra
+  data can then be accessed by calling ``self.get_extra_data()``. 
 * If the submission was successful, ``proceed`` tells the client what to do next. If called without
   arguments, the default is to load the page given by the ``success_url`` provided by our Django
   view handling the request. If instead we use ``proceed("/path/to/success/page")``, that page is
@@ -45,13 +47,13 @@ explain their functionality:
   rather than having to rely on a response from the server.
 
 A submission which did not validate on the server is considered as failed and the response status
-code is 422, rather than 200. This is where the ``!~`` comes into play. It acts similar to a
-catch-statement and everything after that symbol is executed on submission failure.
+code is 422, rather than 200. This is where the ``!~``-operator comes into play. It acts similar to
+a catch-statement and everything after that symbol is executed on submission failure.
 
 .. note:: According to `RFC4918 Section 12.1`_, a status code of 422 can be used if a request body
-   contains well-formed (i.e., syntactically correct), but semantically erroneous, instructions.
-   Even though the cited RFC applies to XML, invalid form data submitted via JSON can as well be
-   interpreted as “semantically erroneous”.
+	contains well-formed (i.e., syntactically correct), but semantically erroneous, instructions.
+	Even though the cited RFC applies to XML, invalid form data submitted via JSON can as well be
+	interpreted as “semantically erroneous”.
 
 .. _RFC4918 Section 12.1: https://www.rfc-editor.org/rfc/rfc4918#section-11.2
 
@@ -65,7 +67,7 @@ as queued actions for buttons in **django-formset**:
   the state just before having clicked on it, regardless if the submission was successful or not.
   Therefore this action is rarely of usage.
 * ``reset`` is used to reset all form fields to their state when loading the form. It usually should
-  be used on a separate button which explicitly is labeled to reset the form.
+  be used on a separate button which explicitly is labeled to *reset* the form.
 * ``reload`` this is used to reload the page. Useful to reload the form after a successful
   submission, for instance in buttons labeled “*Save and continue editing*”.
 * ``delay(1000)`` delays all further actions by one second. This sometimes can be useful to add an
@@ -92,13 +94,14 @@ as queued actions for buttons in **django-formset**:
   generated an non-form-validation error, for instance "permission denied", this error is shown in
   an alert box. 
 * ``emit("event name")`` emit a named event to the DOM.
-* ``intercept`` intercepts the response object after submission and prints it onto the console. This
-  is only useful for debugging purposes.
 * ``clearErrors`` clears all error annotations from a previously failed form validation.
 * ``noop`` does nothing and can be used as a placeholder.
+* ``intercept`` intercepts the response object after submission and prints it onto the browser
+  console. This is only useful for debugging purposes.
+* ``intercept("<dom-selector>")`` prints the intercepted submission to a HTML element as specified
+  by the ``<dom-selector>``. This documentation makes heavy use of that feature.
 
-
-By combining these button actions, we gain a huge set of possibilities to improve the user
+By combining these button actions, we gain a huge set of possibilities to greatly improve the user
 experience. If for instance, form processing takes more than say one second, we shall somehow
 signal to the user that the submission might take some time. This is where the ``spinner`` action
 renders a spinning wheel. After a successful submission, we might want to signalize to the user that
@@ -107,26 +110,51 @@ everything is okay, before proceeding to the next page without notification. Thi
 want to signalize to the user that it failed. This is where the ``bummer`` action displays an
 animated failure.
 
-This is an example of a ``click`` action on a button for a form requiring some processing time:
+This is an example of a ``df-click`` action on a button for a form requiring some processing time:
 
-.. code-block:: django
+.. code-block:: html
 
-	<button type="button" click="disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)">
-		Submit
-		<span class="dj-button-decorator"><img class="dj-icon" src="/path/to/icon" /></span>
+	<button type="button" df-click="disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(5000)">
+	    Submit
+	    <span class="dj-button-decorator"><img class="dj-icon" src="/path/to/icon" /></span>
 	</button>
 
-.. image:: _static/submit-success.gif
-  :width: 145
-  :alt: Submit Button (success)
+.. django-view:: button_action
+	:view-function: ButtonActionView.as_view(extra_context={'button_actions': 'disable -> spinner -> submit -> okay(1500) -> reload !~ enable -> bummer(5000)'})
+	:hide-code:
 
-Here we delay the okay tick by 1.5 seconds before proceeding to the next page.
+	from time import sleep
+	from django.core.exceptions import ValidationError
+	from django.forms import fields, forms, widgets
+	from formset.views import FormView 
+	
+	class EmptyForm(forms.Form):
+	    valid = fields.BooleanField(
+	        label="Valid",
+	        required=False,
+	        help_text="Check to make this form valid",
+	    )
 
-.. image:: _static/submit-failure.gif
-  :width: 145
-  :alt: Submit Button (failure)
+	    def clean_valid(self):
+	        sleep(1.5)  # emulate heavy form processing
+	        if not self.cleaned_data.get('valid'):
+	            raise ValidationError("This form is not valid.")
+	        return True
 
-In case of failure, we render the bummer symbol for 10 seconds before resetting it to the default.
+	class ButtonActionView(FormView):
+	    form_class = EmptyForm
+	    template_name = "button-action.html"
+	    success_url = "/success"
+
+Here we use the checkbox to emulate a successful and a failing server side form validation.
+
+.. note:: The view behind this action, emulates heavy form processing by waiting for 1.5 seconds.
+	After the form was successfully submitted, the okay tick waits for another 1.5 seconds before
+	proceeding. Since this action view has no associated success page, the current page is just
+	reloaded.
+	
+	In case of failure, we render the bummer symbol for 5 seconds before resetting it to the
+	default.
 
 
 Buttons without a Form
@@ -147,15 +175,15 @@ This is the final part of the template rendering the detail view of our blog pos
 	  <django-formset endpoint="{{ editview_url }}" csrf-token="{{ csrf_token }}">
 	    {# no <form> element is rendered here, because single field `published` is handled through action buttons #}
 	    {% if post.published %}
-	      <button type="button" click="submit({published: false}) -> proceed">
+	      <button type="button" df-click="submit({published: false}) -> proceed">
 	        Unpublish Post
 	      </button>
 	    {% else %}
-	      <button type="button" click="submit({published: true}) -> proceed">
+	      <button type="button" df-click="submit({published: true}) -> proceed">
 	        Publish Post
 	      </button>
 	    {% endif %}
-	      <button type="button" click="proceed('{{ editview_url }}')">
+	      <button type="button" df-click="proceed('{{ editview_url }}')">
 	        Change Post
 	      </button>
 	  </django-formset>
@@ -187,3 +215,18 @@ What we do here is to bypass form validation if we find out that besides "form d
 buttons from above. 
 
 This neat trick allows us to reuse the edit view class for a similar purpose.
+
+.. _auto-disable_buttons: 
+
+Auto-Disable Buttons
+====================
+
+By adding the Boolean attribute ``auto-disable`` to any ``<button …>``, that button element remains
+disabled until the complete formset contains valid data. This can be used to prevent users from
+submitting forms with missing fields or fields containing invalid data.
+
+From a usability consideration, this setting should only be used, if the form contains very few
+fields and these fields must always be visible together with that button. To the user it then must
+be immediately clear that this button is disabled, *because* some nearby fields are missing. If that
+can't be guaranteed, it is better to let the user submit a form containing invalid data and then
+scroll to the first field, which doesn't.

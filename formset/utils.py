@@ -34,12 +34,13 @@ class FormsetErrorList(ErrorList):
 
 class HolderMixin:
     ignore_marked_for_removal = getattr(settings, 'FORMSET_IGNORE_MARKED_FOR_REMOVAL', False)
+    marked_for_removal = False
 
     def __init__(self, **kwargs):
-        self.marked_for_removal = False
         super().__init__(**kwargs)
 
-    def replicate(self, data=None, initial=None, prefix=None, renderer=None, ignore_marked_for_removal=None):
+    def replicate(self, data=None, initial=None, auto_id=None, prefix=None, instance=None, renderer=None,
+                  ignore_marked_for_removal=None):
         replica = copy.copy(self)
         if hasattr(self, 'declared_holders'):
             replica.declared_holders = {
@@ -59,8 +60,12 @@ class HolderMixin:
             replica.files.clear()
         if initial:
             replica.initial = initial
+        if auto_id:
+            replica.auto_id = auto_id
         if prefix:
             replica.prefix = prefix
+        if instance:
+            replica.instance = instance
         if ignore_marked_for_removal is not None:
             replica.ignore_marked_for_removal = ignore_marked_for_removal
         if isinstance(replica.renderer, FormRenderer):
@@ -131,7 +136,8 @@ class FormDecoratorMixin:
 
 class FormMixin(FormDecoratorMixin, HolderMixin):
     """
-    Mixin class to be added to a native Django Form. This is required to add
+    Mixin class to be added to a native Django Form. This is required to overwrite
+    some form methods provided by Django
     """
 
     def add_prefix(self, field_name):

@@ -1,7 +1,7 @@
 import os
 import struct
 from base64 import b16encode
-from datetime import date
+from datetime import date, timedelta, timezone
 from functools import reduce
 from operator import and_, or_
 
@@ -12,8 +12,10 @@ from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
 from django.forms.widgets import DateTimeBaseInput, FileInput, Select, SelectMultiple, TextInput
-from django.utils.timezone import datetime, now, utc
+from django.utils.timezone import datetime, now
 from django.utils.translation import gettext_lazy as _
+
+from formset.calendar import CalendarRenderer
 
 
 class SimpleModelChoiceIterator(ModelChoiceIterator):
@@ -123,7 +125,7 @@ class IncompleteSelectMixin:
     def _options_model_choice(self, name, values, attrs=None):
         values_list = [str(val) for val in values]
         optgroups, counter = [], 0
-        for counter, (val, label) in enumerate(self.choices, counter):
+        for val, label in self.choices:
             if counter == self.max_prefetch_choices:
                 break
             if not isinstance(val, ModelChoiceIteratorValue):
@@ -132,13 +134,15 @@ class IncompleteSelectMixin:
             if selected := val in values_list:
                 values_list.remove(val)
             optgroups.append((None, [{'value': val, 'label': label, 'selected': selected}], counter))
-        for counter, val in enumerate(values_list, counter):
+            counter += 1
+        for val in values_list:
             try:
                 obj = self.choices.queryset.get(pk=val)
             except ObjectDoesNotExist:
                 continue
             label = self.choices.field.label_from_instance(obj)
             optgroups.append((None, [{'value': str(val), 'label': label, 'selected': True}], counter))
+            counter += 1
         return optgroups
 
     def _optgroups_model_choice(self, name, values, attrs=None):
@@ -238,6 +242,30 @@ class DualSortableSelector(DualSelector):
         context = super().get_context(name, value, attrs)
         context['is_sortable'] = True
         return context
+    def _options_model_choice(self, name, values, attrs=None):
+        values_list = [str(val) for val in values]
+        optgroups, counter = [], 0
+        # first create options from values_list, otherwise order is lost
+        for val in values_list:
+            try:
+                obj = self.choices.queryset.get(pk=val)
+            except ObjectDoesNotExist:
+                continue
+            label = self.choices.field.label_from_instance(obj)
+            optgroups.append((None, [{'value': str(val), 'label': label, 'selected': True}], counter))
+            counter += 1
+        # then add remaining options up to max_prefetch_choices
+        for val, label in self.choices:
+            if counter >= self.max_prefetch_choices:
+                break
+            if not isinstance(val, ModelChoiceIteratorValue):
+                continue
+            val = str(val)
+            if val in values_list:
+                continue
+            optgroups.append((None, [{'value': val, 'label': label, 'selected': False}], counter))
+            counter += 1
+        return optgroups
 
 
 class SlugInput(TextInput):
@@ -281,7 +309,7 @@ class UploadedFileInput(FileInput):
             size = file.tell()
             file.seek(0)
             # create pseudo unique prefix to avoid file name collisions
-            epoch = datetime(2022, 1, 1, tzinfo=utc)
+            epoch = datetime(2022, 1, 1, tzinfo=timezone.utc)
             prefix = b16encode(struct.pack('f', (now() - epoch).total_seconds())).decode('utf-8')
             filename = '.'.join((prefix, handle['name']))
             files[name] = UploadedFile(
@@ -294,8 +322,9 @@ class UploadedFileInput(FileInput):
 class DateInput(DateTimeBaseInput):
     """
     This is a replacement for Django's date widget ``django.forms.widgets.DateInput`` which renders
-    as ``<input type="text" ...>`` . Since we want to use the browsers built-in validation and
-    optionally its date-picker, we have to use this alternative implementation.
+    as ``<input type="text" ...>``.
+    Since we want to use the browsers built-in validation and optionally its date-picker, we have to
+    use this alternative implementation using input type ``date``.
     """
     template_name = 'django/forms/widgets/date.html'
 
@@ -306,5 +335,84 @@ class DateInput(DateTimeBaseInput):
         super().__init__(attrs=default_attrs)
 
     def format_value(self, value):
+        if isinstance(value, datetime):
+            return value.date().isoformat()
         if isinstance(value, date):
             return value.isoformat()
+        return value
+
+
+class DateTimeInput(DateTimeBaseInput):
+    template_name = 'django/forms/widgets/date.html'
+
+    def __init__(self, attrs=None):
+        default_attrs = {'type': 'datetime-local', 'pattern': r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}'}
+        if attrs:
+            default_attrs.update(**attrs)
+        super().__init__(attrs=default_attrs)
+
+    def format_value(self, value):
+        if isinstance(value, datetime):
+            return value.isoformat()[:16]
+        return value
+
+
+class DatePicker(DateTimeBaseInput):
+    """
+    This is an enhancement for the ``DateInput`` widget, but with a customizable date-picker.
+    """
+    template_name = 'formset/default/widgets/datetimepicker.html'
+    interval = timedelta(days=1)
+
+    def __init__(self, attrs=None, calendar_renderer=None):
+        default_attrs = {
+            'type': 'text',
+            'is': 'django-datepicker',
+            'aria-expanded': 'false',
+            'aria-haspopup': 'dialog'
+        }
+        if attrs:
+            default_attrs.update(**attrs)
+        if calendar_renderer:
+            self.calendar_renderer = calendar_renderer
+        else:
+            self.calendar_renderer = CalendarRenderer
+        super().__init__(attrs=default_attrs)
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        if isinstance(self.calendar_renderer, type):
+            calendar_renderer = self.calendar_renderer(start_datetime=value)
+        else:
+            calendar_renderer = self.calendar_renderer
+        context['calendar'] = calendar_renderer.get_context(self.interval)
+        return context
+
+    def format_value(self, value):
+        if isinstance(value, (date, datetime)):
+            return value.strftime('%Y-%m-%d')
+        return value
+
+
+class DateTimePicker(DatePicker):
+    """
+    This is an enhancement for the ``DateTimeInput`` widget, but with a customizable date- and time-picker.
+    """
+    interval = timedelta(hours=1)
+
+    def __init__(self, attrs=None, calendar_renderer=None):
+        default_attrs = {
+            'is': 'django-datetimepicker',
+        }
+        if attrs:
+            default_attrs.update(**attrs)
+        if attrs and 'step' in attrs:
+            self.interval = attrs['step']
+            assert self.interval in CalendarRenderer.valid_intervals, \
+                f"{self.interval} is not a valid interval for {self.__class__}"
+        super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
+
+    def format_value(self, value):
+        if isinstance(value, datetime):
+            return value.strftime('%Y-%m-%d %H:%M')
+        return value
