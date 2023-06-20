@@ -190,9 +190,9 @@ class FieldGroup {
 		for (const element of this.fieldElements){
 			if (name === '__undefined__') {
 				name = element.name;
-			} 
+			}
 			if (seen.has(element.name)) {
-				throw new Error(`Duplicate name '${name}' on multiple input fields on '${element.name}'`);
+				throw new Error(`Duplicate name '${element.name}' on multiple input fields.`);
 			}
 			seen.add(element.name);
 		}
