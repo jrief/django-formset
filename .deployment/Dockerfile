@@ -13,7 +13,6 @@ RUN pip install --upgrade pip
 # install Node specific requirements
 COPY package.json /web/package.json
 COPY package-lock.json /web/package-lock.json
-RUN ls -lR /usr
 RUN npm ci
 
 # install Python specific requirements
