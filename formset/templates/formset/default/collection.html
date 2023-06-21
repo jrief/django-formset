@@ -11,7 +11,7 @@
 		{% if holder.is_template %}
 	<template{% if collection.is_sortable %} sortable="true"{% endif %} prefix="{{ collection.prefix|default_if_none:0 }}" class="empty-collection">
 		{% endif %}
-	<django-form-collection sibling-position="{{ holder.position }}" min-siblings="{{ collection.min_siblings }}"{% if collection.max_siblings %} max-siblings="{{ collection.max_siblings }}"{% endif %}{% if css_classes %} class="{{ css_classes }}"{% endif %}>
+	<django-form-collection sibling-position="{{ holder.position }}" min-siblings="{{ collection.min_siblings }}"{% if collection.max_siblings %} max-siblings="{{ collection.max_siblings }}"{% endif %}{% if css_classes %} class="{{ css_classes }}"{% endif %}{% if holder.fresh_and_empty %} fresh-and-empty{% endif %}>
 		{% if collection.is_sortable %}
 	<div class="collection-drag-handle"></div>
 		{% endif %}
