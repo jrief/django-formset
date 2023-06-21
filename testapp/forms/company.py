@@ -18,7 +18,9 @@ class TeamForm(ModelForm):
 
 
 class TeamCollection(FormCollection):
-    min_siblings = 0
+    min_siblings = 1
+    max_siblings = 1
+    extra_siblings = 1
     team = TeamForm()
     legend = "Teams"
     add_label = "Add Team"

@@ -1,3 +1,4 @@
+from django.core import validators
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.db.utils import IntegrityError
 from django.forms.forms import BaseForm
@@ -67,6 +68,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     help_text = None
     add_label = None
     ignore_marked_for_removal = None
+    empty_values = list(validators.EMPTY_VALUES)
 
     def __init__(self, data=None, initial=None, renderer=None, auto_id=None, prefix=None, instance=None,
                  min_siblings=None, max_siblings=None, extra_siblings=None, is_sortable=None, legend=None,
@@ -158,6 +160,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     holder.is_first = True
                 if item_num == last:
                     holder.is_last = True
+                if initial in self.empty_values and position >= self.min_siblings:
+                    holder.fresh_and_empty = True
                 yield holder
         # add empty placeholder as template for extra collections
         for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
@@ -246,13 +250,13 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     self._errors.append(errors)
             self.validate_unique()
             if len(self.valid_holders) < self.min_siblings:
-                # can only happen, if client bypasses browser control
                 self._errors.clear()
-                self._errors.append({COLLECTION_ERRORS: ["Too few siblings."]})
+                msg = gettext_lazy("Not enough entries in “{legend}”, please add another.")
+                self._errors.append({COLLECTION_ERRORS: [msg.format(legend=self.legend)]})
             if self.max_siblings and len(self.valid_holders) > self.max_siblings:
-                # can only happen, if client bypasses browser control
                 self._errors.clear()
-                self._errors.append({COLLECTION_ERRORS: ["Too many siblings."]})
+                msg = gettext_lazy("Too many entries in “{legend}”, please remove one.")
+                self._errors.append({COLLECTION_ERRORS: [msg.format(legend=self.legend)]})
         else:
             self.valid_holders = {}
             self._errors = ErrorDict()
