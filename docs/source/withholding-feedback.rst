@@ -8,7 +8,7 @@ Withholding Feedback
 input field has focus, and the field is believed to have invalid data, an orange warning triangle
 appears on the right. As soon as the field loses focus (blurs), the field is validated by the
 client-side implementation. If its data does not validate, a red exclamation mark is shown and the
-field's border is rendered in red. Additionally an error message is rendered below the field. On the
+field's border changes to red. Additionally an error message is rendered below the field. On the
 other hand, if the field data validates, a green tick is shown and the field's border is rendered in
 green.
 
