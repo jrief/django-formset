@@ -292,10 +292,10 @@ def test_collection_post(counter, formset_data):
     body = json.loads(response.content)
     if counter == 0:
         assert response.status_code == 422
-        assert body['numbers'][0]['_collection_errors_'] == ["Too few siblings."]
+        assert body['numbers'][0]['_collection_errors_'] == ["Not enough entries in “List of Phone Numbers”, please add another."]
     if counter == 1:
         assert response.status_code == 422
-        assert body['numbers'][0]['_collection_errors_'] == ["Too many siblings."]
+        assert body['numbers'][0]['_collection_errors_'] == ["Too many entries in “List of Phone Numbers”, please remove one."]
     if counter == 2:
         assert response.status_code == 422
         assert body['numbers'][1]['number']['phone_number'] == ["Are you kidding me?"]
