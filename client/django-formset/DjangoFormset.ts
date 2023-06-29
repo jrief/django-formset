@@ -1289,7 +1289,7 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 
 	public markAsFreshAndEmpty(justAdded?: boolean) {
 		this.justAdded = justAdded || this.element.hasAttribute('fresh-and-empty');
-		super.markAsFreshAndEmpty(justAdded);
+		super.markAsFreshAndEmpty(this.justAdded);
 	}
 
 	public isFreshAndEmpty() : boolean {
@@ -1297,7 +1297,7 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 	}
 
 	public removeFreshAndEmpty() {
-		if (this.isFreshAndEmpty()) {
+		if (!this.removeButton.disabled && this.isFreshAndEmpty()) {
 			this.removeCollection();
 		} else {
 			super.removeFreshAndEmpty();
@@ -1840,7 +1840,7 @@ export class DjangoFormsetElement extends HTMLElement {
 	}
 
 	private static get observedAttributes() {
-		return ['endpoint', 'withhold-messages', 'force-submission'];
+		return ['endpoint', 'withhold-feedback', 'force-submission'];
 	}
 
 	private connectedCallback() {
