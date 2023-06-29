@@ -1174,7 +1174,8 @@ class DjangoFormCollection {
 	}
 
 	public removeFreshAndEmpty() {
-		this.children.forEach(child => child.removeFreshAndEmpty());
+		const children = Array.from(this.children).reverse();
+		children.forEach(child => child.removeFreshAndEmpty());
 	}
 
 	static getChildCollections(element: Element) : NodeListOf<HTMLElement> | [] {
@@ -1548,9 +1549,6 @@ export class DjangoFormset {
 		for (const element of parentElement.getElementsByTagName('FORM')) {
 			const form = new DjangoForm(this, element as HTMLFormElement);
 			this.forms.push(form);
-			if (element.hasAttribute('is-fresh')) {
-				form.disableRequiredConstraints();
-			}
 		}
 		this.checkForUniqueness();
 	}
@@ -1609,7 +1607,8 @@ export class DjangoFormset {
 	}
 
 	private removeFreshCollections() {
-		this.formCollections.forEach(collection => collection.removeFreshAndEmpty());
+		const formCollections = Array.from(this.formCollections).reverse();
+		formCollections.forEach(collection => collection.removeFreshAndEmpty());
 	}
 
 	private aggregateValues() {
