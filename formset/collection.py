@@ -1,5 +1,5 @@
-from functools import reduce
 import operator
+from functools import reduce
 
 from django.core import validators
 from django.core.exceptions import NON_FIELD_ERRORS
