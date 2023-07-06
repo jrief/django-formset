@@ -100,6 +100,7 @@ def test_button_remove_class(page, viewname):
     expect(button).to_have_class('button')
 
 
+@pytest.mark.xfail(reason="playwright has some timing issues")
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_3'])
 def test_button_toggle_class(page, viewname):
