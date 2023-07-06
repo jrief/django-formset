@@ -1,3 +1,6 @@
+from functools import reduce
+import operator
+
 from django.core import validators
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.db.utils import IntegrityError
@@ -95,6 +98,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 self.extra_siblings = 0
             if is_sortable is not None:
                 self.is_sortable = is_sortable
+            self.fresh_and_empty = False
         else:
             self.is_sortable = False
         if legend is not None:
@@ -160,7 +164,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     holder.is_first = True
                 if item_num == last:
                     holder.is_last = True
-                if initial in self.empty_values and position >= self.min_siblings:
+                if initial in self.empty_values and (position >= self.min_siblings or self.fresh_and_empty):
                     holder.fresh_and_empty = True
                 yield holder
         # add empty placeholder as template for extra collections
@@ -249,11 +253,16 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     self.valid_holders.append(valid_holders)
                     self._errors.append(errors)
             self.validate_unique()
-            if len(self.valid_holders) < self.min_siblings:
+            valid_siblings = reduce(
+                operator.add,
+                (all(not h.marked_for_removal for h in vh.values()) for vh in self.valid_holders),
+                0
+            )
+            if valid_siblings < self.min_siblings:
                 self._errors.clear()
                 msg = gettext_lazy("Not enough entries in “{legend}”, please add another.")
                 self._errors.append({COLLECTION_ERRORS: [msg.format(legend=self.legend)]})
-            if self.max_siblings and len(self.valid_holders) > self.max_siblings:
+            if self.max_siblings and valid_siblings > self.max_siblings:
                 self._errors.clear()
                 msg = gettext_lazy("Too many entries in “{legend}”, please remove one.")
                 self._errors.append({COLLECTION_ERRORS: [msg.format(legend=self.legend)]})
