@@ -42,7 +42,7 @@ from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerCollection
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
 from testapp.forms.opinion import OpinionForm
-from testapp.forms.person import ButtonActionsForm, SimplePersonForm, sample_person_data, ModelPersonForm
+from testapp.forms.person import ButtonActionsForm, sample_person_data, ModelPersonForm
 from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.state import StateForm, StatesForm
@@ -257,7 +257,8 @@ class CompanyCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionVi
     collection_class = CompanyCollection
     template_name = 'testapp/form-collection.html'
     extra_context = {
-        'click_actions': 'disable -> submit -> reload !~ scrollToError'
+        'click_actions': 'disable -> submit -> reload !~ scrollToError',
+        'force_submission': False,
     }
 
 
@@ -266,7 +267,7 @@ class CompaniesCollectionView(DemoFormCollectionViewMixin, BulkEditCollectionVie
     collection_class = CompaniesCollection
     template_name = 'testapp/form-collection.html'
     extra_context = {
-        'click_actions': 'disable -> submit -> reload !~ scrollToError'
+        'click_actions': 'disable -> submit -> reload !~ scrollToError',
     }
 
     def get_queryset(self):
