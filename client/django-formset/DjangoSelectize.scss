@@ -64,10 +64,6 @@
 						color: inherit;
 					}
 				}
-
-				&.active {
-					background-color: $active-items-background-color;
-				}
 			}
 		}
 		&.full .ts-control > input {
@@ -122,8 +118,11 @@
 			cursor: pointer;
 			overflow: hidden;
 
-			&:hover {
-				background-color: $select-color-hover;
+			&[aria-selected="true"] {
+				background-color: $active-items-background-color;
+			}
+			&.selected {
+				background-color: $selected-items-background-color;
 			}
 			.highlight {
 				background: $select-color-highlight;

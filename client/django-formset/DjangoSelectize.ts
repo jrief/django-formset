@@ -202,7 +202,7 @@ class DjangoSelectize extends IncompleteSelect {
 					break;
 				case '.ts-wrapper .ts-dropdown':
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'border-right', 'border-bottom', 'border-left', 'color', 'padding-left'])
+						'border-right', 'border-bottom', 'border-left', 'color'])
 						.concat(parseFloat(lineHeight) > 0 ? `line-height: calc(${lineHeight} * 1.2);` : 'line-height: 1.4em;');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
@@ -212,6 +212,10 @@ class DjangoSelectize extends IncompleteSelect {
 					} else {
 						extraStyles =  `max-height: ${displayNumOptions * 1.4}em;`;
 					}
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '.ts-wrapper .ts-dropdown [data-selectable]':
+					extraStyles = StyleHelpers.extractStyles(tomInput, ['padding-left']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case ':host-context([role="group"].dj-submitted) .ts-wrapper.invalid.focus .ts-control':
