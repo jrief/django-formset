@@ -1,5 +1,10 @@
 ## Changes
 
+- 1.0.1
+  * Fix: When using the Selectize widgets, using the arrow-up/down buttons did not highlight the
+    selected option.
+  * Officially support Django-4.2. 
+
 - 1.0
   * **Breaking change:** Class `FormCollection` is validated entirely and only after all checks
     passed, models are created out of the cleaned data. This means that the method
