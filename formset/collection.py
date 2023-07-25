@@ -221,6 +221,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
 
         if self._errors is None:
             self.full_clean()
+            self.validate_siblings_count()
         return is_valid(self._errors)
 
 
@@ -241,8 +242,13 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                             instance=instance,
                             ignore_marked_for_removal=self.ignore_marked_for_removal,
                         )
-                        if holder.ignore_marked_for_removal and MARKED_FOR_REMOVAL in holder.data:
-                            break
+                        if MARKED_FOR_REMOVAL in holder.data:
+                            if holder.ignore_marked_for_removal:
+                                break
+                            if getattr(holder, 'has_many', False):
+                                holder.marked_for_removal = True
+                            elif self.has_many:
+                                self.marked_for_removal = True
                         if holder.is_valid():
                             valid_holders[name] = holder
                         errors[name] = holder._errors
@@ -253,19 +259,6 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     self.valid_holders.append(valid_holders)
                     self._errors.append(errors)
             self.validate_unique()
-            valid_siblings = reduce(
-                operator.add,
-                (all(not h.marked_for_removal for h in vh.values()) for vh in self.valid_holders),
-                0
-            )
-            if valid_siblings < self.min_siblings:
-                self._errors.clear()
-                msg = gettext_lazy("Not enough entries in “{legend}”, please add another.")
-                self._errors.append({COLLECTION_ERRORS: [msg.format(legend=self.legend)]})
-            if self.max_siblings and valid_siblings > self.max_siblings:
-                self._errors.clear()
-                msg = gettext_lazy("Too many entries in “{legend}”, please remove one.")
-                self._errors.append({COLLECTION_ERRORS: [msg.format(legend=self.legend)]})
         else:
             self.valid_holders = {}
             self._errors = ErrorDict()
@@ -335,6 +328,23 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         else:
             fields = get_text_list(unique_check, gettext_lazy("and"))
             return gettext_lazy("Please correct the duplicate data for {0}, which must be unique.").format(fields)
+
+    def validate_siblings_count(self):
+        if not self.has_many or self.marked_for_removal:
+            return
+        num_valid_siblings = reduce(
+            operator.add,
+            (all(not h.marked_for_removal for h in vh.values()) for vh in self.valid_holders),
+            0
+        )
+        if num_valid_siblings < self.min_siblings:
+            self._errors.clear()
+            msg = gettext_lazy("Not enough entries in “{legend}”, please add another.")
+            self._errors.append({COLLECTION_ERRORS: [msg.format(legend=self.legend)]})
+        if self.max_siblings and num_valid_siblings > self.max_siblings:
+            self._errors.clear()
+            msg = gettext_lazy("Too many entries in “{legend}”, please remove one.")
+            self._errors.append({COLLECTION_ERRORS: [msg.format(legend=self.legend)]})
 
     def retrieve_instance(self, data):
         """
