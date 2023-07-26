@@ -337,14 +337,15 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             (all(not h.marked_for_removal for h in vh.values()) for vh in self.valid_holders),
             0
         )
+        collection_name = self.legend if self.legend else self.__class__.__name__
         if num_valid_siblings < self.min_siblings:
             self._errors.clear()
-            msg = gettext_lazy("Not enough entries in “{legend}”, please add another.")
-            self._errors.append({COLLECTION_ERRORS: [msg.format(legend=self.legend)]})
+            msg = gettext_lazy("Not enough entries in “{collection_name}”, please add another.")
+            self._errors.append({COLLECTION_ERRORS: [msg.format(collection_name=collection_name)]})
         if self.max_siblings and num_valid_siblings > self.max_siblings:
             self._errors.clear()
-            msg = gettext_lazy("Too many entries in “{legend}”, please remove one.")
-            self._errors.append({COLLECTION_ERRORS: [msg.format(legend=self.legend)]})
+            msg = gettext_lazy("Too many entries in “{collection_name}”, please remove one.")
+            self._errors.append({COLLECTION_ERRORS: [msg.format(collection_name=collection_name)]})
 
     def retrieve_instance(self, data):
         """
