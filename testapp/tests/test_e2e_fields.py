@@ -1,6 +1,7 @@
 from collections import namedtuple
 import json
 import pytest
+from playwright.sync_api import expect
 
 from django.forms import fields, Form, widgets
 from django.urls import path
@@ -441,15 +442,16 @@ urlpatterns.append(
 @pytest.mark.parametrize('viewname', ['multiselect_form'])
 def test_select_field(page, mocker):
     name = 'choices'
-    assert page.query_selector('django-formset form:valid') is None
-    assert page.query_selector('django-formset form:invalid') is not None
-    assert page.query_selector(f'django-formset .dj-form select[name="{name}"]:valid') is None
-    assert page.query_selector(f'django-formset .dj-form select[name="{name}"]:invalid') is not None
-    page.select_option(f'django-formset .dj-form select[name="{name}"]', ['c', 'b'])
-    assert page.query_selector('django-formset form:valid') is not None
-    assert page.query_selector('django-formset form:invalid') is None
+    formset = page.locator('django-formset')
+    expect(formset.locator('form:valid')).to_have_count(0)
+    expect(formset.locator('form:invalid')).to_have_count(1)
+    expect(formset.locator(f'select[name="{name}"]:valid')).to_have_count(0)
+    expect(formset.locator(f'select[name="{name}"]:invalid')).to_have_count(1)
+    formset.locator(f'select[name="{name}"]').select_option(['c', 'b'])
+    expect(formset.locator('form:valid')).to_have_count(1)
+    expect(formset.locator('form:invalid')).to_have_count(0)
     spy = mocker.spy(FormView, 'post')
-    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    formset.evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     assert set(request['formset_data']['choices']) == set(['b', 'c'])
     assert spy.spy_return.status_code == 200
@@ -467,6 +469,7 @@ urlpatterns.append(
                 required=True,
             ),
         }),
+        extra_context={'click_actions': 'submit -> proceed', 'force_submission': True},
     ), name='radiochoice_form')
 )
 
@@ -474,19 +477,19 @@ urlpatterns.append(
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['radiochoice_form'])
 def test_radiochoice_field(page, mocker):
-    assert page.query_selector('django-formset form:valid') is None
-    assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_field = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder')
-    assert placeholder_field.inner_text() == ""
-    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
-    assert placeholder_field.inner_text() == "This field is required."
-    input_elem_b = page.query_selector('django-formset .dj-form input[value="b"]')
-    input_elem_b.click(position=dict(x=6.5, y=6.5))
-    assert page.query_selector('django-formset form:valid') is not None
-    assert page.query_selector('django-formset form:invalid') is None
-    assert placeholder_field.inner_text() == ""
+    formset = page.locator('django-formset')
+    expect(formset.locator('form:valid')).to_have_count(0)
+    expect(formset.locator('form:invalid')).to_have_count(1)
+    placeholder_field = formset.locator('[role="group"] ul.dj-errorlist > li.dj-placeholder')
+    expect(placeholder_field).to_have_text("")
+    formset.evaluate('elem => elem.submit()')
+    expect(placeholder_field).to_have_text("This field is required.")
+    formset.locator('.dj-form input[value="b"]').check()
+    expect(formset.locator('form:valid')).to_have_count(1)
+    expect(formset.locator('form:invalid')).to_have_count(0)
+    expect(placeholder_field).to_have_text("")
     spy = mocker.spy(FormView, 'post')
-    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    formset.evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     assert request['formset_data']['choice'] == 'b'
     assert spy.spy_return.status_code == 200
@@ -511,21 +514,27 @@ urlpatterns.append(
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['multichoice_form'])
 def test_multichoice_field(page, mocker):
-    assert page.query_selector('django-formset form:valid') is None
-    assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_field = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder')
-    assert placeholder_field.inner_text() == ""
-    input_elem_a = page.query_selector('django-formset .dj-form input[value="a"]')
+    formset = page.locator('django-formset')
+    expect(formset.locator('form:valid')).to_have_count(0)
+    expect(formset.locator('form:invalid')).to_have_count(1)
+    placeholder_field = formset.locator('[role="group"] ul.dj-errorlist > li.dj-placeholder')
+    expect(placeholder_field).to_have_text("")
+    formset.evaluate('elem => elem.submit()')
+    input_elem_a = formset.locator('input[value="a"]')
     input_elem_a.click()
+    expect(formset.locator('form:valid')).to_have_count(1)
+    expect(formset.locator('form:invalid')).to_have_count(0)
     input_elem_a.click()
-    assert placeholder_field.inner_text() == "At least one checkbox must be selected."
+    expect(formset.locator('form:valid')).to_have_count(0)
+    expect(formset.locator('form:invalid')).to_have_count(1)
+    expect(placeholder_field).to_have_text("At least one checkbox must be selected.")
     input_elem_a.click()
-    assert page.query_selector('django-formset form:valid') is not None
-    assert page.query_selector('django-formset form:invalid') is None
-    assert placeholder_field.inner_text() == ""
-    page.query_selector(f'django-formset .dj-form input[value="d"]').click()
+    expect(formset.locator('form:valid')).to_have_count(1)
+    expect(formset.locator('form:invalid')).to_have_count(0)
+    expect(placeholder_field).to_have_text("")
+    formset.locator('input[value="d"]').check()
     spy = mocker.spy(FormView, 'post')
-    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    formset.evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     assert request['formset_data']['choices'] == ['a', 'd']
     assert spy.spy_return.status_code == 200
