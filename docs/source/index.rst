@@ -36,6 +36,7 @@ Django ``Form``-s.
 	calendar
 	development
 	contributing
+	faq
 	changes
 	history
 	chat-gpt

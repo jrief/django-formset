@@ -7,3 +7,4 @@ recursive-include formset/static *
 recursive-include formset/templates *
 recursive-exclude testapp *
 recursive-exclude * *.pyc
+recursive-exclude formset/static/css *.map

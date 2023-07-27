@@ -19,6 +19,7 @@ class TeamForm(ModelForm):
 
 class TeamCollection(FormCollection):
     min_siblings = 0
+    extra_siblings = 1
     team = TeamForm()
     legend = "Teams"
     add_label = "Add Team"
@@ -45,6 +46,7 @@ class DepartmentForm(ModelForm):
 
 class DepartmentCollection(FormCollection):
     min_siblings = 0
+    extra_siblings = 1
     department = DepartmentForm()
     teams = TeamCollection()
     legend = "Departments"
@@ -70,7 +72,7 @@ class CompanyCollection(FormCollection):
     departments = DepartmentCollection()
 
 
-class CompanyPlusForm(CompanyForm):
+class MultipleCompanyForm(CompanyForm):
     id = fields.IntegerField(
         required=False,
         widget=widgets.HiddenInput,
@@ -84,7 +86,7 @@ class CompanyPlusForm(CompanyForm):
 
 
 class CompaniesCollection(FormCollection):
-    company = CompanyPlusForm()
+    company = MultipleCompanyForm()
     departments = DepartmentCollection()
     min_siblings = 1
     legend = "Company"

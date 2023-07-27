@@ -1,3 +1,7 @@
+import operator
+from functools import reduce
+
+from django.core import validators
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.db.utils import IntegrityError
 from django.forms.forms import BaseForm
@@ -67,6 +71,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     help_text = None
     add_label = None
     ignore_marked_for_removal = None
+    empty_values = list(validators.EMPTY_VALUES)
 
     def __init__(self, data=None, initial=None, renderer=None, auto_id=None, prefix=None, instance=None,
                  min_siblings=None, max_siblings=None, extra_siblings=None, is_sortable=None, legend=None,
@@ -93,6 +98,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 self.extra_siblings = 0
             if is_sortable is not None:
                 self.is_sortable = is_sortable
+            self.fresh_and_empty = False
         else:
             self.is_sortable = False
         if legend is not None:
@@ -158,6 +164,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     holder.is_first = True
                 if item_num == last:
                     holder.is_last = True
+                if initial in self.empty_values and (position >= self.min_siblings or self.fresh_and_empty):
+                    holder.fresh_and_empty = True
                 yield holder
         # add empty placeholder as template for extra collections
         for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
@@ -213,6 +221,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
 
         if self._errors is None:
             self.full_clean()
+            self.validate_siblings_count()
         return is_valid(self._errors)
 
 
@@ -233,8 +242,13 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                             instance=instance,
                             ignore_marked_for_removal=self.ignore_marked_for_removal,
                         )
-                        if holder.ignore_marked_for_removal and MARKED_FOR_REMOVAL in holder.data:
-                            break
+                        if MARKED_FOR_REMOVAL in holder.data:
+                            if holder.ignore_marked_for_removal:
+                                break
+                            if getattr(holder, 'has_many', False):
+                                holder.marked_for_removal = True
+                            elif self.has_many:
+                                self.marked_for_removal = True
                         if holder.is_valid():
                             valid_holders[name] = holder
                         errors[name] = holder._errors
@@ -245,14 +259,6 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     self.valid_holders.append(valid_holders)
                     self._errors.append(errors)
             self.validate_unique()
-            if len(self.valid_holders) < self.min_siblings:
-                # can only happen, if client bypasses browser control
-                self._errors.clear()
-                self._errors.append({COLLECTION_ERRORS: ["Too few siblings."]})
-            if self.max_siblings and len(self.valid_holders) > self.max_siblings:
-                # can only happen, if client bypasses browser control
-                self._errors.clear()
-                self._errors.append({COLLECTION_ERRORS: ["Too many siblings."]})
         else:
             self.valid_holders = {}
             self._errors = ErrorDict()
@@ -322,6 +328,24 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         else:
             fields = get_text_list(unique_check, gettext_lazy("and"))
             return gettext_lazy("Please correct the duplicate data for {0}, which must be unique.").format(fields)
+
+    def validate_siblings_count(self):
+        if not self.has_many or self.marked_for_removal:
+            return
+        num_valid_siblings = reduce(
+            operator.add,
+            (all(not h.marked_for_removal for h in vh.values()) for vh in self.valid_holders),
+            0
+        )
+        collection_name = self.legend if self.legend else self.__class__.__name__
+        if num_valid_siblings < self.min_siblings:
+            self._errors.clear()
+            msg = gettext_lazy("Not enough entries in “{collection_name}”, please add another.")
+            self._errors.append({COLLECTION_ERRORS: [msg.format(collection_name=collection_name)]})
+        if self.max_siblings and num_valid_siblings > self.max_siblings:
+            self._errors.clear()
+            msg = gettext_lazy("Too many entries in “{collection_name}”, please remove one.")
+            self._errors.append({COLLECTION_ERRORS: [msg.format(collection_name=collection_name)]})
 
     def retrieve_instance(self, data):
         """
