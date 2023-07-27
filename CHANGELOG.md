@@ -1,9 +1,15 @@
 ## Changes
 
+1.1
+  * Form collections containing only empty fields won't be submitted. This applies to collections
+    added using `extra_siblings` as to collections added using the appropriate button.
+  * Fix problem when using MultiWidget widgets. Under some configurations an error was raised
+    stating “Duplicate name 'xxx' on multiple input fields”.
+
 - 1.0.1
   * Fix: When using the Selectize widgets, using the arrow-up/down buttons did not highlight the
     selected option.
-  * Officially support Django-4.2. 
+  * Officially support for Django-4.2. 
 
 - 1.0
   * **Breaking change:** Class `FormCollection` is validated entirely and only after all checks
