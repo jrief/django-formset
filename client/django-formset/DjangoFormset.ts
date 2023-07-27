@@ -196,15 +196,14 @@ class FieldGroup {
 	}
 
 	private assertUniqueName() : string {
-		const seen = new Set<string>();
 		let name = '__undefined__';
 		for (const element of this.fieldElements) {
 			if (name === '__undefined__') {
 				name = element.name;
+			} else {
+				if (name !== element.name)
+					throw new Error(`Duplicate name '${name}' on multiple input fields on '${element.name}'`);
 			}
-			if (seen.has(element.name))
-				throw new Error(`Duplicate name '${name}' on multiple input fields on '${element.name}'`);
-			seen.add(element.name);
 		}
 		return name;
 	}
