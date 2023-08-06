@@ -163,17 +163,22 @@
 
 	// Date input fields
 	+ [role="textbox"] {
+		--dummy-style: none;  // required by Calendar.transferStyles()
+
 		&.focus {
-			--dummy-style: none;  // required by Calendar.transferStyles()
+			--dummy-style: none;
 		}
 
 		> .calendar-icon {
 			display: inline-block;
 			height: 24px;
 			margin-right: 0.5rem;
+			vertical-align: middle;
 			cursor: pointer;
 			svg {
 				display: inline;
+				scale: 0.75;
+				vertical-align: baseline;
 			}
 		}
 

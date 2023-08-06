@@ -854,6 +854,11 @@ class Calendar extends Widget {
 			switch (cssRule.selectorText) {
 				case ':is([is="django-datepicker"], [is="django-datetimepicker"])':
 					break;
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + [role="textbox"]':
+					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
+						'background-color', 'border', 'color', 'outline', 'height', 'line-height', 'padding']);
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
 				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + [role="textbox"].focus':
 					this.inputElement.classList.add('-focus-');
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
