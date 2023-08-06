@@ -1,6 +1,7 @@
 import {autoUpdate, computePosition, flip, shift} from '@floating-ui/dom';
 import {StyleHelpers, Widget} from './helpers';
 import styles from './DateTimePicker.scss';
+import calendarIcon from './icons/calendar.svg';
 
 
 enum ViewMode {
@@ -8,6 +9,15 @@ enum ViewMode {
 	weeks = 'w',
 	months = 'm',
 	years = 'y',
+}
+
+
+enum FieldPart {
+	year,
+	month,
+	day,
+	hour,
+	minute,
 }
 
 
@@ -21,18 +31,15 @@ enum Direction {
 
 class Calendar extends Widget {
 	private readonly inputElement: HTMLInputElement;
+	private readonly textBox: HTMLElement;
 	private readonly dateOnly: Boolean;
-	private readonly localTime: Boolean;
 	private readonly calendarElement: HTMLElement;
+	private readonly inputFields: Array<HTMLElement> = [];
+	private readonly inputFieldsOrder: Array<number> = [];
+	private currentDate: Date | null = null;
+	private calendarOpener: HTMLElement;
 	private viewMode!: ViewMode;
-	private initialDate?: Date;
 	private dateTimeFormat?: Intl.DateTimeFormat;
-	private dateTimeRegExp?: RegExp;
-	private autoZeroRegExps: Array<RegExp> = [];
-	private autoDelimiterRegExps: Array<RegExp> = [];
-	private autoSpaceRegExp?: RegExp;
-	private autoColonRegExp?: RegExp;
-	private delimiter = '-';
 	private cleanup?: Function;
 	private minDate?: Date;
 	private maxDate?: Date;
@@ -43,20 +50,19 @@ class Calendar extends Widget {
 	private minYearDate?: Date;
 	private maxYearDate?: Date;
 	private interval?: number;
+	private hasFocus: HTMLElement | null = null;
 	private isOpen = false;
 	private prevSheetDate!: Date;
 	private nextSheetDate!: Date;
 	private narrowSheetDate?: Date;
 	private extendSheetDate?: Date;
-	private todayDate!: Date;
 	private calendarItems!: NodeListOf<HTMLLIElement>;
 
 	constructor(inputElement: HTMLInputElement, calendarElement: Element | null) {
 		super(inputElement);
 		this.inputElement = inputElement;
 		this.dateOnly = inputElement.getAttribute('is') === 'django-datepicker';
-		this.localTime = inputElement.hasAttribute('local-time');
-		this.setDateTimeFormat();
+		this.textBox = this.createTextBox();
 		this.setInitialDate();
 		if (calendarElement instanceof HTMLElement) {
 			this.calendarElement = calendarElement;
@@ -64,12 +70,27 @@ class Calendar extends Widget {
 			this.calendarElement = document.createElement('div');
 			this.fetchCalendar(new Date(), ViewMode.weeks);
 		}
+		const calendarOpener = this.textBox.querySelector('.calendar-icon');
+		if (!(calendarOpener instanceof HTMLElement))
+			throw new Error("Missing selectot .calendar-icon");
+		this.calendarOpener = calendarOpener;
+		this.calendarOpener.innerHTML = calendarIcon;
 		this.setBounds();
 		this.installEventHandlers();
-		const observer = new MutationObserver(() => this.registerElement());
+		const observer = new MutationObserver(() => this.registerCalendar());
 		observer.observe(this.calendarElement, {childList: true});
 		this.transferStyles();
-		this.registerElement();
+		this.transferClasses();
+		this.registerCalendar();
+		this.updateInputFields(this.currentDate);
+	}
+
+	private get currentDateString() : string {
+		return this.currentDate ? this.asUTCDate(this.currentDate).toISOString().slice(0, 16) : '';
+	}
+
+	private get todayDateString() : string {
+		return this.asUTCDate(new Date()).toISOString().slice(0, 16);
 	}
 
 	private getViewMode() : ViewMode {
@@ -89,23 +110,13 @@ class Calendar extends Widget {
 	}
 
 	private setInitialDate() {
-		if (this.inputElement.value) {
-			this.initialDate = this.convertDate(new Date(this.inputElement.value));
-			this.inputElement.value = this.asString(this.initialDate);
-		}
-	}
-
-	private convertDate(date: Date, force=false) : Date {
-		if (this.localTime || force) {
-			date.setTime(date.getTime() - 60000 * date.getTimezoneOffset());
-		}
-		return date;
+		this.currentDate = this.inputElement.value ? new Date(this.inputElement.value) : null;
 	}
 
 	private setBounds() {
 		const minValue = this.inputElement.getAttribute('min');
 		if (minValue) {
-			this.minDate = this.convertDate(new Date(minValue));
+			this.minDate = new Date(minValue);
 			this.minWeekDate = new Date(this.minDate);
 			this.minWeekDate.setHours(0, 0, 0);
 			this.minMonthDate = new Date(this.minWeekDate);
@@ -115,7 +126,7 @@ class Calendar extends Widget {
 		}
 		const maxValue = this.inputElement.getAttribute('max');
 		if (maxValue) {
-			this.maxDate = this.convertDate(new Date(maxValue));
+			this.maxDate = new Date(maxValue);
 			this.maxWeekDate = new Date(this.maxDate);
 			this.maxWeekDate.setHours(23, 59, 59);
 			this.maxMonthDate = new Date(this.maxWeekDate);
@@ -131,171 +142,118 @@ class Calendar extends Widget {
 		}
 	}
 
-	private setDateTimeFormat() {
-		const phBits = Array<string>();
-		const patBits = Array<string>();
-		const regexBits = Array<string>();
+	private createTextBox(): HTMLElement {
+		const htmlTags: Array<string> = [
+			'<div role="textbox" aria-expanded="false" aria-haspopup="dialog">',
+			'<span class="calendar-icon"></span>',
+		];
+		const htmlIsoTags: Array<string> = [
+			'<span role="spinbutton" class="input-year" contenteditable="true" aria-placeholder="yyyy" aria-valuemin="1700" aria-valuemax="2300"></span>',
+			'<span role="separator" class="delimiter" aria-hidden="true">-</span>',
+			'<span role="spinbutton" class="input-month" contenteditable="true" aria-placeholder="mm" aria-valuemin="1" aria-valuemax="12"></span>',
+			'<span role="separator" class="delimiter" aria-hidden="true">-</span>',
+			'<span role="spinbutton" class="input-day" contenteditable="true" aria-placeholder="dd" aria-valuemin="1" aria-valuemax="31"></span>',
+		];
+		if (!this.dateOnly) {
+			htmlIsoTags.push('<span role="separator" class="delimiter" aria-hidden="true"> </span>');
+			htmlIsoTags.push('<span role="spinbutton" class="input-hour" contenteditable="true" aria-placeholder="hh" aria-valuemin="0" aria-valuemax="23"></span>');
+			htmlIsoTags.push('<span role="separator" class="delimiter" aria-hidden="true">:</span>');
+			htmlIsoTags.push('<span role="spinbutton" class="input-minute" contenteditable="true" aria-placeholder="mm" aria-valuemin="0" aria-valuemax="59"></span>');
+		}
 		if (this.inputElement.getAttribute('date-format') === 'iso') {
-			this.autoZeroRegExps.length = this.autoDelimiterRegExps.length = 0;
-			this.autoZeroRegExps.push(new RegExp( '^(\\d{4}-)(\\d-)$'));
-			this.autoZeroRegExps.push(new RegExp( '^(\\d{4}-\\d{2}-)(\\d\\s)$'));
-			this.autoDelimiterRegExps.push(new RegExp('^\\d{4}$'));
-			this.autoDelimiterRegExps.push(new RegExp('^\\d{4}-\\d{2}$'));
-			if (!this.dateOnly) {
-				this.autoZeroRegExps.push(new RegExp( '^(\\d{4}-\\d{2}-\\d{2}\\s)(\\d:)$'));
-				this.autoSpaceRegExp = new RegExp( '^\\d{4}-\\d{2}-\\d{2}$');
-				this.autoColonRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}\\s\\d{2}$');
-			}
-			if (this.dateOnly) {
-				this.setExtraAttributes('yyyy-mm-dd', '\\d{4}-\\d{2}-\\d{2}');
-			} else {
-				this.setExtraAttributes('yyyy-mm-dd HH:MM', '\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}');
-			}
-			return;
-		}
-
-		// try to determine the desired date format by evaluating the navigator's locale settings
-		this.dateTimeFormat = Intl.DateTimeFormat(navigator.language, {
-			year: 'numeric',
-			month: '2-digit',
-			day: '2-digit',
-			hour: '2-digit',
-			minute: '2-digit',
-			hour12: false,
-			calendar: 'iso8601',
-		});
-		this.dateTimeFormat.formatToParts().forEach(part => {
-			switch (part.type) {
-				case 'day':
-					phBits.push('dd');
-					patBits.push('\\d{2}');
-					regexBits.push('(?<day>\\d{1,2})');
-					break;
-				case 'month':
-					phBits.push('mm');
-					patBits.push('\\d{2}');
-					regexBits.push('(?<month>\\d{1,2})');
-					break;
-				case 'year':
-					phBits.push('yyyy');
-					patBits.push('\\d{4}');
-					regexBits.push('(?<year>\\d{4})');
-					break;
-				case 'literal':
-					if (['.', '/', '-'].includes(part.value)) {
-						this.delimiter = part.value;
-						phBits.push(part.value);
-						patBits.push(part.value);
-						regexBits.push(part.value);
-					}
-					if (!this.dateOnly) {
-						if ([', ', ' '].includes(part.value)) {
-							phBits.push(' ');
-							patBits.push('\\s');
-							regexBits.push('\\s');
-						}
-						if ([':'].includes(part.value)) {
-							phBits.push(part.value);
-							patBits.push(part.value);
-							regexBits.push(part.value);
-						}
-					}
-					break;
-				case 'hour':
-					if (!this.dateOnly) {
-						phBits.push('HH');
-						patBits.push('\\d{2}');
-						regexBits.push('(?<hour>\\d{1,2})');
-					}
-					break;
-				case 'minute':
-					if (!this.dateOnly) {
-						phBits.push('MM');
-						patBits.push('\\d{2}');
-						regexBits.push('(?<minute>\\d{1,2})');
-					}
-					break;
-				default:
-					break;
-			}
-		});
-		this.dateTimeRegExp = new RegExp(regexBits.join(''));
-		this.autoZeroRegExps.length = this.autoDelimiterRegExps.length = 0;
-		this.autoDelimiterRegExps.push(new RegExp('^\\d{2}$'));
-		if (this.delimiter === '.') {
-			this.autoZeroRegExps.push(new RegExp( '^(\\D*)(\\d\\.)$'));
-			this.autoZeroRegExps.push(new RegExp( '^(\\d{2}\\.)(\\d\\.)$'));
-			this.autoDelimiterRegExps.push(new RegExp('^\\d{2}\\.\\d{2}$'));
-			if (!this.dateOnly) {
-				this.autoZeroRegExps.push(new RegExp( '^(\\d{2}\\.\\d{2}\\.\\d{4}\\s)(\\d:)$'));
-				this.autoSpaceRegExp = new RegExp( '^(\\d{2}\\.\\d{2}\\.\\d{4})$');
-				this.autoColonRegExp = new RegExp('^\\d{2}\\.\\d{2}\\.\\d{4}\\s\\d{2}$');
-			}
+			htmlTags.push(...htmlIsoTags);
+			this.inputFieldsOrder.push(...[0, 1, 2]);
 		} else {
-			this.autoZeroRegExps.push(new RegExp( '^(\\D*)(\\d/)$'));
-			this.autoZeroRegExps.push(new RegExp( '^(\\d{2}/)(\\d/)$'));
-			this.autoDelimiterRegExps.push(new RegExp('^\\d{2}/\\d{2}$'));
-			if (!this.dateOnly) {
-				this.autoZeroRegExps.push(new RegExp( '^(\\d{2}/\\d{2}/\\d{4}\\s)(\\d:)$'));
-				this.autoSpaceRegExp = new RegExp( '^(\\d{2}/\\d{2}/\\d{4})$');
-				this.autoColonRegExp = new RegExp('^\\d{2}/\\d{2}/\\d{4}\\s\\d{2}$');
-			}
+			// try to determine the desired date format by evaluating the navigator's locale settings
+			this.dateTimeFormat = Intl.DateTimeFormat(navigator.language, {
+				year: 'numeric',
+				month: '2-digit',
+				day: '2-digit',
+				hour: '2-digit',
+				minute: '2-digit',
+				hour12: false,
+				calendar: 'iso8601',
+			});
+			this.dateTimeFormat.formatToParts().forEach(part => {
+				switch (part.type) {
+					case 'year':
+						htmlTags.push(htmlIsoTags[0]);
+						this.inputFieldsOrder.push(0);
+						break;
+					case 'month':
+						htmlTags.push(htmlIsoTags[2]);
+						this.inputFieldsOrder.push(1);
+						break;
+					case 'day':
+						htmlTags.push(htmlIsoTags[4]);
+						this.inputFieldsOrder.push(2);
+						break;
+					case 'literal':
+						if (['.', '/', '-'].includes(part.value)) {
+							htmlTags.push(`<span role="separator" class="delimiter" aria-hidden="true">${part.value}</span>`);
+						}
+						if (!this.dateOnly) {
+							if ([', ', ' '].includes(part.value)) {
+								htmlTags.push(htmlIsoTags[5]);
+							}
+							if ([':'].includes(part.value)) {
+								htmlTags.push(htmlIsoTags[7]);
+							}
+						}
+						break;
+					case 'hour':
+						if (!this.dateOnly) {
+							htmlTags.push(htmlIsoTags[6]);
+							this.inputFieldsOrder.push(3);
+						}
+						break;
+					case 'minute':
+						if (!this.dateOnly) {
+							htmlTags.push(htmlIsoTags[8]);
+							this.inputFieldsOrder.push(4);
+						}
+						break;
+					default:
+						break;
+				}
+			});
 		}
-		this.setExtraAttributes(phBits.join(''), patBits.join(''));
-	}
-
-	private setExtraAttributes(placeholder: string, pattern: string) {
-		if (!this.inputElement.hasAttribute('placeholder')) {
-			this.inputElement.setAttribute('placeholder', placeholder);
-		}
-		if (!this.inputElement.hasAttribute('pattern')) {
-			this.inputElement.setAttribute('pattern', pattern);
-		}
+		htmlTags.push('</div>');
+		this.inputElement.insertAdjacentHTML('afterend', htmlTags.join(''));
+		return this.inputElement.nextElementSibling as HTMLElement;
 	}
 
 	private installEventHandlers() {
-		this.inputElement.addEventListener('focus', this.handleFocus);
-		this.inputElement.addEventListener('blur', this.handleBlur);
-		this.inputElement.addEventListener('input', this.handleInput);
-		this.inputElement.addEventListener('change', this.handleChange);
+		this.inputFields[FieldPart.year] = this.textBox.querySelector('.input-year')!;
+		this.inputFields[FieldPart.month] = this.textBox.querySelector('.input-month')!;
+		this.inputFields[FieldPart.day] = this.textBox.querySelector('.input-day')!;
+		if (!this.dateOnly) {
+			this.inputFields[FieldPart.hour] = this.textBox.querySelector('.input-hour')!;
+			this.inputFields[FieldPart.minute] = this.textBox.querySelector('.input-minute')!;
+		}
+		this.inputFields.forEach(inputField => {
+			inputField.addEventListener('focus', this.handleFocus);
+			inputField.addEventListener('blur', this.handleBlur);
+		});
 		document.addEventListener('click', this.handleClick);
 		document.addEventListener('keydown', this.handleKeypress);
 	}
 
-	private close() {
-		this.isOpen = false;
-		this.inputElement.setAttribute('aria-expanded', 'false');
-		if (this.cleanup) {
-			this.cleanup();
-		}
+	private openCalendar() {
+		this.calendarElement.parentElement!.style.position = 'relative';
+		this.cleanup = autoUpdate(this.textBox, this.calendarElement, this.updatePosition);
+		this.textBox.setAttribute('aria-expanded', 'true');
+		this.isOpen = true;
 	}
 
-	private asDate() : Date | undefined {
-		if (this.inputElement.value) {
-			if (this.dateTimeRegExp) {
-				const matches = this.inputElement.value.match(this.dateTimeRegExp);
-				if (matches && matches.groups) {
-					if (this.dateOnly)
-						return new Date(parseInt(matches.groups.year), parseInt(matches.groups.month) - 1, parseInt(matches.groups.day))
-					return new Date(parseInt(matches.groups.year), parseInt(matches.groups.month) - 1, parseInt(matches.groups.day), parseInt(matches.groups.hour), parseInt(matches.groups.minute));
-				}
-			} else {
-				const newDate = new Date(this.inputElement.value);
-				if (!isNaN(newDate.getTime()))
-					return newDate;
-			}
-		}
+	private closeCalendar() {
+		this.isOpen = false;
+		this.textBox.setAttribute('aria-expanded', 'false');
+		this.cleanup?.();
 	}
 
 	private asUTCDate(date: Date) : Date {
 		return new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-	}
-
-	private asString(date: Date) : string {
-		const dateString = this.dateTimeFormat
-			? this.dateTimeFormat.format(date).replace(', ', ' ')
-			: this.asUTCDate(date).toISOString().replace('T', ' ');
-		return dateString.slice(0, this.dateOnly ? 10 : 16);
 	}
 
 	private getDate(selector: string | Element) : Date {
@@ -306,12 +264,45 @@ class Calendar extends Widget {
 		return new Date(dateValue ?? '');
 	}
 
-	private registerElement() {
+	private updateInputFields(newDate: Date | null) {
+		if (newDate) {
+			this.inputFields[FieldPart.year].innerText = String(newDate.getFullYear());
+			this.inputFields[FieldPart.month].innerText = String(newDate.getMonth() + 1).padStart(2, '0');
+			this.inputFields[FieldPart.day].innerText = String(newDate.getDate()).padStart(2, '0');
+			if (!this.dateOnly) {
+				this.inputFields[FieldPart.hour].innerText = String(newDate.getHours()).padStart(2, '0');
+				this.inputFields[FieldPart.minute].innerText = String(newDate.getMinutes()).padStart(2, '0');
+			}
+			this.inputElement.value = newDate.toISOString().slice(0, this.dateOnly ? 10 : 16);
+		} else {
+			this.inputFields.forEach(field => field.innerText = '');
+			this.inputElement.value = '';
+		}
+	}
+
+	private parseInputFields() : Date | null {
+		const dateParts = [
+			Math.min(Math.max(parseInt(this.inputFields[FieldPart.year].innerText), 1700), 2300).toString(),
+			'-',
+			Math.min(Math.max(parseInt(this.inputFields[FieldPart.month].innerText), 1), 12).toString().padStart(2, '0'),
+			'-',
+			Math.min(Math.max(parseInt(this.inputFields[FieldPart.day].innerText), 1), 31).toString().padStart(2, '0'),
+		];
+		if (!this.dateOnly) {
+			dateParts.push('T');
+			dateParts.push(Math.min(Math.max(parseInt(this.inputFields[FieldPart.hour].innerText), 0), 23).toString().padStart(2, '0'));
+			dateParts.push(':');
+			dateParts.push(Math.min(Math.max(parseInt(this.inputFields[FieldPart.minute].innerText), 0), 59).toString().padStart(2, '0'));
+		}
+		const newDate = new Date(dateParts.join(''));
+		return newDate && !isNaN(newDate.getTime()) ? newDate : null;
+	}
+
+	private registerCalendar() {
 		this.viewMode = this.getViewMode();
 		this.prevSheetDate = this.getDate('button.prev');
 		const narrowButton = this.calendarElement.querySelector('button.narrow');
 		this.narrowSheetDate = narrowButton ? this.getDate(narrowButton) : undefined;
-		this.todayDate = this.convertDate(new Date(Date.now()), true);
 		this.nextSheetDate = this.getDate('button.next');
 		const extendButton = this.calendarElement.querySelector('button.extend');
 		this.extendSheetDate = extendButton ? this.getDate(extendButton) : undefined;
@@ -343,10 +334,6 @@ class Calendar extends Widget {
 	}
 
 	private registerHoursView() {
-		const todayHourString = this.todayDate.toISOString().slice(0, 13).concat(':00');
-		const inputDate = this.asDate();
-		const inputDateString = inputDate ? this.asUTCDate(inputDate).toISOString() : '';
-
 		// since each datetime-picker can have different values, set this on element level
 		if (this.interval) {
 			const num = Math.min(60 / this.interval!, 6);
@@ -356,8 +343,9 @@ class Calendar extends Widget {
 			});
 		}
 
+		const currentDateString = this.currentDateString.slice(0, 16);
 		this.calendarItems.forEach(elem => {
-			elem.classList.toggle('selected', elem.getAttribute('data-date') === inputDateString.slice(0, 16));
+			elem.classList.toggle('selected', elem.getAttribute('data-date') === currentDateString);
 			const date = this.getDate(elem);
 			if (this.minDate && date < this.minDate || this.maxDate && date > this.maxDate) {
 				elem.toggleAttribute('disabled', true);
@@ -370,11 +358,12 @@ class Calendar extends Widget {
 			}
 		});
 
+		const todayHourString = this.todayDateString.slice(0, 13).concat(':00');
 		this.calendarElement.querySelectorAll('li[aria-label]').forEach(elem => {
 			const label = elem.getAttribute('aria-label')!;
 			elem.classList.toggle('today', label === todayHourString);
 			const selector = `ul[aria-labelledby="${label}"]`;
-			if (label.slice(0, 13) === inputDateString.slice(0, 13)) {
+			if (label.slice(0, 13) === currentDateString.slice(0, 13)) {
 				elem.classList.add('preselected');
 				this.calendarElement.querySelector(selector)?.removeAttribute('hidden');
 			}
@@ -392,12 +381,11 @@ class Calendar extends Widget {
 	}
 
 	private registerWeeksView() {
-		const todayDateString = this.todayDate.toISOString().slice(0, 10);
-		const inputDate = this.asDate();
-		const inputDateString = inputDate ? this.asUTCDate(inputDate).toISOString().slice(0, 10) : null;
+		const todayDateString = this.todayDateString.slice(0, 10);
+		const currentDateString = this.currentDateString.slice(0, 10);
 		this.calendarItems.forEach(elem => {
 			elem.classList.toggle('today', elem.getAttribute('data-date') === todayDateString);
-			elem.classList.toggle('selected', elem.getAttribute('data-date') === inputDateString);
+			elem.classList.toggle('selected', elem.getAttribute('data-date') === currentDateString);
 			const date = this.getDate(elem);
 			if (this.minWeekDate && date < this.minWeekDate || this.maxWeekDate && date > this.maxWeekDate) {
 				elem.toggleAttribute('disabled', true);
@@ -408,14 +396,13 @@ class Calendar extends Widget {
 	}
 
 	private registerMonthsView() {
-		const todayMonthString = this.todayDate.toISOString().slice(0, 7);
-		const inputDate = this.asDate();
-		const inputMonthString = inputDate ? this.asUTCDate(inputDate).toISOString().slice(0, 7) : null;
+		const todayMonthString = this.todayDateString.slice(0, 7);
+		const currentMonthString = this.currentDateString.slice(0, 7);
 		this.calendarItems.forEach(elem => {
 			const date = this.getDate(elem);
 			const monthString = elem.getAttribute('data-date')?.slice(0, 7);
 			elem.classList.toggle('today', monthString === todayMonthString);
-			elem.classList.toggle('selected', monthString === inputMonthString);
+			elem.classList.toggle('selected', monthString === currentMonthString);
 			if (this.minMonthDate && date < this.minMonthDate || this.maxMonthDate && date > this.maxMonthDate) {
 				elem.toggleAttribute('disabled', true);
 			} else {
@@ -425,14 +412,13 @@ class Calendar extends Widget {
 	}
 
 	private registerYearsView() {
-		const todayYearString = this.todayDate.toISOString().slice(0, 4);
-		const inputDate = this.asDate();
-		const inputYearString = inputDate ? this.asUTCDate(inputDate).toISOString().slice(0, 4) : null;
+		const todayYearString = this.todayDateString.slice(0, 4);
+		const currentYearString = this.currentDateString.slice(0, 4);
 		this.calendarItems.forEach(elem => {
 			const date = this.getDate(elem);
 			const yearString = elem.getAttribute('data-date')?.slice(0, 4);
 			elem.classList.toggle('today', yearString === todayYearString);
-			elem.classList.toggle('selected', yearString === inputYearString);
+			elem.classList.toggle('selected', yearString === currentYearString);
 			if (this.minYearDate && date < this.minYearDate || this.maxYearDate && date > this.maxYearDate) {
 				elem.toggleAttribute('disabled', true);
 			} else {
@@ -442,91 +428,142 @@ class Calendar extends Widget {
 	}
 
 	private handleClick = (event: Event) => {
-		if (!this.isOpen)
-			return;
 		let element = event.target instanceof Element ? event.target : null;
 		while (element) {
-			if (element.isSameNode(this.calendarElement) || element.isSameNode(this.inputElement))
+			if (element === this.calendarElement)
 				return;
+			if (element === this.calendarOpener!)
+				return this.isOpen ? this.closeCalendar() : this.openCalendar();
 			element = element.parentElement;
 		}
-		this.close();
-		this.inputElement.blur();
+		this.closeCalendar();
 	}
 
 	private updatePosition = () => {
-		computePosition(this.inputElement, this.calendarElement, {
+		const zIndex = this.textBox.style.zIndex ? parseInt(this.textBox.style.zIndex) : 0;
+		computePosition(this.textBox, this.calendarElement, {
 			middleware: [flip(), shift()],
-		}).then(({y}) => Object.assign(this.calendarElement.style, {top: `${y}px`}));
+		}).then(({y}) => Object.assign(
+			this.calendarElement.style, {top: `${y}px`, zIndex: `${zIndex + 1}`}
+		));
 	}
 
-	private handleFocus = () => {
-		if (this.isOpen)
-			return;
-		this.calendarElement.parentElement!.style.position = 'relative';
-		this.cleanup = autoUpdate(this.inputElement, this.calendarElement, this.updatePosition);
-		this.inputElement.setAttribute('aria-expanded', 'true');
-		const prevValue = this.inputElement.value;
-		this.inputElement.value = prevValue.trimEnd();  // remove white space eventually added by failed validation
-		if (this.inputElement.value !== prevValue) {
-			this.inputElement.dispatchEvent(new Event('input'));  // triggers validation
-		}
-		this.isOpen = true;
-	}
-
-	private handleBlur = () => {
-		if (this.isOpen) {
-			this.inputElement.focus();
+	private handleFocus = (event: Event) => {
+		if (this.inputFields.some(inputField => {
+			if (event.target instanceof HTMLElement && inputField === event.target) {
+				inputField.ariaBusy = 'true';
+				this.hasFocus = inputField;
+				return true;
+			}
+		})) {
+			this.textBox.classList.add('focus');
+			this.inputElement.dispatchEvent(new Event('focus'));
+			event.preventDefault();
 		} else {
-			this.validate();
+			this.hasFocus = null;
 		}
 	}
 
-	private handleInput = (event: Event) => {
-		if (this.isOpen) {
-			this.close();
-		}
-		if (event instanceof InputEvent && event.inputType === 'insertText') {
-			this.inputElement.value = this.inputElement.value
-				.replace('  ', ' ')
-				.replace(this.delimiter.concat(this.delimiter), this.delimiter)
-				.replace('::', ':');
-			this.autoZeroRegExps.forEach(re => {
-				if (this.inputElement.value.match(re)) {
-					this.inputElement.value = this.inputElement.value.replace(re, '$10$2');
+	private handleBlur = (event: Event) => {
+		setTimeout(() => {
+			if (!this.hasFocus) {
+				this.textBox.classList.remove('focus');
+				this.currentDate = this.parseInputFields();
+				this.updateInputFields(this.currentDate);
+				if (this.currentDate) {
+					this.fetchCalendar(this.currentDate, this.viewMode);
 				}
-			});
-			this.autoDelimiterRegExps.forEach(re => {
-				if (this.inputElement.value.match(re)) {
-					this.inputElement.value = this.inputElement.value.concat(this.delimiter);
-				}
-			});
-			if (this.autoSpaceRegExp && this.inputElement.value.match(this.autoSpaceRegExp)) {
-				this.inputElement.value = this.inputElement.value.concat(' ');
+				this.inputElement.dispatchEvent(new Event('blur'));
 			}
-			if (this.autoColonRegExp && this.inputElement.value.match(this.autoColonRegExp)) {
-				this.inputElement.value = this.inputElement.value.concat(':');
-			}
-		}
-	}
-
-	private handleChange = () => {
-		const newDate = this.validate();
-		if (newDate) {
-			this.fetchCalendar(newDate, this.viewMode);
-		}
+		}, 0);
+		this.hasFocus = null;
+		this.inputElement.dispatchEvent(new Event('input'));
 	}
 
 	private handleKeypress = async (event: KeyboardEvent) => {
-		if (!this.isOpen)
-			return;
+		let preventDefault = false;
+		if (this.hasFocus) {
+			preventDefault = this.editTextBox(event.key);
+		} else if (this.isOpen) {
+			preventDefault = await this.navigateCalendar(event.key);
+		}
+		if (preventDefault) {
+			event.preventDefault();
+		}
+	}
+
+	private editTextBox(key: string) : boolean {
+		const hasFocus = this.hasFocus!;
+		switch (key) {
+			case 'ArrowRight':
+				this.nextInputField?.focus();
+				return true;
+			case 'ArrowLeft':
+				this.previousInputField?.focus();
+				return true;
+			case 'ArrowUp':
+				if (hasFocus.innerText) {
+					hasFocus.innerText = (parseInt(hasFocus.innerText) + 1).toString().padStart(2, '0');
+				} else {
+					this.updateInputFields(new Date());
+				}
+				return true;
+			case 'ArrowDown':
+				if (hasFocus.innerText) {
+					hasFocus.innerText = (parseInt(hasFocus.innerText) - 1).toString().padStart(2, '0');
+				} else {
+					this.updateInputFields(new Date());
+				}
+				return true;
+			case 'Backspace': case 'Delete':
+				if (hasFocus.ariaBusy === 'true') {
+					hasFocus.innerText = '';
+					hasFocus.ariaBusy = 'false';
+					return true;
+				}
+				return false;
+			case '-': case '/': case '.': case ':': case ' ':
+				if (hasFocus.ariaBusy === 'false') {
+					this.nextInputField?.focus();
+				}
+				return true;
+			case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+				if (hasFocus.ariaBusy === 'true') {
+					hasFocus.innerText = '';
+					hasFocus.ariaBusy = 'false';
+				}
+				const maxLength = hasFocus.ariaPlaceholder?.length ?? 0;
+				if (hasFocus.innerText.length === maxLength - 1) {
+					setTimeout(() => this.nextInputField?.focus(), 0);
+				}
+				return hasFocus.innerText.length === maxLength;
+			default:
+				return true;
+		}
+	}
+
+	private get previousInputField() : HTMLElement | undefined {
+		const hasFocus = this.hasFocus!;
+		const index = this.inputFieldsOrder.indexOf(this.inputFields.indexOf(hasFocus));
+		if (index > 0)
+			return this.inputFields[this.inputFieldsOrder[index - 1]];
+	}
+
+	private get nextInputField() : HTMLElement | undefined {
+		const hasFocus = this.hasFocus!;
+		const index = this.inputFieldsOrder.indexOf(this.inputFields.indexOf(hasFocus));
+		if (index < this.inputFieldsOrder.length - 1)
+			return this.inputFields[this.inputFieldsOrder[index + 1]];
+	}
+
+	private async navigateCalendar(key: string) {
 		let element = null;
 		const nextViewMode = new Map<ViewMode, ViewMode>([
 			[ViewMode.years, ViewMode.months],
 			[ViewMode.months, ViewMode.weeks],
 			[ViewMode.weeks, ViewMode.hours],
 		]);
-		switch (event.key) {
+		switch (key) {
 			case 'ArrowUp':
 				await this.navigate(Direction.up);
 				break;
@@ -540,11 +577,11 @@ class Calendar extends Widget {
 				await this.navigate(Direction.left);
 				break;
 			case 'Escape':
-				this.close();
+				this.closeCalendar();
 				break;
 			case 'Tab':
-				this.close();
-				this.inputElement.blur();
+				this.closeCalendar();
+				this.textBox.blur();
 				break;
 			case 'PageUp':
 				element = this.calendarElement.querySelector('button.prev');
@@ -569,9 +606,9 @@ class Calendar extends Widget {
 				}
 				break;
 			default:
-				return;
+				break;
 		}
-		event.preventDefault();
+		return true;
 	}
 
 	private getDelta(direction: Direction, lastDate: Date) : Date {
@@ -592,12 +629,12 @@ class Calendar extends Widget {
 			[Direction.down, +10080],
 			[Direction.left, -1440],
 		]);
-		const nextDate = this.convertDate(lastDate, true);
+		const nextDate = new Date(lastDate);
 		switch (this.viewMode) {
 		  case ViewMode.hours:
-			return new Date(nextDate.getTime() + 60000 * deltaHours.get(direction)!);
+			return new Date(lastDate.getTime() + 60000 * deltaHours.get(direction)!);
 		  case ViewMode.weeks:
-			return new Date(nextDate.getTime() + 60000 * deltaWeeks.get(direction)!);
+			return new Date(lastDate.getTime() + 60000 * deltaWeeks.get(direction)!);
 		  case ViewMode.months:
 			switch (direction) {
 			  case Direction.up:
@@ -642,14 +679,14 @@ class Calendar extends Widget {
 		if (selectedItem) {
 			const selectedDate = this.getDate(selectedItem);
 			const nextDate = this.getDelta(direction, selectedDate);
-			const dataDate = (date: Date) => date.toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10);
+			const dataDateString = this.asUTCDate(nextDate).toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10);
 			let nextItem: Element|null = null;
 			if (this.viewMode !== ViewMode.weeks || selectedDate.getMonth() === nextDate.getMonth()) {
-				nextItem = this.calendarElement.querySelector(`.ranges li[data-date="${dataDate(nextDate)}"]`);
+				nextItem = this.calendarElement.querySelector(`.ranges li[data-date="${dataDateString}"]`);
 			}
 			if (!nextItem) {
 				await this.fetchCalendar(nextDate, this.viewMode);
-				nextItem = this.calendarElement.querySelector(`.ranges li[data-date="${dataDate(nextDate)}"]`);
+				nextItem = this.calendarElement.querySelector(`.ranges li[data-date="${dataDateString}"]`);
 			}
 			if (nextItem instanceof HTMLLIElement) {
 				if (this.viewMode === ViewMode.hours) {
@@ -657,24 +694,6 @@ class Calendar extends Widget {
 				}
 				this.setDate(nextItem);
 			}
-		}
-	}
-
-	private validate() : Date | undefined {
-		const newDate = this.getValidDate();
-		if (newDate)
-			return newDate;
-		if (this.inputElement.value.length > 0) {
-			// enforce a pattern validation error
-			this.inputElement.value = this.inputElement.value.concat(' ');
-		}
-	}
-
-	private getValidDate() : Date | undefined {
-		const newDate = this.asDate();
-		if (newDate) {
-			if (this.asString(newDate) === this.inputElement.value)
-				return newDate;
 		}
 	}
 
@@ -714,42 +733,34 @@ class Calendar extends Widget {
 		if (this.dateOnly) {
 			this.selectToday();
 		} else {
-			this.fetchCalendar(this.todayDate, ViewMode.hours);
+			this.fetchCalendar(new Date(), ViewMode.hours);
 		}
 	}
 
 	private async selectToday() {
-		const dateString = this.todayDate.toISOString().slice(0, 10);
-		let todayElem = this.calendarElement.querySelector(`li[data-date="${dateString}"]`);
+		const todayDateString = this.todayDateString.slice(0, 10);
+		let todayElem = this.calendarElement.querySelector(`li[data-date="${todayDateString}"]`);
 		if (!todayElem) {
-			await this.fetchCalendar(this.todayDate, ViewMode.weeks);
-			todayElem = this.calendarElement.querySelector(`li[data-date="${dateString}"]`);
+			await this.fetchCalendar(new Date(), ViewMode.weeks);
+			todayElem = this.calendarElement.querySelector(`li[data-date="${todayDateString}"]`);
 		}
 		this.selectDate(todayElem!);
 	}
 
 	private setDate(element: Element) {
 		this.calendarItems.forEach(elem => {
-			elem.classList.toggle('selected', elem.isSameNode(element));
+			elem.classList.toggle('selected', elem === element);
 		});
 		let dateString = element.getAttribute('data-date')!;
-		if (this.dateTimeFormat) {
-			dateString = this.asString(new Date(dateString));
-		}
-		if (this.dateOnly) {
-			this.inputElement.value = dateString.slice(0, 10);
-		} else if (dateString.length === 10) {
-			this.inputElement.value = dateString.concat(' 12:00');
-		} else {
-			this.inputElement.value = dateString.replace('T', ' ');
-		}
+		this.currentDate = new Date(dateString);
+		this.updateInputFields(this.currentDate);
+		this.inputElement.dispatchEvent(new Event('input'));
+		this.inputElement.dispatchEvent(new Event('blur'));
 	}
 
 	private selectDate(element: Element) {
 		this.setDate(element);
-		this.close();
-		this.inputElement.blur();
-		this.inputElement.dispatchEvent(new Event('input'));
+		this.closeCalendar();
 	}
 
 	private selectHour(liElement: HTMLLIElement) {
@@ -808,19 +819,9 @@ class Calendar extends Widget {
 		}
 	}
 
-	private controlButton(target: EventTarget | null) : HTMLButtonElement {
-		let button = target;
-		while (!(button instanceof HTMLButtonElement)) {
-			if (!(button instanceof Element))
-				throw new Error(`Element ${target} not part of button`);
-			button = button.parentElement;
-		}
-		return button;
-	}
-
-	private async fetchCalendar(newDate: Date, viewMode: ViewMode) {
+	private async fetchCalendar(atDate: Date, viewMode: ViewMode) {
 		const query = new URLSearchParams('calendar');
-		query.set('date', newDate.toISOString().slice(0, 10));
+		query.set('date', this.asUTCDate(atDate).toISOString().slice(0, 10));
 		query.set('mode', viewMode);
 		if (this.interval) {
 			query.set('interval', String(this.interval));
@@ -845,39 +846,47 @@ class Calendar extends Widget {
 		const declaredStyles = document.createElement('style');
 		declaredStyles.innerText = styles;
 		document.head.appendChild(declaredStyles);
+		this.inputElement.style.transition = 'none';  // prevent transition while pilfering styles
 		const inputHeight = window.getComputedStyle(this.inputElement).getPropertyValue('height');
 		for (let index = 0; declaredStyles.sheet && index < declaredStyles.sheet.cssRules.length; index++) {
 			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
 			switch (cssRule.selectorText) {
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar':
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"])':
+					break;
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + [role="textbox"].focus':
+					this.inputElement.classList.add('-focus-');
+					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
+						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition']);
+					this.inputElement.classList.remove('-focus-');
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar':
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border', 'border-radius',
 						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
 						'letter-spacing', 'white-space', 'line-height']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .controls':
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar .controls':
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, ['padding']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .ranges':
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar .ranges':
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, ['padding']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .ranges ul:not(.weekdays)':
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar .ranges ul:not(.weekdays)':
 					extraStyles = `line-height: ${inputHeight};`;
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .ranges ul.hours > li.preselected':
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .ranges ul.minutes':
-					this.inputElement.style.transition = 'none';
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar .ranges ul.hours > li.preselected':
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar .ranges ul.minutes':
 					this.inputElement.classList.add('-focus-');
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, ['border-color']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					this.inputElement.classList.remove('-focus-');
-					this.inputElement.style.transition = '';
-					if (cssRule.selectorText === ':is([is="django-datepicker"], [is="django-datetimepicker"]) + .dj-calendar .ranges ul.hours > li.preselected') {
+					if (cssRule.selectorText === ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar .ranges ul.hours > li.preselected') {
 						extraStyles = StyleHelpers.extractStyles(this.calendarElement, ['background-color']);
 						extraStyles = extraStyles.replace('background-color', 'border-bottom-color');
 						declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
@@ -889,19 +898,25 @@ class Calendar extends Widget {
 		}
 	}
 
-	protected formResetted(event: Event) {}
+	private transferClasses() {
+		this.inputElement.classList.forEach(className => {
+			this.textBox.classList.add(className);
+		});
+		this.inputElement.classList.remove(...this.inputElement.classList);
+		this.inputElement.style.transition = '';
+		this.inputElement.hidden = true;  // setting type="hidden" prevents dispatching events
+	}
+
+	protected formResetted(event: Event) {
+		this.inputElement.value = this.inputElement.defaultValue;
+		this.setInitialDate();
+		this.updateInputFields(this.currentDate);
+	}
 
 	protected formSubmitted(event: Event) {}
 
 	public valueAsDate() : Date | null {
-		const date = this.asDate();
-		if (date) {
-			if (!this.localTime) {
-				date.setTime(date.getTime() - 60000 * date.getTimezoneOffset());
-			}
-			return date;
-		}
-		return null;
+		return this.currentDate;
 	}
 }
 

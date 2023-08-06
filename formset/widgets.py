@@ -366,10 +366,8 @@ class DatePicker(DateTimeBaseInput):
 
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
-            'type': 'text',
+            'type': 'date',
             'is': 'django-datepicker',
-            'aria-expanded': 'false',
-            'aria-haspopup': 'dialog'
         }
         if attrs:
             default_attrs.update(**attrs)
@@ -402,6 +400,7 @@ class DateTimePicker(DatePicker):
 
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
+            'type': 'datetime-local',
             'is': 'django-datetimepicker',
         }
         if attrs:

@@ -3,7 +3,12 @@
 :is([is="django-datepicker"], [is="django-datetimepicker"]) {
 	--dummy-style: none;  // required by Calendar.transferStyles()
 
-	& + .dj-calendar {
+	&[hidden] {
+		display: none;
+	}
+
+	// Calendar popup dialog
+	& + * + .dj-calendar {
 		box-shadow: lightgray 0 0 1rem;
 		width: max-content;
 		position: absolute;
@@ -18,7 +23,7 @@
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			border-bottom: 1px solid #d3d3d3;
+			border-bottom: 1px solid lightgrey;
 
 			button {
 				display: inline-flex;
@@ -45,7 +50,7 @@
 		}
 
 		.ranges {
-			--dummy-style: none;
+			--dummy-style: none;  // required by Calendar.transferStyles()
 
 			ul {
 				list-style: none;
@@ -88,17 +93,15 @@
 				}
 
 				&:not(.weekdays) {
-					--dummy-style: none;
+					--dummy-style: none;  // required by Calendar.transferStyles()
 
 					> li {
-						width: 2em;
-
 						&.selected {
 							background-color: $calendar-selected-background-color;
 							color: $calendar-selected-color;
 
 							&.today::after {
-								border-color: transparent transparent $calendar-selected-color transparent;;
+								border-color: transparent transparent $calendar-selected-color transparent;
 							}
 						}
 
@@ -126,6 +129,10 @@
 					}
 				}
 
+				&.monthdays > li {
+					width: 2em;
+				}
+
 				> li.today {
 					position: relative;
 					&::after {
@@ -146,11 +153,67 @@
 		}
 	}
 
-	&[aria-expanded="false"] + .dj-calendar {
+	& + [aria-expanded="false"] + .dj-calendar {
 		display: none;
 	}
 
-	&[aria-expanded="true"] + .dj-calendar {
+	& + [aria-expanded="true"] + .dj-calendar {
 		display: block;
 	}
+
+	// Date input fields
+	+ [role="textbox"] {
+		&.focus {
+			--dummy-style: none;  // required by Calendar.transferStyles()
+		}
+
+		> .calendar-icon {
+			display: inline-block;
+			height: 24px;
+			margin-right: 0.5rem;
+			cursor: pointer;
+			svg {
+				display: inline;
+			}
+		}
+
+		> .delimiter {
+			color: $calendar-delimiter-color;
+		}
+
+		> .input-year, > .input-month, > .input-day, > .input-hour, > .input-minute {
+			padding: 0.125rem;
+			cursor: text;
+			caret-color: transparent;
+
+			&:focus-visible {
+				border-radius: 3px;
+				outline: none;
+				background-color: $calendar-selected-background-color;
+				color: $calendar-selected-color;
+			}
+		}
+
+		> .input-year:empty::after {
+			content: "yyyy";
+			color: lightgrey;
+		}
+		> .input-month:empty::after {
+			content: "mm";
+			color: lightgrey;
+		}
+		> .input-day:empty::after {
+			content: "dd";
+			color: lightgrey;
+		}
+		> .input-hour:empty::after {
+			content: "HH";
+			color: lightgrey;
+		}
+		> .input-minute:empty::after {
+			content: "MM";
+			color: lightgrey;
+		}
+	}
+
 }
