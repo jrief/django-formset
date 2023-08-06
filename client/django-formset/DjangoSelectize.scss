@@ -79,11 +79,11 @@
 	}
 
 	&.focus .ts-control {
-		opacity: 1;
+		--dummy-style: none;  // required by DjangoSelectize.transferStyles()
 	}
 
 	&.disabled .ts-control {
-		opacity: 1;
+		--dummy-style: none;  // required by DjangoSelectize.transferStyles()
 	}
 
 	// Hide input, while retaining its focus, and maintain layout so users can still click on the
