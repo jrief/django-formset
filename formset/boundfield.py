@@ -183,11 +183,17 @@ class BoundField(boundfield.BoundField):
             data = {'min_length': self.field.min_length}
             min_length_message = _("Ensure this value has at least %(min_length)s characters.")
             client_messages['too_short'] = server_messages.get('min_length', min_length_message) % data
-        if getattr(self.field, 'min_value', None) is not None:
-            data = {'limit_value': self.field.min_value}
+        min_value = getattr(self.field, 'min_value', None)
+        if min_value is not None or self.field.widget.attrs.get('min') is not None:
+            if min_value is None:
+                min_value = self.field.widget.attrs['min']
+            data = {'limit_value': min_value() if callable(min_value) else min_value}
             client_messages['range_underflow'] = server_messages.get('min_value', validators.MinValueValidator.message) % data
-        if getattr(self.field, 'max_value', None) is not None:
-            data = {'limit_value': self.field.max_value}
+        max_value = getattr(self.field, 'max_value', None)
+        if max_value is not None or self.field.widget.attrs.get('max') is not None:
+            if max_value is None:
+                max_value = self.field.widget.attrs['max']
+            data = {'limit_value': max_value() if callable(max_value) else max_value}
             client_messages['range_overflow'] = server_messages.get('max_value', validators.MaxValueValidator.message) % data
         try:
             step_value = float(self.field.widget.attrs['step'])
