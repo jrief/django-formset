@@ -43,7 +43,7 @@ django-formset {
 				@include invalid-blurred;
 			}
 		}
-		input[type=date]:invalid+[role=textbox]:not(.focus) {
+		input[type^=date]:invalid+[role=textbox]:not(.focus) {
 			@include invalid-blurred;
 		}
 	}
@@ -91,7 +91,7 @@ django-formset {
 				@include valid-any;
 			}
 		}
-		input[type=date]:valid+[role=textbox]:not(.focus) {
+		input[type^=date]:valid+[role=textbox]:not(.focus) {
 			@include valid-blurred;
 			@include valid-any;
 		}

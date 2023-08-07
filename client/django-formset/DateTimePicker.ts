@@ -70,9 +70,9 @@ class Calendar extends Widget {
 			this.calendarElement = document.createElement('div');
 			this.fetchCalendar(new Date(), ViewMode.weeks);
 		}
-		const calendarOpener = this.textBox.querySelector('.calendar-icon');
+		const calendarOpener = this.textBox.querySelector('.calendar-picker-indicator');
 		if (!(calendarOpener instanceof HTMLElement))
-			throw new Error("Missing selectot .calendar-icon");
+			throw new Error("Missing selectot .calendar-picker-indicator");
 		this.calendarOpener = calendarOpener;
 		this.calendarOpener.innerHTML = calendarIcon;
 		this.setBounds();
@@ -145,20 +145,20 @@ class Calendar extends Widget {
 	private createTextBox(): HTMLElement {
 		const htmlTags: Array<string> = [
 			'<div role="textbox" aria-expanded="false" aria-haspopup="dialog">',
-			'<span class="calendar-icon"></span>',
+			'<div class="datetime-edit">',
 		];
 		const htmlIsoTags: Array<string> = [
-			'<span role="spinbutton" class="input-year" contenteditable="true" aria-placeholder="yyyy" aria-valuemin="1700" aria-valuemax="2300"></span>',
-			'<span role="separator" class="delimiter" aria-hidden="true">-</span>',
-			'<span role="spinbutton" class="input-month" contenteditable="true" aria-placeholder="mm" aria-valuemin="1" aria-valuemax="12"></span>',
-			'<span role="separator" class="delimiter" aria-hidden="true">-</span>',
-			'<span role="spinbutton" class="input-day" contenteditable="true" aria-placeholder="dd" aria-valuemin="1" aria-valuemax="31"></span>',
+			'<span role="spinbutton" class="datetime-edit-year-field" contenteditable="true" aria-placeholder="yyyy" aria-valuemin="1700" aria-valuemax="2300"></span>',
+			'<span role="separator" class="datetime-delimiter" aria-hidden="true">-</span>',
+			'<span role="spinbutton" class="datetime-edit-month-field" contenteditable="true" aria-placeholder="mm" aria-valuemin="1" aria-valuemax="12"></span>',
+			'<span role="separator" class="datetime-delimiter" aria-hidden="true">-</span>',
+			'<span role="spinbutton" class="datetime-edit-day-field" contenteditable="true" aria-placeholder="dd" aria-valuemin="1" aria-valuemax="31"></span>',
 		];
 		if (!this.dateOnly) {
-			htmlIsoTags.push('<span role="separator" class="delimiter" aria-hidden="true"> </span>');
-			htmlIsoTags.push('<span role="spinbutton" class="input-hour" contenteditable="true" aria-placeholder="hh" aria-valuemin="0" aria-valuemax="23"></span>');
-			htmlIsoTags.push('<span role="separator" class="delimiter" aria-hidden="true">:</span>');
-			htmlIsoTags.push('<span role="spinbutton" class="input-minute" contenteditable="true" aria-placeholder="mm" aria-valuemin="0" aria-valuemax="59"></span>');
+			htmlIsoTags.push('<span role="separator" class="datetime-delimiter" aria-hidden="true"> </span>');
+			htmlIsoTags.push('<span role="spinbutton" class="datetime-edit-hour-field" contenteditable="true" aria-placeholder="hh" aria-valuemin="0" aria-valuemax="23"></span>');
+			htmlIsoTags.push('<span role="separator" class="datetime-delimiter" aria-hidden="true">:</span>');
+			htmlIsoTags.push('<span role="spinbutton" class="datetime-edit-minute-field" contenteditable="true" aria-placeholder="mm" aria-valuemin="0" aria-valuemax="59"></span>');
 		}
 		if (this.inputElement.getAttribute('date-format') === 'iso') {
 			htmlTags.push(...htmlIsoTags);
@@ -190,7 +190,7 @@ class Calendar extends Widget {
 						break;
 					case 'literal':
 						if (['.', '/', '-'].includes(part.value)) {
-							htmlTags.push(`<span role="separator" class="delimiter" aria-hidden="true">${part.value}</span>`);
+							htmlTags.push(`<span role="separator" class="datetime-delimiter" aria-hidden="true">${part.value}</span>`);
 						}
 						if (!this.dateOnly) {
 							if ([', ', ' '].includes(part.value)) {
@@ -219,17 +219,19 @@ class Calendar extends Widget {
 			});
 		}
 		htmlTags.push('</div>');
+		htmlTags.push('<span class="calendar-picker-indicator"></span>');
+		htmlTags.push('</div>');
 		this.inputElement.insertAdjacentHTML('afterend', htmlTags.join(''));
 		return this.inputElement.nextElementSibling as HTMLElement;
 	}
 
 	private installEventHandlers() {
-		this.inputFields[FieldPart.year] = this.textBox.querySelector('.input-year')!;
-		this.inputFields[FieldPart.month] = this.textBox.querySelector('.input-month')!;
-		this.inputFields[FieldPart.day] = this.textBox.querySelector('.input-day')!;
+		this.inputFields[FieldPart.year] = this.textBox.querySelector('.datetime-edit-year-field')!;
+		this.inputFields[FieldPart.month] = this.textBox.querySelector('.datetime-edit-month-field')!;
+		this.inputFields[FieldPart.day] = this.textBox.querySelector('.datetime-edit-day-field')!;
 		if (!this.dateOnly) {
-			this.inputFields[FieldPart.hour] = this.textBox.querySelector('.input-hour')!;
-			this.inputFields[FieldPart.minute] = this.textBox.querySelector('.input-minute')!;
+			this.inputFields[FieldPart.hour] = this.textBox.querySelector('.datetime-edit-hour-field')!;
+			this.inputFields[FieldPart.minute] = this.textBox.querySelector('.datetime-edit-minute-field')!;
 		}
 		this.inputFields.forEach(inputField => {
 			inputField.addEventListener('focus', this.handleFocus);

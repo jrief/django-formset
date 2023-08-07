@@ -163,61 +163,69 @@
 
 	// Date input fields
 	+ [role="textbox"] {
-		--dummy-style: none;  // required by Calendar.transferStyles()
+		position: relative;
 
 		&.focus {
-			--dummy-style: none;
+			--dummy-style: none;  // required by Calendar.transferStyles()
 		}
 
-		> .calendar-icon {
-			display: inline-block;
-			height: 24px;
-			margin-right: 0.5rem;
-			vertical-align: middle;
+		> .calendar-picker-indicator {
+			display: flex;
+			align-items: center;
+			position: absolute;
+			top: 0;
+			left: 0.5rem;
+			bottom: 0;
 			cursor: pointer;
 			svg {
-				display: inline;
 				scale: 0.75;
-				vertical-align: baseline;
 			}
 		}
 
-		> .delimiter {
-			color: $calendar-delimiter-color;
-		}
+		> .datetime-edit {
+			margin-left: calc(1rem + 0.6em);
 
-		> .input-year, > .input-month, > .input-day, > .input-hour, > .input-minute {
-			padding: 0.125rem;
-			cursor: text;
-			caret-color: transparent;
-
-			&:focus-visible {
-				border-radius: 3px;
-				outline: none;
-				background-color: $calendar-selected-background-color;
-				color: $calendar-selected-color;
+			> .datetime-delimiter {
+				color: $calendar-delimiter-color;
 			}
-		}
+			> .datetime-edit-year-field, > .datetime-edit-month-field, > .datetime-edit-day-field,
+			> .datetime-edit-hour-field, > .datetime-edit-minute-field {
+				padding: 0.125rem;
+				cursor: text;
+				caret-color: transparent;
 
-		> .input-year:empty::after {
-			content: "yyyy";
-			color: lightgrey;
-		}
-		> .input-month:empty::after {
-			content: "mm";
-			color: lightgrey;
-		}
-		> .input-day:empty::after {
-			content: "dd";
-			color: lightgrey;
-		}
-		> .input-hour:empty::after {
-			content: "HH";
-			color: lightgrey;
-		}
-		> .input-minute:empty::after {
-			content: "MM";
-			color: lightgrey;
+				&:focus-visible {
+					border-radius: 3px;
+					outline: none;
+					background-color: $calendar-selected-background-color;
+					color: $calendar-selected-color;
+				}
+			}
+
+			> .datetime-edit-year-field:empty::after {
+				content: "yyyy";
+				color: lightgrey;
+			}
+
+			> .datetime-edit-month-field:empty::after {
+				content: "mm";
+				color: lightgrey;
+			}
+
+			> .datetime-edit-day-field:empty::after {
+				content: "dd";
+				color: lightgrey;
+			}
+
+			> .datetime-edit-hour-field:empty::after {
+				content: "HH";
+				color: lightgrey;
+			}
+
+			> .datetime-edit-minute-field:empty::after {
+				content: "MM";
+				color: lightgrey;
+			}
 		}
 	}
 
