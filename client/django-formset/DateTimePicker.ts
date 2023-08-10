@@ -1,15 +1,8 @@
 import {autoUpdate, computePosition, flip, shift} from '@floating-ui/dom';
+import {Calendar, CalendarSettings} from "./Calendar";
 import {StyleHelpers, Widget} from './helpers';
 import styles from './DateTimePicker.scss';
 import calendarIcon from './icons/calendar.svg';
-
-
-enum ViewMode {
-	hours = 'h',
-	weeks = 'w',
-	months = 'm',
-	years = 'y',
-}
 
 
 enum FieldPart {
@@ -21,125 +14,72 @@ enum FieldPart {
 }
 
 
-enum Direction {
-	up,
-	right,
-	down,
-	left,
-}
-
-
-class Calendar extends Widget {
+class DateTimePicker extends Widget {
 	private readonly inputElement: HTMLInputElement;
 	private readonly textBox: HTMLElement;
-	private readonly dateOnly: Boolean;
-	private readonly calendarElement: HTMLElement;
+	private readonly dateOnly: boolean;
+	private readonly calendar: Calendar;
 	private readonly inputFields: Array<HTMLElement> = [];
 	private readonly inputFieldsOrder: Array<number> = [];
 	private currentDate: Date | null = null;
 	private calendarOpener: HTMLElement;
-	private viewMode!: ViewMode;
 	private dateTimeFormat?: Intl.DateTimeFormat;
-	private cleanup?: Function;
-	private minDate?: Date;
-	private maxDate?: Date;
-	private minWeekDate?: Date;
-	private maxWeekDate?: Date;
-	private minMonthDate?: Date;
-	private maxMonthDate?: Date;
-	private minYearDate?: Date;
-	private maxYearDate?: Date;
-	private interval?: number;
 	private hasFocus: HTMLElement | null = null;
-	private isOpen = false;
-	private prevSheetDate!: Date;
-	private nextSheetDate!: Date;
-	private narrowSheetDate?: Date;
-	private extendSheetDate?: Date;
-	private calendarItems!: NodeListOf<HTMLLIElement>;
+	private cleanup?: Function;
+	private isOpen: boolean = false;
 
-	constructor(inputElement: HTMLInputElement, calendarElement: Element | null) {
+	constructor(inputElement: HTMLInputElement, calendarElement: any) {
 		super(inputElement);
 		this.inputElement = inputElement;
 		this.dateOnly = inputElement.getAttribute('is') === 'django-datepicker';
 		this.textBox = this.createTextBox();
 		this.setInitialDate();
-		if (calendarElement instanceof HTMLElement) {
-			this.calendarElement = calendarElement;
-		} else {
-			this.calendarElement = document.createElement('div');
-			this.fetchCalendar(new Date(), ViewMode.weeks);
-		}
+		this.calendar = new Calendar(calendarElement, this.getCalendarSettings());
 		const calendarOpener = this.textBox.querySelector('.calendar-picker-indicator');
 		if (!(calendarOpener instanceof HTMLElement))
 			throw new Error("Missing selectot .calendar-picker-indicator");
 		this.calendarOpener = calendarOpener;
 		this.calendarOpener.innerHTML = calendarIcon;
-		this.setBounds();
 		this.installEventHandlers();
-		const observer = new MutationObserver(() => this.registerCalendar());
-		observer.observe(this.calendarElement, {childList: true});
 		this.transferStyles();
 		this.transferClasses();
-		this.registerCalendar();
 		this.updateInputFields(this.currentDate);
-	}
-
-	private get currentDateString() : string {
-		return this.currentDate ? this.asUTCDate(this.currentDate).toISOString().slice(0, 16) : '';
-	}
-
-	private get todayDateString() : string {
-		return this.asUTCDate(new Date()).toISOString().slice(0, 16);
-	}
-
-	private getViewMode() : ViewMode {
-		const label = this.calendarElement.querySelector(':scope > [aria-label]')?.getAttribute('aria-label');
-		switch (label) {
-			case 'hours-view':
-				return ViewMode.hours;
-			case 'weeks-view':
-				return ViewMode.weeks;
-			case 'months-view':
-				return ViewMode.months;
-			case 'years-view':
-				return ViewMode.years;
-			default:
-				throw new Error(`Unknown aria-label on ${this.calendarElement}`);
-		}
 	}
 
 	private setInitialDate() {
 		this.currentDate = this.inputElement.value ? new Date(this.inputElement.value) : null;
 	}
 
-	private setBounds() {
+	private updateDate(date: Date) {
+		this.currentDate = date;
+		this.updateInputFields(this.currentDate);
+		this.inputElement.dispatchEvent(new Event('input'));
+		this.inputElement.dispatchEvent(new Event('blur'));
+	}
+
+	private getCalendarSettings() : CalendarSettings {
+		const settings: CalendarSettings = {
+			dateOnly: this.dateOnly,
+			initialDate: this.currentDate ?? undefined,
+			endpoint: this.endpoint!,
+			updateDate: (date: Date) => this.updateDate(date),
+			close: () => this.closeCalendar(),
+		};
 		const minValue = this.inputElement.getAttribute('min');
 		if (minValue) {
-			this.minDate = new Date(minValue);
-			this.minWeekDate = new Date(this.minDate);
-			this.minWeekDate.setHours(0, 0, 0);
-			this.minMonthDate = new Date(this.minWeekDate);
-			this.minMonthDate.setDate(1);
-			this.minYearDate = new Date(this.minMonthDate);
-			this.minYearDate.setMonth(0);
+			settings.minDate = new Date(minValue);
 		}
 		const maxValue = this.inputElement.getAttribute('max');
 		if (maxValue) {
-			this.maxDate = new Date(maxValue);
-			this.maxWeekDate = new Date(this.maxDate);
-			this.maxWeekDate.setHours(23, 59, 59);
-			this.maxMonthDate = new Date(this.maxWeekDate);
-			this.maxMonthDate.setDate(28);
-			this.maxYearDate = new Date(this.maxMonthDate);
-			this.maxYearDate.setMonth(11);
+			settings.maxDate = new Date(maxValue);
 		}
 		const step = this.inputElement.getAttribute('step');
 		if (step) {
 			const d1 = new Date('1970-01-01 0:00:00');
 			const d2 = new Date(`1970-01-01 ${step}`);
-			this.interval = (d2.getTime() - d1.getTime()) / 60000;
+			settings.interval = (d2.getTime() - d1.getTime()) / 60000;
 		}
+		return settings;
 	}
 
 	private createTextBox(): HTMLElement {
@@ -242,8 +182,8 @@ class Calendar extends Widget {
 	}
 
 	private openCalendar() {
-		this.calendarElement.parentElement!.style.position = 'relative';
-		this.cleanup = autoUpdate(this.textBox, this.calendarElement, this.updatePosition);
+		this.calendar.element.parentElement!.style.position = 'relative';
+		this.cleanup = autoUpdate(this.textBox, this.calendar.element, this.updatePosition);
 		this.textBox.setAttribute('aria-expanded', 'true');
 		this.isOpen = true;
 	}
@@ -252,18 +192,6 @@ class Calendar extends Widget {
 		this.isOpen = false;
 		this.textBox.setAttribute('aria-expanded', 'false');
 		this.cleanup?.();
-	}
-
-	private asUTCDate(date: Date) : Date {
-		return new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-	}
-
-	private getDate(selector: string | Element) : Date {
-		const element = selector instanceof Element ? selector : this.calendarElement.querySelector(selector);
-		if (!(element instanceof Element))
-			throw new Error(`Element ${selector} is missing`);
-		const dateValue = element.getAttribute('data-date') ?? element.getAttribute('datetime');
-		return new Date(dateValue ?? '');
 	}
 
 	private updateInputFields(newDate: Date | null) {
@@ -300,139 +228,11 @@ class Calendar extends Widget {
 		return newDate && !isNaN(newDate.getTime()) ? newDate : null;
 	}
 
-	private registerCalendar() {
-		this.viewMode = this.getViewMode();
-		this.prevSheetDate = this.getDate('button.prev');
-		const narrowButton = this.calendarElement.querySelector('button.narrow');
-		this.narrowSheetDate = narrowButton ? this.getDate(narrowButton) : undefined;
-		this.nextSheetDate = this.getDate('button.next');
-		const extendButton = this.calendarElement.querySelector('button.extend');
-		this.extendSheetDate = extendButton ? this.getDate(extendButton) : undefined;
-		this.calendarElement.querySelector('button.prev')?.addEventListener('click', this.turnPrev, {once: true});
-		this.calendarElement.querySelector('button.narrow')?.addEventListener('click', this.turnNarrow, {once: true});
-		this.calendarElement.querySelector('button.extend')?.addEventListener('click', this.turnExtend, {once: true});
-		this.calendarElement.querySelector('button.today')?.addEventListener('click', this.turnToday, {once: true});
-		this.calendarElement.querySelector('button.next')?.addEventListener('click', this.turnNext, {once: true});
-		this.calendarItems = this.calendarElement.querySelectorAll('li[data-date]');
-		switch (this.viewMode) {
-			case ViewMode.hours:
-				this.registerHoursView();
-				break;
-			case ViewMode.weeks:
-				this.registerWeeksView();
-				break;
-			case ViewMode.months:
-				this.registerMonthsView();
-				break;
-			case ViewMode.years:
-				this.registerYearsView();
-				break;
-		}
-		// insert the date of today into a text element inside the calendar icon
-		const textElem = this.calendarElement.querySelector('button.today > svg > text');
-		if (textElem instanceof SVGTextElement) {
-			textElem.textContent = String((new Date()).getDate());
-		}
-	}
-
-	private registerHoursView() {
-		// since each datetime-picker can have different values, set this on element level
-		if (this.interval) {
-			const num = Math.min(60 / this.interval!, 6);
-			const gridTemplateColumns = `repeat(${num}, 1fr)`;
-			this.calendarElement.querySelectorAll('.ranges ul.minutes').forEach(minutesElement => {
-				(minutesElement as HTMLElement).style.gridTemplateColumns = gridTemplateColumns;
-			});
-		}
-
-		const currentDateString = this.currentDateString.slice(0, 16);
-		this.calendarItems.forEach(elem => {
-			elem.classList.toggle('selected', elem.getAttribute('data-date') === currentDateString);
-			const date = this.getDate(elem);
-			if (this.minDate && date < this.minDate || this.maxDate && date > this.maxDate) {
-				elem.toggleAttribute('disabled', true);
-			} else {
-				elem.addEventListener('click', (event: Event) => {
-					if (event.target instanceof HTMLLIElement) {
-						this.selectDate(event.target);
-					}
-				}, {once: true});
-			}
-		});
-
-		const todayHourString = this.todayDateString.slice(0, 13).concat(':00');
-		this.calendarElement.querySelectorAll('li[aria-label]').forEach(elem => {
-			const label = elem.getAttribute('aria-label')!;
-			elem.classList.toggle('today', label === todayHourString);
-			const selector = `ul[aria-labelledby="${label}"]`;
-			if (label.slice(0, 13) === currentDateString.slice(0, 13)) {
-				elem.classList.add('preselected');
-				this.calendarElement.querySelector(selector)?.removeAttribute('hidden');
-			}
-
-			if (this.calendarElement.querySelectorAll(`${selector} > li[data-date]:not([disabled])`).length === 0) {
-				elem.toggleAttribute('disabled', true);
-			} else {
-				elem.addEventListener('click', (event: Event) => {
-					if (event.target instanceof HTMLLIElement) {
-						this.selectHour(event.target);
-					}
-				});
-			}
-		});
-	}
-
-	private registerWeeksView() {
-		const todayDateString = this.todayDateString.slice(0, 10);
-		const currentDateString = this.currentDateString.slice(0, 10);
-		this.calendarItems.forEach(elem => {
-			elem.classList.toggle('today', elem.getAttribute('data-date') === todayDateString);
-			elem.classList.toggle('selected', elem.getAttribute('data-date') === currentDateString);
-			const date = this.getDate(elem);
-			if (this.minWeekDate && date < this.minWeekDate || this.maxWeekDate && date > this.maxWeekDate) {
-				elem.toggleAttribute('disabled', true);
-			} else {
-				elem.addEventListener('click', this.selectDay);
-			}
-		});
-	}
-
-	private registerMonthsView() {
-		const todayMonthString = this.todayDateString.slice(0, 7);
-		const currentMonthString = this.currentDateString.slice(0, 7);
-		this.calendarItems.forEach(elem => {
-			const date = this.getDate(elem);
-			const monthString = elem.getAttribute('data-date')?.slice(0, 7);
-			elem.classList.toggle('today', monthString === todayMonthString);
-			elem.classList.toggle('selected', monthString === currentMonthString);
-			if (this.minMonthDate && date < this.minMonthDate || this.maxMonthDate && date > this.maxMonthDate) {
-				elem.toggleAttribute('disabled', true);
-			} else {
-				elem.addEventListener('click', this.selectMonth);
-			}
-		});
-	}
-
-	private registerYearsView() {
-		const todayYearString = this.todayDateString.slice(0, 4);
-		const currentYearString = this.currentDateString.slice(0, 4);
-		this.calendarItems.forEach(elem => {
-			const date = this.getDate(elem);
-			const yearString = elem.getAttribute('data-date')?.slice(0, 4);
-			elem.classList.toggle('today', yearString === todayYearString);
-			elem.classList.toggle('selected', yearString === currentYearString);
-			if (this.minYearDate && date < this.minYearDate || this.maxYearDate && date > this.maxYearDate) {
-				elem.toggleAttribute('disabled', true);
-			} else {
-				elem.addEventListener('click', this.selectYear);
-			}
-		});
-	}
 
 	private handleClick = (event: Event) => {
 		let element = event.target instanceof Element ? event.target : null;
 		while (element) {
-			if (element === this.calendarElement)
+			if (element === this.calendar.element)
 				return;
 			if (element === this.calendarOpener!)
 				return this.isOpen ? this.closeCalendar() : this.openCalendar();
@@ -443,10 +243,10 @@ class Calendar extends Widget {
 
 	private updatePosition = () => {
 		const zIndex = this.textBox.style.zIndex ? parseInt(this.textBox.style.zIndex) : 0;
-		computePosition(this.textBox, this.calendarElement, {
+		computePosition(this.textBox, this.calendar.element, {
 			middleware: [flip(), shift()],
 		}).then(({y}) => Object.assign(
-			this.calendarElement.style, {top: `${y}px`, zIndex: `${zIndex + 1}`}
+			this.calendar.element.style, {top: `${y}px`, zIndex: `${zIndex + 1}`}
 		));
 	}
 
@@ -466,14 +266,14 @@ class Calendar extends Widget {
 		}
 	}
 
-	private handleBlur = (event: Event) => {
+	private handleBlur = () => {
 		setTimeout(() => {
 			if (!this.hasFocus) {
 				this.textBox.classList.remove('focus');
 				this.currentDate = this.parseInputFields();
 				this.updateInputFields(this.currentDate);
 				if (this.currentDate) {
-					this.fetchCalendar(this.currentDate, this.viewMode);
+					this.calendar.updateDate(this.currentDate);
 				}
 				this.inputElement.dispatchEvent(new Event('blur'));
 			}
@@ -487,7 +287,7 @@ class Calendar extends Widget {
 		if (this.hasFocus) {
 			preventDefault = this.editTextBox(event.key);
 		} else if (this.isOpen) {
-			preventDefault = await this.navigateCalendar(event.key);
+			preventDefault = await this.calendar.navigate(event.key);
 		}
 		if (preventDefault) {
 			event.preventDefault();
@@ -558,286 +358,6 @@ class Calendar extends Widget {
 			return this.inputFields[this.inputFieldsOrder[index + 1]];
 	}
 
-	private async navigateCalendar(key: string) {
-		let element = null;
-		const nextViewMode = new Map<ViewMode, ViewMode>([
-			[ViewMode.years, ViewMode.months],
-			[ViewMode.months, ViewMode.weeks],
-			[ViewMode.weeks, ViewMode.hours],
-		]);
-		switch (key) {
-			case 'ArrowUp':
-				await this.navigate(Direction.up);
-				break;
-			case 'ArrowRight':
-				await this.navigate(Direction.right);
-				break;
-			case 'ArrowDown':
-				await this.navigate(Direction.down);
-				break;
-			case 'ArrowLeft':
-				await this.navigate(Direction.left);
-				break;
-			case 'Escape':
-				this.closeCalendar();
-				break;
-			case 'Tab':
-				this.closeCalendar();
-				this.textBox.blur();
-				break;
-			case 'PageUp':
-				element = this.calendarElement.querySelector('button.prev');
-				if (element) {
-					await this.fetchCalendar(this.getDate(element), this.viewMode);
-				}
-				break;
-			case 'PageDown':
-				element = this.calendarElement.querySelector('button.next');
-				if (element) {
-					await this.fetchCalendar(this.getDate(element), this.viewMode);
-				}
-				break;
-			case 'Enter':
-				element = this.calendarElement.querySelector('.ranges .selected');
-				if (element) {
-					if (this.viewMode === ViewMode.hours || this.viewMode === ViewMode.weeks && this.dateOnly) {
-						this.selectDate(element);
-					} else {
-						await this.fetchCalendar(this.getDate(element), nextViewMode.get(this.viewMode)!);
-					}
-				}
-				break;
-			default:
-				break;
-		}
-		return true;
-	}
-
-	private getDelta(direction: Direction, lastDate: Date) : Date {
-		const deltaHours = (this.interval ?? 60) < 60 ? new Map<Direction, number>([
-			[Direction.up, -60],
-			[Direction.right, +this.interval!],
-			[Direction.down, +60],
-			[Direction.left, -this.interval!],
-		]) : new Map<Direction, number>([
-			[Direction.up, -360],
-			[Direction.right, +60],
-			[Direction.down, +360],
-			[Direction.left, -60],
-		]);
-		const deltaWeeks = new Map<Direction, number>([
-			[Direction.up, -10080],
-			[Direction.right, +1440],
-			[Direction.down, +10080],
-			[Direction.left, -1440],
-		]);
-		const nextDate = new Date(lastDate);
-		switch (this.viewMode) {
-		  case ViewMode.hours:
-			return new Date(lastDate.getTime() + 60000 * deltaHours.get(direction)!);
-		  case ViewMode.weeks:
-			return new Date(lastDate.getTime() + 60000 * deltaWeeks.get(direction)!);
-		  case ViewMode.months:
-			switch (direction) {
-			  case Direction.up:
-				nextDate.setMonth(nextDate.getMonth() - 3);
-				break;
-			  case Direction.right:
-				nextDate.setMonth(nextDate.getMonth() + 1);
-				break;
-			  case Direction.down:
-				nextDate.setMonth(nextDate.getMonth() + 3);
-				break;
-			  case Direction.left:
-				nextDate.setMonth(nextDate.getMonth() - 1);
-				break;
-			}
-			break;
-		  case ViewMode.years:
-			switch (direction) {
-			  case Direction.up:
-				nextDate.setFullYear(lastDate.getFullYear() - 4);
-				break;
-			  case Direction.right:
-				nextDate.setFullYear(lastDate.getFullYear() + 1);
-				break;
-			  case Direction.down:
-				nextDate.setFullYear(lastDate.getFullYear() + 4);
-				break;
-			  case Direction.left:
-				nextDate.setFullYear(lastDate.getFullYear() - 1);
-				break;
-			}
-			break;
-		}
-		return nextDate;
-	}
-
-	private async navigate(direction: Direction) {
-		let selectedItem = this.calendarElement.querySelector('li[data-date].selected');
-		if (!selectedItem) {
-			selectedItem = this.calendarItems.item(this.calendarItems.length / 2);
-		}
-		if (selectedItem) {
-			const selectedDate = this.getDate(selectedItem);
-			const nextDate = this.getDelta(direction, selectedDate);
-			const dataDateString = this.asUTCDate(nextDate).toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10);
-			let nextItem: Element|null = null;
-			if (this.viewMode !== ViewMode.weeks || selectedDate.getMonth() === nextDate.getMonth()) {
-				nextItem = this.calendarElement.querySelector(`.ranges li[data-date="${dataDateString}"]`);
-			}
-			if (!nextItem) {
-				await this.fetchCalendar(nextDate, this.viewMode);
-				nextItem = this.calendarElement.querySelector(`.ranges li[data-date="${dataDateString}"]`);
-			}
-			if (nextItem instanceof HTMLLIElement) {
-				if (this.viewMode === ViewMode.hours) {
-					this.selectHour(nextItem);
-				}
-				this.setDate(nextItem);
-			}
-		}
-	}
-
-	private turnPrev = () => {
-		this.fetchCalendar(this.prevSheetDate, this.viewMode);
-	}
-
-	private turnNext = () => {
-		this.fetchCalendar(this.nextSheetDate, this.viewMode);
-	}
-
-	private turnNarrow = () => {
-		if (this.narrowSheetDate) {
-			if (this.viewMode === ViewMode.months) {
-				this.fetchCalendar(this.narrowSheetDate, ViewMode.weeks);
-			} else if (this.viewMode === ViewMode.years) {
-				this.fetchCalendar(this.narrowSheetDate, ViewMode.months);
-			} else {
-				this.fetchCalendar(this.narrowSheetDate, this.viewMode);
-			}
-		}
-	}
-
-	private turnExtend = () => {
-		if (this.extendSheetDate) {
-			if (this.viewMode === ViewMode.hours) {
-				this.fetchCalendar(this.extendSheetDate, ViewMode.weeks);
-			} else if (this.viewMode === ViewMode.weeks) {
-				this.fetchCalendar(this.extendSheetDate, ViewMode.months);
-			} else {
-				this.fetchCalendar(this.extendSheetDate, ViewMode.years);
-			}
-		}
-	}
-
-	private turnToday = () => {
-		if (this.dateOnly) {
-			this.selectToday();
-		} else {
-			this.fetchCalendar(new Date(), ViewMode.hours);
-		}
-	}
-
-	private async selectToday() {
-		const todayDateString = this.todayDateString.slice(0, 10);
-		let todayElem = this.calendarElement.querySelector(`li[data-date="${todayDateString}"]`);
-		if (!todayElem) {
-			await this.fetchCalendar(new Date(), ViewMode.weeks);
-			todayElem = this.calendarElement.querySelector(`li[data-date="${todayDateString}"]`);
-		}
-		this.selectDate(todayElem!);
-	}
-
-	private setDate(element: Element) {
-		this.calendarItems.forEach(elem => {
-			elem.classList.toggle('selected', elem === element);
-		});
-		let dateString = element.getAttribute('data-date')!;
-		this.currentDate = new Date(dateString);
-		this.updateInputFields(this.currentDate);
-		this.inputElement.dispatchEvent(new Event('input'));
-		this.inputElement.dispatchEvent(new Event('blur'));
-	}
-
-	private selectDate(element: Element) {
-		this.setDate(element);
-		this.closeCalendar();
-	}
-
-	private selectHour(liElement: HTMLLIElement) {
-		const selectMinute = (ulElem: HTMLUListElement) => {
-			ulElem.querySelectorAll('li[data-date]').forEach(elem => {
-				elem.addEventListener('click', event => {
-					if (event.target instanceof HTMLLIElement) {
-						event.target.classList.add('selected');
-						this.selectDate(event.target);
-					}
-				}, {once: true});
-			});
-		}
-
-		this.calendarElement.querySelectorAll('li[aria-label]').forEach(elem => {
-			elem.classList.remove('selected', 'preselected');
-		});
-		this.calendarElement.querySelectorAll('ul[aria-labelledby]').forEach(elem => {
-			elem.toggleAttribute('hidden', true);
-		});
-		const label = liElement.getAttribute('aria-label');
-		if (label) {
-			const ulElem = this.calendarElement.querySelector(`ul[aria-labelledby="${label}"]`);
-			if (ulElem instanceof HTMLUListElement) {
-				liElement.classList.add('preselected');
-				ulElem.removeAttribute('hidden');
-				selectMinute(ulElem);
-			}
-		} else if (liElement.parentElement instanceof HTMLUListElement && liElement.parentElement.hasAttribute('aria-labelledby')) {
-			const labelledby = liElement.parentElement.getAttribute('aria-labelledby');
-			this.calendarElement.querySelector(`li[aria-label="${labelledby}"]`)?.classList.add('preselected');
-			liElement.parentElement.removeAttribute('hidden');
-			selectMinute(liElement.parentElement);
-		}
-	}
-
-	private selectDay = (event: Event) => {
-		if (event.target instanceof HTMLLIElement) {
-			if (this.dateOnly) {
-				this.selectDate(event.target);
-			} else {
-				this.fetchCalendar(this.getDate(event.target), ViewMode.hours);
-			}
-		}
-	}
-
-	private selectMonth = (event: Event) => {
-		if (event.target instanceof HTMLLIElement) {
-			this.fetchCalendar(this.getDate(event.target), ViewMode.weeks);
-		}
-	}
-
-	private selectYear = (event: Event) => {
-		if (event.target instanceof HTMLLIElement) {
-			this.fetchCalendar(this.getDate(event.target), ViewMode.months);
-		}
-	}
-
-	private async fetchCalendar(atDate: Date, viewMode: ViewMode) {
-		const query = new URLSearchParams('calendar');
-		query.set('date', this.asUTCDate(atDate).toISOString().slice(0, 10));
-		query.set('mode', viewMode);
-		if (this.interval) {
-			query.set('interval', String(this.interval));
-		}
-		const response = await fetch(`${this.endpoint}?${query.toString()}`, {
-			method: 'GET',
-		});
-		if (response.status === 200) {
-			this.calendarElement.innerHTML = await response.text();
-		} else {
-			console.error(`Failed to fetch from ${this.endpoint} (status=${response.status})`);
-		}
-	}
-
 	private transferStyles() {
 		for (let k = 0; k < document.styleSheets.length; ++k) {
 			// prevent adding <styles> multiple times with the same content by checking if they already exist
@@ -894,7 +414,7 @@ class Calendar extends Widget {
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					this.inputElement.classList.remove('-focus-');
 					if (cssRule.selectorText === ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar .ranges ul.hours > li.preselected') {
-						extraStyles = StyleHelpers.extractStyles(this.calendarElement, ['background-color']);
+						extraStyles = StyleHelpers.extractStyles(this.calendar.element, ['background-color']);
 						extraStyles = extraStyles.replace('background-color', 'border-bottom-color');
 						declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					}
@@ -927,37 +447,37 @@ class Calendar extends Widget {
 	}
 }
 
-const CAL = Symbol('DateTimePickerElement');
+const DTP = Symbol('DateTimePickerElement');
 
 export class DatePickerElement extends HTMLInputElement {
-	private [CAL]!: Calendar;  // hides internal implementation
+	private [DTP]!: DateTimePicker;  // hides internal implementation
 
-	private connectedCallback() {
+	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[CAL] = new Calendar(this, calendarElement);
+		this[DTP] = new DateTimePicker(this, calendarElement);
 	}
 
-	public get valueAsDate() : Date | null {
-		return this[CAL].valueAsDate();
+	get valueAsDate() : Date | null {
+		return this[DTP].valueAsDate();
 	}
 }
 
 
 export class DateTimePickerElement extends HTMLInputElement {
-	private [CAL]!: Calendar;  // hides internal implementation
+	private [DTP]!: DateTimePicker;  // hides internal implementation
 
-	private connectedCallback() {
+	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[CAL] = new Calendar(this, calendarElement);
+		this[DTP] = new DateTimePicker(this, calendarElement);
 	}
 
-	public get valueAsDate() : Date | null {
-		return this[CAL].valueAsDate();
+	get valueAsDate() : Date | null {
+		return this[DTP].valueAsDate();
 	}
 }

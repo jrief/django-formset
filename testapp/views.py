@@ -38,6 +38,7 @@ from testapp.forms.contact import (
     SimpleContactCollection, ContactCollection, ContactCollectionList, IntermediateContactCollectionList,
     SortableContactCollection, SortableContactCollectionList)
 from testapp.forms.birthdate import BirthdateForm
+from testapp.forms.booking import BookingForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerCollection
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
@@ -444,6 +445,12 @@ urlpatterns = [
     path('article', DemoFormView.as_view(
         form_class=ArticleForm,
     ), name='article'),
+    path('birthdate', DemoFormView.as_view(
+        form_class=BirthdateForm,
+    ), name='birthdate'),
+    path('booking', DemoFormView.as_view(
+        form_class=BookingForm,
+    ), name='booking'),
     path('opinion', DemoFormView.as_view(
         form_class=OpinionForm,
     ), name='opinion'),
@@ -476,9 +483,6 @@ urlpatterns = [
     path('upload', DemoFormView.as_view(
         form_class=UploadForm,
     ), name='upload'),
-    path('birthdate/', DemoFormView.as_view(
-        form_class=BirthdateForm,
-    ), name='birthdate'),
     path('moon', DemoFormView.as_view(
         form_class=MoonForm,
         calendar_renderer_class=MoonCalendarRenderer,

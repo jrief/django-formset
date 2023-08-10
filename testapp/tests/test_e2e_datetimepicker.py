@@ -44,7 +44,7 @@ def test_datetimepicker_set(page, mocker, viewname, locale):
     now = datetime.now()
     schedule_field = page.locator('django-formset input[name="schedule"]')
     textbox = page.locator('django-formset input[name="schedule"] + [role="textbox"]')
-    opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-icon')
+    opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-picker-indicator')
     calendar = page.locator('django-formset input[name="schedule"] + [role="textbox"] + .dj-calendar')
     expect(schedule_field).to_have_value('')
     expect(calendar).not_to_be_visible()
@@ -94,7 +94,7 @@ def test_datetimepicker_set(page, mocker, viewname, locale):
 def test_datetimepicker_change(page, mocker, viewname, locale):
     schedule_field = page.locator('django-formset input[name="schedule"]')
     textbox = page.locator('django-formset input[name="schedule"] + [role="textbox"]')
-    opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-icon')
+    opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-picker-indicator')
     calendar = page.locator('django-formset input[name="schedule"] + [role="textbox"] + .dj-calendar')
     expect(calendar).not_to_be_visible()
     if locale == 'en-US':
@@ -197,7 +197,7 @@ def test_datetimepicker_change(page, mocker, viewname, locale):
 @pytest.mark.parametrize('viewname', ['current_schedule'])
 def test_datetimepicker_navigate(page, mocker, viewname):
     schedule_field = page.locator('django-formset input[name="schedule"]')
-    opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-icon')
+    opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-picker-indicator')
     calendar = page.locator('django-formset input[name="schedule"] + [role="textbox"] + .dj-calendar')
     expect(calendar).not_to_be_visible()
     opener.click()
@@ -250,7 +250,7 @@ def test_datetimepicker_navigate(page, mocker, viewname):
 @pytest.mark.parametrize('viewname', ['current_schedule'])
 def test_datetimepicker_i18n(page, settings, viewname, language):
     calendar = page.locator('django-formset input[name="schedule"] + [role="textbox"] + .dj-calendar')
-    opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-icon')
+    opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-picker-indicator')
     expect(calendar).not_to_be_visible()
     opener.click()
     sleep(0.2)

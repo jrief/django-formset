@@ -26,8 +26,8 @@ class BirthdateForm(forms.Form):
             #'date-format': 'iso',
             #'local-time': '',
         }),
-        required=False,
-        #initial=datetime(2023, 2, 28, 9, 40, tzinfo=utc),
+        required=True,
+        initial=datetime(2023, 2, 28, 9, 40, tzinfo=timezone.utc),
     )
 
     def clean_birthdate(self):
