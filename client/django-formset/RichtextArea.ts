@@ -71,7 +71,7 @@ abstract class DropdownAction extends Action {
 
 	constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement, itemsSelector: string) {
 		super(wrapperElement, name, button);
-		if (this.button.nextElementSibling instanceof HTMLUListElement && this.button.nextElementSibling.role === 'menu') {
+		if (this.button.nextElementSibling instanceof HTMLUListElement && this.button.nextElementSibling.getAttribute('role') === 'menu') {
 			this.dropdownMenu = this.button.nextElementSibling;
 			this.dropdownItems = this.dropdownMenu.querySelectorAll(itemsSelector);
 		} else {
@@ -203,7 +203,7 @@ namespace controls {
 
 		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
 			super(wrapperElement, name, button, '[richtext-click^="color:"]');
-			if (!(button.nextElementSibling instanceof HTMLUListElement) || button.nextElementSibling.role !== 'menu')
+			if (!(button.nextElementSibling instanceof HTMLUListElement) || button.nextElementSibling.getAttribute('role') !== 'menu')
 				throw new Error('Text color requires a sibling element <ul role="menu">…</ul>');
 			this.collecColors();
 		}
