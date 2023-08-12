@@ -127,3 +127,7 @@ LOGGING = {
 }
 
 FORMSET_IGNORE_MARKED_FOR_REMOVAL = False
+
+if DEBUG:
+    import mimetypes
+    mimetypes.add_type("application/javascript", ".js", True)
