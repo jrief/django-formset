@@ -1,3 +1,4 @@
+import {StyleHelpers} from "./helpers";
 import styles from './Calendar.scss';
 
 
@@ -24,6 +25,7 @@ export type CalendarSettings = {
 	maxDate?: Date,  // if set, dates after this are disabled
 	interval?: number,  // granularity of entries in time picker
 	endpoint: string,  // URL to fetch calendar data from
+	inputElement: HTMLInputElement,  // input element to pilfer styles from
 	updateDate: Function,  // callback to update date input
 	close: Function,  // callback to close calendar
 };
@@ -48,7 +50,7 @@ export class Calendar {
 	private minYearDate?: Date;
 	private maxYearDate?: Date;
 
-	constructor(calendarElement: any, settings: CalendarSettings) {
+	constructor(calendarElement: HTMLElement | null, settings: CalendarSettings) {
 		this.settings = settings;
 		if (calendarElement instanceof HTMLElement) {
 			this.element = calendarElement;
@@ -61,6 +63,7 @@ export class Calendar {
 		this.currentDateString = settings.initialDate ? this.asUTCDate(settings.initialDate).toISOString().slice(0, 16) : '';
 		this.setBounds()
 		this.registerCalendar();
+		this.transferStyles();
 	}
 
 	private get todayDateString() : string {
@@ -522,6 +525,61 @@ export class Calendar {
 		} else {
 			console.error(`Failed to fetch from ${this.settings.endpoint} (status=${response.status})`);
 		}
+	}
+
+	private transferStyles() {
+		for (let k = 0; k < document.styleSheets.length; ++k) {
+			// prevent adding <styles> multiple times with the same content by checking if they already exist
+			const cssRule = document?.styleSheets?.item(k)?.cssRules?.item(0);
+			if (cssRule instanceof CSSStyleRule && cssRule.selectorText!.startsWith('[aria-haspopup="dialog"] + .dj-calendar'))
+				return;
+		}
+		const declaredStyles = document.createElement('style');
+		declaredStyles.innerText = styles;
+		document.head.appendChild(declaredStyles);
+		const inputElement = this.settings.inputElement;
+		inputElement.style.transition = 'none';  // prevent transition while pilfering styles
+		const inputHeight = window.getComputedStyle(inputElement).getPropertyValue('height');
+		for (let index = 0; declaredStyles.sheet && index < declaredStyles.sheet.cssRules.length; index++) {
+			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
+			let extraStyles: string;
+			switch (cssRule.selectorText) {
+				case '[aria-haspopup="dialog"] + .dj-calendar':
+					extraStyles = StyleHelpers.extractStyles(inputElement, [
+						'background-color', 'border', 'border-radius',
+						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
+						'letter-spacing', 'white-space', 'line-height']);
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '[aria-haspopup="dialog"] + .dj-calendar .controls':
+					extraStyles = StyleHelpers.extractStyles(inputElement, ['padding']);
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '[aria-haspopup="dialog"] + .dj-calendar .ranges':
+					extraStyles = StyleHelpers.extractStyles(inputElement, ['padding']);
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '[aria-haspopup="dialog"] + .dj-calendar .ranges ul:not(.weekdays)':
+					extraStyles = `line-height: ${inputHeight};`;
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li.preselected':
+				case '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.minutes':
+					inputElement.classList.add('-focus-');
+					extraStyles = StyleHelpers.extractStyles(inputElement, ['border-color']);
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					inputElement.classList.remove('-focus-');
+					if (cssRule.selectorText === '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li.preselected') {
+						extraStyles = StyleHelpers.extractStyles(this.element, ['background-color']);
+						extraStyles = extraStyles.replace('background-color', 'border-bottom-color');
+						declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		inputElement.style.transition = '';
 	}
 
 	public updateDate(date: Date) {

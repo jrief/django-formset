@@ -28,7 +28,7 @@ class DateTimePicker extends Widget {
 	private cleanup?: Function;
 	private isOpen: boolean = false;
 
-	constructor(inputElement: HTMLInputElement, calendarElement: any) {
+	constructor(inputElement: HTMLInputElement, calendarElement: HTMLElement | null) {
 		super(inputElement);
 		this.inputElement = inputElement;
 		this.dateOnly = inputElement.getAttribute('is') === 'django-datepicker';
@@ -62,6 +62,7 @@ class DateTimePicker extends Widget {
 			dateOnly: this.dateOnly,
 			initialDate: this.currentDate ?? undefined,
 			endpoint: this.endpoint!,
+			inputElement: this.inputElement,
 			updateDate: (date: Date) => this.updateDate(date),
 			close: () => this.closeCalendar(),
 		};
@@ -388,41 +389,11 @@ class DateTimePicker extends Widget {
 					this.inputElement.classList.remove('-focus-');
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar':
-					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
-						'background-color', 'border', 'border-radius',
-						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
-						'letter-spacing', 'white-space', 'line-height']);
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					break;
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar .controls':
-					extraStyles = StyleHelpers.extractStyles(this.inputElement, ['padding']);
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					break;
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar .ranges':
-					extraStyles = StyleHelpers.extractStyles(this.inputElement, ['padding']);
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					break;
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar .ranges ul:not(.weekdays)':
-					extraStyles = `line-height: ${inputHeight};`;
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					break;
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar .ranges ul.hours > li.preselected':
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar .ranges ul.minutes':
-					this.inputElement.classList.add('-focus-');
-					extraStyles = StyleHelpers.extractStyles(this.inputElement, ['border-color']);
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					this.inputElement.classList.remove('-focus-');
-					if (cssRule.selectorText === ':is([is="django-datepicker"], [is="django-datetimepicker"]) + * + .dj-calendar .ranges ul.hours > li.preselected') {
-						extraStyles = StyleHelpers.extractStyles(this.calendar.element, ['background-color']);
-						extraStyles = extraStyles.replace('background-color', 'border-bottom-color');
-						declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					}
-					break;
 				default:
 					break;
 			}
 		}
+		this.inputElement.style.transition = '';
 	}
 
 	private transferClasses() {
@@ -457,7 +428,7 @@ export class DatePickerElement extends HTMLInputElement {
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[DTP] = new DateTimePicker(this, calendarElement);
+		this[DTP] = new DateTimePicker(this, calendarElement as HTMLElement);
 	}
 
 	get valueAsDate() : Date | null {
@@ -474,7 +445,7 @@ export class DateTimePickerElement extends HTMLInputElement {
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[DTP] = new DateTimePicker(this, calendarElement);
+		this[DTP] = new DateTimePicker(this, calendarElement as HTMLElement);
 	}
 
 	get valueAsDate() : Date | null {
