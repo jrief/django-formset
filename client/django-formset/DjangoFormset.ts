@@ -308,8 +308,12 @@ class FieldGroup {
 		this.element.classList.add('dj-pristine');
 	}
 
-	public isPristine() {
+	public get isPristine() {
 		return this.element.classList.contains('dj-pristine');
+	}
+
+	public get isTouched() {
+		return this.element.classList.contains('dj-touched');
 	}
 
 	public setSubmitted() {
@@ -1060,8 +1064,8 @@ class DjangoForm {
 		return null;
 	}
 
-	public isPristine() : boolean {
-		return this.fieldGroups.every(group => group.isPristine());
+	public get isPristine() : boolean {
+		return this.fieldGroups.every(group => group.isPristine);
 	}
 
 	public disableRequiredConstraints() {
@@ -1169,8 +1173,8 @@ class DjangoFormCollection {
 		this.children.forEach(child => child.restoreRequiredConstraint());
 	}
 
-	public isFreshAndEmpty() : boolean {
-		return this.forms.every(form => form.isPristine()) && this.children.every(child => child.isFreshAndEmpty());
+	public get isFreshAndEmpty() : boolean {
+		return this.forms.every(form => form.isPristine) && this.children.every(child => child.isFreshAndEmpty);
 	}
 
 	public removeFreshAndEmpty() {
@@ -1293,12 +1297,12 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 		super.markAsFreshAndEmpty(this.justAdded);
 	}
 
-	public isFreshAndEmpty() : boolean {
-		return this.justAdded && super.isFreshAndEmpty();
+	public get isFreshAndEmpty() : boolean {
+		return this.justAdded && super.isFreshAndEmpty;
 	}
 
 	public removeFreshAndEmpty() {
-		if (!this.removeButton.disabled && this.isFreshAndEmpty()) {
+		if (!this.removeButton.disabled && this.isFreshAndEmpty) {
 			this.removeCollection();
 		} else {
 			super.removeFreshAndEmpty();
