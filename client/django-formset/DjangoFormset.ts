@@ -42,11 +42,11 @@ class BoundValue {
 
 
 class FieldErrorMessages extends Map<ErrorKey, string>{
-	constructor(fieldGroup: FieldGroup) {
+	constructor(fieldGroupElement: Element) {
 		super();
-		const element = fieldGroup.element.querySelector('meta[name="error-messages"]');
+		const element = fieldGroupElement.querySelector('meta[name="error-messages"]');
 		if (!element)
-			throw new Error(`<div role="group"> for '${fieldGroup.name}' requires one <meta name="error-messages"> tag.`);
+			throw new Error(`${fieldGroupElement} requires one <meta name="error-messages"> tag.`);
 		for (const attr of element.getAttributeNames()) {
 			const clientKey = attr.replace(/([_][a-z])/g, (group) => group.toUpperCase().replace('_', ''));
 			const clientValue = element.getAttribute(attr);
@@ -76,7 +76,7 @@ class FieldGroup {
 		this.form = form;
 		this.element = element;
 		this.errorPlaceholder = element.querySelector('.dj-errorlist > .dj-placeholder');
-		this.errorMessages = new FieldErrorMessages(this);
+		this.errorMessages = new FieldErrorMessages(element);
 		const requiredAny = element.classList.contains('dj-required-any');
 
 		// <div role="group"> can contain one or more <input type="checkbox"> or <input type="radio"> elements
