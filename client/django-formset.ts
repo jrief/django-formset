@@ -83,8 +83,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
 		}
 		if (fragmentRoot.querySelector('input[is="django-daterangepicker"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('./django-formset/RangeInput').then(({RangeInputElement}) => {
-					defineComponent(resolve, 'django-daterangepicker', RangeInputElement, {extends: 'input'});
+				import('./django-formset/DateTimePicker').then(({DateRangePickerElement}) => {
+					defineComponent(resolve, 'django-daterangepicker', DateRangePickerElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
