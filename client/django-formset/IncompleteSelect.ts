@@ -1,4 +1,4 @@
-import { Widget } from './helpers';
+import { Widget } from './Widget';
 
 
 export abstract class IncompleteSelect extends Widget {

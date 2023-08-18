@@ -1,4 +1,3 @@
-
 export namespace StyleHelpers {
 	export function extractStyles(element: Element, properties: Array<string>): string {
 		let styles = Array<string>();
@@ -72,29 +71,4 @@ export namespace StyleHelpers {
 			}
 		} // else handle other CSSRule types
 	}
-}
-
-
-export abstract class Widget {
-	protected readonly endpoint: string | null;
-	protected readonly fieldName: string;
-	protected readonly fieldGroup: Element;
-
-	constructor(element: HTMLInputElement | HTMLSelectElement) {
-		const fieldGroup = element.closest('[role="group"]');
-		const form = element.form;
-		const formset = element.closest('django-formset');
-		if (!fieldGroup || !form || !formset)
-			throw new Error(`Attempt to initialize ${element} outside <django-formset>`);
-		const formName = form.getAttribute('name') ?? '__default__';
-		this.fieldGroup = fieldGroup;
-		this.endpoint = formset.getAttribute('endpoint');
-		this.fieldName = `${formName}.${element.getAttribute('name')}`;
-		form.addEventListener('reset', event => this.formResetted(event));
-		form.addEventListener('submitted', event => this.formSubmitted(event));
-	}
-
-	protected abstract formResetted(event: Event) : void;
-
-	protected abstract formSubmitted(event: Event) : void;
 }

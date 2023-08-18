@@ -1,6 +1,7 @@
 import {autoUpdate, computePosition, flip, shift} from '@floating-ui/dom';
 import {Calendar, CalendarSettings} from "./Calendar";
-import {StyleHelpers, Widget} from './helpers';
+import { Widget } from './Widget';
+import {StyleHelpers} from './helpers';
 import styles from './DateTimePicker.scss';
 import calendarIcon from './icons/calendar.svg';
 

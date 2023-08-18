@@ -6,6 +6,7 @@ import template from 'lodash.template';
 import Sortable, { SortableEvent } from 'sortablejs';
 import { FileUploadWidget } from './FileUploadWidget';
 import { parse } from './tag-attributes';
+import { ErrorKey, FieldErrorMessages } from './Widget';
 import styles from './DjangoFormset.scss';
 import spinnerIcon from './icons/spinner.svg';
 import okayIcon from './icons/okay.svg';
@@ -13,7 +14,6 @@ import bummerIcon from './icons/bummer.svg';
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FieldValue = string | Array<string | Object>;
-type ErrorKey = keyof ValidityState;
 
 const NON_FIELD_ERRORS = '__all__';
 const COLLECTION_ERRORS = '_collection_errors_';
@@ -37,23 +37,6 @@ class BoundValue {
 
 	constructor(value: FieldValue) {
 		this.value = value;
-	}
-}
-
-
-class FieldErrorMessages extends Map<ErrorKey, string>{
-	constructor(fieldGroupElement: Element) {
-		super();
-		const element = fieldGroupElement.querySelector('meta[name="error-messages"]');
-		if (!element)
-			throw new Error(`${fieldGroupElement} requires one <meta name="error-messages"> tag.`);
-		for (const attr of element.getAttributeNames()) {
-			const clientKey = attr.replace(/([_][a-z])/g, (group) => group.toUpperCase().replace('_', ''));
-			const clientValue = element.getAttribute(attr);
-			if (clientValue) {
-				this.set(clientKey as ErrorKey, clientValue);
-			}
-		}
 	}
 }
 
