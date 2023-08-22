@@ -159,10 +159,7 @@ class BoundField(boundfield.BoundField):
             if self.widget_type == 'checkboxselectmultiple':
                 client_messages['custom_error'] = _("At least one checkbox must be selected.")
             elif 'required' in server_messages:
-                if self.widget_type == 'selectize':
-                    client_messages['custom_error'] = server_messages['required']
-                else:
-                    client_messages['value_missing'] = server_messages['required']
+                client_messages['value_missing'] = server_messages['required']
         if 'invalid' in server_messages:
             client_messages['type_mismatch'] = client_messages['pattern_mismatch'] = server_messages['invalid']
         elif 'invalid_choice' in server_messages:
