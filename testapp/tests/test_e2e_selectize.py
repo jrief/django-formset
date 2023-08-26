@@ -1,6 +1,7 @@
 import pytest
 import json
 from time import sleep
+from playwright.sync_api import expect
 
 from django.forms import Field, Form, fields, models
 from django.urls import path
@@ -14,6 +15,7 @@ from testapp.models import OpinionModel
 class NativeFormView(FormView):
     template_name = 'testapp/native-form.html'
     success_url = '/success'
+    extra_context = {'click_actions': 'submit -> proceed'}
 
 
 @pytest.fixture(scope='function')
@@ -286,27 +288,28 @@ def test_submit_value(page, mocker, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_submit_invalid(page, mocker, view, form, viewname):
-    input_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
-    assert input_element is not None
+    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
+    dropdown_element = page.locator('django-formset .shadow-wrapper .ts-wrapper  .ts-dropdown.single')
+    expect(input_element).to_be_visible()
+    expect(dropdown_element).to_be_hidden()
     input_element.click()
-    dropdown_element = page.query_selector('django-formset .shadow-wrapper .ts-wrapper  .ts-dropdown.single')
-    assert dropdown_element is not None
-    pseudo_option = dropdown_element.query_selector('div[data-selectable]:nth-child(9)')
-    assert pseudo_option is not None
+    expect(dropdown_element).to_be_visible()
+    pseudo_option = dropdown_element.locator('div[data-selectable]').nth(8)
+    expect(pseudo_option).to_be_visible()
     pseudo_option.click()
     initial_opinion = get_initial_opinion()
     initial_opinion.tenant = 2  # this makes the selected option invalid
     initial_opinion.save(update_fields=['tenant'])
     spy = mocker.spy(view.view_class, 'post')
-    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    page.locator('django-formset').evaluate('elem => elem.submit()')
+    sleep(0.2)
     request = json.loads(spy.call_args.args[1].body)
     assert request['formset_data']['model_choice'] == str(initial_opinion.id)
     assert spy.spy_return.status_code == 422
     response = json.loads(spy.spy_return.content)
     error_message = models.ModelChoiceField.default_error_messages['invalid_choice']
     assert response == {'model_choice': [error_message]}
-    placeholder_text = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder').inner_text()
-    assert placeholder_text == error_message
+    expect(page.locator('[role="group"] ul.dj-errorlist > li.dj-placeholder')).to_have_text(str(error_message))
     initial_opinion.tenant = 1  # reset to initial tenant
     initial_opinion.save(update_fields=['tenant'])
 

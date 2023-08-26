@@ -257,35 +257,33 @@ urlpatterns.append(
 @pytest.mark.parametrize('viewname', ['integer_form'])
 def test_integer_field(page):
     name = 'intval'
-    assert page.query_selector('django-formset form:valid') is not None
-    assert page.query_selector('django-formset form:invalid') is None
-    input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
+    expect(page.locator('django-formset form:valid')).to_have_count(1)
+    expect(page.locator('django-formset form:invalid')).to_have_count(0)
+    input_elem = page.locator(f'django-formset .dj-form input[name="{name}"]')
     input_elem.click()
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is not None
-    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is None
+    expect(page.locator(f'django-formset .dj-form input[name="{name}"]:valid')).to_have_count(1)
+    expect(page.locator(f'django-formset .dj-form input[name="{name}"]:invalid')).to_have_count(0)
     input_elem.click()
     page.keyboard.press('Backspace')
     page.keyboard.press('Delete')
     input_elem.type("5")
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is None
-    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is not None
-    assert page.query_selector('django-formset form:valid') is None
-    assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_text = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder').inner_text()
-    assert placeholder_text == "Ensure this value is less than or equal to 4."
+    expect(page.locator(f'django-formset .dj-form input[name="{name}"]:valid')).to_have_count(0)
+    expect(page.locator(f'django-formset .dj-form input[name="{name}"]:invalid')).to_have_count(1)
+    expect(page.locator('django-formset form:valid')).to_have_count(0)
+    expect(page.locator('django-formset form:invalid')).to_have_count(1)
+    expect(page.locator('[role="group"] ul.dj-errorlist > li.dj-placeholder')).to_have_text("Ensure this value is less than or equal to 4.")
     input_elem.click()
     page.keyboard.press('Backspace')
     page.keyboard.press('Delete')
     input_elem.type("1")
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is None
-    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is not None
-    assert page.query_selector('django-formset form:valid') is None
-    assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_text = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder').inner_text()
-    assert placeholder_text == "Value too low."
+    expect(page.locator(f'django-formset .dj-form input[name="{name}"]:valid')).to_have_count(0)
+    expect(page.locator(f'django-formset .dj-form input[name="{name}"]:invalid')).to_have_count(1)
+    expect(page.locator('django-formset form:valid')).to_have_count(0)
+    expect(page.locator('django-formset form:invalid')).to_have_count(1)
+    expect(page.locator('[role="group"] ul.dj-errorlist > li.dj-placeholder')).to_have_text("Value too low.")
 
 
 urlpatterns.append(
@@ -303,22 +301,21 @@ urlpatterns.append(
 @pytest.mark.parametrize('viewname', ['float_form'])
 def test_float_field(page):
     name = 'floatval'
-    assert page.query_selector('django-formset form:valid') is not None
-    assert page.query_selector('django-formset form:invalid') is None
-    input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
+    expect(page.locator('django-formset form:valid')).to_have_count(1)
+    expect(page.locator('django-formset form:invalid')).to_have_count(0)
+    input_elem = page.locator(f'django-formset .dj-form input[name="{name}"]')
     input_elem.click()
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is not None
-    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is None
+    expect(page.locator(f'django-formset .dj-form input[name="{name}"]:valid')).to_have_count(1)
+    expect(page.locator(f'django-formset .dj-form input[name="{name}"]:invalid')).to_have_count(0)
     input_elem.click()
     input_elem.type(".1")
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is None
-    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is not None
-    assert page.query_selector('django-formset form:valid') is None
-    assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_text = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder').inner_text()
-    assert placeholder_text == "Input value must be a multiple of 0.5."
+    expect(page.locator(f'django-formset .dj-form input[name="{name}"]:valid')).to_have_count(0)
+    expect(page.locator(f'django-formset .dj-form input[name="{name}"]:invalid')).to_have_count(1)
+    expect(page.locator('django-formset form:valid')).to_have_count(0)
+    expect(page.locator('django-formset form:invalid')).to_have_count(1)
+    expect(page.locator('[role="group"] ul.dj-errorlist > li.dj-placeholder')).to_have_text("Input value must be a multiple of 0.5.")
 
 
 urlpatterns.append(
@@ -336,15 +333,15 @@ urlpatterns.append(
 @pytest.mark.parametrize('viewname', ['date_form'])
 def test_date_field(page, mocker):
     name = 'dateval'
-    assert page.query_selector('django-formset form:valid') is not None
-    assert page.query_selector('django-formset form:invalid') is None
-    input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
+    expect(page.locator('django-formset form:valid')).to_have_count(1)
+    expect(page.locator('django-formset form:invalid')).to_have_count(0)
+    input_elem = page.locator(f'django-formset .dj-form input[name="{name}"]')
     input_elem.click()
     input_elem.evaluate('elem => elem.blur()')
-    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is not None
-    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is None
+    expect(page.locator(f'django-formset .dj-form input[name="{name}"]:valid')).to_have_count(1)
+    expect(page.locator(f'django-formset .dj-form input[name="{name}"]:invalid')).to_have_count(0)
     spy = mocker.spy(FormView, 'post')
-    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    page.locator('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     assert request['formset_data'][name] == '2021-03-29'
     assert spy.spy_return.status_code == 200
@@ -366,17 +363,17 @@ urlpatterns.append(
 @pytest.mark.parametrize('viewname', ['boolean_form'])
 def test_boolean_field(page, mocker):
     name = 'boolval'
-    assert page.query_selector('django-formset form:valid') is None
-    assert page.query_selector('django-formset form:invalid') is not None
-    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:valid') is None
-    assert page.query_selector(f'django-formset .dj-form input[name="{name}"]:invalid') is not None
-    placeholder_field = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder')
-    assert placeholder_field.inner_text() == ""
-    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
-    assert placeholder_field.inner_text() == "This field is required."
+    expect(page.locator('django-formset form:valid')).to_have_count(0)
+    expect(page.locator('django-formset form:invalid')).to_have_count(1)
+    expect(page.locator(f'django-formset .dj-form input[name="{name}"]:valid')).to_have_count(0)
+    expect(page.locator(f'django-formset .dj-form input[name="{name}"]:invalid')).to_have_count(1)
+    placeholder_field = page.locator('[role="group"] ul.dj-errorlist > li.dj-placeholder')
+    expect(placeholder_field).to_have_text("")
+    page.locator('django-formset').evaluate('elem => elem.submit()')
+    expect(placeholder_field).to_have_text("This field is required.")
     input_elem = page.query_selector(f'django-formset .dj-form input[name="{name}"]')
     input_elem.click()
-    assert placeholder_field.inner_text() == ""
+    expect(placeholder_field).to_have_text("")
     spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
@@ -411,13 +408,13 @@ urlpatterns.append(
 @pytest.mark.parametrize('viewname', ['select_form'])
 def test_select_field(page, mocker):
     name = 'choice'
-    assert page.query_selector('django-formset form:valid') is not None
-    assert page.query_selector('django-formset form:invalid') is None
-    assert page.query_selector(f'django-formset .dj-form select[name="{name}"]:valid') is not None
-    assert page.query_selector(f'django-formset .dj-form select[name="{name}"]:invalid') is None
-    page.select_option(f'django-formset .dj-form select[name="{name}"]', 'c')
+    expect(page.locator('django-formset form:valid')).to_have_count(1)
+    expect(page.locator('django-formset form:invalid')).to_have_count(0)
+    expect(page.locator(f'django-formset .dj-form select[name="{name}"]:valid')).to_have_count(0)
+    expect(page.locator(f'django-formset .dj-form select[name="{name}"]:invalid')).to_have_count(1)
+    page.locator(f'django-formset .dj-form select[name="{name}"]').select_option('c')
     spy = mocker.spy(FormView, 'post')
-    page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
+    page.locator('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
     assert request['select_form']['choice'] == 'c'
     assert spy.spy_return.status_code == 200
@@ -557,17 +554,17 @@ urlpatterns.append(
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['textarea_form'])
 def test_textarea(page, mocker):
-    assert page.query_selector('django-formset form:valid') is None
-    assert page.query_selector('django-formset form:invalid') is not None
-    placeholder_field = page.query_selector('[role="group"] ul.dj-errorlist > li.dj-placeholder')
-    assert placeholder_field.inner_text() == ""
-    textarea_elem = page.query_selector('django-formset .dj-form textarea')
-    textarea_elem.click()
-    textarea_elem.evaluate('elem => elem.blur()')
-    assert placeholder_field.inner_text() == "This field is required."
-    textarea_elem.type("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
-    assert placeholder_field.inner_text() == ""
-    textarea_elem.evaluate('elem => elem.blur()')
+    expect(page.locator('django-formset form:valid')).to_have_count(0)
+    expect(page.locator('django-formset form:invalid')).to_have_count(1)
+    placeholder_field = page.locator('[role="group"] ul.dj-errorlist > li.dj-placeholder')
+    expect(placeholder_field).to_have_text("")
+    textarea = page.locator('django-formset .dj-form textarea')
+    textarea.click()
+    textarea.evaluate('elem => elem.blur()')
+    expect(placeholder_field).to_have_text("This field is required.")
+    textarea.type("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
+    expect(placeholder_field).to_have_text("")
+    textarea.evaluate('elem => elem.blur()')
     spy = mocker.spy(FormView, 'post')
     page.wait_for_selector('django-formset').evaluate('elem => elem.submit()')
     request = json.loads(spy.call_args.args[1].body)
