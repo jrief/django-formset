@@ -89,6 +89,10 @@
 				--dummy-style: none;  // required by Calendar.transferStyles()
 
 				> li {
+					&:nth-child(n):nth-child(-n) {
+						background-color: $calendar-range-background-color;
+					}
+
 					&.selected {
 						background-color: $calendar-selected-background-color;
 						color: $calendar-selected-color;

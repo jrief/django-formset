@@ -18,9 +18,11 @@ enum Direction {
 }
 
 
+const rangeOverSelectorText = '[aria-haspopup="dialog"] + .dj-calendar .ranges ul:not(.weekdays) > li:nth-child(n):nth-child(-n)';
+
 export type CalendarSettings = {
 	dateOnly: boolean,  // if true, time is not displayed
-	initialDate?: Date,  // if set, this date is selected initially
+	withRange: boolean,  // if true, a range of dates can be selected
 	minDate?: Date,  // if set, dates before this are disabled
 	maxDate?: Date,  // if set, dates after this are disabled
 	interval?: number,  // granularity of entries in time picker
@@ -31,11 +33,15 @@ export type CalendarSettings = {
 };
 
 
+type DateRange = [Date, Date] | [Date, null] | [null, null];
+
 export class Calendar {
 	public readonly element: HTMLElement;
 	private viewMode!: ViewMode;
 	private settings: CalendarSettings;
-	private currentDateString: string = '';
+	private upperRange = false;
+	private dateRange: DateRange = [null, null];
+	private sheetBounds: [Date, Date];
 	private prevSheetDate!: Date;
 	private nextSheetDate!: Date;
 	private narrowSheetDate?: Date;
@@ -49,6 +55,7 @@ export class Calendar {
 	private maxMonthDate?: Date;
 	private minYearDate?: Date;
 	private maxYearDate?: Date;
+	private rangeOverCssRule?: CSSStyleRule;
 
 	constructor(calendarElement: HTMLElement | null, settings: CalendarSettings) {
 		this.settings = settings;
@@ -60,14 +67,28 @@ export class Calendar {
 		}
 		const observer = new MutationObserver(() => this.registerCalendar());
 		observer.observe(this.element, {childList: true});
-		this.currentDateString = settings.initialDate ? this.asUTCDate(settings.initialDate).toISOString().slice(0, 16) : '';
-		this.setBounds()
+		// if (settings.withRange) {
+		// 	this.dateRange = settings.initialCurrentDate && settings.initialExtendedDate
+		// 		? [this.asUTCDate(settings.initialCurrentDate), this.asUTCDate(settings.initialExtendedDate)]
+		// 		: [null, null];
+		// } else {
+		// 	this.currentDate = settings.initialCurrentDate ? this.asUTCDate(settings.initialCurrentDate) : null;
+		// }
+		this.setBounds();
 		this.registerCalendar();
 		this.transferStyles();
+		this.sheetBounds = this.getSheetBounds();
+		//this.markSelectedDates();
+	}
+
+	private get currentDateString() : string {
+		if (!this.dateRange[0])
+			return '';
+		return this.asUTCDate(this.dateRange[0]).toISOString().slice(0, this.settings.dateOnly ? 10 : 16);
 	}
 
 	private get todayDateString() : string {
-		return this.asUTCDate(new Date()).toISOString().slice(0, 16);
+		return this.asUTCDate(new Date()).toISOString().slice(0, this.settings.dateOnly ? 10 : 16);
 	}
 
 	private asUTCDate(date: Date) : Date {
@@ -150,6 +171,8 @@ export class Calendar {
 		if (textElem instanceof SVGTextElement) {
 			textElem.textContent = String((new Date()).getDate());
 		}
+		this.sheetBounds = this.getSheetBounds();
+		this.markSelectedDates();
 	}
 
 	private registerHoursView() {
@@ -162,8 +185,9 @@ export class Calendar {
 			});
 		}
 
+		//const currentDateString = this.currentDateString;
 		this.calendarItems.forEach(elem => {
-			elem.classList.toggle('selected', elem.getAttribute('data-date') === this.currentDateString);
+			//elem.classList.toggle('selected', elem.getAttribute('data-date') === currentDateString);
 			const date = this.getDate(elem);
 			if (this.minDate && date < this.minDate || this.maxDate && date > this.maxDate) {
 				elem.toggleAttribute('disabled', true);
@@ -176,12 +200,13 @@ export class Calendar {
 			}
 		});
 
+		const currentHourString = this.currentDateString.slice(0, 13);
 		const todayHourString = this.todayDateString.slice(0, 13).concat(':00');
 		this.element.querySelectorAll('li[aria-label]').forEach(elem => {
 			const label = elem.getAttribute('aria-label')!;
 			elem.classList.toggle('today', label === todayHourString);
 			const selector = `ul[aria-labelledby="${label}"]`;
-			if (label.slice(0, 13) === this.currentDateString.slice(0, 13)) {
+			if (label.slice(0, 13) === currentHourString) {
 				elem.classList.add('preselected');
 				this.element.querySelector(selector)?.removeAttribute('hidden');
 			}
@@ -200,31 +225,35 @@ export class Calendar {
 
 	private registerWeeksView() {
 		const todayDateString = this.todayDateString.slice(0, 10);
-		const currentDateString = this.currentDateString.slice(0, 10);
+		//const currentDateString = this.currentDateString.slice(0, 10);
 		if (this.settings.minDate) {
 			this.minWeekDate = new Date(this.settings.minDate);
 			this.minWeekDate.setHours(0, 0, 0);
 		}
 		this.calendarItems.forEach(elem => {
 			elem.classList.toggle('today', elem.getAttribute('data-date') === todayDateString);
-			elem.classList.toggle('selected', elem.getAttribute('data-date') === currentDateString);
+			//elem.classList.toggle('selected', elem.getAttribute('data-date') === currentDateString);
 			const date = this.getDate(elem);
 			if (this.minWeekDate && date < this.minWeekDate || this.maxWeekDate && date > this.maxWeekDate) {
 				elem.toggleAttribute('disabled', true);
 			} else {
 				elem.addEventListener('click', this.selectDay);
+				if (this.settings.withRange) {
+					elem.addEventListener('mouseenter', this.handleOver);
+					elem.addEventListener('mouseleave', this.handleOver);
+				}
 			}
 		});
 	}
 
 	private registerMonthsView() {
 		const todayMonthString = this.todayDateString.slice(0, 7);
-		const currentMonthString = this.currentDateString.slice(0, 7);
+		//const currentMonthString = this.currentDateString.slice(0, 7);
 		this.calendarItems.forEach(elem => {
 			const date = this.getDate(elem);
 			const monthString = elem.getAttribute('data-date')?.slice(0, 7);
 			elem.classList.toggle('today', monthString === todayMonthString);
-			elem.classList.toggle('selected', monthString === currentMonthString);
+			//elem.classList.toggle('selected', monthString === currentMonthString);
 			if (this.minMonthDate && date < this.minMonthDate || this.maxMonthDate && date > this.maxMonthDate) {
 				elem.toggleAttribute('disabled', true);
 			} else {
@@ -235,12 +264,12 @@ export class Calendar {
 
 	private registerYearsView() {
 		const todayYearString = this.todayDateString.slice(0, 4);
-		const currentYearString = this.currentDateString.slice(0, 4);
+		//const currentYearString = this.currentDateString.slice(0, 4);
 		this.calendarItems.forEach(elem => {
 			const date = this.getDate(elem);
 			const yearString = elem.getAttribute('data-date')?.slice(0, 4);
 			elem.classList.toggle('today', yearString === todayYearString);
-			elem.classList.toggle('selected', yearString === currentYearString);
+			//elem.classList.toggle('selected', yearString === currentYearString);
 			if (this.minYearDate && date < this.minYearDate || this.maxYearDate && date > this.maxYearDate) {
 				elem.toggleAttribute('disabled', true);
 			} else {
@@ -404,13 +433,114 @@ export class Calendar {
 		}
 	}
 
+	private getDateSelector(date: Date) : string {
+		const utcDateString = this.asUTCDate(date).toISOString();
+		let dateString;
+		switch (this.viewMode) {
+			case ViewMode.hours:
+				dateString = utcDateString.slice(0, 16);
+				break;
+			case ViewMode.weeks:
+				dateString = utcDateString.slice(0, 10);
+				break;
+			case ViewMode.months:
+				dateString = `${utcDateString.slice(0, 7)}-01`;
+				break;
+			case ViewMode.years:
+				dateString = `${utcDateString.slice(0, 4)}-01-01`;
+				break;
+		}
+		return `li[data-date="${dateString}"]`;
+	}
+
+	private indexOfCalendarItem(date: Date) : number {
+		const dateSelector= this.getDateSelector(date);
+		const selectedElement = this.element.querySelector(dateSelector);
+		return Array.from(this.calendarItems).indexOf(selectedElement as HTMLLIElement);
+	}
+
+	private handleOver = (event: Event) => {
+		if (!(event.target instanceof HTMLLIElement) || !this.rangeOverCssRule?.selectorText)
+			return;
+		if (this.dateRange[0] && !this.dateRange[1]) {
+			const hoverIndex = Array.from(this.calendarItems).indexOf(event.target);
+			const lowerIndex = this.indexOfCalendarItem(this.dateRange[0]);
+			let selectors;
+			if (lowerIndex === -1) {
+				if (this.dateRange[0] < this.sheetBounds[1]) {
+					selectors = `:nth-child(n + 1):nth-child(-n + ${hoverIndex + 1})`;
+				} else if (this.dateRange[0] > this.sheetBounds[0]) {
+					selectors = `:nth-child(n + ${hoverIndex + 1}):nth-child(-n + 42)`;
+				} else throw new Error(`Date ${this.dateRange[0]} is not in sheet bounds ${this.sheetBounds}`);
+			} else if (hoverIndex < lowerIndex) {
+				selectors = `:nth-child(n + ${hoverIndex + 1}):nth-child(-n + ${lowerIndex})`;
+			} else if (hoverIndex > lowerIndex) {
+				selectors = `:nth-child(n + ${lowerIndex + 2}):nth-child(-n + ${hoverIndex + 1})`;
+			} else {
+				selectors = ':nth-child(n):nth-child(-n)';
+			}
+			console.log(selectors);
+			this.rangeOverCssRule.selectorText = rangeOverSelectorText.replace(
+				':nth-child(n):nth-child(-n)',
+				selectors,
+			);
+		}
+	};
+
+	private markSelectedDates() {
+		this.calendarItems.forEach(elem => elem.classList.remove('selected'));
+		if (this.rangeOverCssRule) {
+			this.rangeOverCssRule.selectorText = rangeOverSelectorText;
+		}
+		if (this.settings.withRange && this.dateRange[0] && this.dateRange[1]) {
+			const [lowerIndex, upperIndex] = [
+				this.indexOfCalendarItem(this.dateRange[0]),
+				this.indexOfCalendarItem(this.dateRange[1])
+			];
+			let selectors;
+			if (lowerIndex === -1 && upperIndex === -1) {
+				if (this.dateRange[0] < this.sheetBounds[0] && this.dateRange[1] > this.sheetBounds[1]) {
+					selectors = ':nth-child(n + 1):nth-child(-n + 42)';
+				} else {
+					selectors = ':nth-child(n):nth-child(-n)';
+				}
+			} else if (lowerIndex === -1) {
+				selectors = `:nth-child(n + 1):nth-child(-n + ${upperIndex})`;
+			} else if (upperIndex === -1) {
+				selectors = `:nth-child(n + ${lowerIndex + 2}):nth-child(-n + 42)`;
+			} else {
+				selectors = `:nth-child(n + ${lowerIndex + 2}):nth-child(-n + ${upperIndex})`;
+			}
+			if (this.rangeOverCssRule) {
+				this.rangeOverCssRule.selectorText = rangeOverSelectorText.replace(
+					':nth-child(n):nth-child(-n)',
+					selectors,
+				);
+			}
+			this.calendarItems.item(lowerIndex)?.classList.add('selected');
+			this.calendarItems.item(upperIndex)?.classList.add('selected');
+		} else if (this.dateRange[0]) {
+			const dateSelector= this.getDateSelector(this.dateRange[0]);
+			this.element.querySelector(dateSelector)?.classList.add('selected');
+		}
+	}
+
 	private setDate(element: Element) {
-		this.calendarItems.forEach(elem => {
-			elem.classList.toggle('selected', elem === element);
-		});
 		const newDate = new Date(element.getAttribute('data-date')!);
-		this.currentDateString = newDate.toISOString().slice(0, 16);
-		this.settings.updateDate(newDate);
+		if (this.settings.withRange) {
+			if (this.upperRange && this.dateRange[0]) {
+				this.dateRange = newDate < this.dateRange[0] ? [newDate, this.dateRange[0]] : [this.dateRange[0], newDate];
+				this.settings.updateDate(this.dateRange[0], this.dateRange[1]);
+				this.upperRange = false;
+			} else {
+				this.dateRange = [newDate, null];
+				this.upperRange = true;
+			}
+		} else {
+			this.dateRange[0] = newDate;
+			this.settings.updateDate(this.dateRange[0], true);
+		}
+		this.markSelectedDates();
 	}
 
 	private async selectToday() {
@@ -425,6 +555,8 @@ export class Calendar {
 
 	private selectDate(element: Element) {
 		this.setDate(element);
+		if (this.settings.withRange && this.dateRange[0] && !this.dateRange[1])
+			return;
 		this.settings.close();
 	}
 
@@ -527,6 +659,15 @@ export class Calendar {
 		}
 	}
 
+	private getSheetBounds() : [Date, Date] {
+		const firstItem = this.calendarItems.item(0);
+		const lastItem = this.calendarItems.item(this.calendarItems.length - 1);
+		const lower= new Date(firstItem.getAttribute('data-date')!);
+		const upper = new Date(lastItem.getAttribute('data-date')!);
+		upper.setHours(23, 59, 59, 999);
+		return [lower, upper];
+	}
+
 	private transferStyles() {
 		for (let k = 0; k < document.styleSheets.length; ++k) {
 			// prevent adding <styles> multiple times with the same content by checking if they already exist
@@ -575,6 +716,9 @@ export class Calendar {
 						declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					}
 					break;
+				case rangeOverSelectorText:
+					this.rangeOverCssRule = cssRule;
+					break;
 				default:
 					break;
 			}
@@ -582,8 +726,16 @@ export class Calendar {
 		inputElement.style.transition = '';
 	}
 
-	public updateDate(date: Date) {
-		this.currentDateString = this.asUTCDate(date).toISOString().slice(0, 16);
-		this.fetchCalendar(date, this.viewMode);
+	public updateDate(currentDate: Date|null, extendedDate: Date|null) {
+		// this.dateRange = currentDate
+		// 	? [this.asUTCDate(currentDate), extendedDate ? this.asUTCDate(extendedDate) : null]
+		// 	: [null, null];
+		this.dateRange = currentDate
+			? [currentDate, extendedDate]
+			: [null, null];
+		this.upperRange = false;
+		if (currentDate) {
+			this.fetchCalendar(currentDate, this.viewMode);
+		}
 	}
 }

@@ -12,6 +12,11 @@ enum FieldPart {
 	day,
 	hour,
 	minute,
+	yearExt,
+	monthExt,
+	dayExt,
+	hourExt,
+	minuteExt,
 }
 
 
@@ -19,10 +24,12 @@ class DateTimePicker extends Widget {
 	private readonly inputElement: HTMLInputElement;
 	private readonly textBox: HTMLElement;
 	private readonly dateOnly: boolean;
+	private readonly withRange: boolean;
 	private readonly calendar: Calendar;
 	private readonly inputFields: Array<HTMLElement> = [];
 	private readonly inputFieldsOrder: Array<number> = [];
-	private currentDate: Date | null = null;
+	private currentDate: Date | null = null;  // when withRange=true, this is the lower bound
+	private extendedDate: Date | null = null;  // when withRange=true, this is the upper bound, otherwise it's unused
 	private calendarOpener: HTMLElement;
 	private dateTimeFormat?: Intl.DateTimeFormat;
 	private hasFocus: HTMLElement | null = null;
@@ -32,7 +39,8 @@ class DateTimePicker extends Widget {
 	constructor(inputElement: HTMLInputElement, calendarElement: HTMLElement | null) {
 		super(inputElement);
 		this.inputElement = inputElement;
-		this.dateOnly = inputElement.getAttribute('is') === 'django-datepicker';
+		this.dateOnly = ['django-datepicker', 'django-daterangepicker'].includes(inputElement.getAttribute('is') ?? '');
+		this.withRange = ['django-daterangepicker', 'django-datetimerangepicker'].includes(inputElement.getAttribute('is') ?? '');
 		this.textBox = this.createTextBox();
 		this.setInitialDate();
 		this.calendar = new Calendar(calendarElement, this.getCalendarSettings());
@@ -44,27 +52,46 @@ class DateTimePicker extends Widget {
 		this.installEventHandlers();
 		this.transferStyles();
 		this.transferClasses();
-		this.updateInputFields(this.currentDate);
+		this.updateInputFields();
 	}
 
 	private setInitialDate() {
-		this.currentDate = this.inputElement.value ? new Date(this.inputElement.value) : null;
+		const value = this.inputElement.value;
+		if (value) {
+			if (this.withRange) {
+				const [start, end] = value.split(';');
+				this.currentDate = start ? new Date(start) : null;
+				this.extendedDate = end ? new Date(end) : null;
+			} else {
+				this.currentDate = new Date(value);
+				this.extendedDate = null;
+			}
+		} else {
+			this.currentDate = this.extendedDate = null;
+		}
 	}
 
-	private updateDate(date: Date) {
-		this.currentDate = date;
-		this.updateInputFields(this.currentDate);
-		this.inputElement.dispatchEvent(new Event('input'));
-		this.inputElement.dispatchEvent(new Event('blur'));
+	private updateDate(currentDate: Date, extendedDate: Date|null|boolean) {
+		if (this.withRange && extendedDate instanceof Date) {
+			this.currentDate = currentDate;
+			this.extendedDate = extendedDate;
+		} else {
+			this.currentDate = currentDate;
+		}
+		this.updateInputFields();
+		if (extendedDate) {
+			this.inputElement.dispatchEvent(new Event('input'));
+			this.inputElement.dispatchEvent(new Event('blur'));
+		}
 	}
 
 	private getCalendarSettings() : CalendarSettings {
 		const settings: CalendarSettings = {
 			dateOnly: this.dateOnly,
-			initialDate: this.currentDate ?? undefined,
+			withRange: this.withRange,
 			endpoint: this.endpoint!,
 			inputElement: this.inputElement,
-			updateDate: (date: Date) => this.updateDate(date),
+			updateDate: (currentDate: Date, extendedDate: Date|null|boolean) => this.updateDate(currentDate, extendedDate),
 			close: () => this.closeCalendar(),
 		};
 		const minValue = this.inputElement.getAttribute('min');
@@ -160,6 +187,11 @@ class DateTimePicker extends Widget {
 				}
 			});
 		}
+		if (this.withRange) {
+			htmlTags.push('<span role="separator" class="datetime-delimiter" aria-hidden="true"> – </span>');
+			htmlTags.push(...htmlTags.slice(2, -1));
+			this.inputFieldsOrder.push(...this.inputFieldsOrder.map(i => i + 5));
+		}
 		htmlTags.push('</div>');
 		htmlTags.push('<span class="calendar-picker-indicator"></span>');
 		htmlTags.push('</div>');
@@ -175,6 +207,15 @@ class DateTimePicker extends Widget {
 			this.inputFields[FieldPart.hour] = this.textBox.querySelector('.datetime-edit-hour-field')!;
 			this.inputFields[FieldPart.minute] = this.textBox.querySelector('.datetime-edit-minute-field')!;
 		}
+		if (this.withRange) {
+			this.inputFields[FieldPart.yearExt] = this.textBox.querySelector('.datetime-edit-year-field ~ .datetime-edit-year-field')!;
+			this.inputFields[FieldPart.monthExt] = this.textBox.querySelector('.datetime-edit-month-field ~ .datetime-edit-month-field')!;
+			this.inputFields[FieldPart.dayExt] = this.textBox.querySelector('.datetime-edit-day-field ~ .datetime-edit-day-field')!;
+			if (!this.dateOnly) {
+				this.inputFields[FieldPart.hourExt] = this.textBox.querySelector('.datetime-edit-hour-field ~ .datetime-edit-hour-field')!;
+				this.inputFields[FieldPart.minuteExt] = this.textBox.querySelector('.datetime-edit-minute-field ~ .datetime-edit-minute-field')!;
+			}
+		}
 		this.inputFields.forEach(inputField => {
 			inputField.addEventListener('focus', this.handleFocus);
 			inputField.addEventListener('blur', this.handleBlur);
@@ -188,6 +229,7 @@ class DateTimePicker extends Widget {
 		this.cleanup = autoUpdate(this.textBox, this.calendar.element, this.updatePosition);
 		this.textBox.setAttribute('aria-expanded', 'true');
 		this.isOpen = true;
+		this.calendar.updateDate(this.currentDate, this.extendedDate);
 	}
 
 	private closeCalendar() {
@@ -196,38 +238,65 @@ class DateTimePicker extends Widget {
 		this.cleanup?.();
 	}
 
-	private updateInputFields(newDate: Date | null) {
-		if (newDate) {
-			this.inputFields[FieldPart.year].innerText = String(newDate.getFullYear());
-			this.inputFields[FieldPart.month].innerText = String(newDate.getMonth() + 1).padStart(2, '0');
-			this.inputFields[FieldPart.day].innerText = String(newDate.getDate()).padStart(2, '0');
+	private updateInputFields() {
+		const setDateParts = (newDate: Date, year: FieldPart, month: FieldPart, day: FieldPart, hour: FieldPart, minute: FieldPart) => {
+			this.inputFields[year].innerText = String(newDate.getFullYear());
+			this.inputFields[month].innerText = String(newDate.getMonth() + 1).padStart(2, '0');
+			this.inputFields[day].innerText = String(newDate.getDate()).padStart(2, '0');
 			if (!this.dateOnly) {
-				this.inputFields[FieldPart.hour].innerText = String(newDate.getHours()).padStart(2, '0');
-				this.inputFields[FieldPart.minute].innerText = String(newDate.getMinutes()).padStart(2, '0');
+				this.inputFields[hour].innerText = String(newDate.getHours()).padStart(2, '0');
+				this.inputFields[minute].innerText = String(newDate.getMinutes()).padStart(2, '0');
 			}
-			this.inputElement.value = newDate.toISOString().slice(0, this.dateOnly ? 10 : 16);
+		}
+		if (this.currentDate) {
+			setDateParts(this.currentDate, FieldPart.year, FieldPart.month, FieldPart.day, FieldPart.hour, FieldPart.minute);
+			this.inputElement.value = this.currentDate.toISOString().slice(0, this.dateOnly ? 10 : 16);
+			if (this.extendedDate) {
+				setDateParts(this.extendedDate, FieldPart.yearExt, FieldPart.monthExt, FieldPart.dayExt, FieldPart.hourExt, FieldPart.minuteExt);
+				this.inputElement.value = [
+					this.inputElement.value,
+					this.extendedDate.toISOString().slice(0, this.dateOnly ? 10 : 16),
+				].join(';');
+			}
 		} else {
 			this.inputFields.forEach(field => field.innerText = '');
 			this.inputElement.value = '';
 		}
 	}
 
-	private parseInputFields() : Date | null {
-		const dateParts = [
-			Math.min(Math.max(parseInt(this.inputFields[FieldPart.year].innerText), 1700), 2300).toString(),
-			'-',
-			Math.min(Math.max(parseInt(this.inputFields[FieldPart.month].innerText), 1), 12).toString().padStart(2, '0'),
-			'-',
-			Math.min(Math.max(parseInt(this.inputFields[FieldPart.day].innerText), 1), 31).toString().padStart(2, '0'),
-		];
-		if (!this.dateOnly) {
-			dateParts.push('T');
-			dateParts.push(Math.min(Math.max(parseInt(this.inputFields[FieldPart.hour].innerText), 0), 23).toString().padStart(2, '0'));
-			dateParts.push(':');
-			dateParts.push(Math.min(Math.max(parseInt(this.inputFields[FieldPart.minute].innerText), 0), 59).toString().padStart(2, '0'));
-		}
+	private parseInputFields() {
+		const getDateParts = (year: FieldPart, month: FieldPart, day: FieldPart, hour: FieldPart, minute: FieldPart) : string[] => {
+			const dateParts = [
+				Math.min(Math.max(parseInt(this.inputFields[year].innerText), 1700), 2300).toString(),
+				'-',
+				Math.min(Math.max(parseInt(this.inputFields[month].innerText), 1), 12).toString().padStart(2, '0'),
+				'-',
+				Math.min(Math.max(parseInt(this.inputFields[day].innerText), 1), 31).toString().padStart(2, '0'),
+			];
+			if (!this.dateOnly) {
+				dateParts.push('T');
+				dateParts.push(Math.min(Math.max(parseInt(this.inputFields[hour].innerText), 0), 23).toString().padStart(2, '0'));
+				dateParts.push(':');
+				dateParts.push(Math.min(Math.max(parseInt(this.inputFields[minute].innerText), 0), 59).toString().padStart(2, '0'));
+			}
+			return dateParts;
+		};
+		const dateParts = getDateParts(FieldPart.year, FieldPart.month, FieldPart.day, FieldPart.hour, FieldPart.minute);
 		const newDate = new Date(dateParts.join(''));
-		return newDate && !isNaN(newDate.getTime()) ? newDate : null;
+		if (newDate && !isNaN(newDate.getTime())) {
+			this.currentDate = newDate;
+			if (this.withRange) {
+				const datePartsExt = getDateParts(FieldPart.yearExt, FieldPart.monthExt, FieldPart.dayExt, FieldPart.hourExt, FieldPart.minuteExt);
+				const newDateExt = new Date(datePartsExt.join(''));
+				if (newDateExt && !isNaN(newDateExt.getTime())) {
+					this.extendedDate = newDateExt;
+				} else {
+					this.extendedDate = null;
+				}
+			}
+		} else {
+			this.currentDate = this.extendedDate = null;
+		}
 	}
 
 
@@ -272,11 +341,9 @@ class DateTimePicker extends Widget {
 		setTimeout(() => {
 			if (!this.hasFocus) {
 				this.textBox.classList.remove('focus');
-				this.currentDate = this.parseInputFields();
-				this.updateInputFields(this.currentDate);
-				if (this.currentDate) {
-					this.calendar.updateDate(this.currentDate);
-				}
+				this.parseInputFields();
+				this.updateInputFields();
+				this.calendar.updateDate(this.currentDate, this.extendedDate);
 				this.inputElement.dispatchEvent(new Event('blur'));
 			}
 		}, 0);
@@ -309,14 +376,26 @@ class DateTimePicker extends Widget {
 				if (hasFocus.innerText) {
 					hasFocus.innerText = (parseInt(hasFocus.innerText) + 1).toString().padStart(2, '0');
 				} else {
-					this.updateInputFields(new Date());
+					if (this.inputFields.indexOf(hasFocus) < 5) {
+						this.currentDate = new Date();
+					} else if (this.withRange) {
+						this.currentDate = this.currentDate ?? new Date();
+						this.extendedDate = new Date();
+					}
+					this.updateInputFields();
 				}
 				return true;
 			case 'ArrowDown':
 				if (hasFocus.innerText) {
 					hasFocus.innerText = (parseInt(hasFocus.innerText) - 1).toString().padStart(2, '0');
 				} else {
-					this.updateInputFields(new Date());
+					if (this.inputFields.indexOf(hasFocus) < 5) {
+						this.currentDate = new Date();
+					} else if (this.withRange) {
+						this.currentDate = this.currentDate ?? new Date();
+						this.extendedDate = new Date();
+					}
+					this.updateInputFields();
 				}
 				return true;
 			case 'Backspace': case 'Delete':
@@ -376,14 +455,14 @@ class DateTimePicker extends Widget {
 			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
 			switch (cssRule.selectorText) {
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"])':
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"])':
 					break;
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + [role="textbox"]':
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"]) + [role="textbox"]':
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border', 'color', 'outline', 'height', 'line-height', 'padding']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"]) + [role="textbox"].focus':
+				case ':is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"]) + [role="textbox"].focus':
 					this.inputElement.classList.add('-focus-');
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition']);
@@ -409,13 +488,24 @@ class DateTimePicker extends Widget {
 	protected formResetted(event: Event) {
 		this.inputElement.value = this.inputElement.defaultValue;
 		this.setInitialDate();
-		this.updateInputFields(this.currentDate);
+		this.updateInputFields();
 	}
 
 	protected formSubmitted(event: Event) {}
 
 	public valueAsDate() : Date | null {
 		return this.currentDate;
+	}
+
+	public checkValidity() : boolean {
+		if (this.withRange && this.currentDate && this.extendedDate) {
+			if (this.currentDate > this.extendedDate) {
+				const message = this.errorMessages.get('customError') ?? "Start date must be before end date";
+				this.inputElement.setCustomValidity(message);
+				return false;
+			}
+		}
+		return true;
 	}
 }
 
@@ -429,7 +519,7 @@ export class DatePickerElement extends HTMLInputElement {
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[DTP] = new DateTimePicker(this, calendarElement as HTMLElement);
+		this[DTP] = new DateTimePicker(this, calendarElement as HTMLElement | null);
 	}
 
 	get valueAsDate() : Date | null {
@@ -446,10 +536,29 @@ export class DateTimePickerElement extends HTMLInputElement {
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[DTP] = new DateTimePicker(this, calendarElement as HTMLElement);
+		this[DTP] = new DateTimePicker(this, calendarElement as HTMLElement | null);
 	}
 
 	get valueAsDate() : Date | null {
 		return this[DTP].valueAsDate();
+	}
+}
+
+
+export class DateRangePickerElement extends HTMLInputElement {
+	private [DTP]!: DateTimePicker;  // hides internal implementation
+
+	connectedCallback() {
+		const fieldGroup = this.closest('[role="group"]');
+		if (!fieldGroup)
+			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
+		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
+		this[DTP] = new DateTimePicker(this, calendarElement as HTMLElement | null);
+	}
+
+	public checkValidity() {
+		if (!super.checkValidity())
+			return false;
+		return this[DTP].checkValidity();
 	}
 }

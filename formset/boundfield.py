@@ -164,6 +164,8 @@ class BoundField(boundfield.BoundField):
             client_messages['type_mismatch'] = client_messages['pattern_mismatch'] = server_messages['invalid']
         elif 'invalid_choice' in server_messages:
             client_messages['type_mismatch'] = server_messages['invalid_choice']
+        if 'bound_ordering' in server_messages:
+            client_messages['custom_error'] = server_messages['bound_ordering']
         else:
             for validator in self.field.validators:
                 validator_code = getattr(validator, 'code', None)
