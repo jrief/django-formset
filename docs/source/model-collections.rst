@@ -279,9 +279,11 @@ wanted instance from the database, or if that hidden field is empty, must create
 model instance. Forms which have been deleted using the trash symbol on the upper right corner of
 each form, are marked for removal and will be removed from the associated object.
 
-After a submitted form has been successfully validated, the ``EditCollectionView`` calls the method
-``form_collection_valid(form_collection)`` passing a nested structure of collections and their
-associated forms. If the default implementation, doesn't match your needs, this method can be
+.. rubric:: ``form_collection_valid(form_collection)``
+
+After all submitted forms have been successfully validated, the ``EditCollectionView`` calls the
+method ``form_collection_valid(form_collection)`` passing a nested structure of collections and
+their associated forms. If the default implementation, doesn't match your needs, this method can be
 overwritten by a customized implementation. If, as in this example, models are interconnected by a
 straight relationship, the default implementation will probably suffice. Remember, that for more
 complicated relationships, you can always overwrite methods ``construct_instance(…)`` and
