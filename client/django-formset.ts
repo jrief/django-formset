@@ -88,6 +88,13 @@ window.addEventListener('DOMContentLoaded', (event) => {
 				}).catch(err => reject(err));
 			}));
 		}
+		if (fragmentRoot.querySelector('input[is="django-datetimerangepicker"]')) {
+			promises.push(new Promise((resolve, reject) => {
+				import('./django-formset/DateTimePicker').then(({DateTimeRangePickerElement}) => {
+					defineComponent(resolve, 'django-datetimerangepicker', DateTimeRangePickerElement, {extends: 'input'});
+				}).catch(err => reject(err));
+			}));
+		}
 	}
 
 	document.querySelectorAll('template.empty-collection').forEach(element => {

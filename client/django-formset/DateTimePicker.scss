@@ -1,7 +1,7 @@
 @import "colors";
 
-:is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"]) {
-	--dummy-style: none;  // required by Calendar.transferStyles()
+:is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"], [is="django-datetimerangepicker"]) {
+	--dummy-style: none;  // required by DateTimePicker.transferStyles()
 
 	&[hidden] {
 		// Using display: none causes: "An invalid form control with name='…' is not focusable." -error.
@@ -37,7 +37,9 @@
 		}
 
 		> .datetime-edit {
+			display: flex;
 			margin-left: calc(1rem + 0.6em);
+			overflow-x: hidden;
 
 			> .datetime-delimiter {
 				color: $calendar-delimiter-color;

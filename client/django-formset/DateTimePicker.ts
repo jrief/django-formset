@@ -29,7 +29,7 @@ class DateTimePicker extends Widget {
 	private readonly inputFields: Array<HTMLElement> = [];
 	private readonly inputFieldsOrder: Array<number> = [];
 	private currentDate: Date | null = null;  // when withRange=true, this is the lower bound
-	private extendedDate: Date | null = null;  // when withRange=true, this is the upper bound, otherwise it's unused
+	private extendedDate: Date | null = null;  // when withRange=true, this is the upper bound, otherwise unused
 	private calendarOpener: HTMLElement;
 	private dateTimeFormat?: Intl.DateTimeFormat;
 	private hasFocus: HTMLElement | null = null;
@@ -309,6 +309,7 @@ class DateTimePicker extends Widget {
 				return this.isOpen ? this.closeCalendar() : this.openCalendar();
 			element = element.parentElement;
 		}
+		console.log("close calendar");
 		this.closeCalendar();
 	}
 
@@ -374,7 +375,9 @@ class DateTimePicker extends Widget {
 				return true;
 			case 'ArrowUp':
 				if (hasFocus.innerText) {
-					hasFocus.innerText = (parseInt(hasFocus.innerText) + 1).toString().padStart(2, '0');
+					let value = parseInt(hasFocus.ariaValueMax ?? '0');
+					value = Math.min(value, parseInt(hasFocus.innerText) + 1);
+					hasFocus.innerText = value.toString().padStart(2, '0');
 				} else {
 					if (this.inputFields.indexOf(hasFocus) < 5) {
 						this.currentDate = new Date();
@@ -387,7 +390,9 @@ class DateTimePicker extends Widget {
 				return true;
 			case 'ArrowDown':
 				if (hasFocus.innerText) {
-					hasFocus.innerText = (parseInt(hasFocus.innerText) - 1).toString().padStart(2, '0');
+					let value = parseInt(hasFocus.ariaValueMin ?? '0');
+					value = Math.max(value, parseInt(hasFocus.innerText) - 1);
+					hasFocus.innerText = value.toString().padStart(2, '0');
 				} else {
 					if (this.inputFields.indexOf(hasFocus) < 5) {
 						this.currentDate = new Date();
@@ -450,19 +455,20 @@ class DateTimePicker extends Widget {
 		declaredStyles.innerText = styles;
 		document.head.appendChild(declaredStyles);
 		this.inputElement.style.transition = 'none';  // prevent transition while pilfering styles
-		const inputHeight = window.getComputedStyle(this.inputElement).getPropertyValue('height');
+		//const inputHeight = window.getComputedStyle(this.inputElement).getPropertyValue('height');
+		const baseSelector = ':is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"], [is="django-datetimerangepicker"])';
 		for (let index = 0; declaredStyles.sheet && index < declaredStyles.sheet.cssRules.length; index++) {
 			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
 			switch (cssRule.selectorText) {
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"])':
+				case baseSelector:
 					break;
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"]) + [role="textbox"]':
+				case `${baseSelector} + [role="textbox"]`:
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border', 'color', 'outline', 'height', 'line-height', 'padding']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case ':is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"]) + [role="textbox"].focus':
+				case `${baseSelector} + [role="textbox"].focus`:
 					this.inputElement.classList.add('-focus-');
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition']);
@@ -546,6 +552,25 @@ export class DateTimePickerElement extends HTMLInputElement {
 
 
 export class DateRangePickerElement extends HTMLInputElement {
+	private [DTP]!: DateTimePicker;  // hides internal implementation
+
+	connectedCallback() {
+		const fieldGroup = this.closest('[role="group"]');
+		if (!fieldGroup)
+			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
+		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
+		this[DTP] = new DateTimePicker(this, calendarElement as HTMLElement | null);
+	}
+
+	public checkValidity() {
+		if (!super.checkValidity())
+			return false;
+		return this[DTP].checkValidity();
+	}
+}
+
+
+export class DateTimeRangePickerElement extends HTMLInputElement {
 	private [DTP]!: DateTimePicker;  // hides internal implementation
 
 	connectedCallback() {

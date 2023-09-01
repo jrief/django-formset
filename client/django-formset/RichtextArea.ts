@@ -1032,7 +1032,7 @@ class RichtextArea {
 const RA = Symbol('RichtextArea');
 
 export class RichTextAreaElement extends HTMLTextAreaElement {
-	private [RA]?: RichtextArea;  // hides internal implementation
+	private [RA]!: RichtextArea;  // hides internal implementation
 
 	private connectedCallback() {
 		const wrapperElement = this.closest('.dj-richtext-wrapper');
@@ -1042,10 +1042,10 @@ export class RichTextAreaElement extends HTMLTextAreaElement {
 	}
 
 	private disconnectCallback() {
-		this[RA]?.disconnect();
+		this[RA].disconnect();
 	}
 
 	public get value() : any {
-		return this[RA]?.getValue();
+		return this[RA].getValue();
 	}
 }

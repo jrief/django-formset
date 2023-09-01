@@ -52,24 +52,54 @@
 			text-align: center;
 			display: grid;
 			gap: 2px;
+			line-height: 38px;
+
+			&:not(*) {
+				background-color: $calendar-range-background-color;
+			}
+
+			> li::selection {
+				background-color: transparent;
+			}
 
 			&.hours {
 				grid-template-columns: repeat(6, 1fr);
+				margin-bottom: 2px;
+
 				> li.preselected {
-					border: 1px solid lightgrey;
+					border: 2px solid lightgrey;
 					border-bottom-color: white;
+					border-bottom-width: 2px;
 					border-top-left-radius: 5px;
 					border-top-right-radius: 5px;
 				}
+				> li:has(~ li.preselected) {
+					border-bottom: 2px solid lightgrey;
+				}
+				> li.preselected ~ li {
+					border-bottom: 2px solid lightgrey;
+				}
 			}
 
-			&.weekdays, &.monthdays {
-				grid-template-columns: repeat(7, 1fr);
+			&.minutes {
+				font-size: smaller;
+				border: 2px solid lightgrey;
+				margin: -4px 0 4px;
+				padding: 0;
+				line-height: inherit;
+
+				> li {
+					width: inherit;
+				}
 			}
 
 			&.monthdays {
-				> li.adjacent {
-					color: $calendar-adjacent-color;
+				grid-template-columns: repeat(7, 1fr);
+
+				> li {
+					&.adjacent {
+						color: $calendar-adjacent-color;
+					}
 				}
 			}
 
@@ -82,6 +112,7 @@
 			}
 
 			&.weekdays {
+				grid-template-columns: repeat(7, 1fr);
 				font-weight: bold;
 			}
 
@@ -89,10 +120,6 @@
 				--dummy-style: none;  // required by Calendar.transferStyles()
 
 				> li {
-					&:nth-child(n):nth-child(-n) {
-						background-color: $calendar-range-background-color;
-					}
-
 					&.selected {
 						background-color: $calendar-selected-background-color;
 						color: $calendar-selected-color;
@@ -111,18 +138,6 @@
 						background-color: $calendar-hover-background-color;
 						cursor: pointer;
 					}
-				}
-			}
-
-			&.minutes {
-				font-size: smaller;
-				border: 1px solid lightgrey;
-				margin: -1px 0 3px;
-				padding: 0 5px;
-				line-height: inherit;
-
-				> li {
-					width: inherit;
 				}
 			}
 

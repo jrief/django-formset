@@ -55,12 +55,14 @@ class CalendarRenderer:
             for hour in range(shift, shift + 6):
                 hour_date = start_datetime.replace(hour=hour)
                 if interval is None:
-                    minutes = None
+                    hours.append((f'{hour_date.isoformat()[:13]}:00', hour, None))
                 else:
                     minutes = [(hour_date.replace(minute=minute).isoformat()[:16], f'{hour}:{minute:02d}')
                                for minute in range(0, 60, interval)]
-                hours.append((hour_date.isoformat()[:16], hour, minutes))
+                    hours.append((hour_date.isoformat()[:16], hour, minutes))
             context['shifts'].append(hours)
+        next_day = start_datetime + timedelta(days=1)
+        context['shifts'].append([(next_day.replace(hour=0, minute=0).isoformat()[:16], 24, None)])
         context.update(
             prev_day=(start_datetime - timedelta(days=1)).isoformat()[:10],
             next_day=(start_datetime + timedelta(days=1)).isoformat()[:10],

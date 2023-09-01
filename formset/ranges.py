@@ -1,7 +1,7 @@
 from django.forms import fields
 from django.utils.translation import gettext_lazy as _
 
-from formset.widgets import DatePicker
+from formset.widgets import DatePicker, DateTimePicker
 
 
 class BaseRangeField(fields.MultiValueField):
@@ -13,11 +13,10 @@ class BaseRangeField(fields.MultiValueField):
     def __init__(self, widget, **kwargs):
         kwargs.setdefault('required', True)
         kwargs.setdefault('require_all_fields', kwargs['required'])
-        if 'fields' not in kwargs:
-            kwargs['fields'] = [
-                self.base_field(required=kwargs['required']),
-                self.base_field(required=kwargs['required']),
-            ]
+        kwargs.setdefault('fields', [
+            self.base_field(required=kwargs['required']),
+            self.base_field(required=kwargs['required']),
+        ])
         self.range_kwargs = {}
         if default_bounds := kwargs.pop('default_bounds', None):
             self.range_kwargs = {'bounds': default_bounds}
@@ -50,10 +49,21 @@ class DateRangeField(BaseRangeField):
     base_field = fields.DateField
 
     def __init__(self, **kwargs):
-        if 'widget' not in kwargs:
-            kwargs['widget'] = DatePicker(attrs={
-                'type': 'regex',
-                'pattern': r'^\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}$',
-                'is': 'django-daterangepicker',
-            })
+        kwargs.setdefault('widget', DatePicker(attrs={
+            'type': 'regex',
+            'pattern': r'^\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}$',
+            'is': 'django-daterangepicker',
+        }))
+        super().__init__(**kwargs)
+
+
+class DateTimeRangeField(DateRangeField):
+    base_field = fields.DateTimeField
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault('widget', DateTimePicker(attrs={
+            'type': 'regex',
+            'pattern': r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2};\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$',
+            'is': 'django-datetimerangepicker',
+        }))
         super().__init__(**kwargs)
