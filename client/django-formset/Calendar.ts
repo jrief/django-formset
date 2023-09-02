@@ -523,7 +523,7 @@ export class Calendar {
 						];
 					} else {
 						selectors = [
-							`:nth-child(${lowerUlIndex} of .hours) > li:nth-child(n + ${lowerLiIndex})`,
+							`:nth-child(${lowerUlIndex} of .hours) > li:nth-child(n + ${lowerLiIndex + 1})`,
 							`:nth-child(n + ${lowerUlIndex + 1} of .hours):nth-child(-n + ${hoverUlIndex - 1} of .hours) > li`,
 							`:nth-child(${hoverUlIndex} of .hours) > li:nth-child(-n + ${hoverLiIndex})`,
 						];
@@ -566,7 +566,7 @@ export class Calendar {
 						const ulIndex = Math.floor(upperIndex / 6 / perHour) + 1;
 						selectors = [
 							`:nth-child(-n + ${ulIndex - 1} of .hours) > li`,
-							`:nth-child(${ulIndex} of .hours) > li:nth-child(-n + ${upperLiIndex})`,
+							`:nth-child(${ulIndex} of .hours) > li:nth-child(-n + ${upperLiIndex - 1})`,
 						];
 					} else {
 						selectors = [`:not(.weekdays) > li:nth-child(-n + ${upperIndex})`];
@@ -591,9 +591,9 @@ export class Calendar {
 							];
 						} else {
 							selectors = [
-								`:nth-child(${lowerUlIndex} of .hours) > li:nth-child(n + ${lowerLiIndex})`,
+								`:nth-child(${lowerUlIndex} of .hours) > li:nth-child(n + ${lowerLiIndex + 1})`,
 								`:nth-child(n + ${lowerUlIndex + 1} of .hours):nth-child(-n + ${upperUlIndex - 1} of .hours) > li`,
-								`:nth-child(${upperUlIndex} of .hours) > li:nth-child(-n + ${upperLiIndex})`,
+								`:nth-child(${upperUlIndex} of .hours) > li:nth-child(-n + ${upperLiIndex - 1})`,
 							];
 						}
 					} else {
