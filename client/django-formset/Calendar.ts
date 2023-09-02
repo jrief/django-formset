@@ -200,7 +200,7 @@ export class Calendar {
 			elem.classList.toggle('today', label === todayHourString);
 			const selector = `ul[aria-labelledby="${label}"]`;
 			if ([lowerHourString, upperHourString].includes(label.slice(0, 13))) {
-				elem.classList.add('preselected');
+				elem.classList.add('constricted');
 				this.element.querySelector(selector)?.removeAttribute('hidden');
 			}
 
@@ -667,7 +667,7 @@ export class Calendar {
 
 	private selectHour(liElement: HTMLLIElement) {
 		this.element.querySelectorAll('li[aria-label]').forEach(elem => {
-			elem.classList.remove('selected', 'preselected');
+			elem.classList.remove('selected', 'constricted');
 		});
 		this.element.querySelectorAll('ul[aria-labelledby]').forEach(elem => {
 			elem.toggleAttribute('hidden', true);
@@ -677,12 +677,12 @@ export class Calendar {
 		if (label) {
 			const ulElem = this.element.querySelector(`ul[aria-labelledby="${label}"]`);
 			if (ulElem instanceof HTMLUListElement) {
-				liElement.classList.add('preselected');
+				liElement.classList.add('constricted');
 				ulElem.removeAttribute('hidden');
 			}
 		} else if (liElement.parentElement instanceof HTMLUListElement && liElement.parentElement.hasAttribute('aria-labelledby')) {
 			const labelledby = liElement.parentElement.getAttribute('aria-labelledby');
-			this.element.querySelector(`li[aria-label="${labelledby}"]`)?.classList.add('preselected');
+			this.element.querySelector(`li[aria-label="${labelledby}"]`)?.classList.add('constricted');
 			liElement.parentElement.removeAttribute('hidden');
 		}
 	}
@@ -796,15 +796,15 @@ export class Calendar {
 					extraStyles = StyleHelpers.extractStyles(inputElement, ['padding']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li.preselected':
-				case '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li:has(~ li.preselected)':
-				case '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li.preselected ~ li':
+				case '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li.constricted':
+				case '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li:has(~ li.constricted)':
+				case '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li.constricted ~ li':
 				case '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.minutes':
 					inputElement.classList.add('-focus-');
 					extraStyles = StyleHelpers.extractStyles(inputElement, ['border-color']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					inputElement.classList.remove('-focus-');
-					if (cssRule.selectorText === '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li.preselected') {
+					if (cssRule.selectorText === '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li.constricted') {
 						extraStyles = StyleHelpers.extractStyles(this.element, ['background-color']);
 						extraStyles = extraStyles.replace('background-color', 'border-bottom-color');
 						declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);

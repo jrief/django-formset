@@ -66,17 +66,17 @@
 				grid-template-columns: repeat(6, 1fr);
 				margin-bottom: 2px;
 
-				> li.preselected {
+				> li.constricted {
 					border: 2px solid lightgrey;
 					border-bottom-color: white;
 					border-bottom-width: 2px;
 					border-top-left-radius: 5px;
 					border-top-right-radius: 5px;
 				}
-				> li:has(~ li.preselected) {
+				> li:has(~ li.constricted) {
 					border-bottom: 2px solid lightgrey;
 				}
-				> li.preselected ~ li {
+				> li.constricted ~ li {
 					border-bottom: 2px solid lightgrey;
 				}
 			}
