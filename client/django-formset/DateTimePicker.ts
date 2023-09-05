@@ -1,6 +1,6 @@
 import {autoUpdate, computePosition, flip, shift} from '@floating-ui/dom';
 import {Calendar, CalendarSettings} from "./Calendar";
-import { Widget } from './Widget';
+import {Widget} from './Widget';
 import {StyleHelpers} from './helpers';
 import styles from './DateTimePicker.scss';
 import calendarIcon from './icons/calendar.svg';
@@ -28,6 +28,7 @@ class DateTimePicker extends Widget {
 	private readonly calendar: Calendar;
 	private readonly inputFields: Array<HTMLElement> = [];
 	private readonly inputFieldsOrder: Array<number> = [];
+	private readonly baseSelector = ':is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"], [is="django-datetimerangepicker"])';
 	private currentDate: Date | null = null;  // when withRange=true, this is the lower bound
 	private extendedDate: Date | null = null;  // when withRange=true, this is the upper bound, otherwise unused
 	private calendarOpener: HTMLElement;
@@ -50,7 +51,9 @@ class DateTimePicker extends Widget {
 		this.calendarOpener = calendarOpener;
 		this.calendarOpener.innerHTML = calendarIcon;
 		this.installEventHandlers();
-		this.transferStyles();
+		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+			this.transferStyles();
+		}
 		this.transferClasses();
 		this.updateInputFields();
 	}
@@ -445,30 +448,24 @@ class DateTimePicker extends Widget {
 	}
 
 	private transferStyles() {
-		for (let k = 0; k < document.styleSheets.length; ++k) {
-			// prevent adding <styles> multiple times with the same content by checking if they already exist
-			const cssRule = document?.styleSheets?.item(k)?.cssRules?.item(0);
-			if (cssRule instanceof CSSStyleRule && cssRule.selectorText!.startsWith(':is([is="django-datepicker"], [is="django-datetimepicker"])'))
-				return;
-		}
 		const declaredStyles = document.createElement('style');
+		let loaded = false;
 		declaredStyles.innerText = styles;
 		document.head.appendChild(declaredStyles);
 		this.inputElement.style.transition = 'none';  // prevent transition while pilfering styles
-		//const inputHeight = window.getComputedStyle(this.inputElement).getPropertyValue('height');
-		const baseSelector = ':is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"], [is="django-datetimerangepicker"])';
 		for (let index = 0; declaredStyles.sheet && index < declaredStyles.sheet.cssRules.length; index++) {
 			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
 			switch (cssRule.selectorText) {
-				case baseSelector:
+				case this.baseSelector:
+					loaded = true;
 					break;
-				case `${baseSelector} + [role="textbox"]`:
+				case `${this.baseSelector} + [role="textbox"]`:
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border', 'color', 'outline', 'height', 'line-height', 'padding']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case `${baseSelector} + [role="textbox"].focus`:
+				case `${this.baseSelector} + [role="textbox"].focus`:
 					this.inputElement.classList.add('-focus-');
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition']);
@@ -480,6 +477,8 @@ class DateTimePicker extends Widget {
 			}
 		}
 		this.inputElement.style.transition = '';
+		if (!loaded)
+			throw new Error(`Could not load styles for ${this.baseSelector}`);
 	}
 
 	private transferClasses() {

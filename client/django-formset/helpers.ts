@@ -37,6 +37,16 @@ export namespace StyleHelpers {
 		return styleElement;
 	}
 
+	export function stylesAreInstalled(baseSelector: string) : boolean {
+		// check if styles have been loaded for this widget
+		for (let k = 0; k < document.styleSheets.length; ++k) {
+			const cssRule = document?.styleSheets?.item(k)?.cssRules?.item(0);
+			if (cssRule instanceof CSSStyleRule && cssRule.selectorText === baseSelector)
+				return true;
+		}
+		return false;
+	}
+
 	function traverseStyles(cssRule: CSSRule, extraCSSStyleSheet: CSSStyleSheet) {
 		if (cssRule instanceof CSSImportRule) {
 			try {
