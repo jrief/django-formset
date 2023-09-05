@@ -1,8 +1,8 @@
 ## Changes
 
-1.1
+- 1.1
   * Form collections containing only empty fields won't be submitted. This applies to collections
-    added using `extra_siblings` as to collections added using the appropriate button.
+    added using `extra_siblings` as to collections added using the appropriate "Add <label>" button.
   * Fix problem when using MultiWidget widgets. Under some configurations an error was raised
     stating “Duplicate name 'xxx' on multiple input fields”.
 
