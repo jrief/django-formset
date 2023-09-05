@@ -62,6 +62,12 @@
 				background-color: transparent;
 			}
 
+			> li {
+				&.preselected {
+					outline: 2px solid $calendar-selected-background-color;
+				}
+			}
+
 			&.hours {
 				grid-template-columns: repeat(6, 1fr);
 				margin-bottom: 2px;
@@ -90,6 +96,10 @@
 
 				> li {
 					width: inherit;
+					&.preselected {
+						// add bg-color to distinguish from outlines
+						background-color: $calendar-hover-background-color;
+					}
 				}
 			}
 

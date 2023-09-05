@@ -37,7 +37,9 @@ export class Calendar {
 	public readonly element: HTMLElement;
 	private viewMode!: ViewMode;
 	private settings: CalendarSettings;
+	private readonly baseSelector = '[aria-haspopup="dialog"] + .dj-calendar';
 	private upperRange = false;
+	private preselectedDate: Date|null = null;
 	private dateRange: DateRange = [null, null];
 	private sheetBounds: [Date, Date];
 	private prevSheetDate!: Date;
@@ -53,8 +55,8 @@ export class Calendar {
 	private maxMonthDate?: Date;
 	private minYearDate?: Date;
 	private maxYearDate?: Date;
-	private rangeSelectCssRule!: CSSStyleRule;
-	private readonly rangeSelectorText = '[aria-haspopup="dialog"] + .dj-calendar .ranges ul:not(*)';
+	private readonly rangeSelectCssRule: CSSStyleRule;
+	private readonly rangeSelectorText: string;
 
 	constructor(calendarElement: HTMLElement | null, settings: CalendarSettings) {
 		this.settings = settings;
@@ -67,7 +69,11 @@ export class Calendar {
 		const observer = new MutationObserver(() => this.registerCalendar());
 		observer.observe(this.element, {childList: true});
 		this.setMinMaxBounds();
-		this.transferStyles();
+		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+			this.transferStyles();
+		}
+		this.rangeSelectCssRule = this.getRangeSelectCssRule();
+		this.rangeSelectorText = this.rangeSelectCssRule.selectorText;
 		this.registerCalendar();
 		this.sheetBounds = this.getSheetBounds();
 	}
@@ -183,7 +189,11 @@ export class Calendar {
 			} else {
 				elem.addEventListener('click', (event: Event) => {
 					if (event.target instanceof HTMLLIElement) {
-						this.selectDate(event.target);
+						this.setDate(event.target);
+						this.markSelectedDates();
+						if (!this.settings.withRange || this.dateRange[0] && this.dateRange[1]) {
+							this.settings.close();
+						}
 					}
 				}, {once: true});
 				if (this.settings.withRange) {
@@ -315,10 +325,21 @@ export class Calendar {
 				}
 				break;
 			case 'Enter':
-				element = this.element.querySelector('.ranges .selected');
+				if (this.preselectedDate) {
+					const dateString = this.preselectedDate.toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10) ?? '';
+					element = this.element.querySelector(`.ranges li[data-date="${dateString}"]`);
+				} else {
+					const dateString = (this.upperRange ? this.dateRange[1] : this.dateRange[0])?.toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10) ?? '';
+					element = this.element.querySelector(`.ranges li[data-date="${dateString}"]`);
+				}
 				if (element) {
 					if (this.viewMode === ViewMode.hours || this.viewMode === ViewMode.weeks && this.settings.dateOnly) {
-						this.selectDate(element);
+						this.preselectedDate = null;
+						this.setDate(element);
+						this.markSelectedDates();
+						if (!this.upperRange) {
+							this.settings.close();
+						}
 					} else {
 						await this.fetchCalendar(this.getDate(element), nextViewMode.get(this.viewMode)!);
 					}
@@ -461,164 +482,101 @@ export class Calendar {
 		if (!(event.target instanceof HTMLLIElement))
 			return;
 		if (this.dateRange[0] && !this.dateRange[1]) {
-			const lowerIndex = this.indexOfCalendarItem(this.dateRange[0]);
-			const hoverDate = event.target.getAttribute('data-date') ?? event.target.getAttribute('aria-label') ?? '';
-			const hoverIndex = this.indexOfCalendarItem(new Date(hoverDate));
-			const perHour = this.settings.interval ? Math.min(60 / this.settings.interval, 6) : 1;
-			const lowerLiIndex = Math.floor(lowerIndex / perHour) % 6 + 1;
-			const hoverLiIndex = Math.floor(hoverIndex / perHour) % 6 + 1;
-			console.log(lowerIndex, hoverIndex);
-			let selectors: Array<string>;
-			if (lowerIndex === -1) {
-				if (this.dateRange[0] < this.sheetBounds[1]) {
-					if (this.viewMode === ViewMode.hours) {
-						const ulIndex = Math.floor(hoverIndex / 6 / perHour) + 1;
-						selectors = [
-							`:nth-child(-n + ${ulIndex - 1} of .hours) > li`,
-							`:nth-child(${ulIndex} of .hours) > li:nth-child(-n + ${hoverIndex % 6 + 1})`,
-						];
-					} else {
-						selectors = [`:not(.weekdays) > li:nth-child(-n + ${hoverIndex + 1})`];
-					}
-				} else if (this.dateRange[0] > this.sheetBounds[0]) {
-					if (this.viewMode === ViewMode.hours) {
-						const ulIndex = Math.floor(hoverIndex / 6 / perHour) + 1;
-						selectors = [
-							`:nth-child(${ulIndex} of .hours) > li:nth-child(n + ${hoverIndex % 6 + 1})`,
-							`:nth-child(n + ${ulIndex + 1} of .hours) > li`,
-						];
-					} else {
-						selectors = [`:not(.weekdays) > li:nth-child(n + ${hoverIndex + 1})`];
-					}
-				} else throw new Error(`Date ${this.dateRange[0]} is not in sheet bounds ${this.sheetBounds}`);
-			} else if (hoverIndex < lowerIndex) {
-				if (this.viewMode === ViewMode.hours) {
-					const hoverUlIndex = Math.floor(hoverIndex / 6 / perHour) + 1;
-					const lowerUlIndex = Math.floor(lowerIndex / 6 / perHour) + 1;
-					if (hoverUlIndex === lowerUlIndex) {
-						selectors = [
-							`:nth-child(${hoverUlIndex} of .hours) > li:nth-child(n + ${hoverIndex % 6 + 1}):nth-child(-n + ${lowerIndex % 6})`,
-						];
-					} else {
-						selectors = [
-							`:nth-child(${hoverUlIndex} of .hours) > li:nth-child(n + ${hoverLiIndex})`,
-							`:nth-child(n + ${hoverUlIndex + 1} of .hours):nth-child(-n + ${lowerUlIndex - 1} of .hours) > li`,
-							`:nth-child(${lowerUlIndex} of .hours) > li:nth-child(-n + ${lowerLiIndex - 1})`,
-						];
-					}
-					if (this.settings.interval) {
-						selectors.push(`:nth-child(${Math.floor(hoverIndex / perHour) + 1} of .minutes) > li:nth-child(n + ${hoverIndex % perHour + 2})`);
-						selectors.push(`:nth-child(${Math.floor(lowerIndex / perHour) + 1} of .minutes) > li:nth-child(-n + ${lowerIndex % perHour})`);
-					}
-				} else {
-					selectors = [`:not(.weekdays) > li:nth-child(n + ${hoverIndex + 1}):nth-child(-n + ${lowerIndex})`];
-				}
-			} else if (hoverIndex > lowerIndex) {
-				if (this.viewMode === ViewMode.hours) {
-					const hoverUlIndex = Math.floor(hoverIndex / 6 / perHour) + 1;
-					const lowerUlIndex = Math.floor(lowerIndex / 6 / perHour) + 1;
-					if (hoverUlIndex === lowerUlIndex) {
-						selectors = [
-							`:nth-child(${lowerUlIndex} of .hours) > li:nth-child(n + ${lowerIndex % 6 + 2}):nth-child(-n + ${hoverIndex % 6})`,
-						];
-					} else {
-						selectors = [
-							`:nth-child(${lowerUlIndex} of .hours) > li:nth-child(n + ${lowerLiIndex + 1})`,
-							`:nth-child(n + ${lowerUlIndex + 1} of .hours):nth-child(-n + ${hoverUlIndex - 1} of .hours) > li`,
-							`:nth-child(${hoverUlIndex} of .hours) > li:nth-child(-n + ${hoverLiIndex})`,
-						];
-					}
-					if (this.settings.interval) {
-						selectors.push(`:nth-child(${Math.floor(lowerIndex / perHour) + 1} of .minutes) > li:nth-child(n + ${lowerIndex % perHour + 2})`);
-						selectors.push(`:nth-child(${Math.floor(hoverIndex / perHour) + 1} of .minutes) > li:nth-child(-n + ${hoverIndex % perHour})`);
-					}
-				} else {
-					selectors = [`:not(.weekdays) > li:nth-child(n + ${lowerIndex + 2}):nth-child(-n + ${hoverIndex + 1})`];
-				}
-			} else {
-				selectors = [':not(*)'];
-			}
-			console.log(selectors);
-			this.rangeSelectCssRule.selectorText = selectors.map(selector => {
-				return this.rangeSelectorText.replace(':not(*)', selector);
-			}).join(',');
+			const hoverDateString = event.target.getAttribute('data-date') ?? event.target.getAttribute('aria-label') ?? '';
+			this.markDateRange(this.dateRange[0], new Date(hoverDateString), true);
 		}
 	};
 
+	private markDateRange(dateFixed: Date, dateCursor: Date, openRange= false) {
+		const lowerDate = dateFixed < dateCursor ? dateFixed : dateCursor;
+		const upperDate = dateFixed < dateCursor ? dateCursor : dateFixed;
+		const lowerIndex = this.indexOfCalendarItem(lowerDate);
+		const upperIndex = this.indexOfCalendarItem(upperDate);
+		const addLower = openRange && !this.calendarItems.item(lowerIndex)?.classList.contains('selected') ? 1 : 2;
+		const addUpper = openRange && !this.calendarItems.item(upperIndex)?.classList.contains('selected') ? 1 : 0;
+		const perHour = this.settings.interval ? Math.min(60 / this.settings.interval, 6) : 1;
+		const lowerLiIndex = Math.floor(lowerIndex / perHour) % 6 + 1;
+		const upperLiIndex = Math.floor(upperIndex / perHour) % 6 + 1;
+		let selectors: Array<string>;
+		if (lowerIndex === -1 && upperIndex === -1) {
+			if (lowerDate < this.sheetBounds[0] && upperDate > this.sheetBounds[1]) {
+				selectors = [':not(.weekdays) > li'];  // select all
+			} else {
+				selectors = [':not(*)'];
+			}
+		} else if (lowerIndex === -1) {
+			if (this.viewMode === ViewMode.hours) {
+				const ulIndex = Math.floor(upperIndex / 6 / perHour) + 1;
+				selectors = [
+					`:nth-child(-n + ${ulIndex - 1} of .hours) > li`,
+					`:nth-child(${ulIndex} of .hours) > li:nth-child(-n + ${upperLiIndex - 1})`,
+				];
+			} else {
+				selectors = [`:not(.weekdays) > li:nth-child(-n + ${upperIndex + addUpper})`];
+			}
+		} else if (upperIndex === -1) {
+			if (this.viewMode === ViewMode.hours) {
+				const ulIndex = Math.floor(lowerIndex / 6 / perHour) + 1;
+				selectors = [
+					`:nth-child(${ulIndex} of .hours) > li:nth-child(n + ${lowerLiIndex})`,
+					`:nth-child(n + ${ulIndex + 1} of .hours) > li`,
+				];
+			} else {
+				selectors = [`:not(.weekdays) > li:nth-child(n + ${lowerIndex + addLower})`];
+			}
+		} else {
+			if (this.viewMode === ViewMode.hours) {
+				const lowerUlIndex = Math.floor(lowerIndex / 6 / perHour) + 1;
+				const upperUlIndex = Math.floor(upperIndex / 6 / perHour) + 1;
+				if (lowerUlIndex === upperUlIndex) {
+					selectors = [
+						`:nth-child(${lowerUlIndex} of .hours) > li:nth-child(n + ${lowerIndex % 6 + 2}):nth-child(-n + ${upperIndex % 6})`,
+					];
+				} else {
+					selectors = [
+						`:nth-child(${lowerUlIndex} of .hours) > li:nth-child(n + ${lowerLiIndex + 1})`,
+						`:nth-child(n + ${lowerUlIndex + 1} of .hours):nth-child(-n + ${upperUlIndex - 1} of .hours) > li`,
+						`:nth-child(${upperUlIndex} of .hours) > li:nth-child(-n + ${upperLiIndex - 1})`,
+					];
+				}
+			} else {
+				selectors = [`:not(.weekdays) > li:nth-child(n + ${lowerIndex + addLower}):nth-child(-n + ${upperIndex + addUpper})`];
+			}
+		}
+		if (this.viewMode === ViewMode.hours && this.settings.interval) {
+			if (lowerIndex !== -1) {
+				selectors.push(`:nth-child(${Math.floor(lowerIndex / perHour) + 1} of .minutes) > li:nth-child(n + ${lowerIndex % perHour + 2})`);
+			}
+			if (upperIndex !== -1) {
+				selectors.push(`:nth-child(${Math.floor(upperIndex / perHour) + 1} of .minutes) > li:nth-child(-n + ${upperIndex % perHour})`);
+			}
+		}
+		console.log(selectors);
+		this.rangeSelectCssRule.selectorText = selectors.map(selector => {
+			return this.rangeSelectorText.replace(':not(*)', selector);
+		}).join(',');
+	}
+
 	private markSelectedDates() {
-		this.calendarItems.forEach(elem => elem.classList.remove('selected'));
+		this.calendarItems.forEach(elem => elem.classList.remove('selected', 'preselected'));
 		if (this.settings.withRange) {
 			if (this.dateRange[0] && this.dateRange[1]) {
-				const lowerIndex = this.indexOfCalendarItem(this.dateRange[0]);
-				const upperIndex = this.indexOfCalendarItem(this.dateRange[1]);
-				const perHour = this.settings.interval ? Math.min(60 / this.settings.interval, 6) : 1;
-				const lowerLiIndex = Math.floor(lowerIndex / perHour) % 6 + 1;
-				const upperLiIndex = Math.floor(upperIndex / perHour) % 6 + 1;
-				let selectors: Array<string>;
-				if (lowerIndex === -1 && upperIndex === -1) {
-					if (this.dateRange[0] < this.sheetBounds[0] && this.dateRange[1] > this.sheetBounds[1]) {
-						selectors = [':not(.weekdays) > li'];  // select all
-					} else {
-						selectors = [':not(*)'];
-					}
-				} else if (lowerIndex === -1) {
-					if (this.viewMode === ViewMode.hours) {
-						const ulIndex = Math.floor(upperIndex / 6 / perHour) + 1;
-						selectors = [
-							`:nth-child(-n + ${ulIndex - 1} of .hours) > li`,
-							`:nth-child(${ulIndex} of .hours) > li:nth-child(-n + ${upperLiIndex - 1})`,
-						];
-					} else {
-						selectors = [`:not(.weekdays) > li:nth-child(-n + ${upperIndex})`];
-					}
-				} else if (upperIndex === -1) {
-					if (this.viewMode === ViewMode.hours) {
-						const ulIndex = Math.floor(lowerIndex / 6 / perHour) + 1;
-						selectors = [
-							`:nth-child(${ulIndex} of .hours) > li:nth-child(n + ${lowerLiIndex})`,
-							`:nth-child(n + ${ulIndex + 1} of .hours) > li`,
-						];
-					} else {
-						selectors = [`:not(.weekdays) > li:nth-child(n + ${lowerIndex + 2})`];
-					}
-				} else {
-					if (this.viewMode === ViewMode.hours) {
-						const lowerUlIndex = Math.floor(lowerIndex / 6 / perHour) + 1;
-						const upperUlIndex = Math.floor(upperIndex / 6 / perHour) + 1;
-						if (lowerUlIndex === upperUlIndex) {
-							selectors = [
-								`:nth-child(${lowerUlIndex} of .hours) > li:nth-child(n + ${lowerIndex % 6 + 2}):nth-child(-n + ${upperIndex % 6})`,
-							];
-						} else {
-							selectors = [
-								`:nth-child(${lowerUlIndex} of .hours) > li:nth-child(n + ${lowerLiIndex + 1})`,
-								`:nth-child(n + ${lowerUlIndex + 1} of .hours):nth-child(-n + ${upperUlIndex - 1} of .hours) > li`,
-								`:nth-child(${upperUlIndex} of .hours) > li:nth-child(-n + ${upperLiIndex - 1})`,
-							];
-						}
-					} else {
-						selectors = [`:not(.weekdays) > li:nth-child(n + ${lowerIndex + 2}):nth-child(-n + ${upperIndex})`];
-					}
+				this.markDateRange(this.dateRange[0], this.dateRange[1]);
+				this.calendarItems.item(this.indexOfCalendarItem(this.dateRange[0]))?.classList.add('selected');
+				const upperIndex = this.indexOfCalendarItem(this.dateRange[1])
+				if (upperIndex !==0 || this.viewMode !== ViewMode.hours || this.dateRange[1].getHours() !== 0 || this.dateRange[1].getMinutes() !== 0) {
+					// if upper range is midnight, mark the last hour as selected instead of the first hour of the next day
+					this.calendarItems.item(upperIndex)?.classList.add('selected');
 				}
-				if (this.viewMode === ViewMode.hours && this.settings.interval) {
-					if (lowerIndex !== -1) {
-						selectors.push(`:nth-child(${Math.floor(lowerIndex / perHour) + 1} of .minutes) > li:nth-child(n + ${lowerIndex % perHour + 2})`);
-					}
-					if (upperIndex !== -1) {
-						selectors.push(`:nth-child(${Math.floor(upperIndex / perHour) + 1} of .minutes) > li:nth-child(-n + ${upperIndex % perHour})`);
-					}
-				}
-				console.log(selectors);
-				this.rangeSelectCssRule.selectorText = selectors.map(selector => {
-					return this.rangeSelectorText.replace(':not(*)', selector);
-				}).join(',');
-				this.calendarItems.item(lowerIndex)?.classList.add('selected');
-				this.calendarItems.item(upperIndex)?.classList.add('selected');
 			} else if (this.dateRange[0]) {
 				const dateSelector= this.getDateSelector(this.dateRange[0]);
 				this.element.querySelector(dateSelector)?.classList.add('selected');
 			}
-			if (this.upperRange) {
+			if (this.preselectedDate) {
+				const dateSelector= this.getDateSelector(this.preselectedDate);
+				this.element.querySelector(dateSelector)?.classList.add('preselected');
+			}
+			if (this.upperRange || this.viewMode === ViewMode.hours && this.dateRange[1]?.getHours() === 0 && this.dateRange[1]?.getMinutes() === 0) {
 				this.element.querySelector('.ranges ul.hours:last-child')?.removeAttribute('hidden');
 			} else {
 				this.element.querySelector('.ranges ul.hours:last-child')?.setAttribute('hidden', '');
@@ -644,7 +602,22 @@ export class Calendar {
 			this.dateRange[0] = newDate;
 			this.settings.updateDate(this.dateRange[0], true);
 		}
-		this.markSelectedDates();
+		if (this.minDate) {
+			if (this.dateRange[0] && this.dateRange[0] < this.minDate) {
+				this.dateRange[0] = this.minDate;
+			}
+			if (this.dateRange[1] && this.dateRange[1] < this.minDate) {
+				this.dateRange[1] = this.minDate;
+			}
+		}
+		if (this.maxDate) {
+			if (this.dateRange[0] && this.dateRange[0] > this.maxDate) {
+				this.dateRange[0] = this.maxDate;
+			}
+			if (this.dateRange[1] && this.dateRange[1] > this.maxDate) {
+				this.dateRange[1] = this.maxDate;
+			}
+		}
 	}
 
 	private async selectToday() {
@@ -654,25 +627,21 @@ export class Calendar {
 			await this.fetchCalendar(new Date(), ViewMode.weeks);
 			todayElem = this.element.querySelector(`li[data-date="${todayDateString}"]`);
 		}
-		this.selectDate(todayElem!);
-	}
-
-	private selectDate(element: Element) {
-		this.setDate(element);
-		console.log(this.dateRange);
-		if (this.settings.withRange && this.dateRange[0] && !this.dateRange[1])
-			return;
-		this.settings.close();
+		this.setDate(todayElem!);
+		this.markSelectedDates();
+		if (!this.settings.withRange || this.dateRange[0] && this.dateRange[1]) {
+			this.settings.close();
+		}
 	}
 
 	private selectHour(liElement: HTMLLIElement) {
 		this.element.querySelectorAll('li[aria-label]').forEach(elem => {
-			elem.classList.remove('selected', 'constricted');
+			elem.classList.remove('selected', 'preselected', 'constricted');
 		});
 		this.element.querySelectorAll('ul[aria-labelledby]').forEach(elem => {
 			elem.toggleAttribute('hidden', true);
 		});
-		this.rangeSelectCssRule.selectorText = this.rangeSelectorText;
+		this.rangeSelectCssRule.selectorText = `${this.baseSelector} .ranges ul:not(*)`;
 		const label = liElement.getAttribute('aria-label');
 		if (label) {
 			const ulElem = this.element.querySelector(`ul[aria-labelledby="${label}"]`);
@@ -690,7 +659,11 @@ export class Calendar {
 	private selectDay = (event: Event) => {
 		if (event.target instanceof HTMLLIElement) {
 			if (this.settings.dateOnly) {
-				this.selectDate(event.target);
+				this.setDate(event.target);
+				this.markSelectedDates();
+				if (!this.settings.withRange || this.dateRange[0] && this.dateRange[1]) {
+					this.settings.close();
+				}
 			} else {
 				this.fetchCalendar(this.getDate(event.target), ViewMode.hours);
 			}
@@ -710,27 +683,47 @@ export class Calendar {
 	}
 
 	private async goto(direction: Direction) {
-		let selectedItem = this.element.querySelector('li[data-date].selected');
-		if (!selectedItem) {
-			selectedItem = this.calendarItems.item(this.calendarItems.length / 2);
+		let selectedDate: Date|null = null;
+		if (this.settings.withRange) {
+			if (this.preselectedDate) {
+				selectedDate = this.preselectedDate;
+			} else if (!this.upperRange && this.dateRange[0]) {
+				selectedDate = this.dateRange[0];
+			} else if (this.upperRange && this.dateRange[1]) {
+				selectedDate = this.dateRange[1];
+			}
+		} else if (this.dateRange[0]) {
+			selectedDate = this.dateRange[0];
 		}
-		if (selectedItem) {
-			const selectedDate = this.getDate(selectedItem);
-			const nextDate = this.getDelta(direction, selectedDate);
-			const dataDateString = this.asUTCDate(nextDate).toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10);
-			let nextItem: Element|null = null;
-			if (this.viewMode !== ViewMode.weeks || selectedDate.getMonth() === nextDate.getMonth()) {
-				nextItem = this.element.querySelector(`.ranges li[data-date="${dataDateString}"]`);
+		if (!selectedDate) {
+			if (this.dateRange[0]) {
+				selectedDate = this.dateRange[0];
+			} else {
+				const selectedItem: Element | null = this.calendarItems.item(this.calendarItems.length / 2);
+				selectedDate = this.getDate(selectedItem);
 			}
-			if (!nextItem) {
-				await this.fetchCalendar(nextDate, this.viewMode);
-				nextItem = this.element.querySelector(`.ranges li[data-date="${dataDateString}"]`);
+		}
+		const nextDate = this.getDelta(direction, selectedDate);
+		this.preselectedDate = this.settings.withRange ? nextDate : null;
+		const dataDateString = this.asUTCDate(nextDate).toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10);
+		let nextItem: Element|null = null;
+		if (this.viewMode !== ViewMode.weeks || selectedDate.getMonth() === nextDate.getMonth()) {
+			nextItem = this.element.querySelector(`.ranges li[data-date="${dataDateString}"]`);
+		}
+		if (!nextItem) {
+			await this.fetchCalendar(nextDate, this.viewMode);
+			nextItem = this.element.querySelector(`.ranges li[data-date="${dataDateString}"]`);
+		}
+		if (nextItem instanceof HTMLLIElement) {
+			if (this.viewMode === ViewMode.hours) {
+				this.selectHour(nextItem);
 			}
-			if (nextItem instanceof HTMLLIElement) {
-				if (this.viewMode === ViewMode.hours) {
-					this.selectHour(nextItem);
-				}
+			if (!this.preselectedDate) {
 				this.setDate(nextItem);
+			}
+			this.markSelectedDates();
+			if (this.upperRange && this.dateRange[0] && this.preselectedDate) {
+				this.markDateRange(this.dateRange[0], this.preselectedDate, true);
 			}
 		}
 	}
@@ -764,14 +757,7 @@ export class Calendar {
 	}
 
 	private transferStyles() {
-		for (let k = 0; k < document.styleSheets.length; ++k) {
-			// prevent adding <styles> multiple times with the same content by checking if they already exist
-			const cssRule = document?.styleSheets?.item(k)?.cssRules?.item(0);
-			if (cssRule instanceof CSSStyleRule && cssRule.selectorText === this.rangeSelectorText) {
-				// copy cssRule from previous instantiation of this class
-				this.rangeSelectCssRule = cssRule;
-			}
-		}
+		let loaded = false;
 		const declaredStyles = document.createElement('style');
 		declaredStyles.innerText = styles;
 		document.head.appendChild(declaredStyles);
@@ -781,25 +767,26 @@ export class Calendar {
 			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
 			switch (cssRule.selectorText) {
-				case '[aria-haspopup="dialog"] + .dj-calendar':
+				case this.baseSelector:
 					extraStyles = StyleHelpers.extractStyles(inputElement, [
 						'background-color', 'border', 'border-radius',
 						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
 						'letter-spacing', 'white-space', 'line-height']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					loaded = true;
 					break;
-				case '[aria-haspopup="dialog"] + .dj-calendar .controls':
+				case `${this.baseSelector} .controls`:
 					extraStyles = StyleHelpers.extractStyles(inputElement, ['padding']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '[aria-haspopup="dialog"] + .dj-calendar .ranges':
+				case `${this.baseSelector} .ranges`:
 					extraStyles = StyleHelpers.extractStyles(inputElement, ['padding']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li.constricted':
-				case '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li:has(~ li.constricted)':
-				case '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li.constricted ~ li':
-				case '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.minutes':
+				case `${this.baseSelector} .ranges ul.hours > li.constricted`:
+				case `${this.baseSelector} .ranges ul.hours > li:has(~ li.constricted)`:
+				case `${this.baseSelector} .ranges ul.hours > li.constricted ~ li`:
+				case `${this.baseSelector} .ranges ul.minutes`:
 					inputElement.classList.add('-focus-');
 					extraStyles = StyleHelpers.extractStyles(inputElement, ['border-color']);
 					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
@@ -810,16 +797,28 @@ export class Calendar {
 						declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					}
 					break;
-				case this.rangeSelectorText:
-					this.rangeSelectCssRule = cssRule;
-					break;
 				default:
 					break;
 			}
 		}
 		inputElement.style.transition = '';
-		if (!this.rangeSelectCssRule)
-			throw new Error("Failed to extract range selectors from CSS rules.");
+		if (!loaded)
+			throw new Error(`Could not load styles for ${this.baseSelector}`);
+	}
+
+	private getRangeSelectCssRule() : CSSStyleRule {
+		for (let i = document.styleSheets.length - 1; i >= 0; --i) {
+			const sheet = document.styleSheets[i];
+			for (let k = 0; k < sheet.cssRules.length; ++k) {
+				const cssRule = sheet.cssRules[k];
+				if (cssRule instanceof CSSStyleRule && cssRule.selectorText === `${this.baseSelector} .ranges ul:not(*)`) {
+					const selectorText = `#${this.settings.inputElement.id} + ${this.baseSelector} .ranges ul:not(*)`;
+					const index = sheet.insertRule(`${selectorText}{${cssRule.style.cssText}}`, sheet.cssRules.length);
+					return sheet.cssRules[index] as CSSStyleRule;
+				}
+			}
+		}
+		throw new Error(`Could not find CSS rule for '${this.baseSelector} .ranges ul:not(*)'`);
 	}
 
 	public updateDate(currentDate: Date|null, extendedDate: Date|null) {
