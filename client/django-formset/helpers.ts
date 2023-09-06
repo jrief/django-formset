@@ -39,7 +39,7 @@ export namespace StyleHelpers {
 
 	export function stylesAreInstalled(baseSelector: string) : boolean {
 		// check if styles have been loaded for this widget
-		for (let k = 0; k < document.styleSheets.length; ++k) {
+		for (let k = document.styleSheets.length - 1; k >= 0; --k) {
 			const cssRule = document?.styleSheets?.item(k)?.cssRules?.item(0);
 			if (cssRule instanceof CSSStyleRule && cssRule.selectorText === baseSelector)
 				return true;

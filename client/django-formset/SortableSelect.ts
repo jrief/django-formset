@@ -6,16 +6,11 @@ Sortable.mount(new MultiDrag());
 
 
 export class SortableSelectElement extends HTMLElement {
-	private readonly declaredStyles: HTMLStyleElement;
 	private readonly baseSelector = 'django-sortable-select';
 	private lastSelected: HTMLOptionElement | null = null;
 
 	public constructor() {
 		super();
-		this.declaredStyles = document.createElement('style');
-		this.declaredStyles.innerText = styles;
-		document.head.appendChild(this.declaredStyles);
-
 		this.addEventListener('click', event => this.optionSelected(event));
 		window.addEventListener('click', event => this.elementFocus(event));
 	}
@@ -101,10 +96,16 @@ export class SortableSelectElement extends HTMLElement {
 	}
 
 	private transferStyles(selectElement: HTMLSelectElement) {
+		const declaredStyles = document.createElement('style');
+		declaredStyles.innerText = styles;
+		document.head.appendChild(declaredStyles);
+		if (!declaredStyles.sheet)
+			throw new Error("Could not create <style> element");
+		const sheet = declaredStyles.sheet;
+
 		let loaded = false;
-		const sheet = this.declaredStyles.sheet;
 		const optionElement = selectElement.querySelector('option');
-		for (let index = 0; sheet && index < sheet.cssRules.length; index++) {
+		for (let index = 0; index < sheet.cssRules.length; index++) {
 			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
 			switch (cssRule.selectorText) {

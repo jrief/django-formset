@@ -37,7 +37,6 @@ export class Calendar {
 	public readonly element: HTMLElement;
 	private viewMode!: ViewMode;
 	private settings: CalendarSettings;
-	private readonly baseSelector = '[aria-haspopup="dialog"] + .dj-calendar';
 	private upperRange = false;
 	private preselectedDate: Date|null = null;
 	private dateRange: DateRange = [null, null];
@@ -55,6 +54,7 @@ export class Calendar {
 	private maxMonthDate?: Date;
 	private minYearDate?: Date;
 	private maxYearDate?: Date;
+	private readonly baseSelector = '[aria-haspopup="dialog"] + .dj-calendar';
 	private readonly rangeSelectCssRule: CSSStyleRule;
 	private readonly rangeSelectorText: string;
 
@@ -765,14 +765,18 @@ export class Calendar {
 	}
 
 	private transferStyles() {
-		let loaded = false;
 		const declaredStyles = document.createElement('style');
 		declaredStyles.innerText = styles;
 		document.head.appendChild(declaredStyles);
+		if (!declaredStyles.sheet)
+			throw new Error("Could not create <style> element");
+		const sheet = declaredStyles.sheet;
+
+		let loaded = false;
 		const inputElement = this.settings.inputElement;
 		inputElement.style.transition = 'none';  // prevent transition while pilfering styles
-		for (let index = 0; declaredStyles.sheet && index < declaredStyles.sheet.cssRules.length; index++) {
-			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
+		for (let index = 0; index < sheet.cssRules.length; index++) {
+			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
 			switch (cssRule.selectorText) {
 				case this.baseSelector:
@@ -780,16 +784,16 @@ export class Calendar {
 						'background-color', 'border', 'border-radius',
 						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
 						'letter-spacing', 'white-space', 'line-height']);
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					loaded = true;
 					break;
 				case `${this.baseSelector} .controls`:
 					extraStyles = StyleHelpers.extractStyles(inputElement, ['padding']);
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case `${this.baseSelector} .ranges`:
 					extraStyles = StyleHelpers.extractStyles(inputElement, ['padding']);
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case `${this.baseSelector} .ranges ul.hours > li.constricted`:
 				case `${this.baseSelector} .ranges ul.hours > li:has(~ li.constricted)`:
@@ -797,12 +801,12 @@ export class Calendar {
 				case `${this.baseSelector} .ranges ul.minutes`:
 					inputElement.classList.add('-focus-');
 					extraStyles = StyleHelpers.extractStyles(inputElement, ['border-color']);
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					inputElement.classList.remove('-focus-');
 					if (cssRule.selectorText === '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li.constricted') {
 						extraStyles = StyleHelpers.extractStyles(this.element, ['background-color']);
 						extraStyles = extraStyles.replace('background-color', 'border-bottom-color');
-						declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					}
 					break;
 				default:

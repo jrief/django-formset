@@ -2,12 +2,10 @@ import { IncompleteSelect } from './IncompleteSelect';
 import { SortableSelectElement } from './SortableSelect';
 import { StyleHelpers } from "./helpers";
 import template from 'lodash.template';
-import styles from "./SortableSelect.scss";
 
 
 export class DualSelector extends IncompleteSelect {
 	private readonly selectorElement: HTMLSelectElement;
-	private readonly declaredStyles: HTMLStyleElement;
 	private readonly containerElement: HTMLElement | null;
 	private readonly searchLeftInput?: HTMLInputElement;
 	private readonly searchRightInput?: HTMLInputElement;
@@ -23,13 +21,10 @@ export class DualSelector extends IncompleteSelect {
 	private historyCursor: number = 0;
 	private lastRemoteQuery = new URLSearchParams();
 	private readonly renderNoResults: Function;
+	private readonly baseSelector = 'django-formset [role="group"] .dj-dual-selector';
 
 	constructor(selectorElement: HTMLSelectElement, name: string) {
 		super(selectorElement);
-		this.declaredStyles = document.createElement('style');
-		this.declaredStyles.innerText = styles;
-		document.head.appendChild(this.declaredStyles);
-
 		this.selectorElement = selectorElement;
 		this.containerElement = this.fieldGroup.querySelector('.dj-dual-selector');
 		selectorElement.setAttribute('multiple', 'multiple');
@@ -63,7 +58,9 @@ export class DualSelector extends IncompleteSelect {
 		this.renderNoResults = (data: any) => templ ? template(templ.innerHTML)(data) : "No results";
 		this.installEventHandlers();
 		this.initialize();
-		this.transferStyles();
+		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+			this.transferStyles();
+		}
 		this.setButtonsState();
 		this.setupFilters(selectorElement);
 	}
@@ -391,18 +388,25 @@ export class DualSelector extends IncompleteSelect {
 	}
 
 	private transferStyles() {
-		const sheet = this.declaredStyles.sheet!;
+		const declaredStyles = document.createElement('style');
+		document.head.appendChild(declaredStyles);
+		if (!declaredStyles.sheet)
+			throw new Error("Could not create <style> element");
+		const sheet = declaredStyles.sheet;
+
+		// set dummy style to check if styles have been loaded for this widget
+		sheet.insertRule(`${this.baseSelector}{--dummy-style: none;}`, 0);
 
 		// set background-color to transparent, so that the shadow on a focused input/select field is not cropped
 		let extraStyles = StyleHelpers.extractStyles(this.selectLeftElement, ['background-color']);
-		sheet.insertRule(`django-formset [role="group"] .dj-dual-selector .left-column{${extraStyles}}`, 0);
+		sheet.insertRule(`${this.baseSelector} .left-column{${extraStyles}}`, 1);
 		extraStyles = StyleHelpers.extractStyles(this.selectRightElement, ['background-color']);
-		sheet.insertRule(`django-formset [role="group"] .dj-dual-selector .right-column{${extraStyles}}`, 1);
-		sheet.insertRule('.dj-dual-selector select, .dj-dual-selector input{background-color: transparent;}', 2);
+		sheet.insertRule(`${this.baseSelector} .right-column{${extraStyles}}`, 2);
+		sheet.insertRule(`${this.baseSelector} :has(select, input){background-color: transparent;}`, 3);
 
 		// prevent <select multiple> to have different heights depending on the having at least one <option>
 		extraStyles = StyleHelpers.extractStyles(this.selectLeftElement, ['height']);
-		sheet.insertRule(`django-formset [role="group"] .dj-dual-selector select{${extraStyles}}`, 3);
+		sheet.insertRule(`${this.baseSelector} select{${extraStyles}}`, 4);
 	}
 
 	protected formResetted(event: Event) {
