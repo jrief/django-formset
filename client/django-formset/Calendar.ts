@@ -202,14 +202,15 @@ export class Calendar {
 			}
 		});
 
-		let lowerHourString = this.dateRange[0] ? this.asUTCDate(this.dateRange[0]).toISOString().slice(0, 13) : '';
-		let upperHourString = this.settings.withRange && this.dateRange[1] ? this.asUTCDate(this.dateRange[1]).toISOString().slice(0, 13) : '';
+		const lowerHourString = this.dateRange[0] ? this.asUTCDate(this.dateRange[0]).toISOString().slice(0, 13) : '';
+		const upperDateString = this.settings.withRange && this.dateRange[1] ? this.asUTCDate(this.dateRange[1]).toISOString().slice(0, 16) : '';
+		const upperHourString = upperDateString.slice(0, 13);
 		const todayHourString = this.todayDateString.slice(0, 13).concat(':00');
 		this.element.querySelectorAll('li[aria-label]').forEach(elem => {
 			const label = elem.getAttribute('aria-label')!;
 			elem.classList.toggle('today', label === todayHourString);
 			const selector = `ul[aria-labelledby="${label}"]`;
-			if ([lowerHourString, upperHourString].includes(label.slice(0, 13))) {
+			if (lowerHourString === label.slice(0, 13) || upperHourString === label.slice(0, 13) && upperDateString.slice(11, 16) !== '00:00') {
 				elem.classList.add('constricted');
 				this.element.querySelector(selector)?.removeAttribute('hidden');
 			}
@@ -518,7 +519,7 @@ export class Calendar {
 			if (this.viewMode === ViewMode.hours) {
 				const ulIndex = Math.floor(lowerIndex / 6 / perHour) + 1;
 				selectors = [
-					`:nth-child(${ulIndex} of .hours) > li:nth-child(n + ${lowerLiIndex})`,
+					`:nth-child(${ulIndex} of .hours) > li:nth-child(n + ${lowerLiIndex + 1})`,
 					`:nth-child(n + ${ulIndex + 1} of .hours) > li`,
 				];
 			} else {
@@ -530,7 +531,7 @@ export class Calendar {
 				const upperUlIndex = Math.floor(upperIndex / 6 / perHour) + 1;
 				if (lowerUlIndex === upperUlIndex) {
 					selectors = [
-						`:nth-child(${lowerUlIndex} of .hours) > li:nth-child(n + ${lowerIndex % 6 + 2}):nth-child(-n + ${upperIndex % 6})`,
+						`:nth-child(${lowerUlIndex} of .hours) > li:nth-child(n + ${lowerLiIndex + 1}):nth-child(-n + ${upperLiIndex - 1})`,
 					];
 				} else {
 					selectors = [
@@ -543,12 +544,18 @@ export class Calendar {
 				selectors = [`:not(.weekdays) > li:nth-child(n + ${lowerIndex + addLower}):nth-child(-n + ${upperIndex + addUpper})`];
 			}
 		}
-		if (this.viewMode === ViewMode.hours && this.settings.interval) {
-			if (lowerIndex !== -1) {
-				selectors.push(`:nth-child(${Math.floor(lowerIndex / perHour) + 1} of .minutes) > li:nth-child(n + ${lowerIndex % perHour + 2})`);
-			}
-			if (upperIndex !== -1) {
-				selectors.push(`:nth-child(${Math.floor(upperIndex / perHour) + 1} of .minutes) > li:nth-child(-n + ${upperIndex % perHour})`);
+		if (this.viewMode === ViewMode.hours && this.settings.interval && (lowerIndex !== -1 || upperIndex !== -1)) {
+			const lowerUlIndex = Math.floor(lowerIndex / perHour) + 1;
+			const upperUlIndex = Math.floor(upperIndex / perHour) + 1;
+			if (upperIndex === -1) {
+				selectors.push(`:nth-child(${lowerUlIndex} of .minutes) > li:nth-child(n + ${lowerIndex % perHour + 2})`);
+			} else if (lowerIndex === -1) {
+				selectors.push(`:nth-child(${upperUlIndex} of .minutes) > li:nth-child(-n + ${upperIndex % perHour})`);
+			} else if (lowerUlIndex === upperUlIndex) {
+				selectors.push(`:nth-child(${lowerUlIndex} of .minutes) > li:nth-child(n + ${lowerIndex % perHour + 2}):nth-child(-n + ${upperIndex % perHour})`);
+			} else {
+				selectors.push(`:nth-child(${lowerUlIndex} of .minutes) > li:nth-child(n + ${lowerIndex % perHour + 2})`);
+				selectors.push(`:nth-child(${upperUlIndex} of .minutes) > li:nth-child(-n + ${upperIndex % perHour})`);
 			}
 		}
 		console.log(selectors);
@@ -576,10 +583,11 @@ export class Calendar {
 				const dateSelector= this.getDateSelector(this.preselectedDate);
 				this.element.querySelector(dateSelector)?.classList.add('preselected');
 			}
-			if (this.upperRange || this.viewMode === ViewMode.hours && this.dateRange[1]?.getHours() === 0 && this.dateRange[1]?.getMinutes() === 0) {
-				this.element.querySelector('.ranges ul.hours:last-child')?.removeAttribute('hidden');
-			} else {
-				this.element.querySelector('.ranges ul.hours:last-child')?.setAttribute('hidden', '');
+			if (this.viewMode === ViewMode.hours) {
+				const label = this.element.querySelector('.ranges ul.hours:last-child > li')?.getAttribute('data-date');
+				this.element.querySelector('.ranges ul.hours:last-child')?.toggleAttribute('hidden',
+					this.dateRange[1] ? this.asUTCDate(this.dateRange[1]).toISOString().slice(0, 16) !== label : !this.upperRange
+				);
 			}
 		} else if (this.dateRange[0]) {
 			const dateSelector= this.getDateSelector(this.dateRange[0]);

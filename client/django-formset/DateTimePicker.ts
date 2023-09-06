@@ -312,7 +312,6 @@ class DateTimePicker extends Widget {
 				return this.isOpen ? this.closeCalendar() : this.openCalendar();
 			element = element.parentElement;
 		}
-		console.log("close calendar");
 		this.closeCalendar();
 	}
 
