@@ -43,6 +43,11 @@
 
 			> .datetime-delimiter {
 				color: $calendar-delimiter-color;
+				margin: 0 -1px;
+				&.wide {
+					margin: 0;
+					padding: 0 0.125rem;
+				}
 			}
 			> .datetime-edit-year-field, > .datetime-edit-month-field, > .datetime-edit-day-field,
 			> .datetime-edit-hour-field, > .datetime-edit-minute-field {

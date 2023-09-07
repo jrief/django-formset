@@ -131,7 +131,7 @@ class DateTimePicker extends Widget {
 			'<span role="spinbutton" class="datetime-edit-day-field" contenteditable="true" aria-placeholder="dd" aria-valuemin="1" aria-valuemax="31"></span>',
 		];
 		if (!this.dateOnly) {
-			htmlIsoTags.push('<span role="separator" class="datetime-delimiter" aria-hidden="true"> </span>');
+			htmlIsoTags.push('<span role="separator" class="datetime-delimiter wide" aria-hidden="true"> </span>');
 			htmlIsoTags.push('<span role="spinbutton" class="datetime-edit-hour-field" contenteditable="true" aria-placeholder="hh" aria-valuemin="0" aria-valuemax="23"></span>');
 			htmlIsoTags.push('<span role="separator" class="datetime-delimiter" aria-hidden="true">:</span>');
 			htmlIsoTags.push('<span role="spinbutton" class="datetime-edit-minute-field" contenteditable="true" aria-placeholder="mm" aria-valuemin="0" aria-valuemax="59"></span>');
@@ -195,7 +195,7 @@ class DateTimePicker extends Widget {
 			});
 		}
 		if (this.withRange) {
-			htmlTags.push('<span role="separator" class="datetime-delimiter" aria-hidden="true"> – </span>');
+			htmlTags.push('<span role="separator" class="datetime-delimiter wide" aria-hidden="true">–</span>');
 			htmlTags.push(...htmlTags.slice(2, -1));
 			this.inputFieldsOrder.push(...this.inputFieldsOrder.map(i => i + 5));
 		}
