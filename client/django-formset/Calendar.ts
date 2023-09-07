@@ -25,6 +25,7 @@ export type CalendarSettings = {
 	maxDate?: Date,  // if set, dates after this are disabled
 	interval?: number,  // granularity of entries in time picker
 	endpoint: string,  // URL to fetch calendar data from
+	hour12: boolean,  // if true, use 12 hour format
 	inputElement: HTMLInputElement,  // input element to pilfer styles from
 	updateDate: Function,  // callback to update date input
 	close: Function,  // callback to close calendar
@@ -740,6 +741,9 @@ export class Calendar {
 		const query = new URLSearchParams('calendar');
 		query.set('date', this.asUTCDate(atDate).toISOString().slice(0, 10));
 		query.set('mode', viewMode);
+		if (this.settings.hour12) {
+			query.set('hour12', '');
+		}
 		if (this.settings.withRange) {
 			query.set('range', '');
 		}

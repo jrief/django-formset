@@ -18,7 +18,7 @@
 	{% for shift in calendar.shifts %}
 	<ul class="hours">
 		{% for datetime, hour, minutes in shift %}
-		<li {% if minutes %}aria-label{% else %}data-date{% endif %}="{{ datetime }}">{{ hour }}h</li>
+		<li {% if minutes %}aria-label{% else %}data-date{% endif %}="{{ datetime }}">{{ hour }}</li>
 		{% endfor %}
 	</ul>
 		{% for datetime, hour, minutes in shift %}

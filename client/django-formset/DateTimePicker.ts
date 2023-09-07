@@ -29,6 +29,7 @@ class DateTimePicker extends Widget {
 	private readonly inputFields: Array<HTMLElement> = [];
 	private readonly inputFieldsOrder: Array<number> = [];
 	private readonly baseSelector = ':is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"], [is="django-datetimerangepicker"])';
+	private hour12: boolean = false;
 	private currentDate: Date | null = null;  // when withRange=true, this is the lower bound
 	private extendedDate: Date | null = null;  // when withRange=true, this is the upper bound, otherwise unused
 	private calendarOpener: HTMLElement;
@@ -94,6 +95,7 @@ class DateTimePicker extends Widget {
 			withRange: this.withRange,
 			endpoint: this.endpoint!,
 			inputElement: this.inputElement,
+			hour12: this.hour12,
 			updateDate: (currentDate: Date, extendedDate: Date|null|boolean) => this.updateDate(currentDate, extendedDate),
 			close: () => this.closeCalendar(),
 		};
@@ -143,9 +145,9 @@ class DateTimePicker extends Widget {
 				day: '2-digit',
 				hour: '2-digit',
 				minute: '2-digit',
-				hour12: false,
 				calendar: 'iso8601',
 			});
+			this.hour12 = this.dateTimeFormat.resolvedOptions().hour12 ?? false;
 			this.dateTimeFormat.formatToParts().forEach(part => {
 				switch (part.type) {
 					case 'year':
