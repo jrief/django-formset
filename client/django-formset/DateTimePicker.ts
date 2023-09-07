@@ -101,11 +101,13 @@ class DateTimePicker extends Widget {
 		};
 		const minValue = this.inputElement.getAttribute('min');
 		if (minValue) {
-			settings.minDate = new Date(minValue);
+			const date = new Date(minValue);
+			settings.minDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
 		}
 		const maxValue = this.inputElement.getAttribute('max');
 		if (maxValue) {
-			settings.maxDate = new Date(maxValue);
+			const date = new Date(maxValue);
+			settings.maxDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
 		}
 		const step = this.inputElement.getAttribute('step');
 		if (step) {

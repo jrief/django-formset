@@ -151,6 +151,8 @@ class FieldGroup {
 					return element.valueAsDate?.toISOString().replace('T', ' '). slice(0, 16) ?? '';
 				if (window.customElements.get('django-daterangepicker') && element.getAttribute('is') === 'django-daterangepicker')
 					return element.value ? element.value.split(';').map(v => v.slice(0, 10)) : ['', ''];
+				if (window.customElements.get('django-datetimerangepicker') && element.getAttribute('is') === 'django-datetimerangepicker')
+					return element.value ? element.value.split(';').map(v => v.slice(0, 16)) : ['', ''];
 			}
 			// all other input types just return their value
 			return element.value;

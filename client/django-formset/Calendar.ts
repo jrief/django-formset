@@ -111,6 +111,7 @@ export class Calendar {
 
 	private setMinMaxBounds() {
 		if (this.settings.minDate) {
+			this.minDate = new Date(this.settings.minDate);
 			this.minWeekDate = new Date(this.settings.minDate);
 			this.minWeekDate.setHours(0, 0, 0);
 			this.minMonthDate = new Date(this.minWeekDate);
@@ -119,6 +120,7 @@ export class Calendar {
 			this.minYearDate.setMonth(0);
 		}
 		if (this.settings.maxDate) {
+			this.maxDate = new Date(this.settings.maxDate);
 			this.maxWeekDate = new Date(this.settings.maxDate);
 			this.maxWeekDate.setHours(23, 59, 59);
 			this.maxMonthDate = new Date(this.maxWeekDate);
@@ -605,6 +607,7 @@ export class Calendar {
 				this.upperRange = false;
 			} else {
 				this.dateRange = [newDate, null];
+				this.settings.updateDate(newDate, null);
 				this.upperRange = true;
 			}
 		} else {
