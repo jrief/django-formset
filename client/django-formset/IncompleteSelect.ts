@@ -30,7 +30,6 @@ export abstract class IncompleteSelect extends Widget {
 					const changedElement = event.currentTarget;
 					if (changedElement instanceof HTMLSelectElement) {
 						this.filterByValues.set(filterBy, Array.from(observedElement.selectedOptions).map(o => o.value));
-						console.log(this.filterByValues);
 						await this.reloadOptions(true);
 					}
 				});
