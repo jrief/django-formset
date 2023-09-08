@@ -1,6 +1,6 @@
 # fly.toml file generated for django-formset2 on 2023-09-08T22:13:46+02:00
 
-app = "django-formset"
+app = "django-formset2"
 kill_signal = "SIGINT"
 kill_timeout = 5
 mounts = []
