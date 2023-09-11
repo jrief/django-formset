@@ -37,7 +37,7 @@ from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import (
     SimpleContactCollection, ContactCollection, ContactCollectionList, IntermediateContactCollectionList,
     SortableContactCollection, SortableContactCollectionList)
-from testapp.forms.birthdate import BirthdateForm
+from testapp.forms.birthdate import BirthdateBoxForm, BirthdateCalendarForm, BirthdatePickerForm
 from testapp.forms.booking import BookingForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerCollection
@@ -445,9 +445,15 @@ urlpatterns = [
     path('article', DemoFormView.as_view(
         form_class=ArticleForm,
     ), name='article'),
-    path('birthdate', DemoFormView.as_view(
-        form_class=BirthdateForm,
-    ), name='birthdate'),
+    path('birthdate.box', DemoFormView.as_view(
+        form_class=BirthdateBoxForm,
+    ), name='birthdate.box'),
+    path('birthdate.picker', DemoFormView.as_view(
+        form_class=BirthdatePickerForm,
+    ), name='birthdate.picker'),
+    path('birthdate.calendar', DemoFormView.as_view(
+        form_class=BirthdateCalendarForm,
+    ), name='birthdate.calendar'),
     path('booking', DemoFormView.as_view(
         form_class=BookingForm,
     ), name='booking'),

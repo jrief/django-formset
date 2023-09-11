@@ -44,33 +44,8 @@ class MoonCalendarRenderer(CalendarRenderer):
 
 class MoonForm(forms.Form):
     """
-    In this form we replace the calendar renderer against our own implementation. This can be
-    useful whenever we need to modify the context, depending on events occuring at various dates.
-    This for instance can be useful to display vacant or occupied rooms in a booking application.
-    Or it can be useful to display extra information such as holidays.
-
-    In this example we modify the context to show the phases of the moon, by adopting the calendar
-    renderer:
-
-        .. code-block:: python
-
-            from django.forms import fields, forms
-            from formset.widgets import DatePicker
-            from formset.calendar import CalendarRenderer
-
-            class MoonCalendarRenderer(CalendarRenderer):
-                def get_context_weeks(self):
-                    # custom implementation
-                    # ...
-
-            class MoonForm(...):
-                some_date = fields.DateField(
-                    widget=DatePicker(
-                        calendar_renderer=MoonCalendarRenderer
-                    ),
-                )
-
-    Since the calendar is
+    In this form we replace the calendar renderer against our own implementation. This allows us
+    to use our own context when rendering the calendar.
     """
 
     some_date = fields.DateField(

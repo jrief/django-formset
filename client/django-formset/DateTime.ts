@@ -2,7 +2,7 @@ import {autoUpdate, computePosition, flip, shift} from '@floating-ui/dom';
 import {Calendar, CalendarSettings} from "./Calendar";
 import {Widget} from './Widget';
 import {StyleHelpers} from './helpers';
-import styles from './DateTimePicker.scss';
+import styles from './DateTime.scss';
 import calendarIcon from './icons/calendar.svg';
 
 
@@ -20,19 +20,19 @@ enum FieldPart {
 }
 
 
-class DateTimePicker extends Widget {
+class DateTimeField extends Widget {
 	private readonly inputElement: HTMLInputElement;
 	private readonly textBox: HTMLElement;
 	private readonly dateOnly: boolean;
 	private readonly withRange: boolean;
-	private readonly calendar: Calendar;
+	private readonly calendar: Calendar | null = null;
 	private readonly inputFields: Array<HTMLElement> = [];
 	private readonly inputFieldsOrder: Array<number> = [];
-	private readonly baseSelector = ':is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"], [is="django-datetimerangepicker"])';
+	private readonly baseSelector = '[is^="django-date"]';
 	private hour12: boolean = false;
 	private currentDate: Date | null = null;  // when withRange=true, this is the lower bound
 	private extendedDate: Date | null = null;  // when withRange=true, this is the upper bound, otherwise unused
-	private calendarOpener: HTMLElement;
+	private calendarOpener: HTMLElement | null = null;
 	private dateTimeFormat?: Intl.DateTimeFormat;
 	private hasFocus: HTMLElement | null = null;
 	private cleanup?: Function;
@@ -41,16 +41,18 @@ class DateTimePicker extends Widget {
 	constructor(inputElement: HTMLInputElement, calendarElement: HTMLElement | null) {
 		super(inputElement);
 		this.inputElement = inputElement;
-		this.dateOnly = ['django-datepicker', 'django-daterangepicker'].includes(inputElement.getAttribute('is') ?? '');
+		this.dateOnly = ['django-datefield', 'django-datepicker', 'django-daterangepicker'].includes(inputElement.getAttribute('is') ?? '');
 		this.withRange = ['django-daterangepicker', 'django-datetimerangepicker'].includes(inputElement.getAttribute('is') ?? '');
 		this.textBox = this.createTextBox();
 		this.setInitialDate();
-		this.calendar = new Calendar(calendarElement, this.getCalendarSettings());
-		const calendarOpener = this.textBox.querySelector('.calendar-picker-indicator');
-		if (!(calendarOpener instanceof HTMLElement))
-			throw new Error("Missing selectot .calendar-picker-indicator");
-		this.calendarOpener = calendarOpener;
-		this.calendarOpener.innerHTML = calendarIcon;
+		if (calendarElement) {
+			this.calendar = new Calendar(calendarElement, this.getCalendarSettings());
+			const calendarOpener = this.textBox.querySelector('.calendar-picker-indicator');
+			if (!(calendarOpener instanceof HTMLElement))
+				throw new Error("Missing selector .calendar-picker-indicator");
+			this.calendarOpener = calendarOpener;
+			this.calendarOpener.innerHTML = calendarIcon;
+		}
 		this.installEventHandlers();
 		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
 			this.transferStyles();
@@ -232,11 +234,13 @@ class DateTimePicker extends Widget {
 	}
 
 	private openCalendar() {
-		this.calendar.element.parentElement!.style.position = 'relative';
-		this.cleanup = autoUpdate(this.textBox, this.calendar.element, this.updatePosition);
+		if (!this.calendarOpener)
+			return;
+		this.calendar!.element.parentElement!.style.position = 'relative';
+		this.cleanup = autoUpdate(this.textBox, this.calendar!.element, this.updatePosition);
 		this.textBox.setAttribute('aria-expanded', 'true');
 		this.isOpen = true;
-		this.calendar.updateDate(this.currentDate, this.extendedDate);
+		this.calendar!.updateDate(this.currentDate, this.extendedDate);
 	}
 
 	private closeCalendar() {
@@ -308,11 +312,13 @@ class DateTimePicker extends Widget {
 
 
 	private handleClick = (event: Event) => {
+		if (!this.calendar)
+			return;
 		let element = event.target instanceof Element ? event.target : null;
 		while (element) {
 			if (element === this.calendar.element)
 				return;
-			if (element === this.calendarOpener!)
+			if (element === this.calendarOpener)
 				return this.isOpen ? this.closeCalendar() : this.openCalendar();
 			element = element.parentElement;
 		}
@@ -320,11 +326,13 @@ class DateTimePicker extends Widget {
 	}
 
 	private updatePosition = () => {
+		if (!this.calendar)
+			return;
 		const zIndex = this.textBox.style.zIndex ? parseInt(this.textBox.style.zIndex) : 0;
 		computePosition(this.textBox, this.calendar.element, {
 			middleware: [flip(), shift()],
 		}).then(({y}) => Object.assign(
-			this.calendar.element.style, {top: `${y}px`, zIndex: `${zIndex + 1}`}
+			this.calendar!.element.style, {top: `${y}px`, zIndex: `${zIndex + 1}`}
 		));
 	}
 
@@ -350,7 +358,7 @@ class DateTimePicker extends Widget {
 				this.textBox.classList.remove('focus');
 				this.parseInputFields();
 				this.updateInputFields();
-				this.calendar.updateDate(this.currentDate, this.extendedDate);
+				this.calendar?.updateDate(this.currentDate, this.extendedDate);
 				this.inputElement.dispatchEvent(new Event('blur'));
 			}
 		}, 0);
@@ -363,7 +371,7 @@ class DateTimePicker extends Widget {
 		if (this.hasFocus) {
 			preventDefault = this.editTextBox(event.key);
 		} else if (this.isOpen) {
-			preventDefault = await this.calendar.navigate(event.key);
+			preventDefault = await this.calendar?.navigate(event.key) ?? false;
 		}
 		if (preventDefault) {
 			event.preventDefault();
@@ -517,75 +525,102 @@ class DateTimePicker extends Widget {
 	}
 }
 
-const DTP = Symbol('DateTimePickerElement');
+const DT = Symbol('DateTime');
+
+export class DateFieldElement extends HTMLInputElement {
+	private [DT]!: DateTimeField;  // hides internal implementation
+
+	connectedCallback() {
+		const fieldGroup = this.closest('[role="group"]');
+		if (!fieldGroup)
+			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
+		this[DT] = new DateTimeField(this, null);
+	}
+
+	get valueAsDate() : Date | null {
+		return this[DT].valueAsDate();
+	}
+}
 
 export class DatePickerElement extends HTMLInputElement {
-	private [DTP]!: DateTimePicker;  // hides internal implementation
+	private [DT]!: DateTimeField;  // hides internal implementation
 
 	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[DTP] = new DateTimePicker(this, calendarElement as HTMLElement | null);
+		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
 	}
 
 	get valueAsDate() : Date | null {
-		return this[DTP].valueAsDate();
+		return this[DT].valueAsDate();
 	}
 }
 
+export class DateTimeFieldElement extends HTMLInputElement {
+	private [DT]!: DateTimeField;  // hides internal implementation
+
+	connectedCallback() {
+		const fieldGroup = this.closest('[role="group"]');
+		if (!fieldGroup)
+			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
+		this[DT] = new DateTimeField(this, null);
+	}
+
+	get valueAsDate() : Date | null {
+		return this[DT].valueAsDate();
+	}
+}
 
 export class DateTimePickerElement extends HTMLInputElement {
-	private [DTP]!: DateTimePicker;  // hides internal implementation
+	private [DT]!: DateTimeField;  // hides internal implementation
 
 	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[DTP] = new DateTimePicker(this, calendarElement as HTMLElement | null);
+		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
 	}
 
 	get valueAsDate() : Date | null {
-		return this[DTP].valueAsDate();
+		return this[DT].valueAsDate();
 	}
 }
-
 
 export class DateRangePickerElement extends HTMLInputElement {
-	private [DTP]!: DateTimePicker;  // hides internal implementation
+	private [DT]!: DateTimeField;  // hides internal implementation
 
 	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[DTP] = new DateTimePicker(this, calendarElement as HTMLElement | null);
+		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
 	}
 
 	public checkValidity() {
 		if (!super.checkValidity())
 			return false;
-		return this[DTP].checkValidity();
+		return this[DT].checkValidity();
 	}
 }
 
-
 export class DateTimeRangePickerElement extends HTMLInputElement {
-	private [DTP]!: DateTimePicker;  // hides internal implementation
+	private [DT]!: DateTimeField;  // hides internal implementation
 
 	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[DTP] = new DateTimePicker(this, calendarElement as HTMLElement | null);
+		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
 	}
 
 	public checkValidity() {
 		if (!super.checkValidity())
 			return false;
-		return this[DTP].checkValidity();
+		return this[DT].checkValidity();
 	}
 }

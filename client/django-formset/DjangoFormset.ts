@@ -145,13 +145,17 @@ class FieldGroup {
 				return this.fileUploader!.uploadedFiles;
 			}
 			if (element instanceof HTMLInputElement) {
-				if (window.customElements.get('django-datepicker') && element.getAttribute('is') === 'django-datepicker')
+				if (window.customElements.get('django-datefield') && element.getAttribute('is') === 'django-datefield'
+				 || window.customElements.get('django-datepicker') && element.getAttribute('is') === 'django-datepicker')
 					return element.valueAsDate?.toISOString().slice(0, 10) ?? '';
-				if (window.customElements.get('django-datetimepicker') && element.getAttribute('is') === 'django-datetimepicker')
+				if (window.customElements.get('django-datetimefield') && element.getAttribute('is') === 'django-datetimefield'
+				 || window.customElements.get('django-datetimepicker') && element.getAttribute('is') === 'django-datetimepicker')
 					return element.valueAsDate?.toISOString().replace('T', ' '). slice(0, 16) ?? '';
-				if (window.customElements.get('django-daterangepicker') && element.getAttribute('is') === 'django-daterangepicker')
+				if (window.customElements.get('django-daterangefield') && element.getAttribute('is') === 'django-daterangefield'
+				 || window.customElements.get('django-daterangepicker') && element.getAttribute('is') === 'django-daterangepicker')
 					return element.value ? element.value.split(';').map(v => v.slice(0, 10)) : ['', ''];
-				if (window.customElements.get('django-datetimerangepicker') && element.getAttribute('is') === 'django-datetimerangepicker')
+				if (window.customElements.get('django-datetimerangefield') && element.getAttribute('is') === 'django-datetimerangefield'
+				 || window.customElements.get('django-datetimerangepicker') && element.getAttribute('is') === 'django-datetimerangepicker')
 					return element.value ? element.value.split(';').map(v => v.slice(0, 16)) : ['', ''];
 			}
 			// all other input types just return their value

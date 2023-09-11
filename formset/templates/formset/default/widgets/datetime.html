@@ -1,4 +1,6 @@
 {% include "django/forms/widgets/input.html" %}
+{% if calendar %}
 <div role="dialog" class="dj-calendar" aria-label="calendar">
 	{% include calendar.template %}
 </div>
+{% endif %}

@@ -1,7 +1,7 @@
 @import "colors";
 
-:is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"], [is="django-datetimerangepicker"]) {
-	--dummy-style: none;  // required by DateTimePicker.transferStyles()
+[is^="django-date"] {
+	--dummy-style: none;  // required by DateTime.transferStyles()
 
 	&[hidden] {
 		// Using display: none causes: "An invalid form control with name='…' is not focusable." -error.
@@ -38,7 +38,6 @@
 
 		> .datetime-edit {
 			display: flex;
-			margin-left: calc(1rem + 0.6em);
 			overflow-x: hidden;
 
 			> .datetime-delimiter {
@@ -90,4 +89,8 @@
 		}
 	}
 
+}
+
+:is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"], [is="django-datetimerangepicker"]) + [role="textbox"] > .datetime-edit {
+	margin-left: calc(1rem + 0.6em);
 }
