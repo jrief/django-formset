@@ -37,15 +37,17 @@ from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import (
     SimpleContactCollection, ContactCollection, ContactCollectionList, IntermediateContactCollectionList,
     SortableContactCollection, SortableContactCollectionList)
-from testapp.forms.birthdate import BirthdateBoxForm, BirthdateCalendarForm, BirthdatePickerForm
-from testapp.forms.booking import BookingForm
+from testapp.forms.birthdate import BirthdateBoxForm, BirthdateCalendarForm, BirthdateInputForm, BirthdatePickerForm
+from testapp.forms.booking import BookingBoxForm, BookingCalendarForm, BookingPickerForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerCollection
+from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputForm, MomentPickerForm
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, sample_person_data, ModelPersonForm
 from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.questionnaire import QuestionnaireForm
+from testapp.forms.schedule import ScheduleBoxForm, ScheduleCalendarForm, SchedulePickerForm
 from testapp.forms.state import StateForm, StatesForm
 from testapp.forms.company import CompanyCollection, CompaniesCollection
 from testapp.forms.user import UserCollection, UserListCollection
@@ -448,15 +450,45 @@ urlpatterns = [
     path('birthdate.box', DemoFormView.as_view(
         form_class=BirthdateBoxForm,
     ), name='birthdate.box'),
-    path('birthdate.picker', DemoFormView.as_view(
-        form_class=BirthdatePickerForm,
-    ), name='birthdate.picker'),
     path('birthdate.calendar', DemoFormView.as_view(
         form_class=BirthdateCalendarForm,
     ), name='birthdate.calendar'),
-    path('booking', DemoFormView.as_view(
-        form_class=BookingForm,
-    ), name='booking'),
+    path('birthdate.input', DemoFormView.as_view(
+        form_class=BirthdateInputForm,
+    ), name='birthdate.input'),
+    path('birthdate.picker', DemoFormView.as_view(
+        form_class=BirthdatePickerForm,
+    ), name='birthdate.picker'),
+    path('moment.box', DemoFormView.as_view(
+        form_class=MomentBoxForm,
+    ), name='moment.box'),
+    path('moment.calendar', DemoFormView.as_view(
+        form_class=MomentCalendarForm,
+    ), name='moment.calendar'),
+    path('moment.input', DemoFormView.as_view(
+        form_class=MomentInputForm,
+    ), name='moment.input'),
+    path('moment.picker', DemoFormView.as_view(
+        form_class=MomentPickerForm,
+    ), name='moment.picker'),
+    path('booking.box', DemoFormView.as_view(
+        form_class=BookingBoxForm,
+    ), name='booking.box'),
+    path('booking.calendar', DemoFormView.as_view(
+        form_class=BookingCalendarForm,
+    ), name='booking.calendar'),
+    path('booking.picker', DemoFormView.as_view(
+        form_class=BookingPickerForm,
+    ), name='booking.picker'),
+    path('schedule.box', DemoFormView.as_view(
+        form_class=ScheduleBoxForm,
+    ), name='schedule.box'),
+    path('schedule.calendar', DemoFormView.as_view(
+        form_class=ScheduleCalendarForm,
+    ), name='schedule.calendar'),
+    path('schedule.picker', DemoFormView.as_view(
+        form_class=SchedulePickerForm,
+    ), name='schedule.picker'),
     path('opinion', DemoFormView.as_view(
         form_class=OpinionForm,
     ), name='opinion'),

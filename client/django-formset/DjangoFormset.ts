@@ -146,15 +146,19 @@ class FieldGroup {
 			}
 			if (element instanceof HTMLInputElement) {
 				if (window.customElements.get('django-datefield') && element.getAttribute('is') === 'django-datefield'
+				 || window.customElements.get('django-datecalendar') && element.getAttribute('is') === 'django-datecalendar'
 				 || window.customElements.get('django-datepicker') && element.getAttribute('is') === 'django-datepicker')
 					return element.valueAsDate?.toISOString().slice(0, 10) ?? '';
 				if (window.customElements.get('django-datetimefield') && element.getAttribute('is') === 'django-datetimefield'
+				 || window.customElements.get('django-datetimecalendar') && element.getAttribute('is') === 'django-datetimecalendar'
 				 || window.customElements.get('django-datetimepicker') && element.getAttribute('is') === 'django-datetimepicker')
 					return element.valueAsDate?.toISOString().replace('T', ' '). slice(0, 16) ?? '';
 				if (window.customElements.get('django-daterangefield') && element.getAttribute('is') === 'django-daterangefield'
+				 || window.customElements.get('django-daterangecalendar') && element.getAttribute('is') === 'django-daterangecalendar'
 				 || window.customElements.get('django-daterangepicker') && element.getAttribute('is') === 'django-daterangepicker')
 					return element.value ? element.value.split(';').map(v => v.slice(0, 10)) : ['', ''];
 				if (window.customElements.get('django-datetimerangefield') && element.getAttribute('is') === 'django-datetimerangefield'
+				 || window.customElements.get('django-datetimerangecalendar') && element.getAttribute('is') === 'django-datetimerangecalendar'
 				 || window.customElements.get('django-datetimerangepicker') && element.getAttribute('is') === 'django-datetimerangepicker')
 					return element.value ? element.value.split(';').map(v => v.slice(0, 16)) : ['', ''];
 			}
@@ -1671,7 +1675,7 @@ export class DjangoFormset {
 
 		// 2. iterate over all forms and fill the data structure with content
 		for (const form of this.forms) {
-			if (!form.name)  // only a single form doesn't have a name
+			if (!form.name)  // it's a single form, which doesn't have a name
 				return Object.assign({}, this.data, {_extra: extraData});
 
 			const absPath = form.getAbsPath();

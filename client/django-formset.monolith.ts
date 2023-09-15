@@ -27,12 +27,28 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	customElementNames.push('django-slug');
 	window.customElements.define('django-datefield', DateFieldElement, {extends: 'input'});
 	customElementNames.push('django-datefield');
+	window.customElements.define('django-datecalendar', DateFieldElement, {extends: 'input'});
+	customElementNames.push('django-datecalendar');
 	window.customElements.define('django-datepicker', DatePickerElement, {extends: 'input'});
 	customElementNames.push('django-datepicker');
 	window.customElements.define('django-datetimefield', DateTimeFieldElement, {extends: 'input'});
 	customElementNames.push('django-datetimefield');
+	window.customElements.define('django-datetimecalendar', DateFieldElement, {extends: 'input'});
+	customElementNames.push('django-datetimecalendar');
 	window.customElements.define('django-datetimepicker', DateTimePickerElement, {extends: 'input'});
 	customElementNames.push('django-datetimepicker');
+	window.customElements.define('django-daterangefield', DateTimePickerElement, {extends: 'input'});
+	customElementNames.push('django-daterangefield');
+	window.customElements.define('django-daterangecalendar', DateTimePickerElement, {extends: 'input'});
+	customElementNames.push('django-daterangecalendar');
+	window.customElements.define('django-daterangepicker', DateTimePickerElement, {extends: 'input'});
+	customElementNames.push('django-daterangepicker');
+	window.customElements.define('django-datetimerangefield', DateTimePickerElement, {extends: 'input'});
+	customElementNames.push('django-datetimerangefield');
+	window.customElements.define('django-datetimerangecalendar', DateTimePickerElement, {extends: 'input'});
+	customElementNames.push('django-datetimerangecalendar');
+	window.customElements.define('django-datetimerangepicker', DateTimePickerElement, {extends: 'input'});
+	customElementNames.push('django-datetimerangepicker');
 
 	const foundIds = new Set<string>();
 	document.querySelectorAll('django-formset [id]').forEach(element => {

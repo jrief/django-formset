@@ -1,12 +1,7 @@
 @import "colors";
 
-// Calendar popup dialog
-[aria-haspopup="dialog"] + .dj-calendar {
-	box-shadow: lightgray 0 0 1rem;
-	width: max-content;
-	position: absolute;
-	top: 0;
-	left: 0;
+.dj-calendar {
+	--dummy-style: none;  // required by Calendar.transferStyles()
 
 	[hidden] {
 		display: none !important;
@@ -24,6 +19,9 @@
 			border: none;
 			padding: 0;
 			min-width: 28px;
+			&.extend {
+				flex-grow: 1;
+			}
 			&:hover {
 				background-color: $calendar-hover-background-color;
 			}
@@ -151,10 +149,6 @@
 				}
 			}
 
-			&.monthdays > li {
-				width: 2em;
-			}
-
 			> li.today {
 				position: relative;
 				&::after {
@@ -173,6 +167,15 @@
 			text-decoration: none;
 		}
 	}
+}
+
+// Calendar popup dialog
+[aria-haspopup="dialog"] + .dj-calendar {
+	box-shadow: lightgray 0 0 1rem;
+	width: max-content;
+	position: absolute;
+	top: 0;
+	left: 0;
 }
 
 [aria-expanded="false"] + .dj-calendar {

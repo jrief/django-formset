@@ -1,4 +1,5 @@
 import {StyleHelpers} from "./helpers";
+import {Widget} from "./Widget";
 import styles from './Calendar.scss';
 
 
@@ -21,10 +22,6 @@ enum Direction {
 export type CalendarSettings = {
 	dateOnly: boolean,  // if true, time is not displayed
 	withRange: boolean,  // if true, a range of dates can be selected
-	minDate?: Date,  // if set, dates before this are disabled
-	maxDate?: Date,  // if set, dates after this are disabled
-	interval?: number,  // granularity of entries in time picker
-	endpoint: string,  // URL to fetch calendar data from
 	hour12: boolean,  // if true, use 12 hour format
 	inputElement: HTMLInputElement,  // input element to pilfer styles from
 	updateDate: Function,  // callback to update date input
@@ -34,7 +31,7 @@ export type CalendarSettings = {
 
 type DateRange = [Date, Date] | [Date, null] | [null, null];
 
-export class Calendar {
+export class Calendar extends Widget {
 	public readonly element: HTMLElement;
 	private viewMode!: ViewMode;
 	private settings: CalendarSettings;
@@ -47,6 +44,7 @@ export class Calendar {
 	private narrowSheetDate?: Date;
 	private extendSheetDate?: Date;
 	private calendarItems!: NodeListOf<HTMLLIElement>;
+	private interval?: number;
 	private minDate?: Date;
 	private maxDate?: Date;
 	private minWeekDate?: Date;
@@ -55,11 +53,12 @@ export class Calendar {
 	private maxMonthDate?: Date;
 	private minYearDate?: Date;
 	private maxYearDate?: Date;
-	private readonly baseSelector = '[aria-haspopup="dialog"] + .dj-calendar';
+	private readonly baseSelector = '.dj-calendar';
 	private readonly rangeSelectCssRule: CSSStyleRule;
 	private readonly rangeSelectorText: string;
 
 	constructor(calendarElement: HTMLElement | null, settings: CalendarSettings) {
+		super(settings.inputElement);
 		this.settings = settings;
 		if (calendarElement instanceof HTMLElement) {
 			this.element = calendarElement;
@@ -69,6 +68,7 @@ export class Calendar {
 		}
 		const observer = new MutationObserver(() => this.registerCalendar());
 		observer.observe(this.element, {childList: true});
+		this.setInterval();
 		this.setMinMaxBounds();
 		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
 			this.transferStyles();
@@ -77,12 +77,6 @@ export class Calendar {
 		this.rangeSelectorText = this.rangeSelectCssRule.selectorText;
 		this.registerCalendar();
 		this.sheetBounds = this.getSheetBounds();
-	}
-
-	private get currentDateString() : string {
-		if (!this.dateRange[0])
-			return '';
-		return this.asUTCDate(this.dateRange[0]).toISOString().slice(0, this.settings.dateOnly ? 10 : 16);
 	}
 
 	private get todayDateString() : string {
@@ -109,19 +103,32 @@ export class Calendar {
 		}
 	}
 
+	private setInterval() {
+		const step = this.settings.inputElement.getAttribute('step');
+		if (step) {
+			const d1 = new Date('1970-01-01 0:00:00');
+			const d2 = new Date(`1970-01-01 ${step}`);
+			this.interval = (d2.getTime() - d1.getTime()) / 60000;
+		}
+	}
+
 	private setMinMaxBounds() {
-		if (this.settings.minDate) {
-			this.minDate = new Date(this.settings.minDate);
-			this.minWeekDate = new Date(this.settings.minDate);
+		const minValue = this.settings.inputElement.getAttribute('min');
+		if (minValue) {
+			const date = new Date(minValue);
+			this.minDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+			this.minWeekDate = new Date(this.minDate);
 			this.minWeekDate.setHours(0, 0, 0);
 			this.minMonthDate = new Date(this.minWeekDate);
 			this.minMonthDate.setDate(1);
 			this.minYearDate = new Date(this.minMonthDate);
 			this.minYearDate.setMonth(0);
 		}
-		if (this.settings.maxDate) {
-			this.maxDate = new Date(this.settings.maxDate);
-			this.maxWeekDate = new Date(this.settings.maxDate);
+		const maxValue = this.settings.inputElement.getAttribute('max');
+		if (maxValue) {
+			const date = new Date(maxValue);
+			this.maxDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+			this.maxWeekDate = new Date(this.maxDate);
 			this.maxWeekDate.setHours(23, 59, 59);
 			this.maxMonthDate = new Date(this.maxWeekDate);
 			this.maxMonthDate.setDate(28);
@@ -177,8 +184,8 @@ export class Calendar {
 
 	private registerHoursView() {
 		// since each datetime-picker can have different interval values, set this on element level
-		if (this.settings.interval) {
-			const num = Math.min(60 / this.settings.interval!, 6);
+		if (this.interval) {
+			const num = Math.min(60 / this.interval!, 6);
 			const gridTemplateColumns = `repeat(${num}, 1fr)`;
 			this.element.querySelectorAll('.ranges ul.minutes').forEach(minutesElement => {
 				(minutesElement as HTMLElement).style.gridTemplateColumns = gridTemplateColumns;
@@ -192,6 +199,7 @@ export class Calendar {
 			} else {
 				elem.addEventListener('click', (event: Event) => {
 					if (event.target instanceof HTMLLIElement) {
+						console.log(event.target);
 						this.setDate(event.target);
 						this.markSelectedDates();
 						if (!this.settings.withRange || this.dateRange[0] && this.dateRange[1]) {
@@ -238,10 +246,6 @@ export class Calendar {
 
 	private registerWeeksView() {
 		const todayDateString = this.todayDateString.slice(0, 10);
-		if (this.settings.minDate) {
-			this.minWeekDate = new Date(this.settings.minDate);
-			this.minWeekDate.setHours(0, 0, 0);
-		}
 		this.calendarItems.forEach(elem => {
 			elem.classList.toggle('today', elem.getAttribute('data-date') === todayDateString);
 			const date = this.getDate(elem);
@@ -330,13 +334,15 @@ export class Calendar {
 				break;
 			case 'Enter':
 				if (this.preselectedDate) {
-					const dateString = this.preselectedDate.toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10) ?? '';
+					const dateString = this.asUTCDate(this.preselectedDate).toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10);
 					element = this.element.querySelector(`.ranges li[data-date="${dateString}"]`);
 				} else {
-					const dateString = (this.upperRange ? this.dateRange[1] : this.dateRange[0])?.toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10) ?? '';
+					const date = this.upperRange ? this.dateRange[1] : this.dateRange[0];
+					const dateString = date ? this.asUTCDate(date).toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10) : '';
 					element = this.element.querySelector(`.ranges li[data-date="${dateString}"]`);
 				}
 				if (element) {
+					console.log(element);
 					if (this.viewMode === ViewMode.hours || this.viewMode === ViewMode.weeks && this.settings.dateOnly) {
 						this.preselectedDate = null;
 						this.setDate(element);
@@ -356,7 +362,7 @@ export class Calendar {
 	}
 
 	private getDelta(direction: Direction, lastDate: Date) : Date {
-		const interval = this.settings.interval;
+		const interval = this.interval;
 		const deltaHours = (interval ?? 60) < 60 ? new Map<Direction, number>([
 			[Direction.up, -60],
 			[Direction.right, +interval!],
@@ -498,7 +504,7 @@ export class Calendar {
 		const upperIndex = this.indexOfCalendarItem(upperDate);
 		const addLower = openRange && !this.calendarItems.item(lowerIndex)?.classList.contains('selected') ? 1 : 2;
 		const addUpper = openRange && !this.calendarItems.item(upperIndex)?.classList.contains('selected') ? 1 : 0;
-		const perHour = this.settings.interval ? Math.min(60 / this.settings.interval, 6) : 1;
+		const perHour = this.interval ? Math.min(60 / this.interval, 6) : 1;
 		const lowerLiIndex = Math.floor(lowerIndex / perHour) % 6 + 1;
 		const upperLiIndex = Math.floor(upperIndex / perHour) % 6 + 1;
 		let selectors: Array<string>;
@@ -547,7 +553,7 @@ export class Calendar {
 				selectors = [`:not(.weekdays) > li:nth-child(n + ${lowerIndex + addLower}):nth-child(-n + ${upperIndex + addUpper})`];
 			}
 		}
-		if (this.viewMode === ViewMode.hours && this.settings.interval && (lowerIndex !== -1 || upperIndex !== -1)) {
+		if (this.viewMode === ViewMode.hours && this.interval && (lowerIndex !== -1 || upperIndex !== -1)) {
 			const lowerUlIndex = Math.floor(lowerIndex / perHour) + 1;
 			const upperUlIndex = Math.floor(upperIndex / perHour) + 1;
 			if (upperIndex === -1) {
@@ -750,16 +756,16 @@ export class Calendar {
 		if (this.settings.withRange) {
 			query.set('range', '');
 		}
-		if (this.settings.interval) {
-			query.set('interval', String(this.settings.interval));
+		if (this.interval) {
+			query.set('interval', String(this.interval));
 		}
-		const response = await fetch(`${this.settings.endpoint}?${query.toString()}`, {
+		const response = await fetch(`${this.endpoint}?${query.toString()}`, {
 			method: 'GET',
 		});
 		if (response.status === 200) {
 			this.element.innerHTML = await response.text();
 		} else {
-			console.error(`Failed to fetch from ${this.settings.endpoint} (status=${response.status})`);
+			console.error(`Failed to fetch from ${this.endpoint} (status=${response.status})`);
 		}
 	}
 
@@ -810,7 +816,7 @@ export class Calendar {
 					extraStyles = StyleHelpers.extractStyles(inputElement, ['border-color']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					inputElement.classList.remove('-focus-');
-					if (cssRule.selectorText === '[aria-haspopup="dialog"] + .dj-calendar .ranges ul.hours > li.constricted') {
+					if (cssRule.selectorText === `${this.baseSelector} .ranges ul.hours > li.constricted`) {
 						extraStyles = StyleHelpers.extractStyles(this.element, ['background-color']);
 						extraStyles = extraStyles.replace('background-color', 'border-bottom-color');
 						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
@@ -831,7 +837,7 @@ export class Calendar {
 			for (let k = 0; k < sheet.cssRules.length; ++k) {
 				const cssRule = sheet.cssRules[k];
 				if (cssRule instanceof CSSStyleRule && cssRule.selectorText === `${this.baseSelector} .ranges ul:not(*)`) {
-					const selectorText = `#${this.settings.inputElement.id} + ${this.baseSelector} .ranges ul:not(*)`;
+					const selectorText = `#${this.settings.inputElement.id} ~ ${this.baseSelector} .ranges ul:not(*)`;
 					const index = sheet.insertRule(`${selectorText}{${cssRule.style.cssText}}`, sheet.cssRules.length);
 					return sheet.cssRules[index] as CSSStyleRule;
 				}
@@ -839,6 +845,17 @@ export class Calendar {
 		}
 		throw new Error(`Could not find CSS rule for '${this.baseSelector} .ranges ul:not(*)'`);
 	}
+
+	protected formResetted(event: Event) {
+		this.settings.inputElement.value = this.settings.inputElement.defaultValue;
+		if (this.settings.inputElement.value) {
+			this.updateDate(new Date(this.settings.inputElement.value), null);
+		} else {
+			this.updateDate(null, null);
+		}
+	}
+
+	protected formSubmitted(event: Event) {}
 
 	public updateDate(currentDate: Date|null, extendedDate: Date|null) {
 		this.dateRange = currentDate
@@ -848,5 +865,72 @@ export class Calendar {
 		if (currentDate) {
 			this.fetchCalendar(currentDate, this.viewMode);
 		}
+	}
+
+	public valueAsDate() : Date | null {
+		return this.dateRange[0];
+	}
+}
+
+
+const CAL = Symbol('Calendar');
+
+export class DateCalendarElement extends HTMLInputElement {
+	private [CAL]!: Calendar;  // hides internal implementation
+
+	connectedCallback() {
+		const fieldGroup = this.closest('[role="group"]');
+		if (!fieldGroup)
+			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
+		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
+		const dateOnly = ['django-datecalendar', 'django-datepicker', 'django-daterangecalendar', 'django-daterangepicker'].includes(this.getAttribute('is') ?? '');
+		const withRange = ['django-daterangecalendar', 'django-daterangepicker', 'django-datetimerangecalendar', 'django-datetimerangepicker'].includes(this.getAttribute('is') ?? '');
+		const dateTimeFormat = Intl.DateTimeFormat(navigator.language, {hour: '2-digit'});
+		const settings: CalendarSettings = {
+			dateOnly: dateOnly,
+			withRange: withRange,
+			inputElement: this,
+			hour12: dateTimeFormat.resolvedOptions().hour12 ?? false,
+			updateDate: () => {},
+			close: () => {},
+		};
+		if (withRange) {
+			settings.updateDate = (lowerDate: Date, upperDate?: Date) => {
+				const dateStrings = [
+					lowerDate.toISOString().slice(0, dateOnly ? 10 : 16),
+					upperDate?.toISOString().slice(0, dateOnly ? 10 : 16) ?? '',
+				]
+				this.value = dateStrings.join(';');
+				this.dispatchEvent(new Event('input'));
+				this.dispatchEvent(new Event('blur'));
+			};
+		} else {
+			settings.updateDate = (date: Date) => {
+				this.value = date.toISOString().slice(0, dateOnly ? 10 : 16);
+				this.dispatchEvent(new Event('input'));
+				this.dispatchEvent(new Event('blur'));
+			};
+		}
+
+		this[CAL] = new Calendar(calendarElement as HTMLElement, settings);
+		if (this.value) {
+			if (withRange) {
+				const [start, end] = this.value.split(';');
+				this[CAL].updateDate(new Date(start), new Date(end));
+			} else {
+				this[CAL].updateDate(new Date(this.value), null);
+			}
+		}
+		document.addEventListener('keydown', async (event: KeyboardEvent) => {
+			const preventDefault = await this[CAL].navigate(event.key) ?? false;
+			if (preventDefault) {
+				event.preventDefault();
+			}
+		});
+		this.hidden = true;
+	}
+
+	get valueAsDate() : Date | null {
+		return this[CAL].valueAsDate();
 	}
 }

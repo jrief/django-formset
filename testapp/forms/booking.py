@@ -1,9 +1,15 @@
 from django import forms
-# from django.contrib.postgres.forms import DateRangeField
 
-from formset.ranges import DateRangeField
+from formset.ranges import DateRangeCalendar, DateRangeField, DateRangePicker, DateRangeTextbox
 
 
-class BookingForm(forms.Form):
-    date_range = DateRangeField(
-    )
+class BookingBoxForm(forms.Form):
+    date_range = DateRangeField(widget=DateRangeTextbox())
+
+
+class BookingCalendarForm(forms.Form):
+    date_range = DateRangeField(widget=DateRangeCalendar())
+
+
+class BookingPickerForm(forms.Form):
+    date_range = DateRangeField(widget=DateRangePicker())

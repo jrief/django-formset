@@ -1,9 +1,19 @@
-from datetime import timedelta, timezone
+from datetime import timezone
 
 from django.forms import fields, forms
-from django.utils.timezone import datetime, now
+from django.utils.timezone import datetime
 
-from formset.widgets import DateCalendar, DatePicker, DateTextbox, DateTimeCalendar, DateTimePicker, DateTimeTextbox
+from formset.widgets import DateCalendar, DateInput, DatePicker, DateTextbox
+
+
+class BirthdateInputForm(forms.Form):
+    birthdate = fields.DateField(
+        label="Birthdate",
+        initial=datetime(2021, 7, 9, tzinfo=timezone.utc),
+        widget=DateInput(attrs={
+            'max': lambda: datetime.now(tz=timezone.utc).date(),
+        }),
+    )
 
 
 class BirthdateBoxForm(forms.Form):
@@ -17,29 +27,6 @@ class BirthdateBoxForm(forms.Form):
         }),
     )
 
-    schedule = fields.DateTimeField(
-        label="Schedule",
-        widget=DateTimeTextbox(attrs={
-            # 'min': lambda: (now() - timedelta(days=3)).isoformat()[:16],
-            # 'max': lambda: (now() + timedelta(days=3)).isoformat()[:16],
-            'step': timedelta(minutes=10),
-            #'date-format': 'iso',
-            #'local-time': '',
-        }),
-        required=True,
-        initial=datetime(2023, 2, 28, 9, 40, tzinfo=timezone.utc),
-    )
-
-    def clean_birthdate(self):
-        value = self.cleaned_data['birthdate']
-        print(f"Birthday: {value}")
-        return value
-
-    def clean_schedule(self):
-        value = self.cleaned_data['schedule']
-        print(f"Schedule: {value}")
-        return value
-
 
 class BirthdateCalendarForm(forms.Form):
     birthdate = fields.DateField(
@@ -49,26 +36,6 @@ class BirthdateCalendarForm(forms.Form):
             'max': lambda: datetime.now(tz=timezone.utc).date(),
         }),
     )
-
-    schedule = fields.DateTimeField(
-        label="Schedule",
-        widget=DateTimeCalendar(attrs={
-            'step': timedelta(minutes=10),
-        }),
-        required=True,
-        initial=datetime(2023, 2, 28, 9, 40, tzinfo=timezone.utc),
-    )
-
-    def clean_birthdate(self):
-        value = self.cleaned_data['birthdate']
-        print(f"Birthday: {value}")
-        return value
-
-    def clean_schedule(self):
-        value = self.cleaned_data['schedule']
-        print(f"Schedule: {value}")
-        return value
-
 
 
 class BirthdatePickerForm(forms.Form):
@@ -81,27 +48,4 @@ class BirthdatePickerForm(forms.Form):
             'max': lambda: datetime.now(tz=timezone.utc).date(),
         }),
     )
-
-    schedule = fields.DateTimeField(
-        label="Schedule",
-        widget=DateTimePicker(attrs={
-            # 'min': lambda: (now() - timedelta(days=3)).isoformat()[:16],
-            # 'max': lambda: (now() + timedelta(days=3)).isoformat()[:16],
-            'step': timedelta(minutes=10),
-            #'date-format': 'iso',
-            #'local-time': '',
-        }),
-        required=True,
-        initial=datetime(2023, 2, 28, 9, 40, tzinfo=timezone.utc),
-    )
-
-    def clean_birthdate(self):
-        value = self.cleaned_data['birthdate']
-        print(f"Birthday: {value}")
-        return value
-
-    def clean_schedule(self):
-        value = self.cleaned_data['schedule']
-        print(f"Schedule: {value}")
-        return value
 

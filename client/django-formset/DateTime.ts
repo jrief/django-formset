@@ -41,8 +41,8 @@ class DateTimeField extends Widget {
 	constructor(inputElement: HTMLInputElement, calendarElement: HTMLElement | null) {
 		super(inputElement);
 		this.inputElement = inputElement;
-		this.dateOnly = ['django-datefield', 'django-datepicker', 'django-daterangepicker'].includes(inputElement.getAttribute('is') ?? '');
-		this.withRange = ['django-daterangepicker', 'django-datetimerangepicker'].includes(inputElement.getAttribute('is') ?? '');
+		this.dateOnly = ['django-datefield', 'django-datepicker', 'django-daterangefield', 'django-daterangepicker'].includes(inputElement.getAttribute('is') ?? '');
+		this.withRange = ['django-daterangefield', 'django-daterangepicker', 'django-datetimerangefield', 'django-datetimerangepicker'].includes(inputElement.getAttribute('is') ?? '');
 		this.textBox = this.createTextBox();
 		this.setInitialDate();
 		if (calendarElement) {
@@ -95,28 +95,11 @@ class DateTimeField extends Widget {
 		const settings: CalendarSettings = {
 			dateOnly: this.dateOnly,
 			withRange: this.withRange,
-			endpoint: this.endpoint!,
 			inputElement: this.inputElement,
 			hour12: this.hour12,
 			updateDate: (currentDate: Date, extendedDate: Date|null|boolean) => this.updateDate(currentDate, extendedDate),
 			close: () => this.closeCalendar(),
 		};
-		const minValue = this.inputElement.getAttribute('min');
-		if (minValue) {
-			const date = new Date(minValue);
-			settings.minDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-		}
-		const maxValue = this.inputElement.getAttribute('max');
-		if (maxValue) {
-			const date = new Date(maxValue);
-			settings.maxDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-		}
-		const step = this.inputElement.getAttribute('step');
-		if (step) {
-			const d1 = new Date('1970-01-01 0:00:00');
-			const d2 = new Date(`1970-01-01 ${step}`);
-			settings.interval = (d2.getTime() - d1.getTime()) / 60000;
-		}
 		return settings;
 	}
 
@@ -589,6 +572,24 @@ export class DateTimePickerElement extends HTMLInputElement {
 	}
 }
 
+export class DateRangeFieldElement extends HTMLInputElement {
+	private [DT]!: DateTimeField;  // hides internal implementation
+
+	connectedCallback() {
+		const fieldGroup = this.closest('[role="group"]');
+		if (!fieldGroup)
+			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
+		this[DT] = new DateTimeField(this, null);
+	}
+
+	public checkValidity() {
+		if (!super.checkValidity())
+			return false;
+		return this[DT].checkValidity();
+	}
+}
+
+
 export class DateRangePickerElement extends HTMLInputElement {
 	private [DT]!: DateTimeField;  // hides internal implementation
 
@@ -598,6 +599,23 @@ export class DateRangePickerElement extends HTMLInputElement {
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
 		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
+	}
+
+	public checkValidity() {
+		if (!super.checkValidity())
+			return false;
+		return this[DT].checkValidity();
+	}
+}
+
+export class DateTimeRangeFieldElement extends HTMLInputElement {
+	private [DT]!: DateTimeField;  // hides internal implementation
+
+	connectedCallback() {
+		const fieldGroup = this.closest('[role="group"]');
+		if (!fieldGroup)
+			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
+		this[DT] = new DateTimeField(this, null);
 	}
 
 	public checkValidity() {

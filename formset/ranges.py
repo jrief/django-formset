@@ -1,7 +1,79 @@
 from django.forms import fields
 from django.utils.translation import gettext_lazy as _
 
-from formset.widgets import DatePicker, DateTimePicker
+from formset.widgets import DateCalendar, DatePicker, DateTextbox, DateTimeCalendar, DateTimePicker, DateTimeTextbox
+
+
+class DateRangeCalendar(DateCalendar):
+    def __init__(self, attrs=None, calendar_renderer=None):
+        default_attrs = {
+            'type': 'regex',
+            'pattern': r'^\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}$',
+            'is': 'django-daterangecalendar',
+        }
+        if attrs:
+            default_attrs.update(**attrs)
+        super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
+
+
+class DateRangePicker(DatePicker):
+    def __init__(self, attrs=None, calendar_renderer=None):
+        default_attrs = {
+            'type': 'regex',
+            'pattern': r'^\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}$',
+            'is': 'django-daterangepicker',
+        }
+        if attrs:
+            default_attrs.update(**attrs)
+        super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
+
+
+class DateRangeTextbox(DateTextbox):
+    def __init__(self, attrs=None):
+        default_attrs = {
+            'type': 'regex',
+            'pattern': r'^\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}$',
+            'is': 'django-daterangefield',
+        }
+        if attrs:
+            default_attrs.update(**attrs)
+        super().__init__(attrs=default_attrs)
+
+
+class DateTimeRangeCalendar(DateTimeCalendar):
+    def __init__(self, attrs=None, calendar_renderer=None):
+        default_attrs = {
+            'type': 'regex',
+            'pattern': r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2};\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$',
+            'is': 'django-datetimerangecalendar',
+        }
+        if attrs:
+            default_attrs.update(**attrs)
+        super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
+
+
+class DateTimeRangePicker(DateTimePicker):
+    def __init__(self, attrs=None, calendar_renderer=None):
+        default_attrs = {
+            'type': 'regex',
+            'pattern': r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2};\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$',
+            'is': 'django-datetimerangepicker',
+        }
+        if attrs:
+            default_attrs.update(**attrs)
+        super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
+
+
+class DateTimeRangeTextbox(DateTimeTextbox):
+    def __init__(self, attrs=None):
+        default_attrs = {
+            'type': 'regex',
+            'pattern': r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2};\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$',
+            'is': 'django-datetimerangefield',
+        }
+        if attrs:
+            default_attrs.update(**attrs)
+        super().__init__(attrs=default_attrs)
 
 
 class BaseRangeField(fields.MultiValueField):
@@ -49,11 +121,7 @@ class DateRangeField(BaseRangeField):
     base_field = fields.DateField
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('widget', DatePicker(attrs={
-            'type': 'regex',
-            'pattern': r'^\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}$',
-            'is': 'django-daterangepicker',
-        }))
+        kwargs.setdefault('widget', DateRangePicker())
         super().__init__(**kwargs)
 
 
@@ -61,9 +129,5 @@ class DateTimeRangeField(DateRangeField):
     base_field = fields.DateTimeField
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('widget', DateTimePicker(attrs={
-            'type': 'regex',
-            'pattern': r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2};\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$',
-            'is': 'django-datetimerangepicker',
-        }))
+        kwargs.setdefault('widget', DateTimeRangePicker())
         super().__init__(**kwargs)
