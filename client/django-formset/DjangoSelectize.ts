@@ -67,6 +67,7 @@ class DjangoSelectize extends IncompleteSelect {
 		this.validateInput(this.initialValue as string);
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
 		this.setupFilters(tomInput);
+		this.tomSelect.setValue(this.initialValue);
 	}
 
 	protected getValue = () => this.currentValue;
