@@ -19,7 +19,7 @@ export class DualSelector extends IncompleteSelect {
 	private readonly moveSelectedLeftButton: HTMLButtonElement;
 	private readonly undoButton?: HTMLButtonElement;
 	private readonly redoButton?: HTMLButtonElement;
-	private historicalValues: string[][] = [];
+	private historicValues: string[][] = [];
 	private historyCursor: number = 0;
 	private lastRemoteQuery = new URLSearchParams();
 	private readonly renderNoResults: Function;
@@ -110,7 +110,7 @@ export class DualSelector extends IncompleteSelect {
 			});
 			optGroupElement.replaceWith(...optGroupElement.childNodes);
 		});
-		this.historicalValues.push(initialValues);
+		this.historicValues.push(initialValues);
 		this.setHistoryCursor(0);
 		if (this.selectRightElement instanceof SortableSelectElement) {
 			this.selectRightElement.initialize(this.selectLeftElement);
@@ -144,31 +144,29 @@ export class DualSelector extends IncompleteSelect {
 		return newOptionElement;
 	}
 
-	private selectLeftScrolled() {
+	private async selectLeftScrolled() {
 		if (!this.isIncomplete)
 			return;
 		const selectLeftScroll = this.selectLeftElement.scrollHeight - this.selectLeftElement.scrollTop;
 		if (selectLeftScroll <= this.selectLeftElement.offsetHeight) {
 			// triggers whenever the last <option>-element becomes visible inside its parent <select>
-			this.remoteLookup();
+			await this.remoteLookup();
 		}
 	}
 
-	private remoteLookup() {
+	private async remoteLookup() {
 		let query: URLSearchParams;
 		const searchString = this.searchLeftInput?.value;
 		if (searchString) {
 			const offset = this.selectLeftElement.querySelectorAll('option:not([hidden])').length;
-			// query = `${this.buildFetchQuery(searchString)}&offset=${offset}`;
 			query = this.buildFetchQuery(offset, searchString);
 		} else {
-			// query = `${this.buildFetchQuery()}&offset=${this.selectorElement.childElementCount}`;
 			query = this.buildFetchQuery(this.selectorElement.childElementCount);
 		}
 		if (this.lastRemoteQuery === query)
 			return;
 		this.lastRemoteQuery = query;
-		this.loadOptions(query, (options: Array<OptionData>) => options.forEach(option => {
+		await this.loadOptions(query, (options: Array<OptionData>) => options.forEach(option => {
 			if (!(this.selectorElement.querySelector(`option[value="${option.id}"]`))) {
 				const optionElement = this.addOptionToSelectElement(option, this.selectLeftElement).cloneNode(false) as HTMLOptionElement;
 				this.selectorElement.add(optionElement);
@@ -210,9 +208,9 @@ export class DualSelector extends IncompleteSelect {
 
 	private optionsMoved() {
 		const rightOptions = Array.from(this.selectRightElement.querySelectorAll('option'));
-		this.historicalValues.splice(this.historyCursor + 1);
-		this.historicalValues.push(rightOptions.map(o => o.value));
-		this.setHistoryCursor(this.historicalValues.length - 1);
+		this.historicValues.splice(this.historyCursor + 1);
+		this.historicValues.push(rightOptions.map(o => o.value));
+		this.setHistoryCursor(this.historicValues.length - 1);
 		this.selectorChanged();
 	}
 
@@ -349,9 +347,9 @@ export class DualSelector extends IncompleteSelect {
 	private unOrRedo(direction: number) {
 		this.clearSearchFields();
 		const nextCursor = this.historyCursor + direction;
-		if (nextCursor < 0 || nextCursor >= this.historicalValues.length)
+		if (nextCursor < 0 || nextCursor >= this.historicValues.length)
 			return;
-		const nextValues = this.historicalValues[nextCursor];
+		const nextValues = this.historicValues[nextCursor];
 
 		const rightOptions = Array.from(this.selectRightElement.querySelectorAll('option'));
 		rightOptions.filter(o => nextValues.indexOf(o.value) === -1).forEach(optionElement => {
@@ -386,7 +384,7 @@ export class DualSelector extends IncompleteSelect {
 			this.undoButton.disabled = historyCursor === 0;
 		}
 		if (this.redoButton) {
-			this.redoButton.disabled = historyCursor === this.historicalValues.length - 1;
+			this.redoButton.disabled = historyCursor === this.historicValues.length - 1;
 		}
 	}
 
@@ -405,30 +403,28 @@ export class DualSelector extends IncompleteSelect {
 		sheet.insertRule(`django-formset [role="group"] .dj-dual-selector select{${extraStyles}}`, 3);
 	}
 
-	protected formResetted(event: Event) {
-		this.clearSearchFields();
-		const initialValues = this.historicalValues[0];
-		this.historicalValues.splice(1);
+	protected getValue = () => this.historicValues[this.historicValues.length - 1];
+
+	protected async formResetted(event: Event) {
+		this.historicValues.splice(1);
 		this.setHistoryCursor(0);
-		const rightOptions = Array.from(this.selectRightElement.querySelectorAll('option'));
-		rightOptions.filter(o => initialValues.indexOf(o.value) === -1).forEach(optionElement => {
-			this.moveOptionToSelectElement(optionElement, this.selectLeftElement)
-		});
-		const leftOptions = Array.from(this.selectLeftElement.querySelectorAll('option'))
-		leftOptions.filter(o => initialValues.indexOf(o.value) !== -1).forEach(optionElement => {
-			this.moveOptionToSelectElement(optionElement, this.selectRightElement)
-		});
+		await this.reloadOptions();
 		this.selectorChanged();
 		this.containerElement?.classList.remove('invalid');
+		const errorPlaceholder = this.fieldGroup.querySelector('.dj-errorlist > .dj-placeholder');
+		if (errorPlaceholder) {
+			errorPlaceholder.innerHTML = '';
+		}
 	}
 
 	protected formSubmitted(event: Event) {
 		this.clearSearchFields();
-		this.historicalValues.splice(0, this.historicalValues.length - 1);
+		this.historicValues.splice(0, this.historicValues.length - 1);
 		this.setHistoryCursor(0);
 	}
 
-	protected reloadOptions() {
+	protected async reloadOptions(silent?: boolean) {
+		const currentValues = this.getValue();
 		this.selectorElement.replaceChildren();
 		this.selectLeftElement.replaceChildren();
 		this.selectRightElement.replaceChildren();
@@ -440,9 +436,19 @@ export class DualSelector extends IncompleteSelect {
 		if (errorPlaceholder) {
 			errorPlaceholder.innerHTML = '';
 		}
-		this.remoteLookup();
-		this.historicalValues.splice(1);
+		await this.remoteLookup();
+		this.historicValues.splice(1);
 		this.setHistoryCursor(0);
+
+		let selectorChanged = false;
+		const leftOptions = Array.from(this.selectLeftElement.querySelectorAll('option'))
+		leftOptions.filter(o => currentValues.includes(o.value)).forEach(optionElement => {
+			this.moveOptionToSelectElement(optionElement, this.selectRightElement);
+			selectorChanged = true;
+		});
+		if (selectorChanged) {
+			this.selectorChanged();
+		}
 	}
 }
 

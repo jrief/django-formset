@@ -72,7 +72,7 @@ class IncompleteSelectMixin:
         for fieldname, lookup in self.filter_by.items():
             filtervalue = filters[fieldname]
             if isinstance(filtervalue, list):
-                subqueries = [Q(**{lookup: val}) for val in filtervalue if val]
+                subqueries = [Q(**{lookup: val if val else None}) for val in filtervalue]
                 queries.append(reduce(or_, subqueries, Q()))
             elif isinstance(filtervalue, str):
                 queries.append(Q(**{lookup: filtervalue}))

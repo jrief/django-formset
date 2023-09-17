@@ -60,7 +60,7 @@ class DjangoSelectize extends IncompleteSelect {
 		this.tomSelect = new TomSelect(tomInput, config);
 		this.observer = new MutationObserver(this.attributesChanged);
 		this.observer.observe(this.tomInput, {attributes: true});
-		this.initialValue = this.tomSelect.getValue();
+		this.initialValue = this.currentValue;
 		this.shadowRoot = this.wrapInShadowRoot();
 		this.transferStyles(tomInput, nativeStyles);
 		tomInput.classList.add('dj-concealed');
@@ -69,14 +69,20 @@ class DjangoSelectize extends IncompleteSelect {
 		this.setupFilters(tomInput);
 	}
 
-	protected formResetted(event: Event) {
-		this.tomSelect.setValue(this.initialValue);
+	protected getValue = () => this.currentValue;
+
+	protected async formResetted(event: Event) {
+		this.getValue = () => this.initialValue;
+		this.tomSelect.setValue(this.initialValue, true);
+		await this.reloadOptions();
+		this.getValue = () => this.currentValue;
 	}
 
 	protected formSubmitted(event: Event) {}
 
-	protected reloadOptions() {
-		this.tomSelect.clear();
+	protected async reloadOptions(silent?: boolean) {
+		const currentValue = this.getValue();
+		this.tomSelect.clear(true);
 		this.tomSelect.clearOptions();
 		this.tomInput.replaceChildren();
 		this.fieldGroup.classList.remove('dj-dirty', 'dj-touched', 'dj-validated');
@@ -85,9 +91,16 @@ class DjangoSelectize extends IncompleteSelect {
 		if (errorPlaceholder) {
 			errorPlaceholder.innerHTML = '';
 		}
-		this.loadOptions(this.buildFetchQuery(0), (options: Array<OptionData>) => {
+		await this.loadOptions(this.buildFetchQuery(0), (options: Array<OptionData>) => {
 			this.tomSelect.addOptions(options);
 		});
+		this.tomSelect.setValue(currentValue, silent);
+	}
+
+	private get currentValue(): string | string[] {
+		const currentValue = this.tomSelect.getValue();
+		// make a deep copy because TomSelect mutates the array
+		return Array.isArray(currentValue) ? [...currentValue] : currentValue;
 	}
 
 	private extractOptGroups(options: Array<OptionData>) {
