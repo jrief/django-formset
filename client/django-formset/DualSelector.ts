@@ -181,7 +181,6 @@ export class DualSelector extends IncompleteSelect {
 		});
 		this.setButtonsState();
 		this.containerElement?.classList.toggle('invalid', !this.selectorElement.checkValidity());
-		this.selectorElement.dispatchEvent(new Event('change'));
 	}
 
 	private setButtonsState() {
@@ -212,6 +211,7 @@ export class DualSelector extends IncompleteSelect {
 		this.historicValues.push(rightOptions.map(o => o.value));
 		this.setHistoryCursor(this.historicValues.length - 1);
 		this.selectorChanged();
+		this.selectorElement.dispatchEvent(new Event('change'));
 	}
 
 	private optionsSorted() {
@@ -376,6 +376,7 @@ export class DualSelector extends IncompleteSelect {
 		}
 		this.setHistoryCursor(nextCursor);
 		this.selectorChanged();
+		this.selectorElement.dispatchEvent(new Event('change'));
 	}
 
 	private setHistoryCursor(historyCursor: number) {
