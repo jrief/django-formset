@@ -16,7 +16,7 @@ class StateForm(forms.Form):
         widget=Selectize(
             search_lookup='name__icontains',
         ),
-        required=False,
+        initial=2
     )
 
     county = models.ModelChoiceField(
@@ -26,6 +26,21 @@ class StateForm(forms.Form):
             search_lookup=['name__icontains'],
             filter_by={'state': 'state__id'},
         ),
+        initial=70,
+    )
+
+    counties = models.ModelMultipleChoiceField(
+        label="Counties",
+        queryset=County.objects.all(),
+        # widget=DualSelector(
+        #     search_lookup=['name__icontains'],
+        #     filter_by={'state': 'state__id'},
+        # ),
+        widget=SelectizeMultiple(
+            search_lookup=['name__icontains'],
+            filter_by={'states': 'state__id'},
+        ),
+        initial=[3, 70, 2940],
     )
 
 
@@ -41,13 +56,19 @@ class StatesForm(forms.Form):
             search_lookup='name__icontains',
         ),
         required=False,
+        initial=[2, 47],
     )
 
     counties = models.ModelMultipleChoiceField(
         label="Counties",
         queryset=County.objects.all(),
+        # widget=SelectizeMultiple(
+        #     search_lookup=['name__icontains'],
+        #     filter_by={'states': 'state__id'},
+        # ),
         widget=DualSelector(
             search_lookup=['name__icontains'],
             filter_by={'states': 'state__id'},
         ),
+        # initial=[3, 70, 2940],
     )

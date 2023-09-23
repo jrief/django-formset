@@ -303,20 +303,20 @@ def test_force_submit_invalid_form(page, mocker, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0', 'selector3'])
 def test_reset_selector(page, view, form, viewname):
-    selector_element = page.query_selector('django-formset select[is="django-dual-selector"]')
-    assert selector_element is not None
+    selector_element = page.locator('django-formset select[is="django-dual-selector"]')
+    expect(selector_element).to_be_visible()
     initial_values = selector_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
-    select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
-    assert select_left_element is not None
-    left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option')]
-    select_left_element.query_selector('option[value="{}"]'.format(left_option_values[50])).dblclick()
-    select_right_element = page.query_selector('django-formset .dj-dual-selector .right-column select')
-    assert select_right_element is not None
-    right_option_values = [o.get_attribute('value') for o in select_right_element.query_selector_all('option')]
+    select_left_element = page.locator('django-formset .dj-dual-selector .left-column select')
+    expect(select_left_element).to_be_visible()
+    left_option_values = [o.get_attribute('value') for o in select_left_element.locator('option').all()]
+    select_left_element.locator('option[value="{}"]'.format(left_option_values[50])).dblclick()
+    select_right_element = page.locator('django-formset .dj-dual-selector .right-column select')
+    expect(select_right_element).to_be_visible()
+    right_option_values = [o.get_attribute('value') for o in select_right_element.locator('option').all()]
     assert set(initial_values).union([left_option_values[50]]) == set(right_option_values)
     values = selector_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
     assert values != initial_values
-    page.wait_for_selector('django-formset').evaluate('elem => elem.reset()')
+    page.locator('django-formset').evaluate('elem => elem.reset()')
     values = selector_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
     assert values == initial_values
 
@@ -324,46 +324,34 @@ def test_reset_selector(page, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0'])
 def test_touch_selector(page, form, viewname):
-    field_group = page.query_selector('django-formset [role="group"]')
-    assert 'dj-untouched' in field_group.get_attribute('class')
-    assert 'dj-pristine' in field_group.get_attribute('class')
-    assert 'dj-touched' not in field_group.get_attribute('class')
-    assert 'dj-dirty' not in field_group.get_attribute('class')
-    placeholder = page.query_selector('django-formset ul.dj-errorlist > li.dj-placeholder')
-    assert placeholder.inner_text() == ''
-    select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
-    assert select_left_element is not None
+    field_group = page.locator('django-formset [role="group"]')
+    expect(field_group).to_have_class('dj-untouched dj-pristine')
+    placeholder = page.locator('django-formset ul.dj-errorlist > li.dj-placeholder')
+    expect(placeholder).to_have_text('')
+    select_left_element = page.locator('django-formset .dj-dual-selector .left-column select')
+    expect(select_left_element).to_be_visible()
     select_left_element.focus()
-    assert 'dj-touched' in field_group.get_attribute('class')
-    assert 'dj-pristine' in field_group.get_attribute('class')
-    assert 'dj-untouched' not in field_group.get_attribute('class')
-    assert 'dj-dirty' not in field_group.get_attribute('class')
-    page.wait_for_selector('django-formset').evaluate('elem => elem.reset()')
-    assert 'dj-untouched' in field_group.get_attribute('class')
-    assert 'dj-pristine' in field_group.get_attribute('class')
-    assert 'dj-touched' not in field_group.get_attribute('class')
-    assert 'dj-dirty' not in field_group.get_attribute('class')
-    select_right_element = page.query_selector('django-formset .dj-dual-selector .right-column select')
-    assert select_right_element is not None
+    expect(field_group).to_have_class('dj-pristine dj-touched')
+    page.locator('django-formset').evaluate('elem => elem.reset()')
+    expect(field_group).to_have_class('dj-pristine dj-untouched')
+    select_right_element = page.locator('django-formset .dj-dual-selector .right-column select')
+    expect(select_right_element).to_be_visible()
     select_right_element.focus()
-    assert 'dj-touched' in field_group.get_attribute('class')
-    assert 'dj-pristine' in field_group.get_attribute('class')
-    assert 'dj-untouched' not in field_group.get_attribute('class')
-    assert 'dj-dirty' not in field_group.get_attribute('class')
+    expect(field_group).to_have_class('dj-pristine dj-touched')
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0'])
 def test_left_selector_lookup(page, mocker, view, form, viewname):
-    select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
-    assert select_left_element is not None
-    input_element = page.query_selector('django-formset .dj-dual-selector .left-column input')
-    assert input_element is not None
+    select_left_element = page.locator('django-formset .dj-dual-selector .left-column select')
+    expect(select_left_element).to_be_visible()
+    input_element = page.locator('django-formset .dj-dual-selector .left-column input')
+    expect(input_element).to_be_visible()
     input_element.focus()
     spy = mocker.spy(view.view_class, 'get')
     page.keyboard.press('6')
     assert spy.called is False
-    left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option') if not o.is_hidden()]
+    left_option_values = [o.get_attribute('value') for o in select_left_element.locator('option').all() if not o.is_hidden()]
     filtered = [str(o.id) for o, _ in zip(OpinionModel.objects.iterator(), range(DualSelector.max_prefetch_choices)) if '6' in o.label]
     assert set(filtered) == set(left_option_values)
     spy.reset_mock()
@@ -372,9 +360,9 @@ def test_left_selector_lookup(page, mocker, view, form, viewname):
     page.keyboard.press('3')
     sleep(0.1)
     assert spy.called is True
-    option = select_left_element.query_selector('option:not([hidden])')
-    assert option.text_content() == "Opinion 0653"
-    assert option.get_attribute('value') == str(OpinionModel.objects.get(label__contains='653').pk)
+    option = select_left_element.locator('option:not([hidden])')
+    expect(option).to_have_text("Opinion 0653")
+    expect(option).to_have_attribute('value', str(OpinionModel.objects.get(label__contains='653').pk))
 
 
 @pytest.mark.urls(__name__)

@@ -8,7 +8,7 @@ with open('README.md') as fh:
 
 
 CLASSIFIERS = [
-    'Development Status :: 4 - Beta',
+    'Development Status :: 5 - Production/Stable',
     'Environment :: Web Environment',
     'Framework :: Django',
     'Intended Audience :: Developers',
@@ -16,11 +16,9 @@ CLASSIFIERS = [
     'Operating System :: OS Independent',
     'Programming Language :: Python',
     'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-    'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
-    'Framework :: Django :: 4.0',
     'Framework :: Django :: 4.1',
     'Framework :: Django :: 4.2',
 ]
@@ -34,7 +32,7 @@ setup(
     url='https://github.com/jrief/django-formset',
     packages=find_packages(include=['formset', 'formset.*']),
     install_requires=[
-        'django>=4.0',
+        'django>=4.1',
     ],
     extra_requires={
         'thumbnail': ['Pillow'],

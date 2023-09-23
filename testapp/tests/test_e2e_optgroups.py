@@ -1,5 +1,6 @@
 import pytest
 from time import sleep
+from playwright.sync_api import expect
 
 from django.conf import settings
 from django.core.management import call_command
@@ -128,9 +129,9 @@ def test_single_county(page, form, viewname):
     input_field = page.locator('django-formset input[type="select-one"]')
     input_field.type("gosh")
     div_optgroup = page.locator('django-formset .ts-dropdown .optgroup')
-    assert div_optgroup.locator('.optgroup-header').inner_html() == "Wyoming"
+    expect(div_optgroup.locator('.optgroup-header')).to_have_text("Wyoming")
     div_option = div_optgroup.locator('[role="option"]')
-    assert div_option.text_content() == "Goshen (WY)"
+    expect(div_option).to_have_text("Goshen (WY)")
     div_option.click()
     value = selectize.evaluate('elem => elem.value')
     assert County.objects.get(id=value).name == "Goshen"
@@ -148,26 +149,26 @@ def test_few_counties(page, form, viewname):
     input_field.type("clall")
     div_optgroup = page.locator('django-formset .ts-dropdown .optgroup .optgroup-header')
     div_option = page.locator('django-formset .ts-dropdown .optgroup [role="option"]')
-    assert div_optgroup.inner_html() == "Washington"
-    assert div_option.text_content() == "Clallam (WA)"
+    expect(div_optgroup).to_have_text("Washington")
+    expect(div_option).to_have_text("Clallam (WA)")
     div_option.click()
     for _ in range(5):
         page.keyboard.press("Backspace")
     input_field.type("tillam")
-    assert div_optgroup.inner_html() == "Oregon"
-    assert div_option.text_content() == "Tillamook (OR)"
+    expect(div_optgroup).to_have_text("Oregon")
+    expect(div_option).to_have_text("Tillamook (OR)")
     div_option.click()
     for _ in range(6):
         page.keyboard.press("Backspace")
     input_field.type("stani")
-    assert div_optgroup.inner_html() == "California"
-    assert div_option.text_content() == "Stanislaus (CA)"
+    expect(div_optgroup).to_have_text("California")
+    expect(div_option).to_have_text("Stanislaus (CA)")
     div_option.click()
     for _ in range(5):
         page.keyboard.press("Backspace")
     input_field.type("lync")
-    assert div_optgroup.inner_html() == "Virginia"
-    assert div_option.text_content() == "Lynchburg (VA)"
+    expect(div_optgroup).to_have_text("Virginia")
+    expect(div_option).to_have_text("Lynchburg (VA)")
     div_option.click()
     values = selectize.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
     expected = County.objects.filter(id__in=values).order_by('name').values_list('name', flat=True)
@@ -180,29 +181,29 @@ def test_many_counties(page, form, viewname):
     selector = page.locator('django-formset select[is="django-dual-selector"]')
     select_left = page.locator('django-formset .left-column select[multiple]')
     select_right = page.locator('django-formset .right-column select[multiple]')
-    assert select_left.locator('optgroup').count() == 6
-    assert select_left.locator('option').count() == 250
-    assert select_right.locator('optgroup').count() == 0
-    assert select_right.locator('option').count() == 0
+    expect(select_left.locator('optgroup')).to_have_count(6)
+    expect(select_left.locator('option')).to_have_count(250)
+    expect(select_right.locator('optgroup')).to_have_count(0)
+    expect(select_right.locator('option')).to_have_count(0)
     select_left.locator('optgroup:nth-child(3) option:nth-child(10)').dblclick()
-    assert select_left.locator('optgroup').count() == 6
-    assert select_left.locator('option').count() == 249
-    assert select_right.locator('optgroup').count() == 1
-    assert select_right.locator('option').count() == 1
+    expect(select_left.locator('optgroup')).to_have_count(6)
+    expect(select_left.locator('option')).to_have_count(249)
+    expect(select_right.locator('optgroup')).to_have_count(1)
+    expect(select_right.locator('option')).to_have_count(1)
     assert select_right.locator('optgroup').get_attribute('label') == "Arizona"
-    assert select_right.locator('optgroup:nth-child(1) option').inner_text() == "Navajo (AZ)"
+    expect(select_right.locator('optgroup:nth-child(1) option')).to_have_text("Navajo (AZ)")
     expected = select_right.locator('optgroup:nth-child(1) option').get_attribute('value')
     assert selector.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)') == [expected]
     select_left.locator('optgroup:nth-child(6) option:first-child').click()
     select_left.locator('optgroup:nth-child(6) option:last-child').click(modifiers=['Shift'])
     page.locator('django-formset button.dj-move-selected-right ').click()
-    assert select_right.locator('optgroup').count() == 2
-    assert select_right.locator('option').count() == 6
+    expect(select_right.locator('optgroup')).to_have_count(2)
+    expect(select_right.locator('option')).to_have_count(6)
     assert select_right.locator('optgroup:last-child').get_attribute('label') == "Colorado"
-    assert select_right.locator('optgroup:last-child option:first-child').inner_text() == "Adams (CO)"
+    expect(select_right.locator('optgroup:last-child option:first-child')).to_have_text("Adams (CO)")
     select_right.locator('optgroup:first-child option').dblclick()
-    assert select_right.locator('optgroup').count() == 1
-    assert select_right.locator('option').count() == 5
+    expect(select_right.locator('optgroup')).to_have_count(1)
+    expect(select_right.locator('option')).to_have_count(5)
     expected = [select_right.locator(f'optgroup option:nth-child({i})').get_attribute('value') for i in range(1, 6)]
     assert selector.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)') == expected
 
@@ -213,18 +214,18 @@ def test_sortable_counties(page, form, viewname):
     selector = page.locator('django-formset select[is="django-dual-selector"]')
     select_left = page.locator('django-formset .left-column select[multiple]')
     select_right = page.locator('django-formset .right-column django-sortable-select')
-    assert select_left.locator('optgroup').count() == 6
-    assert select_left.locator('option').count() == 250
-    assert select_right.locator('optgroup').count() == 0
-    assert select_right.locator('option').count() == 0
+    expect(select_left.locator('optgroup')).to_have_count(6)
+    expect(select_left.locator('option')).to_have_count(250)
+    expect(select_right.locator('optgroup')).to_have_count(0)
+    expect(select_right.locator('option')).to_have_count(0)
     select_left.locator('optgroup:nth-child(6) option:first-child').click()
     select_left.locator('optgroup:nth-child(6) option:last-child').click(modifiers=['Shift'])
     page.locator('django-formset button.dj-move-selected-right ').click()
-    assert select_right.locator('optgroup').count() == 1
-    assert select_right.locator('option').count() == 5
+    expect(select_right.locator('optgroup')).to_have_count(1)
+    expect(select_right.locator('option')).to_have_count(5)
     assert select_right.locator('optgroup').get_attribute('label') == "Colorado"
-    assert select_right.locator('optgroup option:first-child').inner_text() == "Adams (CO)"
-    assert select_right.locator('optgroup option:last-child').inner_text() == "Baca (CO)"
+    expect(select_right.locator('optgroup option:first-child')).to_have_text("Adams (CO)")
+    expect(select_right.locator('optgroup option:last-child')).to_have_text("Baca (CO)")
     before = [select_right.locator(f'optgroup option:nth-child({i})').get_attribute('value') for i in range(1, 6)]
     select_right.locator('optgroup:first-child option:last-child').drag_to(select_right.locator('optgroup:first-child option:first-child'))
     select_right.locator('optgroup:first-child option:nth-child(2)').drag_to(select_right.locator('optgroup option:last-child'))

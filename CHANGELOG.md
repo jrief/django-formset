@@ -1,5 +1,12 @@
 ## Changes
 
+- 1.1.2
+  * Drop support for Django-4.0.
+
+- 1.1.1
+  * Fix problems in widgets `Selectize` and `DualSelector` when used with `filter_by`. Selectable
+    choices now are always updated using the proper filter values.
+
 - 1.1
   * Form collections containing only empty fields won't be submitted. This applies to collections
     added using `extra_siblings` as to collections added using the appropriate "Add <label>" button.

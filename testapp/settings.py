@@ -79,6 +79,16 @@ STATICFILES_DIRS = [
 
 STATIC_URL = '/static/'
 
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage' if DEBUG else \
+                   'django.contrib.staticfiles.storage.ManifestStaticFilesStorage',
+    },
+}
+
 MEDIA_ROOT = Path(os.getenv('DJANGO_MEDIA_ROOT', BASE_DIR / 'workdir/media'))
 
 MEDIA_URL = '/media/'
@@ -125,3 +135,7 @@ LOGGING = {
 }
 
 FORMSET_IGNORE_MARKED_FOR_REMOVAL = False
+
+if DEBUG:
+    import mimetypes
+    mimetypes.add_type("application/javascript", ".js", True)

@@ -4,31 +4,31 @@ on:
   push:
     branches:
       - main
-      - version_1
     paths-ignore:
       - '**.md'
       - '**.rst'
+      - '/docs/**'
   pull_request:
     branches:
       - main
-      - version_1
     paths-ignore:
       - '**.md'
       - '**.rst'
+      - '/docs/**'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
-        django-version: ["4.0.*", "4.1.*", "4.2.*"]
+        python-version: ["3.9", "3.10", "3.11"]
+        django-version: ["4.1.*", "4.2.*"]
         node-version: ["16.x"]
         include:
           - build-client: "esbuild"
           - build-client: "rollup"
-            python-version: "3.8"
-            django-version: "4.0.*"
+            python-version: "3.10"
+            django-version: "4.1.*"
 
     steps:
     - uses: actions/checkout@v2
@@ -44,7 +44,7 @@ jobs:
       run: |
         npm install --include=dev
         python -m pip install --upgrade pip
-        python -m pip install --pre "Django==${{ matrix.django-version }}"
+        python -m pip install "Django==${{ matrix.django-version }}"
         python -m pip install -r testapp/requirements.txt
         playwright install
     - name: Build Parser
