@@ -211,8 +211,7 @@ queryset. Here each key maps to an adjacent field and its value contains a looku
 	    form_class = FilteredCountyForm
 
 Setting up forms using filters, can improve the user experience, because it reduces the available
-options to user must choose from. This might be a more friendly alternative rather than using option
-groups.
+options to choose from. This might be a more friendly alternative rather than using option groups.
 
 
 .. _selectize-multiple:
