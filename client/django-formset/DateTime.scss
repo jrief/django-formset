@@ -3,18 +3,6 @@
 [is^="django-date"] {
 	--dummy-style: none;  // required by DateTime.transferStyles()
 
-	&[hidden] {
-		// Using display: none causes: "An invalid form control with name='…' is not focusable." -error.
-		display: block !important;
-		width: 0 !important;
-		height: 0 !important;
-		padding: 0 !important;
-		margin: 0 !important;
-		border: none !important;
-		outline: none !important;
-		box-shadow: none !important;
-	}
-
 	// Date input fields
 	+ [role="textbox"] {
 		position: relative;

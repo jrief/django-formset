@@ -23,6 +23,7 @@ export type CalendarSettings = {
 	dateOnly: boolean,  // if true, time is not displayed
 	withRange: boolean,  // if true, a range of dates can be selected
 	hour12: boolean,  // if true, use 12 hour format
+	pure: boolean,  // if true, use pure calendar without input element
 	inputElement: HTMLInputElement,  // input element to pilfer styles from
 	updateDate: Function,  // callback to update date input
 	close: Function,  // callback to close calendar
@@ -187,7 +188,7 @@ export class Calendar extends Widget {
 		if (this.interval) {
 			const num = Math.min(60 / this.interval!, 6);
 			const gridTemplateColumns = `repeat(${num}, 1fr)`;
-			this.element.querySelectorAll('.ranges ul.minutes').forEach(minutesElement => {
+			this.element.querySelectorAll('.sheet-body ul.minutes').forEach(minutesElement => {
 				(minutesElement as HTMLElement).style.gridTemplateColumns = gridTemplateColumns;
 			});
 		}
@@ -241,7 +242,7 @@ export class Calendar extends Widget {
 		});
 
 		// the hour calendar adds an extra ul element for the last hour, which is only needed in upper range view
-		this.element.querySelector('.ranges ul.hours:last-child')?.setAttribute('hidden', '');
+		this.element.querySelector('.sheet-body ul.hours:last-child')?.setAttribute('hidden', '');
 	}
 
 	private registerWeeksView() {
@@ -335,14 +336,13 @@ export class Calendar extends Widget {
 			case 'Enter':
 				if (this.preselectedDate) {
 					const dateString = this.asUTCDate(this.preselectedDate).toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10);
-					element = this.element.querySelector(`.ranges li[data-date="${dateString}"]`);
+					element = this.element.querySelector(`.sheet-body li[data-date="${dateString}"]`);
 				} else {
 					const date = this.upperRange ? this.dateRange[1] : this.dateRange[0];
 					const dateString = date ? this.asUTCDate(date).toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10) : '';
-					element = this.element.querySelector(`.ranges li[data-date="${dateString}"]`);
+					element = this.element.querySelector(`.sheet-body li[data-date="${dateString}"]`);
 				}
 				if (element) {
-					console.log(element);
 					if (this.viewMode === ViewMode.hours || this.viewMode === ViewMode.weeks && this.settings.dateOnly) {
 						this.preselectedDate = null;
 						this.setDate(element);
@@ -567,7 +567,6 @@ export class Calendar extends Widget {
 				selectors.push(`:nth-child(${upperUlIndex} of .minutes) > li:nth-child(-n + ${upperIndex % perHour})`);
 			}
 		}
-		console.log(selectors);
 		this.rangeSelectCssRule.selectorText = selectors.map(selector => {
 			return this.rangeSelectorText.replace(':not(*)', selector);
 		}).join(',');
@@ -593,8 +592,8 @@ export class Calendar extends Widget {
 				this.element.querySelector(dateSelector)?.classList.add('preselected');
 			}
 			if (this.viewMode === ViewMode.hours) {
-				const label = this.element.querySelector('.ranges ul.hours:last-child > li')?.getAttribute('data-date');
-				this.element.querySelector('.ranges ul.hours:last-child')?.toggleAttribute('hidden',
+				const label = this.element.querySelector('.sheet-body ul.hours:last-child > li')?.getAttribute('data-date');
+				this.element.querySelector('.sheet-body ul.hours:last-child')?.toggleAttribute('hidden',
 					this.dateRange[1] ? this.asUTCDate(this.dateRange[1]).toISOString().slice(0, 16) !== label : !this.upperRange
 				);
 			}
@@ -636,6 +635,34 @@ export class Calendar extends Widget {
 				this.dateRange[1] = this.maxDate;
 			}
 		}
+		if (this.settings.withRange) {
+			this.showDateRange();
+		}
+	}
+
+	private showDateRange() {
+		const leftAsideElement: HTMLTimeElement | null = this.element.querySelector('.sheet-body > .aside-left > time');
+		if (leftAsideElement) {
+			const firstItem = this.element.querySelector('li[data-date]:first-child');
+			if (firstItem && this.dateRange[0] && this.dateRange[0] < this.getDate(firstItem)) {
+				leftAsideElement.dateTime = this.dateRange[0].toISOString();
+				leftAsideElement.textContent = this.settings.dateOnly ? this.dateRange[0].toDateString() : this.dateRange[0].toLocaleString();
+			} else {
+				leftAsideElement.dateTime = '';
+				leftAsideElement.textContent = '';
+			}
+		}
+		const rightAsideElement: HTMLTimeElement | null = this.element.querySelector('.sheet-body > .aside-right > time');
+		if (rightAsideElement) {
+			const lastItem = this.element.querySelector('li[data-date]:last-child');
+			if (lastItem && this.dateRange[1] && this.dateRange[1] > this.getDate(lastItem)) {
+				rightAsideElement.dateTime = this.dateRange[1].toISOString();
+				rightAsideElement.textContent = this.settings.dateOnly ? this.dateRange[1].toDateString() : this.dateRange[1].toLocaleString();
+			} else {
+				rightAsideElement.dateTime = '';
+				rightAsideElement.textContent = '';
+			}
+		}
 	}
 
 	private async selectToday() {
@@ -659,7 +686,7 @@ export class Calendar extends Widget {
 		this.element.querySelectorAll('ul[aria-labelledby]').forEach(elem => {
 			elem.toggleAttribute('hidden', true);
 		});
-		this.rangeSelectCssRule.selectorText = `${this.baseSelector} .ranges ul:not(*)`;
+		this.rangeSelectCssRule.selectorText = `${this.baseSelector} .sheet-body ul:not(*)`;
 		const label = liElement.getAttribute('aria-label');
 		if (label) {
 			const ulElem = this.element.querySelector(`ul[aria-labelledby="${label}"]`);
@@ -726,11 +753,11 @@ export class Calendar extends Widget {
 		const dataDateString = this.asUTCDate(nextDate).toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10);
 		let nextItem: Element|null = null;
 		if (this.viewMode !== ViewMode.weeks || selectedDate.getMonth() === nextDate.getMonth()) {
-			nextItem = this.element.querySelector(`.ranges li[data-date="${dataDateString}"]`);
+			nextItem = this.element.querySelector(`.sheet-body li[data-date="${dataDateString}"]`);
 		}
 		if (!nextItem) {
 			await this.fetchCalendar(nextDate, this.viewMode);
-			nextItem = this.element.querySelector(`.ranges li[data-date="${dataDateString}"]`);
+			nextItem = this.element.querySelector(`.sheet-body li[data-date="${dataDateString}"]`);
 		}
 		if (nextItem instanceof HTMLLIElement) {
 			if (this.viewMode === ViewMode.hours) {
@@ -753,8 +780,8 @@ export class Calendar extends Widget {
 		if (this.settings.hour12) {
 			query.set('hour12', '');
 		}
-		if (this.settings.withRange) {
-			query.set('range', '');
+		if (this.settings.pure) {
+			query.set('pure', '');
 		}
 		if (this.interval) {
 			query.set('interval', String(this.interval));
@@ -764,6 +791,9 @@ export class Calendar extends Widget {
 		});
 		if (response.status === 200) {
 			this.element.innerHTML = await response.text();
+			if (this.settings.withRange) {
+				this.showDateRange();
+			}
 		} else {
 			console.error(`Failed to fetch from ${this.endpoint} (status=${response.status})`);
 		}
@@ -804,19 +834,19 @@ export class Calendar extends Widget {
 					extraStyles = StyleHelpers.extractStyles(inputElement, ['padding']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case `${this.baseSelector} .ranges`:
+				case `${this.baseSelector} .sheet-body .central`:
 					extraStyles = StyleHelpers.extractStyles(inputElement, ['padding']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case `${this.baseSelector} .ranges ul.hours > li.constricted`:
-				case `${this.baseSelector} .ranges ul.hours > li:has(~ li.constricted)`:
-				case `${this.baseSelector} .ranges ul.hours > li.constricted ~ li`:
-				case `${this.baseSelector} .ranges ul.minutes`:
+				case `${this.baseSelector} .sheet-body ul.hours > li.constricted`:
+				case `${this.baseSelector} .sheet-body ul.hours > li:has(~ li.constricted)`:
+				case `${this.baseSelector} .sheet-body ul.hours > li.constricted ~ li`:
+				case `${this.baseSelector} .sheet-body ul.minutes`:
 					inputElement.classList.add('-focus-');
 					extraStyles = StyleHelpers.extractStyles(inputElement, ['border-color']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					inputElement.classList.remove('-focus-');
-					if (cssRule.selectorText === `${this.baseSelector} .ranges ul.hours > li.constricted`) {
+					if (cssRule.selectorText === `${this.baseSelector} .sheet-body ul.hours > li.constricted`) {
 						extraStyles = StyleHelpers.extractStyles(this.element, ['background-color']);
 						extraStyles = extraStyles.replace('background-color', 'border-bottom-color');
 						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
@@ -836,14 +866,14 @@ export class Calendar extends Widget {
 			const sheet = document.styleSheets[i];
 			for (let k = 0; k < sheet.cssRules.length; ++k) {
 				const cssRule = sheet.cssRules[k];
-				if (cssRule instanceof CSSStyleRule && cssRule.selectorText === `${this.baseSelector} .ranges ul:not(*)`) {
-					const selectorText = `#${this.settings.inputElement.id} ~ ${this.baseSelector} .ranges ul:not(*)`;
+				if (cssRule instanceof CSSStyleRule && cssRule.selectorText === `${this.baseSelector} .sheet-body ul:not(*)`) {
+					const selectorText = `#${this.settings.inputElement.id} ~ ${this.baseSelector} .sheet-body ul:not(*)`;
 					const index = sheet.insertRule(`${selectorText}{${cssRule.style.cssText}}`, sheet.cssRules.length);
 					return sheet.cssRules[index] as CSSStyleRule;
 				}
 			}
 		}
-		throw new Error(`Could not find CSS rule for '${this.baseSelector} .ranges ul:not(*)'`);
+		throw new Error(`Could not find CSS rule for '${this.baseSelector} .sheet-body ul:not(*)'`);
 	}
 
 	protected formResetted(event: Event) {
@@ -891,6 +921,7 @@ export class DateCalendarElement extends HTMLInputElement {
 			withRange: withRange,
 			inputElement: this,
 			hour12: dateTimeFormat.resolvedOptions().hour12 ?? false,
+			pure: true,
 			updateDate: () => {},
 			close: () => {},
 		};

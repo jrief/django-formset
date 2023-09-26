@@ -159,7 +159,7 @@ class CalendarRenderer:
             ViewMode.weeks: 'calendar/weeks.html',
         }[view_mode]
 
-    def render(self, view_mode, hour12=False, interval=None):
+    def render(self, view_mode, hour12=False, pure=False, interval=None):
         context = {
             'startdate': self.start_datetime,
         }
@@ -172,6 +172,9 @@ class CalendarRenderer:
         else:
             context.update(self.get_context_weeks())
         template = get_template(self.get_template_name(view_mode))
+        if pure:
+            context.update(template=template)
+            template = get_template('calendar/range.html')
         return template.render({'calendar': context})
 
 
@@ -186,6 +189,7 @@ class CalendarResponseMixin:
             try:
                 start_datetime = datetime.fromisoformat(request.GET.get('date'))
                 hour12 = 'hour12' in request.GET
+                pure = 'pure' in request.GET
                 view_mode = ViewMode.frommode(request.GET.get('mode'))
                 if 'interval' in request.GET:
                     interval = timedelta(minutes=int(request.GET.get('interval')))
@@ -194,5 +198,5 @@ class CalendarResponseMixin:
             except (TypeError, ValueError):
                 return HttpResponseBadRequest("Invalid parameter 'calendar'")
             cal = self.calendar_renderer_class(start_datetime=start_datetime)
-            return HttpResponse(cal.render(view_mode, hour12, interval))
+            return HttpResponse(cal.render(view_mode, hour12, pure, interval))
         return super().get(request, **kwargs)

@@ -13,24 +13,26 @@
 		{% include "formset/icons/arrow-right.svg" %}
 	</button>
 </div>
-<div class="ranges" aria-label="hours-view">
-{% block ranges %}
+<div class="sheet-body" aria-label="hours-view">
+{% block sheet-body %}
+	<div class="central">
 	{% for shift in calendar.shifts %}
-	<ul class="hours">
+		<ul class="hours">
 		{% for datetime, hour, minutes in shift %}
-		<li {% if minutes %}aria-label{% else %}data-date{% endif %}="{{ datetime }}">{{ hour }}</li>
+			<li {% if minutes %}aria-label{% else %}data-date{% endif %}="{{ datetime }}">{{ hour }}</li>
 		{% endfor %}
-	</ul>
+		</ul>
 		{% for datetime, hour, minutes in shift %}
 			{% if minutes %}
-	<ul class="minutes" aria-labelledby="{{ datetime }}" hidden>
+		<ul class="minutes" aria-labelledby="{{ datetime }}" hidden>
 				{% for datetime, minute in minutes %}
-		<li data-date="{{ datetime }}">{{ minute }}</li>
+			<li data-date="{{ datetime }}">{{ minute }}</li>
 				{% endfor %}
-	</ul>
+		</ul>
 			{% endif %}
 		{% endfor %}
 	{% endfor %}
+	</div>
 {% endblock %}
 </div>
 {% endspaceless %}

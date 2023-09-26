@@ -5,6 +5,8 @@ from formset.widgets import DateCalendar, DatePicker, DateTextbox, DateTimeCalen
 
 
 class DateRangeCalendar(DateCalendar):
+    template_name = 'formset/default/widgets/calendar.html'
+
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
@@ -41,6 +43,8 @@ class DateRangeTextbox(DateTextbox):
 
 
 class DateTimeRangeCalendar(DateTimeCalendar):
+    template_name = 'formset/default/widgets/calendar.html'
+
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
@@ -96,7 +100,7 @@ class BaseRangeField(fields.MultiValueField):
 
     def prepare_value(self, values):
         if isinstance(values, (list, tuple)) and len(values) == 2:
-            return ';'.join((values[0].isoformat(), values[1].isoformat()))
+            return ';'.join((values[0].isoformat()[:self.num_digits], values[1].isoformat()[:self.num_digits]))
         return ''
 
     def compress(self, values):
@@ -119,6 +123,7 @@ class DateRangeField(BaseRangeField):
         'bound_ordering': _("The start date must be before the end date."),
     }
     base_field = fields.DateField
+    num_digits = 10
 
     def __init__(self, **kwargs):
         kwargs.setdefault('widget', DateRangePicker())
@@ -127,6 +132,7 @@ class DateRangeField(BaseRangeField):
 
 class DateTimeRangeField(DateRangeField):
     base_field = fields.DateTimeField
+    num_digits = 16
 
     def __init__(self, **kwargs):
         kwargs.setdefault('widget', DateTimeRangePicker())

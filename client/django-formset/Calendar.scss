@@ -40,8 +40,45 @@
 		}
 	}
 
-	.ranges {
-		--dummy-style: none;  // required by Calendar.transferStyles()
+	.sheet-body {
+		display: flex;
+		flex-direction: row;
+		padding: 0;
+
+		.central {
+			flex-grow: 1;
+		}
+		:is(.aside-left, .aside-right) {
+			flex-grow: 0;
+			font-weight: bold;
+			font-size: small;
+			width: 24px;
+			time {
+				white-space: nowrap;
+				display: inline-block;
+				line-height: 24px;
+			}
+		}
+		.aside-left {
+			&:has(> time:not(:empty)) {
+				background-color: $calendar-selected-background-color;
+			}
+			> time:not(:empty) {
+				color: white;
+				transform: rotate(-90deg) translate(-140px, 24px);
+				transform-origin: bottom left;
+			}
+		}
+		.aside-right {
+			&:has(> time:not(:empty)) {
+				background-color: $calendar-selected-background-color;
+			}
+			> time:not(:empty) {
+				color: white;
+				transform: rotate(90deg) translate(30px, -24px);
+				transform-origin: top left;
+			}
+		}
 
 		ul {
 			list-style: none;

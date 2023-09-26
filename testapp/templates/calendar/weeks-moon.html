@@ -1,6 +1,6 @@
 {% extends "calendar/weeks.html" %}
 
-{% block ranges %}{% spaceless %}
+{% block sheet-body %}{% spaceless %}
 	<ul class="weekdays">
 	{% for abbr, weekday in calendar.weekdays %}
 		<li><abbr title="{{ weekday }}">{{ abbr }}</abbr></li>

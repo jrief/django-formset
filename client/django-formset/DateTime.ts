@@ -95,6 +95,7 @@ class DateTimeField extends Widget {
 		const settings: CalendarSettings = {
 			dateOnly: this.dateOnly,
 			withRange: this.withRange,
+			pure: false,
 			inputElement: this.inputElement,
 			hour12: this.hour12,
 			updateDate: (currentDate: Date, extendedDate: Date|null|boolean) => this.updateDate(currentDate, extendedDate),
