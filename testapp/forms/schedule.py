@@ -16,7 +16,7 @@ class ScheduleCalendarForm(forms.Form):
             'step': timedelta(minutes=10),
         }),
         initial=(
-            datetime(2023, 10, 10, 9, 40),
+            datetime(2023, 10, 9, 9, 40),
             datetime(2023, 10, 10, 16, 10),
         ),
     )
