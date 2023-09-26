@@ -16,7 +16,7 @@ class StateForm(forms.Form):
         widget=Selectize(
             search_lookup='name__icontains',
         ),
-        initial=2
+        initial=2,
     )
 
     county = models.ModelChoiceField(
@@ -38,7 +38,7 @@ class StateForm(forms.Form):
         # ),
         widget=SelectizeMultiple(
             search_lookup=['name__icontains'],
-            filter_by={'states': 'state__id'},
+            filter_by={'state': 'state__id'},
         ),
         initial=[3, 70, 2940],
     )
