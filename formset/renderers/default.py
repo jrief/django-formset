@@ -18,6 +18,7 @@ class FormRenderer(DjangoTemplates):
 
     _template_mapping = {
         'django/forms/errors/list/default.html': 'formset/default/field_errors.html',
+        'django/forms/div.html': 'formset/default/form.html',
         'django/forms/default.html': 'formset/default/form.html',
         'django/forms/widgets/file.html': 'formset/default/widgets/file.html',
         'django/forms/widgets/radio.html': 'formset/default/widgets/multiple_input.html',
@@ -104,6 +105,7 @@ class FormRenderer(DjangoTemplates):
         return context
 
     _context_modifiers = {
+        'django/forms/div.html': _amend_form,
         'django/forms/default.html': _amend_form,
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,

@@ -1,4 +1,4 @@
-from datetime import timedelta, timezone
+from datetime import timedelta
 
 from django.forms import fields, forms
 from django.utils.timezone import datetime
@@ -14,7 +14,7 @@ class MomentInputForm(forms.Form):
             # 'max': lambda: (now() + timedelta(days=3)).isoformat()[:16],
         }),
         required=True,
-        initial=datetime(2023, 2, 28, 9, 40, tzinfo=timezone.utc),
+        initial=datetime(2023, 2, 28, 9, 40),
     )
 
 
@@ -29,7 +29,7 @@ class MomentBoxForm(forms.Form):
             #'local-time': '',
         }),
         required=True,
-        initial=datetime(2023, 2, 28, 9, 40, tzinfo=timezone.utc),
+        initial=datetime(2023, 2, 28, 9, 40),
     )
 
 
@@ -40,7 +40,7 @@ class MomentCalendarForm(forms.Form):
             'step': timedelta(minutes=10),
         }),
         required=True,
-        initial=datetime(2023, 2, 28, 9, 40, tzinfo=timezone.utc),
+        initial=datetime(2023, 2, 28, 9, 40),
     )
 
 
@@ -55,5 +55,5 @@ class MomentPickerForm(forms.Form):
             #'local-time': '',
         }),
         required=True,
-        initial=datetime(2023, 2, 28, 9, 40, tzinfo=timezone.utc),
+        initial=datetime(2023, 2, 28, 9, 40),
     )
