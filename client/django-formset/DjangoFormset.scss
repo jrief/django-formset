@@ -135,19 +135,19 @@ django-formset {
 			background-repeat: no-repeat !important;
 			background-position: center right !important;
 			background-origin: content-box !important;
-			&[type="date"], &[type="datetime-local"] {
-				position: relative;
-				&::-webkit-datetime-edit-fields-wrapper {
-					margin-left: 1.75em;
-				}
-				&::-webkit-calendar-picker-indicator {
-					cursor: pointer;
-					position: absolute;
-					left: 0.75em;
-				}
-				&:hover::-webkit-calendar-picker-indicator {
-					cursor: pointer;
-				}
+		}
+		input[type="date"], input[type="datetime-local"] {
+			position: relative;
+			&::-webkit-datetime-edit-fields-wrapper {
+				margin-left: 1.75em;
+			}
+			&::-webkit-calendar-picker-indicator {
+				cursor: pointer;
+				position: absolute;
+				left: 0.75em;
+			}
+			&:hover::-webkit-calendar-picker-indicator {
+				cursor: pointer;
 			}
 		}
 
@@ -217,6 +217,9 @@ django-formset {
 		border: none !important;
 		outline: none !important;
 		box-shadow: none !important;
+		&::-webkit-calendar-picker-indicator {
+			display: none;
+		}
 	}
 
 }

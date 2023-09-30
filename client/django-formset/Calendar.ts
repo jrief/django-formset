@@ -641,12 +641,19 @@ export class Calendar extends Widget {
 	}
 
 	private showDateRange() {
+		const setAsideElement = (asideElement: HTMLTimeElement, date: Date) => {
+			asideElement.dateTime = date.toISOString();
+			asideElement.textContent = this.settings.dateOnly ? date.toDateString() : date.toLocaleString();
+		};
+
 		const leftAsideElement: HTMLTimeElement | null = this.element.querySelector('.sheet-body > .aside-left > time');
 		if (leftAsideElement) {
-			const firstItem = this.element.querySelector('li[data-date]:first-child');
-			if (firstItem && this.dateRange[0] && this.dateRange[0] < this.getDate(firstItem)) {
-				leftAsideElement.dateTime = this.dateRange[0].toISOString();
-				leftAsideElement.textContent = this.settings.dateOnly ? this.dateRange[0].toDateString() : this.dateRange[0].toLocaleString();
+			const firstItem = this.element.querySelector('li[data-date]:first-child')!;
+			const firstDate = this.getDate(firstItem);
+			if (this.dateRange[1] && this.dateRange[1] < firstDate) {
+				setAsideElement(leftAsideElement, this.dateRange[1]);
+			} else if (this.dateRange[0] && this.dateRange[0] < firstDate) {
+				setAsideElement(leftAsideElement, this.dateRange[0]);
 			} else {
 				leftAsideElement.dateTime = '';
 				leftAsideElement.textContent = '';
@@ -654,10 +661,12 @@ export class Calendar extends Widget {
 		}
 		const rightAsideElement: HTMLTimeElement | null = this.element.querySelector('.sheet-body > .aside-right > time');
 		if (rightAsideElement) {
-			const lastItem = this.element.querySelector('li[data-date]:last-child');
-			if (lastItem && this.dateRange[1] && this.dateRange[1] > this.getDate(lastItem)) {
-				rightAsideElement.dateTime = this.dateRange[1].toISOString();
-				rightAsideElement.textContent = this.settings.dateOnly ? this.dateRange[1].toDateString() : this.dateRange[1].toLocaleString();
+			const lastItem = this.element.querySelector('li[data-date]:last-child')!;
+			const lastDate = this.getDate(lastItem);
+			if (this.dateRange[0] && this.dateRange[0] > lastDate) {
+				setAsideElement(rightAsideElement, this.dateRange[0]);
+			} else if (this.dateRange[1] && this.dateRange[1] > lastDate) {
+				setAsideElement(rightAsideElement, this.dateRange[1]);
 			} else {
 				rightAsideElement.dateTime = '';
 				rightAsideElement.textContent = '';
