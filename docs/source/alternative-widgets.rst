@@ -119,11 +119,13 @@ DateTimeField_ against widgets which are more user friendly and widely supported
 	            ...
 	        }
 
-In addition to these two widgets **django-formset** offers two more alternatives, namely
-:class:`formset.widget.DatePicker` and :class:`formset.widget.DateTimePicker`.
+In addition to these two widgets **django-formset** offers six more alternatives, namely
+:class:`formset.widget.DatePicker`, :class:`formset.widget.DateTextbox`,
+:class:`formset.widget.DateCalendar`, :class:`formset.widget.DateTimePicker`, 
+:class:`formset.widget.DateTimeTextbox` and :class:`formset.widget.DateTimeCalendar`.
 
 In some situations, developers might want to use their own HTML representation and styles for
 date- and datetime-pickers. Since those calendar sheets are rendered by Django, developers have
 full control over the rendering of those widgets and can even use their own context to add
-additional information. Please read the section :ref:`calendar` on details about these two
-alternative widgets.
+additional information. Please read the section :ref:`date-time-input` on details about how to use
+these two alternative widgets.

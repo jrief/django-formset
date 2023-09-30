@@ -1,11 +1,11 @@
-.. _calendar:
+.. _date-time-input:
 
-========
-Calendar
-========
+========================
+Date- and DateTime Input
+========================
 
-Modern HTML nowadays offers input fields with built-in date and date-time pickers. Usually there
-is no need to use a special widget accepting datestamps. However, the built-in date and date-time
+Modern browsers offer input fields with built-in date and date-time pickers, hence usually there is
+no need to use a special widget accepting datestamps. However, the built-in date and date-time
 pickers are impossible to style using CSS or other means. It therefore is impossible to attach
 context information to the dates and times.
 
@@ -18,11 +18,83 @@ slots.
 .. _Flatpickr: https://flatpickr.js.org/
 .. _Pikaday: https://github.com/Pikaday/Pikaday
 
-JavaScript does not offer any functionality for non-trivial date arithmetic, so this has to be
-implemented by every date picker. On the other hand, in **django-formset** the calendar widget is
-rendered by the server, using Python's built-in Calendar_ class. This allows us to use the Django
-template language to style the layout of the rendered calendar and add context on information only
-available to the server.
+Moreover, JavaScript does not offer any functionality for non-trivial calendar arithmetic, so this
+has to be implemented by every date picker library. This is not only a waste of resources, but also
+a potential source of errors.
+
+.. _Calendar: https://docs.python.org/3/library/calendar.html
+
+.. _date-input:
+
+Date Input Widget
+=================
+
+Django by default uses the HTML field ``<input type="text" …>`` to accept dates and datetime as
+input. This presumably has historic reasons, because browsers started to support this field type
+only from 2018 onwards. Since these fields adopt themselves to the browser's locale setting, it is
+possible to enter dates in different formats. For instance, in the Anglo Saxon area, dates are
+formatted as ``mm/dd/yyyy``, whereas in Europe they are formatted as ``dd.mm.yyyy``. Japan uses
+``yyyy月mm日dd`` as date format, but in web applications ``yyyy/mm/dd`` is commonly used. This
+means that the conversion from a string in potentially different formats, must be handled by the
+server which usually does not know where the user is located. This input field furthermore offers a
+date picker.
+
+For this reason **django-formset** offers the widgets :class:`formset.widgets.DateInput`. This
+widget renders a date field as
+
+.. code-block::
+
+	<input type="date" … />
+
+and makes usage of the browser's built-in date picker. The date format used by the input field then
+adopts itself to the browser's current locale setting.
+
+.. django-view:: article_form
+	:caption: form.py
+
+	from django.forms import fields, forms
+	from formset.widgets import DateInput
+
+	class ArticleForm(forms.Form):
+	    date = fields.DateField(
+	        widget=DateInput,
+	    )
+
+.. django-view:: article_view
+	:view-function: ArticleView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'article-result'}, form_kwargs={'auto_id': 'ar_id_%s'})
+	:hide-code:
+
+	from formset.views import FormView
+
+	class ArticleView(FormView):
+	    form_class = ArticleForm
+	    template_name = "form.html"
+	    success_url = "/success"
+
+**django-formset** also offers the widget :class:`formset.widgets.DateTimeInput`. This widget
+renders as date-time field as
+
+.. code-block::
+
+	<input type="datetime-local" … />
+
+and makes usage of the browser's built-in date-time picker. The date format used by the input field
+then adopts itself to the browser's current locale setting.
+
+.. django-view:: purchase_form
+	:caption: form.py
+
+	from django.forms import fields, forms
+	from formset.widgets import DateTimeInput
+
+	class PurchaseForm(forms.Form):
+	    timestamp = fields.DateTimeField(
+	        widget=DateTimeInput,
+	    )
+
+.. django-view:: purchase_view
+	:view-function: ArticleView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'purchase-result'}, form_kwargs={'auto_id': 'ar2_id_%s'}, form_class=date_time_input.PurchaseForm)
+	:hide-code:
 
 
 .. _date-picker:
@@ -30,12 +102,17 @@ available to the server.
 Date Picker Widget
 ==================
 
-In our form, we want to add a field to enter the publishing date of our blog. By using
-:class:`formset.widgets.DatePicker` instead of the default widget, this input field opens a
-calendar, whenever the user clicks on it. This calendar differs from the default HTML date picker,
-which is rendered when using the widget :class:`formset.widgets.DateInput`. While technically
-possible, it is not recommended to interchange them on the same page or even application as this
-results in unexpected user experience.
+In addition to the two native widgets :class:`formset.widgets.DatePicker` and
+:class:`formset.widgets.DateTimePicker` mentioned before, **django-formset** offers widgets which
+render the calendar part of the input field server-side, using Python's built-in Calendar_ class.
+This gives us finer control over the styling of the date picker, and offers the same user experience
+across all browsers. They furthermore have a more appealing user interface which is consistent with
+the date- and date-time range fields provided by **django-formset**.
+
+In this example, we want to add a field to enter the publishing date of our blog. By using the named
+widgets instead of the default, this input field opens a calendar, whenever the user clicks on it.
+While technically possible, it is not recommended to interchange them on the same page or even
+application as this results in unexpected user experience.
 
 .. django-view:: blog_form
 	:hide-view:
@@ -60,7 +137,7 @@ responds with a HTML snippet of the next sheet.
 
 	from formset.calendar import CalendarResponseMixin
 	from formset.views import FormView
-
+	
 	class BlogView(CalendarResponseMixin, FormView):
 	    form_class = BlogForm
 	    template_name = "form.html"
@@ -71,6 +148,81 @@ means that in the Anglo Saxon area, dates are formatted as ``mm/dd/yyyy``, where
 formatted as ``dd.mm.yyyy``. Japan uses ``yyyy/mm/dd`` as date format. This setting can be
 overridden by adding the attribute ``date-format`` to the widget during instantiation, for instance
 ``DatePicker(attrs={"date-format": "iso"})``.
+
+
+.. _date-textbox:
+
+Date Textbox Widget
+===================
+
+If no popup calendar is desired, we can use the widget :class:`formset.widgets.DateTextBox`. This
+widget is rendered as a simple text box, but still uses the same date format as the date picker
+widget. This means that the date format adapts itself to the browser's locale setting. This setting
+can be overridden by adding the attribute ``date-format`` to the widget during instantiation, for
+instance ``DatePicker(attrs={"date-format": "iso"})``.
+
+.. django-view:: birthdate_form
+	:caption: form.py
+
+	from formset.widgets import DateTextbox
+	
+	class BirthdateForm(forms.Form):
+	    birthdate = fields.DateField(widget=DateTextbox)
+
+	    # other fields
+	    
+
+.. django-view:: birthdate_view
+	:view-function: BirthdateView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'birtdate-result'}, form_kwargs={'auto_id': 'bd_id_%s'})
+	:hide-code:
+
+	from formset.views import FormView
+
+	class BirthdateView(FormView):
+	    form_class = BirthdateForm
+	    template_name = "form.html"
+	    success_url = "/success"
+
+When using this widget, there is no need for the view controlling our blog form to inherit from the
+special mixin class :class:`formset.calendar.CalendarResponseMixin`, because no calendar sheets have
+to be fetched from the server.
+
+
+Date Calendar Widget
+====================
+
+If we don't want to offer an input field to enter a date, but instead a pageable calendar, then we
+can use the widget :class:`formset.widgets.DateCalendar`. This widget is then rendered as a calendar
+sheet but behaves just as any date input field.
+
+.. django-view:: auguration_form
+	:caption: form.py
+
+	from formset.widgets import DateCalendar
+	
+	class AugurationForm(forms.Form):
+	    auguration_date = fields.DateField(widget=DateCalendar)
+
+	    # other fields
+
+Clicking into the calendar's title switches to the year view. Another click switches to the decade
+view. By clicking on the up button, we return to the previous calendar sheet. Clicking on the small
+calendar icon inside the title jumps to the current date. Clicking on a date selects it but does not
+close the calendar.
+
+.. django-view:: auguration_view
+	:view-function: AugurationView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'auguration-result'}, form_kwargs={'auto_id': 'ad_id_%s'})
+	:hide-code:
+
+	class AugurationView(CalendarResponseMixin, FormView):
+	    form_class = AugurationForm
+	    template_name = "form.html"
+	    success_url = "/success"
+
+When paginating through calendar sheets, each sheet must be fetched from the server. Therefore the
+view controlling this form must inherit from the special mixin class
+:class:`formset.calendar.CalendarResponseMixin`. This class listens on the supplied endpoint and
+responds with a HTML snippet of the next sheet.
 
 
 Date-Time Picker Widget
@@ -146,8 +298,8 @@ This example disables all dates which lie in the past and are more than two week
 	    success_url = "/success"
 
 
-Applying Context to a Picker
-============================
+Applying Context to the Calendar
+================================
 
 Apart from not having to integrate date arithmetics into the client-side part of this library, one
 of the big advantages of using a server side rendered calendar sheet is, that we are able to enrich
@@ -198,7 +350,7 @@ such as holidays.
 	class MoonForm(forms.Form):
 	    date = fields.DateField(
 	        label="Some Date",
-	        widget=DatePicker(calendar_renderer=MoonCalendarRenderer),
+	        widget=DateCalendar(calendar_renderer=MoonCalendarRenderer),
 	    )
 
 Since this view requires a modified renderer to add additional context, we must tell our special
