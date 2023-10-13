@@ -23,7 +23,7 @@ jobs:
       matrix:
         python-version: ["3.9", "3.10", "3.11"]
         django-version: ["4.1.*", "4.2.*"]
-        node-version: ["16.x"]
+        node-version: ["18.x"]
         include:
           - build-client: "esbuild"
           - build-client: "rollup"

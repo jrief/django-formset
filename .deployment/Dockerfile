@@ -6,7 +6,7 @@ WORKDIR /web
 # install packages outside of PyPI
 RUN apt-get upgrade -y
 RUN apt-get install -y curl make
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get install -y nodejs npm
 RUN pip install --upgrade pip
 
