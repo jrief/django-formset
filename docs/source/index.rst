@@ -34,6 +34,7 @@ Django ``Form``-s.
 	richtext
 	slug-input
 	date-time-input
+	date-time-range
 	development
 	contributing
 	faq

@@ -1,0 +1,16 @@
+{% extends "calendar/weeks.html" %}
+
+{% block sheet-body %}{% spaceless %}
+	<div class="central">
+		<ul class="weekdays">
+	{% for abbr, weekday in calendar.weekdays %}
+			<li><abbr title="{{ weekday }}">{{ abbr }}</abbr></li>
+	{% endfor %}
+		</ul>
+		<ul class="monthdays">
+	{% for date, day, classes, available in calendar.monthdays %}
+			<li data-date="{{ date }}"{% if classes %} class="{{ classes }}"{% endif %}{% if not available %} disabled=""{% endif %}>{{ day }}</li>
+	{% endfor %}
+		</ul>
+	</div>
+{% endspaceless %}{% endblock %}

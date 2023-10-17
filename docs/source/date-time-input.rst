@@ -10,17 +10,16 @@ pickers are impossible to style using CSS or other means. It therefore is imposs
 context information to the dates and times.
 
 The JavaScript ecosystem offers a huge set of libraries with alternative date- and time-pickers,
-for instance Flatpickr_ or Pikaday_ to name a few with no external dependencies. Using one of those
-would of course be an option. However, it then still is not possible to change the rendering context
-based on information only available on the server, for instance the vacancy of reservable time
-slots.
+for instance Flatpickr_ or Pikaday_ to name a few, written in pure JavaScript and without any
+framework. Using one of those would of course be an option. However, it then still is not possible
+to change the rendering context based on information only available on the server, for instance the
+vacancy of reservable time slots.
 
 .. _Flatpickr: https://flatpickr.js.org/
 .. _Pikaday: https://github.com/Pikaday/Pikaday
 
 Moreover, JavaScript does not offer any functionality for non-trivial calendar arithmetic, so this
-has to be implemented by every date picker library. This is not only a waste of resources, but also
-a potential source of errors.
+has to be implemented by every date picker library.
 
 .. _Calendar: https://docs.python.org/3/library/calendar.html
 
