@@ -1,6 +1,7 @@
 import json
 
 from django.core.exceptions import ImproperlyConfigured
+from django.forms.fields import CallableChoiceIterator
 from django.db import transaction
 from django.db.models import QuerySet
 from django.http.response import HttpResponseBadRequest, JsonResponse
@@ -34,13 +35,24 @@ class IncompleteSelectResponseMixin:
             return HttpResponseBadRequest(f"No such field: {field_path}")
         assert isinstance(field.widget, (Selectize, DualSelector))
         widget = field.widget
-        queryset = widget.choices.queryset
-        data = {'total_count': queryset.count()}
-
         try:
             offset = int(request.GET.get('offset'))
         except TypeError:
             offset = 0
+
+        if isinstance(widget.choices, CallableChoiceIterator):
+            options = [
+                o for index, o in enumerate(widget.choices)
+                if index >= offset and index < offset + widget.max_prefetch_choices
+            ]
+            return JsonResponse({
+                'count': len(options),
+                'incomplete': False,
+                'options': options,
+            })
+
+        queryset = widget.choices.queryset
+        data = {'total_count': queryset.count()}
 
         if widget.filter_by and any(k.startswith('filter-') for k in request.GET.keys()):
             filters = {key: request.GET.getlist(f'filter-{key}') for key in widget.filter_by.keys()}
