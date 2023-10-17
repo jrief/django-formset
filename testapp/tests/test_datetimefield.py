@@ -1,16 +1,20 @@
 from bs4 import BeautifulSoup
 from datetime import timedelta
 
+import pytest
+
 from django.utils.timezone import datetime
 
 from formset.calendar import CalendarRenderer, ViewMode
 
 
-def test_render_hours():
+@pytest.mark.parametrize('hour12', [False, True])
+def test_render_hours(hour12):
     start_datetime = datetime(2023, 1, 18)
     interval = timedelta(minutes=15)
     cal = CalendarRenderer(start_datetime=start_datetime)
-    soup = BeautifulSoup(cal.render(ViewMode.hours, interval), features='html.parser')
+    html = cal.render(ViewMode.hours, hour12=hour12, interval=interval)
+    soup = BeautifulSoup(html, features='html.parser')
 
     controls = soup.find(class_='controls')
     prev_button = next(controls.children)
@@ -26,12 +30,20 @@ def test_render_hours():
 
     sheet_body = soup.find(class_='sheet-body')
     hours = sheet_body.find(class_='hours')
-    assert str(hours.contents[0]) == '<li aria-label="2023-01-18T00:00">0h</li>'
-    assert str(hours.contents[5]) == '<li aria-label="2023-01-18T05:00">5h</li>'
+    if hour12:
+        assert str(hours.contents[0]) == '<li aria-label="2023-01-18T00:00">12am</li>'
+        assert str(hours.contents[5]) == '<li aria-label="2023-01-18T05:00">5am</li>'
+    else:
+        assert str(hours.contents[0]) == '<li aria-label="2023-01-18T00:00">0h</li>'
+        assert str(hours.contents[5]) == '<li aria-label="2023-01-18T05:00">5h</li>'
     assert len(hours.contents) == 6
     minutes = hours.find_next_sibling(class_='minutes').find_all('li')
-    assert str(minutes[0]) == '<li data-date="2023-01-18T00:00">0:00</li>'
-    assert str(minutes[3]) == '<li data-date="2023-01-18T00:45">0:45</li>'
+    if hour12:
+        assert str(minutes[0]) == '<li data-date="2023-01-18T00:00">12:00</li>'
+        assert str(minutes[3]) == '<li data-date="2023-01-18T00:45">12:45</li>'
+    else:
+        assert str(minutes[0]) == '<li data-date="2023-01-18T00:00">0:00</li>'
+        assert str(minutes[3]) == '<li data-date="2023-01-18T00:45">0:45</li>'
     assert len(minutes) == 4
 
 

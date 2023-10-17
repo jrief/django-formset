@@ -196,7 +196,6 @@ def test_datetimepicker_change(page, mocker, viewname, locale):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['current_schedule'])
 def test_datetimepicker_navigate(page, mocker, viewname):
-    schedule_field = page.locator('django-formset input[name="schedule"]')
     opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-picker-indicator')
     calendar = page.locator('django-formset input[name="schedule"] + [role="textbox"] + .dj-calendar')
     expect(calendar).not_to_be_visible()
@@ -222,8 +221,7 @@ def test_datetimepicker_navigate(page, mocker, viewname):
     assert querydict.get('interval') == '15'
     spy.reset_mock()
 
-    selected_date = datetime.fromisoformat(calendar.locator('ul.monthdays li.selected').get_attribute('data-date'))
-    assert selected_date.date() == datetime(2023, 3, 1).date()
+    expect(calendar.locator('ul.monthdays li.selected')).to_have_attribute('data-date', '2023-03-01')
     page.keyboard.press('ArrowDown')
     page.keyboard.press('ArrowLeft')
     page.keyboard.press('Enter')
@@ -238,11 +236,9 @@ def test_datetimepicker_navigate(page, mocker, viewname):
     spy.reset_mock()
 
     page.keyboard.press('ArrowDown')
-    selected_date = datetime.fromisoformat(calendar.locator('ul.hours > li.preselected').get_attribute('aria-label'))
-    assert selected_date == datetime(2023, 3, 7, 1)
+    expect(calendar.locator('ul.hours > li.constricted')).to_have_attribute('aria-label', '2023-03-07T01:00')
     page.keyboard.press('ArrowLeft')
-    selected_date = datetime.fromisoformat(calendar.locator('ul.minutes > li.selected').get_attribute('data-date'))
-    assert selected_date == datetime(2023, 3, 7, 0, 45)
+    expect(calendar.locator('ul.minutes > li.selected')).to_have_attribute('data-date', '2023-03-07T00:45')
 
 
 @pytest.mark.urls(__name__)
