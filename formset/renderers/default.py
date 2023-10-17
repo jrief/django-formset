@@ -107,6 +107,7 @@ class FormRenderer(DjangoTemplates):
     _context_modifiers = {
         'django/forms/div.html': _amend_form,
         'django/forms/default.html': _amend_form,
+        'formset/default/form.html': _amend_form,
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
