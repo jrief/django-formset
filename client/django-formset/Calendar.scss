@@ -180,7 +180,7 @@
 
 					&:not([disabled]):hover {
 						opacity: 1;
-						background-color: $calendar-hover-background-color;
+						background-color: $calendar-hover-background-color !important;
 						cursor: pointer;
 					}
 				}
