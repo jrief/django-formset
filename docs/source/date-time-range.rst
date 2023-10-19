@@ -94,7 +94,7 @@ subclasses of Django's :class:`django.forms.fields.MultiValueField` and maps two
 The `DateTimeRangeField` can be configured to use one of these widgets:
 
 * :class:`formset.widgets.DateTimeRangePicker` – shown here
-* :class:`formset.widgets.DateTimeRangeTextbox` – an input field accepting two timestamps  
+* :class:`formset.widgets.DateTimeRangeTextbox` – as input field accepting two timestamps  
 * :class:`formset.widgets.DateTimeRangeCalendar` – just the calendar widget without input field
 
 Configuring a `DateTimeRangeField` without a calendar picker makes sense whenever we do not want to
@@ -113,6 +113,11 @@ timestamps without any granularity.
 	    template_name = "form.html"
 	    success_url = "/success"
 
+When using the calendar picker in hour mode, there is one more thing to consider: After the starting
+date has been selected, the calendar picker will show the an additional cell named "24h" or "12am".
+This is so that the user can select end of day and doesn't have to navigate to the next day and
+chose midnight there.
+
 
 Applying Context to the Calendar
 ================================
@@ -121,8 +126,8 @@ One of the advantages of using a server side rendered calendar sheet is, that we
 the rendering context with additional data. This for instance is useful to highlight certain dates.
 
 Here for instance we emulate a reservation calendar, where only every fifth day is available for
-booking. We do this by adding a CSS class to the calendar cells of the available days and set the
-attribute ``disabled`` otherwise.
+booking. We do this by adding a special CSS class to the calendar cells of the available days and
+set the attribute ``disabled`` otherwise.
 
 .. django-view:: reservation_form
 	:caption: form.py
@@ -171,3 +176,7 @@ mixin class :class:`formset.calendar.CalendarResponseMixin` to use that by passi
 	    calendar_renderer_class = ReservationRenderer
 	    template_name = "form.html"
 	    success_url = "/success"
+
+Here available dates are highlighted in green and disabled dates are grayed out. Note that the
+calendar renderer is not limited to highlight dates. It can be used to add any kind of context and
+the rendering template can be overwritten to make use of that context.
