@@ -7,6 +7,8 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'secret_key')
 
 DEBUG = os.getenv('DJANGO_DEBUG', '').lower() in ['true', '1', 'yes']
 
+DEPLOYED = os.getenv('DJANGO_DEPLOYED', '').lower() in ['true', '1', 'yes']
+
 ALLOWED_HOSTS = ['*'] if DEBUG else ['localhost', 'django-formset.fly.dev']
 CSRF_TRUSTED_ORIGINS = ['https://django-formset.fly.dev']
 
@@ -79,13 +81,15 @@ STATICFILES_DIRS = [
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = os.getenv('DJANGO_STATIC_ROOT', BASE_DIR / 'workdir/static')
+
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
     },
     'staticfiles': {
-        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage' if DEBUG else \
-                   'django.contrib.staticfiles.storage.ManifestStaticFilesStorage',
+        'BACKEND': 'testapp.storage.NoSourceMapsManifestStaticStorage' if DEPLOYED else \
+                   'django.contrib.staticfiles.storage.StaticFilesStorage',
     },
 }
 
