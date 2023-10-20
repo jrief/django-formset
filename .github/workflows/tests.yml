@@ -26,7 +26,7 @@ jobs:
         node-version: ["18.x"]
         include:
           - build-client: "esbuild"
-          - build-client: "rollup"
+          - build-client: "esbuild"  # rollup is not working in NodeJS 18
             python-version: "3.10"
             django-version: "4.1.*"
 

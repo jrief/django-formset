@@ -64,8 +64,8 @@ class DjangoSelectize extends IncompleteSelect {
 		this.initialValue = this.currentValue;
 		this.shadowRoot = this.wrapInShadowRoot();
 		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-            this.transferStyles(tomInput, nativeStyles);
-        }
+			this.transferStyles(tomInput, nativeStyles);
+		}
 		tomInput.classList.add('dj-concealed');
 		this.validateInput(this.initialValue as string);
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
