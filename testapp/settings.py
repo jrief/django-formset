@@ -77,9 +77,17 @@ STATICFILES_DIRS = [
     ('sphinx-view', BASE_DIR / 'docs/build/json'),
 ]
 
-STATIC_ROOT = Path(os.getenv('DJANGO_STATIC_ROOT', BASE_DIR / 'staticfiles'))
-
 STATIC_URL = '/static/'
+
+# STORAGES = {
+#     'default': {
+#         'BACKEND': 'django.core.files.storage.FileSystemStorage',
+#     },
+#     'staticfiles': {
+#         'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage' if DEBUG else \
+#                    'django.contrib.staticfiles.storage.ManifestStaticFilesStorage',
+#     },
+# }
 
 MEDIA_ROOT = Path(os.getenv('DJANGO_MEDIA_ROOT', BASE_DIR / 'workdir/media'))
 

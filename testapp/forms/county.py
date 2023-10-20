@@ -8,48 +8,6 @@ from testapp.models import County
 class CountyForm(forms.Form):
     """
     Using ``<optgroup>`` in fields with Single and Multiple Choices
-    ---------------------------------------------------------------
-
-    This form shows the usage of different choices fields when used with option groups. When
-    selecting an option, it is sometimes desirable to first group those options according to
-    another criteria. For instance, consider the 3143 counties in the US. When rendering them
-    inside a select box, it would be rather unclear, which county belongs to which state. For this
-    purpose, HTML provides the element ``<optgroup>``. Other than visually grouping options to
-    select from, this element has no other effect.
-
-    The **Historic Regions** uses a Django ``ChoiceField`` together with the ``<select>`` widget
-    as provided by  HTML. In Django this field can be used to show the usage of option groups
-    (``<optgroup>``) by using a list of option tuples rather than a single string. This example
-    is just used for reference to show how options groups would look like without modern widgets.
-    Even with only 34 options, this widget becomes quite unhandy.
-
-    The **One County** uses a Django ``ChoiceField`` together with the ``Selectize`` widget as
-    provided by **django-formset**. It shall be used when the number of choices exceeds 10 but
-    also is well suited for less. Here the limit is set to 15 items, but this value can be changed.
-
-    The **Few Counties** field shows a ``ModelMultipleChoiceField`` using the ``SelectizeMultiple``
-    widget configured to query from the associated model. It behaves similar to the ``Selectize``
-    widget, but allows to choose one or more options. It shall be used if the maximum number of
-    selectable options does not exceed more than say 10.
-
-    The **Many Counties** field shows a ``ModelMultipleChoiceField`` using the ``DualSelector``
-    widget configured to query from the associated Django Model. It shows two ``<select multiple>``
-    elements, the left offering all available options and the right to keep the selected options.
-    It shall be used if the number of selected options can exceed any number.
-
-    The **Sortable Counties** field shows a ``ModelMultipleChoiceField`` using the
-    ``DualSortableSelector`` widget. This is a variation of the ``DualSelector`` widget, but allows
-    the user to sort the selected options before submission. It is well suited if the model
-    used for the many-to-many relation also contains an ordering field. Note that it is impossible
-    to move items out of one option group into another one.
-
-    All four widgets ``Selectize, SelectizeMultiple``, ``DualSelector`` and ``DualSortableSelector``
-    accepts these arguments:
-
-     * ``search_lookup`` is the query part to filter for obects using the given queryset.
-     * ``group_field_name`` in combination with option groups. This field is used to determine
-       the group name.
-     * ``filter_by`` is a dictionary to filter options based on the value of other field(s).
     """
 
     historic_regions = fields.ChoiceField(

@@ -1,0 +1,224 @@
+@import "colors";
+
+.dj-calendar {
+	--dummy-style: none;  // required by Calendar.transferStyles()
+
+	[hidden] {
+		display: none !important;
+	}
+
+	.controls {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		border-bottom: 1px solid lightgrey;
+
+		button {
+			display: inline-flex;
+			background-color: transparent;
+			border: none;
+			padding: 0;
+			min-width: 28px;
+			&.extend {
+				flex-grow: 1;
+			}
+			&:hover {
+				background-color: $calendar-hover-background-color;
+			}
+			> svg {
+				margin: 0 auto;
+			}
+		}
+
+		time {
+			width: 10rem;
+			text-align: center;
+		}
+
+		&.years-view time {
+			opacity: .75;
+		}
+	}
+
+	.sheet-body {
+		display: flex;
+		flex-direction: row;
+		padding: 0;
+
+		.central {
+			flex-grow: 1;
+		}
+		:is(.aside-left, .aside-right) {
+			flex-grow: 0;
+			font-weight: bold;
+			font-size: small;
+			width: 24px;
+			time {
+				white-space: nowrap;
+				display: inline-block;
+				line-height: 24px;
+			}
+		}
+		.aside-left {
+			&:has(> time:not(:empty)) {
+				background-color: $calendar-selected-background-color;
+			}
+			> time:not(:empty) {
+				color: white;
+				transform: rotate(-90deg) translate(-140px, 24px);
+				transform-origin: bottom left;
+			}
+		}
+		.aside-right {
+			&:has(> time:not(:empty)) {
+				background-color: $calendar-selected-background-color;
+			}
+			> time:not(:empty) {
+				color: white;
+				transform: rotate(90deg) translate(30px, -24px);
+				transform-origin: top left;
+			}
+		}
+
+		ul {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+			text-align: center;
+			display: grid;
+			gap: 2px;
+			line-height: 38px;
+
+			&:not(*) {
+				background-color: $calendar-range-background-color;
+			}
+
+			> li::selection {
+				background-color: transparent;
+			}
+
+			> li {
+				&.preselected {
+					outline: 2px solid $calendar-selected-background-color;
+				}
+			}
+
+			&.hours {
+				grid-template-columns: repeat(6, 1fr);
+				margin-bottom: 2px;
+
+				> li.constricted {
+					border: 2px solid lightgrey;
+					border-bottom-color: white;
+					border-bottom-width: 2px;
+					border-top-left-radius: 5px;
+					border-top-right-radius: 5px;
+				}
+				> li:has(~ li.constricted) {
+					border-bottom: 2px solid lightgrey;
+				}
+				> li.constricted ~ li {
+					border-bottom: 2px solid lightgrey;
+				}
+			}
+
+			&.minutes {
+				font-size: smaller;
+				border: 2px solid lightgrey;
+				margin: -4px 0 4px;
+				padding: 0;
+				line-height: inherit;
+
+				> li {
+					width: inherit;
+					&.preselected {
+						// add bg-color to distinguish from outlines
+						background-color: $calendar-hover-background-color;
+					}
+				}
+			}
+
+			&.monthdays {
+				grid-template-columns: repeat(7, 1fr);
+
+				> li {
+					&.adjacent {
+						color: $calendar-adjacent-color;
+					}
+				}
+			}
+
+			&.months {
+				grid-template-columns: repeat(3, 1fr);
+			}
+
+			&.years {
+				grid-template-columns: repeat(4, 1fr);
+			}
+
+			&.weekdays {
+				grid-template-columns: repeat(7, 1fr);
+				font-weight: bold;
+			}
+
+			&:not(.weekdays) {
+				--dummy-style: none;  // required by Calendar.transferStyles()
+
+				> li {
+					&.selected {
+						background-color: $calendar-selected-background-color;
+						color: $calendar-selected-color;
+
+						&.today::after {
+							border-color: transparent transparent $calendar-selected-color transparent;
+						}
+					}
+
+					&[disabled] {
+						opacity: 0.5;
+					}
+
+					&:not([disabled]):hover {
+						opacity: 1;
+						background-color: $calendar-hover-background-color !important;
+						cursor: pointer;
+					}
+				}
+			}
+
+			> li.today {
+				position: relative;
+				&::after {
+					position: absolute;
+					content: "";
+					bottom: 0;
+					right: 0;
+					border-style: solid;
+					border-width: 0 0 10px 10px;
+					border-color: transparent transparent $calendar-selected-background-color transparent;
+				}
+			}
+		}
+
+		abbr[title] {
+			text-decoration: none;
+		}
+	}
+}
+
+// Calendar popup dialog
+[aria-haspopup="dialog"] + .dj-calendar {
+	box-shadow: lightgray 0 0 1rem;
+	width: max-content;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+[aria-expanded="false"] + .dj-calendar {
+	display: none;
+}
+
+[aria-expanded="true"] + .dj-calendar {
+	display: block;
+}

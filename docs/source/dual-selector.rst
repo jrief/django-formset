@@ -113,7 +113,7 @@ especially for inexperienced users. It is best suited when only a few options (s
 shall be selectable together. And since it's much more compact, it shall be used if rendering space
 is a concern.
 
-On the other hand, the **DualSelector** widget shall be used whenever the users may select many
+On the other hand, the **DualSelector** widget shall be used whenever a user may select many
 options out of a list of options. Therefore this widget does not limit the maximum number of
 selectable options. It also might make sense to use this widget, whenever some kind of undo/redo
 functionality is required.
@@ -216,8 +216,7 @@ queryset. Here each key maps to an adjacent field and its value contains a looku
 	    form_class = FilteredCountyForm
 
 Setting up forms using filters, can improve the user experience, because it reduces the available
-options the user must choose from. This might be a more friendly alternative rather than using
-option groups.
+options to choose from. This might be a more friendly alternative rather than using option groups.
 
 
 Sortable Dual Selector Widget

@@ -17,6 +17,7 @@ class DjangoSelectize extends IncompleteSelect {
 	private readonly shadowRoot: ShadowRoot;
 	private readonly observer: MutationObserver;
 	private readonly initialValue: string | string[];
+	private readonly baseSelector = '.ts-wrapper';
 
 	constructor(tomInput: HTMLSelectElement) {
 		super(tomInput);
@@ -62,7 +63,9 @@ class DjangoSelectize extends IncompleteSelect {
 		this.observer.observe(this.tomInput, {attributes: true});
 		this.initialValue = this.currentValue;
 		this.shadowRoot = this.wrapInShadowRoot();
-		this.transferStyles(tomInput, nativeStyles);
+		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+			this.transferStyles(tomInput, nativeStyles);
+		}
 		tomInput.classList.add('dj-concealed');
 		this.validateInput(this.initialValue as string);
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
@@ -162,6 +165,7 @@ class DjangoSelectize extends IncompleteSelect {
 	}
 
 	private transferStyles(tomInput: HTMLElement, nativeStyles: CSSStyleDeclaration) {
+		let loaded = false;
 		const wrapperStyle = (this.shadowRoot.host as HTMLElement).style;
 		wrapperStyle.setProperty('display', nativeStyles.display);
 		let lineHeight = window.getComputedStyle(tomInput).getPropertyValue('line-height');
@@ -172,32 +176,33 @@ class DjangoSelectize extends IncompleteSelect {
 			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
 			switch (cssRule.selectorText) {
-				case '.ts-wrapper':
+				case this.baseSelector:
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
 						'letter-spacing', 'white-space']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					loaded = true;
 					break;
-				case '.ts-wrapper .ts-control':
+				case `${this.baseSelector} .ts-control`:
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'background-color', 'border', 'border-radius', 'box-shadow', 'color',
 						'padding']).concat(`width: ${nativeStyles['width']}; min-height: ${nativeStyles['height']};`);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.ts-wrapper .ts-control > input':
-				case '.ts-wrapper .ts-control > div':
+				case `${this.baseSelector} .ts-control > input`:
+				case `${this.baseSelector} .ts-control > div`:
 					if (optionElement) {
 						extraStyles = StyleHelpers.extractStyles(optionElement, ['padding-left', 'padding-right']);
 						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					}
 					break;
-				case '.ts-wrapper .ts-control > input::placeholder':
+				case `${this.baseSelector} .ts-control > input::placeholder`:
 					tomInput.classList.add('-placeholder-');
 					extraStyles = StyleHelpers.extractStyles(tomInput, ['background-color', 'color'])
 					tomInput.classList.remove('-placeholder-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.ts-wrapper.focus .ts-control':
+				case `${this.baseSelector}.focus .ts-control`:
 					tomInput.style.transition = 'none';
 					tomInput.classList.add('-focus-');
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
@@ -206,20 +211,20 @@ class DjangoSelectize extends IncompleteSelect {
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					tomInput.style.transition = '';
 					break;
-				case '.ts-wrapper.disabled .ts-control':
+				case `${this.baseSelector}.disabled .ts-control`:
 					tomInput.classList.add('-disabled-');
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
 							'background-color', 'border', 'box-shadow', 'color', 'opacity', 'outline', 'transition'])
 					tomInput.classList.remove('-disabled-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.ts-wrapper .ts-dropdown':
+				case `${this.baseSelector} .ts-dropdown`:
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'border-right', 'border-bottom', 'border-left', 'color'])
 						.concat(parseFloat(lineHeight) > 0 ? `line-height: calc(${lineHeight} * 1.2);` : 'line-height: 1.4em;');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.ts-wrapper .ts-dropdown .ts-dropdown-content':
+				case `${this.baseSelector} .ts-dropdown .ts-dropdown-content`:
 					if (parseFloat(lineHeight) > 0) {
 						extraStyles =  `max-height: calc(${lineHeight} * 1.2 * ${displayNumOptions});`;
 					} else {
@@ -227,7 +232,7 @@ class DjangoSelectize extends IncompleteSelect {
 					}
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.ts-wrapper .ts-dropdown [data-selectable]':
+				case `${this.baseSelector} .ts-dropdown [data-selectable]`:
 					extraStyles = StyleHelpers.extractStyles(tomInput, ['padding-left']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
@@ -244,6 +249,8 @@ class DjangoSelectize extends IncompleteSelect {
 					break;
 			}
 		}
+		if (!loaded)
+			throw new Error(`Could not load styles for ${this.baseSelector}`);
 	}
 
 	private setupRender(tomInput: TomInput) : TomTemplates {

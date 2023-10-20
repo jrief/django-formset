@@ -63,3 +63,7 @@ django-form-collection[sibling-position] > .collection-drag-handle ~ .remove-col
 		display: none;
 	}
 }
+
+.dj-calendar li.available {
+	background-color: rgb(200, 255, 195);
+}

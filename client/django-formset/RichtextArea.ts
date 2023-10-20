@@ -71,7 +71,7 @@ abstract class DropdownAction extends Action {
 
 	constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement, itemsSelector: string) {
 		super(wrapperElement, name, button);
-		if (this.button.nextElementSibling instanceof HTMLUListElement && this.button.nextElementSibling.role === 'menu') {
+		if (this.button.nextElementSibling instanceof HTMLUListElement && this.button.nextElementSibling.getAttribute('role') === 'menu') {
 			this.dropdownMenu = this.button.nextElementSibling;
 			this.dropdownItems = this.dropdownMenu.querySelectorAll(itemsSelector);
 		} else {
@@ -203,7 +203,7 @@ namespace controls {
 
 		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
 			super(wrapperElement, name, button, '[richtext-click^="color:"]');
-			if (!(button.nextElementSibling instanceof HTMLUListElement) || button.nextElementSibling.role !== 'menu')
+			if (!(button.nextElementSibling instanceof HTMLUListElement) || button.nextElementSibling.getAttribute('role') !== 'menu')
 				throw new Error('Text color requires a sibling element <ul role="menu">…</ul>');
 			this.collecColors();
 		}
@@ -797,20 +797,17 @@ class RichtextArea {
 	public readonly wrapperElement: HTMLElement;
 	private readonly menubarElement: HTMLElement | null;
 	private readonly registeredActions = new Array<Action>();
-	private readonly declaredStyles: HTMLStyleElement;
 	private readonly useJson: boolean = false;
 	private readonly editor: Editor;
 	private readonly initialValue: string | object;
 	private charaterCountTemplate?: Function;
 	private charaterCountDiv: HTMLElement | null = null;
+	private readonly baseSelector = '.dj-richtext-wrapper';
 
 	constructor(wrapperElement: HTMLElement, textAreaElement: HTMLTextAreaElement) {
 		this.wrapperElement = wrapperElement;
 		this.textAreaElement = textAreaElement;
 		this.menubarElement = wrapperElement.querySelector('[role="menubar"]');
-		this.declaredStyles = document.createElement('style');
-		this.declaredStyles.innerText = styles;
-		document.head.appendChild(this.declaredStyles);
 		const scriptElement = wrapperElement.querySelector('textarea + script');
 		if (scriptElement instanceof HTMLScriptElement && scriptElement.type === 'application/json') {
 			this.useJson = true;
@@ -822,7 +819,9 @@ class RichtextArea {
 			this.editor = this.createEditor(wrapperElement, textAreaElement.textContent);
 		}
 		this.initialValue = this.getValue();
-		this.transferStyles();
+		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+			this.transferStyles();
+		}
 		this.concealTextArea(wrapperElement);
 		// innerHTML must reflect the content, otherwise field validation complains about a missing value
 		this.textAreaElement.innerHTML = this.editor.getHTML();
@@ -947,21 +946,29 @@ class RichtextArea {
 	private formSubmitted = () => {}
 
 	private transferStyles() {
+		const declaredStyles = document.createElement('style');
+		declaredStyles.innerText = styles;
+		document.head.appendChild(declaredStyles);
+		if (!declaredStyles.sheet)
+			throw new Error("Could not create <style> element");
+		const sheet = declaredStyles.sheet;
+
+		let loaded = false;
 		const buttonGroupHeight = this.menubarElement?.getBoundingClientRect().height ?? 0;
-		const sheet = this.declaredStyles.sheet;
-		for (let index = 0; sheet && index < sheet.cssRules.length; index++) {
+		for (let index = 0; index < sheet.cssRules.length; index++) {
 			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
 			switch (cssRule.selectorText) {
-				case '.dj-richtext-wrapper':
+				case this.baseSelector:
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
 						'height', 'background-image', 'border', 'border-radius', 'box-shadow', 'outline',
 						'resize',
 					]);
 					extraStyles = extraStyles.concat(`min-height:${buttonGroupHeight * 2}px;`);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					loaded = true;
 					break;
-				case '.dj-richtext-wrapper.focused':
+				case `${this.baseSelector}.focused`:
 					this.textAreaElement.style.transition = 'none';
 					this.textAreaElement.focus();
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
@@ -970,7 +977,7 @@ class RichtextArea {
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					this.textAreaElement.style.transition = '';
 					break;
-				case '.dj-submitted .dj-richtext-wrapper.focused.invalid':
+				case `.dj-submitted ${this.baseSelector}.focused.invalid`:
 					this.textAreaElement.style.transition = 'none';
 					this.textAreaElement.classList.add('-focus-', '-invalid-', 'is-invalid');  // is-invalid is a Bootstrap hack
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
@@ -979,20 +986,20 @@ class RichtextArea {
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					this.textAreaElement.style.transition = '';
 					break;
-				case '.dj-richtext-wrapper .ProseMirror':
+				case `${this.baseSelector} .ProseMirror`:
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
 						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight', 'letter-spacing',
 						'white-space', 'line-height', 'overflow', 'padding']);
 					extraStyles = extraStyles.concat(`top:${buttonGroupHeight + 1}px;`);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.dj-richtext-wrapper [role="menubar"]':
+				case `${this.baseSelector} [role="menubar"]`:
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
 						'border-bottom'
 					]);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case '.dj-richtext-wrapper [role="menubar"] button[aria-haspopup="true"] + ul[role="menu"]':
+				case `${this.baseSelector} [role="menubar"] button[aria-haspopup="true"] + ul[role="menu"]`:
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
 						'border', 'z-index']);
 					const re = new RegExp('z-index:(\\d+);');
@@ -1015,6 +1022,8 @@ class RichtextArea {
 					break;
 			}
 		}
+		if (!loaded)
+			throw new Error(`Could not load styles for ${this.baseSelector}`);
 	}
 
 	public disconnect() {
@@ -1032,7 +1041,7 @@ class RichtextArea {
 const RA = Symbol('RichtextArea');
 
 export class RichTextAreaElement extends HTMLTextAreaElement {
-	private [RA]?: RichtextArea;  // hides internal implementation
+	private [RA]!: RichtextArea;  // hides internal implementation
 
 	private connectedCallback() {
 		const wrapperElement = this.closest('.dj-richtext-wrapper');
@@ -1042,10 +1051,10 @@ export class RichTextAreaElement extends HTMLTextAreaElement {
 	}
 
 	private disconnectCallback() {
-		this[RA]?.disconnect();
+		this[RA].disconnect();
 	}
 
 	public get value() : any {
-		return this[RA]?.getValue();
+		return this[RA].getValue();
 	}
 }

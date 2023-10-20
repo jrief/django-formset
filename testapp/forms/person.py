@@ -84,57 +84,7 @@ sample_person_data = {
 
 class ModelPersonForm(models.ModelForm):
     """
-    This form is created by Django's helper functions that creates a Form class out of a Django
-    model. Say we have a Django model such as:
-
-    .. code-block:: python
-
-        class PersonModel(models.Model):
-            full_name = models.CharField(…)
-            avatar = models.FileField(…)
-            gender = models.CharField(choices=…, …)
-            birth_date = models.DateField(…)
-            opinion = models.ForeignKey(OpinionModel, …)
-            opinions = models.ManyToManyField(OpinionModel, …)
-            continent = models.IntegerField(choices=…, …)
-
-    and create a Django Form out of it, such as
-
-    .. code-block:: python
-
-        from formset.widgets import Selectize, SelectizeMultiple, UploadedFileInput, DualSelector
-
-        class ModelPersonForm(models.ModelForm):
-            class Meta:
-                model = PersonModel
-                fields = '__all__'
-                widgets = {
-                    'avatar': UploadedFileInput,
-                    'gender': widgets.RadioSelect,
-                    'opinion': Selectize(search_lookup='label__icontains'),
-                    'opinions': SelectizeMultiple(search_lookup='label__icontains', max_items=15),
-                           # or DualSelector(search_lookup='label__icontains'),
-                }
-
-    here the only caveat is that some of the default widgets must or shall be overridden by
-    counterparts from the **django-formset** library. We do this by specifying a dictionary inside
-    the form's ``Meta`` class, as shown above.
-
-    For model fields of type ``django.db.models.FileField`` and ``django.db.models.ImageField`` the
-    widget **must** be replaced by ``formset.widgets.UploadedFileInput`` as discussed in the
-    example 12.
-
-    Input fields for selecting *one option* out of many, shall be replaced by a widget of type
-    ``formset.widgets.Selectize``. This replaces the HTML ``<select>`` element against a more
-    user-friendly version.
-
-    Input fields for selecting *many options* out of many, shall be replaced by a widget of either
-    type ``formset.widgets.SelectizeMutiple`` or ``formset.widgets.DualSelector``.
-    The ``SelectizeMutiple`` widget is suitable for input fields holding only a few selected
-    choices, while the ``DualSelector`` widget is intended for input fields holding many selected
-    options.
-
-    Note that the submitted form data is tight to the current session and thus not visible to other users.
+    This form is created by Django's helper functions that creates a ModelForm class out of a Django model.
     """
 
     class Meta:

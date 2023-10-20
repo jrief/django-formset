@@ -33,7 +33,8 @@ Django ``Form``-s.
 	dual-selector
 	richtext
 	slug-input
-	calendar
+	date-time-input
+	date-time-range
 	development
 	contributing
 	faq

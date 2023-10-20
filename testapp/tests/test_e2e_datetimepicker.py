@@ -43,10 +43,12 @@ urlpatterns = [
 def test_datetimepicker_set(page, mocker, viewname, locale):
     now = datetime.now()
     schedule_field = page.locator('django-formset input[name="schedule"]')
-    calendar = page.locator('django-formset input[name="schedule"] + .dj-calendar')
-    expect(calendar).not_to_be_visible()
+    textbox = page.locator('django-formset input[name="schedule"] + [role="textbox"]')
+    opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-picker-indicator')
+    calendar = page.locator('django-formset input[name="schedule"] + [role="textbox"] + .dj-calendar')
     expect(schedule_field).to_have_value('')
-    schedule_field.focus()
+    expect(calendar).not_to_be_visible()
+    opener.click()
     expect(calendar).to_be_visible()
     today_li = calendar.locator('ul.monthdays > li.today')
     expect(today_li).to_be_visible()
@@ -74,14 +76,16 @@ def test_datetimepicker_set(page, mocker, viewname, locale):
     minute_string = f'{now.isoformat()[:13]}:45'
     assert minute_li.get_attribute('data-date') == minute_string
     minute_li.click()
+    new_date = schedule_field.evaluate('elem => elem.valueAsDate')
+    assert new_date == now.replace(minute=45, second=0, microsecond=0)
     if locale == 'en-US':
-        expect(schedule_field).to_have_value(datetime.strftime(now, '%m/%d/%Y %H:45').replace(' 00:45', ' 24:45'))
+        expect(textbox).to_have_text(datetime.strftime(now, '%m/%d/%Y %H:45').replace(' 00:45', ' 24:45'))
     elif locale == 'de-DE':
-        expect(schedule_field).to_have_value(datetime.strftime(now, '%d.%m.%Y %H:45'))
+        expect(textbox).to_have_text(datetime.strftime(now, '%d.%m.%Y %H:45'))
     elif locale == 'ja-JP':
-        expect(schedule_field).to_have_value(datetime.strftime(now, '%Y/%m/%d %H:45'))
+        expect(textbox).to_have_text(datetime.strftime(now, '%Y/%m/%d %H:45'))
     else:
-        expect(schedule_field).to_have_value(datetime.strftime(now, '%Y-%m-%d %H:45'))
+        expect(textbox).to_have_text(datetime.strftime(now, '%Y-%m-%d %H:45'))
 
 
 @pytest.mark.urls(__name__)
@@ -89,19 +93,20 @@ def test_datetimepicker_set(page, mocker, viewname, locale):
 @pytest.mark.parametrize('viewname', ['current_schedule'])
 def test_datetimepicker_change(page, mocker, viewname, locale):
     schedule_field = page.locator('django-formset input[name="schedule"]')
-    calendar = page.locator('django-formset input[name="schedule"] + .dj-calendar')
+    textbox = page.locator('django-formset input[name="schedule"] + [role="textbox"]')
+    opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-picker-indicator')
+    calendar = page.locator('django-formset input[name="schedule"] + [role="textbox"] + .dj-calendar')
     expect(calendar).not_to_be_visible()
     if locale == 'en-US':
-        expect(schedule_field).to_have_value(datetime.strftime(schedule_datetime, '%m/%d/%Y %H:%M'))
+        expect(textbox).to_have_text(datetime.strftime(schedule_datetime, '%m/%d/%Y %H:%M'))
     elif locale == 'de-DE':
-        expect(schedule_field).to_have_value(datetime.strftime(schedule_datetime, '%d.%m.%Y %H:%M'))
+        expect(textbox).to_have_text(datetime.strftime(schedule_datetime, '%d.%m.%Y %H:%M'))
     elif locale == 'ja-JP':
-        expect(schedule_field).to_have_value(datetime.strftime(schedule_datetime, '%Y/%m/%d %H:%M'))
+        expect(textbox).to_have_text(datetime.strftime(schedule_datetime, '%Y/%m/%d %H:%M'))
     else:
-        expect(schedule_field).to_have_value(datetime.strftime(schedule_datetime, '%Y-%m-%d %H:%M'))
-    schedule_field.focus()
+        expect(textbox).to_have_text(datetime.strftime(schedule_datetime, '%Y-%m-%d %H:%M'))
+    opener.click()
     expect(calendar).to_be_visible()
-
     spy = mocker.spy(DemoFormView, 'get')
     calendar.locator('button.next').click()
     sleep(0.2)
@@ -179,22 +184,22 @@ def test_datetimepicker_change(page, mocker, viewname, locale):
     expect(calendar).not_to_be_visible()
     changed_datetime = datetime(2023, 7, 9, 13, 15)
     if locale == 'en-US':
-        expect(schedule_field).to_have_value(datetime.strftime(changed_datetime, '%m/%d/%Y %H:%M'))
+        expect(textbox).to_have_text(datetime.strftime(changed_datetime, '%m/%d/%Y %H:%M'))
     elif locale == 'de-DE':
-        expect(schedule_field).to_have_value(datetime.strftime(changed_datetime, '%d.%m.%Y %H:%M'))
+        expect(textbox).to_have_text(datetime.strftime(changed_datetime, '%d.%m.%Y %H:%M'))
     elif locale == 'ja-JP':
-        expect(schedule_field).to_have_value(datetime.strftime(changed_datetime, '%Y/%m/%d %H:%M'))
+        expect(textbox).to_have_text(datetime.strftime(changed_datetime, '%Y/%m/%d %H:%M'))
     else:
-        expect(schedule_field).to_have_value(datetime.strftime(changed_datetime, '%Y-%m-%d %H:%M'))
+        expect(textbox).to_have_text(datetime.strftime(changed_datetime, '%Y-%m-%d %H:%M'))
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['current_schedule'])
 def test_datetimepicker_navigate(page, mocker, viewname):
-    schedule_field = page.locator('django-formset input[name="schedule"]')
-    calendar = page.locator('django-formset input[name="schedule"] + .dj-calendar')
+    opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-picker-indicator')
+    calendar = page.locator('django-formset input[name="schedule"] + [role="textbox"] + .dj-calendar')
     expect(calendar).not_to_be_visible()
-    schedule_field.focus()
+    opener.click()
     expect(calendar).to_be_visible()
     expect(calendar.locator('ul.monthdays li.selected')).to_be_visible()
     page.keyboard.press('ArrowRight')
@@ -216,8 +221,7 @@ def test_datetimepicker_navigate(page, mocker, viewname):
     assert querydict.get('interval') == '15'
     spy.reset_mock()
 
-    selected_date = datetime.fromisoformat(calendar.locator('ul.monthdays li.selected').get_attribute('data-date'))
-    assert selected_date.date() == datetime(2023, 3, 1).date()
+    expect(calendar.locator('ul.monthdays li.selected')).to_have_attribute('data-date', '2023-03-01')
     page.keyboard.press('ArrowDown')
     page.keyboard.press('ArrowLeft')
     page.keyboard.press('Enter')
@@ -232,20 +236,19 @@ def test_datetimepicker_navigate(page, mocker, viewname):
     spy.reset_mock()
 
     page.keyboard.press('ArrowDown')
-    selected_date = datetime.fromisoformat(calendar.locator('ul.hours > li.preselected').get_attribute('aria-label'))
-    assert selected_date == datetime(2023, 3, 7, 13)
+    expect(calendar.locator('ul.hours > li.constricted')).to_have_attribute('aria-label', '2023-03-07T01:00')
     page.keyboard.press('ArrowLeft')
-    selected_date = datetime.fromisoformat(calendar.locator('ul.minutes > li.selected').get_attribute('data-date'))
-    assert selected_date == datetime(2023, 3, 7, 12, 45)
+    expect(calendar.locator('ul.minutes > li.selected')).to_have_attribute('data-date', '2023-03-07T00:45')
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('language', ['en', 'de', 'fr', 'es', 'pt'])
 @pytest.mark.parametrize('viewname', ['current_schedule'])
 def test_datetimepicker_i18n(page, settings, viewname, language):
-    calendar = page.locator('django-formset input[name="schedule"] + .dj-calendar')
+    calendar = page.locator('django-formset input[name="schedule"] + [role="textbox"] + .dj-calendar')
+    opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-picker-indicator')
     expect(calendar).not_to_be_visible()
-    page.locator('django-formset input[name="schedule"]').focus()
+    opener.click()
     sleep(0.2)
     expect(calendar).to_be_visible()
     title = calendar.locator('.controls time[datetime]')

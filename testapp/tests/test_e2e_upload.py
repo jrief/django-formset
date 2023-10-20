@@ -145,7 +145,7 @@ def test_upload_progressbar(page, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
-def test_upload_in_progress(page):
+def test_upload_in_progress(page, viewname):
     field_group = page.locator('django-formset [role="group"]')
     client = page.context.new_cdp_session(page)
     client.send('Network.enable')
@@ -157,7 +157,7 @@ def test_upload_in_progress(page):
     }
     client.send('Network.emulateNetworkConditions', network_conditions)
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
-    sleep(0.02)
+    sleep(0.2)
     page.locator('django-formset').evaluate('elem => elem.submit()')
     error_placeholder = field_group.locator('.dj-errorlist .dj-placeholder')
     expect(error_placeholder).to_have_text("File upload still in progress.")
@@ -165,7 +165,7 @@ def test_upload_in_progress(page):
 @pytest.mark.xfail(reason="playwright does not abort route since version 1.31")
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
-def test_interupt_upload(page, viewname):
+def test_interrupt_upload(page, viewname):
     page.route('/upload', lambda route: route.abort())
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
     error_placeholder = page.locator('django-formset [role="group"] .dj-errorlist .dj-placeholder')

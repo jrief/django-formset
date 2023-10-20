@@ -28,3 +28,12 @@ django-form-collection[sibling-position] > .collection-drag-handle ~ .remove-col
 	margin-top: 0.75rem;
 	margin-bottom: 0.75rem;
 }
+
+#id_some_date ~ .dj-calendar .monthdays > li {
+	display: flex;
+	flex-direction: column;
+}
+#id_some_date ~ .dj-calendar .monthdays > li > sub {
+	height: 1em;
+	bottom: 0;
+}

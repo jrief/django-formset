@@ -13,18 +13,20 @@
 		{% include "formset/icons/arrow-right.svg" %}
 	</button>
 </div>
-<div class="ranges" aria-label="weeks-view">
-{% block ranges %}
-	<ul class="weekdays">
+<div class="sheet-body" aria-label="weeks-view">
+{% block sheet-body %}
+	<div class="central">
+		<ul class="weekdays">
 	{% for abbr, weekday in calendar.weekdays %}
-		<li><abbr title="{{ weekday }}">{{ abbr }}</abbr></li>
+			<li><abbr title="{{ weekday }}">{{ abbr }}</abbr></li>
 	{% endfor %}
-	</ul>
-	<ul class="monthdays">
+		</ul>
+		<ul class="monthdays">
 	{% for date, day, classes in calendar.monthdays %}
-		<li data-date="{{ date }}"{% if classes %} class="{{ classes }}"{% endif %}>{{ day }}</li>
+			<li data-date="{{ date }}"{% if classes %} class="{{ classes }}"{% endif %}>{{ day }}</li>
 	{% endfor %}
-	</ul>
+		</ul>
+	</div>
 {% endblock %}
 </div>
 {% endspaceless %}

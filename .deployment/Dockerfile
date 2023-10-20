@@ -6,7 +6,7 @@ WORKDIR /web
 # install packages outside of PyPI
 RUN apt-get upgrade -y
 RUN apt-get install -y curl make
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get install -y nodejs npm
 RUN pip install --upgrade pip
 
@@ -16,9 +16,8 @@ COPY package-lock.json /web/package-lock.json
 RUN npm ci
 
 # install Python specific requirements
-RUN pip install django psycopg2-binary Pillow uWSGI docutils Sphinx sphinx-toolbox
+RUN pip install django psycopg2-binary Pillow uWSGI docutils Sphinx sphinx-toolbox furo
 RUN pip install https://github.com/jrief/django-sphinx-view/archive/refs/heads/main.zip
-RUN pip install https://github.com/jrief/furo/archive/refs/heads/json-build.zip
 
 # copy project relevant files into container
 ADD assets /web/assets

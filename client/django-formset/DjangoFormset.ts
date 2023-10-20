@@ -6,6 +6,7 @@ import template from 'lodash.template';
 import Sortable, { SortableEvent } from 'sortablejs';
 import { FileUploadWidget } from './FileUploadWidget';
 import { parse } from './tag-attributes';
+import { ErrorKey, FieldErrorMessages } from './Widget';
 import styles from './DjangoFormset.scss';
 import spinnerIcon from './icons/spinner.svg';
 import okayIcon from './icons/okay.svg';
@@ -13,7 +14,6 @@ import bummerIcon from './icons/bummer.svg';
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FieldValue = string | Array<string | Object>;
-type ErrorKey = keyof ValidityState;
 
 const NON_FIELD_ERRORS = '__all__';
 const COLLECTION_ERRORS = '_collection_errors_';
@@ -41,23 +41,6 @@ class BoundValue {
 }
 
 
-class FieldErrorMessages extends Map<ErrorKey, string>{
-	constructor(fieldGroup: FieldGroup) {
-		super();
-		const element = fieldGroup.element.querySelector('meta[name="error-messages"]');
-		if (!element)
-			throw new Error(`<div role="group"> for '${fieldGroup.name}' requires one <meta name="error-messages"> tag.`);
-		for (const attr of element.getAttributeNames()) {
-			const clientKey = attr.replace(/([_][a-z])/g, (group) => group.toUpperCase().replace('_', ''));
-			const clientValue = element.getAttribute(attr);
-			if (clientValue) {
-				this.set(clientKey as ErrorKey, clientValue);
-			}
-		}
-	}
-}
-
-
 class FieldGroup {
 	public readonly form: DjangoForm;
 	public readonly name: string;
@@ -71,12 +54,11 @@ class FieldGroup {
 	private readonly fileUploader?: FileUploadWidget;
 	private readonly updateVisibility: Function;
 	private readonly updateDisabled: Function;
-
 	constructor(form: DjangoForm, element: HTMLElement) {
 		this.form = form;
 		this.element = element;
 		this.errorPlaceholder = element.querySelector('.dj-errorlist > .dj-placeholder');
-		this.errorMessages = new FieldErrorMessages(this);
+		this.errorMessages = new FieldErrorMessages(element);
 		const requiredAny = element.classList.contains('dj-required-any');
 
 		// <div role="group"> can contain one or more <input type="checkbox"> or <input type="radio"> elements
@@ -102,6 +84,7 @@ class FieldGroup {
 					element.addEventListener('focus', () => this.touch());
 					element.addEventListener('input', () => this.inputted());
 					element.addEventListener('blur', () => this.validate());
+					element.addEventListener('invalid', () => this.showErrorMessage(element));
 					break;
 			}
 		}
@@ -117,6 +100,7 @@ class FieldGroup {
 				this.clearCustomError();
 				this.validate();
 			});
+			selectElement.addEventListener('invalid', () => this.showErrorMessage(selectElement));
 			this.fieldElements.push(selectElement);
 		}
 
@@ -127,6 +111,7 @@ class FieldGroup {
 			textAreaElement.addEventListener('focus', () => this.touch());
 			textAreaElement.addEventListener('input', () => this.inputted());
 			textAreaElement.addEventListener('blur', () => this.validate());
+			textAreaElement.addEventListener('invalid', () => this.showErrorMessage(textAreaElement));
 			this.fieldElements.push(textAreaElement);
 		}
 
@@ -158,11 +143,23 @@ class FieldGroup {
 			if (element.type === 'file') {
 				return this.fileUploader!.uploadedFiles;
 			}
-			if (element instanceof HTMLInputElement && window.customElements.get('django-datepicker') && element.getAttribute('is') === 'django-datepicker') {
-				return element.valueAsDate?.toISOString().slice(0, 10) ?? '';
-			}
-			if (element instanceof HTMLInputElement && window.customElements.get('django-datetimepicker') && element.getAttribute('is') === 'django-datetimepicker') {
-				return element.valueAsDate?.toISOString().replace('T', ' '). slice(0, 16) ?? '';
+			if (element instanceof HTMLInputElement) {
+				if (window.customElements.get('django-datefield') && element.getAttribute('is') === 'django-datefield'
+				 || window.customElements.get('django-datecalendar') && element.getAttribute('is') === 'django-datecalendar'
+				 || window.customElements.get('django-datepicker') && element.getAttribute('is') === 'django-datepicker')
+					return element.valueAsDate?.toISOString().slice(0, 10) ?? '';
+				if (window.customElements.get('django-datetimefield') && element.getAttribute('is') === 'django-datetimefield'
+				 || window.customElements.get('django-datetimecalendar') && element.getAttribute('is') === 'django-datetimecalendar'
+				 || window.customElements.get('django-datetimepicker') && element.getAttribute('is') === 'django-datetimepicker')
+					return element.valueAsDate?.toISOString().replace('T', ' '). slice(0, 16) ?? '';
+				if (window.customElements.get('django-daterangefield') && element.getAttribute('is') === 'django-daterangefield'
+				 || window.customElements.get('django-daterangecalendar') && element.getAttribute('is') === 'django-daterangecalendar'
+				 || window.customElements.get('django-daterangepicker') && element.getAttribute('is') === 'django-daterangepicker')
+					return element.value ? element.value.split(';').map(v => v.slice(0, 10)) : ['', ''];
+				if (window.customElements.get('django-datetimerangefield') && element.getAttribute('is') === 'django-datetimerangefield'
+				 || window.customElements.get('django-datetimerangecalendar') && element.getAttribute('is') === 'django-datetimerangecalendar'
+				 || window.customElements.get('django-datetimerangepicker') && element.getAttribute('is') === 'django-datetimerangepicker')
+					return element.value ? element.value.split(';').map(v => v.slice(0, 16)) : ['', ''];
 			}
 			// all other input types just return their value
 			return element.value;
@@ -308,32 +305,42 @@ class FieldGroup {
 		this.element.classList.add('dj-pristine');
 	}
 
-	public isPristine() {
+	public get isPristine() {
 		return this.element.classList.contains('dj-pristine');
+	}
+
+	public get isTouched() {
+		return this.element.classList.contains('dj-touched');
 	}
 
 	public setSubmitted() {
 		this.element.classList.add('dj-submitted');
 	}
 
+	private showErrorMessage(element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
+		if (!this.isTouched || !this.form.formset.showFeedbackMessages || !this.errorPlaceholder)
+			return;
+		for (const [key, message] of this.errorMessages) {
+			if (element.validity[key as keyof ValidityState]) {
+				this.errorPlaceholder.innerHTML = message;
+			}
+		}
+	}
+
 	public validate() {
 		let element: FieldElement | null = null;
 		for (element of this.fieldElements) {
+			if (element instanceof HTMLInputElement && element.hasAttribute('is')) {
+				// input fields converted to web components may additionally validate themselves
+				element.checkValidity();
+			}
 			if (!element.validity.valid)
 				break;
 		}
 		if (element && !element.validity.valid) {
-			for (const [key, message] of this.errorMessages) {
-				if (element.validity[key as keyof ValidityState]) {
-					if (this.form.formset.showFeedbackMessages && this.errorPlaceholder) {
-						this.errorPlaceholder.innerHTML = message;
-					}
-					element = null;
-					break;
-				}
-			}
-			if (this.form.formset.showFeedbackMessages && element instanceof HTMLInputElement) {
-				this.validateInput(element);
+			element.dispatchEvent(new Event('invalid', {bubbles: true}));
+			if (element instanceof HTMLInputElement && element.type === 'file') {
+				this.validateFileInput(element, this.form.formset.showFeedbackMessages);
 			}
 		}
 		this.form.validate();
@@ -361,31 +368,13 @@ class FieldGroup {
 		return validity;
 	}
 
-	private validateInput(inputElement: HTMLInputElement) {
-		// By default, HTML input fields do not validate their bound value regarding their
-		// min- and max-length. Therefore, this validation must be performed by the client.
-		if (inputElement.type === 'text' && inputElement.value) {
-			if (inputElement.minLength > 0 && inputElement.value.length < inputElement.minLength) {
-				if (this.errorPlaceholder) {
-					this.errorPlaceholder.innerHTML = this.errorMessages.get('tooShort') ?? '';
-				}
-				return false;
+	private validateFileInput(inputElement: HTMLInputElement, showFeedbackMessages: boolean): boolean {
+		if (this.fileUploader!.inProgress()) {
+			// seems that file upload is still in progress => field shall not be valid
+			if (this.errorPlaceholder && showFeedbackMessages) {
+				this.errorPlaceholder.innerHTML = this.errorMessages.get('typeMismatch') ?? '';
 			}
-			if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength) {
-				if (this.errorPlaceholder) {
-					this.errorPlaceholder.innerHTML = this.errorMessages.get('tooLong') ?? '';
-				}
-				return false;
-			}
-		}
-		if (inputElement.type === 'file') {
-			if (this.fileUploader!.inProgress()) {
-				// seems that file upload is still in progress => field shall not be valid
-				if (this.errorPlaceholder) {
-					this.errorPlaceholder.innerHTML = this.errorMessages.get('typeMismatch') ?? '';
-				}
-				return false;
-			}
+			return false;
 		}
 		return true;
 	}
@@ -421,8 +410,8 @@ class FieldGroup {
 				return false;
 			}
 		}
-		if (element instanceof HTMLInputElement)
-			return this.validateInput(element);
+		if (element instanceof HTMLInputElement && element.type === 'file')
+			return this.validateFileInput(element, true);
 		return true;
 	}
 
@@ -1060,8 +1049,8 @@ class DjangoForm {
 		return null;
 	}
 
-	public isPristine() : boolean {
-		return this.fieldGroups.every(group => group.isPristine());
+	public get isPristine() : boolean {
+		return this.fieldGroups.every(group => group.isPristine);
 	}
 
 	public disableRequiredConstraints() {
@@ -1169,8 +1158,8 @@ class DjangoFormCollection {
 		this.children.forEach(child => child.restoreRequiredConstraint());
 	}
 
-	public isFreshAndEmpty() : boolean {
-		return this.forms.every(form => form.isPristine()) && this.children.every(child => child.isFreshAndEmpty());
+	public get isFreshAndEmpty() : boolean {
+		return this.forms.every(form => form.isPristine) && this.children.every(child => child.isFreshAndEmpty);
 	}
 
 	public removeFreshAndEmpty() {
@@ -1293,12 +1282,12 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 		super.markAsFreshAndEmpty(this.justAdded);
 	}
 
-	public isFreshAndEmpty() : boolean {
-		return this.justAdded && super.isFreshAndEmpty();
+	public get isFreshAndEmpty() : boolean {
+		return this.justAdded && super.isFreshAndEmpty;
 	}
 
 	public removeFreshAndEmpty() {
-		if (!this.removeButton.disabled && this.isFreshAndEmpty()) {
+		if (!this.removeButton.disabled && this.isFreshAndEmpty) {
 			this.removeCollection();
 		} else {
 			super.removeFreshAndEmpty();
@@ -1685,7 +1674,7 @@ export class DjangoFormset {
 
 		// 2. iterate over all forms and fill the data structure with content
 		for (const form of this.forms) {
-			if (!form.name)  // only a single form doesn't have a name
+			if (!form.name)  // it's a single form, which doesn't have a name
 				return Object.assign({}, this.data, {_extra: extraData});
 
 			const absPath = form.getAbsPath();
