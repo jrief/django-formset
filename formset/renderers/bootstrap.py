@@ -13,6 +13,7 @@ class FormRenderer(DefaultFormRenderer):
         super().__init__(**kwargs)
 
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
+        'django/forms/div.html': 'formset/bootstrap/form.html',
         'django/forms/default.html': 'formset/bootstrap/form.html',
         'django/forms/widgets/checkbox.html': 'formset/bootstrap/widgets/checkbox.html',
         'django/forms/widgets/radio.html': 'formset/bootstrap/widgets/multiple_input.html',
@@ -86,8 +87,8 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox.html': _amend_checkbox,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
-        'formset/default/widgets/datepicker.html': _amend_input,
-        'formset/default/widgets/datetimepicker.html': _amend_input,
+        'formset/default/widgets/calendar.html': _amend_input,
+        'formset/default/widgets/datetime.html': _amend_input,
         'formset/default/widgets/file.html': _amend_file,
         'formset/default/widgets/selectize.html': _amend_select,
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,

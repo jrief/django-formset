@@ -8,8 +8,8 @@
 	{% endfor %}
 		</ul>
 		<ul class="monthdays">
-	{% for date, day, classes, phase in calendar.monthdays %}
-			<li data-date="{{ date }}"{% if classes %} class="{{ classes }}"{% endif %}>{{ phase }} <sub>{{ day }}</sub></li>
+	{% for date, day, classes, available in calendar.monthdays %}
+			<li data-date="{{ date }}"{% if classes %} class="{{ classes }}"{% endif %}{% if not available %} disabled=""{% endif %}>{{ day }}</li>
 	{% endfor %}
 		</ul>
 	</div>

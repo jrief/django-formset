@@ -7,8 +7,9 @@ History of django-formset
 In 2012 I started to use AngularJS_ and was impressed by its simplicity. I really liked that it
 became possible to use HTML as a declaration language without having to attach JavaScript modules
 to elements, adding a separate ``<script>`` tag to each Django template. For me the `Angular form
-validation`_ library was especially useful, because it allowed me to transfer the server-side field
-constraints to the client, in order to perform a pre-validation without violating the DRY principle.
+validation`_ library was especially useful, because it allowed me to replicate the field constraints
+already defined inside the Django form classes. This allowed me to perform client-side
+pre-validation without violating the DRY principle.
 
 To get this working, I created the interface library django-angular_, which by 2015 gained quite
 some popularity, because it allowed developers to build interactive forms with client-side

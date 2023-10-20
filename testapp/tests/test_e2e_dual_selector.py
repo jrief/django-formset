@@ -192,7 +192,7 @@ def test_move_selected_right(page, mocker, view, form, viewname):
     assert option_value not in right_option_values
     spy = mocker.spy(view.view_class, 'post')
     page.locator('django-formset > p button:first-child').click()
-    sleep(0.15)
+    sleep(0.2)
     spy.assert_called()
     request = json.loads(spy.call_args.args[1].body)
     assert set(request['formset_data']['model_choice']) == right_option_values
@@ -213,7 +213,7 @@ def test_infinite_scroll(page, mocker, view, form, viewname):
     left_option_values = [left_options.nth(i).get_attribute('value') for i in range(left_options.count())]
     assert len(left_option_values) == DualSelector.max_prefetch_choices
     page.keyboard.press('ArrowDown')
-    sleep(0.15)
+    sleep(0.2)
     assert spy.called is True
     field_name = selector_element.get_attribute('name')
     params = spy.call_args.args[1].GET
@@ -229,14 +229,14 @@ def test_infinite_scroll(page, mocker, view, form, viewname):
     spy.reset_mock()
     select_left_element.locator('option[value="{}"]'.format(left_option_values[-1])).click()
     page.keyboard.press('ArrowDown')
-    sleep(0.15)
+    sleep(0.2)
     assert spy.called is True
     left_option_values = [left_options.nth(i).get_attribute('value') for i in range(left_options.count())]
     assert len(left_option_values) == 3 * DualSelector.max_prefetch_choices
     spy.reset_mock()
     select_left_element.locator('option[value="{}"]'.format(left_option_values[-1])).click()
     page.keyboard.press('ArrowDown')
-    sleep(0.15)
+    sleep(0.2)
     assert spy.called is True
     response = json.loads(spy.spy_return.content)
     assert response['incomplete'] is False
@@ -261,7 +261,7 @@ def test_submit_valid_form(page, mocker, view, form, viewname):
     spy = mocker.spy(view.view_class, 'post')
     submit_button = page.query_selector('django-formset button[df-click]')
     submit_button.click()
-    sleep(0.15)
+    sleep(0.2)
     assert spy.called is True
     request = json.loads(spy.call_args.args[1].body)
     choices = set(left_option_values[48:63])
@@ -289,7 +289,7 @@ def test_force_submit_invalid_form(page, mocker, view, form, viewname):
     spy = mocker.spy(view.view_class, 'post')
     submit_button = page.query_selector('django-formset button[df-click]')
     submit_button.click()
-    sleep(0.15)
+    sleep(0.2)
     assert spy.called is True
     request = json.loads(spy.call_args.args[1].body)
     assert request['formset_data']['model_choice'] == []

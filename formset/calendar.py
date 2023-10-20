@@ -43,7 +43,7 @@ class CalendarRenderer:
         else:
             self.start_datetime = datetime.now()
 
-    def get_context_hours(self, interval):
+    def get_context_hours(self, hour12, interval):
         assert interval in self.valid_intervals, f"{interval} is not a valid interval for {self.__class__}"
         start_datetime = self.start_datetime
         context = {
@@ -54,13 +54,23 @@ class CalendarRenderer:
             hours = []
             for hour in range(shift, shift + 6):
                 hour_date = start_datetime.replace(hour=hour)
-                if interval is None:
-                    minutes = None
+                if hour12:
+                    hour_localized = f'{hour % 12 or 12}{hour // 12 and "pm" or "am"}'
                 else:
-                    minutes = [(hour_date.replace(minute=minute).isoformat()[:16], f'{hour}:{minute:02d}')
-                               for minute in range(0, 60, interval)]
-                hours.append((hour_date.isoformat()[:16], hour, minutes))
+                    hour_localized = f'{hour}h'
+                if interval is None:
+                    hours.append((f'{hour_date.isoformat()[:13]}:00', hour_localized, None))
+                else:
+                    minutes = [
+                        (hour_date.replace(minute=minute).isoformat()[:16],
+                        f'{hour % 12 or 12 if hour12 else hour}:{minute:02d}')
+                        for minute in range(0, 60, interval)
+                    ]
+                    hours.append((hour_date.isoformat()[:16], hour_localized, minutes))
             context['shifts'].append(hours)
+        next_day = start_datetime + timedelta(days=1)
+        hour_localized = '12am' if hour12 else '24h'
+        context['shifts'].append([(next_day.replace(hour=0, minute=0).isoformat()[:16], hour_localized, None)])
         context.update(
             prev_day=(start_datetime - timedelta(days=1)).isoformat()[:10],
             next_day=(start_datetime + timedelta(days=1)).isoformat()[:10],
@@ -130,12 +140,12 @@ class CalendarRenderer:
             context['years'].append((year_date.isoformat()[:10], date_format(year_date, 'Y')))
         return context
 
-    def get_context(self, interval=None):
+    def get_context(self, hour12=False, interval=None):
         context = {
             'startdate': self.start_datetime,
             'template': self.get_template_name(self.starting_view_mode),
         }
-        context.update(self.get_context_hours(interval))
+        context.update(self.get_context_hours(hour12, interval))
         context.update(self.get_context_weeks())
         context.update(self.get_context_months())
         context.update(self.get_context_years())
@@ -149,12 +159,12 @@ class CalendarRenderer:
             ViewMode.weeks: 'calendar/weeks.html',
         }[view_mode]
 
-    def render(self, view_mode, interval=None):
+    def render(self, view_mode, hour12=False, pure=False, interval=None):
         context = {
             'startdate': self.start_datetime,
         }
         if view_mode == ViewMode.hours:
-            context.update(self.get_context_hours(interval))
+            context.update(self.get_context_hours(hour12, interval))
         elif view_mode == ViewMode.years:
             context.update(self.get_context_years())
         elif view_mode == ViewMode.months:
@@ -162,6 +172,9 @@ class CalendarRenderer:
         else:
             context.update(self.get_context_weeks())
         template = get_template(self.get_template_name(view_mode))
+        if pure:
+            context.update(template=template)
+            template = get_template('calendar/range.html')
         return template.render({'calendar': context})
 
 
@@ -175,6 +188,8 @@ class CalendarResponseMixin:
         if request.accepts('text/html') and 'calendar' in request.GET:
             try:
                 start_datetime = datetime.fromisoformat(request.GET.get('date'))
+                hour12 = 'hour12' in request.GET
+                pure = 'pure' in request.GET
                 view_mode = ViewMode.frommode(request.GET.get('mode'))
                 if 'interval' in request.GET:
                     interval = timedelta(minutes=int(request.GET.get('interval')))
@@ -183,5 +198,5 @@ class CalendarResponseMixin:
             except (TypeError, ValueError):
                 return HttpResponseBadRequest("Invalid parameter 'calendar'")
             cal = self.calendar_renderer_class(start_datetime=start_datetime)
-            return HttpResponse(cal.render(view_mode, interval))
+            return HttpResponse(cal.render(view_mode, hour12, pure, interval))
         return super().get(request, **kwargs)

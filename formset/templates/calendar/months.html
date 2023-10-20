@@ -16,13 +16,15 @@
 		{% include "formset/icons/arrow-right.svg" %}
 	</button>
 </div>
-<div class="ranges" aria-label="months-view">
-{% block ranges %}
-	<ul class="months">
+<div class="sheet-body" aria-label="months-view">
+{% block sheet-body %}
+	<div class="central">
+		<ul class="months">
 	{% for date, month in calendar.months %}
-		<li data-date="{{ date }}">{{ month }}</li>
+			<li data-date="{{ date }}">{{ month }}</li>
 	{% endfor %}
-	</ul>
+		</ul>
+	</div>
 {% endblock %}
 </div>
 {% endspaceless %}

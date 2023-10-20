@@ -1,0 +1,84 @@
+@import "colors";
+
+[is^="django-date"] {
+	--dummy-style: none;  // required by DateTime.transferStyles()
+
+	// Date input fields
+	+ [role="textbox"] {
+		position: relative;
+
+		&.focus {
+			--dummy-style: none;  // required by Calendar.transferStyles()
+		}
+
+		> .calendar-picker-indicator {
+			display: flex;
+			align-items: center;
+			position: absolute;
+			top: 0;
+			left: 0.5rem;
+			bottom: 0;
+			cursor: pointer;
+			svg {
+				scale: 0.75;
+			}
+		}
+
+		> .datetime-edit {
+			display: flex;
+			overflow-x: hidden;
+
+			> .datetime-delimiter {
+				color: $calendar-delimiter-color;
+				margin: 0 -1px;
+				&.wide {
+					margin: 0;
+					padding: 0 0.125rem;
+				}
+			}
+			> .datetime-edit-year-field, > .datetime-edit-month-field, > .datetime-edit-day-field,
+			> .datetime-edit-hour-field, > .datetime-edit-minute-field {
+				padding: 0.125rem;
+				cursor: text;
+				caret-color: transparent;
+
+				&:focus-visible {
+					border-radius: 3px;
+					outline: none;
+					background-color: $calendar-selected-background-color;
+					color: $calendar-selected-color;
+				}
+			}
+
+			> .datetime-edit-year-field:empty::after {
+				content: "yyyy";
+				color: lightgrey;
+			}
+
+			> .datetime-edit-month-field:empty::after {
+				content: "mm";
+				color: lightgrey;
+			}
+
+			> .datetime-edit-day-field:empty::after {
+				content: "dd";
+				color: lightgrey;
+			}
+
+			> .datetime-edit-hour-field:empty::after {
+				content: "HH";
+				color: lightgrey;
+			}
+
+			> .datetime-edit-minute-field:empty::after {
+				content: "MM";
+				color: lightgrey;
+			}
+		}
+	}
+
+}
+
+:is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"], [is="django-datetimerangepicker"]) + [role="textbox"] > .datetime-edit {
+	margin-left: calc(1rem + 0.6em);
+}

@@ -15,6 +15,7 @@ from testapp.models import OpinionModel
 class NativeFormView(FormView):
     template_name = 'testapp/native-form.html'
     success_url = '/success'
+    extra_context = {'click_actions': 'submit -> proceed'}
 
 
 @pytest.fixture(scope='function')
@@ -278,9 +279,10 @@ def test_submit_value(page, mocker, view, form, viewname):
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_submit_invalid(page, mocker, view, form, viewname):
     input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
+    dropdown_element = page.locator('django-formset .shadow-wrapper .ts-wrapper  .ts-dropdown.single')
     expect(input_element).to_be_visible()
+    expect(dropdown_element).to_be_hidden()
     input_element.click()
-    dropdown_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-dropdown.single')
     expect(dropdown_element).to_be_visible()
     pseudo_option = dropdown_element.locator('div[data-selectable]').nth(8)
     expect(pseudo_option).to_be_visible()
@@ -290,6 +292,7 @@ def test_submit_invalid(page, mocker, view, form, viewname):
     initial_opinion.save(update_fields=['tenant'])
     spy = mocker.spy(view.view_class, 'post')
     page.locator('django-formset').evaluate('elem => elem.submit()')
+    sleep(0.2)
     request = json.loads(spy.call_args.args[1].body)
     assert request['formset_data']['model_choice'] == str(initial_opinion.id)
     assert spy.spy_return.status_code == 422

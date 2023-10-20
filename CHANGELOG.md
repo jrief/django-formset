@@ -1,5 +1,18 @@
 ## Changes
 
+1.2
+  * Add widgets `DatePicker`, `DateTextbox`, `DateCalendar`, `DateTimePicker`, `DateTimeTextbox`
+    and `DateTimeCalendar`. They can be used as alternative widgets to Django's `DateInput` and
+    `DateTimeInput` widgets.
+  * Add range fields `DateRangeField` and `DateTimeRangeField` which can be used in forms to query
+    for a date- or datetime range. With these two fields six more widgets are added to the library:
+    `DateRangeCalendar`, `DateRangeTextbox`, `DateRangePicker`, `DateTimeRangeCalendar`,
+    `DateTimeRangeTextbox` and `DateTimeRangePicker`.
+  * The calendar widget now supports 12 hours time format.
+  * Fix: In rare occasions, the styling of widgets has been loaded twice.
+  * Fix: Field choices declared as callables are now supported.
+  * Prepared rendering for Django-5.0.
+
 - 1.1.2
   * Drop support for Django-4.0.
 
@@ -9,7 +22,7 @@
 
 - 1.1
   * Form collections containing only empty fields won't be submitted. This applies to collections
-    added using `extra_siblings` as to collections added using the appropriate button.
+    added using `extra_siblings` as to collections added using the appropriate "Add <label>" button.
   * Fix problem when using MultiWidget widgets. Under some configurations an error was raised
     stating “Duplicate name 'xxx' on multiple input fields”.
 
