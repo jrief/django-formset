@@ -198,7 +198,7 @@ export class Calendar extends Widget {
 			if (this.minDate && date < this.minDate || this.maxDate && date > this.maxDate) {
 				elem.toggleAttribute('disabled', true);
 			}
-			if (!elem.getAttribute('disabled')) {
+			if (!elem.hasAttribute('disabled')) {
 				elem.addEventListener('click', (event: Event) => {
 					if (event.target instanceof HTMLLIElement) {
 						this.setDate(event.target);
@@ -230,7 +230,7 @@ export class Calendar extends Widget {
 			if (this.element.querySelectorAll(`${selector} > li[data-date]:not([disabled])`).length === 0) {
 				elem.toggleAttribute('disabled', true);
 			}
-			if (!elem.getAttribute('disabled')) {
+			if (!elem.hasAttribute('disabled')) {
 				elem.addEventListener('click', (event: Event) => {
 					if (event.target instanceof HTMLLIElement) {
 						this.selectHour(event.target);
@@ -254,7 +254,7 @@ export class Calendar extends Widget {
 			if (this.minWeekDate && date < this.minWeekDate || this.maxWeekDate && date > this.maxWeekDate) {
 				elem.toggleAttribute('disabled', true);
 			}
-			if (!elem.getAttribute('disabled')) {
+			if (!elem.hasAttribute('disabled')) {
 				elem.addEventListener('click', this.selectDay);
 				if (this.settings.withRange) {
 					elem.addEventListener('mouseenter', this.handleOver);
@@ -272,7 +272,7 @@ export class Calendar extends Widget {
 			if (this.minMonthDate && date < this.minMonthDate || this.maxMonthDate && date > this.maxMonthDate) {
 				elem.toggleAttribute('disabled', true);
 			}
-			if (!elem.getAttribute('disabled')) {
+			if (!elem.hasAttribute('disabled')) {
 				elem.addEventListener('click', this.selectMonth);
 				if (this.settings.withRange) {
 					elem.addEventListener('mouseenter', this.handleOver);
@@ -290,7 +290,7 @@ export class Calendar extends Widget {
 			if (this.minYearDate && date < this.minYearDate || this.maxYearDate && date > this.maxYearDate) {
 				elem.toggleAttribute('disabled', true);
 			}
-			if (!elem.getAttribute('disabled')) {
+			if (!elem.hasAttribute('disabled')) {
 				elem.addEventListener('click', this.selectYear);
 				if (this.settings.withRange) {
 					elem.addEventListener('mouseenter', this.handleOver);
@@ -965,12 +965,6 @@ export class DateCalendarElement extends HTMLInputElement {
 				this[CAL].updateDate(new Date(this.value), null);
 			}
 		}
-		document.addEventListener('keydown', async (event: KeyboardEvent) => {
-			const preventDefault = await this[CAL].navigate(event.key) ?? false;
-			if (preventDefault) {
-				event.preventDefault();
-			}
-		});
 		if (!settings.pure) {
 			document.addEventListener('keydown', async (event: KeyboardEvent) => {
 				const preventDefault = await this[CAL].navigate(event.key) ?? false;

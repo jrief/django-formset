@@ -3,6 +3,8 @@
 1.2.1
   * Fix: Ignore key press events for pure calendar widgets. Since a pure calendar widget can not be
     focused, handling key press events does not make sense.
+  * Fix: Calendar cells with attribute `disabled` are not selectable anymore.
+
 1.2
   * Add widgets `DatePicker`, `DateTextbox`, `DateCalendar`, `DateTimePicker`, `DateTimeTextbox`
     and `DateTimeCalendar`. They can be used as alternative widgets to Django's `DateInput` and
