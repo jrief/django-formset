@@ -971,6 +971,14 @@ export class DateCalendarElement extends HTMLInputElement {
 				event.preventDefault();
 			}
 		});
+		if (!settings.pure) {
+			document.addEventListener('keydown', async (event: KeyboardEvent) => {
+				const preventDefault = await this[CAL].navigate(event.key) ?? false;
+				if (preventDefault) {
+					event.preventDefault();
+				}
+			});
+		}
 		this.hidden = true;
 	}
 
