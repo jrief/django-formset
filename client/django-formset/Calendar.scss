@@ -165,6 +165,8 @@
 				--dummy-style: none;  // required by Calendar.transferStyles()
 
 				> li {
+					cursor: pointer;
+
 					&.selected {
 						background-color: $calendar-selected-background-color;
 						color: $calendar-selected-color;
@@ -181,7 +183,6 @@
 					&:not([disabled]):hover {
 						opacity: 1;
 						background-color: $calendar-hover-background-color !important;
-						cursor: pointer;
 					}
 				}
 			}

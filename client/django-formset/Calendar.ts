@@ -1,6 +1,8 @@
 import {StyleHelpers} from "./helpers";
 import {Widget} from "./Widget";
 import styles from './Calendar.scss';
+import contractLeftIcon from './icons/contract-left.svg';
+import contractRightIcon from './icons/contract-right.svg';
 
 
 enum ViewMode {
@@ -57,6 +59,8 @@ export class Calendar extends Widget {
 	private readonly baseSelector = '.dj-calendar';
 	private readonly rangeSelectCssRule: CSSStyleRule;
 	private readonly rangeSelectorText: string;
+	private readonly contractLeftCursor: string;
+	private readonly contractRightCursor: string;
 
 	constructor(calendarElement: HTMLElement | null, settings: CalendarSettings) {
 		super(settings.inputElement);
@@ -78,6 +82,8 @@ export class Calendar extends Widget {
 		this.rangeSelectorText = this.rangeSelectCssRule.selectorText;
 		this.registerCalendar();
 		this.sheetBounds = this.getSheetBounds();
+		this.contractLeftCursor = `url('data:image/svg+xml;utf8,${contractLeftIcon.replace(/[\n\t]/g, '')}') 9 9, pointer`;
+		this.contractRightCursor = `url('data:image/svg+xml;utf8,${contractRightIcon.replace(/[\n\t]/g, '')}') 9 9, pointer`;
 	}
 
 	private get todayDateString() : string {
@@ -497,7 +503,13 @@ export class Calendar extends Widget {
 			return;
 		if (this.dateRange[0] && !this.dateRange[1]) {
 			const hoverDateString = event.target.getAttribute('data-date') ?? event.target.getAttribute('aria-label') ?? '';
-			this.markDateRange(this.dateRange[0], new Date(hoverDateString), true);
+			const hoverDate = new Date(hoverDateString);
+			this.markDateRange(this.dateRange[0], hoverDate, true);
+			if (hoverDate.getTime() > this.dateRange[0].getTime()) {
+				this.rangeSelectCssRule.style.cursor = this.contractRightCursor;
+			} else {
+				this.rangeSelectCssRule.style.cursor = this.contractLeftCursor;
+			}
 		}
 	};
 
@@ -614,6 +626,7 @@ export class Calendar extends Widget {
 				this.dateRange = newDate < this.dateRange[0] ? [newDate, this.dateRange[0]] : [this.dateRange[0], newDate];
 				this.settings.updateDate(this.dateRange[0], this.dateRange[1]);
 				this.upperRange = false;
+				this.rangeSelectCssRule.style.cursor = '';
 			} else {
 				this.dateRange = [newDate, null];
 				this.settings.updateDate(newDate, null);
