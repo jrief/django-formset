@@ -396,16 +396,49 @@ export class DualSelector extends IncompleteSelect {
 		// set dummy style to check if styles have been loaded for this widget
 		sheet.insertRule(`${this.baseSelector}{--dummy-style: none;}`, 0);
 
-		// set background-color to transparent, so that the shadow on a focused input/select field is not cropped
-		let extraStyles = StyleHelpers.extractStyles(this.selectLeftElement, ['background-color']);
-		sheet.insertRule(`${this.baseSelector} .left-column{${extraStyles}}`, 1);
-		extraStyles = StyleHelpers.extractStyles(this.selectRightElement, ['background-color']);
-		sheet.insertRule(`${this.baseSelector} .right-column{${extraStyles}}`, 2);
-		sheet.insertRule(`${this.baseSelector} :has(select, input){background-color: transparent;}`, 3);
+		// extract focused styles from the <select>-elements
+		let index = 0;
+		this.selectLeftElement.style.transition = this.selectRightElement.style.transition = 'none';
+		this.selectLeftElement.classList.add('-focus-');
+		let extraStyles = StyleHelpers.extractStyles(this.selectLeftElement, ['box-shadow']);
+		sheet.insertRule(`${this.baseSelector} .left-column:has(>input:focus, >select:focus){${extraStyles}}`, ++index);
+		sheet.insertRule(`${this.baseSelector} .left-column>:is(input:focus, select:focus){box-shadow: none; outline: none;}`, ++index);
+		extraStyles = StyleHelpers.extractStyles(this.selectLeftElement, ['border-color', 'outline']);
+		sheet.insertRule(`${this.baseSelector} .left-column:has(>input:focus)>select{${extraStyles}}`, ++index);
+		sheet.insertRule(`${this.baseSelector} .left-column:has(>select:focus)>input{${extraStyles}}`, ++index);
+		this.selectLeftElement.classList.remove('-focus-');
+		if (this.searchLeftInput) {
+			extraStyles = StyleHelpers.extractStyles(this.searchLeftInput, ['border-top-left-radius', 'border-top-right-radius']);
+			sheet.insertRule(`${this.baseSelector} .left-column{${extraStyles}}`, ++index);
+		}
+		extraStyles = StyleHelpers.extractStyles(this.selectLeftElement, ['border-bottom-left-radius', 'border-bottom-right-radius']);
+		sheet.insertRule(`${this.baseSelector} .left-column{${extraStyles}}`, ++index);
+		this.selectRightElement.classList.add('-focus-');
+		extraStyles = StyleHelpers.extractStyles(this.selectRightElement, ['box-shadow']);
+		sheet.insertRule(`${this.baseSelector} .right-column:has(> input:focus, >select:focus){${extraStyles}}`, ++index);
+		sheet.insertRule(`${this.baseSelector} .right-column>:is(input:focus, select:focus){box-shadow: none; outline: none;}`, ++index);
+		extraStyles = StyleHelpers.extractStyles(this.selectRightElement, ['border-color', 'outline']);
+		sheet.insertRule(`${this.baseSelector} .right-column:has(>input:focus)>select{${extraStyles}}`, ++index);
+		sheet.insertRule(`${this.baseSelector} .right-column:has(>select:focus)>input{${extraStyles}}`, ++index);
+		this.selectRightElement.classList.remove('-focus-');
+		if (this.searchRightInput) {
+			extraStyles = StyleHelpers.extractStyles(this.searchRightInput, ['border-top-left-radius', 'border-top-right-radius']);
+			sheet.insertRule(`${this.baseSelector} .right-column{${extraStyles}}`, ++index);
+		}
+		extraStyles = StyleHelpers.extractStyles(this.selectRightElement, ['border-bottom-left-radius', 'border-bottom-right-radius']);
+		sheet.insertRule(`${this.baseSelector} .right-column{${extraStyles}}`, ++index);
+		this.selectLeftElement.style.transition = this.selectRightElement.style.transition = '';
 
-		// prevent <select multiple> to have different heights depending on the having at least one <option>
+		// set background-color to transparent, so that the shadow on a focused input/select field is not cropped
+		extraStyles = StyleHelpers.extractStyles(this.selectLeftElement, ['background-color']);
+		sheet.insertRule(`${this.baseSelector} .left-column{${extraStyles}}`, ++index);
+		extraStyles = StyleHelpers.extractStyles(this.selectRightElement, ['background-color']);
+		sheet.insertRule(`${this.baseSelector} .right-column{${extraStyles}}`, ++index);
+		sheet.insertRule(`${this.baseSelector} :has(select, input){background-color: transparent;}`, ++index);
+
+		// prevent <select multiple> to have different heights depending on having at least one <option>
 		extraStyles = StyleHelpers.extractStyles(this.selectLeftElement, ['height']);
-		sheet.insertRule(`${this.baseSelector} select{${extraStyles}}`, 4);
+		sheet.insertRule(`${this.baseSelector} select{${extraStyles}}`, ++index);
 	}
 
 	protected getValue = () => this.historicValues[this.historicValues.length - 1];

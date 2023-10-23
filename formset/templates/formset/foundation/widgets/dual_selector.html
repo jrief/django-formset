@@ -1,7 +1,7 @@
 {% extends "formset/default/widgets/dual_selector.html" %}
 
 {% block "wrapper_classes" %}{{ block.super }} grid-x{% endblock %}
-{% block "column_left_classes" %}{{ block.super }} cell small-5{% endblock %}
+{% block "left-column" %}<div class="cell small-5">{{ block.super }}</div>{% endblock %}
 {% block "control-panel" %}
 <div class="cell small-2">
 	<div class="grid-y">
@@ -16,6 +16,4 @@
 	</div>
 </div>
 {% endblock %}
-{% block "column_right_classes" %}{{ block.super }} cell small-5{% endblock %}
-
-
+{% block "right-column" %}<div class="cell small-5">{{ block.super }}</div>{% endblock %}

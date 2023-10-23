@@ -7,7 +7,7 @@
 {% with select_size=widget.attrs.size|default:8 %}
 <div class="{% block "wrapper_classes" %}dj-dual-selector{% endblock %}">
 {% block "left-column" %}
-	<div class="{% block "column_left_classes" %}left-column{% endblock %}">
+	<div class="left-column">
 		<input type="text" class="dj-exempt-feedback{% if lookup_field_classes %} {{ lookup_field_classes }}{% endif %}" placeholder="{% translate 'Search …' %}" />
 		<select multiple class="dj-exempt-feedback{% if select_classes %} {{ select_classes }}{% endif %}" size="{{ select_size }}"></select>
 	</div>
@@ -25,7 +25,7 @@
 	</div>
 {% endblock %}
 {% block "right-column" %}
-	<div class="{% block "column_right_classes" %}right-column{% endblock %}">
+	<div class="right-column">
 		<input type="text" class="dj-exempt-feedback{% if lookup_field_classes %} {{ lookup_field_classes }}{% endif %}" placeholder="{% translate 'Search …' %}" />
 	{% if is_sortable %}
 		<django-sortable-select{% if select_classes %} class="{{ select_classes }}"{% endif %} size="{{ select_size }}"></django-sortable-select>
