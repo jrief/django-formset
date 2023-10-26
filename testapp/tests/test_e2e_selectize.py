@@ -325,6 +325,7 @@ def test_reset_selectize(page, view, form, viewname):
     value = select_element.evaluate('elem => elem.value')
     assert value != initial_value
     page.locator('django-formset').evaluate('elem => elem.reset()')
+    sleep(0.1)
     value = select_element.evaluate('elem => elem.value')
     assert value == initial_value
 
