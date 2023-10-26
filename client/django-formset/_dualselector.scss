@@ -31,21 +31,11 @@
 		}
 
 		&.invalid {
-			.right-column {
-				input {
+			.right-column:has(>input:focus, >select:focus, >django-sortable-select.focus) {
+				border-color: var(--django-formset-color-invalid);
+				box-shadow: 0 0 0 0.2rem var(--django-formset-shadow-invalid);
+				>input, >select, >django-sortable-select {
 					border-color: var(--django-formset-color-invalid);
-					&:focus {
-						box-shadow: 0 0 0 0.2rem var(--django-formset-shadow-invalid);
-					}
-				}
-				select, django-sortable-select {
-					border-left-color: var(--django-formset-color-invalid);
-					border-right-color: var(--django-formset-color-invalid);
-					border-bottom-color: var(--django-formset-color-invalid);
-				}
-				select:focus, django-sortable-select.focus {
-					border-top-color: var(--django-formset-color-invalid);
-					box-shadow: 0 0 0 0.2rem var(--django-formset-shadow-invalid);
 				}
 			}
 		}

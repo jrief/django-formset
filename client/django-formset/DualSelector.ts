@@ -415,11 +415,11 @@ export class DualSelector extends IncompleteSelect {
 		sheet.insertRule(`${this.baseSelector} .left-column{${extraStyles}}`, ++index);
 		this.selectRightElement.classList.add('-focus-');
 		extraStyles = StyleHelpers.extractStyles(this.selectRightElement, ['box-shadow']);
-		sheet.insertRule(`${this.baseSelector} .right-column:has(> input:focus, >select:focus){${extraStyles}}`, ++index);
-		sheet.insertRule(`${this.baseSelector} .right-column>:is(input:focus, select:focus){box-shadow: none; outline: none;}`, ++index);
+		sheet.insertRule(`${this.baseSelector} .right-column:has(> input:focus, >select:focus, >django-sortable-select.focus){${extraStyles}}`, ++index);
+		sheet.insertRule(`${this.baseSelector} .right-column>:is(input:focus, select:focus, django-sortable-select.focus){box-shadow: none; outline: none;}`, ++index);
 		extraStyles = StyleHelpers.extractStyles(this.selectRightElement, ['border-color', 'outline']);
-		sheet.insertRule(`${this.baseSelector} .right-column:has(>input:focus)>select{${extraStyles}}`, ++index);
-		sheet.insertRule(`${this.baseSelector} .right-column:has(>select:focus)>input{${extraStyles}}`, ++index);
+		sheet.insertRule(`${this.baseSelector} .right-column:has(>input:focus)>:is(select, django-sortable-select){${extraStyles}}`, ++index);
+		sheet.insertRule(`${this.baseSelector} .right-column:has(>select:focus, django-sortable-select.focus)>input{${extraStyles}}`, ++index);
 		this.selectRightElement.classList.remove('-focus-');
 		if (this.searchRightInput) {
 			extraStyles = StyleHelpers.extractStyles(this.searchRightInput, ['border-top-left-radius', 'border-top-right-radius']);
