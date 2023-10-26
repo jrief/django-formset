@@ -1,5 +1,13 @@
 ## Changes
 
+1.2.2
+  * Nicer outline and box-shadow, whenever a `DualSelector` element receives input focus. It now
+    surrounds the complete field.
+  * In the Calendar and DateRange pickers, the cursor changes to a symbol signalizing into which
+    direction the second date choice is going to be made.
+  * New widgets: `CountrySelectize` and `CountrySelectizeMultiple` which prefix the country name
+    with the corresponding flag.
+
 1.2.1
   * Fix: Ignore key press events for pure calendar widgets. Since a pure calendar widget can not be
     focused, handling key press events does not make sense.
