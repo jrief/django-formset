@@ -35,6 +35,7 @@ Django ``Form``-s.
 	slug-input
 	date-time-input
 	date-time-range
+	country-selectize
 	development
 	contributing
 	faq

@@ -1,7 +1,7 @@
 {% load i18n %}
 {% spaceless %}
 {% block "selectize-select-widget" %}
-<select is="django-selectize" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %} size="1" options="10">{% for group_name, group_choices, group_index in widget.optgroups %}{% if group_name %}
+<select name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %} size="1" options="10">{% for group_name, group_choices, group_index in widget.optgroups %}{% if group_name %}
 	<optgroup label="{{ group_name }}">{% endif %}{% for option in group_choices %}
 		<option value="{{ option.value|stringformat:'s' }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>{% endfor %}{% if group_name %}
 	</optgroup>{% endif %}{% endfor %}
@@ -10,12 +10,14 @@
 {% if widget.attrs.multiple %}{% with script_id=widget.attrs.id|add:"_initial" %}
 {{ widget.value|json_script:script_id }}
 {% endwith %}{% endif %}
-{% block "select-no-results" %}
+{% block "templates" %}
+	{% block "select-no-results" %}
 <template class="select-no-results">
 	<div class="no-results">{% trans "No results found for '${input}'" %}</div>
 </template>
-{% endblock %}
-{% block "selectize-remove-item" %}
+	{% endblock %}
+	{% block "selectize-remove-item" %}
 <template class="selectize-remove-item">{% trans "Remove item" %}</template>
+	{% endblock %}
 {% endblock %}
 {% endspaceless %}

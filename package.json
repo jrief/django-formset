@@ -12,6 +12,9 @@
     "tailwindcss": "tailwindcss --input assets/tailwind-styles.css --config assets/tailwind.config.js --output formset/static/formset/css/tailwind.css",
     "docscss": "postcss docs/source/_templates/css/nested-styles.text --config assets/postcss.config.js --output docs/build/json/_static/styles/nested-styles.css"
   },
+  "dependencies": {
+    "flag-icons": "^6.11.1"
+  },
   "devDependencies": {
     "@babel/cli": "^7.21.5",
     "@babel/core": "^7.21.8",

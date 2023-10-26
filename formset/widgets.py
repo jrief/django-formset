@@ -183,6 +183,7 @@ class Selectize(IncompleteSelectMixin, Select):
     Render widget suitable for TomSelect
     """
     template_name = 'formset/default/widgets/selectize.html'
+    webcomponent = 'django-selectize'
     placeholder = _("Select")
 
     def __init__(self, attrs=None, choices=(), search_lookup=None, group_field_name=None, filter_by=None, placeholder=None):
@@ -192,6 +193,7 @@ class Selectize(IncompleteSelectMixin, Select):
 
     def build_attrs(self, base_attrs, extra_attrs):
         attrs = super().build_attrs(base_attrs, extra_attrs)
+        attrs['is'] = self.webcomponent
         if self.is_required:
             attrs['required'] = True  # Selectize overrides the default behaviour
         return attrs
@@ -212,6 +214,11 @@ class Selectize(IncompleteSelectMixin, Select):
         return optgroups
 
 
+class CountrySelectize(Selectize):
+    template_name = 'formset/default/widgets/country_selectize.html'
+    webcomponent = 'django-country-selectize'
+
+
 class SelectizeMultiple(Selectize):
     allow_multiple_selected = True
     max_items = 5
@@ -225,6 +232,11 @@ class SelectizeMultiple(Selectize):
         attrs = super().build_attrs(base_attrs, extra_attrs)
         attrs['max_items'] = self.max_items
         return attrs
+
+
+class CountrySelectizeMultiple(SelectizeMultiple):
+    template_name = 'formset/default/widgets/country_selectize.html'
+    webcomponent = 'django-country-selectize'
 
 
 class DualSelector(IncompleteSelectMixin, SelectMultiple):

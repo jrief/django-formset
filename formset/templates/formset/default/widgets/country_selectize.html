@@ -1,0 +1,7 @@
+{% extends "./selectize.html" %}
+{% block "templates" %}
+	{{ block.super }}
+<template class="select-country-item">
+	<div class="select-country-item"><span class="fi fi-${code} fib"></span>${label}</div>
+</template>
+{% endblock %}

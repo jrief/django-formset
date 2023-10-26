@@ -25,6 +25,13 @@ window.addEventListener('DOMContentLoaded', (event) => {
 				}).catch(err => reject(err));
 			}));
 		}
+		if (fragmentRoot.querySelector('select[is="django-country-selectize"]')) {
+			promises.push(new Promise((resolve, reject) => {
+				import('./django-formset/CountrySelectize').then(({CountrySelectizeElement}) => {
+					defineComponent(resolve, 'django-country-selectize', CountrySelectizeElement, {extends: 'select'});
+				}).catch(err => reject(err));
+			}));
+		}
 		if (fragmentRoot.querySelector('django-sortable-select')) {
 			promises.push(new Promise((resolve, reject) => {
 				import('./django-formset/SortableSelect').then(({SortableSelectElement}) => {

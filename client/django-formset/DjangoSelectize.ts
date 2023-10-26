@@ -1,20 +1,20 @@
 import TomSelect from 'tom-select/src/tom-select';
-import { TomSettings } from 'tom-select/src/types/settings';
-import { RecursivePartial, TomInput, TomTemplates } from 'tom-select/src/types';
+import {TomSettings} from 'tom-select/src/types/settings';
+import {RecursivePartial, TomInput, TomOption} from 'tom-select/src/types';
 import TomSelect_remove_button from 'tom-select/src/plugins/remove_button/plugin';
-import { IncompleteSelect } from './IncompleteSelect';
+import {IncompleteSelect} from './IncompleteSelect';
 import template from 'lodash.template';
-import { StyleHelpers } from './helpers';
+import {StyleHelpers} from './helpers';
 import styles from './DjangoSelectize.scss';
 
 TomSelect.define('remove_button', TomSelect_remove_button);
 
 
-class DjangoSelectize extends IncompleteSelect {
+export class DjangoSelectize extends IncompleteSelect {
+	protected readonly tomInput: TomInput;
+	protected readonly shadowRoot: ShadowRoot;
 	private readonly numOptions: number = 12;
-	private readonly tomInput: TomInput;
 	private readonly tomSelect: TomSelect;
-	private readonly shadowRoot: ShadowRoot;
 	private readonly observer: MutationObserver;
 	private readonly initialValue: string | string[];
 	private readonly baseSelector = '.ts-wrapper';
@@ -22,32 +22,8 @@ class DjangoSelectize extends IncompleteSelect {
 	constructor(tomInput: HTMLSelectElement) {
 		super(tomInput);
 		this.tomInput = tomInput;
-		const config: RecursivePartial<TomSettings> = {
-			create: false,
-			valueField: 'id',
-			labelField: 'label',
-			maxItems: 1,
-			maxOptions: undefined,
-			sortField: [{field: '$order'}, {field: '$score'}],
-			lockOptgroupOrder: true,
-			searchField: ['label'],
-			render: this.setupRender(tomInput),
-			onFocus: this.touch,
-			onBlur: this.blurred,
-			onType: this.inputted,
-		};
-		if (this.isIncomplete) {
-			config.load = this.load;
-		}
 		let isMultiple = false;
 		if (tomInput.hasAttribute('multiple')) {
-			config.maxItems = parseInt(tomInput.getAttribute('max_items') ?? '3');
-			const translation = tomInput.parentElement?.querySelector('template.selectize-remove-item');
-			config.plugins = {remove_button: {title: translation?.innerHTML ?? "Remove item"}};
-			// tom-select has some issues to initialize items using the original input element
-			const scriptId = `${tomInput.getAttribute('id')}_initial`;
-			config.items = JSON.parse(document.getElementById(scriptId)?.textContent ?? '[]');
-
 			// We want to use the CSS styles for <select> without multiple
 			tomInput.removeAttribute('multiple');
 			isMultiple = true;
@@ -58,7 +34,7 @@ class DjangoSelectize extends IncompleteSelect {
 			tomInput.setAttribute('multiple', 'multiple');
 		}
 		this.numOptions = parseInt(tomInput.getAttribute('options') ?? this.numOptions.toString());
-		this.tomSelect = new TomSelect(tomInput, config);
+		this.tomSelect = new TomSelect(tomInput, this.getSettings());
 		this.observer = new MutationObserver(this.attributesChanged);
 		this.observer.observe(this.tomInput, {attributes: true});
 		this.initialValue = this.currentValue;
@@ -70,6 +46,40 @@ class DjangoSelectize extends IncompleteSelect {
 		this.validateInput(this.initialValue as string);
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
 		this.setupFilters(tomInput);
+	}
+
+	protected getSettings() : RecursivePartial<TomSettings> {
+		const settings: RecursivePartial<TomSettings> = {
+			create: false,
+			valueField: 'id',
+			labelField: 'label',
+			maxItems: 1,
+			maxOptions: undefined,
+			sortField: [{field: '$order'}, {field: '$score'}],
+			lockOptgroupOrder: true,
+			searchField: ['label'],
+			render: {},
+			plugins: {},
+			onFocus: this.touch,
+			onBlur: this.blurred,
+			onType: this.inputted,
+		};
+		const templ = this.tomInput.parentElement?.querySelector('template.select-no-results');
+		if (templ) {
+			settings.render = {...settings.render, no_results: (data: TomOption) => template(templ.innerHTML)(data)};
+		}
+		if (this.isIncomplete) {
+			settings.load = this.load;
+		}
+		if (this.tomInput.hasAttribute('multiple')) {
+			settings.maxItems = parseInt(this.tomInput.getAttribute('max_items') ?? '3');
+			const translation = this.tomInput.parentElement?.querySelector('template.selectize-remove-item');
+			settings.plugins = {...settings.plugins, remove_button: {title: translation?.innerHTML ?? "Remove item"}};
+			// tom-select has some issues to initialize items using the original input element
+			const scriptId = `${this.tomInput.getAttribute('id')}_initial`;
+			settings.items = JSON.parse(document.getElementById(scriptId)?.textContent ?? '[]');
+		}
+		return settings;
 	}
 
 	protected getValue = () => this.currentValue;
@@ -251,15 +261,6 @@ class DjangoSelectize extends IncompleteSelect {
 		}
 		if (!loaded)
 			throw new Error(`Could not load styles for ${this.baseSelector}`);
-	}
-
-	private setupRender(tomInput: TomInput) : TomTemplates {
-		const templ = tomInput.parentElement?.querySelector('template.select-no-results');
-		if (!templ)
-			return {} as TomTemplates;
-		return {
-			no_results: (data, escape) => template(templ.innerHTML)(data)
-		} as TomTemplates;
 	}
 
 	private attributesChanged = (mutationsList: Array<MutationRecord>) => {

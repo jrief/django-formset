@@ -110,6 +110,7 @@ class FormRenderer(DefaultFormRenderer):
         'formset/default/widgets/datepicker.html': _amend_date_input,
         'formset/default/widgets/datetimepicker.html': _amend_date_input,
         'formset/default/widgets/selectize.html': _amend_select,
+        'formset/default/widgets/country_selectize.html': _amend_select,
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/collection.html': _amend_collection,
