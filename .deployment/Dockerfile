@@ -19,7 +19,7 @@ COPY package-lock.json /web/package-lock.json
 RUN npm ci
 
 # install Python specific requirements
-RUN pip install django psycopg2-binary Pillow uWSGI docutils Sphinx sphinx-toolbox furo
+RUN pip install django Pillow uWSGI docutils Sphinx sphinx-toolbox furo django-countries
 RUN pip install https://github.com/jrief/django-sphinx-view/archive/refs/heads/main.zip
 
 # copy project relevant files into container
