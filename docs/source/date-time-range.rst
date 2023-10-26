@@ -137,7 +137,7 @@ set the attribute ``disabled`` otherwise.
 	from formset.ranges import DateRangeField, DateRangeCalendar
 
 	class ReservationRenderer(CalendarRenderer):
-	    start_date = start_date = datetime.today().date()
+	    start_date = datetime.today().date()
 	
 	    def get_template_name(self, view_mode):
 	        if view_mode == ViewMode.weeks:
@@ -163,8 +163,8 @@ set the attribute ``disabled`` otherwise.
 	    )
 
 
-Since this view requires a modified renderer to add additional context, we must tell our special
-mixin class :class:`formset.calendar.CalendarResponseMixin` to use that by passing it as
+Since this view requires a modified renderer to add the extra context, we must tell our special
+mixin class :class:`formset.calendar.CalendarResponseMixin` to use this by passing it as
 ``calendar_renderer_class``:
 
 .. django-view:: reservation_view

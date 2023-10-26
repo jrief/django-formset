@@ -4,15 +4,15 @@
 Introduction
 ============
 
-**django-formset** attempts to solve a problem, which occurs in almost every project using the
-Django framework, specifically the way forms are handled.
+**django-formset** attempts to solve a problem, which occurs in almost every Django project which
+implements forms to collect data from the user.
 
-Consider that we need a HTML form to collect. When using Django, this typically consists of creating
-a form instance, a view instance, and a template rendering that form. The user then can enters data
-into the fields of that form, which during submission are sent to the server for validation. If one
-or more of those fields fail to validate, the form is re-rendered, annotating the fields containing
-invalid data with a meaningful error message. The latter requires to fully reload the whole page.
-From a usability point of view, this approach is far from being contemporary.
+In Django, this typically consists of creating a form instance, a view instance, and a template
+rendering that form. The user then can enter data into the fields of that form, which during
+submission are sent to the server for validation. If one or more of those fields fail to validate,
+the form is re-rendered, annotating the fields containing invalid data with a meaningful error
+message. The latter requires to fully reload the whole page. From a usability point of view, this
+approach is far from being contemporary.
 
 An often used apporach to improve the user experience is to combine a popular JavaScript framework
 with `Django REST framework`_. Those JavaScript frameworks however impose their own way of getting
@@ -27,13 +27,13 @@ problems, which leads to cumbersome and un-`DRY`_ solutions.
 
 By using **django-formset**, we can use our well known Django form and view implementations and
 gain a contemporary user experience. Legacy implementations can be ported easily, because one has
-to apply only very few changes to the code base.
+to apply only very few changes to the existing code base.
 
 With **django-formset** we get a `web component`_ explicitly written to handle Django forms and
-collections of forms (hence "formset"). This means that fields are pre-validated by the client,
+collections of forms (hence "formset"). This means that fields can be pre-validated by the client,
 giving immediate feedback on invalid field values. If the form's content then is sent to the server
 and fails to validate there, those error messages are sent back to the client and show up nearby the
-fields containing invalid data.
+fields containing invalid or missing data.
 
 Giving feedback on a form which did not validate doesn't require a page reload anymore. The nice
 thing about this approach is, that we **can reuse all of our current Django forms** (unaltered),
