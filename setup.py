@@ -36,6 +36,7 @@ setup(
     ],
     extra_requires={
         'thumbnail': ['Pillow'],
+        'phonenumbers': ['phonenumbers'],
     },
     license='MIT',
     platforms=['OS Independent'],

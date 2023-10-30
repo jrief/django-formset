@@ -201,6 +201,11 @@ class BoundField(boundfield.BoundField):
         else:
             data = {'step_value': step_value}
             client_messages['step_mismatch'] = _("Input value must be a multiple of {step_value}.").format(**data)
+        if self.widget_type == 'phonenumber':
+            if self.field.widget.attrs.get('mobile-only'):
+                client_messages['custom_error'] = _("Please enter a valid mobile number.")
+            else:
+                client_messages['custom_error'] = _("Please enter a valid phone number.")
         client_messages['bad_input'] = validators.ProhibitNullCharactersValidator.message
         if isinstance(self.field, FileField):
             if not isinstance(self.field.widget, UploadedFileInput):

@@ -26,6 +26,3 @@ max_line_length = 100
 
 [*.{scss,css}]
 indent_size = 2
-
-[*.svg]
-insert_final_newline = false

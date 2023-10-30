@@ -1,5 +1,9 @@
 ## Changes
 
+1.3
+  * New widget: `PhoneNumberField` which can be used to improve the user experience when entering 
+    phone numbers.
+
 1.2.2
   * Nicer outline and box-shadow, whenever a `DualSelector` element receives input focus. It now
     surrounds the complete field.

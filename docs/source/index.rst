@@ -36,6 +36,7 @@ Django ``Form``-s.
 	date-time-input
 	date-time-range
 	country-selectize
+	phone-number-field
 	development
 	contributing
 	faq

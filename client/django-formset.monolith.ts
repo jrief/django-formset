@@ -24,6 +24,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	customElementNames.push('django-sortable-select');
 	window.customElements.define('django-dual-selector', DualSelectorElement, {extends: 'select'});
 	customElementNames.push('django-dual-selector');
+	window.customElements.define('django-phone-number', DualSelectorElement, {extends: 'input'});
+	customElementNames.push('django-phone-number');
 	window.customElements.define('django-richtext', RichTextAreaElement, {extends: 'textarea'});
 	customElementNames.push('django-richtext');
 	window.customElements.define('django-slug', DjangoSlugElement, {extends: 'input'});

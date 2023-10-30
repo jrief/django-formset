@@ -60,6 +60,13 @@ window.addEventListener('DOMContentLoaded', (event) => {
 				}).catch(err => reject(err));
 			}));
 		}
+		if (fragmentRoot.querySelector('input[is="django-phone-number"]')) {
+			promises.push(new Promise((resolve, reject) => {
+				import('./django-formset/PhoneNumber').then(({PhoneNumberElement}) => {
+					defineComponent(resolve, 'django-phone-number', PhoneNumberElement, {extends: 'input'});
+				}).catch(err => reject(err));
+			}));
+		}
 		if (fragmentRoot.querySelector('textarea[is="django-richtext"]')) {
 			promises.push(new Promise((resolve, reject) => {
 				import('./django-formset/RichtextArea').then(({RichTextAreaElement}) => {
