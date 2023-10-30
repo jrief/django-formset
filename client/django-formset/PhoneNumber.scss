@@ -1,0 +1,94 @@
+$flag-icons-path: "/static/node_modules/flag-icons/flags" !default;
+$flag-icons-rect-path: "/4x3" !default;
+$flag-icons-square-path: "/1x1" !default;
+$flag-icons-use-square: true !default;
+@import "node_modules/flag-icons/sass/flag-icons-base";
+@import "node_modules/flag-icons/sass/flag-icons-list";
+@import "colors";
+
+[is="django-phone-number"] {
+	--dummy-style: none; // required by PhoneNumberField.transferStyles()
+
+	// Date input fields
+	+ [role="textbox"] {
+		display: flex;
+		justify-content: flex-start;
+
+		&.focus {
+			--dummy-style: none; // required by PhoneNumberField.transferStyles()
+		}
+
+		> .international-picker {
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			cursor: pointer;
+
+			&::after {
+				content: "";
+				display: block;
+				width: 0;
+				height: 0;
+				margin-left: 0.25rem;
+				border-style: solid;
+				border-width: 5px 5px 0 5px;
+				border-color: black transparent transparent transparent;
+			}
+
+			span {
+				width: 2em;
+			}
+		}
+
+		> .phone-number-edit {
+			overflow-x: hidden;
+			margin-left: 0.5rem;
+			flex-grow: 1;
+
+			&:focus-visible {
+				outline: none;
+			}
+		}
+
+		&[aria-haspopup="dialog"] {
+			// International prefix popup dialog
+			+ [role="dialog"] {
+				box-shadow: lightgray 0 0 1rem;
+				max-height: 500px;
+				position: absolute;
+				top: 0;
+				left: 0;
+				overflow-y: scroll;
+				background-color: $select-color-dropdown;
+
+				ul {
+					list-style: none;
+					padding: 0;
+					margin: 0;
+					li {
+						padding: 0.25rem;
+						cursor: pointer;
+						&:hover {
+							background-color: $active-items-background-color;
+						}
+						&.selected {
+							background-color: $selected-items-background-color;
+							border: 1px solid $selected-items-border-color;
+						}
+						span {
+							margin-right: 0.5rem;
+						}
+					}
+				}
+			}
+
+			&[aria-expanded="false"] + [role="dialog"] {
+				display: none;
+			}
+
+			&[aria-expanded="true"] + [role="dialog"] {
+				display: block;
+			}
+		}
+	}
+}

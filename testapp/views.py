@@ -46,6 +46,7 @@ from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputF
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, sample_person_data, ModelPersonForm
+from testapp.forms.phone import PhoneForm
 from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.schedule import ScheduleBoxForm, ScheduleCalendarForm, SchedulePickerForm
@@ -493,6 +494,9 @@ urlpatterns = [
     path('opinion', DemoFormView.as_view(
         form_class=OpinionForm,
     ), name='opinion'),
+    path('phone', DemoFormView.as_view(
+        form_class=PhoneForm,
+    ), name='phone'),
     path('questionnaire', DemoFormView.as_view(
         form_class=QuestionnaireForm,
     ), name='questionnaire'),
