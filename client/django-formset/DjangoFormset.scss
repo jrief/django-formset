@@ -129,12 +129,12 @@ django-formset {
 			}
 		}
 
-		input, [role=textbox] {
+		input, [role="textbox"] {
 			background-repeat: no-repeat !important;
 			background-position: center right !important;
 			background-origin: content-box !important;
 		}
-		input[type="date"], input[type="datetime-local"] {
+		input[type^="date"] {
 			position: relative;
 			&::-webkit-datetime-edit-fields-wrapper {
 				margin-left: 1.75em;
