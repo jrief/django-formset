@@ -698,8 +698,10 @@ export class Calendar extends Widget {
 			await this.fetchCalendar(new Date(), ViewMode.weeks);
 			todayElem = this.element.querySelector(`li[data-date="${todayDateString}"]`);
 		}
-		this.setDate(todayElem!);
-		this.markSelectedDates();
+		if (todayElem && !todayElem.hasAttribute('disabled')) {
+			this.setDate(todayElem);
+			this.markSelectedDates();
+		}
 		if (!this.settings.withRange || this.dateRange[0] && this.dateRange[1]) {
 			this.settings.close();
 		}
