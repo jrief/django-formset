@@ -7,7 +7,7 @@ from formset.widgets import CountrySelectize, CountrySelectizeMultiple
 
 class CountryForm(forms.Form):
     """
-    How to use the Selectize widget with a CountryField.
+    How to use the CountrySelectize and CountrySelectizeMultiple widgets.
     """
     single_country = fields.ChoiceField(
         label="Single Country",
