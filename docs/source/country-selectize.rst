@@ -1,8 +1,8 @@
 .. _country-selectize:
 
-====================================
-Prepend the flag symbol to Countries
-====================================
+=====================================
+Country Select Field with Flag Symbol
+=====================================
 
 In many applications we need an input field to select one or more countries. To give a visually
 better feedback, adding the flag symbol nearby the country's name is often a good idea.
