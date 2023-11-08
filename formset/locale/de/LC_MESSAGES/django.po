@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-21 08:26+0100\n"
+"POT-Creation-Date: 2023-11-07 22:44+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,87 +22,188 @@ msgstr ""
 msgid "At least one checkbox must be selected."
 msgstr "Mindestens ein Kontrollkästchen muss aktiv sein."
 
-#: boundfield.py:177
+#: boundfield.py:176
 #, python-format
 msgid "Ensure this value has at most %(max_length)s characters."
 msgstr ""
 "Bitte sicherstellen, dass der Wert aus höchstens %(max_length)s Zeichen "
 "besteht."
 
-#: boundfield.py:184
+#: boundfield.py:183
 #, python-format
 msgid "Ensure this value has at least %(min_length)s characters."
 msgstr ""
 "Bitte sicherstellen, dass der Wert aus mindestens %(min_length)s Zeichen "
 "besteht."
 
-#: boundfield.py:198
+#: boundfield.py:203
 #, python-brace-format
 msgid "Input value must be a multiple of {step_value}."
 msgstr ""
 "Bitte sicherstellen, dass der Wert aus einem Vielfachen von {step_value} "
 "besteht."
 
-#: boundfield.py:207
+#: boundfield.py:206
+msgid "Please enter a valid mobile number."
+msgstr ""
+
+#: boundfield.py:208
+msgid "Please enter a valid phone number."
+msgstr ""
+
+#: boundfield.py:217
 msgid "File upload still in progress."
 msgstr "Datei wird noch immer hochgeladen."
 
-#: boundfield.py:208
+#: boundfield.py:218
 msgid "File upload failed."
 msgstr "Datei-Upload ist fehlgeschlagen."
 
-#: richtext/controls.py:29
+#: collection.py:327
+#, python-brace-format
+msgid "Please correct the duplicate data for {0}."
+msgstr ""
+
+#: collection.py:329
+msgid "and"
+msgstr ""
+
+#: collection.py:330
+#, python-brace-format
+msgid "Please correct the duplicate data for {0}, which must be unique."
+msgstr ""
+
+#: collection.py:343
+#, python-brace-format
+msgid "Not enough entries in “{collection_name}”, please add another."
+msgstr ""
+
+#: collection.py:347
+#, python-brace-format
+msgid "Too many entries in “{collection_name}”, please remove one."
+msgstr ""
+
+#: ranges.py:85
+msgid "Enter two valid values."
+msgstr ""
+
+#: ranges.py:86
+msgid "The start of the range must not exceed the end of the range."
+msgstr ""
+
+#: ranges.py:122
+msgid "Enter two valid dates."
+msgstr ""
+
+#: ranges.py:123
+msgid "The start date must be before the end date."
+msgstr ""
+
+#: richtext/controls.py:39
 #: templates/formset/default/buttons/richtext_heading.html:4
 #: templates/formset/default/buttons/richtext_heading.html:7
 #: templates/formset/default/buttons/richtext_heading.html:8
 msgid "Heading"
 msgstr "Überschrift"
 
-#: richtext/controls.py:47
+#: richtext/controls.py:57
+#: templates/formset/default/buttons/richtext_align.html:4
+#: templates/formset/default/buttons/richtext_align.html:8
+#: templates/formset/default/buttons/richtext_align.html:10
+msgid "Text Align"
+msgstr ""
+
+#: richtext/controls.py:96
+#: templates/formset/default/buttons/richtext_color.html:2
+#: templates/formset/default/buttons/richtext_color.html:3
+msgid "Text Color"
+msgstr ""
+
+#: richtext/controls.py:129
+msgid "Indent First Line"
+msgstr ""
+
+#: richtext/controls.py:133
+msgid "Outdent First Line"
+msgstr ""
+
+#: richtext/controls.py:143
+msgid "Increase Margin"
+msgstr ""
+
+#: richtext/controls.py:147
+msgid "Decrease Margin"
+msgstr ""
+
+#: richtext/controls.py:155
 msgid "Bold"
 msgstr "Fett"
 
-#: richtext/controls.py:52
+#: richtext/controls.py:160
+msgid "Blockquote"
+msgstr ""
+
+#: richtext/controls.py:165
+msgid "Code Block"
+msgstr ""
+
+#: richtext/controls.py:170
+msgid "Hard Break"
+msgstr ""
+
+#: richtext/controls.py:175
 msgid "Italic"
 msgstr "Kursiv"
 
-#: richtext/controls.py:57
+#: richtext/controls.py:180
 msgid "Underline"
 msgstr "Unterstrichen"
 
-#: richtext/controls.py:62
+#: richtext/controls.py:185
 msgid "Bullet List"
 msgstr "Stichwortliste"
 
-#: richtext/controls.py:67
+#: richtext/controls.py:190
 msgid "Ordered List"
 msgstr "Aufzählungsliste"
 
-#: richtext/controls.py:72
+#: richtext/controls.py:195
 msgid "Horizontal Rule"
 msgstr "Horizontale Linie"
 
-#: richtext/controls.py:77
+#: richtext/controls.py:200
 msgid "Clear Format"
 msgstr "Format zurücksetzen"
 
-#: richtext/controls.py:82
+#: richtext/controls.py:205
+msgid "Subscript"
+msgstr ""
+
+#: richtext/controls.py:210
+msgid "Superscript"
+msgstr ""
+
+#: richtext/controls.py:215
 msgid "Undo"
 msgstr "Rückgängig machen"
 
-#: richtext/controls.py:87
+#: richtext/controls.py:220
 msgid "Redo"
 msgstr "Nochmals machen"
 
-#: richtext/controls.py:92 richtext/dialogs.py:31
+#: richtext/controls.py:225 richtext/dialogs.py:31
 msgid "Link"
 msgstr ""
 
-#: richtext/controls.py:98 richtext/dialogs.py:42
+#: richtext/controls.py:231 richtext/dialogs.py:42
 msgid "Image"
 msgstr "Bild"
 
-#: richtext/controls.py:103
+#: richtext/controls.py:237
+msgid "Placeholder"
+msgstr ""
+
+#: richtext/controls.py:242
 msgid "Separator"
 msgstr "Trennzeichen"
 
@@ -117,6 +218,18 @@ msgstr ""
 #: richtext/dialogs.py:37
 msgid "Edit Image"
 msgstr "Bild ändern"
+
+#: richtext/dialogs.py:48
+msgid "Edit Placeholder"
+msgstr ""
+
+#: richtext/dialogs.py:54
+msgid "Variable Name"
+msgstr ""
+
+#: richtext/dialogs.py:58
+msgid "Sample Text"
+msgstr ""
 
 #: templates/calendar/hours.html:3
 msgid "Previous day"
@@ -252,7 +365,7 @@ msgid "Undo selected"
 msgstr "Wiederherstellen"
 
 #: templates/formset/default/widgets/dual_selector.html:4
-#: templates/formset/default/widgets/selectize.html:15
+#: templates/formset/default/widgets/selectize.html:16
 #, python-brace-format
 msgid "No results found for '${input}'"
 msgstr "Keine Ergebnisse für '${input}' gefunden"
@@ -269,10 +382,14 @@ msgstr "Content-Type"
 msgid "Size"
 msgstr "Größe"
 
-#: templates/formset/default/widgets/selectize.html:19
+#: templates/formset/default/widgets/selectize.html:20
 msgid "Remove item"
 msgstr "Entferne Option"
 
-#: widgets.py:184
+#: validators.py:7
+msgid "Enter a valid phone number."
+msgstr "Eine gültige Telefonnummer eingeben."
+
+#: widgets.py:187
 msgid "Select"
 msgstr "Auswählen"

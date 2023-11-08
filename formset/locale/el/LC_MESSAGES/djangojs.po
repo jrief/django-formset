@@ -1,0 +1,756 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: django-countries\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Afghanistan"
+msgstr "Αφγανιστάν"
+
+msgid "Åland Islands"
+msgstr "Νήσοι Ώλαντ"
+
+msgid "Albania"
+msgstr "Αλβανία"
+
+msgid "Algeria"
+msgstr "Αλγερία"
+
+msgid "American Samoa"
+msgstr "Αμερικανικές Σαμόα"
+
+msgid "Andorra"
+msgstr "Ανδόρρα"
+
+msgid "Angola"
+msgstr "Αγκόλα"
+
+msgid "Anguilla"
+msgstr "Αγκίλα"
+
+msgid "Antarctica"
+msgstr "Ανταρκτική"
+
+msgid "Antigua and Barbuda"
+msgstr "Αντίγκουα και Μπαρμπούντα"
+
+msgid "Argentina"
+msgstr "Αργεντινή"
+
+msgid "Armenia"
+msgstr "Αρμενία"
+
+msgid "Aruba"
+msgstr "Αρούμπα"
+
+msgid "Australia"
+msgstr "Αυστραλία"
+
+msgid "Austria"
+msgstr "Αυστρία"
+
+msgid "Azerbaijan"
+msgstr "Αζερμπαϊτζάν"
+
+msgid "Bahamas"
+msgstr "Μπαχάμες"
+
+msgid "Bahrain"
+msgstr "Μπαχρέιν"
+
+msgid "Bangladesh"
+msgstr "Μπαγκλαντές"
+
+msgid "Barbados"
+msgstr "Μπαρμπάντος"
+
+msgid "Belarus"
+msgstr "Λευκορωσία"
+
+msgid "Belgium"
+msgstr "Βέλγιο"
+
+msgid "Belize"
+msgstr "Μπελίζ"
+
+msgid "Benin"
+msgstr "Μπενίν"
+
+msgid "Bermuda"
+msgstr "Βερμούδες"
+
+msgid "Bhutan"
+msgstr "Μπουτάν"
+
+msgid "Bolivia"
+msgstr "Βολιβία"
+
+msgid "Bonaire, Sint Eustatius and Saba"
+msgstr "Μποναίρ, Άγιος Ευστράτιος και Σάμπα"
+
+msgid "Bosnia and Herzegovina"
+msgstr "Βοσνία και Ερζεγοβίνη"
+
+msgid "Botswana"
+msgstr "Μποτσουάνα"
+
+msgid "Bouvet Island"
+msgstr "Νήσος Μπουβέ"
+
+msgid "Brazil"
+msgstr "Βραζιλία"
+
+msgid "British Indian Ocean Territory"
+msgstr "Βρετανικό Έδαφος του Ινδικού Ωκεανού"
+
+msgid "Brunei"
+msgstr "Μπρούνει"
+
+msgid "Bulgaria"
+msgstr "Βουλγαρία"
+
+msgid "Burkina Faso"
+msgstr "Μπουρκίνα Φάσο"
+
+msgid "Burundi"
+msgstr "Μπουρούντι"
+
+msgid "Cabo Verde"
+msgstr "Πράσινο Ακρωτήριο"
+
+msgid "Cambodia"
+msgstr "Καμπότζη"
+
+msgid "Cameroon"
+msgstr "Καμερούν"
+
+msgid "Canada"
+msgstr "Καναδάς"
+
+msgid "Cayman Islands"
+msgstr "Νήσοι Κέιμαν"
+
+msgid "Central African Republic"
+msgstr "Κεντροαφρικανική Δημοκρατία"
+
+msgid "Chad"
+msgstr "Τσαντ"
+
+msgid "Chile"
+msgstr "Χιλή"
+
+msgid "China"
+msgstr "Κίνα"
+
+msgid "Christmas Island"
+msgstr "Νήσος των Χριστουγέννων"
+
+msgid "Cocos (Keeling) Islands"
+msgstr "Νήσοι Κόκος (Κήλινγκ)"
+
+msgid "Colombia"
+msgstr "Κολομβία"
+
+msgid "Comoros"
+msgstr "Κομόρες"
+
+msgid "Congo"
+msgstr "Κονγκό"
+
+msgid "Congo (the Democratic Republic of the)"
+msgstr "Κονγκό (Λαϊκή Δημοκρατία του)"
+
+msgid "Cook Islands"
+msgstr "Νήσοι Κουκ"
+
+msgid "Costa Rica"
+msgstr "Κόστα Ρίκα"
+
+msgid "Côte d'Ivoire"
+msgstr "Ακτή Ελεφαντοστού"
+
+msgid "Croatia"
+msgstr "Κροατία"
+
+msgid "Cuba"
+msgstr "Κούβα"
+
+msgid "Curaçao"
+msgstr "Κουρασάο"
+
+msgid "Cyprus"
+msgstr "Κύπρος"
+
+msgid "Czechia"
+msgstr "Τσεχία"
+
+msgid "Denmark"
+msgstr "Δανία"
+
+msgid "Djibouti"
+msgstr "Τζιμπουτί"
+
+msgid "Dominica"
+msgstr "Δομίνικα"
+
+msgid "Dominican Republic"
+msgstr "Δομινικανή Δημοκρατία"
+
+msgid "Ecuador"
+msgstr "Ισημερινός"
+
+msgid "Egypt"
+msgstr "Αίγυπτος"
+
+msgid "El Salvador"
+msgstr "Ελ Σαλβαδόρ"
+
+msgid "Equatorial Guinea"
+msgstr "Ισημερινή Γουινέα"
+
+msgid "Eritrea"
+msgstr "Ερυθραία"
+
+msgid "Estonia"
+msgstr "Εσθονία"
+
+msgid "Eswatini"
+msgstr "Eswatini"
+
+msgid "Ethiopia"
+msgstr "Αιθιοπία"
+
+msgid "Falkland Islands (Malvinas)"
+msgstr "Νήσοι Φώκλαντ (Μαλβίνας)"
+
+msgid "Faroe Islands"
+msgstr "Νήσοι Φερόες"
+
+msgid "Fiji"
+msgstr "Φίτζι"
+
+msgid "Finland"
+msgstr "Φινλανδία"
+
+msgid "France"
+msgstr "Γαλλία"
+
+msgid "French Guiana"
+msgstr "Γαλλική Γουιάνα"
+
+msgid "French Polynesia"
+msgstr "Γαλλική Πολυνησία"
+
+msgid "French Southern Territories"
+msgstr "Γαλλικά Νότια Εδάφη"
+
+msgid "Gabon"
+msgstr "Γκαμπόν"
+
+msgid "Gambia"
+msgstr "Γκάμπια"
+
+msgid "Georgia"
+msgstr "Γεωργία"
+
+msgid "Germany"
+msgstr "Γερμανία"
+
+msgid "Ghana"
+msgstr "Γκάνα"
+
+msgid "Gibraltar"
+msgstr "Γιβραλτάρ"
+
+msgid "Greece"
+msgstr "Ελλάδα"
+
+msgid "Greenland"
+msgstr "Γροιλανδία"
+
+msgid "Grenada"
+msgstr "Γρενάδα"
+
+msgid "Guadeloupe"
+msgstr "Γουαδελούπη"
+
+msgid "Guam"
+msgstr "Γκουάμ"
+
+msgid "Guatemala"
+msgstr "Γουατεμάλα"
+
+msgid "Guernsey"
+msgstr "Γκέρνσεϊ"
+
+msgid "Guinea"
+msgstr "Γουινέα"
+
+msgid "Guinea-Bissau"
+msgstr "Γουινέα-Μπισάου"
+
+msgid "Guyana"
+msgstr "Γουιάνα"
+
+msgid "Haiti"
+msgstr "Αϊτή"
+
+msgid "Heard Island and McDonald Islands"
+msgstr "Νήσοι Χερντ και Μακντόναλντ"
+
+msgid "Holy See"
+msgstr "Αγία Έδρα"
+
+msgid "Honduras"
+msgstr "Ονδούρα"
+
+msgid "Hong Kong"
+msgstr "Χονγκ Κονγκ"
+
+msgid "Hungary"
+msgstr "Ουγγαρία"
+
+msgid "Iceland"
+msgstr "Ισλανδία"
+
+msgid "India"
+msgstr "Ινδία"
+
+msgid "Indonesia"
+msgstr "Ινδονησία"
+
+msgid "Iran"
+msgstr "Ιράν"
+
+msgid "Iraq"
+msgstr "Ιράκ"
+
+msgid "Ireland"
+msgstr "Ιρλανδία"
+
+msgid "Isle of Man"
+msgstr "Νήσος Μαν"
+
+msgid "Israel"
+msgstr "Ισραήλ"
+
+msgid "Italy"
+msgstr "Ιταλία"
+
+msgid "Jamaica"
+msgstr "Τζαμάικα"
+
+msgid "Japan"
+msgstr "Ιαπωνία"
+
+msgid "Jersey"
+msgstr "Τζέρσεϊ"
+
+msgid "Jordan"
+msgstr "Ιορδανία"
+
+msgid "Kazakhstan"
+msgstr "Καζαχστάν• Καζακστάν"
+
+msgid "Kenya"
+msgstr "Κένυα"
+
+msgid "Kiribati"
+msgstr "Κιριμπάτι"
+
+msgid "North Korea"
+msgstr "Βόρεια Κορέα"
+
+msgid "South Korea"
+msgstr "Νότια Κορέα"
+
+msgid "Kuwait"
+msgstr "Κουβέιτ"
+
+msgid "Kyrgyzstan"
+msgstr "Κιργιζία"
+
+msgid "Laos"
+msgstr "Λάος"
+
+msgid "Latvia"
+msgstr "Λεττονία"
+
+msgid "Lebanon"
+msgstr "Λίβανος"
+
+msgid "Lesotho"
+msgstr "Λεσότο"
+
+msgid "Liberia"
+msgstr "Λιβερία"
+
+msgid "Libya"
+msgstr "Λιβύη"
+
+msgid "Liechtenstein"
+msgstr "Λιχτενστάιν"
+
+msgid "Lithuania"
+msgstr "Λιθουανία"
+
+msgid "Luxembourg"
+msgstr "Λουξεμβούργο"
+
+msgid "Macao"
+msgstr "Μακάο"
+
+msgid "Madagascar"
+msgstr "Μαδαγασκάρη"
+
+msgid "Malawi"
+msgstr "Μαλάουι"
+
+msgid "Malaysia"
+msgstr "Μαλαισία"
+
+msgid "Maldives"
+msgstr "Μαλδίβες"
+
+msgid "Mali"
+msgstr "Μάλι"
+
+msgid "Malta"
+msgstr "Μάλτα"
+
+msgid "Marshall Islands"
+msgstr "Νήσοι Μάρσαλ"
+
+msgid "Martinique"
+msgstr "Μαρτινίκα"
+
+msgid "Mauritania"
+msgstr "Μαυριτανία"
+
+msgid "Mauritius"
+msgstr "Μαυρίκιος"
+
+msgid "Mayotte"
+msgstr "Μαγιότ"
+
+msgid "Mexico"
+msgstr "Μεξικό"
+
+msgid "Micronesia (Federated States of)"
+msgstr "Μικρονησία (Ομόσπονδες Πολιτείες της)"
+
+msgid "Moldova"
+msgstr "Μολδαβία"
+
+msgid "Monaco"
+msgstr "Μονακό"
+
+msgid "Mongolia"
+msgstr "Μογγολία"
+
+msgid "Montenegro"
+msgstr "Μαυροβούνιο"
+
+msgid "Montserrat"
+msgstr "Μοντσεράτ"
+
+msgid "Morocco"
+msgstr "Μαρόκο"
+
+msgid "Mozambique"
+msgstr "Μοζαμβίκη"
+
+msgid "Myanmar"
+msgstr "Μιανμάρ"
+
+msgid "Namibia"
+msgstr "Ναμίμπια"
+
+msgid "Nauru"
+msgstr "Ναουρού"
+
+msgid "Nepal"
+msgstr "Νεπάλ"
+
+msgid "Netherlands"
+msgstr "Κάτω Χώρες"
+
+msgid "New Caledonia"
+msgstr "Νέα Καληδονία"
+
+msgid "New Zealand"
+msgstr "Νέα Ζηλανδία"
+
+msgid "Nicaragua"
+msgstr "Νικαράγουα"
+
+msgid "Niger"
+msgstr "Νίγηρας"
+
+msgid "Nigeria"
+msgstr "Νιγηρία"
+
+msgid "Niue"
+msgstr "Νιούε"
+
+msgid "Norfolk Island"
+msgstr "Νήσος Νόρφολκ"
+
+msgid "North Macedonia"
+msgstr "North Macedonia"
+
+msgid "Northern Mariana Islands"
+msgstr "Νήσοι Βόρειας Μαριάνας"
+
+msgid "Norway"
+msgstr "Νορβηγία"
+
+msgid "Oman"
+msgstr "Ομάν"
+
+msgid "Pakistan"
+msgstr "Πακιστάν"
+
+msgid "Palau"
+msgstr "Παλάου"
+
+msgid "Palestine, State of"
+msgstr "Παλαιστίνη, Πολιτεία της"
+
+msgid "Panama"
+msgstr "Παναμάς"
+
+msgid "Papua New Guinea"
+msgstr "Παπούα Νέα Γουινέα"
+
+msgid "Paraguay"
+msgstr "Παραγουάη"
+
+msgid "Peru"
+msgstr "Περού"
+
+msgid "Philippines"
+msgstr "Φιλιππίνες"
+
+msgid "Pitcairn"
+msgstr "Πίτκαιρν"
+
+msgid "Poland"
+msgstr "Πολωνία"
+
+msgid "Portugal"
+msgstr "Πορτογαλία"
+
+msgid "Puerto Rico"
+msgstr "Πουέρτο Ρίκο"
+
+msgid "Qatar"
+msgstr "Κατάρ"
+
+msgid "Réunion"
+msgstr "Ρεϊνιόν"
+
+msgid "Romania"
+msgstr "Ρουμανία"
+
+msgid "Russia"
+msgstr "Ρωσία"
+
+msgid "Rwanda"
+msgstr "Ρουάντα"
+
+msgid "Saint Barthélemy"
+msgstr "Άγιος Βαρθολομαίος"
+
+msgid "Saint Helena, Ascension and Tristan da Cunha"
+msgstr "Αγία Ελένη, Ασενσιόν και Τριστάν ντα Κούνια"
+
+msgid "Saint Kitts and Nevis"
+msgstr "Άγιος Χριστόφορος και Νέβις"
+
+msgid "Saint Lucia"
+msgstr "Αγία Λουκία"
+
+msgid "Saint Martin (French part)"
+msgstr "Άγιος Μαρτίνος (Γαλλικό τμήμα)"
+
+msgid "Saint Pierre and Miquelon"
+msgstr "Άγιος Πέτρος και Μικελόν"
+
+msgid "Saint Vincent and the Grenadines"
+msgstr "Άγιος Βικέντιος και Γρεναδίνες"
+
+msgid "Samoa"
+msgstr "Σαμόα"
+
+msgid "San Marino"
+msgstr "Άγιος Μαρίνος"
+
+msgid "Sao Tome and Principe"
+msgstr "Σάο Τομέ και Πρίνσιπε"
+
+msgid "Saudi Arabia"
+msgstr "Σαουδική Αραβία"
+
+msgid "Senegal"
+msgstr "Σενεγάλη"
+
+msgid "Serbia"
+msgstr "Σερβία"
+
+msgid "Seychelles"
+msgstr "Σεϋχέλλες"
+
+msgid "Sierra Leone"
+msgstr "Σιέρρα Λεόνε"
+
+msgid "Singapore"
+msgstr "Σιγκαπούρη"
+
+msgid "Sint Maarten (Dutch part)"
+msgstr "Άγιος Μαρτίνος (Ολλανδικό τμήμα)"
+
+msgid "Slovakia"
+msgstr "Σλοβακία"
+
+msgid "Slovenia"
+msgstr "Σλοβενία"
+
+msgid "Solomon Islands"
+msgstr "Νήσοι Σολομώντος"
+
+msgid "Somalia"
+msgstr "Σομαλία"
+
+msgid "South Africa"
+msgstr "Νότια Αφρική"
+
+msgid "South Georgia and the South Sandwich Islands"
+msgstr "Νήσοι Νότια Γεωργία και Νότιες Σάντουιτς"
+
+msgid "South Sudan"
+msgstr "Νότιο Σουδάν"
+
+msgid "Spain"
+msgstr "Ισπανία"
+
+msgid "Sri Lanka"
+msgstr "Σρι Λάνκα"
+
+msgid "Sudan"
+msgstr "Σουδάν"
+
+msgid "Suriname"
+msgstr "Σουρινάμ"
+
+msgid "Svalbard and Jan Mayen"
+msgstr "Νήσοι Σβάλμπαρντ και Γιαν Μαγιέν"
+
+msgid "Sweden"
+msgstr "Σουηδία"
+
+msgid "Switzerland"
+msgstr "Ελβετία"
+
+msgid "Syria"
+msgstr "Συρία"
+
+msgid "Taiwan"
+msgstr "Ταϊβάν"
+
+msgid "Tajikistan"
+msgstr "Τατζικιστάν"
+
+msgid "Tanzania"
+msgstr "Τανζανία"
+
+msgid "Thailand"
+msgstr "Ταϊλάνδη"
+
+msgid "Timor-Leste"
+msgstr "Τιμόρ, Ανατολικό"
+
+msgid "Togo"
+msgstr "Τόγκο"
+
+msgid "Tokelau"
+msgstr "Τοκελάου"
+
+msgid "Tonga"
+msgstr "Τόνγκα• Τόγκα"
+
+msgid "Trinidad and Tobago"
+msgstr "Τρινιδάδ και Τομπάγκο"
+
+msgid "Tunisia"
+msgstr "Τυνησία"
+
+msgid "Türkiye"
+msgstr "Türkiye"
+
+msgid "Turkmenistan"
+msgstr "Τουρκμενιστάν"
+
+msgid "Turks and Caicos Islands"
+msgstr "Νήσοι Τερκς και Κάικος"
+
+msgid "Tuvalu"
+msgstr "Τουβαλού"
+
+msgid "Uganda"
+msgstr "Ουγκάντα"
+
+msgid "Ukraine"
+msgstr "Ουκρανία"
+
+msgid "United Arab Emirates"
+msgstr "Ηνωμένα Αραβικά Εμιράτα"
+
+msgid "United Kingdom"
+msgstr "Ηνωμένο Βασίλειο"
+
+msgid "United States Minor Outlying Islands"
+msgstr "Απομακρυσμένες Νησίδες των Ηνωμένων Πολιτειών"
+
+msgid "United States of America"
+msgstr "Ηνωμένες Πολιτείες Αμερικής"
+
+msgid "Uruguay"
+msgstr "Ουρουγουάη"
+
+msgid "Uzbekistan"
+msgstr "Ουζμπεκιστάν"
+
+msgid "Vanuatu"
+msgstr "Βανουάτου"
+
+msgid "Venezuela"
+msgstr "Βενεζουέλα"
+
+msgid "Vietnam"
+msgstr "Βιετνάμ"
+
+msgid "Virgin Islands (British)"
+msgstr "Παρθένοι Νήσοι (Βρετανικές)"
+
+msgid "Virgin Islands (U.S.)"
+msgstr "Παρθένες Νήσοι (Η.Π.Α.)"
+
+msgid "Wallis and Futuna"
+msgstr "Ουαλίς και Φουτουνά"
+
+msgid "Western Sahara"
+msgstr "Δυτική Σαχάρα"
+
+msgid "Yemen"
+msgstr "Υεμένη"
+
+msgid "Zambia"
+msgstr "Ζάμπια"
+
+msgid "Zimbabwe"
+msgstr "Ζιμπάμπουε"
+

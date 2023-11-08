@@ -1,7 +1,11 @@
 import {autoPlacement, autoUpdate, computePosition} from '@floating-ui/dom';
 import {AsYouType, CountryCode, CountryCallingCode, getCountries, getCountryCallingCode} from 'libphonenumber-js/max';
 import {StyleHelpers} from './helpers';
+import {countries} from './countries';
 import styles from './PhoneNumber.scss';
+
+// @ts-ignore
+const gettext = window.gettext ?? function(s) { return s; };
 
 
 class PhoneNumberField {
@@ -15,7 +19,7 @@ class PhoneNumberField {
 	private readonly asYouType: AsYouType;
 	private readonly internationalOpener: HTMLElement;
 	private readonly internationalSelector: HTMLElement;
-	private readonly codeCountryMap: [CountryCallingCode, CountryCode][];
+	private readonly codeCountryMap: [string, CountryCallingCode, CountryCode][];
 	private isOpen = false;
 	private isPristine = true;
 	private cleanup?: Function;
@@ -23,10 +27,11 @@ class PhoneNumberField {
 	constructor(element: HTMLInputElement) {
 		this.inputElement = element;
 		this.codeCountryMap = getCountries().map(
-			countryCode => [getCountryCallingCode(countryCode), countryCode]
+			countryCode => [gettext(countries.get(countryCode)) ?? countryCode, getCountryCallingCode(countryCode), countryCode]
 		);
+		const compare = new Intl.Collator(document.documentElement.lang ?? 'en').compare;
 		this.codeCountryMap = this.codeCountryMap.sort(
-			(a, b)	=> a[0] < b[0] ? -1 : 1
+			(a, b)	=> compare(a[0], b[0])
 		);
 		const countryCode = element.getAttribute('default-country-code') as CountryCode | undefined;
 		this.defaultCountryCode = countryCode ? countryCode.toUpperCase() as CountryCode : undefined;
@@ -56,9 +61,9 @@ class PhoneNumberField {
 			'</div>',
 			'<div role="dialog" aria-modal="true">', '<ul>',
 		];
-		for (let [callingCode, countryCode] of this.codeCountryMap) {
+		for (let [countryName, callingCode, countryCode] of this.codeCountryMap) {
 			htmlTags.push(`<li data-country="${countryCode}" data-calling-code="${callingCode}">`);
-			htmlTags.push(`<span class="fi fi-${countryCode.toLowerCase()} fib"></span> +${callingCode}`);
+			htmlTags.push(`<span class="fi fi-${countryCode.toLowerCase()} fib"></span>${countryName} <strong>+${callingCode}</strong>`);
 			htmlTags.push('</li>');
 		}
 		htmlTags.push('</div>');
