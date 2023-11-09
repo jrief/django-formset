@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+from django.utils.translation import gettext_lazy as _
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'secret_key')
@@ -21,6 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'formset',
     'testapp',
+    'django_countries',
 ]
 try:
     import sphinx_view
@@ -72,6 +75,11 @@ MIDDLEWARE = [
 
 USE_I18N = True
 
+LANGUAGES = [
+    ("de", _("German")),
+    ("en", _("English")),
+]
+
 ROOT_URLCONF = 'testapp.urls'
 
 STATICFILES_DIRS = [
@@ -105,6 +113,7 @@ TEMPLATES = [{
         'context_processors': [
             'django.template.context_processors.debug',
             'django.template.context_processors.request',
+            'django.template.context_processors.i18n',
             'django.contrib.auth.context_processors.auth',
             'django.contrib.messages.context_processors.messages',
         ],

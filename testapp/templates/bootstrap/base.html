@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html dir="ltr" lang="en">
+<html dir="ltr" lang="{{ LANGUAGE_CODE|default:'en' }}">
 
 <head>
 	{% block "head" %}
@@ -10,6 +10,7 @@
 	<link rel="icon" href="data:,">
 	<link href="{% static 'testapp/css/bootstrap.css' %}" rel="stylesheet" type="text/css" media="screen">
 	<link href="{% static 'testapp/css/utils.css' %}" rel="stylesheet" type="text/css" media="screen">
+	<!--script src="{% url 'javascript-catalog' %}"></script -->
 	<script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
 	{% endblock %}
 </head>

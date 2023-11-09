@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html dir="ltr" lang="en">
+<html dir="ltr" lang="{{ LANGUAGE_CODE|default:'en' }}">
 
 <head>
 	<meta charset="utf-8" />
@@ -8,6 +8,7 @@
 	<title>Django-Formset Demo</title>
 	<link rel="icon" href="data:,">
 	<link href="{% static 'testapp/css/uikit.css' %}" rel="stylesheet" type="text/css" media="screen">
+	<script src="{% url 'javascript-catalog' %}"></script>
 	<script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
 </head>
 

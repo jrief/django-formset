@@ -48,7 +48,7 @@ def test_phone_number_required(page, viewname):
 def test_phone_number_invalid(page, viewname):
     input_field = page.locator('django-formset input[is="django-phone-number"]')
     edit_field = input_field.locator('+ [role="textbox"] .phone-number-edit')
-    edit_field.fill('123456789')
+    edit_field.fill('+123456789')
     edit_field.evaluate('elem => elem.blur()')
     error_list = input_field.locator('~ [role="alert"] .dj-errorlist')
     expect(error_list).to_have_text("Please enter a valid phone number.")
@@ -59,7 +59,7 @@ def test_phone_number_invalid(page, viewname):
 def test_phone_number_valid(page, mocker, viewname):
     input_field = page.locator('django-formset input[is="django-phone-number"]')
     edit_field = input_field.locator('+ [role="textbox"] .phone-number-edit')
-    edit_field.fill('1 212 234 5678')
+    edit_field.fill('+1 212 234 5678')
     edit_field.evaluate('elem => elem.blur()')
     error_list = input_field.locator('~ [role="alert"] .dj-errorlist')
     expect(error_list).to_have_count(1)

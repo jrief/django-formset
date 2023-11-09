@@ -4,9 +4,7 @@ import {StyleHelpers} from './helpers';
 import {countries} from './countries';
 import styles from './PhoneNumber.scss';
 
-// @ts-ignore
-const gettext = window.gettext ?? function(s) { return s; };
-
+declare function gettext(s: string): string;
 
 class PhoneNumberField {
 	private readonly inputElement: HTMLInputElement;
@@ -22,13 +20,12 @@ class PhoneNumberField {
 	private readonly codeCountryMap: [string, CountryCallingCode, CountryCode][];
 	private isOpen = false;
 	private isPristine = true;
+	private possibleCallingCode: Element | null = null;
 	private cleanup?: Function;
 
 	constructor(element: HTMLInputElement) {
 		this.inputElement = element;
-		this.codeCountryMap = getCountries().map(
-			countryCode => [gettext(countries.get(countryCode)) ?? countryCode, getCountryCallingCode(countryCode), countryCode]
-		);
+		this.codeCountryMap = this.createCountriesMap();
 		const compare = new Intl.Collator(document.documentElement.lang ?? 'en').compare;
 		this.codeCountryMap = this.codeCountryMap.sort(
 			(a, b)	=> compare(a[0], b[0])
@@ -50,6 +47,19 @@ class PhoneNumberField {
 			this.editField.innerText = this.asYouType.input(element.value);
 			element.value = this.asYouType.getNumberValue() ?? element.value;  // enforce E.164 format
 			this.decorateInputField(this.asYouType.getCountry());
+		}
+	}
+
+	private createCountriesMap() : [string, CountryCallingCode, CountryCode][] {
+		if (typeof gettext === 'function') {
+			return getCountries().map(
+				countryCode => [gettext(countries.get(countryCode) ?? ''), getCountryCallingCode(countryCode), countryCode]
+			);
+		} else {
+			// gettext is not available in the global scope, so we use the country names as-is
+			return getCountries().map(
+				countryCode => [countries.get(countryCode) ?? '', getCountryCallingCode(countryCode), countryCode]
+			);
 		}
 	}
 
@@ -103,8 +113,10 @@ class PhoneNumberField {
 
 	private handleInput = (event: Event) => {
 		if (event.target instanceof HTMLElement && this.editField === event.target) {
-			if (this.editField.innerText === '') {
+			if (this.editField.innerText.length === 0) {
 				this.isPristine = true;
+			} else if (this.isPristine) {
+				this.placeInputField(event.target.innerText);
 			} else {
 				this.updateInputField(event.target.innerText);
 			}
@@ -169,7 +181,7 @@ class PhoneNumberField {
 			case 'ArrowUp':
 				let prev = this.internationalSelector.querySelector('li[data-country].selected')?.previousElementSibling;
 				if (!prev) {
-					prev = this.internationalSelector.querySelector('li[data-country]:last-child');
+					prev = this.possibleCallingCode ?? this.internationalSelector.querySelector('li[data-country]:last-child');
 				}
 				if (prev instanceof HTMLLIElement) {
 					selectElement(prev);
@@ -179,17 +191,22 @@ class PhoneNumberField {
 			case 'ArrowDown':
 				let next = this.internationalSelector.querySelector('li[data-country].selected')?.nextElementSibling;
 				if (!next) {
-					next = this.internationalSelector.querySelector('li[data-country]:first-child');
+					next = this.possibleCallingCode ?? this.internationalSelector.querySelector('li[data-country]:first-child');
 				}
 				if (next instanceof HTMLLIElement) {
 					selectElement(next);
 				}
 				event.preventDefault();
 				break;
-			case '+': case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+			case '+':
 				this.closeInternationalSelector();
 				this.editField.focus();
 				this.updateInputField(event.key);
+				event.preventDefault();
+				break;
+			case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+				this.possibleCallingCode = this.internationalSelector.querySelector(`li[data-calling-code^="${event.key}"]`);
+				this.possibleCallingCode?.scrollIntoView();
 				event.preventDefault();
 				break;
 			default:
@@ -238,26 +255,32 @@ class PhoneNumberField {
 	private setInternationalCode(countryCode: CountryCode, callingCode: CountryCallingCode) {
 		this.decorateInputField(countryCode);
 		const nationalNumber = this.asYouType.getNumber()?.nationalNumber ?? '';
-		this.decorateInputField(countryCode);
-		this.editField.innerText = `+${callingCode}${nationalNumber}`;
+		this.inputElement.value = this.editField.innerText = `+${callingCode}${nationalNumber}`;
+		this.inputElement.dispatchEvent(new Event('input'));
+		this.isPristine = false;
 		this.editField.focus();
 		window.setTimeout(() => {
 			this.setCaretToEnd();
 		}, 0);
 	}
 
+	private placeInputField(phoneNumber: string) {
+		this.asYouType.reset();
+		if (phoneNumber.startsWith('+')) {
+			this.updateInputField(phoneNumber);
+			this.setCaretToEnd();
+		} else if (this.defaultCountryCode) {
+			this.asYouType.input(phoneNumber);
+			this.updateInputField(this.asYouType.getNumberValue() as string);
+			this.setCaretToEnd();
+		} else {
+			this.editField.innerText = '';
+			this.openInternationalSelector();
+		}
+	}
+
 	private updateInputField(phoneNumber: string) {
 		this.asYouType.reset();
-		if (!this.defaultCountryCode && this.isPristine) {
-			this.isPristine = false;
-			if (!phoneNumber.startsWith('+')) {
-				if (phoneNumber.startsWith('0')) {
-					phoneNumber = '';
-				}
-				this.editField.innerText = this.asYouType.input('+');
-				this.setCaretToEnd();
-			}
-		}
 		const selection = window.getSelection()!;
 		let caretPosition = selection.rangeCount ? selection.getRangeAt(0).startOffset : 0;
 		if (this.editField.innerText.length === caretPosition) {
@@ -273,6 +296,7 @@ class PhoneNumberField {
 		this.inputElement.value = this.asYouType.getNumberValue() ?? '';
 		this.decorateInputField(this.asYouType.getCountry());
 		this.inputElement.dispatchEvent(new Event('input'));
+		this.isPristine = false;
 	}
 
 	private decorateInputField(countryCode?: CountryCode) {

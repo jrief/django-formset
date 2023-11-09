@@ -3,6 +3,8 @@ from django.conf.urls.static import static
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import include, path
+from django.conf.urls.i18n import i18n_patterns
+from django.views.i18n import JavaScriptCatalog
 
 from formset import __version__
 
@@ -23,7 +25,7 @@ def render_landing(request):
     return HttpResponse(template.render(context))
 
 
-urlpatterns = [
+urlpatterns = i18n_patterns(
     # path('', render_landing),
     path('success', lambda request: HttpResponse('<h1>Form data succesfully submitted</h1>'), name='form_data_valid'),
     path('default/', include(('testapp.views', 'default'))),
@@ -32,7 +34,8 @@ urlpatterns = [
     path('foundation/', include(('testapp.views', 'foundation'))),
     path('tailwind/', include(('testapp.views', 'tailwind'))),
     path('uikit/', include(('testapp.views', 'uikit'))),
-]
+    path('jsi18n/formset.js', JavaScriptCatalog.as_view(), name='javascript-catalog'),
+)
 urlpatterns.extend(static(
     settings.MEDIA_URL,
     document_root=settings.MEDIA_ROOT
