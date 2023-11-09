@@ -75,11 +75,6 @@ MIDDLEWARE = [
 
 USE_I18N = True
 
-LANGUAGES = [
-    ("de", _("German")),
-    ("en", _("English")),
-]
-
 ROOT_URLCONF = 'testapp.urls'
 
 STATICFILES_DIRS = [

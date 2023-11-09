@@ -25,7 +25,7 @@ def render_landing(request):
     return HttpResponse(template.render(context))
 
 
-urlpatterns = i18n_patterns(
+urlpatterns = [
     # path('', render_landing),
     path('success', lambda request: HttpResponse('<h1>Form data succesfully submitted</h1>'), name='form_data_valid'),
     path('default/', include(('testapp.views', 'default'))),
@@ -35,7 +35,7 @@ urlpatterns = i18n_patterns(
     path('tailwind/', include(('testapp.views', 'tailwind'))),
     path('uikit/', include(('testapp.views', 'uikit'))),
     path('jsi18n/formset.js', JavaScriptCatalog.as_view(), name='javascript-catalog'),
-)
+]
 urlpatterns.extend(static(
     settings.MEDIA_URL,
     document_root=settings.MEDIA_ROOT

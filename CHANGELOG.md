@@ -1,5 +1,11 @@
 ## Changes
 
+1.3.1
+  * Improved the usability of the `PhoneNumberField`. The user is now forced to select the country
+    code from a dropdown list, whenever the phone number does not start with `+`.
+  * The dropdown list of the `PhoneNumberField` now shows the countries name in the current
+    language.
+  
 1.3
   * New widget: `PhoneNumberField` which can be used to improve the user experience when entering 
     phone numbers.
