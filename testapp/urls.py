@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import include, path
 from django.conf.urls.i18n import i18n_patterns
+from django.views.decorators.cache import cache_page
 from django.views.i18n import JavaScriptCatalog
 
 from formset import __version__
@@ -34,7 +35,9 @@ urlpatterns = [
     path('foundation/', include(('testapp.views', 'foundation'))),
     path('tailwind/', include(('testapp.views', 'tailwind'))),
     path('uikit/', include(('testapp.views', 'uikit'))),
-    path('jsi18n/formset.js', JavaScriptCatalog.as_view(), name='javascript-catalog'),
+    path('jsi18n/formset.js', cache_page(604800, key_prefix='jsi18n-countries')(
+        JavaScriptCatalog.as_view()), name='javascript-catalog',
+    )
 ]
 urlpatterns.extend(static(
     settings.MEDIA_URL,
