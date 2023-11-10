@@ -1,5 +1,10 @@
 ## Changes
 
+1.3.2
+  * Handle form reset for `PhoneNumberField` properly.
+  * Fix: Monolithic build did not include `PhoneNumberField`.
+  * Use cached translation in demo project.
+
 1.3.1
   * Improved the usability of the `PhoneNumberField`. The user is now forced to select the country
     code from a dropdown list, whenever the phone number does not start with `+`.
