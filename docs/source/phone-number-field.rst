@@ -40,6 +40,38 @@ configure our Django ``setting.py`` as follows:
 	    ...
 	]
 
+Since we want to render the country names in the user's language, we need to setup the install the
+`the JavaScriptCatalog view`_ by configuring ``USE_I18N = True`` in the project's ``settings.py``.
+
+.. _the JavaScriptCatalog view: https://docs.djangoproject.com/en/stable/topics/i18n/translation/#module-django.views.i18n
+
+We also must provide a route to that view in the project's ``urls.py``:
+
+.. code-block:: python
+
+	from django.urls import path
+	from django.views.i18n import JavaScriptCatalog
+
+	urlpatterns = [
+	    ...
+	    path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
+	    ...
+	]
+
+Finally we must load the JavaScript file containing the translations for the given country names
+when rendering our forms. Here we load this generated file to the ``<head>`` section of our
+template:
+
+.. code-block:: django
+
+	<head>
+	    ...
+	    <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+	    ...
+	</head>
+
+If we omit the latter, all country names will be rendered in English.
+
 
 Usage
 =====
