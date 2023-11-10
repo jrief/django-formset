@@ -96,6 +96,9 @@ The following settings can be used to customize the behavior of the phone number
 * Adding ``mobile-only: True`` to the widget's ``attrs`` dictionary, restricts the phone number to
   mobile phones only. This is useful if the number is required for sending SMS messages.
 
+In this example we preselect the country code for Austria and restrict the phone number to mobile
+phones only.
+
 .. django-view:: sms_form
 	:caption: form.py
 
@@ -124,9 +127,9 @@ The following settings can be used to customize the behavior of the phone number
 	    template_name = "form.html"
 	    success_url = "/success"
 
-In this form we preselect the country code for Austria and restrict the phone number to mobile
-phones only. This means that a user may for instance enter ``0664 1234567``, which on submission is
-converted to ``+436641234567``.
+In this form a user may for instance enter ``0664 1234567``, which immediately is converted to
+``+43 664 1234567``. If however for example, he starts typing ``+49``, then the country code is
+changed to Germany. The number is still validated against mobile phones though.
 
 
 Rendering Phone Numbers
@@ -173,3 +176,13 @@ This for instance then renders the above phone number for New York as ``(212) 12
 
 However, I strongly advise against using this filter since it makes it impossible to distinguish
 between phone numbers from different countries.
+
+
+Implementation Details
+======================
+
+This ``django-phone-number`` widget is implemented using the npm package libphonenumber-js_. This
+library implements a database with all countries, their landline- and mobile phone prefixes and
+their formatting conventions. It is a port of Google's libphonenumber library to JavaScript.
+
+..libphonenumber-js_: https://github.com/catamphetamine/libphonenumber-js
