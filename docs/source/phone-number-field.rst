@@ -10,7 +10,7 @@ regular expressions. The best way to validate a phone number is to use a special
 parse and format the phone numbers according to the country's conventions.
 
 Since users often enter a phone number in their local rather than international notation, the
-component handling the input field should enforce to enter the international prefix for the desired
+component handling the input field should enforce entering the international prefix for the desired
 country. This avoids ambiguities and is done by providing a dropdown list with all countries and
 their international prefix.
 
@@ -40,7 +40,7 @@ configure our Django ``setting.py`` as follows:
 	    ...
 	]
 
-Since we want to render the country names in the user's language, we need to setup the install the
+Since we want to render the country names in the user's language, we need to set up
 `the JavaScriptCatalog view`_ by configuring ``USE_I18N = True`` in the project's ``settings.py``.
 
 .. _the JavaScriptCatalog view: https://docs.djangoproject.com/en/stable/topics/i18n/translation/#module-django.views.i18n
@@ -217,4 +217,4 @@ This ``django-phone-number`` widget is implemented using the npm package libphon
 library implements a database with all countries, their landline- and mobile phone prefixes and
 their formatting conventions. It is a port of Google's libphonenumber library to JavaScript.
 
-..libphonenumber-js_: https://github.com/catamphetamine/libphonenumber-js
+.. _libphonenumber-js: https://github.com/catamphetamine/libphonenumber-js
