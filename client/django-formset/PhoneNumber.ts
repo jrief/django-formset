@@ -28,7 +28,7 @@ class PhoneNumberField {
 		this.codeCountryMap = this.createCountriesMap();
 		const compare = new Intl.Collator(document.documentElement.lang ?? 'en').compare;
 		this.codeCountryMap = this.codeCountryMap.sort(
-			(a, b)	=> compare(a[0], b[0])
+			(a, b) => compare(a[0], b[0])
 		);
 		const countryCode = element.getAttribute('default-country-code') as CountryCode | undefined;
 		this.defaultCountryCode = countryCode ? countryCode.toUpperCase() as CountryCode : undefined;
@@ -43,10 +43,17 @@ class PhoneNumberField {
 			this.transferStyles();
 		}
 		this.transferClasses();
-		if (element.value) {
-			this.editField.innerText = this.asYouType.input(element.value);
-			element.value = this.asYouType.getNumberValue() ?? element.value;  // enforce E.164 format
+		this.initializeValue(element.defaultValue);
+	}
+
+	private initializeValue(value: string) {
+		if (value) {
+			this.editField.innerText = this.asYouType.input(value);
+			this.inputElement.value = this.asYouType.getNumberValue() ?? value;  // enforce E.164 format
 			this.decorateInputField(this.asYouType.getCountry());
+		} else {
+			this.editField.innerText = this.inputElement.value = '';
+			this.decorateInputField();
 		}
 	}
 
@@ -87,7 +94,15 @@ class PhoneNumberField {
 		this.editField.addEventListener('blur', this.handleBlur);
 		document.addEventListener('click', this.handleClick);
 		document.addEventListener('keydown', this.handleKeypress);
+		if (this.inputElement.form) {
+			this.inputElement.form.addEventListener('reset', this.formResetted);
+		}
 	}
+
+	private formResetted = (event: Event) => {
+		this.asYouType.reset();
+		this.initializeValue(this.inputElement.defaultValue);
+	};
 
 	private handleFocus = (event: Event) => {
 		if (this.editField !== event.target)
