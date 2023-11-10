@@ -7,6 +7,7 @@ import {DjangoSelectizeElement} from './django-formset/DjangoSelectize';
 import {CountrySelectizeElement} from './django-formset/CountrySelectize';
 import {SortableSelectElement} from './django-formset/SortableSelect';
 import {DualSelectorElement} from './django-formset/DualSelector';
+import {PhoneNumberElement} from './django-formset/PhoneNumber';
 import {RichTextAreaElement} from './django-formset/RichtextArea';
 import {DjangoSlugElement} from './django-formset/DjangoSlug';
 import {DateFieldElement, DatePickerElement, DateTimeFieldElement, DateTimePickerElement} from './django-formset/DateTime';
@@ -24,7 +25,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	customElementNames.push('django-sortable-select');
 	window.customElements.define('django-dual-selector', DualSelectorElement, {extends: 'select'});
 	customElementNames.push('django-dual-selector');
-	window.customElements.define('django-phone-number', DualSelectorElement, {extends: 'input'});
+	window.customElements.define('django-phone-number', PhoneNumberElement, {extends: 'input'});
 	customElementNames.push('django-phone-number');
 	window.customElements.define('django-richtext', RichTextAreaElement, {extends: 'textarea'});
 	customElementNames.push('django-richtext');
