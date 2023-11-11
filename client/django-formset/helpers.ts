@@ -41,7 +41,7 @@ export namespace StyleHelpers {
 		// check if styles have been loaded for this widget
 		for (let k = document.styleSheets.length - 1; k >= 0; --k) {
 			const cssRule = document?.styleSheets?.item(k)?.cssRules?.item(0);
-			if (cssRule instanceof CSSStyleRule && cssRule.selectorText === baseSelector)
+			if (cssRule instanceof CSSStyleRule && cssRule.selectorText.trim() === baseSelector)
 				return true;
 		}
 		return false;

@@ -331,7 +331,7 @@ class PhoneNumberField {
 		for (let index = 0; declaredStyles.sheet && index < declaredStyles.sheet.cssRules.length; index++) {
 			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
-			switch (cssRule.selectorText) {
+			switch (cssRule.selectorText.trim()) {
 				case this.baseSelector:
 					loaded = true;
 					break;

@@ -1,9 +1,3 @@
-$flag-icons-path: "/static/node_modules/flag-icons/flags" !default;
-$flag-icons-rect-path: "/4x3" !default;
-$flag-icons-square-path: "/1x1" !default;
-$flag-icons-use-square: true !default;
-@import "node_modules/flag-icons/sass/flag-icons-base";
-@import "node_modules/flag-icons/sass/flag-icons-list";
 @import "colors";
 
 [is="django-phone-number"] {
@@ -92,3 +86,10 @@ $flag-icons-use-square: true !default;
 		}
 	}
 }
+
+$flag-icons-path: "/static/node_modules/flag-icons/flags" !default;
+$flag-icons-rect-path: "/4x3" !default;
+$flag-icons-square-path: "/1x1" !default;
+$flag-icons-use-square: true !default;
+@import "node_modules/flag-icons/sass/flag-icons-base";
+@import "node_modules/flag-icons/sass/flag-icons-list";
