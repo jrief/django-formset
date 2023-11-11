@@ -1070,6 +1070,7 @@ class DjangoFormCollection {
 	protected forms = Array<DjangoForm>(0);
 	public formCollectionTemplate?: DjangoFormCollectionTemplate;
 	public readonly children = Array<DjangoFormCollection>(0);
+	public siblingsCounter = 0;
 	public markedForRemoval = false;
 
 	constructor(formset: DjangoFormset, element: HTMLElement, parent?: DjangoFormCollection) {
@@ -1082,10 +1083,16 @@ class DjangoFormCollection {
 	private findFormCollections() {
 		// find all immediate elements <django-form-collection ...> belonging to the current <django-form-collection>
 		for (const childElement of DjangoFormCollection.getChildCollections(this.element)) {
-			this.children.push(childElement.hasAttribute('sibling-position')
-				? new DjangoFormCollectionSibling(this.formset, childElement, this)
-				: new DjangoFormCollection(this.formset, childElement, this)
-			);
+			if (childElement.hasAttribute('sibling-position')) {
+				this.children.push(
+					new DjangoFormCollectionSibling(this.formset, childElement, this)
+				);
+				this.siblingsCounter++;
+			} else {
+				this.children.push(
+					new DjangoFormCollection(this.formset, childElement, this)
+				);
+			}
 		}
 		for (const sibling of this.children) {
 			sibling.updateRemoveButtonAttrs();
@@ -1370,12 +1377,16 @@ class DjangoFormCollectionTemplate {
 
 	private appendFormCollectionSibling = () => {
 		const context = Object.fromEntries(this.baseContext);
+		const parent = this.parent ?? this.formset;
 		context['position'] = (this.getHighestPosition() + 1).toString();
+		context['siblingId'] = parent.siblingsCounter.toString();
 		// this context rewriting is necessary to render nested templates properly.
 		// the hard-coded limit of 10 nested levels should be more than anybody ever will need
-		context['position_1'] = '${position}'
+		context['position_1'] = '${position}';
+		context['siblingId_1'] = '${siblingId}';
 		for (let k = 1; k < 10; ++k) {
 			context[`position_${k + 1}`] = `$\{position_${k}\}`;
+			context[`siblingId_${k + 1}`] = `$\{siblingId_${k}\}`;
 		}
 		const renderedHTML = this.renderEmptyCollection(context);
 		this.element.insertAdjacentHTML('beforebegin', renderedHTML);
@@ -1385,6 +1396,7 @@ class DjangoFormCollectionTemplate {
 		const siblings = this.parent?.children ?? this.formset.formCollections;
 		const newCollectionSibling = new DjangoFormCollectionSibling(this.formset, newCollectionElement, this.parent);
 		siblings.push(newCollectionSibling);
+		parent.siblingsCounter++;
 		this.formset.findForms(newCollectionElement);
 		this.formset.assignFieldsToForms(newCollectionElement);
 		this.formset.assignFormsToCollections();
@@ -1439,6 +1451,7 @@ export class DjangoFormset {
 	private readonly forms = Array<DjangoForm>(0);
 	private readonly CSRFToken: string | null;
 	public readonly formCollections = Array<DjangoFormCollection>(0);
+	public siblingsCounter = 0;
 	public readonly collectionErrorsList = new Map<string, HTMLUListElement>();
 	public formCollectionTemplate?: DjangoFormCollectionTemplate;
 	public readonly showFeedbackMessages: boolean;
