@@ -1,5 +1,8 @@
 ## Changes
 
+1.3.3
+  * Prevent loading styles for `PhoneNumberField` more than once.
+
 1.3.2
   * Handle form reset for `PhoneNumberField` properly.
   * Fix: Monolithic build did not include `PhoneNumberField`.
