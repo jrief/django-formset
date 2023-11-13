@@ -4,13 +4,13 @@ import json
 import pytest
 from playwright.sync_api import expect
 
-from django.forms import fields, forms
+from django.forms import forms
 from django.utils.timezone import datetime
 from django.urls import path
 
 from formset.calendar import CalendarResponseMixin
 from formset.views import FormView
-from formset.ranges import DateRangeField, DateRangeCalendar, DateTimeRangeField, DateTimeRangePicker, DateTimePicker
+from formset.ranges import DateRangeField, DateRangeCalendar, DateTimeRangeField, DateTimeRangePicker
 
 
 class BookingForm(forms.Form):

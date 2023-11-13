@@ -184,15 +184,15 @@ def test_collection_get():
     assert empty_collection_sibling.attrs['sibling-position'] == '${position}'
     assert empty_collection_sibling.attrs['min-siblings'] == '2'
     form_elem = empty_collection_sibling.find('form')
-    assert form_elem.attrs['name'] == 'numbers.${position}.number'
-    assert form_elem.attrs['id'] == 'id_numbers.${position}.number'
+    assert form_elem.attrs['name'] == 'numbers.${siblingId}.number'
+    assert form_elem.attrs['id'] == 'id_numbers.${siblingId}.number'
     button_elem = form_elem.find_next_sibling('button', class_='remove-collection')
     assert button_elem is not None
     input_elem = empty_collection_sibling.find('input')
     assert input_elem is not None
     assert input_elem.attrs['name'] == 'phone_number'
-    assert input_elem.attrs['form'] == 'id_numbers.${position}.number'
-    assert input_elem.attrs['id'] == 'id_numbers.${position}.number.phone_number'
+    assert input_elem.attrs['form'] == 'id_numbers.${siblingId}.number'
+    assert input_elem.attrs['id'] == 'id_numbers.${siblingId}.number.phone_number'
     button_elem = template_elem.find_next_sibling('button', class_='add-collection')
     assert button_elem is not None
 

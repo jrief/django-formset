@@ -54,7 +54,9 @@ from testapp.forms.state import StateForm, StatesForm
 from testapp.forms.company import CompanyCollection, CompaniesCollection
 from testapp.forms.user import UserCollection, UserListCollection
 from testapp.forms.upload import UploadForm
+from testapp.forms.gallerycollection import GalleryCollection
 from testapp.models import BlogModel, Company, PersonModel, PollModel
+from testapp.models.gallery import Gallery
 
 
 parser = Parser()
@@ -296,6 +298,16 @@ class CompaniesCollectionView(DemoFormCollectionViewMixin, BulkEditCollectionVie
         for holder in form_collection.valid_holders:
             holder['company'].instance.created_by = self.request.session.session_key
         return super().form_collection_valid(form_collection)
+
+
+class GalleryCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
+    model = Gallery
+    collection_class = GalleryCollection
+    template_name = 'testapp/form-collection.html'
+    extra_context = {
+        'click_actions': 'disable -> submit -> reload !~ scrollToError',
+        'force_submission': False,
+    }
 
 
 demo_css_classes = {
@@ -575,4 +587,6 @@ urlpatterns = [
         template_name='testapp/button-actions.html',
         extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)'},
     ), name='button-actions'),
+    path('gallerycollection', GalleryCollectionView.as_view(
+    ), name='gallerycollection'),
 ]
