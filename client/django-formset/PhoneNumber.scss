@@ -47,18 +47,29 @@
 		&[aria-haspopup="dialog"] {
 			// International prefix popup dialog
 			+ [role="dialog"] {
+				display: flex;
+				flex-direction: column;
 				box-shadow: lightgray 0 0 1rem;
-				max-height: 500px;
 				position: absolute;
 				top: 0;
 				left: 0;
-				overflow-y: scroll;
 				background-color: $select-color-dropdown;
+
+				input[type="search"] {
+					width: 100%;
+					margin: 3px 0;
+
+					&:focus {
+						--dummy-style: none; // required by PhoneNumberField.transferStyles()
+					}
+				}
 
 				ul {
 					list-style: none;
 					padding: 0;
 					margin: 0;
+					overflow-y: scroll;
+					max-height: 450px;
 					li {
 						padding: 0.25rem;
 						cursor: pointer;
@@ -86,3 +97,10 @@
 		}
 	}
 }
+
+$flag-icons-path: "/static/node_modules/flag-icons/flags" !default;
+$flag-icons-rect-path: "/4x3" !default;
+$flag-icons-square-path: "/1x1" !default;
+$flag-icons-use-square: true !default;
+@import "node_modules/flag-icons/sass/flag-icons-base";
+@import "node_modules/flag-icons/sass/flag-icons-list";

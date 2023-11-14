@@ -17,6 +17,7 @@ class PhoneNumberField {
 	private readonly asYouType: AsYouType;
 	private readonly internationalOpener: HTMLElement;
 	private readonly internationalSelector: HTMLElement;
+	private readonly countryLookupField: HTMLInputElement;
 	private readonly codeCountryMap: [string, CountryCallingCode, CountryCode][];
 	private isOpen = false;
 	private isPristine = true;
@@ -38,6 +39,7 @@ class PhoneNumberField {
 		this.editField = this.textBox.querySelector('.phone-number-edit')!;
 		this.internationalOpener = this.textBox.querySelector('.international-picker')!;
 		this.internationalSelector = this.textBox.nextElementSibling as HTMLElement;
+		this.countryLookupField = this.internationalSelector.querySelector('input[type="search"]')!;
 		this.installEventHandlers();
 		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
 			this.transferStyles();
@@ -76,7 +78,9 @@ class PhoneNumberField {
 			'<div class="international-picker"></div>',
 			'<div class="phone-number-edit" contenteditable="true"></div>',
 			'</div>',
-			'<div role="dialog" aria-modal="true">', '<ul>',
+			'<div role="dialog" aria-modal="true">',
+			`<input type="search" placeholder="${gettext('Search …')}">`,
+			'<ul>',
 		];
 		for (let [countryName, callingCode, countryCode] of this.codeCountryMap) {
 			htmlTags.push(`<li data-country="${countryCode}" data-calling-code="${callingCode}">`);
@@ -92,6 +96,7 @@ class PhoneNumberField {
 		this.editField.addEventListener('focus', this.handleFocus);
 		this.editField.addEventListener('input', this.handleInput);
 		this.editField.addEventListener('blur', this.handleBlur);
+		this.countryLookupField.addEventListener('input', this.handleSearch);
 		document.addEventListener('click', this.handleClick);
 		document.addEventListener('keydown', this.handleKeypress);
 		if (this.inputElement.form) {
@@ -154,6 +159,8 @@ class PhoneNumberField {
 		let callingCode: string | null = null;
 		let element = event.target instanceof Element ? event.target : null;
 		while (element) {
+			if (element === this.countryLookupField)
+				return;
 			if (element.hasAttribute('data-country')) {
 				countryCode = element.getAttribute('data-country');
 				callingCode = element.getAttribute('data-calling-code');
@@ -170,6 +177,14 @@ class PhoneNumberField {
 		}
 		this.closeInternationalSelector();
 	}
+
+	private handleSearch = (event: Event) => {
+ 		const search = this.countryLookupField.value.toLowerCase();
+		this.internationalSelector.querySelectorAll('li[data-country]').forEach(element => {
+			const countryName = (element as HTMLElement).innerText.toLowerCase();
+			(element as HTMLElement).hidden = !countryName.includes(search);
+		});
+	};
 
 	private handleKeypress = (event: KeyboardEvent) => {
 		const selectElement = (element: HTMLLIElement) => {
@@ -219,11 +234,6 @@ class PhoneNumberField {
 				this.updateInputField(event.key);
 				event.preventDefault();
 				break;
-			case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
-				this.possibleCallingCode = this.internationalSelector.querySelector(`li[data-calling-code^="${event.key}"]`);
-				this.possibleCallingCode?.scrollIntoView();
-				event.preventDefault();
-				break;
 			default:
 				break;
 		}
@@ -241,6 +251,7 @@ class PhoneNumberField {
 	private deselectAll = () => {
 		this.internationalSelector.querySelectorAll('li[data-country].selected').forEach(element => {
 			element.classList.remove('selected');
+			(element as HTMLElement).hidden = false;
 		});
 	};
 
@@ -248,8 +259,11 @@ class PhoneNumberField {
 		this.internationalSelector.parentElement!.style.position = 'relative';
 		this.cleanup = autoUpdate(this.textBox, this.internationalSelector, this.updatePosition);
 		this.textBox.setAttribute('aria-expanded', 'true');
+		const selectorRect = this.internationalSelector.getBoundingClientRect();
+		this.internationalSelector.style.width = `${Math.round(selectorRect.width)}px`;  // prevent resizing while searching
 		this.isOpen = true;
 		this.isPristine = true;
+		this.countryLookupField.value = '';
 		this.deselectAll();
 		const country = this.asYouType.getCountry();
 		if (country) {
@@ -352,7 +366,22 @@ class PhoneNumberField {
 				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"]`:
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border-radius', 'color', 'line-height', 'padding']);
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles} height:${Math.floor(window.innerHeight / 3)}px;`, ++index);
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+					break;
+				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] input[type="search"]`:
+					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
+						'background-color', 'border', 'border-radius', 'color', 'line-height', 'padding']);
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}`, ++index);
+					break;
+				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] input[type="search"]:focus`:
+					this.inputElement.classList.add('-focus-');
+					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
+						'border', 'box-shadow', 'outline', 'transition']);
+					this.inputElement.classList.remove('-focus-');
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}`, ++index);
+					break;
+				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] ul`:
+					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{height:${Math.floor(window.innerHeight / 3)}px;}`, ++index);
 					break;
 				default:
 					break;
