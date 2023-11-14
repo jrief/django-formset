@@ -243,7 +243,7 @@ class PhoneNumberField {
 	}
 
 	private deselectAll = () => {
-		this.internationalSelector.querySelectorAll('li[data-country].selected').forEach(element => {
+		this.internationalSelector.querySelectorAll('li[data-country]').forEach(element => {
 			element.classList.remove('selected');
 			(element as HTMLElement).hidden = false;
 		});
