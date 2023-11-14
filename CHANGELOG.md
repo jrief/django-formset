@@ -1,6 +1,8 @@
 ## Changes
 
 1.3.3
+  * Fix #96: In `FormCollection` with siblings, the `<form>`'s ID sometimes was not unique.
+  * The selector for international prefixes of the `PhoneNumberField`, now offers a search box.
   * Prevent loading styles for `PhoneNumberField` more than once.
 
 1.3.2
