@@ -6,3 +6,4 @@ declare module '*.svg' {
 	const content: string;
 	export default content;
 }
+declare function gettext(s: string): string;

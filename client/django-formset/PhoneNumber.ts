@@ -4,7 +4,8 @@ import {StyleHelpers} from './helpers';
 import {countries} from './countries';
 import styles from './PhoneNumber.scss';
 
-declare function gettext(s: string): string;
+const gettext = typeof window.gettext === 'function' ? window.gettext : ((s: string) => s);
+
 
 class PhoneNumberField {
 	private readonly inputElement: HTMLInputElement;
@@ -60,16 +61,9 @@ class PhoneNumberField {
 	}
 
 	private createCountriesMap() : [string, CountryCallingCode, CountryCode][] {
-		if (typeof gettext === 'function') {
-			return getCountries().map(
-				countryCode => [gettext(countries.get(countryCode) ?? ''), getCountryCallingCode(countryCode), countryCode]
-			);
-		} else {
-			// gettext is not available in the global scope, so we use the country names as-is
-			return getCountries().map(
-				countryCode => [countries.get(countryCode) ?? '', getCountryCallingCode(countryCode), countryCode]
-			);
-		}
+		return getCountries().map(
+			countryCode => [gettext(countries.get(countryCode) ?? ''), getCountryCallingCode(countryCode), countryCode]
+		);
 	}
 
 	private createTextBox() {
