@@ -1,5 +1,5 @@
-import {StyleHelpers} from "./helpers";
-import {Widget} from "./Widget";
+import {StyleHelpers} from './helpers';
+import {Widget} from './Widget';
 import styles from './Calendar.scss';
 import contractLeftIcon from './icons/contract-left.svg';
 import contractRightIcon from './icons/contract-right.svg';
