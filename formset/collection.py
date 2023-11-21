@@ -233,9 +233,10 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         if self.has_many:
             self.valid_holders = []
             self._errors = ErrorList()
-            for data in self.data:
+            for index, data in enumerate(self.data):
                 if data is None:
                     continue
+                initial = self.initial[index] if self.initial and index < len(self.initial) else None
                 instance = self.retrieve_instance(data)
                 valid_holders = {}
                 errors = ErrorDict()
@@ -243,6 +244,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     if name in data:
                         holder = declared_holder.replicate(
                             data=data[name],
+                            initial=initial.get(name, declared_holder.initial) if initial else None,
                             instance=instance,
                             ignore_marked_for_removal=self.ignore_marked_for_removal,
                         )
@@ -271,6 +273,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     instance = self.retrieve_instance(self.data[name])
                     holder = declared_holder.replicate(
                         data=self.data[name],
+                        initial=self.initial.get(name, declared_holder.initial) if self.initial else None,
                         instance=instance,
                         ignore_marked_for_removal=self.ignore_marked_for_removal,
                     )
