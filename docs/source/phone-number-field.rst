@@ -206,15 +206,15 @@ number without the international prefix using the template filter:
 
 This for instance then renders the above phone number for New York as ``(212) 123-4567``.
 
-However, I strongly advise against using this filter since it makes it impossible to distinguish
-between phone numbers from different countries.
+However, I strongly advise against using this filter since it makes it hard to distinguish
+phone numbers from different countries.
 
 
 Implementation Details
 ======================
 
 This ``django-phone-number`` widget is implemented using the npm package libphonenumber-js_. This
-library implements a database with all countries, their landline- and mobile phone prefixes and
+library implements a database with all countries, their landline- and mobile phone prefixes, and
 their formatting conventions. It is a port of Google's libphonenumber library to JavaScript.
 
 .. _libphonenumber-js: https://github.com/catamphetamine/libphonenumber-js
