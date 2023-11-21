@@ -170,21 +170,17 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         # add empty placeholder as template for extra collections
         for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
             if self.prefix:
-                count = self.prefix.count('${position')
                 count = self.prefix.count('${siblingId')
                 assert count < 10, "Maximum number of nested FormCollections reached"
                 # this context rewriting is necessary to render nested templates properly
                 if count > 0:
                     position = f'${{position_{count}}}'
-                    prefix = f'{self.prefix}.${{position_{count}}}.{name}'
                     prefix = f'{self.prefix}.${{siblingId_{count}}}.{name}'
                 else:
                     position = '${position}'
-                    prefix = f'{self.prefix}.${{position}}.{name}'
                     prefix = f'{self.prefix}.${{siblingId}}.{name}'
             else:
                 position = '${position}'
-                prefix = f'${{position}}.{name}'
                 prefix = f'${{siblingId}}.{name}'
             holder = declared_holder.replicate(
                 prefix=prefix,
