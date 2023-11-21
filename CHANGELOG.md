@@ -1,5 +1,10 @@
 ## Changes
 
+1.3.4
+  * Fix #97: Forms and FormCollections with disabled fields and initial data, now are validated
+    using that initial data.
+  * The filter in the widget for the `PhoneNumberField` now is cleared after reopening the selector.
+
 1.3.3
   * Fix #96: In `FormCollection` with siblings, the `<form>`'s ID sometimes was not unique.
   * The selector for international prefixes of the `PhoneNumberField`, now offers a search box.
