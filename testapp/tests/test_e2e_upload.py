@@ -34,7 +34,7 @@ def test_upload_image(page, mocker, viewname):
     img_element = dropbox.locator('img')
     expect(img_element).to_be_visible()
     img_src = img_element.get_attribute('src')
-    match = re.match(r'^/media/((upload_temp/python-django\.[a-z0-9_]+?)_h128(.png))$', img_src)
+    match = re.match(r'^/media/((upload_temp/python-django[_A-Za-z0-9]*?)_h128(.png))$', img_src)
     assert match is not None
     thumbnail_url = match.group(1)
     assert (settings.MEDIA_ROOT / thumbnail_url).exists()  # the thumbnail

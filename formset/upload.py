@@ -1,6 +1,4 @@
 import mimetypes
-import os
-import tempfile
 from pathlib import Path
 
 from django.contrib.staticfiles.storage import staticfiles_storage
@@ -10,7 +8,7 @@ from django.http.response import HttpResponseBadRequest, JsonResponse
 
 THUMBNAIL_MAX_HEIGHT = 200
 THUMBNAIL_MAX_WIDTH = 350
-UPLOAD_TEMP_DIR = Path(default_storage.base_location) / 'upload_temp'
+UPLOAD_TEMP_DIR = Path('upload_temp')
 
 
 def get_thumbnail_path(image_path, image_height=THUMBNAIL_MAX_HEIGHT):
@@ -23,7 +21,7 @@ def thumbnail_image(storage, image_path, image_height=THUMBNAIL_MAX_HEIGHT):
     try:
         from PIL import Image, ImageOps
 
-        image = Image.open(image_path)
+        image = Image.open(storage.path(image_path))
     except Exception:
         return staticfiles_storage.url('formset/icons/file-picture.svg')
     else:
@@ -31,7 +29,7 @@ def thumbnail_image(storage, image_path, image_height=THUMBNAIL_MAX_HEIGHT):
         width = int(round(image.width * height / image.height))
         width, height = min(width, THUMBNAIL_MAX_WIDTH), min(height, THUMBNAIL_MAX_HEIGHT)
         thumb = ImageOps.fit(ImageOps.exif_transpose(image), (width, height))
-        thumbnail_path = get_thumbnail_path(image_path, image_height)
+        thumbnail_path = get_thumbnail_path(storage.path(image_path), image_height)
         thumb.save(thumbnail_path)
         return storage.url(thumbnail_path.relative_to(storage.location))
 
@@ -106,16 +104,9 @@ class FileUploadMixin:
             return HttpResponseBadRequest(f"File upload failed for '{file_obj.name}'.")
         signer = get_cookie_signer(salt='formset')
 
-        # copy uploaded file into temporary clipboard inside the default storage location
-        UPLOAD_TEMP_DIR.mkdir(parents=True, exist_ok=True)
-        file_path = Path(file_obj.name)
-        fh, temp_path = tempfile.mkstemp(suffix=file_path.suffix, prefix=f'{file_path.stem}.', dir=UPLOAD_TEMP_DIR)
-        for chunk in file_obj.chunks():
-            os.write(fh, chunk)
-        os.close(fh)
+        temp_path = default_storage.save(UPLOAD_TEMP_DIR / file_obj.name, file_obj)
         assert default_storage.size(temp_path) == file_obj.size
-        relative_path = Path(temp_path).relative_to(default_storage.location)
-        download_url = default_storage.url(relative_path)
+        download_url = default_storage.url(temp_path)
 
         # dict returned by the form on submission
         mime_type, sub_type = split_mime_type(file_obj.content_type)
@@ -127,7 +118,7 @@ class FileUploadMixin:
         else:
             thumbnail_url = file_icon_url(mime_type, sub_type)
         file_handle = {
-            'upload_temp_name': signer.sign(relative_path),
+            'upload_temp_name': signer.sign(temp_path),
             'content_type': f'{mime_type}/{sub_type}',
             'content_type_extra': file_obj.content_type_extra,
             'name': file_obj.name[:self.filename_max_length],
