@@ -1,5 +1,8 @@
 ## Changes
 
+1.3.5
+  * Fix #99: File upload is not compatible with generic django storage class.
+
 1.3.4
   * Fix #97: Forms and FormCollections with disabled fields and initial data, now are validated
     using that initial data.
