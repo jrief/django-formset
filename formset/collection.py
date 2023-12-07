@@ -290,7 +290,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         for valid_holders in self.valid_holders:
             for name, holder in valid_holders.items():
                 if isinstance(holder, BaseModelForm):
-                    exclude = holder._get_validation_exclusions().difference(unique_fields)
+                    exclude = set(holder._get_validation_exclusions()).difference(unique_fields)
                     unique_checks, date_checks = holder.instance._get_unique_checks(
                         exclude=exclude,
                         include_meta_constraints=True,
