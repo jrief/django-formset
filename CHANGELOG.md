@@ -1,5 +1,8 @@
 ## Changes
 
+1.3.7
+  * Disable unique checks for Django<4.0, because they are not compatible.
+
 1.3.6
   * Backport to Django-4.0.
 
