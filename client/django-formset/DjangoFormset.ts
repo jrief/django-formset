@@ -895,6 +895,7 @@ class DjangoForm {
 	private readonly errorPlaceholder: Element | null = null;
 	public readonly fieldGroups = Array<FieldGroup>(0);
 	public readonly hiddenInputFields = Array<HTMLInputElement>(0);
+	public readonly isTransient: boolean;
 	public markedForRemoval = false;
 
 	constructor(formset: DjangoFormset, element: HTMLFormElement) {
@@ -908,6 +909,7 @@ class DjangoForm {
 			this.errorList = placeholder.parentElement;
 			this.errorPlaceholder = this.errorList!.removeChild(placeholder);
 		}
+		this.isTransient = this.element.getAttribute('df-transient') === 'true';
 		this.element.addEventListener('submit', this.handleSubmit);
 		this.element.addEventListener('reset', this.handleReset);
 	}
@@ -930,10 +932,6 @@ class DjangoForm {
 
 	public get formId() : string | null {
 		return this.element.getAttribute('id');
-	}
-
-	public get provideData() : boolean {
-		return this.element.method !== 'dialog';
 	}
 
 	public getAbsPath() : Array<string> {
@@ -967,7 +965,7 @@ class DjangoForm {
 	}
 
 	isValid() {
-		if (this.element.noValidate || !this.provideData)
+		if (this.element.noValidate || this.isTransient)
 			return true;
 		let isValid = true;
 		for (const fieldGroup of this.fieldGroups) {
@@ -977,13 +975,13 @@ class DjangoForm {
 	}
 
 	checkValidity() {
-		if (this.element.noValidate || !this.provideData)
+		if (this.element.noValidate || this.isTransient)
 			return true;
 		return this.element.checkValidity();
 	}
 
 	reportValidity() {
-		if (this.element.noValidate || !this.provideData)
+		if (this.element.noValidate || this.isTransient)
 			return;
 		this.element.reportValidity();
 	}
@@ -1557,7 +1555,7 @@ export class DjangoFormset {
 	}
 
 	private checkForUniqueness() {
-		const forms = this.forms.filter(form => form.provideData);
+		const forms = this.forms.filter(form => !form.isTransient);
 		if (forms.length === 1)
 			return;
 		const formNames = Array<string>();
@@ -1617,9 +1615,9 @@ export class DjangoFormset {
 	private aggregateValues() {
 		this.data = {};
 		for (const form of this.forms) {
-			if (form.provideData) {
-				setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
-			}
+			if (form.isTransient)
+				continue;
+			setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
 		}
 		for (const form of this.forms) {
 			if (!form.markedForRemoval) {
@@ -1690,7 +1688,8 @@ export class DjangoFormset {
 		for (const form of this.forms) {
 			if (!form.name)  // it's a single form, which doesn't have a name
 				return Object.assign({}, this.data, {_extra: extraData});
-
+			if (form.isTransient)
+				continue;
 			const absPath = form.getAbsPath();
 			dataValue = getDataValue(this.data, absPath);
 			if (form.markedForRemoval) {
