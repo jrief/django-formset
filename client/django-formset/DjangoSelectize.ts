@@ -189,14 +189,17 @@ export class DjangoSelectize extends IncompleteSelect {
 				case this.baseSelector:
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
-						'letter-spacing', 'white-space']);
+						'letter-spacing', 'white-space'
+					]);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					loaded = true;
 					break;
 				case `${this.baseSelector} .ts-control`:
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'background-color', 'border', 'border-radius', 'box-shadow', 'color',
-						'padding']).concat(`width: ${nativeStyles['width']}; min-height: ${nativeStyles['height']};`);
+						'padding']).concat(
+						`width: ${nativeStyles['width']}; min-height: ${nativeStyles['height']};`
+					);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case `${this.baseSelector} .ts-control > input`:
@@ -208,7 +211,7 @@ export class DjangoSelectize extends IncompleteSelect {
 					break;
 				case `${this.baseSelector} .ts-control > input::placeholder`:
 					tomInput.classList.add('-placeholder-');
-					extraStyles = StyleHelpers.extractStyles(tomInput, ['background-color', 'color'])
+					extraStyles = StyleHelpers.extractStyles(tomInput, ['background-color', 'color']);
 					tomInput.classList.remove('-placeholder-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
@@ -216,7 +219,8 @@ export class DjangoSelectize extends IncompleteSelect {
 					tomInput.style.transition = 'none';
 					tomInput.classList.add('-focus-');
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'])
+						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'
+					]);
 					tomInput.classList.remove('-focus-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					tomInput.style.transition = '';
@@ -224,14 +228,17 @@ export class DjangoSelectize extends IncompleteSelect {
 				case `${this.baseSelector}.disabled .ts-control`:
 					tomInput.classList.add('-disabled-');
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
-							'background-color', 'border', 'box-shadow', 'color', 'opacity', 'outline', 'transition'])
+						'background-color', 'border', 'box-shadow', 'color', 'opacity', 'outline', 'transition'
+					]);
 					tomInput.classList.remove('-disabled-');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case `${this.baseSelector} .ts-dropdown`:
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'border-right', 'border-bottom', 'border-left', 'color'])
-						.concat(parseFloat(lineHeight) > 0 ? `line-height: calc(${lineHeight} * 1.2);` : 'line-height: 1.4em;');
+						'border-right', 'border-bottom', 'border-left', 'color'
+					]).concat(
+						parseFloat(lineHeight) > 0 ? `line-height: calc(${lineHeight} * 1.2);` : 'line-height: 1.4em;'
+					);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case `${this.baseSelector} .ts-dropdown .ts-dropdown-content`:
@@ -250,7 +257,8 @@ export class DjangoSelectize extends IncompleteSelect {
 					tomInput.style.transition = 'none';
 					tomInput.classList.add('-focus-', '-invalid-', 'is-invalid');  // is-invalid is a Bootstrap hack
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'])
+						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'
+					]);
 					tomInput.classList.remove('-focus-', '-invalid-', 'is-invalid');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					tomInput.style.transition = '';
