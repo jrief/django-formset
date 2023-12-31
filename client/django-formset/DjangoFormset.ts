@@ -3,10 +3,10 @@ import setDataValue from 'lodash.set';
 import isEqual from 'lodash.isequal';
 import isEmpty from 'lodash.isempty';
 import template from 'lodash.template';
-import Sortable, { SortableEvent } from 'sortablejs';
-import { FileUploadWidget } from './FileUploadWidget';
-import { parse } from './tag-attributes';
-import { ErrorKey, FieldErrorMessages } from './Widget';
+import Sortable, {SortableEvent} from 'sortablejs';
+import {FileUploadWidget} from './FileUploadWidget';
+import {parse} from './tag-attributes';
+import {ErrorKey, FieldErrorMessages} from './Widget';
 import styles from './DjangoFormset.scss';
 import spinnerIcon from './icons/spinner.svg';
 import okayIcon from './icons/okay.svg';
@@ -54,6 +54,7 @@ class FieldGroup {
 	private readonly fileUploader?: FileUploadWidget;
 	private readonly updateVisibility: Function;
 	private readonly updateDisabled: Function;
+
 	constructor(form: DjangoForm, element: HTMLElement) {
 		this.form = form;
 		this.element = element;
