@@ -37,8 +37,15 @@ Factor
   = "(" _ expr:Expression _ ")" { return '(' + expr + ')'; }
   / number
   / boolean
+  / getActiveButton
   / getDataValue
   / s:string { return '\'' + s + '\''; }
+
+getActiveButton
+  = path:PATH ":" action:VARIABLE {
+      const parts = path.split('.').map(part => '\'' + part + '\'');
+      return 'this.getActiveButton([' + parts.join(',') + '],\'' + action + '\')';
+  }
 
 getDataValue
   = path:PATH {

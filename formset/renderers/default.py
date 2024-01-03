@@ -44,6 +44,9 @@ class FormRenderer(DjangoTemplates):
         template_name = self._template_mapping.get(template_name, template_name)
         return super().get_template(template_name)
 
+    def _amend_button(self, context):
+        return context
+
     def _amend_form(self, context):
         context.update(
             control_css_classes=self.control_css_classes,
@@ -56,12 +59,15 @@ class FormRenderer(DjangoTemplates):
             if not isinstance(context['attrs'], dict):
                 context['attrs'] = {}
             context['attrs']['class'] = ClassList(self.label_css_classes)
-        if hide_checkbox_label and context['field'].widget_type == 'checkbox':
+        widget_type = context['field'].widget_type
+        if hide_checkbox_label and widget_type == 'checkbox':
             # `<label>Label:</label>` is rendered by `{{ field }}`, so remove it to
             # prevent double rendering.
-            context.pop('label', None)
+
             context['attrs'].pop('for', None)
             context['use_tag'] = bool(self.control_css_classes)
+        if widget_type == 'button' and 'label' in context:
+            context['attrs']['content'] = context.pop('label')
         return context
 
     def _amend_feedback(self, context):
@@ -111,6 +117,7 @@ class FormRenderer(DjangoTemplates):
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
+        'formset/default/widgets/button.html': _amend_button,
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/collection.html': _amend_collection,
     }

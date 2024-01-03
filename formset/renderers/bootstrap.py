@@ -36,6 +36,10 @@ class FormRenderer(DefaultFormRenderer):
         context['widget']['attrs']['class'] = ClassList('form-select')
         return context
 
+    def _amend_button(self, context):
+        context['widget']['attrs']['class'] = ClassList('btn btn-primary')
+        return context
+
     def _amend_dual_selector(self, context):
         context.update(
             select_classes='form-select',
@@ -87,6 +91,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox.html': _amend_checkbox,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
+        'formset/default/widgets/button.html': _amend_button,
         'formset/default/widgets/calendar.html': _amend_input,
         'formset/default/widgets/datetime.html': _amend_input,
         'formset/default/widgets/file.html': _amend_file,

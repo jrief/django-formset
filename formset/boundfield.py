@@ -6,6 +6,7 @@ from django.forms.fields import FileField, JSONField
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
+from formset.fields import Button
 from formset.upload import get_file_info
 from formset.widgets import UploadedFileInput
 
@@ -100,6 +101,9 @@ class BoundField(boundfield.BoundField):
             attrs['pattern'] = self.field.regex.pattern
         if isinstance(self.field, JSONField):
             attrs['use_json'] = True
+        if isinstance(self.field, Button):
+            label = self.name.replace('_', ' ').title() if self.field.label is None else self.field.label
+            attrs['label'] = label  # remember label for ButtonWidget.get_context()
         return attrs
 
     def css_classes(self, extra_classes=None):

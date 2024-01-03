@@ -1,7 +1,20 @@
 from django.core import checks
+from django.forms import fields
 from django.db.models.fields.related import ManyToManyField
 
-from formset.widgets import DualSortableSelector
+from formset.widgets import ButtonWidget, DualSortableSelector
+
+
+class Button(fields.Field):
+    widget = ButtonWidget
+
+    def __init__(self, **kwargs):
+        kwargs.update(
+            required=False,
+            validators=[],
+            label_suffix='',
+        )
+        super().__init__(**kwargs)
 
 
 class SortableMultipleChoiceMixin:

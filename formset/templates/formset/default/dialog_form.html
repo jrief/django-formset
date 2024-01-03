@@ -1,5 +1,5 @@
 {% spaceless %}
-<form{% include "formset/form_attrs.html" %}></form>
+<form{% include "formset/form_attrs.html" %} df-transient="true"></form>
 {% if form.modal_title %}
 <div class="dialog-header">
 	<div class="modal-title">{{ form.modal_title }}</div>

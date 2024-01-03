@@ -11,6 +11,7 @@ import styles from './DjangoFormset.scss';
 import spinnerIcon from './icons/spinner.svg';
 import okayIcon from './icons/okay.svg';
 import bummerIcon from './icons/bummer.svg';
+import {StyleHelpers} from "./helpers";
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FieldValue = string | Array<string | Object>;
@@ -444,7 +445,7 @@ class ButtonAction {
 
 class DjangoButton {
 	private readonly formset: DjangoFormset;
-	private readonly element: HTMLButtonElement;
+	public readonly element: HTMLButtonElement;
 	private readonly initialClass: string;
 	private readonly isAutoDisabled: boolean;
 	private readonly successActions = Array<ButtonAction>(0);
@@ -453,10 +454,11 @@ class DjangoButton {
 	private readonly spinnerElement: HTMLElement;
 	private readonly okayElement: HTMLElement;
 	private readonly bummerElement: HTMLElement;
+	public readonly path = Array<string>();
 	private originalDecorator?: Node;
 	private timeoutHandler?: number;
 
-	constructor(formset: DjangoFormset, element: HTMLButtonElement) {
+	constructor(formset: DjangoFormset, element: HTMLButtonElement, path: Array<string>) {
 		this.formset = formset;
 		this.element = element;
 		this.initialClass = element.getAttribute('class') ?? '';
@@ -472,6 +474,7 @@ class DjangoButton {
 		this.bummerElement = document.createElement('i');
 		this.bummerElement.classList.add('dj-icon', 'dj-bummer');
 		this.bummerElement.innerHTML = bummerIcon;
+		this.path = path;
 		this.parseActionsQueue(element.getAttribute('df-click'));
 		element.addEventListener('click', this.clicked);
 	}
@@ -757,6 +760,16 @@ class DjangoButton {
 			if (response.status !== 422) {
 				window.alert(response.statusText);
 			}
+			return Promise.resolve(response);
+		}
+	}
+
+	/**
+	 * Action to activate a button so that it can be used
+ 	 */
+	private activate() {
+		return (response: Response) => {
+			this.formset.updateOperability();
 			return Promise.resolve(response);
 		}
 	}
@@ -1381,7 +1394,7 @@ class DjangoFormCollectionTemplate {
 		context['position'] = position.toString();
 		context['siblingId'] = siblingId.toString();
 		// this context rewriting is necessary to render nested templates properly.
-		// the hard-coded limit of 10 nested levels should be more than anybody ever will need
+		// the hard-coded limit of 10 nested levels should be more than anybody ever will need.
 		context['position_1'] = '${position}';
 		context['siblingId_1'] = '${siblingId}';
 		for (let k = 1; k < 10; ++k) {
@@ -1447,7 +1460,7 @@ class DjangoFormCollectionTemplate {
 
 export class DjangoFormset {
 	private readonly element: DjangoFormsetElement;
-	private readonly buttons = Array<DjangoButton>(0);
+	public readonly buttons = Array<DjangoButton>(0);
 	private readonly forms = Array<DjangoForm>(0);
 	private readonly CSRFToken: string | null;
 	public readonly formCollections = Array<DjangoFormCollection>(0);
@@ -1465,12 +1478,12 @@ export class DjangoFormset {
 	}
 
 	connectedCallback() {
-		this.findButtons();
 		this.findForms();
 		this.findFormCollections();
 		this.findCollectionErrorsList();
 		this.assignFieldsToForms();
 		this.assignFormsToCollections();
+		this.findDetachedButtons();
 		this.formCollections.forEach(collection => collection.markAsFreshAndEmpty());
 		window.setTimeout(() => this.validate(), 0);
 	}
@@ -1522,7 +1535,7 @@ export class DjangoFormset {
 
 	public assignFieldsToForms(parentElement?: Element) {
 		parentElement = parentElement ?? this.element;
-		for (const fieldElement of parentElement.querySelectorAll('INPUT, SELECT, TEXTAREA')) {
+		for (const fieldElement of parentElement.querySelectorAll('INPUT, SELECT, TEXTAREA, BUTTON')) {
 			const formId = fieldElement.getAttribute('form');
 			if (!formId)
 				continue;
@@ -1532,14 +1545,17 @@ export class DjangoFormset {
 			if (djangoForms.length > 1)
 				throw new Error(`More than one form has id="${formId}"`);
 			const djangoForm = djangoForms[0];
-			const fieldGroupElement = fieldElement.closest('[role="group"]');
-			if (fieldGroupElement) {
-				if (djangoForm.fieldGroups.filter(fg => fg.element === fieldGroupElement).length === 0) {
-					djangoForm.fieldGroups.push(new FieldGroup(djangoForm, fieldGroupElement as HTMLElement));
-				}
-			} else if (fieldElement instanceof HTMLInputElement && fieldElement.type === 'hidden') {
+			if (fieldElement instanceof HTMLInputElement && fieldElement.type === 'hidden') {
 				if (!djangoForm.hiddenInputFields.includes(fieldElement)) {
 					djangoForm.hiddenInputFields.push(fieldElement);
+				}
+			} else if (fieldElement instanceof HTMLButtonElement && fieldElement.hasAttribute('df-click') && fieldElement.form === djangoForm.element) {
+				const button = new DjangoButton(djangoForm.formset, fieldElement, [...djangoForm.path, fieldElement.name]);
+				this.buttons.push(button);
+			} else {
+				const fieldGroupElement = fieldElement.closest('[role="group"]');
+				if (fieldGroupElement && !djangoForm.fieldGroups.find(fg => fg.element === fieldGroupElement)) {
+					djangoForm.fieldGroups.push(new FieldGroup(djangoForm, fieldGroupElement as HTMLElement));
 				}
 			}
 		}
@@ -1590,11 +1606,14 @@ export class DjangoFormset {
 		}
 	}
 
-	private findButtons() {
-		this.buttons.length = 0;
+	private findDetachedButtons() {
 		for (const element of this.element.getElementsByTagName('BUTTON')) {
 			if (element.hasAttribute('df-click')) {
-				this.buttons.push(new DjangoButton(this, element as HTMLButtonElement));
+				const buttonElement = element as HTMLButtonElement;
+				if (!this.buttons.find(button => button.element === buttonElement)) {
+					const path = buttonElement.name ? [buttonElement.name] : [];
+					this.buttons.push(new DjangoButton(this, buttonElement, path));
+				}
 			}
 		}
 	}
@@ -1619,10 +1638,14 @@ export class DjangoFormset {
 				continue;
 			setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
 		}
+		// this.updateOperability();
+	}
+
+	public updateOperability() {
 		for (const form of this.forms) {
-			if (!form.markedForRemoval) {
-				form.updateOperability();
-			}
+			if (form.markedForRemoval)
+				continue;
+			form.updateOperability();
 		}
 	}
 

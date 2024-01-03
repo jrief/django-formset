@@ -11,11 +11,27 @@ from django.core.files.uploadedfile import UploadedFile
 from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
-from django.forms.widgets import DateTimeBaseInput, FileInput, Select, SelectMultiple, TextInput
+from django.forms.widgets import DateTimeBaseInput, FileInput, Select, SelectMultiple, TextInput, Widget
 from django.utils.timezone import datetime, now
 from django.utils.translation import gettext_lazy as _
 
 from formset.calendar import CalendarRenderer
+
+
+class ButtonWidget(Widget):
+    template_name = 'formset/default/widgets/button.html'
+    button_type = 'button'
+
+    def build_attrs(self, base_attrs, extra_attrs=None):
+        attrs = super().build_attrs(base_attrs, extra_attrs)
+        attrs['df-click'] = 'activate'
+        return attrs
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context['label'] = context['widget']['attrs'].pop('label', None)  # for buttons, the label is the value
+        context['widget']['type'] = self.button_type
+        return context
 
 
 class SimpleModelChoiceIterator(ModelChoiceIterator):

@@ -13,6 +13,7 @@ from django.utils.text import get_text_list
 from django.utils.translation import gettext_lazy
 
 from formset.exceptions import FormCollectionError
+from formset.fields import Button
 from formset.renderers.default import FormRenderer
 from formset.utils import MARKED_FOR_REMOVAL, FormMixin, FormsetErrorList, HolderMixin
 
