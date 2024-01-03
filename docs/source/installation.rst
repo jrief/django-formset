@@ -92,3 +92,10 @@ providing the functionality of our web component:
 	EcmaScript-ES2020, or later. These browsers are Chrome 94+, Edge 94+, Firefox 93+, Safari 15+
 	and Opera 81+. In the rare occasion that you have to support a legacy browser, choose an
 	appropriate target from the TypeScript build options and recompile the sources.
+
+If you're wondering where **django-formset** keeps the styles for all the widgets it provides, then
+here is a short explanation: **django-formset** relies on the styling definitions of the underlying
+CSS framework rather than imposing their own styles on each component shipped with this library.
+These styles are extracted from the existing HTML elements such as ``<input>``, ``<select>``, etc. 
+They then are applied to the custom elements of the web components. This is why this library adopts
+itself to the given CSS framework without the need to provide a dedicated style sheet.

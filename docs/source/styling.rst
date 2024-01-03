@@ -128,7 +128,7 @@ Bootstrap
 Bootstrap is probably the most popular CSS framework nowadays, and **django-formset** offers a
 renderer, which renders all its input fields as proposed by the `Bootstrap's form usage guide`_.
 
-.. _Bootstrap's form usage guide: https://getbootstrap.com/docs/5.2/forms/overview/
+.. _Bootstrap's form usage guide: https://getbootstrap.com/docs/5.3/forms/overview/
 
 In the template from above, we simply replace the templatetag against
 
