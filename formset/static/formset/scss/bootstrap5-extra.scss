@@ -49,6 +49,9 @@ django-formset {
 		background-color: $modal-content-bg;
 		border: $modal-content-border-width solid $modal-content-border-color;
 		border-radius: $modal-content-border-radius;
+		box-shadow: $box-shadow;
+		z-index: 1;
+
 		.dialog-header {
 			display: flex;
 			flex-shrink: 0;
@@ -58,6 +61,11 @@ django-formset {
 			border-bottom: $modal-header-border-width solid $modal-header-border-color;
 			border-top-left-radius: $modal-content-inner-border-radius;
 			border-top-right-radius: $modal-content-inner-border-radius;
+
+			h3 {
+				margin: 0;
+			}
+
 			.modal-title {
 				line-height: $modal-title-line-height;
 				font-weight: bolder;

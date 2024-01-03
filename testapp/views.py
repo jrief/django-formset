@@ -48,6 +48,7 @@ from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import ButtonActionsForm, sample_person_data, ModelPersonForm
 from testapp.forms.phone import PhoneForm
 from testapp.forms.poll import ModelPollForm, PollCollection
+from testapp.forms.profile import ProfileCollection
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.schedule import ScheduleBoxForm, ScheduleCalendarForm, SchedulePickerForm
 from testapp.forms.state import StateForm, StatesForm
@@ -573,6 +574,9 @@ urlpatterns = [
     path('userlist', UserCollectionView.as_view(
         collection_class=UserListCollection
     ), name='userlist'),
+    path('profile', DemoFormCollectionView.as_view(
+        collection_class=ProfileCollection
+    ), name='profile'),
     path('blog', DemoModelFormView.as_view(
         form_class=BlogModelForm,
         model=BlogModel,

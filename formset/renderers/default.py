@@ -110,6 +110,9 @@ class FormRenderer(DjangoTemplates):
         )
         return context
 
+    def _amend_form_dialog(self, context):
+        return context
+
     _context_modifiers = {
         'django/forms/div.html': _amend_form,
         'django/forms/default.html': _amend_form,
@@ -120,6 +123,7 @@ class FormRenderer(DjangoTemplates):
         'formset/default/widgets/button.html': _amend_button,
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/collection.html': _amend_collection,
+        'formset/default/form_dialog.html': _amend_form_dialog,
     }
 
     @classmethod
