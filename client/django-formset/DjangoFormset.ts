@@ -988,7 +988,6 @@ class FormDialog {
 			this.dialogOffsetY = Math.max(pointerY - offsetY, -this.dialogRect!.top);
 			this.dialogOffsetX = Math.min(this.dialogOffsetX, viewport!.width - this.dialogRect!.right);
 			this.dialogOffsetY = Math.min(this.dialogOffsetY, viewport!.height - this.dialogRect!.bottom);
-			console.log(this.dialogOffsetX, this.dialogOffsetY);
 			this.element.style.transform = `translate(${this.dialogOffsetX}px, ${this.dialogOffsetY}px)`;
 		};
 		const handlePointerMove = (pointerMoveEvt: PointerEvent) => {
