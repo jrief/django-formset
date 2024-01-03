@@ -1785,7 +1785,7 @@ export class DjangoFormset {
 				continue;
 			setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
 		}
-		// this.updateOperability();
+		this.updateOperability();
 	}
 
 	public updateOperability() {
