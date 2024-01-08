@@ -2,10 +2,10 @@ import copy
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.forms.utils import ErrorDict, ErrorList
+from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
 from django.utils.functional import cached_property
+from django.utils.safestring import mark_safe
 
-from formset.boundfield import BoundField
 from formset.renderers.default import FormRenderer
 
 MARKED_FOR_REMOVAL = '_marked_for_removal_'
@@ -117,6 +117,8 @@ class FormDecoratorMixin:
 
     def __getitem__(self, name):
         "Returns a modified BoundField for the given field."
+        from formset.boundfield import BoundField
+
         try:
             field = self.fields[name]
         except KeyError:
@@ -157,3 +159,40 @@ class FormMixin(FormDecoratorMixin, HolderMixin):
 
     def get_field(self, field_name):
         return self.fields[field_name]
+
+
+class RenderableButtonMixin(RenderableMixin):
+    """
+    Mixin class to be added to objects of type `Button` if used outside a native Django Form.
+    This is required to render the button without conversion to a `BoundField`.
+    """
+
+    def get_context(self):
+        attrs = {}
+        if self.disabled:
+            attrs['disabled'] = True
+        if '%s' in str(self.auto_id):
+            auto_id = self.auto_id % self._name
+        elif self.auto_id:
+            auto_id = self.auto_id
+        else:
+            auto_id = ''
+        if auto_id:
+            attrs['id'] = auto_id
+            if self.help_text:
+                attrs['aria-describedby'] = f'{auto_id}_help_text'
+        label = self._name.replace('_', ' ').title() if self.label is None else self.label
+        return {
+            'label': label,
+            'widget': {'attrs': attrs, 'type': self.widget.button_type, 'name': self._name},
+        }
+
+    def render(self, template_name=None, context=None, renderer=None):
+        """Render this button as an HTML widget."""
+        renderer = renderer or self.renderer
+        template_name = self.widget.template_name
+        context = context or self.get_context()
+        return mark_safe(renderer.render(template_name, context))
+
+    __str__ = render
+    __html__ = render

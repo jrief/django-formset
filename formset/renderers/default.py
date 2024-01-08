@@ -45,6 +45,7 @@ class FormRenderer(DjangoTemplates):
         return super().get_template(template_name)
 
     def _amend_button(self, context):
+        context['widget']['attrs']['df-click'] = 'activate'
         return context
 
     def _amend_form(self, context):

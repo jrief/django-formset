@@ -37,6 +37,7 @@ class FormRenderer(DefaultFormRenderer):
         return context
 
     def _amend_button(self, context):
+        context = super()._amend_button(context)
         context['widget']['attrs']['class'] = ClassList('btn btn-primary')
         return context
 

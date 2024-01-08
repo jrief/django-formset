@@ -16,7 +16,7 @@ from django.utils.translation import gettext_lazy
 from formset.exceptions import FormCollectionError
 from formset.fields import Button
 from formset.renderers.default import FormRenderer
-from formset.utils import MARKED_FOR_REMOVAL, FormMixin, FormsetErrorList, HolderMixin
+from formset.utils import MARKED_FOR_REMOVAL, FormMixin, FormsetErrorList, HolderMixin, RenderableButtonMixin
 
 COLLECTION_ERRORS = '_collection_errors_'
 
@@ -29,9 +29,11 @@ class FormCollectionMeta(MediaDefiningClass):
         # Collect forms and sub-collections from current class and remove them from attrs.
         attrs['declared_holders'] = {}
         for key, value in list(attrs.items()):
-            if isinstance(value, (BaseForm, BaseFormCollection)):
+            if isinstance(value, (BaseForm, BaseFormCollection, Button)):
                 attrs.pop(key)
                 setattr(value, '_name', key)
+                if isinstance(value, Button) and not isinstance(value, RenderableButtonMixin):
+                    value.__class__ = type(value.__class__.__name__, (RenderableButtonMixin, value.__class__), {})
                 if isinstance(value, BaseForm) and not isinstance(value, FormMixin):
                     value.__class__ = type(value.__class__.__name__, (FormMixin, value.__class__), {})
                     value.error_class = FormsetErrorList
@@ -271,6 +273,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             self.valid_holders = {}
             self._errors = ErrorDict()
             for name, declared_holder in self.declared_holders.items():
+                if not isinstance(declared_holder, (BaseForm, BaseFormCollection)):
+                    continue
                 if name in self.data:
                     instance = self.retrieve_instance(self.data[name])
                     holder = declared_holder.replicate(
@@ -420,7 +424,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
 
     def models_to_list(self, queryset):
         """
-        Create initial data from a queryset. This queryset is traversed recusively and shall be
+        Create initial data from a queryset. This queryset is traversed recursively and shall be
         used to fill the initial data for this collection and all its sub-collections and forms.
 
         Forms and Collections which do not correspond to the model given by the starting instance,
