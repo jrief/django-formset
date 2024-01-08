@@ -4,7 +4,7 @@ import types
 from django.forms.renderers import DjangoTemplates
 from django.utils.html import format_html
 
-from formset.boundfield import ClassList
+from formset.renderers import ClassList
 
 
 class FormRenderer(DjangoTemplates):
