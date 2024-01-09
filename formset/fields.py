@@ -2,8 +2,8 @@ from django.core import checks
 from django.db.models.fields.related import ManyToManyField
 from django.forms import fields
 
-from formset.widgets import ButtonWidget, DualSortableSelector
 from formset.utils import HolderMixin
+from formset.widgets import ButtonWidget, DualSortableSelector
 
 
 class Button(HolderMixin, fields.Field):
