@@ -69,6 +69,12 @@ class FormRenderer(DefaultFormRenderer):
         )
         return context
 
+    def _amend_detached_field(self, context):
+        context.update(
+            help_text_template='formset/bootstrap/help_text.html',
+        )
+        return context
+
     def _amend_collection(self, context):
         context = super()._amend_collection(context)
         context.update(
@@ -103,6 +109,7 @@ class FormRenderer(DefaultFormRenderer):
         'formset/default/widgets/country_selectize.html': _amend_select,
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,
         'formset/default/fieldset.html': _amend_fieldset,
+        'formset/default/detached_field.html': _amend_detached_field,
         'formset/default/collection.html': _amend_collection,
         'formset/default/form_dialog.html': _amend_form_dialog,
         'formset/default/widgets/richtextarea.html': _amend_input,

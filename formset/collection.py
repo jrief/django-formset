@@ -16,7 +16,7 @@ from django.utils.translation import gettext_lazy
 from formset.exceptions import FormCollectionError
 from formset.fields import Button
 from formset.renderers.default import FormRenderer
-from formset.utils import MARKED_FOR_REMOVAL, FormMixin, FormsetErrorList, HolderMixin, RenderableButtonMixin
+from formset.utils import FormMixin, FormsetErrorList, HolderMixin, MARKED_FOR_REMOVAL, RenderableDetachedFieldMixin
 
 COLLECTION_ERRORS = '_collection_errors_'
 
@@ -32,10 +32,18 @@ class FormCollectionMeta(MediaDefiningClass):
             if isinstance(value, (BaseForm, BaseFormCollection, Button)):
                 attrs.pop(key)
                 setattr(value, '_name', key)
-                if isinstance(value, Button) and not isinstance(value, RenderableButtonMixin):
-                    value.__class__ = type(value.__class__.__name__, (RenderableButtonMixin, value.__class__), {})
+                if isinstance(value, Button) and not isinstance(value, RenderableDetachedFieldMixin):
+                    value.__class__ = type(
+                        value.__class__.__name__,
+                        (RenderableDetachedFieldMixin, value.__class__),
+                        {}
+                    )
                 if isinstance(value, BaseForm) and not isinstance(value, FormMixin):
-                    value.__class__ = type(value.__class__.__name__, (FormMixin, value.__class__), {})
+                    value.__class__ = type(
+                        value.__class__.__name__,
+                        (FormMixin, value.__class__),
+                        {}
+                    )
                     value.error_class = FormsetErrorList
                 attrs['declared_holders'][key] = value
 
@@ -231,7 +239,6 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             self.full_clean()
             self.validate_siblings_count()
         return is_valid(self._errors)
-
 
     def full_clean(self):
         if self.has_many:

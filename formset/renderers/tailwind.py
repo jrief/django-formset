@@ -79,8 +79,19 @@ class FormRenderer(DefaultFormRenderer):
     def _amend_radio(self, context):
         return self._amend_multiple_input(context, 'formset-radio-select')
 
+    def _amend_button(self, context):
+        context = super()._amend_button(context)
+        context['widget']['attrs']['class'] = ClassList('formset-button-default')
+        return context
+
     def _amend_fieldset(self, context):
         context = super()._amend_fieldset(context)
+        context.update(
+            help_text_template='formset/tailwind/help_text.html',
+        )
+        return context
+
+    def _amend_detached_field(self, context):
         context.update(
             help_text_template='formset/tailwind/help_text.html',
         )
@@ -107,11 +118,13 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox.html': _amend_checkbox,
         'django/forms/widgets/checkbox_select.html': _amend_checkbox_select,
         'django/forms/widgets/radio.html': _amend_radio,
+        'formset/default/widgets/button.html': _amend_button,
         'formset/default/widgets/datepicker.html': _amend_date_input,
         'formset/default/widgets/datetimepicker.html': _amend_date_input,
         'formset/default/widgets/selectize.html': _amend_select,
         'formset/default/widgets/country_selectize.html': _amend_select,
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,
+        'formset/default/detached_field.html': _amend_detached_field,
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/collection.html': _amend_collection,
         'formset/default/widgets/richtextarea.html': _amend_textarea,

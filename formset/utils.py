@@ -161,14 +161,25 @@ class FormMixin(FormDecoratorMixin, HolderMixin):
         return self.fields[field_name]
 
 
-class RenderableButtonMixin(RenderableMixin):
+class RenderableDetachedFieldMixin(RenderableMixin):
     """
-    Mixin class to be added to objects of type `Button` if used outside a native Django Form.
-    This is required to render the button without conversion to a `BoundField`.
+    Mixin class to be added to detached fields, if used outside a native Django Form.
+    This is required to render a field without converting it to a `BoundField`.
     """
 
     def get_context(self):
-        attrs = {}
+        return {
+            'field': self,
+        }
+
+    def as_widget(self, widget=None, attrs=None, only_initial=False):
+        """
+        Render the field by rendering the passed widget, adding any HTML
+        attributes passed as attrs. If a widget isn't specified, use the
+        field's default widget.
+        """
+        widget = widget or self.widget
+        attrs = attrs or {}
         if self.disabled:
             attrs['disabled'] = True
         if '%s' in str(self.auto_id):
@@ -181,16 +192,18 @@ class RenderableButtonMixin(RenderableMixin):
             attrs['id'] = auto_id
             if self.help_text:
                 attrs['aria-describedby'] = f'{auto_id}_help_text'
-        label = self._name.replace('_', ' ').title() if self.label is None else self.label
-        return {
-            'label': label,
-            'widget': {'attrs': attrs, 'type': self.widget.button_type, 'name': self._name},
-        }
+        attrs['label'] = self._name.replace('_', ' ').title() if self.label is None else self.label
+        return widget.render(
+            name=self._name,
+            value=None,
+            attrs=attrs,
+            renderer=self.renderer,
+        )
 
     def render(self, template_name=None, context=None, renderer=None):
-        """Render this button as an HTML widget."""
+        """Render this detached field as HTML widget."""
         renderer = renderer or self.renderer
-        template_name = self.widget.template_name
+        template_name = template_name or 'formset/default/detached_field.html'
         context = context or self.get_context()
         return mark_safe(renderer.render(template_name, context))
 

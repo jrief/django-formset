@@ -1,0 +1,4 @@
+{{ field.as_widget }}
+{% with help_text=field.help_text %}
+{% if help_text %}{% include help_text_template %}{% endif %}
+{% endwith %}

@@ -101,6 +101,12 @@ class FormRenderer(DjangoTemplates):
         )
         return context
 
+    def _amend_detached_field(self, context):
+        context.update(
+            help_text_template='formset/default/help_text.html',
+        )
+        return context
+
     def _amend_collection(self, context):
         context.update(
             add_collection_button='formset/default/buttons/add_collection.html',
@@ -123,6 +129,7 @@ class FormRenderer(DjangoTemplates):
         'django/forms/widgets/radio.html': _amend_multiple_input,
         'formset/default/widgets/button.html': _amend_button,
         'formset/default/fieldset.html': _amend_fieldset,
+        'formset/default/detached_field.html': _amend_detached_field,
         'formset/default/collection.html': _amend_collection,
         'formset/default/form_dialog.html': _amend_form_dialog,
     }
