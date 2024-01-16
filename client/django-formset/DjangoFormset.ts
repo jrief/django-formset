@@ -181,7 +181,7 @@ class FieldGroup {
 		}
 	}
 
-	public updateOperability() {
+	public updateOperability(action?: string) {
 		this.updateVisibility();
 		this.updateDisabled();
 	}
@@ -292,9 +292,12 @@ class FieldGroup {
 		this.element.classList.add('dj-touched');
 	}
 
-	private untouch() {
+	public untouch() {
 		this.element.classList.remove('dj-submitted', 'dj-touched');
 		this.element.classList.add('dj-untouched');
+		if (this.errorPlaceholder) {
+			this.errorPlaceholder.innerHTML = '';
+		}
 	}
 
 	private setDirty() {
@@ -302,7 +305,7 @@ class FieldGroup {
 		this.element.classList.add('dj-dirty');
 	}
 
-	private setPristine() {
+	public setPristine() {
 		this.element.classList.remove('dj-dirty');
 		this.element.classList.add('dj-pristine');
 	}
@@ -767,9 +770,9 @@ class DjangoButton {
 	/**
 	 * Action to activate a button so that it can be used
  	 */
-	private activate() {
+	private activate(action?: string) {
 		return (response: Response) => {
-			this.formset.updateOperability();
+			this.formset.updateOperability(action);
 			return Promise.resolve(response);
 		}
 	}
@@ -892,7 +895,7 @@ class DjangoFieldset {
 		return this.form.getDataValue(path);
 	}
 
-	public updateOperability() {
+	public updateOperability(action?: string) {
 		this.updateVisibility();
 		this.updateDisabled();
 	}
@@ -904,7 +907,8 @@ class FormDialog {
 	private readonly element: HTMLDialogElement;
 	private readonly dialogHeaderElement: HTMLElement | null;
 	private readonly formElement: HTMLFormElement;
-	private readonly opener: Function;
+	private readonly induceOpen: Function;
+	private readonly induceClose: Function;
 	private readonly baseSelector = 'dialog[is="django-dialog-form"]';
 	private dialogRect: DOMRect | null = null;
 	private dialogOffsetX: number = 0;
@@ -916,66 +920,56 @@ class FormDialog {
 		this.formElement = this.element.querySelector('form[method="dialog"]')!;
 		if (!this.formElement)
 			throw new Error(`${this} requires child <form method="dialog">`);
-		this.opener = this.evalOpener();
 		this.dialogHeaderElement = this.element.querySelector('.dialog-header');
 		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
 			this.transferStyles();
 		}
+		this.induceOpen = this.evalInducer('df-induce-open', this.openDialog);
+		this.induceClose = this.evalInducer('df-induce-close', this.closeDialog);
 	}
 
-	private evalOpener(): Function {
-		const attrValue = this.element?.getAttribute('df-open-condition');
-		if (typeof attrValue !== 'string')
+	private evalInducer(attr: string, inducer: Function) : Function {
+		const attrValue = this.element?.getAttribute(attr);
+		if (typeof attrValue != 'string')
 			return () => {};
 		try {
-			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'Expression'})}`);
-			return () => {
+			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'InduceExpression'})}`);
+			return (action?: string) => {
 				if (evalExpression.call(this)) {
-					this.openDialog();
+					inducer(action);
 				}
 			};
 		} catch (error) {
-			throw new Error(`Error while parsing <dialog df-open-condition="${attrValue}">: ${error}.`);
+			throw new Error(`Error while parsing <dialog ${attr}="${attrValue}">: ${error}.`);
 		}
-	}
-
-	private handleCloseButton() {
-		const closeButton = this.formElement.elements.namedItem('close');
-		if (!(closeButton instanceof HTMLButtonElement))
-			return;
-		closeButton.addEventListener('click', () => {
-			this.element.close('close')
-		}, {once: true});
-	}
-
-	private handleSaveButton() {
-		const saveButton = this.formElement.elements.namedItem('save');
-		if (!(saveButton instanceof HTMLButtonElement))
-			return;
-		saveButton.addEventListener('click', () => {
-			if (this.formElement.checkValidity()) {
-				this.element.close('save');
-			}
-		});
 	}
 
 	private openDialog = () => {
 		if (this.element.open)
 			return;
-		this.handleCloseButton();
-		this.handleSaveButton();
+		this.form.setPristine();
+		this.form.untouch();
 		this.element.show();
-		this.element.addEventListener('close', this.closeDialog, {once: true});
-		if (this.dialogHeaderElement) {
-			this.dialogOffsetX = this.dialogOffsetY = 0;
+		if (this.dialogHeaderElement && !this.dialogRect) {
 			this.dialogRect = this.element.getBoundingClientRect();
 			this.dialogHeaderElement.addEventListener('pointerdown', this.handlePointerDown);
 			this.dialogHeaderElement.addEventListener('touchstart', this.handlePointerDown);
 		}
 	};
 
-	private closeDialog = () => {
-		this.element.close();
+	private closeDialog = (action: string) => {
+		switch (action) {
+			case 'save':
+				if (this.form.isValid()) {
+					this.element.close(action);
+				}
+				break;
+			case 'close':
+				this.element.close(action);
+				break;
+			default:
+				break;
+		}
 	};
 
 	private handlePointerDown = (event: PointerEvent | TouchEvent) => {
@@ -1031,13 +1025,14 @@ class FormDialog {
 		return this.form.getDataValue(path);
 	}
 
-	private getActiveButton(path: Array<string>, action: string) : boolean {
+	private isButtonActive(path: Array<string>, action: string): boolean {
 		const button = this.form.formset.buttons.find(button => isEqual(button.path, path));
-		return button?.element === document.activeElement;
+		return action === 'active' && button?.element === document.activeElement;
 	}
 
-	public updateOperability() {
-		this.opener();
+	public updateOperability(action?: string) {
+		this.induceOpen(action);
+		this.induceClose(action);
 	}
 }
 
@@ -1110,10 +1105,10 @@ class DjangoForm {
 		return this.formset.getDataValue(absPath);
 	}
 
-	public updateOperability() {
-		this.fieldset?.updateOperability();
-		this.fieldGroups.forEach(fieldGroup => fieldGroup.updateOperability());
-		this.parentDialog?.updateOperability();
+	public updateOperability(action?: string) {
+		this.fieldset?.updateOperability(action);
+		this.fieldGroups.forEach(fieldGroup => fieldGroup.updateOperability(action));
+		this.parentDialog?.updateOperability(action);
 	}
 
 	setSubmitted() {
@@ -1206,6 +1201,14 @@ class DjangoForm {
 				return fieldGroup.element;
 		}
 		return null;
+	}
+
+	public untouch() {
+		this.fieldGroups.forEach(group => group.untouch());
+	}
+
+	public setPristine() {
+		this.fieldGroups.forEach(group => group.setPristine());
 	}
 
 	public get isPristine() : boolean {
@@ -1788,11 +1791,11 @@ export class DjangoFormset {
 		this.updateOperability();
 	}
 
-	public updateOperability() {
+	public updateOperability(action?: string) {
 		for (const form of this.forms) {
 			if (form.markedForRemoval)
 				continue;
-			form.updateOperability();
+			form.updateOperability(action);
 		}
 	}
 

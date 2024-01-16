@@ -21,16 +21,26 @@ from formset.calendar import CalendarRenderer
 class ButtonWidget(Widget):
     template_name = 'formset/default/widgets/button.html'
     button_type = 'button'
+    action = None
+    button_variant = None
+
+    def __init__(self, attrs=None, action=None, button_variant=None):
+        if action:
+            self.action = action
+        if button_variant:
+            self.button_variant = button_variant
+        super().__init__(attrs)
 
     def build_attrs(self, base_attrs, extra_attrs=None):
         attrs = super().build_attrs(base_attrs, extra_attrs)
-        attrs['df-click'] = 'activate'
+        attrs['df-click'] = self.action if self.action else 'activate'
         return attrs
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
         context['label'] = context['widget']['attrs'].pop('label', None)  # for buttons, the label is the value
         context['widget']['type'] = self.button_type
+        context['widget']['variant'] = self.button_variant
         return context
 
 

@@ -44,10 +44,6 @@ class FormRenderer(DjangoTemplates):
         template_name = self._template_mapping.get(template_name, template_name)
         return super().get_template(template_name)
 
-    def _amend_button(self, context):
-        context['widget']['attrs']['df-click'] = 'activate'
-        return context
-
     def _amend_form(self, context):
         context.update(
             control_css_classes=self.control_css_classes,
@@ -127,7 +123,6 @@ class FormRenderer(DjangoTemplates):
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
-        'formset/default/widgets/button.html': _amend_button,
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/detached_field.html': _amend_detached_field,
         'formset/default/collection.html': _amend_collection,

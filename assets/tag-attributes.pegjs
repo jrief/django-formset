@@ -1,14 +1,12 @@
-// PEG rules to create parser for <button click="..."> action chain
+// PEG rules to create parser for various HTML attributes used by django-formset
 // Build file `client/components/django-formset/actions.ts` using `npm run pegjs`
 
 // ----- A. Expression -----
-// The starting rule for `<div role="group" df-show="..."` and `df-hide="..."`.
+// The starting rule for `<ANY df-show="..."` …>`, `<ANY df-hide="..." …>` or `<ANY df-disable="..." …>`.
 
 Expression
   = _ head:Factor _ tail:(_ Operator _ Expression)* _ {
-      return tail.reduce(function(result, element) {
-          return result + element[1] + element[3];
-      }, head);
+      return tail.reduce((result, element) => result + element[1] + element[3], head);
   }
   / _ { return 'false'; }
 
@@ -34,28 +32,41 @@ UnaryOperator
   = "!"
 
 Factor
-  = "(" _ expr:Expression _ ")" { return '(' + expr + ')'; }
-  / number
-  / boolean
-  / getActiveButton
+  = "(" _ expr:Expression _ ")" { return `(${expr})`; }
   / getDataValue
-  / s:string { return '\'' + s + '\''; }
-
-getActiveButton
-  = path:PATH ":" action:VARIABLE {
-      const parts = path.split('.').map(part => '\'' + part + '\'');
-      return 'this.getActiveButton([' + parts.join(',') + '],\'' + action + '\')';
-  }
+  / scalar
 
 getDataValue
   = path:PATH {
-      const parts = path.split('.').map(part => '\'' + part + '\'');
-      return 'this.getDataValue([' + parts.join(',') + '])';
+      const parts = path.split('.').map(part => `'${part}'`);
+      return `this.getDataValue([${parts.join(',')}])`;
   }
 
 
-// ----- B. Actions -----
-// The starting rule for <button `df-click="..."` ...>.
+// ----- B. InduceExpression -----
+// The starting rule for `<ANY df-induce="..."` …>`.
+
+InduceExpression
+  = _ head:InduceFactor _ tail:(_ Operator _ InduceExpression)* _ {
+      return tail.reduce((result, element) => result + element[1] + element[3], head);
+  }
+  / _ { return 'false'; }
+
+InduceFactor
+  = "(" _ expr:InduceExpression _ ")" { return `(${expr})`; }
+  / isButtonActive
+  / getDataValue
+  / scalar
+
+isButtonActive
+  = path:PATH ":" action:VARIABLE {
+      const parts = path.split('.').map(part => `'${part}'`);
+      return `this.isButtonActive([${parts.join(',')}],'${action}')`;
+  }
+
+
+// ----- C. Actions -----
+// The starting rule for <button `df-click="..."` …>.
 
 Actions
   = successChain:chain _ '!~' _ rejectChain:chain _
@@ -76,6 +87,11 @@ function
   { return { funcname: funcname, args: [] } }
   / funcname:$keystring
   { return { funcname: funcname, args: [] } }
+
+scalar
+  = number
+  / boolean
+  / s:string { return `'${s}'`; }
 
 arglist
   = lhs:argument _ ',' _ rhs:arglist

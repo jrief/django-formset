@@ -1,6 +1,6 @@
 from django.utils.html import format_html
 
-from formset.renderers import ClassList
+from formset.renderers import ClassList, ButtonVariant
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
 
 
@@ -37,8 +37,10 @@ class FormRenderer(DefaultFormRenderer):
         return context
 
     def _amend_button(self, context):
-        context = super()._amend_button(context)
-        context['widget']['attrs']['class'] = ClassList('btn btn-primary')
+        variant = context['widget']['variant']
+        if not isinstance(variant, ButtonVariant):
+            variant = 'outline-secondary'
+        context['widget']['attrs']['class'] = ClassList(f'btn btn-{variant}')
         return context
 
     def _amend_dual_selector(self, context):

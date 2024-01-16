@@ -1,3 +1,6 @@
+from enum import StrEnum, auto
+
+
 class ClassList(set):
     """
     Inspired by JavaScript's classlist on HTMLElement
@@ -43,3 +46,12 @@ class ClassList(set):
 
     __str__ = render
     __html__ = render
+
+
+class ButtonVariant(StrEnum):
+    PRIMARY = auto()
+    SECONDARY = auto()
+    SUCCESS = auto()
+    DANGER = auto()
+    WARNING = auto()
+    INFO = auto()
