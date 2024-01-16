@@ -104,7 +104,6 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         if extra_siblings is not None:
             self.extra_siblings = extra_siblings
         if self.has_many:
-            self.full_clean = self._full_clean_many
             if self.min_siblings is None:
                 self.min_siblings = 1
             if self.extra_siblings is None:
@@ -113,7 +112,6 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 self.is_sortable = is_sortable
             self.fresh_and_empty = False
         else:
-            self.full_clean = self._full_clean_single
             self.is_sortable = False
         if legend is not None:
             self.legend = legend
@@ -242,65 +240,63 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             self.validate_siblings_count()
         return is_valid(self._errors)
 
-    def _full_clean_single(self):
-        assert not self.has_many, "Method `_full_clean_single()` can be applied only on a single form collection"
-        self.valid_holders = {}
-        self._errors = ErrorDict()
-        for name, declared_holder in self.declared_holders.items():
-            if not isinstance(declared_holder, (BaseForm, BaseFormCollection)):
-                # TODO: Button can have a value and could be validated since it is a field
-                continue
-            if name in self.data:
-                instance = self.retrieve_instance(self.data[name])
-                holder = declared_holder.replicate(
-                    data=self.data[name],
-                    initial=self.initial.get(name, declared_holder.initial) if self.initial else None,
-                    instance=instance,
-                    ignore_marked_for_removal=self.ignore_marked_for_removal,
-                )
-                if holder.is_valid():
-                    self.valid_holders[name] = holder
-                self._errors[name] = holder._errors
-            else:
-                # can only happen, if client bypasses browser control
-                self._errors[name] = {NON_FIELD_ERRORS: ["Form data is missing."]}
-
-    def _full_clean_many(self):
-        assert self.has_many, "Method `_full_clean_many()` can be applied only on a collection with siblings"
-        self.valid_holders = []
-        self._errors = ErrorList()
-        for index, data in enumerate(self.data):
-            if data is None:
-                continue
-            initial = self.initial[index] if self.initial and index < len(self.initial) else None
-            instance = self.retrieve_instance(data)
-            valid_holders = {}
-            errors = ErrorDict()
+    def full_clean(self):
+        if self.has_many:
+            self.valid_holders = []
+            self._errors = ErrorList()
+            for index, data in enumerate(self.data):
+                if data is None:
+                    continue
+                initial = self.initial[index] if self.initial and index < len(self.initial) else None
+                instance = self.retrieve_instance(data)
+                valid_holders = {}
+                errors = ErrorDict()
+                for name, declared_holder in self.declared_holders.items():
+                    if name in data:
+                        holder = declared_holder.replicate(
+                            data=data[name],
+                            initial=initial.get(name, declared_holder.initial) if initial else None,
+                            instance=instance,
+                            ignore_marked_for_removal=self.ignore_marked_for_removal,
+                        )
+                        if MARKED_FOR_REMOVAL in holder.data:
+                            if holder.ignore_marked_for_removal:
+                                break
+                            if getattr(holder, 'has_many', False):
+                                holder.marked_for_removal = True
+                            elif self.has_many:
+                                self.marked_for_removal = True
+                        if holder.is_valid():
+                            valid_holders[name] = holder
+                        errors[name] = holder._errors
+                    else:
+                        # can only happen, if client bypasses browser control
+                        errors[name] = {NON_FIELD_ERRORS: ["Form data is missing."]}
+                else:
+                    self.valid_holders.append(valid_holders)
+                    self._errors.append(errors)
+            self.validate_unique()
+        else:
+            self.valid_holders = {}
+            self._errors = ErrorDict()
             for name, declared_holder in self.declared_holders.items():
-                if name in data:
+                if not isinstance(declared_holder, (BaseForm, BaseFormCollection)):
+                    # TODO: Button can have a value and could be validated since it is a field
+                    continue
+                if name in self.data:
+                    instance = self.retrieve_instance(self.data[name])
                     holder = declared_holder.replicate(
-                        data=data[name],
-                        initial=initial.get(name, declared_holder.initial) if initial else None,
+                        data=self.data[name],
+                        initial=self.initial.get(name, declared_holder.initial) if self.initial else None,
                         instance=instance,
                         ignore_marked_for_removal=self.ignore_marked_for_removal,
                     )
-                    if MARKED_FOR_REMOVAL in holder.data:
-                        if holder.ignore_marked_for_removal:
-                            break
-                        if getattr(holder, 'has_many', False):
-                            holder.marked_for_removal = True
-                        elif self.has_many:
-                            self.marked_for_removal = True
                     if holder.is_valid():
-                        valid_holders[name] = holder
-                    errors[name] = holder._errors
+                        self.valid_holders[name] = holder
+                    self._errors[name] = holder._errors
                 else:
                     # can only happen, if client bypasses browser control
-                    errors[name] = {NON_FIELD_ERRORS: ["Form data is missing."]}
-            else:
-                self.valid_holders.append(valid_holders)
-                self._errors.append(errors)
-        self.validate_unique()
+                    self._errors[name] = {NON_FIELD_ERRORS: ["Form data is missing."]}
 
     def validate_unique(self):
         if DJANGO_VERSION < (4, 1):
