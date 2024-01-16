@@ -1,4 +1,11 @@
-from enum import StrEnum, auto
+from enum import auto
+try:
+    from enum import StrEnum
+except ImportError:
+    from enum import Enum
+
+    class StrEnum(str, Enum):
+        pass
 
 
 class ClassList(set):
