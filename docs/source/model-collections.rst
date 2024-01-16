@@ -39,9 +39,9 @@ against a customized implementation, instead we must extend it using a `one-to-o
 In a typical application we might want to edit this model together with the default ``User`` model.
 If we do this in the Django admin, we have to create an `InlineModelAdmin`_ with exactly one extra
 form in the formset. This however implies that our model ``ExtendUser`` has a foreign relation
-with the ``User`` model rather than a one-to-one relation [#f1]_ . In **django-formset** we can handle
-this  by declaring one ``ModelForm`` for ``User`` and ``ExtendUser`` each, and then group those two
-forms into one ``FormCollection``.
+with the ``User`` model rather than a one-to-one relation [#f1]_ . In **django-formset** we can
+handle this by declaring one ``ModelForm`` for ``User`` and ``ExtendUser`` each, and then group
+those two forms into one ``FormCollection``.
 
 .. django-view:: user_collection
 	:hide-view:
@@ -90,7 +90,7 @@ Django ``Form`` can implement two methods, ``model_to_dict(…)`` and ``construc
 
 This method creates the initial data for a form starting from ``main_object`` as reference. It is
 inspired by the Django global function ``model_to_dict(instance, fields=None, exclude=None)`` which
-returns a dict containing the data in argument ``instance`` suitable for passing as a form's
+returns a Python dict containing the data in argument ``instance`` suitable for passing as a form's
 ``initial`` keyword argument.
 
 The ``main_object`` is determined by the view (inheriting from
