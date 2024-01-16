@@ -1,4 +1,5 @@
 from enum import auto
+
 try:
     from enum import StrEnum
 except ImportError:
