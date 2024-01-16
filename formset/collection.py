@@ -16,7 +16,7 @@ from django.utils.translation import gettext_lazy
 from formset.exceptions import FormCollectionError
 from formset.fields import Button
 from formset.renderers.default import FormRenderer
-from formset.utils import FormMixin, FormsetErrorList, HolderMixin, MARKED_FOR_REMOVAL, RenderableDetachedFieldMixin
+from formset.utils import MARKED_FOR_REMOVAL, FormMixin, FormsetErrorList, HolderMixin, RenderableDetachedFieldMixin
 
 COLLECTION_ERRORS = '_collection_errors_'
 
