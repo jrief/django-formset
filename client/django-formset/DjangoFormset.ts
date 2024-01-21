@@ -959,13 +959,16 @@ class FormDialog {
 
 	private closeDialog = (action: string) => {
 		switch (action) {
-			case 'save':
+			case 'apply':
 				if (this.form.isValid()) {
 					this.element.close(action);
 				}
 				break;
 			case 'close':
 				this.element.close(action);
+				break;
+			case 'reset':
+				this.form.resetToInitial();
 				break;
 			default:
 				break;
