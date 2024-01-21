@@ -106,7 +106,8 @@ Comparison with SelectizeMultiple
 
 The **DualSelector** widget can be considered as the big sibling of the :ref:`selectize-multiple`.
 Both widgets use the same lookup interface and hence can arbitrarily be swapped out against each
-other, by changing the widget argument in the choice field. 
+other, by either changing the widget argument in the choice field or by replacing the widget using
+the form's ``Meta`` class.
 
 From a usability point of view, the **SelectizeMultiple** widget probably is easier to understand,
 especially for inexperienced users. It is best suited when only a few options (say, less than 15)
