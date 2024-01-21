@@ -5,7 +5,7 @@
 	{{ field }}
 	{{ field.errors }}
 	{% with help_text=field.help_text %}
-	{% if help_text %}<span class="form-text text-muted">{{ help_text }}</span>{% endif %}
+	{% if help_text %}{% include "./help_text.html" %}{% endif %}
 	{% endwith %}
 	{% if control_css_classes %}</div>{% endif %}
 </div>

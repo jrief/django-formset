@@ -4,7 +4,7 @@
 	{{ field }}
 	{{ field.errors }}
 	{% with help_text=field.help_text %}
-	{% if help_text %}<span class="dj-help-text">{{ help_text }}</span>{% endif %}
+	{% if help_text %}{% include "./help_text.html" %}{% endif %}
 	{% endwith %}
 </div>
 {% endspaceless %}
