@@ -1,4 +1,4 @@
-# django-formset – Better UX for Django Forms 
+# django-formset – Better User Experience for Django Forms 
 
 This library handles single forms and collections of forms with a way better user experience than
 the internal Django implementation for
@@ -19,7 +19,7 @@ from django.forms import fields, forms
 
 class AddressForm(forms.Form):
     recipient = fields.CharField(label="Recipient")
-    postal_code = fields.CharField("Postal Code")
+    postal_code = fields.CharField(label="Postal Code")
     city = fields.CharField(label="City")
 ```
 
@@ -76,7 +76,7 @@ and radio selects, even with multiple option groups:
 
 Uploading files is performed asynchronously, separating the payload upload from its form submission.
 It provides a drag-and-drop widget plus a file select button. This allows to preview uploaded files
-before form submission. It also make the submission much faster, because the file is already in a
+before form submission. It also makes the submission much faster, because the file is already in a
 temporary location on the server.
 
 | Empty file upload                         | Pending file upload                 |
@@ -113,10 +113,10 @@ Similar widgets can be found in the Django admin to make many-to-many relations 
 
 ## Button actions
 
-In **django-formset**, the button used for submission can hold a chain of actions. This for instance
-allows to disable the button, and/or add a spinning wheel while submitting data. It also is possible
-to specify the success page as a HTML link, rather than having it to hard-code inside the Django
-view. There is a complete set of predefined actions to select from, when designing the submit
+In **django-formset**, the button used for submission can hold a *chain of actions*. This for
+instance allows to disable the button, and/or add a spinning wheel while submitting data. It also is
+possible to specify the success page as an HTML link, rather than having it to hard-code inside the
+Django view. There is a complete set of predefined actions to select from, when designing the submit
 button.
 
 ![Button Actions (Bootstrap)](readmeimg/bootstrap-actions.gif)
@@ -164,6 +164,19 @@ By adding the special attributes `df-show="condition"`, `df-hide="condition"` or
 `df-disable="condition"` on an input fields or on a fieldsets, one can hide or disable these marked
 fields. This `condition` can be any expression evaluating the current field values of the formset.
 
+## Alternative Widgets
+
+**django-formset** provides alternative widgets for many fields provided by Django. For instance:
+
+### Widgets for Django's `DateField`
+
+Modern browsers provide a built-in date picker, which now can be used instead of the default
+`<input type="text">` widget. In addition to that, **django-formset** provides custom web components
+which adopt themselves to the chosen CSS framework. This allows to render the date picker in the
+same style as the rest of the form.
+
+
+
 
 ## How does this all work?
 
@@ -179,7 +192,7 @@ The JavaScript part (actually TypeScript) making up that webcomponent then handl
 validation, its submission, instantiation or removal of collection siblings, etc.
 
 Some of the widgets described above (select with autocomplete, file upload) also require JavaScript
-code. The client side functionality of those widgets is also is handled by that webcomponent.
+code. The client side functionality of those widgets also is handled by that webcomponent.
 Widgets which require autocompletion use the same endpoint as that webcomponent itself. So there is
 no need to add extra endpoints to the URL router.
 
@@ -202,13 +215,8 @@ The form classes can be reused unaltered, except for replacing the widgets if de
 
 ## Reference Documentation
 
-Reference documentation can be found on
-[Read The Docs](https://django-formset.readthedocs.io/en/latest/index.html).
-
-
-## Demo
-
-A [demo](https://django-formset.fly.dev/) showing all combinations of fields.
+Reference documentation with interactive samples can be found at
+[https://django-formset.fly.dev/](https://django-formset.fly.dev/).
 
 
 ## Motivation
@@ -236,7 +244,7 @@ possible to the way Django handles forms, models and views.**
 * Server side validation errors are sent back to the browser, and rendered near the offending
   form field.
 * Non-field validation errors are renderer together with the form.
-* CSRF-tokens are handled through a HTTP-Header, hence there is no need to add a hidden input field
+* CSRF-tokens are handled through an HTTP-Header, hence there is no need to add a hidden input field
   to each form.
 * Forms can be rendered for different CSS frameworks using their specific style-guides for arranging
   HTML. Curently **django-formset** includes renderers for:
@@ -265,5 +273,5 @@ possible to the way Django handles forms, models and views.**
 * Form fields or fieldsets can be hidden or disabled using a Boolean expression as condition.
 
 [^1]: Tailwind is special here, since it doesn't include purpose-built form control classes out of
-      the box. Instead **django-formset** offers an opinionated set of CSS classes suitable for
+      the box. Instead, **django-formset** offers an opinionated set of CSS classes suitable for
       Tailwind.

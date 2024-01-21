@@ -22,12 +22,13 @@ CLASSIFIERS = [
     'Framework :: Django :: 4.0',
     'Framework :: Django :: 4.1',
     'Framework :: Django :: 4.2',
+    'Framework :: Django :: 5.0',
 ]
 
 setup(
     name='django-formset',
     version=__version__,
-    description='Prevalidate Django Forms in the browser',
+    description='The missing widgets and form manipulation library for Django',
     author='Jacob Rief',
     author_email='jacob.rief@gmail.com',
     url='https://github.com/jrief/django-formset',
