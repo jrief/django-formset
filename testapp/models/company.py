@@ -5,6 +5,7 @@ class Company(models.Model):
     name = models.CharField(
         verbose_name="Company name",
         max_length=50,
+        help_text="The name of the company",
     )
 
     created_by = models.CharField(
@@ -26,6 +27,7 @@ class Department(models.Model):
     name = models.CharField(
         verbose_name="Department name",
         max_length=50,
+        help_text="The name of the department",
     )
 
     company = models.ForeignKey(
@@ -47,6 +49,7 @@ class Team(models.Model):
     name = models.CharField(
         verbose_name="Team name",
         max_length=50,
+        help_text="The name of the team",
     )
 
     department = models.ForeignKey(
