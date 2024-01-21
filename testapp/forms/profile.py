@@ -2,14 +2,14 @@ from django.forms import fields, forms
 
 from formset.collection import FormCollection
 from formset.dialog import DialogForm
-from formset.fields import Button
+from formset.fields import Activator
 from formset.renderers import ButtonVariant
-from formset.widgets import ButtonWidget, UploadedFileInput
+from formset.widgets import Button, UploadedFileInput
 
 
 class UserNameForm(forms.Form):
     username = fields.CharField()
-    edit_profile = Button(
+    edit_profile = Activator(
         label="Edit my Profile",
         help_text="Open the dialog to edit the profile",
     )
@@ -32,16 +32,16 @@ class ProfileForm(DialogForm):
         required=False,
         widget=UploadedFileInput,
     )
-    dismiss = Button(
+    dismiss = Activator(
         label="Close",
-        widget=ButtonWidget(
+        widget=Button(
             action='activate("close")',
         ),
     )
-    submit = Button(
+    submit = Activator(
         label="Save",
-        widget=ButtonWidget(
-            action='activate("save")',
+        widget=Button(
+            action='activate("apply")',
             button_variant=ButtonVariant.PRIMARY,
         ),
     )
@@ -51,7 +51,7 @@ class ProfileCollection(FormCollection):
     legend = "Collection with Dialog Form"
     customer = UserNameForm()
 
-    extra_profile = Button(
+    extra_profile = Activator(
         label="Extra Profile Button",
         help_text="Open the dialog to edit the profile",
     )

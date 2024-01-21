@@ -14,7 +14,7 @@ from django.utils.text import get_text_list
 from django.utils.translation import gettext_lazy
 
 from formset.exceptions import FormCollectionError
-from formset.fields import Button
+from formset.fields import Activator
 from formset.renderers.default import FormRenderer
 from formset.utils import MARKED_FOR_REMOVAL, FormMixin, FormsetErrorList, HolderMixin, RenderableDetachedFieldMixin
 
@@ -29,10 +29,10 @@ class FormCollectionMeta(MediaDefiningClass):
         # Collect forms and sub-collections from current class and remove them from attrs.
         attrs['declared_holders'] = {}
         for key, value in list(attrs.items()):
-            if isinstance(value, (BaseForm, BaseFormCollection, Button)):
+            if isinstance(value, (BaseForm, BaseFormCollection, Activator)):
                 attrs.pop(key)
                 setattr(value, '_name', key)
-                if isinstance(value, Button) and not isinstance(value, RenderableDetachedFieldMixin):
+                if isinstance(value, Activator) and not isinstance(value, RenderableDetachedFieldMixin):
                     value.__class__ = type(
                         value.__class__.__name__,
                         (RenderableDetachedFieldMixin, value.__class__),

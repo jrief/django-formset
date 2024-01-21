@@ -80,7 +80,6 @@ class FormRenderer(DefaultFormRenderer):
         return self._amend_multiple_input(context, 'formset-radio-select')
 
     def _amend_button(self, context):
-        context = super()._amend_button(context)
         context['widget']['attrs']['class'] = ClassList('formset-button-default')
         return context
 

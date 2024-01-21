@@ -3,13 +3,13 @@ from django.db.models.fields.related import ManyToManyField
 from django.forms import fields
 
 from formset.utils import HolderMixin
-from formset.widgets import ButtonWidget, DualSortableSelector
+from formset.widgets import Button, DualSortableSelector
 
 
-class Button(HolderMixin, fields.Field):
-    widget = ButtonWidget
+class Activator(HolderMixin, fields.Field):
+    widget = Button
     default_renderer = None
-    template_name = 'formset/default/button.html'
+    # template_name = 'formset/default/activator.html'
 
     def __init__(self, **kwargs):
         kwargs.update(

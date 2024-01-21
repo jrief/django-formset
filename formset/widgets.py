@@ -18,7 +18,7 @@ from django.utils.translation import gettext_lazy as _
 from formset.calendar import CalendarRenderer
 
 
-class ButtonWidget(Widget):
+class Button(Widget):
     template_name = 'formset/default/widgets/button.html'
     button_type = 'button'
     action = None
