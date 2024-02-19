@@ -1,11 +1,11 @@
 // PEG rules to create parser for various HTML attributes used by django-formset
 // Build file `client/components/django-formset/actions.ts` using `npm run pegjs`
 
-// ----- A. Expression -----
+// ----- A. OperabilityExpression -----
 // The starting rule for `<ANY df-show="..."` …>`, `<ANY df-hide="..." …>` or `<ANY df-disable="..." …>`.
 
-Expression
-  = _ head:Factor _ tail:(_ Operator _ Expression)* _ {
+OperabilityExpression
+  = _ head:Factor _ tail:(_ Operator _ OperabilityExpression)* _ {
       return tail.reduce((result, element) => result + element[1] + element[3], head);
   }
   / _ { return 'false'; }
@@ -32,7 +32,7 @@ UnaryOperator
   = "!"
 
 Factor
-  = "(" _ expr:Expression _ ")" { return `(${expr})`; }
+  = "(" _ expr:OperabilityExpression _ ")" { return `(${expr})`; }
   / getDataValue
   / scalar
 
@@ -105,7 +105,6 @@ argument
   / object
   / array
 
-_ = [ \t\n\r]*
 
 // ----- D. Read content for TipTap schema -----
 
@@ -139,9 +138,12 @@ assign           = _ '=' _
 end_of_statement = ';'?
 
 
+// ----- E. JSON -----
+
+JSON_text = _ @value _
 
 //
-// Adopted from https://github.com/pegjs/pegjs/blob/master/examples/json.pegjs
+// Adopted from https://github.com/peggyjs/peggy/blob/main/examples/json.pegjs
 //
 // ----- 1. POJO Grammar -----
 
@@ -189,9 +191,7 @@ member
   / name:$keystring name_separator value:value
   { return { name: name, value: value } }
 
-keystring
-  = [$A-Za-z_][$0-9A-Za-z_]*
-
+keystring = [$A-Za-z_][$0-9A-Za-z_]*
 
 // ----- 4. Arrays -----
 
@@ -212,32 +212,15 @@ number "number"
   = minus? int frac? exp?
   { return parseFloat(text()); }
 
-decimal_point
-  = "."
-
-digit1_9
-  = [1-9]
-
-e
-  = [eE]
-
-exp
-  = e (minus / plus)? DIGIT+
-
-frac
-  = decimal_point DIGIT+
-
-int
-  = zero / (digit1_9 DIGIT*)
-
-minus
-  = '-'
-
-plus
-  = '+'
-
-zero
-  = '0'
+decimal_point = "."
+digit1_9 = [1-9]
+e = [eE]
+exp = e (minus / plus)? DIGIT+
+frac = decimal_point DIGIT+
+int = zero / (digit1_9 DIGIT*)
+minus = '-'
+plus = '+'
+zero = '0'
 
 
 // ----- 6. Strings -----
@@ -287,7 +270,7 @@ VAR_PREFIX
   = prefix:('...' / '..' / '.') variable:VARIABLE {
       return prefix + variable;
   }
- / VARIABLE
+  / VARIABLE
 
 VARIABLE
 = var_starter:VAR_STARTER var_remainder:VAR_REMAINDER {
@@ -305,5 +288,6 @@ VAR_REMAINDER
 // ----- Core ABNF Rules -----
 
 // See RFC 4234, Appendix B (http://tools.ietf.org/html/rfc4234).
+_ = [ \t\n\r]*
 DIGIT  = [0-9]
 HEXDIG = [0-9a-f]i
