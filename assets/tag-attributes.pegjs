@@ -106,39 +106,7 @@ argument
   / array
 
 
-// ----- D. Read content for TipTap schema -----
-
-TipTapSchema
-  = _ lhs:schema_content _ rhs:TipTapSchema _ { return {...lhs, ...rhs}; }
-  / lhs:schema_content { return lhs; }
-  / _ { return {}; }
-
-schema_content = key:$keystring assign stm:scoped_statement end_of_statement? { return {[key]: stm}; }
-
-block_statement = begin_object bs:$statement* end_object { return `{${bs}}`; }
-
-array_statement = begin_array as:$statement* end_array { return `[${as}]`; }
-
-tuple_statement = begin_tuple ts:$statement* end_tuple { return `(${ts})`; }
-
-scoped_statement
-  = tuple_statement+
-  / array_statement+
-  / block_statement+
-
-statement
-  = scoped_statement
-  / unscoped
-
-unscoped = [^{}[\]()]
-
-begin_tuple      = _ '(' _
-end_tuple        = _ ')' _
-assign           = _ '=' _
-end_of_statement = ';'?
-
-
-// ----- E. JSON -----
+// ----- D. JSON -----
 
 JSON_text = _ @value _
 
