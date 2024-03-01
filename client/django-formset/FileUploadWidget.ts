@@ -1,6 +1,17 @@
 import template from 'lodash.template';
 
 
+interface FileUploadResponse {
+	content_type: string;
+	content_type_extra: Object;
+	download_url: string;
+	name: string;
+	size: number;
+	thumbnail_url: string;
+	upload_temp_name: string;
+}
+
+
 export class FileUploadWidget {
 	private readonly fieldGroup: FieldGroup;
 	private readonly inputElement: HTMLInputElement;
@@ -17,9 +28,7 @@ export class FileUploadWidget {
 	constructor(fieldGroup: FieldGroup, inputElement: HTMLInputElement) {
 		this.fieldGroup = fieldGroup;
 		this.inputElement = inputElement;
-
 		this.maxUploadSize = parseInt(this.inputElement.getAttribute('max-size') ?? '0');
-
 		this.dropbox = this.fieldGroup.element.querySelector('figure.dj-dropbox') as HTMLElement;
 		if (!this.dropbox)
 			throw new Error('Element <input type="file"> requires sibling element <figure class="dj-dropbox"></figure>');
@@ -110,6 +119,10 @@ export class FileUploadWidget {
 					this.uploadedFiles = [response];
 					this.renderDropbox();
 					this.fieldGroup.inputted();
+					const downloadUrl = (response as FileUploadResponse)['download_url'];
+					if (typeof downloadUrl === 'string') {
+						this.inputElement.setAttribute('data-download-url', downloadUrl);
+					}
 					resolve();
 				}).catch(() => {
 					reject();
