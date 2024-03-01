@@ -18,7 +18,7 @@ class UserNameForm(forms.Form):
 class ProfileForm(DialogForm):
     title = "Edit Profile"
     induce_open = 'customer.username == "admin" || extra_profile:active || customer.edit_profile:active'
-    induce_close = 'profile.dismiss:active || profile.submit:active'
+    induce_close = '.dismiss:active || .submit:active'
 
     full_name = fields.CharField(
         label="First Name",
@@ -35,13 +35,13 @@ class ProfileForm(DialogForm):
     dismiss = Activator(
         label="Close",
         widget=Button(
-            action='activate("close")',
+            action='close',
         ),
     )
     submit = Activator(
         label="Save",
         widget=Button(
-            action='activate("apply")',
+            action='apply',
             button_variant=ButtonVariant.PRIMARY,
         ),
     )
