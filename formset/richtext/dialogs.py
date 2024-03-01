@@ -1,10 +1,6 @@
 from django.forms import forms
-from django.forms.fields import CharField, ImageField, RegexField, URLField
-from django.forms.widgets import URLInput
-from django.utils.translation import gettext_lazy as _
 
 from formset.utils import FormDecoratorMixin
-from formset.widgets import UploadedFileInput
 
 
 class DialogForm(FormDecoratorMixin, forms.Form):
@@ -16,45 +12,3 @@ class DialogForm(FormDecoratorMixin, forms.Form):
 
     def __repr__(self):
         return f'<{self.__class__.__name__} template_name="{self.template_name}">'
-
-
-class LinkFormDialog(DialogForm):
-    modal_title = _("Edit Link")
-    method = 'dialog'
-    prefix = 'edit_link'
-
-    text = CharField(
-        label=_("Text"),
-    )
-
-    url = URLField(
-        label=_("Link"),
-        widget=URLInput(attrs={'size': 50}),
-    )
-
-
-class ImageFormDialog(DialogForm):
-    modal_title = _("Edit Image")
-    method = 'dialog'
-    prefix = "edit_image"
-
-    image = ImageField(
-        label=_("Image"),
-        widget=UploadedFileInput(),
-    )
-
-
-class PlaceholderFormDialog(DialogForm):
-    modal_title = _("Edit Placeholder")
-    method = 'dialog'
-    prefix = 'edit_placeholder'
-
-    variable = RegexField(
-        regex=r'^[A-Za-z_][0-9A-Za-z_\.]{0,254}$',
-        label=_("Variable Name"),
-    )
-
-    sample = CharField(
-        label=_("Sample Text"),
-        required=False,
-    )

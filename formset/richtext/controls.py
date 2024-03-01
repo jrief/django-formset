@@ -4,7 +4,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import select_template
 from django.utils.translation import gettext_lazy as _
 
-from formset.richtext.dialogs import ImageFormDialog, LinkFormDialog, PlaceholderFormDialog
+from formset.dialog import DialogForm
 
 
 class ControlElement:
@@ -17,20 +17,37 @@ class ControlElement:
         ]
         return select_template(templates)
 
+    def get_context(self):
+        name = getattr(self, 'name', None)
+        if not (icon := getattr(self, 'icon', None)):
+            if name:
+                icon = f'formset/icons/{name.lower()}.svg'
+            else:
+                icon = f'formset/icons/questionmark.svg'
+        return {
+            'name': name,
+            'label': self.label,
+            'icon': icon,
+        }
+
     def render(self, renderer, context=None):
         template = self.get_template(renderer)
+        # if context is None:
+        #     context = {}
+        # if label := getattr(self, 'label', None):
+        #     context.update(label=label)
+        # if name := getattr(self, 'name', None):
+        #     context.update(name=name)
+        # if icon := getattr(self, 'icon', None):
+        #     context.update(icon=icon)
+        # elif name:
+        #     context.update(icon=f'formset/icons/{name.lower()}.svg')
+        # else:
+        #     context.update(icon=f'formset/icons/questionmark.svg')
+        # if extension := getattr(self, 'extension', None):
+        #     context.update(extension=extension)
         if context is None:
-            context = {}
-        if label := getattr(self, 'label', None):
-            context.update(label=label)
-        if name := getattr(self, 'name', None):
-            context.update(name=name)
-        if icon := getattr(self, 'icon', None):
-            context.update(icon=icon)
-        elif name:
-            context.update(icon=f'formset/icons/{name.lower()}.svg')
-        else:
-            context.update(icon=f'formset/icons/questionmark.svg')
+            context = self.get_context()
         return template.render(context)
 
 
@@ -220,22 +237,27 @@ class Redo(ControlElement):
     label = _("Redo")
 
 
-class Link(ControlElement):
-    name = 'link'
-    label = _("Link")
-    dialog_class = LinkFormDialog
+class DialogAction(ControlElement):
+    name = 'dialog'
+    label = _("Dialog")
+    dialog_form = None
+    template_name = 'formset/{framework}/buttons/richtext_dialog_control.html'
+    icon = 'formset/icons/activator.svg'
 
+    def __init__(self, dialog_form=None, name=None, icon=None):
+        if dialog_form:
+            self.dialog_form = dialog_form
+        if not isinstance(self.dialog_form, DialogForm):
+            raise ImproperlyConfigured("DialogAction() requires a DialogForm instance")
+        if name:
+            self.name = name
+        if icon:
+            self.icon = icon
 
-class Image(ControlElement):
-    name = 'image'
-    label = _("Image")
-    dialog_class = ImageFormDialog
-
-
-class Placeholder(ControlElement):
-    name = 'placeholder'
-    label = _("Placeholder")
-    dialog_class = PlaceholderFormDialog
+    def get_context(self):
+        context = super().get_context()
+        context.update(extension=self.dialog_form.extension)
+        return context
 
 
 class Separator(ControlElement):

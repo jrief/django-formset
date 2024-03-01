@@ -1,0 +1,32 @@
+<script type="text/plain" tiptap-plugin="mark">
+{
+	name: 'procurator',
+	keepOnSplit: false,
+
+	addAttributes() {
+		return {
+			variable_name: {
+				default: null,
+			},
+			sample_value: {
+				default: null,
+			},
+			role: {
+				default: 'placeholder',
+			},
+		}
+	},
+
+	parseHTML() {
+		return [{
+			tag: 'output',
+			role: 'placeholder',
+		}];
+	},
+
+	renderHTML({HTMLAttributes}) {
+		return ['output', HTMLAttributes, 0];
+	},
+
+}
+</script>

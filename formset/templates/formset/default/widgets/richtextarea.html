@@ -5,6 +5,6 @@
 {% if use_json %}
 	<script type="application/json">{{ widget.value|safe }}</script>
 {% endif %}
-	{{ modal_dialogs }}
+	{% for dialog_form in dialog_forms %}{{ dialog_form }}{% endfor %}
 </div>
 {% endspaceless %}
