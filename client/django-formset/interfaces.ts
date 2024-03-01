@@ -1,10 +1,22 @@
+interface DjangoButton {
+	element: HTMLButtonElement;
+	path: Array<string>;
+}
+
 interface DjangoFormset {
 	endpoint: string;
 	CSRFToken: string | undefined;
+	buttons: Array<DjangoButton>;
 }
 
 interface DjangoForm {
 	formset: DjangoFormset;
+	path: Array<string>;
+	setPristine(): void;
+	untouch(): void;
+	isValid(): boolean;
+	resetToInitial(): void;
+	getDataValue(path: Array<string>) : string | null;
 }
 
 interface FieldGroup {
