@@ -61,7 +61,8 @@ from it. No extra endpoint is required to activate this feature.
 
 If an uploaded file contains an image renderable by the browser, that image is resized on the server
 and a thumbnail version is returned to the client. For other file types, a symbolic icon is
-returned.
+returned. In order to restrict file uploads to certain MIME-types, add ``accept`` to the widget's
+``attrs``, for example: ``UploadedFileInput(attrs={'accept': 'image/png, image/jpeg'})``.
 
 .. rubric:: Footnotes
 
