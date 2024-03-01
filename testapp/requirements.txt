@@ -6,7 +6,7 @@ docutils==0.20.1
 greenlet==2.0.2
 iniconfig==2.0.0
 packaging==23.1
-Pillow==10.0.1
+Pillow==10.2.0
 phonenumbers==8.13.24
 playwright==1.38.0
 pluggy==1.3.0
