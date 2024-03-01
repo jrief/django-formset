@@ -5,13 +5,13 @@ import isEmpty from 'lodash.isempty';
 import template from 'lodash.template';
 import Sortable, {SortableEvent} from 'sortablejs';
 import {FileUploadWidget} from './FileUploadWidget';
+import {FormDialog} from './FormDialog';
 import {parse} from './tag-attributes';
 import {ErrorKey, FieldErrorMessages} from './Widget';
 import styles from './DjangoFormset.scss';
 import spinnerIcon from './icons/spinner.svg';
 import okayIcon from './icons/okay.svg';
 import bummerIcon from './icons/bummer.svg';
-import {StyleHelpers} from "./helpers";
 
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FieldValue = string | Array<string | Object>;
@@ -184,6 +184,11 @@ class FieldGroup {
 	public updateOperability(action?: string) {
 		this.updateVisibility();
 		this.updateDisabled();
+		this.fieldElements.filter(
+			fieldElement => typeof (fieldElement as Object).updateOperability === 'function'
+		).forEach(
+			fieldElement => (fieldElement as function).updateOperability(action)
+		);
 	}
 
 	public disableRequiredConstraint() {
@@ -458,6 +463,8 @@ class DjangoButton {
 	private readonly okayElement: HTMLElement;
 	private readonly bummerElement: HTMLElement;
 	public readonly path = Array<string>();
+	private readonly updateVisibility: Function;
+	private readonly updateDisabled: Function;
 	private originalDecorator?: Node;
 	private timeoutHandler?: number;
 
@@ -479,7 +486,38 @@ class DjangoButton {
 		this.bummerElement.innerHTML = bummerIcon;
 		this.path = path;
 		this.parseActionsQueue(element.getAttribute('df-click'));
+		this.updateVisibility = this.evalVisibility('df-show', true) ?? this.evalVisibility('df-hide', false) ?? function() {};
+		this.updateDisabled = this.evalDisable();
 		element.addEventListener('click', this.clicked);
+	}
+
+	private evalVisibility(attribute: string, visible: boolean): Function | null {
+		const attrValue = this.element.getAttribute(attribute);
+		if (attrValue === null)
+			return null;
+		try {
+			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})}`);
+			return () => {
+				const isHidden = visible != Boolean(evalExpression.call(this));
+				if (this.element.hasAttribute('hidden') !== isHidden) {
+					this.element.toggleAttribute('hidden', isHidden);
+				}
+			}
+		} catch (error) {
+			throw new Error(`Error while parsing <button df-show/hide="${attrValue}">: ${error}.`);
+		}
+	}
+
+	private evalDisable(): Function {
+		const attrValue = this.element.getAttribute('df-disable');
+		if (typeof attrValue !== 'string')
+			return () => {};
+		try {
+			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})}`);
+			return () => this.element.disabled = evalExpression.call(this);
+		} catch (error) {
+			throw new Error(`Error while parsing <button df-disable="${attrValue}">: ${error}.`);
+		}
 	}
 
 	/**
@@ -840,6 +878,15 @@ class DjangoButton {
 		}
 	}
 
+	private getDataValue(path: Array<string>) {
+		return this.formset.getDataValue(path);
+	}
+
+	public updateOperability(action?: string) {
+		this.updateVisibility();
+		this.updateDisabled();
+	}
+
 	public abortAction() {
 		if (this.timeoutHandler) {
 			clearTimeout(this.timeoutHandler);
@@ -867,7 +914,7 @@ class DjangoFieldset {
 		if (attrValue === null)
 			return null;
 		try {
-			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'Expression'})}`);
+			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})}`);
 			return () => {
 				const isHidden = visible != Boolean(evalExpression.call(this));
 				if (this.element.hasAttribute('hidden') !== isHidden) {
@@ -884,7 +931,7 @@ class DjangoFieldset {
 		if (typeof attrValue !== 'string')
 			return () => {};
 		try {
-			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'Expression'})}`);
+			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})}`);
 			return () => this.element.disabled = evalExpression.call(this);
 		} catch (error) {
 			throw new Error(`Error while parsing <fieldset df-disable="${attrValue}">: ${error}.`);
@@ -902,62 +949,21 @@ class DjangoFieldset {
 }
 
 
-class FormDialog {
+class PerpetualFormDialog extends FormDialog {
 	private readonly form: DjangoForm;
-	private readonly element: HTMLDialogElement;
-	private readonly dialogHeaderElement: HTMLElement | null;
-	private readonly formElement: HTMLFormElement;
-	private readonly induceOpen: Function;
-	private readonly induceClose: Function;
-	private readonly baseSelector = 'dialog[is="django-dialog-form"]';
-	private dialogRect: DOMRect | null = null;
-	private dialogOffsetX: number = 0;
-	private dialogOffsetY: number = 0;
 
 	constructor(form: DjangoForm, element: HTMLDialogElement) {
+		super(element);
 		this.form = form;
-		this.element = element;
-		this.formElement = this.element.querySelector('form[method="dialog"]')!;
-		if (!this.formElement)
-			throw new Error(`${this} requires child <form method="dialog">`);
-		this.dialogHeaderElement = this.element.querySelector('.dialog-header');
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-			this.transferStyles();
-		}
-		this.induceOpen = this.evalInducer('df-induce-open', this.openDialog);
-		this.induceClose = this.evalInducer('df-induce-close', this.closeDialog);
 	}
 
-	private evalInducer(attr: string, inducer: Function) : Function {
-		const attrValue = this.element?.getAttribute(attr);
-		if (typeof attrValue != 'string')
-			return () => {};
-		try {
-			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'InduceExpression'})}`);
-			return (action?: string) => {
-				if (evalExpression.call(this)) {
-					inducer(action);
-				}
-			};
-		} catch (error) {
-			throw new Error(`Error while parsing <dialog ${attr}="${attrValue}">: ${error}.`);
-		}
-	}
-
-	private openDialog = () => {
-		if (this.element.open)
-			return;
+	protected openDialog(){
 		this.form.setPristine();
 		this.form.untouch();
-		this.element.show();
-		if (this.dialogHeaderElement && !this.dialogRect) {
-			this.dialogRect = this.element.getBoundingClientRect();
-			this.dialogHeaderElement.addEventListener('pointerdown', this.handlePointerDown);
-			this.dialogHeaderElement.addEventListener('touchstart', this.handlePointerDown);
-		}
-	};
+		super.openDialog();
+ 	}
 
-	private closeDialog = (action: string) => {
+	protected closeDialog(action: string) {
 		switch (action) {
 			case 'apply':
 				if (this.form.isValid()) {
@@ -973,69 +979,24 @@ class FormDialog {
 			default:
 				break;
 		}
-	};
-
-	private handlePointerDown = (event: PointerEvent | TouchEvent) => {
-		const viewport = window.visualViewport;
-		let offsetX: number;
-		let offsetY: number;
-
-		const moveDialog = (pointerX: number, pointerY: number) => {
-			this.dialogOffsetX = Math.max(pointerX - offsetX, -this.dialogRect!.left);
-			this.dialogOffsetY = Math.max(pointerY - offsetY, -this.dialogRect!.top);
-			this.dialogOffsetX = Math.min(this.dialogOffsetX, viewport!.width - this.dialogRect!.right);
-			this.dialogOffsetY = Math.min(this.dialogOffsetY, viewport!.height - this.dialogRect!.bottom);
-			this.element.style.transform = `translate(${this.dialogOffsetX}px, ${this.dialogOffsetY}px)`;
-		};
-		const handlePointerMove = (pointerMoveEvt: PointerEvent) => {
-			moveDialog(pointerMoveEvt.clientX, pointerMoveEvt.clientY);
-		};
-		const handleTouchMove = (touchMoveEvt: TouchEvent) => {
-			touchMoveEvt.preventDefault()
-			moveDialog(touchMoveEvt.touches[0].clientX, touchMoveEvt.touches[0].clientY);
-		};
-		const handlePointerUp = (pointerUpEvt: PointerEvent) => {
-			this.dialogHeaderElement!.releasePointerCapture(pointerUpEvt.pointerId);
-			this.dialogHeaderElement!.removeEventListener('pointermove', handlePointerMove);
-		};
-		const handleTouchEnd = (touchEndEvt: TouchEvent) => {
-			this.dialogHeaderElement!.removeEventListener('touchmove', handleTouchMove);
-		}
-
-		if (event instanceof PointerEvent) {
-			offsetX = event.clientX - this.dialogOffsetX;
-			offsetY = event.clientY - this.dialogOffsetY;
-			this.dialogHeaderElement!.setPointerCapture(event.pointerId);
-			this.dialogHeaderElement!.addEventListener('pointermove', handlePointerMove);
-			this.dialogHeaderElement!.addEventListener('pointerup', handlePointerUp, {once: true});
-		} else {
-			offsetX = event.touches[0].clientX - this.dialogOffsetX;
-			offsetY = event.touches[0].clientY - this.dialogOffsetY;
-			this.dialogHeaderElement!.addEventListener('touchmove', handleTouchMove);
-			this.dialogHeaderElement!.addEventListener('touchend', handleTouchEnd, {once: true});
-		}
-	};
-
-	private transferStyles() {
-		const declaredStyles = document.createElement('style');
-		declaredStyles.innerText = styles;
-		document.head.appendChild(declaredStyles);
-		if (!declaredStyles.sheet)
-			throw new Error("Could not create <style> element");
 	}
 
-	private getDataValue(path: Array<string>) {
+	protected getDataValue(path: Array<string>) {
 		return this.form.getDataValue(path);
 	}
 
-	private isButtonActive(path: Array<string>, action: string): boolean {
-		const button = this.form.formset.buttons.find(button => isEqual(button.path, path));
+	protected isButtonActive(path: Array<string>, action: string): boolean {
+		const absPath = path[0] !== '' ? path : (() => {
+			// path is relative, so concatenate it to the form's path
+			const absPath = [...this.form.path];
+			const relPath = path.filter(part => part !== '');
+			const delta = path.length - relPath.length;
+			absPath.splice(absPath.length - delta + 1);
+			absPath.push(...relPath);
+			return absPath;
+		})();
+		const button = this.form.formset.buttons.find(button => isEqual(button.path, absPath));
 		return action === 'active' && button?.element === document.activeElement;
-	}
-
-	public updateOperability(action?: string) {
-		this.induceOpen(action);
-		this.induceClose(action);
 	}
 }
 
@@ -1049,7 +1010,7 @@ class DjangoForm {
 	private readonly errorPlaceholder: Element | null = null;
 	public readonly fieldGroups = Array<FieldGroup>(0);
 	public readonly hiddenInputFields = Array<HTMLInputElement>(0);
-	public readonly parentDialog: FormDialog | null;
+	public readonly parentDialog: PerpetualFormDialog | null = null;
 	public readonly isTransient: boolean;
 	public markedForRemoval = false;
 
@@ -1064,9 +1025,11 @@ class DjangoForm {
 			this.errorList = placeholder.parentElement;
 			this.errorPlaceholder = this.errorList!.removeChild(placeholder);
 		}
-		const dialog = element.closest('dialog');
-		this.parentDialog = dialog ? new FormDialog(this, dialog) : null;
-		this.isTransient = this.element.getAttribute('df-transient') === 'true';
+		this.isTransient = Boolean(this.element.getAttribute('df-transient'));
+		if (!this.isTransient) {
+			const dialog = element.closest('dialog');
+			this.parentDialog = dialog ? new PerpetualFormDialog(this, dialog) : null;
+		}
 		this.element.addEventListener('submit', this.handleSubmit);
 		this.element.addEventListener('reset', this.handleReset);
 	}
@@ -1123,7 +1086,7 @@ class DjangoForm {
 	}
 
 	isValid() {
-		if (this.element.noValidate || this.isTransient)
+		if (this.element.noValidate)
 			return true;
 		let isValid = true;
 		for (const fieldGroup of this.fieldGroups) {
@@ -1789,8 +1752,6 @@ export class DjangoFormset {
 	private aggregateValues() {
 		this.data = {};
 		for (const form of this.forms) {
-			if (form.isTransient)
-				continue;
 			setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
 		}
 		this.updateOperability();
@@ -1801,6 +1762,9 @@ export class DjangoFormset {
 			if (form.markedForRemoval)
 				continue;
 			form.updateOperability(action);
+		}
+		for (const button of this.buttons) {
+			button.updateOperability(action);
 		}
 	}
 
@@ -1864,8 +1828,11 @@ export class DjangoFormset {
 
 		// 2. iterate over all forms and fill the data structure with content
 		for (const form of this.forms) {
-			if (!form.name)  // it's a single form, which doesn't have a name
-				return Object.assign({}, this.data, {_extra: extraData});
+			if (!form.name) {
+				// it's a single form, which doesn't have a name
+				const formsetData = Object.fromEntries(form.aggregateValues());
+				return Object.assign({}, {'formset_data': formsetData}, {_extra: extraData});
+			}
 			if (form.isTransient)
 				continue;
 			const absPath = form.getAbsPath();
@@ -1885,7 +1852,9 @@ export class DjangoFormset {
 		this.setSubmitted();
 		if (!this.forceSubmission) {
 			for (const form of this.forms) {
-				formsAreValid = (form.markedForRemoval || form.isValid()) && formsAreValid;
+				if (form.markedForRemoval || form.isTransient)
+					continue;
+				formsAreValid = form.isValid() && formsAreValid;
 			}
 		}
 		if (formsAreValid) {
