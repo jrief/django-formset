@@ -219,7 +219,7 @@ class FieldGroup {
 		if (typeof attrValue !== 'string')
 			return null;
 		try {
-			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'Expression'})};`);
+			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})};`);
 			return () => {
 				const isHidden = visible != isTruthy(evalExpression.call(this));
 				if (this.element.hasAttribute('hidden') !== isHidden) {
@@ -237,7 +237,7 @@ class FieldGroup {
 		if (typeof attrValue !== 'string')
 			return () => {};
 		try {
-			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'Expression'}));
+			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'OperabilityExpression'}));
 			return () => {
 				const disable = evalExpression.call(this);
 				this.fieldElements.forEach((elem, index) => elem.disabled = disable || this.initialDisabled[index]);
