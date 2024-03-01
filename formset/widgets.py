@@ -25,7 +25,7 @@ class Button(Widget):
     button_variant = None
 
     def __init__(self, attrs=None, action=None, button_variant=None):
-        if action:
+        if action is not None:
             self.action = action
         if button_variant:
             self.button_variant = button_variant
@@ -33,7 +33,8 @@ class Button(Widget):
 
     def build_attrs(self, base_attrs, extra_attrs=None):
         attrs = super().build_attrs(base_attrs, extra_attrs)
-        attrs['df-click'] = self.action if self.action else 'activate'
+        if self.action is not None:
+            attrs['df-click'] = f'activate("{self.action}")'
         return attrs
 
     def get_context(self, name, value, attrs):

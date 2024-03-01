@@ -1,24 +1,29 @@
 {% load i18n %}
 {% spaceless %}
-<dialog df-induce-open="{{ induce_open }}" df-induce-close="{{ induce_close }}">
-	<form{% include "formset/form_attrs.html" %}></form>
-{% if form.title %}
+<dialog{% if form.induce_open %} df-induce-open="{{ form.induce_open }}"{% endif %}{% if form.induce_close %} df-induce-close="{{ form.induce_close }}"{% endif %}>
+{% block dialog-header %}
+	{% if form.title %}
 	<div class="dialog-header">
 		<h3>{{ form.title }}</h3>
 	</div>
-{% endif %}
-{% if form.fields %}
+	{% endif %}
+{% endblock %}
+{% block dialog-body %}
+	<form{% include "formset/form_attrs.html" %}></form>
+	{% if form.fields %}
 	<div class="dialog-body">
-	{% for field in form %}
-		{% if field.is_hidden %}
+		{% for field in form %}
+			{% if field.is_hidden %}
 			{{ field }}
-		{% elif field.widget_type != 'button' %}
+			{% elif field.widget_type != 'button' %}
 			{% include "formset/default/field_group.html" %}
-		{% endif %}
-	{% endfor %}
-	{% if help_text %}{% include help_text_template %}{% endif %}
+			{% endif %}
+		{% endfor %}
+		{% if help_text %}{% include help_text_template %}{% endif %}
 	</div>
-{% endif %}
+	{% endif %}
+{% endblock %}
+{% block dialog-footer %}
 	<div class="dialog-footer">
 	{% for field in form %}
 		{% if field.widget_type == 'button' %}
@@ -26,5 +31,9 @@
 		{% endif %}
 	{% endfor %}
 	</div>
+{% endblock %}
 </dialog>
+{% if form.extension %}
+{% with extension="formset/tiptap-extensions/"|add:form.extension|add:".html" %}{% include extension %}{% endwith %}
+{% endif %}
 {% endspaceless %}

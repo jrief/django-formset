@@ -7,11 +7,11 @@ from formset.widgets import Button, DualSortableSelector
 
 
 class Activator(HolderMixin, fields.Field):
-    widget = Button
     default_renderer = None
-    # template_name = 'formset/default/activator.html'
+    widget = Button(attrs={'df-click': 'activate'})
 
     def __init__(self, **kwargs):
+        kwargs.setdefault('widget', Button(action=''))
         kwargs.update(
             required=False,
             validators=[],
