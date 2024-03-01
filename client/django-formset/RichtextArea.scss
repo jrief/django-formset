@@ -155,6 +155,7 @@
 		output[role="placeholder"] {
 			background-color: $richtext-code-block;
 			box-shadow: inset 0 0 5px $richtext-output;
+			border-radius: 0.125rem;
 			padding-left: 0.25rem;
 			padding-right: 0.25rem;
 		}

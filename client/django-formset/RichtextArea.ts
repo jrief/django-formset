@@ -1,6 +1,8 @@
 import styles from './RichtextArea.scss';
-import { computePosition } from '@floating-ui/dom';
-import { Editor, Extension, Mark, Node } from '@tiptap/core';
+import isEmpty from 'lodash.isempty';
+import {computePosition} from '@floating-ui/dom';
+import {Editor, Extension, Mark, Node, markPasteRule, mergeAttributes, getAttributes} from '@tiptap/core';
+import {Plugin, PluginKey, TextSelection} from '@tiptap/pm/state';
 import Blockquote from '@tiptap/extension-blockquote';
 import Bold from '@tiptap/extension-bold';
 import BulletList from '@tiptap/extension-bullet-list';
@@ -8,12 +10,10 @@ import CharacterCount from '@tiptap/extension-character-count';
 import CodeBlock from '@tiptap/extension-code-block';
 import Document from '@tiptap/extension-document';
 import HardBreak from '@tiptap/extension-hard-break';
-import { Heading, Level } from '@tiptap/extension-heading';
+import {Heading, Level} from '@tiptap/extension-heading';
 import History from '@tiptap/extension-history';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
-import Image from '@tiptap/extension-image';
 import Italic from '@tiptap/extension-italic';
-import Link from '@tiptap/extension-link';
 import ListItem from '@tiptap/extension-list-item';
 import OrderedList from '@tiptap/extension-ordered-list';
 import Paragraph from '@tiptap/extension-paragraph';
@@ -21,19 +21,23 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import Text from '@tiptap/extension-text';
-import { TextAlign, TextAlignOptions } from '@tiptap/extension-text-align';
-import { TextIndent, TextIndentOptions } from './tiptap-extensions/indent';
-import { TextMargin, TextMarginOptions } from './tiptap-extensions/margin';
-import { TextColor } from './tiptap-extensions/color';
-import { Procurator } from './tiptap-extensions/procurator';
+import {TextAlign, TextAlignOptions} from '@tiptap/extension-text-align';
+import {TextIndent, TextIndentOptions } from './tiptap-extensions/indent';
+import {TextMargin, TextMarginOptions } from './tiptap-extensions/margin';
+import {TextColor} from './tiptap-extensions/color';
+import {Procurator, ProcuratorOptions} from './tiptap-extensions/procurator';
 import Underline from '@tiptap/extension-underline';
-import { StyleHelpers } from './helpers';
+import {StyleHelpers} from './helpers';
 import template from 'lodash.template';
+import {FormDialog} from './FormDialog';
+import isEqual from 'lodash.isequal';
+import getDataValue from "lodash.get";
+import {map} from "yaml/dist/schema/common/map";
 
 
 abstract class Action {
 	public readonly name: string;
-	protected readonly button: HTMLButtonElement;
+	public readonly button: HTMLButtonElement;
 	protected readonly extensions: Array<Extension|Mark|Node> = [];
 
 	constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
@@ -41,11 +45,11 @@ abstract class Action {
 		this.button = button;
 	}
 
-	installEventHandler(editor: Editor) {
+	public installEventHandler(editor: Editor) {
 		this.button.addEventListener('click', () => this.clicked(editor));
 	}
 
-	abstract clicked(editor: Editor): void;
+	protected abstract clicked(editor: Editor): void;
 
 	activate(editor: Editor) {
 		this.button.classList.toggle('active', editor.isActive(this.name));
@@ -58,7 +62,7 @@ abstract class Action {
 	extendExtensions(extensions: Array<Extension|Mark|Node>) {
 		this.extensions.forEach(e => {
 			if (!extensions.includes(e)) {
-				extensions.push(e)
+				extensions.push(e);
 			}
 		});
 	}
@@ -67,7 +71,7 @@ abstract class Action {
 
 abstract class DropdownAction extends Action {
 	protected readonly dropdownMenu: HTMLUListElement | null;
-	protected readonly dropdownItems: NodeListOf<Element> | [] = [];
+	protected readonly dropdownItems: NodeListOf<Element>;
 
 	constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement, itemsSelector: string) {
 		super(wrapperElement, name, button);
@@ -76,10 +80,11 @@ abstract class DropdownAction extends Action {
 			this.dropdownItems = this.dropdownMenu.querySelectorAll(itemsSelector);
 		} else {
 			this.dropdownMenu = null;
+			this.dropdownItems = document.querySelectorAll(':not(*)');  // empty list
 		}
 	}
 
-	installEventHandler(editor: Editor) {
+	public installEventHandler(editor: Editor) {
 		if (this.dropdownMenu) {
 			this.button.addEventListener('click', () => this.toggleMenu(editor));
 			this.dropdownMenu.addEventListener('click', event => this.toggleItem(event, editor));
@@ -586,221 +591,241 @@ namespace controls {
 }
 
 
-namespace controls {
-	// control actions which require a modal dialog form
+interface FormDialogOptions {
+	/**
+	* A list of HTML attributes to be rendered.
+	*/
+	HTMLAttributes: Record<string, any>;
+}
 
-	abstract class FormDialogAction extends Action {
-		protected readonly modalDialogElement: HTMLDialogElement;
-		protected readonly formElement: HTMLFormElement;
 
-		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
-			super(wrapperElement, name, button);
-			const label = button.getAttribute('richtext-click') ?? '';
-			this.modalDialogElement = wrapperElement.querySelector(`dialog[richtext-opener="${label}"]`)! as HTMLDialogElement;
-			this.formElement = this.modalDialogElement.querySelector('form[method="dialog"]')! as HTMLFormElement;
+class RichtextFormDialog extends FormDialog {
+	private readonly richtext: RichtextArea;
+	private readonly inputElements = new Array<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>();
+	private textSelectionField: HTMLInputElement|null = null;
+	private applyAttributes: Function = () => {};
+	private revertAttributes: Function = () => {};
+	private readonly induceButton: HTMLButtonElement;
+	private readonly closeButtons = new Array<HTMLButtonElement>();
+	private revertButton: HTMLButtonElement|null = null;
+	public readonly extension: string;
+
+	constructor(element: HTMLDialogElement, button: HTMLButtonElement, richtext: RichtextArea) {
+		super(element);
+		this.induceButton = button;
+		this.richtext = richtext;
+		const extension = this.formElement.getAttribute('richtext-extension');
+		if (!extension)
+			throw new Error(`${this} requires a <form richtext-extension="…">`);
+		this.extension = extension;
+		this.initialize();
+	}
+
+	private initialize() {
+		if (!this.formElement)
+			throw new Error(`${this} requires a <form method="dialog">`);
+		Array.from(this.formElement.elements).forEach(innerElement => {
+			if (innerElement instanceof HTMLInputElement && innerElement.hasAttribute('richtext-selection')) {
+				this.textSelectionField = innerElement;
+			} else if (innerElement.hasAttribute('richtext-mapping')) {
+				this.inputElements.push(innerElement as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement);
+			} else if (innerElement instanceof HTMLButtonElement) {
+				const action = innerElement.getAttribute('df-click');
+				if (action?.startsWith('activate')) {
+					this.closeButtons.push(innerElement);
+				}
+				if (action === 'activate("revert")') {
+					this.revertButton = innerElement;
+				}
+			}
+		});
+	}
+
+	activate(editor: Editor) {
+		this.induceButton.classList.toggle('active', editor.isActive(this.extension));
+	}
+
+	private addProseMirrorPlugins() {
+		const self = this;
+		return () => {
+			const plugin = new Plugin({
+				key: new PluginKey('handleClickLink'),
+				props: {
+					handleDoubleClick: (view, pos, event) => {
+						if (!(event.target instanceof HTMLElement) || event.button !== 0)
+							return false;
+						const attributes = getAttributes(view.state, self.extension);
+						if (isEmpty(attributes))
+							return false;
+						const viewDesc = event.target.pmViewDesc;
+						if (viewDesc) {
+							self.richtext.editor.chain().focus()
+								.setTextSelection({from: viewDesc.posAtStart, to: viewDesc.posAtEnd})
+								.run();
+						}
+						self.openPrefilledDialog(attributes);
+						return true;
+					}
+				},
+			});
+			return [plugin];
 		}
+	}
 
-		protected initialize() {
-			if (!this.formElement)
-				throw new Error(`${this} requires a <form method="dialog">`);
+	public createPlugin() : Mark|Node|Extension {
+		if (!(this.element.nextElementSibling instanceof HTMLScriptElement) || this.element.nextElementSibling.type !== 'text/plain')
+			throw new Error(`Element ${this.element} requires a <script type="text/plain">…</script>`);
+		const scriptElement = this.element.nextElementSibling as HTMLScriptElement;
+		try {
+			const extensionScript = scriptElement.textContent ? scriptElement.textContent.replaceAll('\n', '').replaceAll('\t', ' ') : '';
+			const plugin = scriptElement.getAttribute('tiptap-plugin');
+			const parsedScript = new Function('mergeAttributes', 'markPasteRule', `return ${extensionScript}`);
+			const executedScript = parsedScript(mergeAttributes, markPasteRule);
+			executedScript.addProseMirrorPlugins = this.addProseMirrorPlugins();
+			console.log(parsedScript);
+			switch (plugin) {
+				case 'mark':
+					this.applyAttributes = this.applyMarkAttributes;
+					this.revertAttributes = this.revertMarkAttributes;
+					return Mark.create<FormDialogOptions>(executedScript);
+				case 'node':
+					this.applyAttributes = this.applyNodeAttributes;
+					this.revertAttributes = this.revertNodeAttributes;
+					return Node.create<FormDialogOptions>(executedScript);
+				case 'extension':
+					return Extension.create<FormDialogOptions>(executedScript);
+				default:
+					throw new Error(`tiptap-plugin="${plugin}" <script type="text/plain"…> must be either "mark", "node" or "extension".`);
+			}
+		} catch (error) {
+			throw new Error(`Error while parsing <script type="text/plain" tiptap-plugin="${this.extension}">…</script>: ${error}.`);
 		}
+	}
 
-		protected handleCloseButton() {
-			const closeButton = this.formElement.elements.namedItem('close');
-			if (!(closeButton instanceof HTMLButtonElement))
+	protected isButtonActive(path: Array<string>, action: string): boolean {
+		if (action !== 'active')
+			return false;
+		const openButton = this.richtext.formDialogs.find(
+			dialog => dialog.induceButton.name === path[0]
+		)?.induceButton;
+		if (openButton instanceof HTMLButtonElement)
+			return openButton === document.activeElement;
+		const closeButton = this.closeButtons.find(button => isEqual(button.name, path[0]));
+		return closeButton === document.activeElement;
+	}
+
+	private openPrefilledDialog(attributes: Object) {
+		this.revertButton?.removeAttribute('hidden');
+		if (this.textSelectionField) {
+			const {selection, doc} = this.richtext.editor.view.state;
+			if (selection.empty)
+				return;  // nothing selected
+			this.textSelectionField.value = doc.textBetween(selection.from, selection.to, '');
+		}
+		this.inputElements.forEach(inputElement => {
+			const mapping = inputElement.getAttribute('richtext-mapping');
+			if (mapping === null)
 				return;
-			closeButton.addEventListener('click', () => {
-				this.modalDialogElement.close('close')
-			}, {once: true});
-		}
+			if (mapping.includes('{') && mapping.includes('}')) {
+				const mapFunction = new Function('element', `return ${mapping}`);
+				const key = Object.keys(mapFunction(inputElement))[0];
+				const value = getDataValue(attributes, key);
+				if (value !== undefined && inputElement.type !== 'file') {
+					inputElement.value = value;
+				}
+			} else {
+				const value = getDataValue(attributes, inputElement.name);
+				if (value !== undefined) {
+					inputElement.value = value;
+				}
+			}
+		});
+		super.openDialog();
+		this.richtext.textAreaElement.dispatchEvent(new Event('blur', {bubbles: true}));
+	}
 
-		protected handleSaveButton() {
-			const saveButton = this.formElement.elements.namedItem('save');
-			if (!(saveButton instanceof HTMLButtonElement))
+	protected openDialog() {
+		this?.revertButton?.setAttribute('hidden', 'hidden');
+		const editor = this.richtext.editor;
+		if (this.textSelectionField) {
+			const {selection, doc} = editor.view.state;
+			if (selection.empty)
+				return;  // nothing selected
+			this.textSelectionField.value = doc.textBetween(selection.from, selection.to, '');
+		}
+		super.openDialog();
+		this.richtext.textAreaElement.dispatchEvent(new Event('blur', {bubbles: true}));
+	}
+
+	protected closeDialog(returnValue?: string) {
+		if (!returnValue)
+			return;
+		const editor = this.richtext.editor;
+		if (returnValue === 'apply') {
+			if (!this.formElement.checkValidity()) {
+				this.richtext.textAreaElement.dispatchEvent(new Event('blur', {bubbles: true}));
 				return;
-			saveButton.addEventListener('click', () => {
-				if (this.formElement.checkValidity()) {
-					this.modalDialogElement.close('save');
+			}
+			let attributes = {};
+			this.inputElements.forEach(inputElement => {
+				const mapping = inputElement.getAttribute('richtext-mapping');
+				if (mapping === null)
+					return;
+				if (mapping.includes('{') && mapping.includes('}')) {
+					const mapFunction = new Function('element', `return ${mapping}`);
+					attributes = {...attributes, ...mapFunction(inputElement)};
+				} else {
+					attributes = {...attributes, ...{[inputElement.name]: inputElement.value}};
 				}
 			});
+			this.applyAttributes(editor, attributes);
+		} else if (returnValue === 'revert') {
+			this.revertAttributes(editor);
 		}
-
-		protected toggleRemoveButton(condidtion: boolean) {
-			const removeButton = this.formElement.elements.namedItem('remove');
-			if (!(removeButton instanceof HTMLButtonElement))
-				return;
-			if (condidtion) {
-				removeButton.removeAttribute('hidden');
-				removeButton.addEventListener('click', () => {
-					this.modalDialogElement.close('remove');
-				});
-			} else {
-				removeButton.setAttribute('hidden', 'hidden');
-			}
-		}
-
-		protected openDialog(editor: Editor) {
-			this.handleCloseButton();
-			this.handleSaveButton();
-			this.modalDialogElement.showModal();
-			this.modalDialogElement.addEventListener('close', () => this.closeDialog(editor), {once: true});
-		}
-
-		protected abstract closeDialog(editor: Editor): void;
-
-		clicked = (editor: Editor) => this.openDialog(editor);
+		// reset form to be pristine for the next invocation
+		this.formElement.reset();
+		super.closeDialog();
 	}
 
-
-	export class LinkAction extends FormDialogAction {
-		private readonly textInputElement: HTMLInputElement;
-		private readonly urlInputElement: HTMLInputElement;
-		public extensions = [Link.configure({
-			openOnClick: false
-		})];
-
-		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
-			super(wrapperElement, name, button);
-			this.textInputElement = this.formElement.elements.namedItem('text') as HTMLInputElement;
-			this.urlInputElement = this.formElement.elements.namedItem('url') as HTMLInputElement;
-			this.initialize();
+	private applyMarkAttributes(editor: Editor, attributes: Object) {
+		const selection = editor.view.state.selection;
+		const markedEditor = editor.chain().focus()
+			.extendMarkRange(this.extension)
+			.setMark(this.extension, attributes);
+		if (this.textSelectionField) {
+			markedEditor.insertContentAt({from: selection.from, to: selection.to}, this.textSelectionField.value);
 		}
-
-		protected initialize() {
-			super.initialize();
-			if (!(this.textInputElement instanceof HTMLInputElement))
-				throw new Error('<form method="dialog"> requires field <input name="text">');
-			if (!(this.urlInputElement instanceof HTMLInputElement))
-				throw new Error('<form method="dialog"> requires field <input name="url">');
-		}
-
-		protected openDialog(editor: Editor) {
-			const {selection, doc} = editor.view.state;
-			if (selection.from === selection.to)
-				return;  // nothing selected
-			super.openDialog(editor);
-			this.textInputElement.value = doc.textBetween(selection.from, selection.to, '');
-			this.urlInputElement.value = editor.getAttributes('link').href ?? '';
-			this.toggleRemoveButton(!!this.urlInputElement.value.length);
-		}
-
-		protected closeDialog(editor: Editor) {
-			const returnValue = this.modalDialogElement.returnValue;
-			if (returnValue === 'save') {
-				const selection = editor.view.state.selection;
-				editor.chain().focus()
-					.extendMarkRange('link')
-					.setLink({href: this.urlInputElement.value})
-					.insertContentAt({from: selection.from, to: selection.to}, this.textInputElement.value)
-					.run();
-			} else if (returnValue === 'remove') {
-				editor.chain().focus().extendMarkRange('link').unsetLink().run();
-			}
-			// reset form to be pristine for the next invocation
-			this.formElement.reset();
-		}
+		markedEditor.run();
 	}
 
-
-	export class PlaceholderAction extends FormDialogAction {
-		public extensions = [Procurator.configure()];
-		private readonly variableInputElement: HTMLInputElement;
-		private readonly sampleInputElement: HTMLInputElement;
-
-		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
-			super(wrapperElement, name, button);
-			this.variableInputElement = this.formElement.elements.namedItem('variable') as HTMLInputElement;
-			this.sampleInputElement = this.formElement.elements.namedItem('sample') as HTMLInputElement;
-			this.initialize();
-		}
-
-		protected initialize() {
-			super.initialize();
-			if (!(this.variableInputElement instanceof HTMLInputElement))
-				throw new Error('<form method="dialog"> requires field <input name="variable">');
-			if (!(this.sampleInputElement instanceof HTMLInputElement))
-				throw new Error('<form method="dialog"> requires field <input name="sample">');
-		}
-
-		activate(editor: Editor) {
-			this.button.classList.toggle('active', editor.isActive('procurator'));
-		}
-
-		protected openDialog(editor: Editor) {
-			const {selection, doc} = editor.view.state;
-			if (selection.from === selection.to)
-				return;  // nothing selected
-			super.openDialog(editor);
-			this.variableInputElement.value = editor.getAttributes('procurator').variable ?? '';
-			this.sampleInputElement.value = doc.textBetween(selection.from, selection.to, '');
-			this.toggleRemoveButton(!!this.variableInputElement.value.length);
-		}
-
-		protected closeDialog(editor: Editor) {
-			const returnValue = this.modalDialogElement.returnValue;
-			if (returnValue === 'save') {
-				const selection = editor.view.state.selection;
-				const sample = this.sampleInputElement.value ? this.sampleInputElement.value : this.variableInputElement.value;
-				editor.chain().focus()
-					.extendMarkRange('procurator')
-					.setPlaceholder({variable: this.variableInputElement.value})
-					.insertContentAt({from: selection.from, to: selection.to}, sample)
-					.run();
-			} else if (returnValue === 'remove') {
-				editor.chain().focus().extendMarkRange('procurator').unsetPlaceholder().run();
-			}
-			// reset form to be pristine for the next invocation
-			this.formElement.reset();
-		}
+	private revertMarkAttributes(editor: Editor) {
+		editor.chain().focus()
+			.extendMarkRange(this.extension)
+			.unsetMark(this.extension, {extendEmptyMarkRange: true})
+			.run();
 	}
 
-	export class ImageAction extends FormDialogAction {
-		// unfinished
-		private readonly fileInputElement: HTMLInputElement;
-		public extensions = [Image.configure({
-			inline: false
-		})];
-
-		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
-			super(wrapperElement, name, button);
-			this.fileInputElement = this.formElement.elements.namedItem('image') as HTMLInputElement;
-			this.initialize();
-		}
-
-		protected initialize() {
-			super.initialize();
-			if (!(this.fileInputElement instanceof HTMLInputElement))
-				throw new Error('<form method="dialog"> requires field <input name="text">');
-		}
-
-		protected openDialog(editor: Editor) {
-			this.modalDialogElement.showModal();
-			this.modalDialogElement.addEventListener('close', () => this.closeDialog(editor), {once: true});
-		}
-
-		protected closeDialog(editor: Editor) {
-			const returnValue = this.modalDialogElement.returnValue;
-			if (returnValue === 'save') {
-				const imgElement = this.modalDialogElement.querySelector('.dj-dropbox img') as HTMLImageElement;
-				editor.chain().focus().setImage({src: imgElement.src}).run();
-			} else if (returnValue === 'remove') {
-				editor.chain().focus().extendMarkRange('link').unsetLink().run();
-			}
-		}
+	private applyNodeAttributes(editor: Editor, options: Object) {
+		editor.chain().focus().insertContent({type: this.extension, attrs: options}).run();
 	}
 
+	private revertNodeAttributes(editor: Editor) {
+		const {from, to} = editor.view.state.selection;
+		editor.chain().focus().deleteRange({from, to}).run();
+	}
 }
 
 
 class RichtextArea {
-	private readonly textAreaElement: HTMLTextAreaElement;
-	public readonly wrapperElement: HTMLElement;
+	public readonly textAreaElement: HTMLTextAreaElement;
 	private readonly menubarElement: HTMLElement | null;
+	public readonly wrapperElement: HTMLElement;
 	private readonly registeredActions = new Array<Action>();
+	public readonly formDialogs = new Array<RichtextFormDialog>();
 	private readonly useJson: boolean = false;
-	private readonly editor: Editor;
+	public readonly editor: Editor;
 	private readonly initialValue: string | object;
-	private charaterCountTemplate?: Function;
+	private characterCountTemplate?: Function;
 	private charaterCountDiv: HTMLElement | null = null;
 	private readonly baseSelector = '.dj-richtext-wrapper';
 
@@ -835,9 +860,9 @@ class RichtextArea {
 			Paragraph,
 			Text,
 			HardBreak,  // always add hard breaks via keyboard entry
-			// TextStyle,  // always add <span> elements for extra styling
 		);
 		this.registerControlActions(extensions);
+		this.registerFormDialogs(extensions);
 		this.registerPlaceholder(extensions);
 		this.registerCharaterCount(extensions);
 		const editor = new Editor({
@@ -870,6 +895,21 @@ class RichtextArea {
 		return extensions;
 	}
 
+	private registerFormDialogs(extensions: Array<Extension|Mark|Node>) {
+		this.menubarElement?.querySelectorAll('button[df-click]').forEach(button => {
+			if (!(button instanceof HTMLButtonElement))
+				return;
+			const dialogElement = this.wrapperElement?.querySelector(`dialog[df-induce-open="${button.name}:active"]`);
+			if (dialogElement instanceof HTMLDialogElement) {
+				const formDialog = new RichtextFormDialog(dialogElement, button, this);
+				if (this.formDialogs.find(dialog => dialog.extension === formDialog.extension))
+					throw new Error(`Duplicate dialog for extension ${formDialog.extension}`);
+				this.formDialogs.push(formDialog);
+				extensions.push(formDialog.createPlugin());
+			}
+	 	});
+	}
+
 	private registerPlaceholder(extensions: Array<Extension|Mark|Node>) {
 		const placeholderText = this.textAreaElement.getAttribute('placeholder');
 		if (!placeholderText)
@@ -881,7 +921,7 @@ class RichtextArea {
 		const limit = parseInt(this.textAreaElement.getAttribute('maxlength') ?? '');
 		if (limit > 0) {
 			extensions.push(CharacterCount.configure({limit}));
-			this.charaterCountTemplate = template(`\${count}/${limit}`);
+			this.characterCountTemplate = template(`\${count}/${limit}`);
 			this.charaterCountDiv = document.createElement('div');
 			this.charaterCountDiv.classList.add('character-count');
 			this.wrapperElement.insertAdjacentElement('beforeend', this.charaterCountDiv);
@@ -929,14 +969,15 @@ class RichtextArea {
 	}
 
 	private contentUpdate = () => {
-		if (this.charaterCountDiv && this.charaterCountTemplate) {
+		if (this.charaterCountDiv && this.characterCountTemplate) {
 			const context = {count: this.editor.storage.characterCount.characters()};
-			this.charaterCountDiv.innerHTML = this.charaterCountTemplate(context);
+			this.charaterCountDiv.innerHTML = this.characterCountTemplate(context);
 		}
 	}
 
 	private selectionUpdate = () => {
 		this.registeredActions.forEach(action => action.activate(this.editor));
+		this.formDialogs.forEach(dialog => dialog.activate(this.editor));
 	}
 
 	private formResetted = () => {
@@ -1035,6 +1076,10 @@ class RichtextArea {
 			return '';  // otherwise empty field is not detected by calling function
 		return this.useJson ? this.editor.getJSON() : this.editor.getHTML();
 	}
+
+	public updateOperability(action: string) : void {
+		this.formDialogs.forEach(dialog => dialog.updateOperability(action));
+	}
 }
 
 
@@ -1043,18 +1088,22 @@ const RA = Symbol('RichtextArea');
 export class RichTextAreaElement extends HTMLTextAreaElement {
 	private [RA]!: RichtextArea;  // hides internal implementation
 
-	private connectedCallback() {
+	connectedCallback() {
 		const wrapperElement = this.closest('.dj-richtext-wrapper');
 		if (wrapperElement instanceof HTMLElement) {
 			this[RA] = new RichtextArea(wrapperElement, this);
 		}
 	}
 
-	private disconnectCallback() {
+	disconnectCallback() {
 		this[RA].disconnect();
 	}
 
-	public get value() : any {
+	get value() : any {
 		return this[RA].getValue();
+	}
+
+	updateOperability(action: string) : void {
+		this[RA].updateOperability(action);
 	}
 }
