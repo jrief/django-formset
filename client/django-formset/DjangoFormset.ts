@@ -187,7 +187,7 @@ class FieldGroup {
 		this.fieldElements.filter(
 			fieldElement => typeof (fieldElement as Object).updateOperability === 'function'
 		).forEach(
-			fieldElement => (fieldElement as function).updateOperability(action)
+			fieldElement => (fieldElement as Function).updateOperability(action)
 		);
 	}
 
@@ -957,7 +957,9 @@ class PerpetualFormDialog extends FormDialog {
 		this.form = form;
 	}
 
-	protected openDialog(){
+	protected openDialog() {
+		if (this.element.open)
+			return;
 		this.form.setPristine();
 		this.form.untouch();
 		super.openDialog();

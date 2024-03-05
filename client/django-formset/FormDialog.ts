@@ -29,7 +29,7 @@ export abstract class FormDialog {
 
 	protected evalInducer(attr: string, inducer: Function) : Function {
 		const attrValue = this.element?.getAttribute(attr);
-		if (typeof attrValue != 'string')
+		if (typeof attrValue !== 'string')
 			return () => {};
 		try {
 			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'InduceExpression'})}`);
