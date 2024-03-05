@@ -119,10 +119,7 @@ export class FileUploadWidget {
 					this.uploadedFiles = [response];
 					this.renderDropbox();
 					this.fieldGroup.inputted();
-					const downloadUrl = (response as FileUploadResponse)['download_url'];
-					if (typeof downloadUrl === 'string') {
-						this.inputElement.setAttribute('data-download-url', downloadUrl);
-					}
+					this.inputElement.dataset.fileupload = JSON.stringify(response);
 					resolve();
 				}).catch(() => {
 					reject();
@@ -196,9 +193,16 @@ export class FileUploadWidget {
 
 	private attributesChanged(mutationsList: Array<MutationRecord>) {
 		for (const mutation of mutationsList) {
-			if (mutation.type === 'attributes' && mutation.attributeName === 'disabled'
-			&& this.chooseFileButton.disabled != this.inputElement.disabled) {
-				this.chooseFileButton.disabled = this.inputElement.disabled;
+			if (mutation.type === 'attributes') {
+				if (mutation.attributeName === 'disabled' && this.chooseFileButton.disabled != this.inputElement.disabled) {
+					this.chooseFileButton.disabled = this.inputElement.disabled;
+				}
+				if (mutation.attributeName === 'data-fileupload') {
+					const fileUpload = this.inputElement.dataset.fileupload;
+					if (fileUpload) {
+						this.dropbox.innerHTML = this.dropboxItemTemplate(JSON.parse(fileUpload));
+					}
+				}
 			}
 		}
 	}
