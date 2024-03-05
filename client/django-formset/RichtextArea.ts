@@ -32,7 +32,6 @@ import template from 'lodash.template';
 import {FormDialog} from './FormDialog';
 import isEqual from 'lodash.isequal';
 import getDataValue from "lodash.get";
-import {map} from "yaml/dist/schema/common/map";
 
 
 abstract class Action {
@@ -627,7 +626,7 @@ class RichtextFormDialog extends FormDialog {
 		Array.from(this.formElement.elements).forEach(innerElement => {
 			if (innerElement instanceof HTMLInputElement && innerElement.hasAttribute('richtext-selection')) {
 				this.textSelectionField = innerElement;
-			} else if (innerElement.hasAttribute('richtext-mapping')) {
+			} else if (innerElement.hasAttribute('richtext-map-value')) {
 				this.inputElements.push(innerElement as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement);
 			} else if (innerElement instanceof HTMLButtonElement) {
 				const action = innerElement.getAttribute('df-click');
@@ -723,21 +722,13 @@ class RichtextFormDialog extends FormDialog {
 			this.textSelectionField.value = doc.textBetween(selection.from, selection.to, '');
 		}
 		this.inputElements.forEach(inputElement => {
-			const mapping = inputElement.getAttribute('richtext-mapping');
-			if (mapping === null)
-				return;
-			if (mapping.includes('{') && mapping.includes('}')) {
-				const mapFunction = new Function('element', `return ${mapping}`);
-				const key = Object.keys(mapFunction(inputElement))[0];
-				const value = getDataValue(attributes, key);
-				if (value !== undefined && inputElement.type !== 'file') {
-					inputElement.value = value;
-				}
+			const valueMapping = inputElement.getAttribute('richtext-map-value');
+			const value = getDataValue(attributes, valueMapping ? valueMapping : inputElement.name);
+			const datasetKey = inputElement.getAttribute('richtext-dataset');
+			if (datasetKey) {
+				inputElement.dataset[datasetKey] = JSON.stringify((attributes as any)['dataset'] ?? {});
 			} else {
-				const value = getDataValue(attributes, inputElement.name);
-				if (value !== undefined) {
-					inputElement.value = value;
-				}
+				inputElement.value = value;
 			}
 		});
 		super.openDialog();
@@ -768,14 +759,18 @@ class RichtextFormDialog extends FormDialog {
 			}
 			let attributes = {};
 			this.inputElements.forEach(inputElement => {
-				const mapping = inputElement.getAttribute('richtext-mapping');
-				if (mapping === null)
-					return;
-				if (mapping.includes('{') && mapping.includes('}')) {
-					const mapFunction = new Function('element', `return ${mapping}`);
-					attributes = {...attributes, ...mapFunction(inputElement)};
+				const valueMapping = inputElement.getAttribute('richtext-map-value');
+				const key = valueMapping ? valueMapping : inputElement.name;
+				const datasetKey = inputElement.getAttribute('richtext-dataset');
+				if (datasetKey) {
+					const dataset = JSON.parse(inputElement.dataset[datasetKey] ?? '{}');
+					attributes = {...attributes, ...{dataset: dataset}};
+					const datasetValue = inputElement.getAttribute('richtext-dataset-value');
+					if (datasetValue) {
+						attributes = {...attributes, ...{[key]: dataset[datasetValue]}};
+					}
 				} else {
-					attributes = {...attributes, ...{[inputElement.name]: inputElement.value}};
+					attributes = {...attributes, ...{[key]: inputElement.value}};
 				}
 			});
 			this.applyAttributes(editor, attributes);

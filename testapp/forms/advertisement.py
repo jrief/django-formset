@@ -63,22 +63,29 @@ class LinkDialogForm(DialogForm):
 
     text = fields.CharField(
         label="Text",
-        widget=widgets.TextInput(attrs={'richtext-selection': True, 'size': 50})
+        widget=widgets.TextInput(attrs={
+            'richtext-selection': True,
+            'size': 50,
+        })
     )
     url = fields.URLField(
         label="Link",
-        widget=widgets.URLInput(attrs={'size': 50, 'richtext-mapping': '{href: element.value}', 'df-show': '.type == "external"'}),
+        widget=widgets.URLInput(attrs={
+            'size': 50,
+            'richtext-map-value': 'href',
+            'df-show': '.type == "external"',
+        }),
     )
     type = fields.ChoiceField(
         label="Type",
-        widget=widgets.Select(attrs={'richtext-mapping': True}),
         choices=[('internal', "Internal"), ('external', "External")],
         initial='external',
+        widget=widgets.Select(attrs={'richtext-map-value': True}),
     )
     dismiss = Activator(
         label="Close",
         widget=Button(
-            attrs={'df-click': 'activate'},
+            action='dismiss',
         ),
     )
     revert = Activator(
@@ -106,7 +113,11 @@ class ImageDialogForm(DialogForm):
 
     image = fields.ImageField(
         label="Image",
-        widget=UploadedFileInput(attrs={'richtext-mapping': '{src: element.getAttribute("data-download-url")}'}),
+        widget=UploadedFileInput(attrs={
+            'richtext-dataset': 'fileupload',
+            'richtext-dataset-value': 'download_url',
+            'richtext-map-value': 'src',
+        }),
     )
     dismiss = Activator(
         label="Close",
@@ -140,11 +151,18 @@ class PlaceholderDialogForm(DialogForm):
     variable_name = fields.RegexField(
         regex=r'^[A-Za-z_][0-9A-Za-z_\.]{0,254}$',
         label="Variable Name",
-        widget=widgets.TextInput(attrs={'richtext-mapping': True, 'size': 50, 'pattern': '[A-Za-z_][0-9A-Za-z_\.]{0,254}'}),
+        widget=widgets.TextInput(attrs={
+            'richtext-map-value': True,
+            'size': 50,
+            'pattern': '[A-Za-z_][0-9A-Za-z_\.]{0,254}',
+        }),
     )
     sample_value = fields.CharField(
         label="Sample Value",
-        widget=widgets.TextInput(attrs={'richtext-selection': True, 'size': 50})
+        widget=widgets.TextInput(attrs={
+            'richtext-selection': True,
+            'size': 50,
+        })
     )
     dismiss = Activator(
         label="Close",
