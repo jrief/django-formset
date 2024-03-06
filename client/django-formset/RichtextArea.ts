@@ -762,7 +762,12 @@ class RichtextFormDialog extends FormDialog {
 		const editor = this.richtext.editor;
 		if (returnValue === 'apply') {
 			if (!this.formElement.checkValidity()) {
-				this.richtext.textAreaElement.dispatchEvent(new Event('blur', {bubbles: true}));
+				this.inputElements.forEach(inputElement => {
+					if (!inputElement.validity.valid) {
+						inputElement.dispatchEvent(new Event('focus', {bubbles: true}));
+						inputElement.dispatchEvent(new Event('invalid', {bubbles: true}));
+					}
+				});
 				return;
 			}
 			let attributes = {};

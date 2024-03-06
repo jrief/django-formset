@@ -81,6 +81,8 @@ class FieldGroup {
 				case 'file':
 					// @ts-ignore
 					this.fileUploader = new FileUploadWidget(this, element);
+					element.addEventListener('focus', () => this.touch());
+					element.addEventListener('invalid', () => this.showErrorMessage(element));
 					break;
 				default:
 					element.addEventListener('focus', () => this.touch());
@@ -185,9 +187,9 @@ class FieldGroup {
 		this.updateVisibility();
 		this.updateDisabled();
 		this.fieldElements.filter(
-			fieldElement => typeof (fieldElement as Object).updateOperability === 'function'
+			fieldElement => typeof (fieldElement as any).updateOperability === 'function'
 		).forEach(
-			fieldElement => (fieldElement as Function).updateOperability(action)
+			fieldElement => (fieldElement as any).updateOperability(action)
 		);
 	}
 
