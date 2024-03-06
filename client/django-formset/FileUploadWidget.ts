@@ -185,10 +185,6 @@ export class FileUploadWidget {
 		} else {
 			this.dropbox.replaceChildren(this.emptyDropboxItem);
 		}
-		const button = this.dropbox.querySelector('.dj-delete-file');
-		if (button) {
-			button.addEventListener('click', this.fileRemove, {once: true});
-		}
 	}
 
 	private attributesChanged(mutationsList: Array<MutationRecord>) {
@@ -201,6 +197,10 @@ export class FileUploadWidget {
 					const fileUpload = this.inputElement.dataset.fileupload;
 					if (fileUpload) {
 						this.dropbox.innerHTML = this.dropboxItemTemplate(JSON.parse(fileUpload));
+						const button = this.dropbox.querySelector('.dj-delete-file');
+						if (button) {
+							button.addEventListener('click', this.fileRemove, {once: true});
+						}
 					}
 				}
 			}
