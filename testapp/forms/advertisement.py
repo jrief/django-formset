@@ -72,7 +72,7 @@ class LinkDialogForm(DialogForm):
         label="Link",
         widget=widgets.URLInput(attrs={
             'size': 50,
-            'richtext-map-value': 'href',
+            'richtext-mapping': 'href',
             'df-show': '.type == "external"',
         }),
     )
@@ -80,7 +80,7 @@ class LinkDialogForm(DialogForm):
         label="Type",
         choices=[('internal', "Internal"), ('external', "External")],
         initial='external',
-        widget=widgets.Select(attrs={'richtext-map-value': True}),
+        widget=widgets.Select(attrs={'richtext-mapping': True}),
     )
     dismiss = Activator(
         label="Close",
@@ -115,8 +115,7 @@ class ImageDialogForm(DialogForm):
         label="Image",
         widget=UploadedFileInput(attrs={
             'richtext-dataset': 'fileupload',
-            'richtext-dataset-value': 'download_url',
-            'richtext-map-value': 'src',
+            'richtext-mapping': '{src: JSON.parse(element.dataset.fileupload).download_url}',
         }),
     )
     dismiss = Activator(
@@ -152,7 +151,7 @@ class PlaceholderDialogForm(DialogForm):
         regex=r'^[A-Za-z_][0-9A-Za-z_\.]{0,254}$',
         label="Variable Name",
         widget=widgets.TextInput(attrs={
-            'richtext-map-value': True,
+            'richtext-mapping': True,
             'size': 50,
             'pattern': '[A-Za-z_][0-9A-Za-z_\.]{0,254}',
         }),

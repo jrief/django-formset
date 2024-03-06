@@ -626,7 +626,7 @@ class RichtextFormDialog extends FormDialog {
 		Array.from(this.formElement.elements).forEach(innerElement => {
 			if (innerElement instanceof HTMLInputElement && innerElement.hasAttribute('richtext-selection')) {
 				this.textSelectionField = innerElement;
-			} else if (innerElement.hasAttribute('richtext-map-value')) {
+			} else if (innerElement.hasAttribute('richtext-mapping')) {
 				this.inputElements.push(innerElement as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement);
 			} else if (innerElement instanceof HTMLButtonElement) {
 				const action = innerElement.getAttribute('df-click');
@@ -681,7 +681,6 @@ class RichtextFormDialog extends FormDialog {
 			const parsedScript = new Function('mergeAttributes', 'markPasteRule', `return ${extensionScript}`);
 			const executedScript = parsedScript(mergeAttributes, markPasteRule);
 			executedScript.addProseMirrorPlugins = this.addProseMirrorPlugins();
-			console.log(parsedScript);
 			switch (plugin) {
 				case 'mark':
 					this.applyAttributes = this.applyMarkAttributes;
@@ -722,13 +721,22 @@ class RichtextFormDialog extends FormDialog {
 			this.textSelectionField.value = doc.textBetween(selection.from, selection.to, '');
 		}
 		this.inputElements.forEach(inputElement => {
-			const valueMapping = inputElement.getAttribute('richtext-map-value');
-			const value = getDataValue(attributes, valueMapping ? valueMapping : inputElement.name);
+			const mapping = inputElement.getAttribute('richtext-mapping') ?? '';
+			if (mapping.startsWith('{') && mapping.endsWith('}')) {
+				const mapFunction = new Function('element', `return ${mapping}`);
+				const key = Object.keys(mapFunction(inputElement))[0];
+				const value = getDataValue(attributes, key);
+				if (value !== undefined && inputElement.type !== 'file') {
+					inputElement.value = value;
+				}
+			} else {
+				inputElement.value = getDataValue(attributes, mapping ? mapping : inputElement.name);
+			}
+
+			// some input elements keep an additional dataset and this must be transferred from the editor
 			const datasetKey = inputElement.getAttribute('richtext-dataset');
 			if (datasetKey) {
-				inputElement.dataset[datasetKey] = JSON.stringify((attributes as any)['dataset'] ?? {});
-			} else {
-				inputElement.value = value;
+				inputElement.dataset[datasetKey] = JSON.stringify((attributes as any).dataset ?? {});
 			}
 		});
 		super.openDialog();
@@ -759,18 +767,21 @@ class RichtextFormDialog extends FormDialog {
 			}
 			let attributes = {};
 			this.inputElements.forEach(inputElement => {
-				const valueMapping = inputElement.getAttribute('richtext-map-value');
-				const key = valueMapping ? valueMapping : inputElement.name;
+				let mapFunction: Function;
+				const mapping = inputElement.getAttribute('richtext-mapping')  ?? '';
+				if (mapping.startsWith('{') && mapping.endsWith('}')) {
+					mapFunction = new Function('element', `return ${mapping}`);
+				} else if (mapping) {
+					mapFunction = (element: HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement) => ({[mapping]: inputElement.value});
+				} else {
+					mapFunction = (element: HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement) => ({[inputElement.name]: inputElement.value});
+				}
+				attributes = {...attributes, ...mapFunction(inputElement)};
+
+				// some input elements keep an additional dataset and this must be transferred to the editor
 				const datasetKey = inputElement.getAttribute('richtext-dataset');
 				if (datasetKey) {
-					const dataset = JSON.parse(inputElement.dataset[datasetKey] ?? '{}');
-					attributes = {...attributes, ...{dataset: dataset}};
-					const datasetValue = inputElement.getAttribute('richtext-dataset-value');
-					if (datasetValue) {
-						attributes = {...attributes, ...{[key]: dataset[datasetValue]}};
-					}
-				} else {
-					attributes = {...attributes, ...{[key]: inputElement.value}};
+					(attributes as any).dataset = JSON.parse(inputElement.dataset[datasetKey] ?? '{}');
 				}
 			});
 			this.applyAttributes(editor, attributes);
