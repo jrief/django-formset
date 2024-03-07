@@ -606,6 +606,7 @@ class RichtextFormDialog extends FormDialog {
 	private revertAttributes: Function = () => {};
 	private readonly induceButton: HTMLButtonElement;
 	private readonly closeButtons = new Array<HTMLButtonElement>();
+	private applyButton: HTMLButtonElement|null = null;
 	private revertButton: HTMLButtonElement|null = null;
 	public readonly extension: string;
 
@@ -632,6 +633,9 @@ class RichtextFormDialog extends FormDialog {
 				const action = innerElement.getAttribute('df-click');
 				if (action?.startsWith('activate')) {
 					this.closeButtons.push(innerElement);
+				}
+				if (action === 'activate("apply")') {
+					this.applyButton = innerElement;
 				}
 				if (action === 'activate("revert")') {
 					this.revertButton = innerElement;
@@ -761,13 +765,9 @@ class RichtextFormDialog extends FormDialog {
 			return;
 		const editor = this.richtext.editor;
 		if (returnValue === 'apply') {
+			this.formElement.dispatchEvent(new Event('submit', {bubbles: true}));
 			if (!this.formElement.checkValidity()) {
-				this.inputElements.forEach(inputElement => {
-					if (!inputElement.validity.valid) {
-						inputElement.dispatchEvent(new Event('focus', {bubbles: true}));
-						inputElement.dispatchEvent(new Event('invalid', {bubbles: true}));
-					}
-				});
+				// checkValidity() triggers the invalid event for each invalid input field
 				return;
 			}
 			let attributes = {};
@@ -823,6 +823,13 @@ class RichtextFormDialog extends FormDialog {
 	private revertNodeAttributes(editor: Editor) {
 		const {from, to} = editor.view.state.selection;
 		editor.chain().focus().deleteRange({from, to}).run();
+	}
+
+	public updateOperability(action?: string) {
+		super.updateOperability(action);
+		if (this.applyButton?.hasAttribute('auto-disable')) {
+			this.applyButton.disabled = !this.formElement.checkValidity();
+		}
 	}
 }
 

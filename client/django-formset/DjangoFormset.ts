@@ -81,7 +81,6 @@ class FieldGroup {
 				case 'file':
 					// @ts-ignore
 					this.fileUploader = new FileUploadWidget(this, element);
-					element.addEventListener('focus', () => this.touch());
 					element.addEventListener('invalid', () => this.showErrorMessage(element));
 					break;
 				default:
@@ -330,7 +329,8 @@ class FieldGroup {
 	}
 
 	private showErrorMessage(element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
-		if (!this.isTouched || !this.form.formset.showFeedbackMessages || !this.errorPlaceholder)
+		const submitted = this.element.classList.contains('dj-submitted');
+		if (!(this.isTouched || submitted) || !this.form.formset.showFeedbackMessages || !this.errorPlaceholder)
 			return;
 		for (const [key, message] of this.errorMessages) {
 			if (element.validity[key as keyof ValidityState]) {
@@ -1122,8 +1122,10 @@ class DjangoForm {
 	}
 
 	private handleSubmit = (event: Event) => {
-		if (event.target instanceof HTMLFormElement && event.target.method === 'dialog')
+		if (event.target instanceof HTMLFormElement && event.target.method === 'dialog') {
+			this.setSubmitted();
 			return;
+		}
 		event.preventDefault();
 	}
 
