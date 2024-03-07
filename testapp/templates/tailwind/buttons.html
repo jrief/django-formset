@@ -1,4 +1,4 @@
 <div class="mt-3">
-	<button type="button" df-click="{{ click_actions }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="formset-button-default">Submit<span class="ml-2 dj-button-decorator"><i class="dj-icon">{% include "formset/icons/send.svg" %}</i></span></button>
+	<button type="button" df-click="{{ click_actions }}"{% if auto_disable %} auto-disable{% endif %} class="formset-button-default">Submit<span class="ml-2 dj-button-decorator"><i class="dj-icon">{% include "formset/icons/send.svg" %}</i></span></button>
 	<button type="button" df-click="reset" class="formset-button-yellow">Reset to initial<span class="ml-2 dj-button-decorator"><i class="dj-icon">{% include "formset/icons/delete-back.svg" %}</i></span></button>
 </div>

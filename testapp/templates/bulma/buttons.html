@@ -1,4 +1,4 @@
 <div class="mt-3">
-	<button type="button" df-click="{{ click_actions }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="button is-primary">Submit</button>
+	<button type="button" df-click="{{ click_actions }}"{% if auto_disable %} auto-disable{% endif %} class="button is-primary">Submit</button>
 	<button type="button" df-click="reset" class="button is-warning ml-2">Reset to initial</button>
 </div>

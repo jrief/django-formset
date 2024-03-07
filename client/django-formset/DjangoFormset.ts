@@ -474,7 +474,7 @@ class DjangoButton {
 		this.formset = formset;
 		this.element = element;
 		this.initialClass = element.getAttribute('class') ?? '';
-		this.isAutoDisabled = !!JSON.parse((element.getAttribute('auto-disable') ?? 'false').toLowerCase());
+		this.isAutoDisabled = element.hasAttribute('auto-disable');
 		this.decoratorElement = element.querySelector('.dj-button-decorator');
 		this.originalDecorator = this.decoratorElement?.cloneNode(true);
 		this.spinnerElement = document.createElement('i');

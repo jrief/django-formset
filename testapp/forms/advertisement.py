@@ -136,6 +136,7 @@ class ImageDialogForm(DialogForm):
         widget=Button(
             action='apply',
             button_variant=ButtonVariant.PRIMARY,
+            attrs={'auto-disable': True},
         ),
     )
 

@@ -1,4 +1,4 @@
 <p>
-	<button type="button" df-click="{{ click_actions }}" auto-disable="{{ auto_disable|yesno:'true,false' }}" class="button">Submit&ensp;<span class="dj-button-decorator"><i class="dj-icon">{% include "formset/icons/send.svg" %}</i></span></button>
+	<button type="button" df-click="{{ click_actions }}"{% if auto_disable %} auto-disable{% endif %} class="button">Submit&ensp;<span class="dj-button-decorator"><i class="dj-icon">{% include "formset/icons/send.svg" %}</i></span></button>
 	<button type="button" df-click="reset">Reset to initial&ensp;<span class="dj-button-decorator"><i class="dj-icon">{% include "formset/icons/delete-back.svg" %}</i></span></button>
 </p>
