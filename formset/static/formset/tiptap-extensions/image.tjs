@@ -1,0 +1,38 @@
+{
+	name: 'image',
+
+	inline() {
+		return true;
+	},
+
+	group() {
+		return 'inline';
+	},
+
+	draggable: true,
+
+	addAttributes() {
+		return {
+			src: {
+				default: null,
+			},
+			alt: {
+				default: null,
+			},
+			title: {
+				default: null,
+			},
+			dataset: {
+				default: {},
+			},
+		};
+	},
+
+	parseHTML() {
+		return [{tag: 'img[src]'}];
+	},
+
+	renderHTML({HTMLAttributes}) {
+		return ['img', HTMLAttributes];
+	},
+}

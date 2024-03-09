@@ -3,12 +3,7 @@ from django.forms import forms
 from formset.utils import FormMixin
 
 
-class DialogDeclarativeFieldsMetaclass(forms.DeclarativeFieldsMetaclass):
-    def __new__(mcs, name, bases, attrs):
-        return super().__new__(mcs, name, bases, attrs)
-
-
-class DialogForm(FormMixin, forms.BaseForm, metaclass=DialogDeclarativeFieldsMetaclass):
+class DialogForm(FormMixin, forms.BaseForm, metaclass=forms.DeclarativeFieldsMetaclass):
     template_name = 'formset/default/form_dialog.html'
     induce_open, induce_close = None, None
     title = None
@@ -25,5 +20,4 @@ class DialogForm(FormMixin, forms.BaseForm, metaclass=DialogDeclarativeFieldsMet
     def get_context(self):
         context = super().get_context()
         context['form'].method = 'dialog'
-        # context['form'].extension_file = f'formset/tiptap/extensions/{self.extension}.js' if self.extension else None
         return context

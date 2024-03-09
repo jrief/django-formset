@@ -1,5 +1,5 @@
 import '@ungap/custom-elements';
-import { DjangoFormsetElement } from "./django-formset/DjangoFormset";
+import { DjangoFormsetElement } from './django-formset/DjangoFormset';
 import { StyleHelpers } from './django-formset/helpers';
 
 
@@ -67,10 +67,21 @@ window.addEventListener('DOMContentLoaded', (event) => {
 				}).catch(err => reject(err));
 			}));
 		}
-		if (fragmentRoot.querySelector('textarea[is="django-richtext"]')) {
+		const textareaElement = fragmentRoot.querySelector('textarea[is="django-richtext"]');
+		if (textareaElement) {
 			promises.push(new Promise((resolve, reject) => {
+				const resolveWhenConnected = () => {
+					// RichtextArea connects asynchronously, so we need to wait until it is connected
+					textareaElement.addEventListener('connected', () => resolve(), {once: true});
+				};
+
 				import('./django-formset/RichtextArea').then(({RichTextAreaElement}) => {
-					defineComponent(resolve, 'django-richtext', RichTextAreaElement, {extends: 'textarea'});
+					if (customElements.get('django-richtext') instanceof Function) {
+						resolveWhenConnected();
+					} else {
+						window.customElements.define('django-richtext', RichTextAreaElement, {extends: 'textarea'});
+						window.customElements.whenDefined('django-richtext').then(resolveWhenConnected);
+					}
 				}).catch(err => reject(err));
 			}));
 		}

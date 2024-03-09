@@ -1,7 +1,6 @@
 import styles from './RichtextArea.scss';
-import isEmpty from 'lodash.isempty';
 import {computePosition} from '@floating-ui/dom';
-import {Editor, Extension, Mark, Node, markPasteRule, mergeAttributes, getAttributes} from '@tiptap/core';
+import {Editor, Extension, Mark, Node, markPasteRule, mergeAttributes, getAttributes, JSONContent} from '@tiptap/core';
 import {Plugin, PluginKey, TextSelection} from '@tiptap/pm/state';
 import Blockquote from '@tiptap/extension-blockquote';
 import Bold from '@tiptap/extension-bold';
@@ -22,16 +21,16 @@ import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import Text from '@tiptap/extension-text';
 import {TextAlign, TextAlignOptions} from '@tiptap/extension-text-align';
+import Underline from '@tiptap/extension-underline';
 import {TextIndent, TextIndentOptions } from './tiptap-extensions/indent';
 import {TextMargin, TextMarginOptions } from './tiptap-extensions/margin';
 import {TextColor} from './tiptap-extensions/color';
-import {Procurator, ProcuratorOptions} from './tiptap-extensions/procurator';
-import Underline from '@tiptap/extension-underline';
 import {StyleHelpers} from './helpers';
 import template from 'lodash.template';
 import {FormDialog} from './FormDialog';
+import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
-import getDataValue from "lodash.get";
+import getDataValue from 'lodash.get';
 
 
 abstract class Action {
@@ -675,13 +674,14 @@ class RichtextFormDialog extends FormDialog {
 		}
 	}
 
-	public createPlugin() : Mark|Node|Extension {
+	public async createPlugin() : Promise<Mark|Node> {
 		if (!(this.element.nextElementSibling instanceof HTMLScriptElement) || this.element.nextElementSibling.type !== 'text/plain')
 			throw new Error(`Element ${this.element} requires a <script type="text/plain">…</script>`);
 		const scriptElement = this.element.nextElementSibling as HTMLScriptElement;
 		try {
-			const extensionScript = scriptElement.textContent ? scriptElement.textContent.replaceAll('\n', '').replaceAll('\t', ' ') : '';
 			const plugin = scriptElement.getAttribute('tiptap-plugin');
+			const response = await fetch(scriptElement.src);
+			const extensionScript = (await response.text()).replaceAll('\n', '').replaceAll('\t', ' ');
 			const parsedScript = new Function('mergeAttributes', 'markPasteRule', `return ${extensionScript}`);
 			const executedScript = parsedScript(mergeAttributes, markPasteRule);
 			executedScript.addProseMirrorPlugins = this.addProseMirrorPlugins();
@@ -694,8 +694,6 @@ class RichtextFormDialog extends FormDialog {
 					this.applyAttributes = this.applyNodeAttributes;
 					this.revertAttributes = this.revertNodeAttributes;
 					return Node.create<FormDialogOptions>(executedScript);
-				case 'extension':
-					return Extension.create<FormDialogOptions>(executedScript);
 				default:
 					throw new Error(`tiptap-plugin="${plugin}" <script type="text/plain"…> must be either "mark", "node" or "extension".`);
 			}
@@ -841,8 +839,8 @@ class RichtextArea {
 	private readonly registeredActions = new Array<Action>();
 	public readonly formDialogs = new Array<RichtextFormDialog>();
 	private readonly useJson: boolean = false;
-	public readonly editor: Editor;
-	private readonly initialValue: string | object;
+	public editor!: Editor;
+	private initialValue!: string | object;
 	private characterCountTemplate?: Function;
 	private charaterCountDiv: HTMLElement | null = null;
 	private readonly baseSelector = '.dj-richtext-wrapper';
@@ -852,35 +850,44 @@ class RichtextArea {
 		this.textAreaElement = textAreaElement;
 		this.menubarElement = wrapperElement.querySelector('[role="menubar"]');
 		const scriptElement = wrapperElement.querySelector('textarea + script');
-		if (scriptElement instanceof HTMLScriptElement && scriptElement.type === 'application/json') {
-			this.useJson = true;
-			const content = scriptElement.textContent ? JSON.parse(scriptElement.textContent) : '';
-			this.editor = this.createEditor(wrapperElement, content);
-			scriptElement.remove();
-		} else {
-			this.useJson = false;
-			this.editor = this.createEditor(wrapperElement, textAreaElement.textContent);
-		}
-		this.initialValue = this.getValue();
+		this.useJson = scriptElement instanceof HTMLScriptElement && scriptElement.type === 'application/json';
 		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
 			this.transferStyles();
 		}
-		this.concealTextArea(wrapperElement);
-		// innerHTML must reflect the content, otherwise field validation complains about a missing value
-		this.textAreaElement.innerHTML = this.editor.getHTML();
-		this.contentUpdate();
-		this.installEventHandlers();
 	}
 
-	private createEditor(wrapperElement: HTMLElement, content: any) : Editor {
+	public async initialize() {
+		let initialContent = '';
+		if (this.useJson) {
+			const scriptElement = this.wrapperElement.querySelector('textarea + script')!;
+			initialContent = JSON.parse(scriptElement.textContent ?? '{}');
+			scriptElement.remove();
+		} else {
+			initialContent = this.textAreaElement.textContent ?? '';
+		}
+		return new Promise<void>(resolve => {
+			this.createEditor(this.wrapperElement, initialContent).then(editor => {
+				this.editor = editor;
+				this.initialValue = this.getValue();
+				this.concealTextArea(this.wrapperElement);
+				// innerHTML must reflect the content, otherwise field validation complains about a missing value
+				this.textAreaElement.innerHTML = this.editor.getHTML();
+				this.contentUpdate();
+				this.installEventHandlers();
+				resolve();
+			});
+		});
+	}
+
+	private async createEditor(wrapperElement: HTMLElement, content: any) : Promise<Editor> {
 		const extensions = new Array<Extension|Mark|Node>(
 			Document,
 			Paragraph,
 			Text,
 			HardBreak,  // always add hard breaks via keyboard entry
 		);
-		this.registerControlActions(extensions);
-		this.registerFormDialogs(extensions);
+		await this.registerControlActions(extensions);
+		await this.registerFormDialogs(extensions);
 		this.registerPlaceholder(extensions);
 		this.registerCharaterCount(extensions);
 		const editor = new Editor({
@@ -894,7 +901,7 @@ class RichtextArea {
 		return editor;
 	}
 
-	private registerControlActions(extensions: Array<Extension|Mark|Node>) {
+	private async registerControlActions(extensions: Array<Extension|Mark|Node>) {
 		this.menubarElement?.querySelectorAll('button[richtext-click]').forEach(button => {
 			if (!(button instanceof HTMLButtonElement))
 				return;
@@ -910,22 +917,28 @@ class RichtextArea {
 			this.registeredActions.push(actionInstance);
 			actionInstance.extendExtensions(extensions);
 		});
-		return extensions;
 	}
 
-	private registerFormDialogs(extensions: Array<Extension|Mark|Node>) {
-		this.menubarElement?.querySelectorAll('button[df-click]').forEach(button => {
-			if (!(button instanceof HTMLButtonElement))
-				return;
-			const dialogElement = this.wrapperElement?.querySelector(`dialog[df-induce-open="${button.name}:active"]`);
-			if (dialogElement instanceof HTMLDialogElement) {
-				const formDialog = new RichtextFormDialog(dialogElement, button, this);
-				if (this.formDialogs.find(dialog => dialog.extension === formDialog.extension))
-					throw new Error(`Duplicate dialog for extension ${formDialog.extension}`);
-				this.formDialogs.push(formDialog);
-				extensions.push(formDialog.createPlugin());
-			}
-	 	});
+	private async registerFormDialogs(extensions: Array<Extension|Mark|Node>) {
+		return new Promise<void>(resolve => {
+			const promises = new Array<Promise<Mark | Node>>();
+			this.menubarElement?.querySelectorAll('button[df-click]').forEach(button => {
+				if (!(button instanceof HTMLButtonElement))
+					return;
+				const dialogElement = this.wrapperElement?.querySelector(`dialog[df-induce-open="${button.name}:active"]`);
+				if (dialogElement instanceof HTMLDialogElement) {
+					const formDialog = new RichtextFormDialog(dialogElement, button, this);
+					if (this.formDialogs.find(dialog => dialog.extension === formDialog.extension))
+						throw new Error(`Duplicate dialog for extension ${formDialog.extension}`);
+					this.formDialogs.push(formDialog);
+					promises.push(formDialog.createPlugin());
+				}
+			});
+			Promise.all(promises).then(plugins => {
+				plugins.forEach(plugin => extensions.push(plugin));
+				resolve();
+			});
+		});
 	}
 
 	private registerPlaceholder(extensions: Array<Extension|Mark|Node>) {
@@ -1089,7 +1102,7 @@ class RichtextArea {
 		// TODO: remove event handlers
 	}
 
-	public getValue() : any {
+	public getValue() : string|JSONContent {
 		if (this.editor.isEmpty)
 			return '';  // otherwise empty field is not detected by calling function
 		return this.useJson ? this.editor.getJSON() : this.editor.getHTML();
@@ -1106,10 +1119,12 @@ const RA = Symbol('RichtextArea');
 export class RichTextAreaElement extends HTMLTextAreaElement {
 	private [RA]!: RichtextArea;  // hides internal implementation
 
-	connectedCallback() {
+	async connectedCallback() {
 		const wrapperElement = this.closest('.dj-richtext-wrapper');
 		if (wrapperElement instanceof HTMLElement) {
 			this[RA] = new RichtextArea(wrapperElement, this);
+			await this[RA].initialize();
+			this.dispatchEvent(new Event('connected', {bubbles: true}));
 		}
 	}
 

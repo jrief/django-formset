@@ -175,6 +175,7 @@ class IncompleteSelectMixin:
     def _optgroups_model_choice(self, name, values, attrs=None):
         values_list = [str(val) for val in values]
         optgroups, prev_group_name, counter = [], '-', 0
+
         # first handle selected values
         for counter, val in enumerate(values_list, counter):
             try:
@@ -189,6 +190,7 @@ class IncompleteSelectMixin:
             else:
                 subgroup = [{'value': str(val), 'label': label, 'selected': True}]
                 optgroups.append((group_name, subgroup, counter))
+
         # afterwards handle the remaining values
         for counter, (val, label, group_name) in enumerate(self.choices, counter):
             if counter == self.max_prefetch_choices:

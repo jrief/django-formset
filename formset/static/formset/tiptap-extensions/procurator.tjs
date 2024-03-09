@@ -1,4 +1,3 @@
-<script type="text/plain" tiptap-plugin="mark">
 {
 	name: 'procurator',
 	keepOnSplit: false,
@@ -29,4 +28,3 @@
 	},
 
 }
-</script>

@@ -208,7 +208,8 @@ class DemoFormCollectionViewMixin(DemoViewMixin):
     template_name = 'testapp/form-collection.html'
     extra_doc = None
     extra_context = {
-        'click_actions': 'disable -> submit -> reload !~ scrollToError'
+        'click_actions': 'disable -> submit -> reload !~ scrollToError',
+        #'auto_disable': True,
     }
 
     def get_collection_class(self):

@@ -29,7 +29,7 @@ class ProfileForm(DialogForm):
     )
     picture = fields.ImageField(
         label="Picture",
-        required=False,
+        #required=False,
         widget=UploadedFileInput,
     )
     dismiss = Activator(
@@ -39,7 +39,7 @@ class ProfileForm(DialogForm):
         ),
     )
     submit = Activator(
-        label="Save",
+        label="Apply",
         widget=Button(
             action='apply',
             button_variant=ButtonVariant.PRIMARY,

@@ -1,4 +1,3 @@
-{% load i18n %}
 {% spaceless %}
 <dialog{% if form.induce_open %} df-induce-open="{{ form.induce_open }}"{% endif %}{% if form.induce_close %} df-induce-close="{{ form.induce_close }}"{% endif %}>
 {% block dialog-header %}
@@ -33,7 +32,4 @@
 	</div>
 {% endblock %}
 </dialog>
-{% if form.extension %}
-{% with extension="formset/tiptap-extensions/"|add:form.extension|add:".html" %}{% include extension %}{% endwith %}
-{% endif %}
 {% endspaceless %}

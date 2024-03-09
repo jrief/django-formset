@@ -1998,7 +1998,7 @@ export class DjangoFormsetElement extends HTMLElement {
 		return ['endpoint', 'withhold-feedback', 'force-submission'];
 	}
 
-	private connectedCallback() {
+	connectedCallback() {
 		this[FS].connectedCallback();
 	}
 

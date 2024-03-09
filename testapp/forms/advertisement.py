@@ -1,10 +1,9 @@
 from django.forms import fields, forms, widgets
 
-from formset.dialog import DialogForm
 from formset.fields import Activator
 from formset.renderers import ButtonVariant
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
-from formset.richtext import controls
+from formset.richtext import controls, dialogs
 from formset.richtext.widgets import RichTextarea
 from formset.widgets import Button, UploadedFileInput
 
@@ -54,12 +53,11 @@ initial_json = {
 }
 
 
-class LinkDialogForm(DialogForm):
+class LinkDialogForm(dialogs.RichtextDialogForm):
     title = "Edit Link"
-    is_transient = True
     extension = 'link'
+    plugin_type = 'mark'
     prefix = 'link_dialog'
-    induce_close = 'dismiss:active || revert:active || apply:active'
 
     text = fields.CharField(
         label="Text",
@@ -82,34 +80,13 @@ class LinkDialogForm(DialogForm):
         initial='external',
         widget=widgets.Select(attrs={'richtext-mapping': True}),
     )
-    dismiss = Activator(
-        label="Close",
-        widget=Button(
-            action='dismiss',
-        ),
-    )
-    revert = Activator(
-        label="Revert",
-        widget=Button(
-            action='revert',
-            button_variant=ButtonVariant.DANGER,
-        ),
-    )
-    apply = Activator(
-        label="Apply",
-        widget=Button(
-            action='apply',
-            button_variant=ButtonVariant.PRIMARY,
-        ),
-    )
 
 
-class ImageDialogForm(DialogForm):
+class ImageDialogForm(dialogs.RichtextDialogForm):
     title = "Edit Image"
-    is_transient = True
     extension = 'image'
+    plugin_type = 'node'
     prefix = 'image_dialog'
-    induce_close = 'dismiss:active || revert:active || apply:active'
 
     image = fields.ImageField(
         label="Image",
@@ -141,12 +118,11 @@ class ImageDialogForm(DialogForm):
     )
 
 
-class PlaceholderDialogForm(DialogForm):
+class PlaceholderDialogForm(dialogs.RichtextDialogForm):
     title = "Edit Placeholder"
-    is_transient = True
     extension = 'procurator'
+    plugin_type = 'mark'
     prefix = 'placeholder_dialog'
-    induce_close = 'dismiss:active || revert:active || apply:active'
 
     variable_name = fields.RegexField(
         regex=r'^[A-Za-z_][0-9A-Za-z_\.]{0,254}$',
@@ -163,26 +139,6 @@ class PlaceholderDialogForm(DialogForm):
             'richtext-selection': True,
             'size': 50,
         })
-    )
-    dismiss = Activator(
-        label="Close",
-        widget=Button(
-            action='dismiss',
-        ),
-    )
-    revert = Activator(
-        label="Revert",
-        widget=Button(
-            action='revert',
-            button_variant=ButtonVariant.DANGER,
-        ),
-    )
-    apply = Activator(
-        label="Apply",
-        widget=Button(
-            action='apply',
-            button_variant=ButtonVariant.PRIMARY,
-        ),
     )
 
 

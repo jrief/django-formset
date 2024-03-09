@@ -1,0 +1,37 @@
+{
+	name: 'link',
+	priority: 1000,
+	keepOnSplit: false,
+
+	onDestroy() {
+		reset();
+	},
+
+	addAttributes() {
+		return {
+			href: {
+				default: null,
+			},
+			target: {
+				default: '_blank',
+			},
+			rel: {
+				default: 'noopener noreferrer nofollow',
+			},
+			class: {
+				default: null,
+			},
+			type: {
+				default: 'external',
+			},
+		};
+	},
+
+	parseHTML() {
+		return [{tag: 'a[href]:not([href *= "javascript:" i])'}];
+	},
+
+	renderHTML({HTMLAttributes}) {
+		return ['a', HTMLAttributes, 0];
+	},
+}
