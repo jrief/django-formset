@@ -2,13 +2,15 @@ import re
 
 from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import select_template
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 from formset.dialog import DialogForm
 
 
 class ControlElement:
-    template_name = 'formset/{framework}/buttons/richtext_control.html'
+    extension = None
+    template_name = 'formset/richtext/control.html'
 
     def get_template(self, renderer):
         templates = [
@@ -17,45 +19,31 @@ class ControlElement:
         ]
         return select_template(templates)
 
-    def get_context(self):
-        name = getattr(self, 'name', None)
+    @cached_property
+    def button_icon(self):
         if not (icon := getattr(self, 'icon', None)):
-            if name:
-                icon = f'formset/icons/{name.lower()}.svg'
-            else:
-                icon = f'formset/icons/questionmark.svg'
+            icon = f'formset/icons/{self.extension.lower()}.svg'
+        return icon
+
+    def get_context(self):
         return {
-            'name': name,
+            'extension': self.extension,
             'label': self.label,
-            'icon': icon,
+            'icon': self.button_icon,
         }
 
     def render(self, renderer, context=None):
         template = self.get_template(renderer)
-        # if context is None:
-        #     context = {}
-        # if label := getattr(self, 'label', None):
-        #     context.update(label=label)
-        # if name := getattr(self, 'name', None):
-        #     context.update(name=name)
-        # if icon := getattr(self, 'icon', None):
-        #     context.update(icon=icon)
-        # elif name:
-        #     context.update(icon=f'formset/icons/{name.lower()}.svg')
-        # else:
-        #     context.update(icon=f'formset/icons/questionmark.svg')
-        # if extension := getattr(self, 'extension', None):
-        #     context.update(extension=extension)
         if context is None:
             context = self.get_context()
         return template.render(context)
 
 
 class Heading(ControlElement):
-    name = 'heading'
+    extension = 'heading'
     label = _("Heading")
     levels = [1, 2, 3, 4, 5, 6]
-    template_name = 'formset/{framework}/buttons/richtext_heading.html'
+    template_name = 'formset/richtext/heading.html'
 
     def __init__(self, levels=None):
         if isinstance(levels, (list, tuple)):
@@ -70,10 +58,10 @@ class Heading(ControlElement):
 
 
 class TextAlign(ControlElement):
-    name = 'textAlign'
+    extension = 'textAlign'
     label = _("Text Align")
     alignments = ['left', 'center', 'right', 'justify']
-    template_name = 'formset/{framework}/buttons/richtext_align.html'
+    template_name = 'formset/richtext/align.html'
 
     def __init__(self, alignments=None, default_alignment=None):
         if isinstance(alignments, str):
@@ -109,9 +97,9 @@ class TextAlign(ControlElement):
 
 
 class TextColor(ControlElement):
-    name = 'textColor'
+    extension = 'textColor'
     label = _("Text Color")
-    template_name = 'formset/{framework}/buttons/richtext_color.html'
+    template_name = 'formset/richtext/color.html'
     class_based = None
 
     def __init__(self, colors):
@@ -142,11 +130,11 @@ class TextColor(ControlElement):
 class TextIndent(ControlElement):
     def __init__(self, indent='indent'):
         if indent == 'indent':
-            self.name = 'textIndent:indent'
+            self.extension = 'textIndent:indent'
             self.label = _("Indent First Line")
             self.icon = 'formset/icons/indentfirstline.svg'
         elif indent == 'outdent':
-            self.name = 'textIndent:outdent'
+            self.extension = 'textIndent:outdent'
             self.label = _("Outdent First Line")
             self.icon = 'formset/icons/outdentfirstline.svg'
         else:
@@ -156,11 +144,11 @@ class TextIndent(ControlElement):
 class TextMargin(ControlElement):
     def __init__(self, indent):
         if indent == 'increase':
-            self.name = 'textMargin:increase'
+            self.extension = 'textMargin:increase'
             self.label = _("Increase Margin")
             self.icon = 'formset/icons/increasemargin.svg'
         elif indent == 'decrease':
-            self.name = 'textMargin:decrease'
+            self.extension = 'textMargin:decrease'
             self.label = _("Decrease Margin")
             self.icon = 'formset/icons/decreasemargin.svg'
         else:
@@ -168,98 +156,102 @@ class TextMargin(ControlElement):
 
 
 class Bold(ControlElement):
-    name = 'bold'
+    extension = 'bold'
     label = _("Bold")
 
 
 class Blockquote(ControlElement):
-    name = 'blockquote'
+    extension = 'blockquote'
     label = _("Blockquote")
 
 
 class CodeBlock(ControlElement):
-    name = 'codeBlock'
+    extension = 'codeBlock'
     label = _("Code Block")
 
 
 class HardBreak(ControlElement):
-    name = 'hardBreak'
+    extension = 'hardBreak'
     label = _("Hard Break")
 
 
 class Italic(ControlElement):
-    name = 'italic'
+    extension = 'italic'
     label = _("Italic")
 
 
 class Underline(ControlElement):
-    name = 'underline'
+    extension = 'underline'
     label = _("Underline")
 
 
 class BulletList(ControlElement):
-    name = 'bulletList'
+    extension = 'bulletList'
     label = _("Bullet List")
 
 
 class OrderedList(ControlElement):
-    name = 'orderedList'
+    extension = 'orderedList'
     label = _("Ordered List")
 
 
 class HorizontalRule(ControlElement):
-    name = 'horizontalRule'
+    extension = 'horizontalRule'
     label = _("Horizontal Rule")
 
 
 class ClearFormat(ControlElement):
-    name = 'clearFormat'
+    extension = 'clearFormat'
     label = _("Clear Format")
 
 
 class Subscript(ControlElement):
-    name = 'subscript'
+    extension = 'subscript'
     label = _("Subscript")
 
 
 class Superscript(ControlElement):
-    name = 'superscript'
+    extension = 'superscript'
     label = _("Superscript")
 
 
 class Undo(ControlElement):
-    name = 'undo'
+    extension = 'undo'
     label = _("Undo")
 
 
 class Redo(ControlElement):
-    name = 'redo'
+    extension = 'redo'
     label = _("Redo")
 
 
-class DialogAction(ControlElement):
-    name = 'dialog'
-    label = _("Dialog")
-    dialog_form = None
-    template_name = 'formset/{framework}/buttons/richtext_dialog_control.html'
-    icon = 'formset/icons/activator.svg'
+class DialogControl(ControlElement):
+    template_name = 'formset/richtext/dialog_control.html'
 
-    def __init__(self, dialog_form=None, name=None, icon=None):
-        if dialog_form:
-            self.dialog_form = dialog_form
-        if not isinstance(self.dialog_form, DialogForm):
-            raise ImproperlyConfigured("DialogAction() requires a DialogForm instance")
-        if name:
-            self.name = name
+    def __init__(self, dialog_form, icon=None):
+        if not isinstance(dialog_form, DialogForm):
+            raise ImproperlyConfigured("DialogControl() requires a DialogForm instance")
+        self.dialog_form = dialog_form
         if icon:
             self.icon = icon
 
+    @cached_property
+    def button_icon(self):
+        if not (icon := getattr(self, 'icon', None)) and not (icon := getattr(self.dialog_form, 'icon', None)):
+            icon = 'formset/icons/activator.svg'
+        return icon
+
     def get_context(self):
-        context = super().get_context()
-        context.update(extension=self.dialog_form.extension)
-        return context
+        return {
+            'extension': self.dialog_form.extension,
+            'label': self.dialog_form.title,
+            'icon': self.button_icon,
+        }
 
 
 class Separator(ControlElement):
     label = _("Separator")
-    template_name = 'formset/{framework}/buttons/richtext_separator.html'
+    template_name = 'formset/richtext/separator.html'
+
+    def render(self, renderer, context=None):
+        return super().render(renderer, {})

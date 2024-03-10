@@ -1,28 +1,12 @@
 {
-	name: 'link',
+	name: 'simple_link',
 	priority: 1000,
 	keepOnSplit: false,
-
-	onDestroy() {
-		reset();
-	},
 
 	addAttributes() {
 		return {
 			href: {
 				default: null,
-			},
-			target: {
-				default: '_blank',
-			},
-			rel: {
-				default: 'noopener noreferrer nofollow',
-			},
-			class: {
-				default: null,
-			},
-			type: {
-				default: 'external',
 			},
 		};
 	},

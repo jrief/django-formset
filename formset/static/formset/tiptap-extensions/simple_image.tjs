@@ -1,14 +1,7 @@
 {
-	name: 'image',
-
-	inline() {
-		return true;
-	},
-
-	group() {
-		return 'inline';
-	},
-
+	name: 'simple_image',
+	inline: true,
+	group: 'inline',
 	draggable: true,
 
 	addAttributes() {

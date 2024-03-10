@@ -698,7 +698,7 @@ class RichtextFormDialog extends FormDialog {
 					throw new Error(`tiptap-plugin="${plugin}" <script type="text/plain"…> must be either "mark", "node" or "extension".`);
 			}
 		} catch (error) {
-			throw new Error(`Error while parsing <script type="text/plain" tiptap-plugin="${this.extension}">…</script>: ${error}.`);
+			throw new Error(`Error while parsing <script type="text/plain" tiptap-plugin="${this.extension}"></script>: ${error}.`);
 		}
 	}
 
@@ -886,7 +886,7 @@ class RichtextArea {
 			Text,
 			HardBreak,  // always add hard breaks via keyboard entry
 		);
-		await this.registerControlActions(extensions);
+		this.registerControlActions(extensions);
 		await this.registerFormDialogs(extensions);
 		this.registerPlaceholder(extensions);
 		this.registerCharaterCount(extensions);
@@ -901,7 +901,7 @@ class RichtextArea {
 		return editor;
 	}
 
-	private async registerControlActions(extensions: Array<Extension|Mark|Node>) {
+	private registerControlActions(extensions: Array<Extension|Mark|Node>) {
 		this.menubarElement?.querySelectorAll('button[richtext-click]').forEach(button => {
 			if (!(button instanceof HTMLButtonElement))
 				return;

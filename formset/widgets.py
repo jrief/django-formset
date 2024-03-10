@@ -24,17 +24,20 @@ class Button(Widget):
     action = None
     button_variant = None
 
-    def __init__(self, attrs=None, action=None, button_variant=None):
+    def __init__(self, attrs=None, action=None, button_variant=None, auto_disable=False):
         if action is not None:
             self.action = action
         if button_variant:
             self.button_variant = button_variant
+        self.auto_disable = auto_disable
         super().__init__(attrs)
 
     def build_attrs(self, base_attrs, extra_attrs=None):
         attrs = super().build_attrs(base_attrs, extra_attrs)
         if self.action is not None:
             attrs['df-click'] = f'activate("{self.action}")'
+        if self.auto_disable:
+            attrs['auto-disable'] = True
         return attrs
 
     def get_context(self, name, value, attrs):

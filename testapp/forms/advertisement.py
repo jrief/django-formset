@@ -58,6 +58,7 @@ class LinkDialogForm(dialogs.RichtextDialogForm):
     extension = 'link'
     plugin_type = 'mark'
     prefix = 'link_dialog'
+    icon = 'formset/icons/link.svg'
 
     text = fields.CharField(
         label="Text",
@@ -86,6 +87,7 @@ class ImageDialogForm(dialogs.RichtextDialogForm):
     title = "Edit Image"
     extension = 'image'
     plugin_type = 'node'
+    icon = 'formset/icons/image.svg'
     prefix = 'image_dialog'
 
     image = fields.ImageField(
@@ -118,30 +120,6 @@ class ImageDialogForm(dialogs.RichtextDialogForm):
     )
 
 
-class PlaceholderDialogForm(dialogs.RichtextDialogForm):
-    title = "Edit Placeholder"
-    extension = 'procurator'
-    plugin_type = 'mark'
-    prefix = 'placeholder_dialog'
-
-    variable_name = fields.RegexField(
-        regex=r'^[A-Za-z_][0-9A-Za-z_\.]{0,254}$',
-        label="Variable Name",
-        widget=widgets.TextInput(attrs={
-            'richtext-mapping': True,
-            'size': 50,
-            'pattern': '[A-Za-z_][0-9A-Za-z_\.]{0,254}',
-        }),
-    )
-    sample_value = fields.CharField(
-        label="Sample Value",
-        widget=widgets.TextInput(attrs={
-            'richtext-selection': True,
-            'size': 50,
-        })
-    )
-
-
 class AdvertisementForm(forms.Form):
     ad_text = fields.CharField(
         widget=RichTextarea(control_elements=[
@@ -166,9 +144,9 @@ class AdvertisementForm(forms.Form):
             controls.ClearFormat(),
             controls.Redo(),
             controls.Undo(),
-            controls.DialogAction(name='dialog_link', dialog_form=LinkDialogForm(renderer=BootstrapFormRenderer()), icon='formset/icons/link.svg'),
-            controls.DialogAction(name='dialog_image', dialog_form=ImageDialogForm(renderer=BootstrapFormRenderer()), icon='formset/icons/image.svg'),
-            controls.DialogAction(name='dialog_procurator', dialog_form=PlaceholderDialogForm(renderer=BootstrapFormRenderer()), icon='formset/icons/placeholder.svg'),
+            controls.DialogControl(dialogs.SimpleLinkDialogForm(renderer=BootstrapFormRenderer())),
+            controls.DialogControl(dialogs.SimpleImageDialogForm(renderer=BootstrapFormRenderer())),
+            controls.DialogControl(dialogs.PlaceholderDialogForm(renderer=BootstrapFormRenderer())),
         ],
         attrs={'placeholder': "Start typing …"}),
         initial=initial_html,
