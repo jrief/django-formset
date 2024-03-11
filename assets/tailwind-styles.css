@@ -5,7 +5,7 @@
 .formset-label {
 	@apply text-sm text-gray-600;
 }
-.formset-text-input, .formset-email-input, .formset-date-input, .formset-select, .formset-select-multiple, .formset-number-input, .formset-textarea, .formset-password-input {
+.formset-text-input, .formset-email-input, .formset-date-input, .formset-select, .formset-select-multiple, .formset-number-input, .formset-textarea, .formset-password-input, .formset-url-input {
 	@apply w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300;
 }
 .formset-dual-selector-select {
@@ -64,4 +64,22 @@
 }
 .dj-download-file {
 	@apply bg-gray-200 hover:bg-gray-300 text-black font-semibold py-1 px-3 text-sm rounded;
+}
+.dj-richtext-wrapper dialog {
+	@apply p-0 break-words bg-white border rounded-lg shadow-lg;
+}
+.dj-richtext-wrapper dialog .dialog-header {
+	@apply p-4 border-b border-gray-300;
+}
+.dj-richtext-wrapper dialog .dialog-body {
+	@apply p-4 relative flex-1;
+}
+.dj-richtext-wrapper dialog .dialog-footer {
+	@apply p-4 border-t border-gray-300;
+}
+.dj-richtext-wrapper dialog h3 {
+	@apply text-lg font-semibold;
+}
+.dj-richtext-wrapper a {
+	@apply text-blue-500 underline;
 }

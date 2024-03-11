@@ -65,6 +65,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/date.html': _amend_input,
         'django/forms/widgets/number.html': _amend_input,
         'django/forms/widgets/password.html': _amend_input,
+        'django/forms/widgets/url.html': _amend_input,
         'django/forms/widgets/checkbox_select.html': _amend_checkbox_select,
         'django/forms/widgets/textarea.html': _amend_textarea,
         'django/forms/widgets/radio.html': _amend_radio,

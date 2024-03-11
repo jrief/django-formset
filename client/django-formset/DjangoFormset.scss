@@ -222,8 +222,21 @@ django-formset {
 
 	dialog {
 		position: fixed;
+		z-index: 1;
+		@mixin dialog-flex {
+			display: flex;
+			flex-shrink: 0;
+			flex-wrap: wrap;
+			align-items: center;
+		}
 		.dialog-header {
 			cursor: pointer;
+			@include dialog-flex;
+			justify-content: space-between;
+		}
+		.dialog-footer {
+			@include dialog-flex;
+			justify-content: flex-end;
 		}
 	}
 }

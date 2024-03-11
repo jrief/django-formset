@@ -50,13 +50,8 @@ django-formset {
 		border: $modal-content-border-width solid $modal-content-border-color;
 		border-radius: $modal-content-border-radius;
 		box-shadow: $box-shadow;
-		z-index: 1;
 
 		.dialog-header {
-			display: flex;
-			flex-shrink: 0;
-			align-items: center;
-			justify-content: space-between;
 			padding: $modal-header-padding;
 			border-bottom: $modal-header-border-width solid $modal-header-border-color;
 			border-top-left-radius: $modal-content-inner-border-radius;
@@ -72,11 +67,6 @@ django-formset {
 			padding: $modal-inner-padding;
 		}
 		.dialog-footer {
-			display: flex;
-			flex-shrink: 0;
-			flex-wrap: wrap;
-			align-items: center;
-			justify-content: flex-end;
 			padding: $modal-inner-padding;
 			background-color: $modal-footer-bg;
 			border-top: $modal-footer-border-width solid $modal-footer-border-color;

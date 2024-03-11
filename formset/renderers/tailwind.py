@@ -43,6 +43,10 @@ class FormRenderer(DefaultFormRenderer):
         context['widget']['attrs']['class'] = ClassList('formset-password-input')
         return context
 
+    def _amend_url_input(self, context):
+        context['widget']['attrs']['class'] = ClassList('formset-url-input')
+        return context
+
     def _amend_textarea(self, context):
         context['widget']['attrs']['class'] = ClassList('formset-textarea')
         return context
@@ -112,6 +116,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/date.html': _amend_date_input,
         'django/forms/widgets/number.html': _amend_number_input,
         'django/forms/widgets/password.html': _amend_password_input,
+        'django/forms/widgets/url.html': _amend_url_input,
         'django/forms/widgets/textarea.html': _amend_textarea,
         'django/forms/widgets/select.html': _amend_select,
         'django/forms/widgets/checkbox.html': _amend_checkbox,
