@@ -113,7 +113,8 @@ class FormRenderer(DjangoTemplates):
         )
         return context
 
-    def _amend_form_dialog(self, context):
+    def _amend_richtext_form_dialog(self, context):
+        context['form'] = context['form'].replicate(renderer=self)
         return context
 
     _context_modifiers = {
@@ -126,7 +127,7 @@ class FormRenderer(DjangoTemplates):
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/detached_field.html': _amend_detached_field,
         'formset/default/collection.html': _amend_collection,
-        'formset/default/form_dialog.html': _amend_form_dialog,
+        'formset/richtext/form_dialog.html': _amend_richtext_form_dialog,
     }
 
     @classmethod

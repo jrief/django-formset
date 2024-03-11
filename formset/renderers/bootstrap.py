@@ -86,9 +86,6 @@ class FormRenderer(DefaultFormRenderer):
         )
         return context
 
-    def _amend_form_dialog(self, context):
-        return context
-
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_input,
@@ -113,7 +110,6 @@ class FormRenderer(DefaultFormRenderer):
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/detached_field.html': _amend_detached_field,
         'formset/default/collection.html': _amend_collection,
-        'formset/default/form_dialog.html': _amend_form_dialog,
         'formset/default/widgets/richtextarea.html': _amend_input,
     })
 

@@ -44,11 +44,13 @@ class RichTextarea(Textarea):
         ))
         dialog_forms = []
         for control_element in self.control_elements:
-            if dialog_form := getattr(control_element, 'dialog_form', None):
-                dialog_context = dialog_form.get_context()
-                dialog_form.induce_open = f'dialog_{dialog_form.extension}:active'
-                dialog_form.auto_id = '{form}_{control}_%s'.format(**attrs, control=dialog_form.extension)
-                dialog_forms.append(control_element.dialog_form.render(context=dialog_context, renderer=renderer))
+            if not isinstance(control_element, controls.DialogControl):
+                continue
+            dialog_form = control_element.dialog_form
+            dialog_context = dialog_form.get_context()
+            dialog_form.induce_open = f'dialog_{dialog_form.extension}:active'
+            dialog_form.auto_id = '{form}_{control}_%s'.format(**attrs, control=dialog_form.extension)
+            dialog_forms.append(dialog_form.render(context=dialog_context, renderer=renderer))
 
         context.update(
             control_panel=control_panel,
