@@ -11,12 +11,11 @@ from formset.views import FormView
 
 
 control_elements = [
-    controls.Heading([1,2,3]),
+    controls.Heading([1, 2, 3]),
     controls.Bold(),
     controls.Italic(),
     controls.Underline(),
     controls.Blockquote(),
-    controls.Link(),
     controls.HorizontalRule(),
     controls.Separator(),
     controls.Redo(),
@@ -62,7 +61,7 @@ def richtext_wrapper(page):
 @pytest.fixture
 def menubar(richtext_wrapper):
     menubar = richtext_wrapper.locator('[role="menubar"]')
-    menubar.element_handle() is not None
+    assert menubar.element_handle() is not None
     return menubar
 
 
@@ -221,4 +220,4 @@ def test_tiptap_remove_link(page, viewname, menubar, contenteditable):
     dialog.locator('button[name="remove"]').click()
     sleep(0.1)
     expect(dialog).not_to_be_visible()
-    contenteditable.inner_html() == '<p>Click here</p>'
+    assert contenteditable.inner_html() == '<p>Click here</p>'
