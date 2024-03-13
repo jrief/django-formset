@@ -1,11 +1,12 @@
+from time import sleep
+
 import pytest
 from playwright.sync_api import expect
-from time import sleep
 
 from django.forms import fields, forms
 from django.urls import path
 
-from formset.richtext import controls
+from formset.richtext import controls, dialogs
 from formset.richtext.widgets import RichTextarea
 from formset.views import FormView
 
@@ -17,6 +18,7 @@ control_elements = [
     controls.Underline(),
     controls.Blockquote(),
     controls.HorizontalRule(),
+    controls.DialogControl(dialogs.SimpleLinkDialogForm()),
     controls.Separator(),
     controls.Redo(),
     controls.Undo(),
@@ -45,7 +47,7 @@ urlpatterns = [
     ), name='plain_richtext'),
     path('plain_richtext_initialized', DemoFormView.as_view(
         form_class=PlainRichTextForm,
-        initial={'text': '<p>Click <a href="https://example.org">here</a></p>'},
+        initial={'text': '<p>Click <a href="https://example.org/">here</a></p>'},
     ), name='plain_richtext_initialized'),
     path('json_richtext', DemoFormView.as_view(
         form_class=JSONRichTextForm,
@@ -147,16 +149,15 @@ def test_tiptap_blockquote(page, viewname, menubar, contenteditable):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['plain_richtext', 'json_richtext'])
-def test_tiptap_valid_link(page, viewname, menubar, contenteditable):
+def test_tiptap_valid_simple_link(page, viewname, menubar, contenteditable):
     clickme = "Click here"
     contenteditable.type(clickme)
     assert contenteditable.inner_html() == f"<p>{clickme}</p>"
     select_text(contenteditable.locator('p'), 6, 10)
-    menu_button = menubar.locator('[richtext-click="link"]')
-    dialog = page.locator('dialog[richtext-opener="link"]')
+    menu_button = menubar.locator('button[name="dialog_simple_link"]')
+    dialog = page.locator('dialog[df-induce-open="dialog_simple_link:active"]')
     expect(dialog).not_to_be_visible()
     menu_button.click()
-    sleep(0.25)
     expect(dialog).to_be_visible()
     text_input = dialog.locator('input[name="text"]')
     expect(text_input).to_have_value("here")
@@ -164,11 +165,10 @@ def test_tiptap_valid_link(page, viewname, menubar, contenteditable):
     expect(link_input).to_have_value("")
     link_input.type("https://example.org/")
     expect(link_input).to_have_value("https://example.org/")
-    save_button = dialog.locator('button[name="save"]')
-    save_button.click()
-    sleep(0.25)
+    expect(dialog.locator('button[name="revert"]')).not_to_be_visible()
+    dialog.locator('button[name="apply"]').click()
     expect(dialog).not_to_be_visible()
-    assert contenteditable.inner_html() == '<p>Click <a target="_blank" rel="noopener noreferrer nofollow" href="https://example.org/">here</a></p>'
+    assert contenteditable.inner_html() == '<p>Click <a href="https://example.org/">here</a></p>'
     set_caret(page, 9)
     expect(menu_button).to_have_class('active')
     set_caret(page, 3)
@@ -178,13 +178,13 @@ def test_tiptap_valid_link(page, viewname, menubar, contenteditable):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['plain_richtext', 'json_richtext'])
-def test_tiptap_invalid_link(page, viewname, menubar, contenteditable):
+def test_tiptap_invalid_simple_link(page, viewname, menubar, contenteditable):
     clickme = "Click here"
     contenteditable.type(clickme)
     assert contenteditable.inner_html() == f"<p>{clickme}</p>"
     select_text(contenteditable.locator('p'), 6, 10)
-    menu_button = menubar.locator('[richtext-click="link"]')
-    dialog = page.locator('dialog[richtext-opener="link"]')
+    menu_button = menubar.locator('button[name="dialog_simple_link"]')
+    dialog = page.locator('dialog[df-induce-open="dialog_simple_link:active"]')
     expect(dialog).not_to_be_visible()
     menu_button.click()
     expect(dialog).to_be_visible()
@@ -194,30 +194,28 @@ def test_tiptap_invalid_link(page, viewname, menubar, contenteditable):
     expect(link_input).to_have_value("")
     link_input.type("www.example.org")
     dialog.click(position={'x': 1, 'y': 1})
-    placeholder = dialog.locator('#id_text_dialog_edit_link-url + .dj-field-errors .dj-placeholder')
+    placeholder = dialog.locator('input[name="url"] + .dj-field-errors .dj-placeholder')
     expect(placeholder).to_have_text("Enter a valid URL.")
-    dialog.locator('button[name="save"]').click()
+    dialog.locator('button[name="apply"]').click()
     expect(dialog).to_be_visible()
-    dialog.locator('button[name="close"]').click()
-    sleep(0.1)
+    dialog.locator('button[name="dismiss"]').click()
     expect(dialog).not_to_be_visible()
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['plain_richtext_initialized'])
-def test_tiptap_remove_link(page, viewname, menubar, contenteditable):
-    assert contenteditable.inner_html() == '<p>Click <a target="_blank" rel="noopener noreferrer nofollow" href="https://example.org">here</a></p>'
-    select_text(contenteditable.locator('p > a'), 0, 4)
-    menu_button = menubar.locator('[richtext-click="link"]')
-    dialog = page.locator('dialog[richtext-opener="link"]')
+def test_tiptap_remove_simple_link(page, viewname, menubar, contenteditable):
+    assert contenteditable.inner_html() == '<p>Click <a href="https://example.org/">here</a></p>'
+    dialog = page.locator('dialog[df-induce-open="dialog_simple_link:active"]')
     expect(dialog).not_to_be_visible()
-    menu_button.click()
+    link_element = contenteditable.locator('p > a[href]')
+    expect(link_element).to_have_text("here")
+    link_element.click(); sleep(0.02); link_element.click()  # dblclick() does not work here
     expect(dialog).to_be_visible()
     text_input = dialog.locator('input[name="text"]')
     expect(text_input).to_have_value("here")
     link_input = dialog.locator('input[name="url"]')
-    expect(link_input).to_have_value("https://example.org")
-    dialog.locator('button[name="remove"]').click()
-    sleep(0.1)
+    expect(link_input).to_have_value("https://example.org/")
+    dialog.locator('button[name="revert"]').click()
     expect(dialog).not_to_be_visible()
     assert contenteditable.inner_html() == '<p>Click here</p>'

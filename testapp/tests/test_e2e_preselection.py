@@ -150,17 +150,19 @@ def test_multi_preselections(page, mocker, viewname):
     assert first_option.inner_text() == str(queryset.first())
     last_county = queryset[SelectizeMultiple.max_prefetch_choices - 1]
     last_option = dropdown_element.locator(f'div[data-selectable][data-value="{last_county.id}"]')
-    assert last_option.inner_text() == str(last_county)
+    expect(last_option).to_have_text(str(last_county))
     zapata_county = County.objects.get(name="Zapata")
-    expect(dropdown_element.locator(f'div[data-selectable][data-value="{zapata_county.id}"]')).to_have_count(0)
+    zapata_option = dropdown_element.locator(f'div[data-selectable][data-value="{zapata_county.id}"]')
+    expect(zapata_option).to_have_count(0)
     page.locator('django-formset .ts-control input').type("zap")
-    sleep(0.5)
+    sleep(0.75)
     spy.assert_called()
     assert spy.spy_return.status_code == 200
     content = json.loads(spy.spy_return.content)
     spy.reset_mock()
     assert content['count'] == 1
-    expect(dropdown_element.locator(f'div[data-selectable][data-value="{zapata_county.id}"]')).to_have_count(1)
+    expect(zapata_option).to_have_count(1)
+    expect(zapata_option).to_have_text("Zapata (TX)")
 
 
 @pytest.mark.urls(__name__)
