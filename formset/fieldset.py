@@ -47,7 +47,7 @@ class Fieldset(FieldsetMixin, forms.Form):
     """
     This is just DOM sugar wrapped into a Form. It therefore behaves like a Form object and should
     be used as such. Its purpose is to add visual elements to a `<form>`. Remember, a Form is just a
-    data-abstraction layer, has no display properties and is not intended to be styled or anotated.
+    data-abstraction layer, has no display properties and is not intended to be styled or annotated.
     On the other side, a <fieldset> may offer a `<legend>`, a border and the possibility to
     show/hide or disable a set of fields. A `HTMLFieldSetElement` however does not have any field
     validation functionality, this is left to the `HTMLFormElement`.
