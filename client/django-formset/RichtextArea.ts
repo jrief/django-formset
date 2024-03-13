@@ -746,6 +746,8 @@ class RichtextFormDialog extends FormDialog {
 	}
 
 	protected openDialog() {
+		if (this.element.open)
+			return;
 		this?.revertButton?.setAttribute('hidden', 'hidden');
 		const editor = this.richtext.editor;
 		if (this.textSelectionField) {
