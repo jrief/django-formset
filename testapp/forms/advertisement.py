@@ -2,7 +2,6 @@ from django.forms import fields, forms, widgets
 
 from formset.fields import Activator
 from formset.renderers import ButtonVariant
-from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
 from formset.richtext import controls, dialogs
 from formset.richtext.widgets import RichTextarea
 from formset.widgets import Button, UploadedFileInput
