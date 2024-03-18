@@ -851,29 +851,23 @@ class RichtextArea {
 		this.wrapperElement = wrapperElement;
 		this.textAreaElement = textAreaElement;
 		this.menubarElement = wrapperElement.querySelector('[role="menubar"]');
-		const scriptElement = wrapperElement.querySelector('textarea + script');
-		this.useJson = scriptElement instanceof HTMLScriptElement && scriptElement.type === 'application/json';
+		this.useJson = this.textAreaElement.dataset.hasOwnProperty('content'); // hasAttribute('data-content');
 		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
 			this.transferStyles();
 		}
 	}
 
 	public async initialize() {
-		let initialContent = '';
-		if (this.useJson) {
-			const scriptElement = this.wrapperElement.querySelector('textarea + script')!;
-			initialContent = JSON.parse(scriptElement.textContent ?? '{}');
-			scriptElement.remove();
-		} else {
-			initialContent = this.textAreaElement.textContent ?? '';
-		}
+		const initialContent = this.useJson ? JSON.parse(this.textAreaElement.dataset.content ?? '{}') : this.textAreaElement.textContent ?? '';
 		return new Promise<void>(resolve => {
 			this.createEditor(this.wrapperElement, initialContent).then(editor => {
 				this.editor = editor;
 				this.initialValue = this.getValue();
 				this.concealTextArea(this.wrapperElement);
-				// innerHTML must reflect the content, otherwise field validation complains about a missing value
-				this.textAreaElement.innerHTML = this.editor.getHTML();
+				if (this.useJson) {
+					// innerHTML must reflect the content, otherwise field validation complains about a missing value
+					this.textAreaElement.innerHTML = this.editor.getHTML();
+				}
 				this.contentUpdate();
 				this.installEventHandlers();
 				resolve();
@@ -1121,12 +1115,13 @@ const RA = Symbol('RichtextArea');
 export class RichTextAreaElement extends HTMLTextAreaElement {
 	private [RA]!: RichtextArea;  // hides internal implementation
 
-	async connectedCallback() {
+	connectedCallback() {
 		const wrapperElement = this.closest('.dj-richtext-wrapper');
 		if (wrapperElement instanceof HTMLElement) {
 			this[RA] = new RichtextArea(wrapperElement, this);
-			await this[RA].initialize();
-			this.dispatchEvent(new Event('connected', {bubbles: true}));
+			this[RA].initialize().then(() => {
+				this.dispatchEvent(new Event('connected', {bubbles: true}));
+			});
 		}
 	}
 

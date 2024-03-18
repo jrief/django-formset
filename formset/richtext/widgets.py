@@ -1,3 +1,5 @@
+import json
+
 from django.forms.widgets import Textarea
 from django.utils.html import format_html_join
 
@@ -33,14 +35,17 @@ class RichTextarea(Textarea):
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
-        context['use_json'] = attrs.get('use_json', False)
+        if attrs.get('use_json') or self.attrs.get('use_json'):
+            context['use_json'] = True
+            context['widget']['attrs']['data-content'] = json.dumps(value) if isinstance(value, dict) else '{}'
+            context['widget'].pop('value', None)
         context['widget']['attrs'].pop('use_json', None)
         return context
 
     def render(self, name, value, attrs=None, renderer=None):
         context = self.get_context(name, value, attrs)
         control_panel = format_html_join('', '{0}', (
-            (elm.render(renderer),) for elm in self.control_elements
+            [elm.render(renderer)] for elm in self.control_elements
         ))
         dialog_forms = []
         for control_element in self.control_elements:

@@ -1,10 +1,7 @@
 from django.forms import fields, forms, widgets
 
-from formset.fields import Activator
-from formset.renderers import ButtonVariant
 from formset.richtext import controls, dialogs
 from formset.richtext.widgets import RichTextarea
-from formset.widgets import Button, UploadedFileInput
 
 
 initial_html = """
@@ -30,12 +27,9 @@ initial_json = {
             "type": "text",
             "marks": [
               {
-                "type": "link",
+                "type": "simple_link",
                 "attrs": {
-                  "href": "http://example.org",
-                  "target": "_blank",
-                  "rel": "noopener noreferrer nofollow",
-                  "class": None
+                  "href": "http://example.org"
                 }
               }
             ],
@@ -43,7 +37,20 @@ initial_json = {
           },
           {
             "type": "text",
-            "text": ", tertiam. Contra legem facit qui id facit quod lex prohibet. Petierunt uti sibi concilium totius Galliae in diem certam indicere."
+            "text": ", tertiam. "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "bold"
+              }
+            ],
+            "text": "Contra legem facit qui id facit quod lex prohibet."
+          },
+          {
+            "type": "text",
+            "text": " Petierunt uti sibi concilium totius Galliae in diem certam indicere."
           }
         ]
       }
@@ -82,43 +89,6 @@ class LinkDialogForm(dialogs.RichtextDialogForm):
     )
 
 
-class ImageDialogForm(dialogs.RichtextDialogForm):
-    title = "Edit Image"
-    extension = 'image'
-    plugin_type = 'node'
-    icon = 'formset/icons/image.svg'
-    prefix = 'image_dialog'
-
-    image = fields.ImageField(
-        label="Image",
-        widget=UploadedFileInput(attrs={
-            'richtext-dataset': 'fileupload',
-            'richtext-mapping': '{src: JSON.parse(element.dataset.fileupload).download_url}',
-        }),
-    )
-    dismiss = Activator(
-        label="Close",
-        widget=Button(
-            action='dismiss',
-        ),
-    )
-    revert = Activator(
-        label="Revert",
-        widget=Button(
-            action='revert',
-            button_variant=ButtonVariant.DANGER,
-        ),
-    )
-    apply = Activator(
-        label="Apply",
-        widget=Button(
-            action='apply',
-            button_variant=ButtonVariant.PRIMARY,
-            attrs={'auto-disable': True},
-        ),
-    )
-
-
 class AdvertisementForm(forms.Form):
     ad_text = fields.CharField(
         widget=RichTextarea(control_elements=[
@@ -147,6 +117,7 @@ class AdvertisementForm(forms.Form):
             controls.DialogControl(dialogs.SimpleImageDialogForm()),
             controls.DialogControl(dialogs.PlaceholderDialogForm()),
         ],
-        attrs={'placeholder': "Start typing …"}),
-        initial=initial_html,
+        attrs={'placeholder': "Start typing …", 'use_json': True}),
+        initial=initial_json['ad_text'],
+        # initial=initial_html,
     )
