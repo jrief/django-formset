@@ -6,8 +6,8 @@ from time import sleep
 from django.forms import fields, forms
 from django.urls import path
 
-from formset.utils import MARKED_FOR_REMOVAL
 from formset.collection import FormCollection
+from formset.utils import MARKED_FOR_REMOVAL
 from formset.views import FormCollectionView
 
 
