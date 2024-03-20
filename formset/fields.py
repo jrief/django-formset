@@ -10,7 +10,8 @@ class Activator(HolderMixin, fields.Field):
     default_renderer = None
     widget = Button(attrs={'df-click': 'activate'})
 
-    def __init__(self, **kwargs):
+    def __init__(self, renderer=None, **kwargs):
+        self.renderer = renderer or self.default_renderer
         kwargs.setdefault('widget', Button(action=''))
         kwargs.update(
             required=False,
