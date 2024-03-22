@@ -846,6 +846,7 @@ class RichtextArea {
 	private characterCountTemplate?: Function;
 	private charaterCountDiv: HTMLElement | null = null;
 	private readonly baseSelector = '.dj-richtext-wrapper';
+	public readonly initializedPromise: Promise<void>;
 
 	constructor(wrapperElement: HTMLElement, textAreaElement: HTMLTextAreaElement) {
 		this.wrapperElement = wrapperElement;
@@ -855,10 +856,11 @@ class RichtextArea {
 		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
 			this.transferStyles();
 		}
+		this.initializedPromise = this.initialize();
 	}
 
-	public async initialize() {
-		const initialContent = this.useJson ? JSON.parse(this.textAreaElement.dataset.content ?? '{}') : this.textAreaElement.textContent ?? '';
+	private async initialize() {
+		const initialContent = this.useJson ? JSON.parse(this.textAreaElement.dataset.content as string) : this.textAreaElement.textContent;
 		return new Promise<void>(resolve => {
 			this.createEditor(this.wrapperElement, initialContent).then(editor => {
 				this.editor = editor;
@@ -1115,14 +1117,20 @@ const RA = Symbol('RichtextArea');
 export class RichTextAreaElement extends HTMLTextAreaElement {
 	private [RA]!: RichtextArea;  // hides internal implementation
 
-	connectedCallback() {
+	constructor() {
+		super();
 		const wrapperElement = this.closest('.dj-richtext-wrapper');
 		if (wrapperElement instanceof HTMLElement) {
 			this[RA] = new RichtextArea(wrapperElement, this);
-			this[RA].initialize().then(() => {
-				this.dispatchEvent(new Event('connected', {bubbles: true}));
-			});
 		}
+	}
+
+	connectedCallback() {
+		this[RA].initializedPromise.then(() => {
+			if (this.isConnected) {
+				this.dispatchEvent(new Event('connected', {bubbles: true}));
+			}
+		});
 	}
 
 	disconnectCallback() {
