@@ -13,7 +13,7 @@ trim_trailing_whitespace = true
 [*.py]
 max_line_length = 119
 
-[*.{html,md,ts,tsx,rst,scss,css,svg}]
+[*.{html,md,tjs,ts,tsx,rst,scss,css,svg}]
 indent_style = tab
 
 [*.{html,svg}]
