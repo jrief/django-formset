@@ -16,6 +16,7 @@ import {DateFieldElement, DatePickerElement, DateTimeFieldElement, DateTimePicke
 window.addEventListener('DOMContentLoaded', (event) => {
 	const pseudoStylesElement = StyleHelpers.convertPseudoClasses();
 	const customElementNames = Array<string>();
+	const promises = Array<Promise<any>>();
 
 	window.customElements.define('django-selectize', DjangoSelectizeElement, {extends: 'select'});
 	customElementNames.push('django-selectize');
@@ -29,6 +30,15 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	customElementNames.push('django-phone-number');
 	window.customElements.define('django-richtext', RichTextAreaElement, {extends: 'textarea'});
 	customElementNames.push('django-richtext');
+	window.customElements.whenDefined('django-richtext').then(() => {
+		const textareaElements = document.querySelectorAll('textarea[is="django-richtext"]');
+		textareaElements.forEach(textareaElement => {
+			promises.push(new Promise((resolve) => {
+				// RichtextArea connects asynchronously, so we need to wait until it is connected to the DOM
+				textareaElement.addEventListener('connected', () => resolve(undefined), {once: true});
+			}));
+		});
+	});
 	window.customElements.define('django-slug', DjangoSlugElement, {extends: 'input'});
 	customElementNames.push('django-slug');
 	window.customElements.define('django-datefield', DateFieldElement, {extends: 'input'});
@@ -64,7 +74,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 		foundIds.add(foundId);
 	});
 
-	const promises = customElementNames.map(name => window.customElements.whenDefined(name));
+	promises.push(...customElementNames.map(name => window.customElements.whenDefined(name)));
 	Promise.all(promises).then(() => {
 		window.customElements.define('django-formset', DjangoFormsetElement);
 		window.customElements.whenDefined('django-formset').then(() => {

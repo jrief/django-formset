@@ -67,11 +67,11 @@ window.addEventListener('DOMContentLoaded', (event) => {
 				}).catch(err => reject(err));
 			}));
 		}
-		const textareaElement = fragmentRoot.querySelector('textarea[is="django-richtext"]');
-		if (textareaElement) {
+		const textareaElements = fragmentRoot.querySelectorAll('textarea[is="django-richtext"]');
+		textareaElements.forEach(textareaElement => {
 			promises.push(new Promise((resolve, reject) => {
 				const resolveWhenConnected = () => {
-					// RichtextArea connects asynchronously, so we need to wait until it is connected
+					// RichtextArea connects asynchronously, so we need to wait until it is connected to the DOM
 					textareaElement.addEventListener('connected', () => resolve(), {once: true});
 				};
 
@@ -84,7 +84,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 					}
 				}).catch(err => reject(err));
 			}));
-		}
+		});
 		if (fragmentRoot.querySelector('input[is="django-slug"]')) {
 			promises.push(new Promise((resolve, reject) => {
 				import('./django-formset/DjangoSlug').then(({DjangoSlugElement}) => {

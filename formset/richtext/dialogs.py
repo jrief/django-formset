@@ -4,6 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from formset.dialog import DialogForm
 from formset.fields import Activator
 from formset.renderers import ButtonVariant
+from formset.richtext import controls
+from formset.richtext.widgets import RichTextarea
 from formset.widgets import Button, UploadedFileInput
 
 
@@ -59,7 +61,7 @@ class SimpleLinkDialogForm(RichtextDialogForm):
         label=_("URL"),
         widget=widgets.URLInput(attrs={
             'size': 50,
-            'richtext-mapping': 'href',
+            'richtext-map-to': 'href',
         }),
     )
 
@@ -74,8 +76,8 @@ class SimpleImageDialogForm(RichtextDialogForm):
     image = fields.ImageField(
         label=_("Uploaded Image"),
         widget=UploadedFileInput(attrs={
-            'richtext-dataset': 'fileupload',
-            'richtext-mapping': '{src: JSON.parse(element.dataset.fileupload).download_url}',
+            'richtext-map-to': '{src: JSON.parse(element.dataset.fileupload).download_url, dataset: JSON.parse(element.dataset.fileupload)}',
+            'richtext-map-from': '{dataset: {fileupload: JSON.stringify(attributes.dataset)}}',
         }),
     )
 
@@ -92,7 +94,7 @@ class PlaceholderDialogForm(RichtextDialogForm):
         regex=variable_pattern,
         label=_("Variable Name"),
         widget=widgets.TextInput(attrs={
-            'richtext-mapping': True,
+            'richtext-map-to': True,
             'size': 50,
             'pattern': variable_pattern,
         }),
@@ -103,4 +105,36 @@ class PlaceholderDialogForm(RichtextDialogForm):
             'richtext-selection': True,
             'size': 50,
         })
+    )
+
+
+class FootnoteDialogForm(RichtextDialogForm):
+    title = _("Edit Footnote")
+    extension = 'footnote'
+    plugin_type = 'node'
+    icon = 'formset/icons/footnote.svg'
+    prefix = 'footnote_dialog'
+
+    content = fields.CharField(
+        label=_("Footnote Content"),
+        widget=RichTextarea(
+            control_elements=[
+                controls.Bold(),
+                controls.HardBreak(),
+                controls.Italic(),
+                controls.Underline(),
+                controls.Subscript(),
+                controls.Superscript(),
+                controls.DialogControl(SimpleLinkDialogForm()),
+                controls.Separator(),
+                controls.ClearFormat(),
+                controls.Redo(),
+                controls.Undo(),
+            ],
+            attrs={
+                'use_json': True,
+                'richtext-map-to': '{content: element.value}',
+                'richtext-map-from': '{dataset: {content: JSON.stringify(attributes.content)}}',
+            },
+        )
     )

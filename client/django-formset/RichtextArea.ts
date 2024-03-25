@@ -1,7 +1,7 @@
 import styles from './RichtextArea.scss';
 import {computePosition} from '@floating-ui/dom';
 import {Editor, Extension, Mark, Node, markPasteRule, mergeAttributes, getAttributes, JSONContent} from '@tiptap/core';
-import {Plugin, PluginKey, TextSelection} from '@tiptap/pm/state';
+import {Plugin, PluginKey} from '@tiptap/pm/state';
 import Blockquote from '@tiptap/extension-blockquote';
 import Bold from '@tiptap/extension-bold';
 import BulletList from '@tiptap/extension-bullet-list';
@@ -626,7 +626,7 @@ class RichtextFormDialog extends FormDialog {
 		Array.from(this.formElement.elements).forEach(innerElement => {
 			if (innerElement instanceof HTMLInputElement && innerElement.hasAttribute('richtext-selection')) {
 				this.textSelectionField = innerElement;
-			} else if (innerElement.hasAttribute('richtext-mapping')) {
+			} else if (innerElement.hasAttribute('richtext-map-to')) {
 				this.inputElements.push(innerElement as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement);
 			} else if (innerElement instanceof HTMLButtonElement) {
 				const action = innerElement.getAttribute('df-click');
@@ -651,7 +651,7 @@ class RichtextFormDialog extends FormDialog {
 		const self = this;
 		return () => {
 			const plugin = new Plugin({
-				key: new PluginKey('handleClickLink'),
+				key: new PluginKey(self.extension),
 				props: {
 					handleDoubleClick: (view, pos, event) => {
 						if (!(event.target instanceof HTMLElement) || event.button !== 0)
@@ -723,22 +723,25 @@ class RichtextFormDialog extends FormDialog {
 			this.textSelectionField.value = doc.textBetween(selection.from, selection.to, '');
 		}
 		this.inputElements.forEach(inputElement => {
-			const mapping = inputElement.getAttribute('richtext-mapping') ?? '';
-			if (mapping.startsWith('{') && mapping.endsWith('}')) {
-				const mapFunction = new Function('element', `return ${mapping}`);
-				const key = Object.keys(mapFunction(inputElement))[0];
-				const value = getDataValue(attributes, key);
-				if (value !== undefined && inputElement.type !== 'file') {
-					inputElement.value = value;
-				}
+			const mapping = inputElement.getAttribute('richtext-map-from');
+			if (typeof mapping === 'string' && mapping.startsWith('{') && mapping.endsWith('}')) {
+				const mapFunction = new Function('attributes', `return ${mapping}`);
+				Object.entries(mapFunction(attributes)).forEach(([key0, value]) => {
+					if (value) {
+						if (typeof (inputElement as any)[key0] === 'object') {
+							Object.entries(value).forEach(([key1, value]) => {
+								(inputElement as any)[key0][key1] = value;
+							});
+						} else {
+							(inputElement as any)[key0] = value;
+						}
+					}
+				});
+			} else if (mapping) {
+				inputElement.value = getDataValue(attributes, mapping);
 			} else {
+				const mapping = inputElement.getAttribute('richtext-map-to');
 				inputElement.value = getDataValue(attributes, mapping ? mapping : inputElement.name);
-			}
-
-			// some input elements keep an additional dataset and this must be transferred from the editor
-			const datasetKey = inputElement.getAttribute('richtext-dataset');
-			if (datasetKey) {
-				inputElement.dataset[datasetKey] = JSON.stringify((attributes as any).dataset ?? {});
 			}
 		});
 		super.openDialog();
@@ -773,7 +776,7 @@ class RichtextFormDialog extends FormDialog {
 			let attributes = {};
 			this.inputElements.forEach(inputElement => {
 				let mapFunction: Function;
-				const mapping = inputElement.getAttribute('richtext-mapping')  ?? '';
+				const mapping = inputElement.getAttribute('richtext-map-to')  ?? '';
 				if (mapping.startsWith('{') && mapping.endsWith('}')) {
 					mapFunction = new Function('element', `return ${mapping}`);
 				} else if (mapping) {
@@ -782,12 +785,6 @@ class RichtextFormDialog extends FormDialog {
 					mapFunction = (element: HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement) => ({[inputElement.name]: inputElement.value});
 				}
 				attributes = {...attributes, ...mapFunction(inputElement)};
-
-				// some input elements keep an additional dataset and this must be transferred to the editor
-				const datasetKey = inputElement.getAttribute('richtext-dataset');
-				if (datasetKey) {
-					(attributes as any).dataset = JSON.parse(inputElement.dataset[datasetKey] ?? '{}');
-				}
 			});
 			this.applyAttributes(editor, attributes);
 		} else if (returnValue === 'revert') {
@@ -841,6 +838,7 @@ class RichtextArea {
 	private readonly registeredActions = new Array<Action>();
 	public readonly formDialogs = new Array<RichtextFormDialog>();
 	private readonly useJson: boolean = false;
+	private readonly observer: MutationObserver;
 	public editor!: Editor;
 	private initialValue!: string | object;
 	private characterCountTemplate?: Function;
@@ -852,10 +850,11 @@ class RichtextArea {
 		this.wrapperElement = wrapperElement;
 		this.textAreaElement = textAreaElement;
 		this.menubarElement = wrapperElement.querySelector('[role="menubar"]');
-		this.useJson = this.textAreaElement.dataset.hasOwnProperty('content'); // hasAttribute('data-content');
+		this.useJson = Object.hasOwn(this.textAreaElement.dataset, 'content');
 		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
 			this.transferStyles();
 		}
+		this.observer = new MutationObserver(mutationsList => this.attributesChanged(mutationsList));
 		this.initializedPromise = this.initialize();
 	}
 
@@ -872,6 +871,7 @@ class RichtextArea {
 				}
 				this.contentUpdate();
 				this.installEventHandlers();
+				this.observer.observe(this.textAreaElement, {attributes: true});
 				resolve();
 			});
 		});
@@ -1010,10 +1010,27 @@ class RichtextArea {
 	}
 
 	private formResetted = () => {
-		this.editor.chain().clearContent().insertContent(this.initialValue).run();
+		const chain = this.editor.chain().clearContent();
+		if (!this.editor.isEmpty) {
+			if (this.useJson) {
+				chain.insertContent((this.initialValue as any).content);
+			} else {
+				chain.insertContent(this.initialValue);
+			}
+			chain.run();
+		}
 	}
 
 	private formSubmitted = () => {}
+
+	private attributesChanged(mutationsList: Array<MutationRecord>) {
+		for (const mutation of mutationsList) {
+			if (mutation.type === 'attributes' && mutation.attributeName === 'data-content') {
+				const content = JSON.parse(this.textAreaElement.dataset.content ?? '{"type": "doc"}');
+				this.editor.chain().clearContent().insertContent(content).run();
+			}
+		}
+	}
 
 	private transferStyles() {
 		const declaredStyles = document.createElement('style');

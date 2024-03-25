@@ -115,20 +115,10 @@ export abstract class FormDialog {
 	}
 
 	// Hook to be overridden by subclasses.
+	// path is where in the formset the button is located.
 	// It shall return true if the activation button is considered to be pressed.
 	protected isButtonActive(path: Array<string>, action: string): boolean {
 		return false;
-	// 	const absPath = path[0] !== '' ? path : (() => {
-	// 		// path is relative, so concatenate it to the form's path
-	// 		const absPath = [...this.form.path];
-	// 		const relPath = path.filter(part => part !== '');
-	// 		const delta = path.length - relPath.length;
-	// 		absPath.splice(absPath.length - delta + 1);
-	// 		absPath.push(...relPath);
-	// 		return absPath;
-	// 	})();
-	// 	const button = this.form.formset.buttons.find(button => isEqual(button.path, absPath));
-	// 	return action === 'active' && button?.element === document.activeElement;
 	}
 
 	public updateOperability(action?: string) {

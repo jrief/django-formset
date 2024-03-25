@@ -116,6 +116,7 @@ class AdvertisementForm(forms.Form):
             controls.DialogControl(dialogs.SimpleLinkDialogForm()),
             controls.DialogControl(dialogs.SimpleImageDialogForm()),
             controls.DialogControl(dialogs.PlaceholderDialogForm()),
+            controls.DialogControl(dialogs.FootnoteDialogForm()),
         ],
         attrs={'placeholder': "Start typing …", 'use_json': True}),
         initial=initial_json['ad_text'],

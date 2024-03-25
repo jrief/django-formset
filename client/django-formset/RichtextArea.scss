@@ -160,6 +160,17 @@
 			padding-right: 0.25rem;
 		}
 
+		span[role="note"] {
+			display: inline-block;
+			margin-left: 0.125em;
+			margin-right: 0.125em;
+			&::after {
+				content: "[*]";
+				font-weight: bold;
+				color: $richtext-footnote-color;
+			}
+		}
+
 		pre {
 			padding: 0.5rem 1rem;
 			background-color: $richtext-code-block;

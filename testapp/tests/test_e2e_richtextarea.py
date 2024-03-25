@@ -19,6 +19,7 @@ control_elements = [
     controls.Blockquote(),
     controls.HorizontalRule(),
     controls.DialogControl(dialogs.SimpleLinkDialogForm()),
+    controls.DialogControl(dialogs.FootnoteDialogForm()),
     controls.Separator(),
     controls.Redo(),
     controls.Undo(),

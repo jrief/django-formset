@@ -37,7 +37,10 @@ class RichTextarea(Textarea):
         context = super().get_context(name, value, attrs)
         if attrs.get('use_json') or self.attrs.get('use_json'):
             context['use_json'] = True
-            context['widget']['attrs']['data-content'] = json.dumps(value) if isinstance(value, dict) else '{}'
+            if isinstance(value, dict):
+                context['widget']['attrs']['data-content'] = json.dumps(value)
+            else:
+                context['widget']['attrs']['data-content'] = '{"type": "doc"}'
             context['widget'].pop('value', None)
         context['widget']['attrs'].pop('use_json', None)
         return context
