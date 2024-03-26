@@ -1913,6 +1913,7 @@ export class DjangoFormset {
 	}
 
 	private reportErrors(body: any) {
+		console.info('Response from server:', body);
 		for (const form of this.forms) {
 			const errors = form.name ? getDataValue(body, form.name.split('.'), null) : body;
 			if (!isEmpty(errors)) {
