@@ -96,17 +96,19 @@ export class DjangoSelectize extends IncompleteSelect {
 	protected async reloadOptions(silent?: boolean) {
 		const currentValue = this.getValue();
 		this.tomSelect.clear(true);
-		this.tomSelect.clearOptions();
-		this.tomInput.replaceChildren();
 		this.fieldGroup.classList.remove('dj-dirty', 'dj-touched', 'dj-validated');
 		this.fieldGroup.classList.add('dj-untouched', 'dj-pristine');
 		const errorPlaceholder = this.fieldGroup.querySelector('.dj-errorlist > .dj-placeholder');
 		if (errorPlaceholder) {
 			errorPlaceholder.innerHTML = '';
 		}
-		await this.loadOptions(this.buildFetchQuery(0), (options: Array<OptionData>) => {
-			this.tomSelect.addOptions(options);
-		});
+		if (this.isIncomplete) {
+			this.tomSelect.clearOptions();
+			this.tomInput.replaceChildren();
+			await this.loadOptions(this.buildFetchQuery(0), (options: Array<OptionData>) => {
+				this.tomSelect.addOptions(options);
+			});
+		}
 		this.tomSelect.setValue(currentValue, silent);
 	}
 
