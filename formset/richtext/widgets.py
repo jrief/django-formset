@@ -39,8 +39,10 @@ class RichTextarea(Textarea):
             context['use_json'] = True
             if isinstance(value, dict):
                 context['widget']['attrs']['data-content'] = json.dumps(value)
+            elif isinstance(value, str) and '"type": "doc"' in value:  # already JSONified
+                context['widget']['attrs']['data-content'] = value
             else:
-                context['widget']['attrs']['data-content'] = '{"type": "doc"}'
+                context['widget']['attrs']['data-content'] = '{"type": "doc"}'  # empty document
             context['widget'].pop('value', None)
         context['widget']['attrs'].pop('use_json', None)
         return context
