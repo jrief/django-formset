@@ -145,14 +145,15 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             yield holder
 
     def iter_many(self):
-        num_siblings = max(self.min_siblings, self.extra_siblings)
         if self.initial:
             if not isinstance(self.initial, list):
                 errmsg = "{class_name} is declared to have siblings, but provided argument `{argument}` is not a list"
                 raise FormCollectionError(errmsg.format(class_name=self.__class__.__name__, argument='initial'))
-            num_siblings = max(num_siblings, len(self.initial)) + self.extra_siblings
+            num_siblings = max(self.min_siblings, len(self.initial) + self.extra_siblings)
             if self.max_siblings is not None:
                 num_siblings = min(self.max_siblings, num_siblings)
+        else:
+            num_siblings = max(self.min_siblings, self.extra_siblings)
 
         first, last = 0, len(self.declared_holders.items()) - 1
         # add initialized collections/forms

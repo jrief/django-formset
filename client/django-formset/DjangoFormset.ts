@@ -1437,7 +1437,7 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 	}
 
 	protected resetToInitial() : boolean {
-		if (this.justAdded) {
+		if (this.justAdded && !this.element.hasAttribute('fresh-and-empty')) {
 			this.disconnect();
 			return true;
 		} else {
