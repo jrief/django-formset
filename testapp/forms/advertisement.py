@@ -107,6 +107,7 @@ class AdvertisementForm(forms.Form):
             controls.TextMargin('decrease'),
             controls.TextAlign(['left', 'center', 'right']),
             controls.HorizontalRule(),
+            controls.Strike(),
             controls.Subscript(),
             controls.Superscript(),
             controls.Separator(),

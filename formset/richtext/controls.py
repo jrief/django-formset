@@ -205,6 +205,11 @@ class ClearFormat(ControlElement):
     label = _("Clear Format")
 
 
+class Strike(ControlElement):
+    extension = 'strike'
+    label = _("Strike")
+
+
 class Subscript(ControlElement):
     extension = 'subscript'
     label = _("Subscript")

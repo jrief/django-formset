@@ -17,6 +17,7 @@ import ListItem from '@tiptap/extension-list-item';
 import OrderedList from '@tiptap/extension-ordered-list';
 import Paragraph from '@tiptap/extension-paragraph';
 import Placeholder from '@tiptap/extension-placeholder';
+import Strike from '@tiptap/extension-strike';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import Text from '@tiptap/extension-text';
@@ -131,6 +132,15 @@ namespace controls {
 
 		clicked(editor: Editor) {
 			editor.chain().focus().toggleItalic().run();
+			this.activate(editor);
+		}
+	}
+
+	export class StrikeAction extends Action {
+		protected readonly extensions = [Strike];
+
+		clicked(editor: Editor) {
+			editor.chain().focus().toggleStrike().run();
 			this.activate(editor);
 		}
 	}
