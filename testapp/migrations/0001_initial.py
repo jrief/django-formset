@@ -14,6 +14,15 @@ def initialize_opinions(apps, schema_editor):
     for counter in range(1, 3000):
         label = f"Opinion {counter:04}"
         OpinionModel.objects.create(tenant=1, label=label)
+    for counter in range(1, 500):
+        label = f"Übung {counter:04}"
+        OpinionModel.objects.create(tenant=1, label=label)
+    for counter in range(1, 500):
+        label = f"Оптион {counter:04}"
+        OpinionModel.objects.create(tenant=1, label=label)
+    for counter in range(1, 500):
+        label = f"επιλογή {counter:04}"
+        OpinionModel.objects.create(tenant=1, label=label)
 
 
 def initialize_counties(apps, schema_editor):

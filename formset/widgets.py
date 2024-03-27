@@ -12,6 +12,7 @@ from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
 from django.forms.widgets import DateTimeBaseInput, FileInput, Select, SelectMultiple, TextInput, Widget
+from django.utils.encoding import uri_to_iri
 from django.utils.timezone import datetime, now
 from django.utils.translation import gettext_lazy as _
 
@@ -112,6 +113,7 @@ class IncompleteSelectMixin:
             raise ImproperlyConfigured(f"Invalid attribute 'filter_by' in {self.__class__}.")
 
     def build_search_query(self, search_term):
+        search_term = uri_to_iri(search_term)
         try:
             return reduce(or_, (Q(**{sl: search_term}) for sl in self.search_lookup))
         except TypeError:
