@@ -54,7 +54,7 @@ def page(connector, viewname, locale, language):
     context = connector.browser.new_context(locale=locale)
     context.add_cookies([{'name': 'django_language', 'value': language, 'domain': 'localhost', 'path': '/'}])
     page = context.new_page()
-    page.on('console', print_args)
+    # page.on('console', print_args)
     page.goto(connector.live_server.url + reverse(viewname))
     django_formset = page.locator('django-formset:defined')
     django_formset.wait_for()

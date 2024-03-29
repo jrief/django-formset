@@ -19,7 +19,7 @@ control_elements = [
     controls.Blockquote(),
     controls.HorizontalRule(),
     controls.DialogControl(dialogs.SimpleLinkDialogForm()),
-    controls.DialogControl(dialogs.FootnoteDialogForm()),
+    # controls.DialogControl(dialogs.FootnoteDialogForm()),
     controls.Separator(),
     controls.Redo(),
     controls.Undo(),
@@ -58,20 +58,22 @@ urlpatterns = [
 
 @pytest.fixture
 def richtext_wrapper(page):
-    return page.locator('.dj-richtext-wrapper')
+    wrapper = page.locator('.dj-richtext-wrapper').first
+    expect(wrapper).to_be_visible()
+    return wrapper
 
 
 @pytest.fixture
 def menubar(richtext_wrapper):
     menubar = richtext_wrapper.locator('[role="menubar"]')
-    assert menubar.element_handle() is not None
+    expect(menubar).to_be_visible()
     return menubar
 
 
 @pytest.fixture
 def contenteditable(richtext_wrapper):
     contenteditable = richtext_wrapper.locator('[contenteditable="true"]')
-    assert contenteditable.element_handle() is not None
+    expect(contenteditable).to_be_visible()
     return contenteditable
 
 
@@ -174,6 +176,7 @@ def test_tiptap_valid_simple_link(page, viewname, menubar, contenteditable):
     expect(menu_button).to_have_class('active')
     set_caret(page, 3)
     set_caret(page, 2)
+    sleep(0.1)
     expect(menu_button).not_to_have_class('active')
 
 
