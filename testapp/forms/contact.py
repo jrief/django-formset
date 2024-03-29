@@ -3,6 +3,7 @@ from django.forms import fields, forms
 
 from formset.collection import FormCollection
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
+from formset.widgets import Selectize
 
 from .person import PersonForm
 
@@ -58,6 +59,7 @@ class PhoneNumberForm(forms.Form):
             ('mobile', "Mobile"),
             ('other', "Other"),
         ],
+        widget=Selectize(),
     )
 
     def clean_phone_number(self):
@@ -70,9 +72,9 @@ class PhoneNumberForm(forms.Form):
 class PhoneNumberCollection(FormCollection):
     legend = "List of Phone Numbers"
     add_label = "Add new Phone Number"
-    min_siblings = 1
+    min_siblings = 3
     max_siblings = 5
-    extra_siblings = 1
+    extra_siblings = 2
 
     number = PhoneNumberForm()
 
