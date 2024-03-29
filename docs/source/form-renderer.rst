@@ -121,8 +121,9 @@ When rendered in a Bootstrap-5 environment, that form will look like:
 	:view-function: AddressView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'address-inline-result'}, form_kwargs={'renderer': FormRenderer(field_css_classes='row mb-3', label_css_classes='col-sm-3', control_css_classes='col-sm-9'), 'auto_id': 'ai_id_%s'})
 	:hide-code:
 
-In this example we don't use any field specific CSS classes, therefor we can achieve the same effect
-by rendering this form using our well known templatetag ``render_form`` with these parameters:
+In this example we don't use any field specific CSS classes, therefore we can achieve the same
+effect by rendering this form using our well known templatetag ``render_form`` with these
+parameters:
 
 .. code-block:: django
 
