@@ -1,5 +1,11 @@
 ## Changes
 
+1.3.8
+  * Fail silently if package 'phonenumbers' is not installed.
+  * Adopt to Django-5.0
+  * In RichtextArea, add padding to placeholder field.
+  * In DjangoSelectize make background color almost white.
+
 1.3.7
   * Disable unique checks for Django<4.0, because they are not compatible.
 

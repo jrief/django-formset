@@ -4,9 +4,6 @@ on:
   push:
     tags:
       - '*'
-    branches:
-      - releases/1.0.x
-
 
 jobs:
   publish:
