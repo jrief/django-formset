@@ -1,5 +1,17 @@
 ## Changes
 
+1.3.9
+  * Fix widget `Selectize` losing borders when used in a collection with siblings after a form
+    reset.
+  * Add support for UTF-8 characters when using the `Selectize` widget with lazy loading.
+  * On reset, the number of siblings is set to the initial value.
+
+1.3.8
+  * Fail silently if package 'phonenumbers' is not installed.
+  * Adopt to Django-5.0
+  * In RichtextArea, add padding to placeholder field.
+  * In DjangoSelectize make background color almost white.
+
 1.3.7
   * Disable unique checks for Django<4.0, because they are not compatible.
 

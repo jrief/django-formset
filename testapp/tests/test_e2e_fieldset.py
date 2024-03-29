@@ -23,17 +23,17 @@ urlpatterns = [
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['customer'])
 def test_submit_customer(page, mocker, viewname):
-    customer_collections = page.query_selector_all('django-formset > django-form-collection')
-    assert len(customer_collections) == 2
-    fieldset = customer_collections[0].query_selector('fieldset[df-hide]')
-    assert fieldset is not None
-    legend = fieldset.query_selector('legend')
-    assert legend.text_content() == "Customer"
-    assert customer_collections[1].query_selector('fieldset') is None
+    customer_collections = page.locator('django-formset > django-form-collection')
+    expect(customer_collections).to_have_count(2)
+    fieldset = customer_collections.first.locator('fieldset[df-hide]')
+    expect(fieldset).to_be_visible()
+    legend = fieldset.locator('legend')
+    expect(legend).to_have_text("Customer")
+    expect(customer_collections.last.locator('fieldset')).not_to_be_visible()
     page.fill('#id_customer\\.name', "John Doe")
     page.fill('#id_customer\\.address', "123, Lye Street")
     spy = mocker.spy(FormCollectionView, 'post')
-    page.query_selector('django-formset button').click()
+    page.locator('django-formset button').first.click()
     sleep(0.25)
     assert spy.called
     response = json.loads(spy.call_args.args[1].body)
