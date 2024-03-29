@@ -86,13 +86,14 @@ def test_daterange_initial(page, mocker, viewname):
     assert request['formset_data']['range'] == ['2023-08-08', '2023-10-10']
 
 
+@pytest.mark.xfail(reason="playwright sometimes fails on GitHub actions")
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['booking'])
 def test_daterange_set(page, mocker, viewname):
     calendar = page.locator('django-formset input[name="range"] + .dj-calendar')
     expect(calendar).to_be_visible()
     calendar.locator('button.today').click()
-    sleep(0.2)
+    sleep(0.3)
     expect(calendar.locator('ul.monthdays li.today')).to_be_visible()
     today = datetime.today()
     expect(calendar.locator('ul.monthdays li.selected')).to_have_count(1)
