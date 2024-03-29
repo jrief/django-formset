@@ -444,10 +444,10 @@ class DateTimeField extends Widget {
 
 	private transferStyles() {
 		const declaredStyles = document.createElement('style');
-		let loaded = false;
 		declaredStyles.innerText = styles;
 		document.head.appendChild(declaredStyles);
 		this.inputElement.style.transition = 'none';  // prevent transition while pilfering styles
+		let loaded = false;
 		for (let index = 0; declaredStyles.sheet && index < declaredStyles.sheet.cssRules.length; index++) {
 			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
