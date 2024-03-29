@@ -125,9 +125,9 @@ def test_initial_value(page, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_changing_value(page, form, viewname):
-    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
+    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="text"]')
     expect(input_element).to_be_visible()
-    assert input_element.get_attribute('placeholder') == 'Select'
+    expect(input_element).to_have_attribute('placeholder', 'Select')
     assert input_element.evaluate('elem => elem.value') == ''
     field_group_element = page.locator('django-formset [role="group"]')
     expect(field_group_element).to_have_count(1)
@@ -168,7 +168,7 @@ def test_changing_value(page, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize5'])
 def test_add_multiple(page, form, viewname):
-    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-multiple"]')
+    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="text"]')
     expect(input_element).to_be_visible()
     expect(input_element).to_have_attribute('placeholder', 'Select any')
     assert input_element.evaluate('elem => elem.value') == ''
@@ -228,7 +228,7 @@ def test_change_multiple(page, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_lookup_value(page, mocker, form, viewname):
-    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
+    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="text"]')
     expect(input_element).to_be_visible()
     input_element.click()
     spy = mocker.spy(FormView, 'get')
@@ -258,7 +258,7 @@ def test_submit_missing(page, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_submit_value(page, mocker, view, form, viewname):
-    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
+    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="text"]')
     expect(input_element).to_be_visible()
     input_element.click()
     dropdown_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-dropdown.single')
@@ -278,7 +278,7 @@ def test_submit_value(page, mocker, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
 def test_submit_invalid(page, mocker, view, form, viewname):
-    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
+    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="text"]')
     dropdown_element = page.locator('django-formset .shadow-wrapper .ts-wrapper  .ts-dropdown.single')
     expect(input_element).to_be_visible()
     expect(dropdown_element).to_be_hidden()
@@ -311,7 +311,7 @@ def test_reset_selectize(page, view, form, viewname):
     select_element = page.locator('django-formset select[is="django-selectize"]')
     expect(select_element).to_be_visible()
     initial_value = select_element.evaluate('elem => elem.value')
-    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
+    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="text"]')
     expect(input_element).to_be_visible()
     if form.name in ['selection', 'static_selection']:
         input_element.click()
@@ -337,7 +337,7 @@ def test_touch_selectize(page, form, viewname):
     expect(field_group).to_have_class('dj-untouched dj-pristine')
     placeholder = page.locator('django-formset ul.dj-errorlist > li.dj-placeholder')
     expect(placeholder).to_have_text('')
-    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="select-one"]')
+    input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="text"]')
     expect(input_element).to_be_visible()
     input_element.focus()
     expect(field_group).to_have_class('dj-pristine dj-touched')

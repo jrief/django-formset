@@ -126,8 +126,9 @@ def test_single_county(page, form, viewname):
     else:
         assert len(states) == 6
         states[4] == "California"
-    input_field = page.locator('django-formset input[type="select-one"]')
+    input_field = page.locator('django-formset input[type="text"]')
     input_field.type("gosh")
+    sleep(0.3)  # tom-select's loadThrottle is set to 300ms
     div_optgroup = page.locator('django-formset .ts-dropdown .optgroup')
     expect(div_optgroup.locator('.optgroup-header')).to_have_text("Wyoming")
     div_option = div_optgroup.locator('[role="option"]')
@@ -145,28 +146,32 @@ def test_few_counties(page, form, viewname):
     states = [optgroups.nth(i).get_attribute('label') for i in range(optgroups.count())]
     assert len(states) == 6
     states[4] == "California"
-    input_field = page.locator('django-formset input[type="select-multiple"]')
+    input_field = page.locator('django-formset input[type="text"]')
     input_field.type("clall")
+    sleep(0.3)  # tom-select's loadThrottle is set to 300ms
     div_optgroup = page.locator('django-formset .ts-dropdown .optgroup .optgroup-header')
-    div_option = page.locator('django-formset .ts-dropdown .optgroup [role="option"]')
     expect(div_optgroup).to_have_text("Washington")
+    div_option = page.locator('django-formset .ts-dropdown .optgroup [role="option"]')
     expect(div_option).to_have_text("Clallam (WA)")
     div_option.click()
     for _ in range(5):
         page.keyboard.press("Backspace")
     input_field.type("tillam")
+    sleep(0.3)  # tom-select's loadThrottle is set to 300ms
     expect(div_optgroup).to_have_text("Oregon")
     expect(div_option).to_have_text("Tillamook (OR)")
     div_option.click()
     for _ in range(6):
         page.keyboard.press("Backspace")
     input_field.type("stani")
+    sleep(0.3)  # tom-select's loadThrottle is set to 300ms
     expect(div_optgroup).to_have_text("California")
     expect(div_option).to_have_text("Stanislaus (CA)")
     div_option.click()
     for _ in range(5):
         page.keyboard.press("Backspace")
     input_field.type("lync")
+    sleep(0.3)  # tom-select's loadThrottle is set to 300ms
     expect(div_optgroup).to_have_text("Virginia")
     expect(div_option).to_have_text("Lynchburg (VA)")
     div_option.click()
