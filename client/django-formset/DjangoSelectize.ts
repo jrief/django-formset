@@ -44,7 +44,6 @@ export class DjangoSelectize extends IncompleteSelect {
 		tomInput.classList.add('dj-concealed');
 		this.validateInput(this.initialValue as string);
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
-		this.setupFilters(tomInput);
 	}
 
 	protected getSettings() : RecursivePartial<TomSettings> {
@@ -272,6 +271,7 @@ export class DjangoSelectize extends IncompleteSelect {
 			const cssRule = this.extraStyleSheet.cssRules.item(index) as CSSStyleRule;
 			sheet.insertRule(cssRule.cssText);
 		}
+		this.setupFilters(this.tomSelect.input as HTMLSelectElement);
 	}
 
 	private attributesChanged = (mutationsList: Array<MutationRecord>) => {
