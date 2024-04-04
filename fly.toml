@@ -1,38 +1,38 @@
-# fly.toml file generated for django-formset on 2023-09-08T22:13:46+02:00
+# fly.toml app configuration file generated for django-formset-quiet-waterfall-43 on 2024-04-04T14:00:35+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "django-formset"
-kill_signal = "SIGINT"
-kill_timeout = 5
-mounts = []
-processes = []
-
-[env]
-  PORT = "8080"
-  DJANGO_WORKDIR="/web/workdir"
-  DJANGO_MEDIA_ROOT="/web/workdir/media"
-  DJANGO_STATIC_ROOT="/web/staticfiles"
+app = 'django-formset'
+primary_region = 'ams'
+console_command = '/web/manage.py shell'
 
 [build]
   dockerfile = ".deployment/Dockerfile"
 
 [mounts]
-  source="workdir"
-  destination="/web/workdir"
+  source = 'workdir'
+  destination = '/web/workdir'
 
-[[services]]
+[env]
+  PORT = '8080'
+  DJANGO_WORKDIR = '/web/workdir'
+  DJANGO_MEDIA_ROOT = '/web/workdir/media'
+  DJANGO_STATIC_ROOT = '/web/staticfiles'
+
+[http_service]
   internal_port = 8080
-  processes = ["app"]
-  protocol = "tcp"
-  [services.concurrency]
-    hard_limit = 25
-    soft_limit = 20
-    type = "connections"
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
 
-  [[services.ports]]
-    force_https = true
-    handlers = ["http"]
-    port = 80
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
 
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443
+[[statics]]
+  guest_path = '/web/static'
+  url_prefix = '/static/'
