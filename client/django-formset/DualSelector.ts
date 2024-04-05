@@ -56,6 +56,9 @@ export class DualSelector extends IncompleteSelect {
 		this.selectorElement.classList.add('dj-concealed');
 		const templ = selectorElement.parentElement?.querySelector('template.select-no-results');
 		this.renderNoResults = (data: any) => templ ? template(templ.innerHTML)(data) : "No results";
+		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+			this.transferStyles();
+		}
 	}
 
 	private installEventHandlers() {
@@ -104,9 +107,6 @@ export class DualSelector extends IncompleteSelect {
 		this.setHistoryCursor(0);
 		if (this.selectRightElement instanceof SortableSelectElement) {
 			this.selectRightElement.initialize(this.selectLeftElement);
-		}
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-			this.transferStyles();
 		}
 		this.setButtonsState();
 		this.setupFilters(this.selectorElement);

@@ -15,7 +15,6 @@ export class DjangoSelectize extends IncompleteSelect {
 	private readonly extraStyleSheet: CSSStyleSheet = new CSSStyleSheet();
 	private readonly numOptions: number = 12;
 	private readonly tomSelect: TomSelect;
-	private readonly nativeStyles: CSSStyleDeclaration;
 	private readonly observer: MutationObserver;
 	private initialValue: string | string[] = '';
 	private readonly baseSelector = '.ts-wrapper';
@@ -28,7 +27,7 @@ export class DjangoSelectize extends IncompleteSelect {
 			tomInput.removeAttribute('multiple');
 			isMultiple = true;
 		}
-		this.nativeStyles = {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
+		const nativeStyles = {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
 		if (isMultiple) {
 			// revert the above
 			tomInput.setAttribute('multiple', 'multiple');
@@ -36,7 +35,12 @@ export class DjangoSelectize extends IncompleteSelect {
 		this.numOptions = parseInt(tomInput.getAttribute('options') ?? this.numOptions.toString());
 		this.tomSelect = new TomSelect(tomInput, this.getSettings(tomInput));
 		this.observer = new MutationObserver(this.attributesChanged);
+		this.observer.observe(tomInput, {attributes: true});
+		this.initialValue = this.currentValue;
 		this.shadowRoot = this.wrapInShadowRoot();
+		this.transferStyles(nativeStyles);
+		tomInput.classList.add('dj-concealed');
+		this.validateInput(this.initialValue as string);
 	}
 
 	protected getSettings(tomInput: HTMLSelectElement) : RecursivePartial<TomSettings> {
@@ -260,12 +264,6 @@ export class DjangoSelectize extends IncompleteSelect {
 	}
 
 	public initialize() {
-		const tomInput = this.tomSelect.input as HTMLSelectElement;
-		this.observer.observe(tomInput, {attributes: true});
-		this.initialValue = this.currentValue;
-		this.transferStyles(this.nativeStyles);
-		tomInput.classList.add('dj-concealed');
-		this.validateInput(this.initialValue as string);
 		const sheet = this.shadowRoot.styleSheets.item(0)!;
 		for (let index = 0; index < this.extraStyleSheet.cssRules.length; index++) {
 			const cssRule = this.extraStyleSheet.cssRules.item(index) as CSSStyleRule;

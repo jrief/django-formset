@@ -41,6 +41,10 @@ class PhoneNumberField {
 		this.internationalOpener = this.textBox.querySelector('.international-picker')!;
 		this.internationalSelector = this.textBox.nextElementSibling as HTMLElement;
 		this.countryLookupField = this.internationalSelector.querySelector('input[type="search"]')!;
+		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+			this.transferStyles();
+		}
+		this.transferClasses();
 	}
 
 	private initializeValue(value: string) {
@@ -388,10 +392,6 @@ class PhoneNumberField {
 
 	public initialize() {
 		this.installEventHandlers();
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-			this.transferStyles();
-		}
-		this.transferClasses();
 		this.initializeValue(this.inputElement.defaultValue);
 	}
 

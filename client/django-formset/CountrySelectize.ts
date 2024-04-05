@@ -6,8 +6,8 @@ import styles from './CountrySelectize.scss';
 
 
 class CountrySelectize extends DjangoSelectize {
-	constructor(element: HTMLSelectElement) {
-		super(element);
+	initialize() {
+		super.initialize();
 		const declaredStyles = document.createElement('style');
 		declaredStyles.innerText = styles;
 		this.shadowRoot.insertBefore(declaredStyles, this.shadowRoot.firstChild);
