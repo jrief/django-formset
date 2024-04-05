@@ -1,6 +1,6 @@
 import TomSelect from 'tom-select/src/tom-select';
 import {TomSettings} from 'tom-select/src/types/settings';
-import {RecursivePartial, TomInput, TomOption} from 'tom-select/src/types';
+import {RecursivePartial, TomOption} from 'tom-select/src/types';
 import TomSelect_remove_button from 'tom-select/src/plugins/remove_button/plugin';
 import {IncompleteSelect} from './IncompleteSelect';
 import template from 'lodash.template';
@@ -11,7 +11,6 @@ TomSelect.define('remove_button', TomSelect_remove_button);
 
 
 export class DjangoSelectize extends IncompleteSelect {
-	protected readonly tomInput: TomInput;
 	protected readonly shadowRoot: ShadowRoot;
 	private readonly extraStyleSheet: CSSStyleSheet = new CSSStyleSheet();
 	private readonly numOptions: number = 12;
@@ -22,7 +21,6 @@ export class DjangoSelectize extends IncompleteSelect {
 
 	constructor(tomInput: HTMLSelectElement) {
 		super(tomInput);
-		this.tomInput = tomInput;
 		let isMultiple = false;
 		if (tomInput.hasAttribute('multiple')) {
 			// We want to use the CSS styles for <select> without multiple
@@ -35,9 +33,9 @@ export class DjangoSelectize extends IncompleteSelect {
 			tomInput.setAttribute('multiple', 'multiple');
 		}
 		this.numOptions = parseInt(tomInput.getAttribute('options') ?? this.numOptions.toString());
-		this.tomSelect = new TomSelect(tomInput, this.getSettings());
+		this.tomSelect = new TomSelect(tomInput, this.getSettings(tomInput));
 		this.observer = new MutationObserver(this.attributesChanged);
-		this.observer.observe(this.tomInput, {attributes: true});
+		this.observer.observe(tomInput, {attributes: true});
 		this.initialValue = this.currentValue;
 		this.shadowRoot = this.wrapInShadowRoot();
 		this.transferStyles(nativeStyles);
@@ -46,7 +44,7 @@ export class DjangoSelectize extends IncompleteSelect {
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
 	}
 
-	protected getSettings() : RecursivePartial<TomSettings> {
+	protected getSettings(tomInput: HTMLSelectElement) : RecursivePartial<TomSettings> {
 		const settings: RecursivePartial<TomSettings> = {
 			create: false,
 			valueField: 'id',
@@ -62,19 +60,19 @@ export class DjangoSelectize extends IncompleteSelect {
 			onBlur: this.blurred,
 			onType: this.inputted,
 		};
-		const templ = this.tomInput.parentElement?.querySelector('template.select-no-results');
+		const templ = tomInput.parentElement?.querySelector('template.select-no-results');
 		if (templ) {
 			settings.render = {...settings.render, no_results: (data: TomOption) => template(templ.innerHTML)(data)};
 		}
 		if (this.isIncomplete) {
 			settings.load = this.load;
 		}
-		if (this.tomInput.hasAttribute('multiple')) {
-			settings.maxItems = parseInt(this.tomInput.getAttribute('max_items') ?? '3');
-			const translation = this.tomInput.parentElement?.querySelector('template.selectize-remove-item');
+		if (tomInput.hasAttribute('multiple')) {
+			settings.maxItems = parseInt(tomInput.getAttribute('max_items') ?? '3');
+			const translation = tomInput.parentElement?.querySelector('template.selectize-remove-item');
 			settings.plugins = {...settings.plugins, remove_button: {title: translation?.innerHTML ?? "Remove item"}};
 			// tom-select has some issues to initialize items using the original input element
-			const scriptId = `${this.tomInput.getAttribute('id')}_initial`;
+			const scriptId = `${tomInput.getAttribute('id')}_initial`;
 			settings.items = JSON.parse(document.getElementById(scriptId)?.textContent ?? '[]');
 		}
 		return settings;
@@ -102,7 +100,7 @@ export class DjangoSelectize extends IncompleteSelect {
 		}
 		if (this.isIncomplete) {
 			this.tomSelect.clearOptions();
-			this.tomInput.replaceChildren();
+			this.tomSelect.input.replaceChildren();
 			await this.loadOptions(this.buildFetchQuery(0), (options: Array<OptionData>) => {
 				this.tomSelect.addOptions(options);
 			});
@@ -146,7 +144,7 @@ export class DjangoSelectize extends IncompleteSelect {
 	private validateInput(value: String | Array<string>) {
 		const wrapper = this.shadowRoot.querySelector('.ts-wrapper');
 		wrapper?.classList.remove('dirty');
-		const selectElem = this.tomInput as HTMLSelectElement;
+		const selectElem = this.tomSelect.input as HTMLSelectElement;
 		if (this.tomSelect.isRequired) {
 			selectElem.setCustomValidity(value ? "": "Value is missing.");
 		}
@@ -158,7 +156,7 @@ export class DjangoSelectize extends IncompleteSelect {
 				}
 			}
 		} else {
-			this.tomInput.value = value as string;
+			this.tomSelect.input.value = value as string;
 		}
 	}
 
@@ -168,8 +166,8 @@ export class DjangoSelectize extends IncompleteSelect {
 		const shadowRoot = shadowWrapper.attachShadow({mode: 'open', delegatesFocus: true});
 		const shadowStyleElement = document.createElement('style');
 		shadowRoot.appendChild(shadowStyleElement).textContent = styles;
-		this.tomInput.insertAdjacentElement('beforebegin', shadowWrapper);
-		const wrapper = (this.tomInput.parentElement as HTMLElement).removeChild(this.tomSelect.wrapper);
+		this.tomSelect.input.insertAdjacentElement('beforebegin', shadowWrapper);
+		const wrapper = (this.tomSelect.input.parentElement as HTMLElement).removeChild(this.tomSelect.wrapper);
 		shadowRoot.appendChild(wrapper);
 		return shadowRoot;
 	}
@@ -177,8 +175,9 @@ export class DjangoSelectize extends IncompleteSelect {
 	private transferStyles(nativeStyles: CSSStyleDeclaration) {
 		const wrapperStyle = (this.shadowRoot.host as HTMLElement).style;
 		wrapperStyle.setProperty('display', nativeStyles.display);
-		let lineHeight = window.getComputedStyle(this.tomInput).getPropertyValue('line-height');
-		const optionElement = this.tomInput.querySelector('option');
+		const tomInput = this.tomSelect.input;
+		const lineHeight = window.getComputedStyle(tomInput).getPropertyValue('line-height');
+		const optionElement = tomInput.querySelector('option');
 		const sheet = this.shadowRoot.styleSheets.item(0);
 		const displayNumOptions = Math.min(Math.max(this.numOptions, 8), 25);
 
@@ -188,14 +187,14 @@ export class DjangoSelectize extends IncompleteSelect {
 			let extraStyles: string | null = null;
 			switch (cssRule.selectorText) {
 				case this.baseSelector:
-					extraStyles = StyleHelpers.extractStyles(this.tomInput, [
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
 						'letter-spacing', 'white-space'
 					]);
 					loaded = true;
 					break;
 				case `${this.baseSelector} .ts-control`:
-					extraStyles = StyleHelpers.extractStyles(this.tomInput, [
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'background-color', 'border', 'border-radius', 'box-shadow', 'color',
 						'padding']).concat(
 						`width: ${nativeStyles['width']}; min-height: ${nativeStyles['height']};`
@@ -208,28 +207,28 @@ export class DjangoSelectize extends IncompleteSelect {
 					}
 					break;
 				case `${this.baseSelector} .ts-control > input::placeholder`:
-					this.tomInput.classList.add('-placeholder-');
-					extraStyles = StyleHelpers.extractStyles(this.tomInput, ['background-color', 'color']);
-					this.tomInput.classList.remove('-placeholder-');
+					tomInput.classList.add('-placeholder-');
+					extraStyles = StyleHelpers.extractStyles(tomInput, ['background-color', 'color']);
+					tomInput.classList.remove('-placeholder-');
 					break;
 				case `${this.baseSelector}.focus .ts-control`:
-					this.tomInput.style.transition = 'none';
-					this.tomInput.classList.add('-focus-');
-					extraStyles = StyleHelpers.extractStyles(this.tomInput, [
+					tomInput.style.transition = 'none';
+					tomInput.classList.add('-focus-');
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'
 					]);
-					this.tomInput.classList.remove('-focus-');
-					this.tomInput.style.transition = '';
+					tomInput.classList.remove('-focus-');
+					tomInput.style.transition = '';
 					break;
 				case `${this.baseSelector}.disabled .ts-control`:
-					this.tomInput.classList.add('-disabled-');
-					extraStyles = StyleHelpers.extractStyles(this.tomInput, [
+					tomInput.classList.add('-disabled-');
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'background-color', 'border', 'box-shadow', 'color', 'opacity', 'outline', 'transition'
 					]);
-					this.tomInput.classList.remove('-disabled-');
+					tomInput.classList.remove('-disabled-');
 					break;
 				case `${this.baseSelector} .ts-dropdown`:
-					extraStyles = StyleHelpers.extractStyles(this.tomInput, [
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'border-right', 'border-bottom', 'border-left', 'color'
 					]).concat(
 						parseFloat(lineHeight) > 0 ? `line-height: calc(${lineHeight} * 1.2);` : 'line-height: 1.4em;'
@@ -243,16 +242,16 @@ export class DjangoSelectize extends IncompleteSelect {
 					}
 					break;
 				case `${this.baseSelector} .ts-dropdown [data-selectable]`:
-					extraStyles = StyleHelpers.extractStyles(this.tomInput, ['padding-left']);
+					extraStyles = StyleHelpers.extractStyles(tomInput, ['padding-left']);
 					break;
 				case ':host-context([role="group"].dj-submitted) .ts-wrapper.invalid.focus .ts-control':
-					this.tomInput.style.transition = 'none';
-					this.tomInput.classList.add('-focus-', '-invalid-', 'is-invalid');  // is-invalid is a Bootstrap hack
-					extraStyles = StyleHelpers.extractStyles(this.tomInput, [
+					tomInput.style.transition = 'none';
+					tomInput.classList.add('-focus-', '-invalid-', 'is-invalid');  // is-invalid is a Bootstrap hack
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'
 					]);
-					this.tomInput.classList.remove('-focus-', '-invalid-', 'is-invalid');
-					this.tomInput.style.transition = '';
+					tomInput.classList.remove('-focus-', '-invalid-', 'is-invalid');
+					tomInput.style.transition = '';
 					break;
 				default:
 					break;
@@ -277,7 +276,7 @@ export class DjangoSelectize extends IncompleteSelect {
 	private attributesChanged = (mutationsList: Array<MutationRecord>) => {
 		for (const mutation of mutationsList) {
 			if (mutation.type === 'attributes' && mutation.attributeName === 'disabled') {
-				if (this.tomInput.disabled) {
+				if (this.tomSelect.input.disabled) {
 					if (!this.tomSelect.isDisabled) {
 						this.tomSelect.disable();
 					}
