@@ -1,6 +1,6 @@
-import { IncompleteSelect } from './IncompleteSelect';
-import { SortableSelectElement } from './SortableSelect';
-import { StyleHelpers } from "./helpers";
+import {IncompleteSelect} from './IncompleteSelect';
+import {SortableSelectElement} from './SortableSelect';
+import {StyleHelpers} from "./helpers";
 import template from 'lodash.template';
 
 
@@ -56,13 +56,6 @@ export class DualSelector extends IncompleteSelect {
 		this.selectorElement.classList.add('dj-concealed');
 		const templ = selectorElement.parentElement?.querySelector('template.select-no-results');
 		this.renderNoResults = (data: any) => templ ? template(templ.innerHTML)(data) : "No results";
-		this.installEventHandlers();
-		this.initialize();
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-			this.transferStyles();
-		}
-		this.setButtonsState();
-		this.setupFilters(selectorElement);
 	}
 
 	private installEventHandlers() {
@@ -80,7 +73,7 @@ export class DualSelector extends IncompleteSelect {
 		this.redoButton?.addEventListener('click', evt => this.unOrRedo(+1));
 	}
 
-	private initialize() {
+	public initialize() {
 		const initialValues: string[] = [];
 		const optionElements = this.selectorElement.querySelectorAll(':scope > option') as NodeListOf<HTMLOptionElement>;
 		optionElements.forEach(option => {
@@ -112,6 +105,12 @@ export class DualSelector extends IncompleteSelect {
 		if (this.selectRightElement instanceof SortableSelectElement) {
 			this.selectRightElement.initialize(this.selectLeftElement);
 		}
+		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+			this.transferStyles();
+		}
+		this.setButtonsState();
+		this.setupFilters(this.selectorElement);
+		this.installEventHandlers();
 	}
 
 	private addNoResultsOption(selectElement: HTMLSelectElement | SortableSelectElement, query: string) {
@@ -493,9 +492,14 @@ export class DualSelector extends IncompleteSelect {
 const DS = Symbol('DualSelectorElement');
 
 export class DualSelectorElement extends HTMLSelectElement {
-	private [DS]!: DualSelector;  // hides internal implementation
+	private [DS]: DualSelector;  // hides internal implementation
+
+	constructor() {
+		super();
+		this[DS] = new DualSelector(this, 'django-dual-selector');
+	}
 
 	connectedCallback() {
-		this[DS] = new DualSelector(this, 'django-dual-selector');
+		this[DS].initialize();
 	}
 }

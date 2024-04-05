@@ -512,9 +512,10 @@ class DateTimeField extends Widget {
 const DT = Symbol('DateTime');
 
 export class DateFieldElement extends HTMLInputElement {
-	private [DT]!: DateTimeField;  // hides internal implementation
+	private [DT]: DateTimeField;  // hides internal implementation
 
-	connectedCallback() {
+	constructor() {
+		super();
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
@@ -527,9 +528,10 @@ export class DateFieldElement extends HTMLInputElement {
 }
 
 export class DatePickerElement extends HTMLInputElement {
-	private [DT]!: DateTimeField;  // hides internal implementation
+	private [DT]: DateTimeField;  // hides internal implementation
 
-	connectedCallback() {
+	constructor() {
+		super();
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
@@ -543,9 +545,10 @@ export class DatePickerElement extends HTMLInputElement {
 }
 
 export class DateTimeFieldElement extends HTMLInputElement {
-	private [DT]!: DateTimeField;  // hides internal implementation
+	private [DT]: DateTimeField;  // hides internal implementation
 
-	connectedCallback() {
+	constructor() {
+		super();
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
@@ -558,9 +561,10 @@ export class DateTimeFieldElement extends HTMLInputElement {
 }
 
 export class DateTimePickerElement extends HTMLInputElement {
-	private [DT]!: DateTimeField;  // hides internal implementation
+	private [DT]: DateTimeField;  // hides internal implementation
 
-	connectedCallback() {
+	constructor() {
+		super();
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
@@ -574,16 +578,17 @@ export class DateTimePickerElement extends HTMLInputElement {
 }
 
 export class DateRangeFieldElement extends HTMLInputElement {
-	private [DT]!: DateTimeField;  // hides internal implementation
+	private [DT]: DateTimeField;  // hides internal implementation
 
-	connectedCallback() {
+	constructor() {
+		super();
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		this[DT] = new DateTimeField(this, null);
 	}
 
-	public checkValidity() {
+	checkValidity() {
 		if (!super.checkValidity())
 			return false;
 		return this[DT].checkValidity();
@@ -592,9 +597,10 @@ export class DateRangeFieldElement extends HTMLInputElement {
 
 
 export class DateRangePickerElement extends HTMLInputElement {
-	private [DT]!: DateTimeField;  // hides internal implementation
+	private [DT]: DateTimeField;  // hides internal implementation
 
-	connectedCallback() {
+	constructor() {
+		super();
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
@@ -602,7 +608,7 @@ export class DateRangePickerElement extends HTMLInputElement {
 		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
 	}
 
-	public checkValidity() {
+	checkValidity() {
 		if (!super.checkValidity())
 			return false;
 		return this[DT].checkValidity();
@@ -610,16 +616,17 @@ export class DateRangePickerElement extends HTMLInputElement {
 }
 
 export class DateTimeRangeFieldElement extends HTMLInputElement {
-	private [DT]!: DateTimeField;  // hides internal implementation
+	private [DT]: DateTimeField;  // hides internal implementation
 
-	connectedCallback() {
+	constructor() {
+		super();
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		this[DT] = new DateTimeField(this, null);
 	}
 
-	public checkValidity() {
+	checkValidity() {
 		if (!super.checkValidity())
 			return false;
 		return this[DT].checkValidity();
@@ -627,9 +634,10 @@ export class DateTimeRangeFieldElement extends HTMLInputElement {
 }
 
 export class DateTimeRangePickerElement extends HTMLInputElement {
-	private [DT]!: DateTimeField;  // hides internal implementation
+	private [DT]: DateTimeField;  // hides internal implementation
 
-	connectedCallback() {
+	constructor() {
+		super();
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
@@ -637,7 +645,7 @@ export class DateTimeRangePickerElement extends HTMLInputElement {
 		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
 	}
 
-	public checkValidity() {
+	checkValidity() {
 		if (!super.checkValidity())
 			return false;
 		return this[DT].checkValidity();

@@ -1,6 +1,6 @@
 import styles from './RichtextArea.scss';
 import { computePosition } from '@floating-ui/dom';
-import { Editor, Extension, Mark, Node } from '@tiptap/core';
+import {Editor, Extension, JSONContent, Mark, Node} from '@tiptap/core';
 import Blockquote from '@tiptap/extension-blockquote';
 import Bold from '@tiptap/extension-bold';
 import BulletList from '@tiptap/extension-bullet-list';
@@ -799,7 +799,7 @@ class RichtextArea {
 	private readonly registeredActions = new Array<Action>();
 	private readonly useJson: boolean = false;
 	private readonly editor: Editor;
-	private readonly initialValue: string | object;
+	private readonly initialValue: JSONContent | string;
 	private charaterCountTemplate?: Function;
 	private charaterCountDiv: HTMLElement | null = null;
 	private readonly baseSelector = '.dj-richtext-wrapper';
@@ -1030,7 +1030,7 @@ class RichtextArea {
 		// TODO: remove event handlers
 	}
 
-	public getValue() : any {
+	public getValue() : JSONContent | string {
 		if (this.editor.isEmpty)
 			return '';  // otherwise empty field is not detected by calling function
 		return this.useJson ? this.editor.getJSON() : this.editor.getHTML();
@@ -1043,18 +1043,18 @@ const RA = Symbol('RichtextArea');
 export class RichTextAreaElement extends HTMLTextAreaElement {
 	private [RA]!: RichtextArea;  // hides internal implementation
 
-	private connectedCallback() {
+	connectedCallback() {
 		const wrapperElement = this.closest('.dj-richtext-wrapper');
 		if (wrapperElement instanceof HTMLElement) {
 			this[RA] = new RichtextArea(wrapperElement, this);
 		}
 	}
 
-	private disconnectCallback() {
+	disconnectCallback() {
 		this[RA].disconnect();
 	}
 
-	public get value() : any {
+	get value() : any {
 		return this[RA].getValue();
 	}
 }

@@ -32,7 +32,7 @@ class CountrySelectize extends DjangoSelectize {
 const CS = Symbol('CountrySelectize');
 
 export class CountrySelectizeElement extends HTMLSelectElement {
-	private [CS]!: CountrySelectize;  // hides internal implementation
+	private [CS]: CountrySelectize;  // hides internal implementation
 
 	constructor() {
 		super();

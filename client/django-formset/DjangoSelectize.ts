@@ -15,8 +15,9 @@ export class DjangoSelectize extends IncompleteSelect {
 	private readonly extraStyleSheet: CSSStyleSheet = new CSSStyleSheet();
 	private readonly numOptions: number = 12;
 	private readonly tomSelect: TomSelect;
+	private readonly nativeStyles: CSSStyleDeclaration;
 	private readonly observer: MutationObserver;
-	private readonly initialValue: string | string[];
+	private initialValue: string | string[] = '';
 	private readonly baseSelector = '.ts-wrapper';
 
 	constructor(tomInput: HTMLSelectElement) {
@@ -27,7 +28,7 @@ export class DjangoSelectize extends IncompleteSelect {
 			tomInput.removeAttribute('multiple');
 			isMultiple = true;
 		}
-		const nativeStyles = {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
+		this.nativeStyles = {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
 		if (isMultiple) {
 			// revert the above
 			tomInput.setAttribute('multiple', 'multiple');
@@ -35,13 +36,7 @@ export class DjangoSelectize extends IncompleteSelect {
 		this.numOptions = parseInt(tomInput.getAttribute('options') ?? this.numOptions.toString());
 		this.tomSelect = new TomSelect(tomInput, this.getSettings(tomInput));
 		this.observer = new MutationObserver(this.attributesChanged);
-		this.observer.observe(tomInput, {attributes: true});
-		this.initialValue = this.currentValue;
 		this.shadowRoot = this.wrapInShadowRoot();
-		this.transferStyles(nativeStyles);
-		tomInput.classList.add('dj-concealed');
-		this.validateInput(this.initialValue as string);
-		this.tomSelect.on('change', (value: String) => this.validateInput(value));
 	}
 
 	protected getSettings(tomInput: HTMLSelectElement) : RecursivePartial<TomSettings> {
@@ -265,12 +260,19 @@ export class DjangoSelectize extends IncompleteSelect {
 	}
 
 	public initialize() {
+		const tomInput = this.tomSelect.input as HTMLSelectElement;
+		this.observer.observe(tomInput, {attributes: true});
+		this.initialValue = this.currentValue;
+		this.transferStyles(this.nativeStyles);
+		tomInput.classList.add('dj-concealed');
+		this.validateInput(this.initialValue as string);
 		const sheet = this.shadowRoot.styleSheets.item(0)!;
 		for (let index = 0; index < this.extraStyleSheet.cssRules.length; index++) {
 			const cssRule = this.extraStyleSheet.cssRules.item(index) as CSSStyleRule;
 			sheet.insertRule(cssRule.cssText);
 		}
 		this.setupFilters(this.tomSelect.input as HTMLSelectElement);
+		this.tomSelect.on('change', (value: String) => this.validateInput(value));
 	}
 
 	private attributesChanged = (mutationsList: Array<MutationRecord>) => {
@@ -293,7 +295,7 @@ export class DjangoSelectize extends IncompleteSelect {
 const DS = Symbol('DjangoSelectize');
 
 export class DjangoSelectizeElement extends HTMLSelectElement {
-	private [DS]!: DjangoSelectize;  // hides internal implementation
+	private [DS]: DjangoSelectize;  // hides internal implementation
 
 	constructor() {
 		super();

@@ -1,4 +1,4 @@
-import Sortable, { MultiDrag, SortableEvent } from 'sortablejs';
+import Sortable, {MultiDrag, SortableEvent} from 'sortablejs';
 import {StyleHelpers} from './helpers';
 import styles from './SortableSelect.scss';
 
@@ -178,7 +178,7 @@ export class SortableSelectElement extends HTMLElement {
 export class SortableOptGroupElement extends HTMLOptGroupElement {
 	private lastSelected: HTMLOptionElement | null = null;
 
-	public constructor() {
+	constructor() {
 		super();
 	}
 }

@@ -41,12 +41,6 @@ class PhoneNumberField {
 		this.internationalOpener = this.textBox.querySelector('.international-picker')!;
 		this.internationalSelector = this.textBox.nextElementSibling as HTMLElement;
 		this.countryLookupField = this.internationalSelector.querySelector('input[type="search"]')!;
-		this.installEventHandlers();
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-			this.transferStyles();
-		}
-		this.transferClasses();
-		this.initializeValue(element.defaultValue);
 	}
 
 	private initializeValue(value: string) {
@@ -392,6 +386,15 @@ class PhoneNumberField {
 		this.inputElement.hidden = true;  // setting type="hidden" prevents dispatching events
 	}
 
+	public initialize() {
+		this.installEventHandlers();
+		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+			this.transferStyles();
+		}
+		this.transferClasses();
+		this.initializeValue(this.inputElement.defaultValue);
+	}
+
 	public checkValidity() : boolean {
 		if (this.asYouType.isValid()) {
 			if (this.mobileOnly && this.asYouType.getNumber()?.getType() !== 'MOBILE') {
@@ -410,13 +413,18 @@ class PhoneNumberField {
 const PN = Symbol('DjangoPhoneNumberElement');
 
 export class PhoneNumberElement extends HTMLInputElement {
-	private [PN]!: PhoneNumberField;  // hides internal implementation
+	private [PN]: PhoneNumberField;  // hides internal implementation
 
-	connectedCallback() {
+	constructor() {
+		super();
 		this[PN] = new PhoneNumberField(this);
 	}
 
-	public checkValidity() {
+	connectedCallback() {
+		this[PN].initialize();
+	}
+
+	checkValidity() {
 		if (!super.checkValidity())
 			return false;
 		return this[PN].checkValidity();

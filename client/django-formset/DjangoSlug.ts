@@ -2,7 +2,7 @@ import slug from 'slug';
 
 
 export class DjangoSlugElement extends HTMLInputElement {
-	private connectedCallback() {
+	connectedCallback() {
 		const populateFrom = this.getAttribute('populate-from');
 		if (!populateFrom)
 			throw new Error(`Element ${this} requires an attribute populate-from="...".`);
