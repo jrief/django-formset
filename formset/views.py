@@ -36,7 +36,7 @@ class IncompleteSelectResponseMixin:
         field_path = request.GET['field']
         try:
             field = self.get_field(field_path)
-        except KeyError:
+        except (KeyError, ValueError):
             return HttpResponseBadRequest(f"No such field: {field_path}")
         assert isinstance(field.widget, (Selectize, DualSelector))
         widget = field.widget
