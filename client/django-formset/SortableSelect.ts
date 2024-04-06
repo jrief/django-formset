@@ -9,10 +9,8 @@ export class SortableSelectElement extends HTMLElement {
 	private readonly baseSelector = 'django-sortable-select';
 	private lastSelected: HTMLOptionElement | null = null;
 
-	public constructor() {
+	constructor() {
 		super();
-		this.addEventListener('click', event => this.optionSelected(event));
-		window.addEventListener('click', event => this.elementFocus(event));
 	}
 
 	public initialize(selectElement: HTMLSelectElement) {
@@ -35,6 +33,8 @@ export class SortableSelectElement extends HTMLElement {
 				group: optgroup.label,
 			});
 		});
+		this.addEventListener('click', event => this.optionSelected(event));
+		window.addEventListener('click', event => this.elementFocus(event));
 	}
 
 	private onEnd(event: SortableEvent) {
