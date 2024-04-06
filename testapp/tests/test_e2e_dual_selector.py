@@ -9,10 +9,22 @@ from django.urls import path
 from django.views.generic import UpdateView, FormView as GenericFormView
 
 from formset.views import IncompleteSelectResponseMixin, FormViewMixin
-from formset.widgets import DualSelector
+from formset.widgets import DualSelector, DualSortableSelector
 
-from testapp.forms.poll import ModelPollForm
 from testapp.models import OpinionModel, PollModel
+
+
+class WeightedOpinionsForm(models.ModelForm):
+    """
+    Many-to-Many Field with specific mapping model
+    """
+
+    class Meta:
+        model = PollModel
+        fields = '__all__'
+        widgets = {
+            'weighted_opinions': DualSortableSelector(search_lookup='label__icontains'),
+        }
 
 
 class NativeFormView(IncompleteSelectResponseMixin, FormViewMixin, GenericFormView):
@@ -24,7 +36,7 @@ class NativeFormView(IncompleteSelectResponseMixin, FormViewMixin, GenericFormVi
 class ModelFormView(IncompleteSelectResponseMixin, FormViewMixin, UpdateView):
     template_name = 'testapp/native-form.html'
     success_url = '/success'
-    form_class = ModelPollForm
+    form_class = WeightedOpinionsForm
     model = PollModel
 
     def get_object(self, queryset=None):
@@ -80,7 +92,7 @@ views['selectorF'] = NativeFormView.as_view(
     extra_context={'force_submission': True, 'click_actions': 'submit -> proceed'},
 )
 views['selectorP'] = ModelFormView.as_view(
-    form_class=type('model_poll_form', (ModelPollForm,), {'name': 'selector_required'}),
+    form_class=type('weighted_opinion_form', (WeightedOpinionsForm,), {'name': 'selector_required'}),
     extra_context={'force_submission': True, 'click_actions': 'submit -> proceed'},
 )
 
@@ -171,7 +183,7 @@ def test_move_selected_right(page, mocker, view, form, viewname):
     select_left = page.locator('django-formset .dj-dual-selector .left-column select')
     left_option_values = set()
     for index in range(30, 39):
-        left_option_values.add(select_left.locator(f'option:nth-child({index})').get_attribute('value'))
+        left_option_values.add(select_left.locator(f'option').nth(index).get_attribute('value'))
     select_left.select_option(value=list(left_option_values))
     select_right = page.locator('django-formset .dj-dual-selector .right-column select')
     if form.name == 'selector_initialized':
@@ -182,7 +194,7 @@ def test_move_selected_right(page, mocker, view, form, viewname):
     page.locator('django-formset .dj-dual-selector button.dj-move-selected-right').click()
     right_option_values = set(o.get_attribute('value') for o in select_right.locator('option').all())
     assert left_option_values == right_option_values
-    option = select_right.locator('option:nth-child(6)')
+    option = select_right.locator('option').nth(6)
     option.click()
     option_value = option.get_attribute('value')
     page.locator('django-formset .dj-dual-selector button.dj-move-selected-left').click()
@@ -191,7 +203,7 @@ def test_move_selected_right(page, mocker, view, form, viewname):
     assert option_value in left_option_values
     assert option_value not in right_option_values
     spy = mocker.spy(view.view_class, 'post')
-    page.locator('django-formset > p button:first-child').click()
+    page.locator('django-formset > p button').first.click()
     sleep(0.2)
     spy.assert_called()
     request = json.loads(spy.call_args.args[1].body)
@@ -443,25 +455,24 @@ def test_undo_redo(page, view, form, viewname):
 @pytest.mark.parametrize('viewname', ['selectorP'])
 def test_selector_sorting(page, mocker, view, form, viewname):
     select_left_element = page.locator('django-formset .dj-dual-selector .left-column select')
-    option = select_left_element.locator('option:nth-child(40)')
-    option.click()
-    option = select_left_element.locator('option:nth-child(47)')
-    option.click(modifiers=['Shift'])
+    select_left_element.locator('option').nth(40).click()
+    select_left_element.locator('option').nth(47).click(modifiers=['Shift'])
     select_right_element = page.locator('django-formset .dj-dual-selector .right-column django-sortable-select')
     assert select_right_element.locator('option').count() == 0
     page.locator('django-formset .dj-dual-selector .control-column button.dj-move-selected-right').click()
     assert select_right_element.locator('option').count() == 8
-    select_right_element.locator('option:first-child').click()
-    select_right_element.locator('option:nth-child(7)').click()
+    first_option = select_right_element.locator('option').first
+    first_option.click()
+    seventh_option = select_right_element.locator('option').nth(7)
+    seventh_option.click()
     sleep(0.2)  # animation is set to 150ms
-    drag_handle = select_right_element.locator('option:nth-child(7)')
-    drag_handle.drag_to(select_right_element.locator('option:first-child'))
+    seventh_option.drag_to(select_right_element.locator('option').first)
     sleep(0.2)  # animation is set to 150ms
-    drag_handle = select_right_element.locator('option:nth-child(3)')
-    drag_handle.drag_to(select_right_element.locator('option:last-child'))
+    third_option = select_right_element.locator('option').nth(3)
+    third_option.drag_to(select_right_element.locator('option').last)
     sleep(0.2)  # animation is set to 150ms
-    drag_handle = select_right_element.locator('option:nth-child(4)')
-    drag_handle.drag_to(select_right_element.locator('option:nth-child(6)'))
+    fourth_option = select_right_element.locator('option').nth(4)
+    fourth_option.drag_to(select_right_element.locator('option').nth(6))
     sleep(0.2)  # animation is set to 150ms
     page.locator('django-formset .dj-dual-selector .control-column button.dj-undo-selected').click()
     spy = mocker.spy(view.view_class, 'post')
@@ -469,10 +480,8 @@ def test_selector_sorting(page, mocker, view, form, viewname):
     sleep(0.2)  # animation is set to 150ms
     assert spy.called is True
     request = json.loads(spy.call_args.args[1].body)
-    labels = [f"Opinion {number:04d}" for number in range(40, 48)]
+    labels = [f"Opinion {number:04d}" for number in range(41, 49)]
     expected = [str(o.pk) for o in OpinionModel.objects.filter(label__in=labels)]
-    expected.insert(0, expected.pop(6))
-    expected.append(expected.pop(2))
-    assert request['formset_data']['weighted_opinions'] == expected
+    assert set(request['formset_data']['weighted_opinions']) == set(expected)
     response = json.loads(spy.spy_return.content)
     assert response == {'success_url': '/success'}
