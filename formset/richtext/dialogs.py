@@ -16,10 +16,10 @@ class RichtextDialogForm(DialogForm):
     induce_close = 'dismiss:active || revert:active || apply:active'
     template_name = 'formset/richtext/form_dialog.html'
 
-    dismiss = Activator(
-        label=_("Close"),
+    cancel = Activator(
+        label=_("Cancel"),
         widget=Button(
-            action='dismiss',
+            action='cancel',
         ),
     )
     revert = Activator(
