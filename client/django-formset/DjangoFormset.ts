@@ -974,7 +974,7 @@ class PerpetualFormDialog extends FormDialog {
 					this.element.close(action);
 				}
 				break;
-			case 'close':
+			case 'cancel':
 				this.element.close(action);
 				break;
 			case 'reset':

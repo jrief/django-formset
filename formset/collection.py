@@ -501,6 +501,11 @@ class FormCollection(BaseFormCollection, metaclass=FormCollectionMeta):
     `django.forms.forms.BaseForm` are managed by this class.
     """
     def get_field(self, field_path):
-        path = field_path.split('.', 1)
-        key, path = path
+        if self.has_many:
+            path = field_path.split('.', 2)
+            index, key, path = path
+            int(index)  # raises ValueError if index is not an integer
+        else:
+            path = field_path.split('.', 1)
+            key, path = path
         return self.declared_holders[key].get_field(path)

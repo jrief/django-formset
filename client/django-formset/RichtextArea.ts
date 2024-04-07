@@ -850,7 +850,7 @@ class RichtextArea {
 	private readonly useJson: boolean = false;
 	private readonly observer: MutationObserver;
 	public editor!: Editor;
-	private initialValue!: string | object;
+	private initialValue!: JSONContent | string;
 	private characterCountTemplate?: Function;
 	private charaterCountDiv: HTMLElement | null = null;
 	private readonly baseSelector = '.dj-richtext-wrapper';
@@ -1127,7 +1127,7 @@ class RichtextArea {
 		// TODO: remove event handlers
 	}
 
-	public getValue() : string|JSONContent {
+	public getValue() : JSONContent | string {
 		if (this.editor.isEmpty)
 			return '';  // otherwise empty field is not detected by calling function
 		return this.useJson ? this.editor.getJSON() : this.editor.getHTML();

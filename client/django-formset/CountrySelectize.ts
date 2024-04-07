@@ -6,8 +6,8 @@ import styles from './CountrySelectize.scss';
 
 
 class CountrySelectize extends DjangoSelectize {
-	constructor(element: HTMLSelectElement) {
-		super(element);
+	initialize() {
+		super.initialize();
 		const declaredStyles = document.createElement('style');
 		declaredStyles.innerText = styles;
 		this.shadowRoot.insertBefore(declaredStyles, this.shadowRoot.firstChild);
@@ -15,9 +15,9 @@ class CountrySelectize extends DjangoSelectize {
 			throw new Error("Could not create <style> element");
 	}
 
-	protected getSettings() : RecursivePartial<TomSettings> {
-		const settings = super.getSettings();
-		const templ = this.tomInput.parentElement?.querySelector('template.select-country-item');
+	protected getSettings(tomInput: HTMLSelectElement) : RecursivePartial<TomSettings> {
+		const settings = super.getSettings(tomInput);
+		const templ = tomInput.parentElement?.querySelector('template.select-country-item');
 		if (templ) {
 			const renderItem = (data: TomOption) => {
 				return template(templ.innerHTML)({...data, code: data.id.toLowerCase()});
@@ -32,11 +32,14 @@ class CountrySelectize extends DjangoSelectize {
 const CS = Symbol('CountrySelectize');
 
 export class CountrySelectizeElement extends HTMLSelectElement {
-	private [CS]!: CountrySelectize;  // hides internal implementation
+	private [CS]: CountrySelectize;  // hides internal implementation
 
-	private connectedCallback() {
-		if ('tomselect' in this)
-			return;
+	constructor() {
+		super();
 		this[CS] = new CountrySelectize(this);
+	}
+
+	connectedCallback() {
+		this[CS].initialize();
 	}
 }

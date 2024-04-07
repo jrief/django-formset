@@ -60,7 +60,7 @@ class FormRenderer(DjangoTemplates):
         if hide_checkbox_label and widget_type == 'checkbox':
             # `<label>Label:</label>` is rendered by `{{ field }}`, so remove it to
             # prevent double rendering.
-
+            context.pop('label', None)
             context['attrs'].pop('for', None)
             context['use_tag'] = bool(self.control_css_classes)
         if widget_type == 'button' and 'label' in context:
