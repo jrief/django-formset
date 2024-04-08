@@ -13,13 +13,14 @@ class RichtextDialogForm(DialogForm):
     extension = None
     plugin_type = None
     is_transient = True
-    induce_close = 'dismiss:active || revert:active || apply:active'
+    induce_close = 'cancel:active || revert:active || apply:active'
     template_name = 'formset/richtext/form_dialog.html'
 
     cancel = Activator(
         label=_("Cancel"),
         widget=Button(
             action='cancel',
+            button_variant=ButtonVariant.SECONDARY,
         ),
     )
     revert = Activator(

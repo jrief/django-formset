@@ -22,13 +22,13 @@ class CustomerForm(forms.Form):
 class PopupForm(DialogForm):
     title = "Edit Name"
     induce_open = 'customer.click_inside:active || click_outside:active || customer.name == "OpenSesame"'
-    induce_close = '.dismiss:active || .submit:active'
+    induce_close = '.close:active || .submit:active'
 
     name = fields.CharField()
-    dismiss = Activator(
+    close = Activator(
         label="Close",
         widget=Button(
-            action='close',
+            action='cancel',
         ),
     )
     submit = Activator(
@@ -117,5 +117,5 @@ def test_close_dialog(page, viewname):
     form_collection.nth(2).locator('button[name="click_outside"]').click()
     expect(dialog).to_be_visible()
     dialog.locator('input[name="name"]').blur()
-    dialog.locator('button[name="dismiss"]').click()
+    dialog.locator('button[name="close"]').click()
     expect(dialog).not_to_be_visible()

@@ -202,7 +202,7 @@ def test_tiptap_invalid_simple_link(page, viewname, menubar, contenteditable):
     expect(placeholder).to_have_text("Enter a valid URL.")
     dialog.locator('button[name="apply"]').click()
     expect(dialog).to_be_visible()
-    dialog.locator('button[name="dismiss"]').click()
+    dialog.locator('button[name="cancel"]').click()
     expect(dialog).not_to_be_visible()
 
 
