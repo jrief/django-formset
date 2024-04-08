@@ -1,5 +1,13 @@
 ## Changes
 
+1.3.10
+  * Fix #125: IncompleteSelect can't handle collections with siblings.
+  * Fix #128: Boolean field shows label twice.
+  * In webcomponents, separate constructor from connectedCallback.
+  * Fix problem in `Selectize` widget when using `filter_by` with lazy loading.
+  * postcss-nested-include@1.3 requires relative paths.
+  * Upgrade to `flyctl` version 0.2.28.
+
 1.3.9
   * Fix widget `Selectize` losing borders when used in a collection with siblings after a form
     reset.
