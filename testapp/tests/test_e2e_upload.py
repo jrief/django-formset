@@ -131,6 +131,7 @@ def test_upload_progressbar(page, viewname):
     file_uploader = field_group.locator('#id_avatar')
     expect(file_uploader).not_to_be_visible()
     file_uploader.set_input_files([test_image_path])
+    sleep(0.2)
     progress_bar = field_group.locator('progress')
     expect(progress_bar).not_to_be_visible()
     progress_value = float(progress_bar.get_attribute('value'))
