@@ -502,10 +502,8 @@ class FormCollection(BaseFormCollection, metaclass=FormCollectionMeta):
     """
     def get_field(self, field_path):
         if self.has_many:
-            path = field_path.split('.', 2)
-            index, key, path = path
+            index, key, path = field_path.split('.', 2)
             int(index)  # raises ValueError if index is not an integer
         else:
-            path = field_path.split('.', 1)
-            key, path = path
+            key, path = field_path.split('.', 1)
         return self.declared_holders[key].get_field(path)
