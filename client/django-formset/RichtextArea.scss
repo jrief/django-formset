@@ -166,7 +166,7 @@
 			margin-right: 0.125em;
 			&::after {
 				content: "[*]";
-				font-weight: bold;
+				font-weight: 500;
 				color: $richtext-footnote-color;
 			}
 		}
