@@ -72,7 +72,13 @@ window.addEventListener('DOMContentLoaded', (event) => {
 			promises.push(new Promise((resolve, reject) => {
 				const resolveWhenConnected = () => {
 					// RichtextArea connects asynchronously, so we need to wait until it is connected to the DOM
-					textareaElement.addEventListener('connected', () => resolve(), {once: true});
+					if ((textareaElement as any).isInitialized) {
+						// <textarea is="django-richtext"> is already connected and initialized
+						resolve();
+					} else {
+						// <textarea is="django-richtext"> is waiting to be connected and initialized
+						textareaElement.addEventListener('connected', () => resolve(), {once: true});
+					}
 				};
 
 				import('./django-formset/RichtextArea').then(({RichTextAreaElement}) => {

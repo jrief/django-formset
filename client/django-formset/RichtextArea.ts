@@ -855,6 +855,7 @@ class RichtextArea {
 	private charaterCountDiv: HTMLElement | null = null;
 	private readonly baseSelector = '.dj-richtext-wrapper';
 	public readonly initializedPromise: Promise<void>;
+	public isInitialized = false;
 
 	constructor(wrapperElement: HTMLElement, textAreaElement: HTMLTextAreaElement) {
 		this.wrapperElement = wrapperElement;
@@ -882,6 +883,7 @@ class RichtextArea {
 				this.contentUpdate();
 				this.installEventHandlers();
 				this.observer.observe(this.textAreaElement, {attributes: true});
+				this.isInitialized = true;
 				resolve();
 			});
 		});
@@ -1142,21 +1144,19 @@ class RichtextArea {
 const RA = Symbol('RichtextArea');
 
 export class RichTextAreaElement extends HTMLTextAreaElement {
-	private [RA]!: RichtextArea;  // hides internal implementation
+	private [RA]: RichtextArea;  // hides internal implementation
 
 	constructor() {
 		super();
 		const wrapperElement = this.closest('.dj-richtext-wrapper');
-		if (wrapperElement instanceof HTMLElement) {
-			this[RA] = new RichtextArea(wrapperElement, this);
-		}
+		if (!(wrapperElement instanceof HTMLElement))
+			throw new Error(`${this} must be a child of '<ANY class="dj-richtext-wrapper">' element.`);
+		this[RA] = new RichtextArea(wrapperElement, this);
 	}
 
 	connectedCallback() {
 		this[RA].initializedPromise.then(() => {
-			if (this.isConnected) {
-				this.dispatchEvent(new Event('connected', {bubbles: true}));
-			}
+			this.dispatchEvent(new Event('connected', {bubbles: true}));
 		});
 	}
 
@@ -1168,7 +1168,11 @@ export class RichTextAreaElement extends HTMLTextAreaElement {
 		return this[RA].getValue();
 	}
 
-	updateOperability(action: string) : void {
+	public get isInitialized() : boolean {
+		return this[RA].isInitialized;
+	}
+
+	public updateOperability(action: string) : void {
 		this[RA].updateOperability(action);
 	}
 }
