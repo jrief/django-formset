@@ -290,6 +290,7 @@ available control elements. Such a configured editor then will look like:
 
 	from django.forms.models import ModelForm
 	from formset.richtext import controls
+	from formset.richtext.dialogs import SimpleLinkDialogForm
 	from testapp.models import BlogModel
 
 	class EditorForm(ModelForm):
@@ -310,7 +311,7 @@ available control elements. Such a configured editor then will look like:
 	                controls.TextIndent('outdent'),
 	                controls.TextMargin('increase'),
 	                controls.TextMargin('decrease'),
-	                controls.Link(),
+	                controls.DialogControl(SimpleLinkDialogForm()),
 	                controls.TextAlign(['left', 'center', 'right']),
 	                controls.HorizontalRule(),
 	                controls.Subscript(),
