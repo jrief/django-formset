@@ -16,7 +16,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 		}
 	}
 
-	function domLookup(fragmentRoot: Document | DocumentFragment) {
+	function domLookup(fragmentRoot: Document|DocumentFragment) {
 		// remember to always reflect imports below here also in django-formset.monolith.ts
 		if (fragmentRoot.querySelector('select[is="django-selectize"]')) {
 			promises.push(new Promise((resolve, reject) => {

@@ -13,8 +13,8 @@ import spinnerIcon from './icons/spinner.svg';
 import okayIcon from './icons/okay.svg';
 import bummerIcon from './icons/bummer.svg';
 
-type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-type FieldValue = string | Array<string | Object>;
+type FieldElement = HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement;
+type FieldValue = string|Array<string|Object>;
 
 const NON_FIELD_ERRORS = '__all__';
 const COLLECTION_ERRORS = '_collection_errors_';
@@ -50,7 +50,7 @@ class FieldGroup {
 	private readonly fieldElements: Array<FieldElement>;
 	private readonly initialDisabled: Array<boolean>;
 	private readonly initialRequired: Array<boolean>;
-	public readonly errorPlaceholder: Element | null;
+	public readonly errorPlaceholder: Element|null;
 	private readonly errorMessages: FieldErrorMessages;
 	private readonly fileUploader?: FileUploadWidget;
 	private readonly updateVisibility: Function;
@@ -213,7 +213,7 @@ class FieldGroup {
 		return name;
 	}
 
-	private evalVisibility(attribute: string, visible: boolean): Function | null {
+	private evalVisibility(attribute: string, visible: boolean): Function|null {
 		function isTruthy(expression: any) : boolean {
 			// since empty arrays evaluate to true, implement separately to examine for existance
 			// when using the file upload widget. Check https://262.ecma-international.org/5.1/#sec-11.9.3
@@ -493,10 +493,10 @@ class DjangoButton {
 		element.addEventListener('click', this.clicked);
 	}
 
-	private evalVisibility(attribute: string, visible: boolean): Function | null {
+	private evalVisibility(attribute: string, visible: boolean): Function {
 		const attrValue = this.element.getAttribute(attribute);
 		if (attrValue === null)
-			return null;
+			return () => {};
 		try {
 			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})}`);
 			return () => {
@@ -911,10 +911,10 @@ class DjangoFieldset {
 		this.updateDisabled = this.evalDisable();
 	}
 
-	private evalVisibility(attribute: string, visible: boolean): Function | null {
+	private evalVisibility(attribute: string, visible: boolean): Function {
 		const attrValue = this.element.getAttribute(attribute);
 		if (attrValue === null)
-			return null;
+			return () => {};
 		try {
 			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})}`);
 			return () => {
@@ -2003,7 +2003,7 @@ export class DjangoFormsetElement extends HTMLElement {
 		this[FS].connectedCallback();
 	}
 
-	public async submit(data: Object | undefined): Promise<Response | undefined> {
+	public async submit(data: Object|undefined): Promise<Response|undefined> {
 		return this[FS].submit(data);
 	}
 
