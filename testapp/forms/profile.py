@@ -18,7 +18,7 @@ class UserNameForm(forms.Form):
 class ProfileForm(DialogForm):
     title = "Edit Profile"
     induce_open = 'customer.username == "admin" || extra_profile:active || customer.edit_profile:active'
-    induce_close = '.dismiss:active || .submit:active'
+    induce_close = '.cancel:active || .submit:active'
 
     full_name = fields.CharField(
         label="First Name",
@@ -32,10 +32,10 @@ class ProfileForm(DialogForm):
         #required=False,
         widget=UploadedFileInput,
     )
-    dismiss = Activator(
+    cancel = Activator(
         label="Close",
         widget=Button(
-            action='close',
+            action='cancel',
         ),
     )
     submit = Activator(
