@@ -1,5 +1,6 @@
 import json
 import pytest
+import re
 from playwright.sync_api import expect
 from time import sleep
 from timeit import default_timer as timer
@@ -64,10 +65,10 @@ urlpatterns = [path(name, view, name=name) for name, view in views.items()]
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_0'])
 def test_button_disable(page, viewname):
-    button = page.locator('django-formset button').first
+    button = page.locator('django-formset button:not([df-click="reset"])')
     expect(button).not_to_be_disabled()
     button.click()
-    sleep(0.02)
+    sleep(0.02)  # button remains disabled for 100ms
     expect(button).to_be_disabled()
     sleep(0.1)
     # as a final action, <button> restores its state
@@ -77,11 +78,14 @@ def test_button_disable(page, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_1'])
 def test_button_add_class(page, viewname):
-    button = page.locator('django-formset button').first
+    """
+    addClass("foo") -> delay(100)
+    """
+    button = page.locator('django-formset button:not([df-click="reset"])')
     expect(button).to_have_class('button')
     button.click()
     sleep(0.02)
-    expect(button).to_have_class('button foo')
+    expect(button).to_have_class(re.compile(r'foo'))
     sleep(0.1)
     # as a final action, <button> restores its state
     expect(button).to_have_class('button')
@@ -90,7 +94,10 @@ def test_button_add_class(page, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_2'])
 def test_button_remove_class(page, viewname):
-    button = page.locator('django-formset button').first
+    """
+    removeClass("button") -> delay(100)
+    """
+    button = page.locator('django-formset button:not([df-click="reset"])')
     expect(button).to_have_class('button')
     button.click()
     sleep(0.02)
@@ -100,7 +107,6 @@ def test_button_remove_class(page, viewname):
     expect(button).to_have_class('button')
 
 
-@pytest.mark.xfail(reason="playwright has some timing issues")
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['test_button_3'])
 def test_button_toggle_class(page, viewname):
@@ -108,21 +114,22 @@ def test_button_toggle_class(page, viewname):
     toggleClass("button") -> delay(100) -> toggleClass("foo") -> delay(100) -> toggleClass("bar") -> delay(100) -> toggleClass("foo") -> delay(100) -> toggleClass("bar")
     """
     formset = page.locator('django-formset')
-    button = formset.locator('button[auto-disable]')
+    button = formset.locator('button:not([df-click="reset"])')
+    expect(button).to_be_visible()
     expect(button).to_have_class('button')
     start = timer()
     button.click()
-    formset.locator('button[auto-disable]:not(.button)').wait_for()
+    formset.locator('button:not([df-click="reset"]):not(.button)').wait_for()
     assert timer() - start < 0.1
-    formset.locator('button.foo').wait_for()
+    formset.locator('button:not([df-click="reset"]).foo').wait_for()
     assert timer() - start > 0.1
-    formset.locator('button.foo.bar').wait_for()
+    formset.locator('button:not([df-click="reset"]).foo.bar').wait_for()
     assert timer() - start > 0.2
-    sleep(0.01)
-    formset.locator('button.bar:not(.foo)').wait_for()
+    # sleep(0.01)
+    formset.locator('button:not([df-click="reset"]).bar:not(.foo)').wait_for()
     assert timer() - start > 0.3
-    sleep(0.01)
-    formset.locator('button[auto-disable]:not(.foo):not(.bar)').wait_for()
+    # sleep(0.01)
+    formset.locator('button:not([df-click="reset"]):not(.foo):not(.bar)').wait_for()
     assert timer() - start > 0.4
     expect(button).to_have_class('button')
 

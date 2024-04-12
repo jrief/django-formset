@@ -48,10 +48,10 @@ def test_submit_customer(page, mocker, viewname):
 def test_submit_no_customer(page, mocker, viewname):
     fieldset = page.locator('django-formset > django-form-collection fieldset')
     expect(fieldset).to_have_attribute('df-hide', 'register.no_customer')
-    page.click('#id_register\\.no_customer')
+    page.locator('#id_register\\.no_customer').click()
     expect(fieldset).to_be_hidden()
     spy = mocker.spy(FormCollectionView, 'post')
-    page.click('django-formset button:first-of-type')
+    page.locator('django-formset button').first.click()
     sleep(0.25)
     spy.assert_called()
     response = json.loads(spy.call_args.args[1].body)

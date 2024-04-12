@@ -493,10 +493,10 @@ class DjangoButton {
 		element.addEventListener('click', this.clicked);
 	}
 
-	private evalVisibility(attribute: string, visible: boolean): Function {
+	private evalVisibility(attribute: string, visible: boolean): Function|null {
 		const attrValue = this.element.getAttribute(attribute);
 		if (attrValue === null)
-			return () => {};
+			return null;
 		try {
 			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})}`);
 			return () => {
@@ -911,10 +911,10 @@ class DjangoFieldset {
 		this.updateDisabled = this.evalDisable();
 	}
 
-	private evalVisibility(attribute: string, visible: boolean): Function {
+	private evalVisibility(attribute: string, visible: boolean): Function|null {
 		const attrValue = this.element.getAttribute(attribute);
 		if (attrValue === null)
-			return () => {};
+			return null;
 		try {
 			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})}`);
 			return () => {
