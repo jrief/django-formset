@@ -86,7 +86,7 @@ def test_daterange_initial(page, mocker, viewname):
     assert request['formset_data']['range'] == ['2023-08-08', '2023-10-10']
 
 
-@pytest.mark.xfail(reason="playwright sometimes fails on GitHub actions")
+#@pytest.mark.xfail(reason="Playwright sometimes fails on GitHub actions")
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['booking'])
 def test_daterange_set(page, mocker, viewname):

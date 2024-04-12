@@ -76,7 +76,7 @@ def test_datetimepicker_set(page, mocker, viewname, locale):
     minute_string = f'{now.isoformat()[:13]}:45'
     assert minute_li.get_attribute('data-date') == minute_string
     minute_li.click()
-    new_date = schedule_field.evaluate('elem => elem.valueAsDate')
+    new_date = schedule_field.evaluate('elem => elem.valueAsDate').replace(tzinfo=None)
     assert new_date == now.replace(minute=45, second=0, microsecond=0)
     if locale == 'en-US':
         expect(textbox).to_have_text(datetime.strftime(now, '%m/%d/%Y %H:45').replace(' 00:45', ' 24:45'))
