@@ -213,7 +213,6 @@ def test_many_counties(page, form, viewname):
     assert selector.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)') == expected
 
 
-@pytest.mark.xfail(reason="Playwright sometimes fails on GitHub actions")
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['sortable_counties'])
 def test_sortable_counties(page, form, viewname):
@@ -234,6 +233,7 @@ def test_sortable_counties(page, form, viewname):
     expect(select_right.locator('optgroup option').last).to_have_text("Baca (CO)")
     before = [select_right.locator('optgroup option').nth(i).get_attribute('value') for i in range(5)]
     select_right.locator('optgroup').first.locator('option').last.drag_to(select_right.locator('optgroup').first.locator('option').first)
+    sleep(0.4)  # Sortable.js has a delay of 300ms
     select_right.locator('optgroup').first.locator('option').nth(1).drag_to(select_right.locator('optgroup').locator('option').last)
     sleep(0.4)  # Sortable.js has a delay of 300ms
     after = [select_right.locator('optgroup option').nth(i).get_attribute('value') for i in range(5)]
