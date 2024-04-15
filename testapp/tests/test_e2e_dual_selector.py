@@ -329,6 +329,7 @@ def test_reset_selector(page, view, form, viewname):
     values = selector_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
     assert values != initial_values
     page.locator('django-formset').evaluate('elem => elem.reset()')
+    sleep(0.2)
     values = selector_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
     assert values == initial_values
 
