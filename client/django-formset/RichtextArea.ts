@@ -29,6 +29,7 @@ import {TextColor} from './tiptap-extensions/color';
 import {StyleHelpers} from './helpers';
 import template from 'lodash.template';
 import {FormDialog} from './FormDialog';
+import {parse} from './function-code';
 import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
 import getDataValue from 'lodash.get';
@@ -691,7 +692,7 @@ class RichtextFormDialog extends FormDialog {
 		try {
 			const plugin = scriptElement.getAttribute('tiptap-plugin');
 			const response = await fetch(scriptElement.src);
-			const extensionScript = (await response.text()).replaceAll('\n', '').replaceAll('\t', ' ');
+			const extensionScript = parse(await response.text(), {startRule: 'FunctionCode'});
 			const parsedScript = new Function('mergeAttributes', 'markPasteRule', `return ${extensionScript}`);
 			const executedScript = parsedScript(mergeAttributes, markPasteRule);
 			executedScript.addProseMirrorPlugins = this.addProseMirrorPlugins();

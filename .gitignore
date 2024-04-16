@@ -28,6 +28,7 @@ UserInterfaceState.xcuserstate
 
 coverage/
 client/django-formset/tag-attributes.ts
+client/django-formset/function-code.ts
 formset/static/formset/css/
 formset/static/formset/js/
 formset/locale/**/*.mo
