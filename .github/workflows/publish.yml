@@ -31,8 +31,10 @@ jobs:
         npm install --include=dev
         python -m pip install --upgrade pip
         python -m pip install build django --user
-    - name: Build Parser
-      run: npm run tag-attributes
+    - name: Build Parsers
+      run: |
+        npm run tag-attributes
+        npm run function-code
     - name: Build CSS files
       run: |
         npm run compilescss

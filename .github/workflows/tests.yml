@@ -48,9 +48,10 @@ jobs:
         python -m pip install "Django==${{ matrix.django-version }}"
         python -m pip install -r testapp/requirements.txt
         playwright install
-    - name: Build Parser
+    - name: Build Parsers
       run: |
         npm run tag-attributes
+        npm run function-code
     - name: Build Client
       run: |
         npm run ${{ matrix.build-client }}
