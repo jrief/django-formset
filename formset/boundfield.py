@@ -40,8 +40,16 @@ class BoundField(boundfield.BoundField):
         attrs = self.build_widget_attrs(attrs, widget)
         if self.auto_id and 'id' not in widget.attrs:
             attrs.setdefault('id', self.html_initial_id if only_initial else self.auto_id)
+        if isinstance(self.field, Activator) and self.name in ['submit', 'reset']:
+            # A form control (such as a button) with a name of "submit" or "reset" will mask the form's internal
+            # methods. This would cause a browser error. Please check the documentation for details:
+            # https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/submit
+            # https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/reset
+            widget_name = f'activate_{self.name}'
+        else:
+            widget_name = self.name
         return widget.render(
-            name=self.name,  # `self.html_name` contains the full path and hence doesn't work with form collections
+            name=widget_name,  # `self.html_name` contains the full path and hence doesn't work with form collections
             value=self.value(),
             attrs=attrs,
             renderer=self.form.renderer,
