@@ -8,11 +8,10 @@ from formset.widgets import Button, DualSortableSelector
 
 class Activator(HolderMixin, fields.Field):
     default_renderer = None
-    widget = Button(attrs={'df-click': 'activate'})
+    widget = Button(action='activate')
 
     def __init__(self, renderer=None, **kwargs):
         self.renderer = renderer or self.default_renderer
-        kwargs.setdefault('widget', Button(action=''))
         kwargs.update(
             required=False,
             validators=[],
@@ -53,7 +52,8 @@ class SortableManyToManyField(ManyToManyField):
         except StopIteration:
             return [
                 checks.Error(
-                    f"{self.remote_field.through} implementing the many-to-many relation must have a ForeignKey on '{self.related_model}'.",
+                    f"{self.remote_field.through} implementing the many-to-many relation must have a ForeignKey"
+                    " on '{self.related_model}'.",
                     obj=self,
                     id="fields.E342",
                 )

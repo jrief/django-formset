@@ -1,6 +1,8 @@
 from django.forms import forms
 
+from formset.renderers import ButtonVariant
 from formset.utils import FormMixin
+from formset.widgets import Button
 
 
 class DialogForm(FormMixin, forms.BaseForm, metaclass=forms.DeclarativeFieldsMetaclass):
@@ -21,3 +23,8 @@ class DialogForm(FormMixin, forms.BaseForm, metaclass=forms.DeclarativeFieldsMet
         context = super().get_context()
         context['form'].method = 'dialog'
         return context
+
+
+ApplyButton = Button(action='activate("apply")', button_variant=ButtonVariant.PRIMARY)
+CancelButton = Button(action='activate("cancel")', button_variant=ButtonVariant.SECONDARY)
+RevertButton = Button(action='activate("revert")', button_variant=ButtonVariant.DANGER)

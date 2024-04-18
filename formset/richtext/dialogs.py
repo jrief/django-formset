@@ -1,12 +1,11 @@
 from django.forms import fields, widgets
 from django.utils.translation import gettext_lazy as _
 
-from formset.dialog import DialogForm
+from formset.dialog import ApplyButton, CancelButton, DialogForm, RevertButton
 from formset.fields import Activator
-from formset.renderers import ButtonVariant
 from formset.richtext import controls
 from formset.richtext.widgets import RichTextarea
-from formset.widgets import Button, UploadedFileInput
+from formset.widgets import UploadedFileInput
 
 
 class RichtextDialogForm(DialogForm):
@@ -18,24 +17,15 @@ class RichtextDialogForm(DialogForm):
 
     cancel = Activator(
         label=_("Cancel"),
-        widget=Button(
-            action='cancel',
-            button_variant=ButtonVariant.SECONDARY,
-        ),
+        widget=CancelButton,
     )
     revert = Activator(
         label=_("Revert"),
-        widget=Button(
-            action='revert',
-            button_variant=ButtonVariant.DANGER,
-        ),
+        widget=RevertButton,
     )
     apply = Activator(
         label=_("Apply"),
-        widget=Button(
-            action='apply',
-            button_variant=ButtonVariant.PRIMARY,
-        ),
+        widget=ApplyButton,
     )
 
     def get_context(self):
