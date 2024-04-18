@@ -41,6 +41,7 @@ class FormRenderer(DefaultFormRenderer):
         if not isinstance(variant, ButtonVariant):
             variant = 'outline-secondary'
         context['widget']['attrs']['class'] = ClassList(f'btn btn-{variant}')
+        context['icon_class'] = ' me-2' if context['icon_left'] else ' ms-2'
         return context
 
     def _amend_dual_selector(self, context):

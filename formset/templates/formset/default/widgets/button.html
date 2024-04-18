@@ -1,1 +1,1 @@
-<button type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>{{ label }}</button>
+<button type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>{% if icon_element and icon_left %}<span class="dj-button-decorator{{ icon_class }}">{{ icon_element }}</span>{% endif %}{{ label }}{% if icon_element and not icon_left %}<span class="dj-button-decorator{{ icon_class }}">{{ icon_element }}</span>{% endif %}</button>

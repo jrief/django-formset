@@ -12,7 +12,9 @@ from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
 from django.forms.widgets import DateTimeBaseInput, FileInput, Select, SelectMultiple, TextInput, Widget
+from django.template.loader import get_template
 from django.utils.encoding import uri_to_iri
+from django.utils.functional import cached_property
 from django.utils.timezone import datetime, now
 from django.utils.translation import gettext_lazy as _
 
@@ -24,19 +26,24 @@ class Button(Widget):
     button_type = 'button'
     action = None
     button_variant = None
+    icon_path = None
+    icon_left = None
 
-    def __init__(self, attrs=None, action=None, button_variant=None, auto_disable=False):
+    def __init__(self, attrs=None, action=None, button_variant=None, auto_disable=False, icon_path=None, icon_left=False):
         if action is not None:
             self.action = action
         if button_variant:
             self.button_variant = button_variant
         self.auto_disable = auto_disable
+        if icon_path:
+            self.icon_path = icon_path
+        self.icon_left = icon_left
         super().__init__(attrs)
 
     def build_attrs(self, base_attrs, extra_attrs=None):
         attrs = super().build_attrs(base_attrs, extra_attrs)
         if self.action is not None:
-            attrs['df-click'] = f'activate("{self.action}")'
+            attrs['df-click'] = self.action
         if self.auto_disable:
             attrs['auto-disable'] = True
         return attrs
@@ -46,7 +53,16 @@ class Button(Widget):
         context['label'] = context['widget']['attrs'].pop('label', None)  # for buttons, the label is the value
         context['widget']['type'] = self.button_type
         context['widget']['variant'] = self.button_variant
+        context['icon_element'] = self.icon_element
+        context['icon_left'] = self.icon_left
         return context
+
+    @cached_property
+    def icon_element(self):
+        if self.icon_path:
+            template = get_template(self.icon_path)
+            return template.render()
+        return ''
 
 
 class SimpleModelChoiceIterator(ModelChoiceIterator):
