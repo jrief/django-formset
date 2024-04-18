@@ -3,14 +3,31 @@ import pytest
 import json
 from bs4 import BeautifulSoup
 from copy import copy
+from django.forms.fields import CharField
+from django.forms.forms import Form
 from django.test import RequestFactory
+
 from formset.collection import COLLECTION_ERRORS, FormCollection
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
 from formset.views import FormView, FormCollectionView
 
-from testapp.forms.address import AddressForm
 from testapp.forms.contact import SimpleContactCollection, PhoneNumberCollection
 from testapp.forms.person import PersonForm, sample_person_data
+
+
+class AddressForm(Form):
+    recipient = CharField(
+        label="Recipient",
+        max_length=100,
+    )
+    postal_code = CharField(
+        label="Postal Code",
+        max_length=8,
+    )
+    city = CharField(
+        label="City",
+        max_length=50,
+    )
 
 
 class ContactCollection(FormCollection):

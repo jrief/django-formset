@@ -1,7 +1,7 @@
 from django.forms import fields, forms
 
 from formset.collection import FormCollection
-from formset.dialog import DialogForm
+from formset.dialog import ApplyButton, CancelButton, DialogForm
 from formset.fields import Activator
 from formset.renderers import ButtonVariant
 from formset.widgets import Button, UploadedFileInput
@@ -18,7 +18,7 @@ class UserNameForm(forms.Form):
 class ProfileForm(DialogForm):
     title = "Edit Profile"
     induce_open = 'customer.username == "admin" || extra_profile:active || customer.edit_profile:active'
-    induce_close = '.cancel:active || .submit:active'
+    induce_close = '.cancel:active || .apply:active'
 
     full_name = fields.CharField(
         label="First Name",
@@ -34,16 +34,11 @@ class ProfileForm(DialogForm):
     )
     cancel = Activator(
         label="Close",
-        widget=Button(
-            action='cancel',
-        ),
+        widget=CancelButton,
     )
-    submit = Activator(
+    apply = Activator(
         label="Apply",
-        widget=Button(
-            action='apply',
-            button_variant=ButtonVariant.PRIMARY,
-        ),
+        widget=ApplyButton,
     )
 
 

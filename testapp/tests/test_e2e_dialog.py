@@ -7,7 +7,7 @@ from django.urls import path
 from django.forms import fields, forms
 
 from formset.collection import FormCollection
-from formset.dialog import DialogForm
+from formset.dialog import ApplyButton, CancelButton, DialogForm
 from formset.fields import Activator
 from formset.renderers import ButtonVariant
 from formset.views import FormCollectionView
@@ -27,16 +27,11 @@ class PopupForm(DialogForm):
     name = fields.CharField()
     close = Activator(
         label="Close",
-        widget=Button(
-            action='cancel',
-        ),
+        widget=CancelButton,
     )
     submit = Activator(
         label="Apply",
-        widget=Button(
-            action='apply',
-            button_variant=ButtonVariant.PRIMARY,
-        ),
+        widget=ApplyButton,
     )
 
 
@@ -93,7 +88,7 @@ def test_submit_dialog(page, mocker, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['dialog'])
-def test_open_dialog(page, viewname):
+def test_open_dialog_condition(page, viewname):
     # check that induce_open = '… || customer.name == "OpenSesame"' works
     form_collection = page.locator('django-formset > django-form-collection')
     dialog = form_collection.nth(1).locator('> dialog')
