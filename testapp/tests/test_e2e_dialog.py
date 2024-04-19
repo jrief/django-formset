@@ -22,14 +22,14 @@ class CustomerForm(forms.Form):
 class PopupForm(DialogForm):
     title = "Edit Name"
     induce_open = 'customer.click_inside:active || click_outside:active || customer.name == "OpenSesame"'
-    induce_close = '.close:active || .submit:active'
+    induce_close = '.cancel:active || .apply:active'
 
     name = fields.CharField()
-    close = Activator(
+    cancel = Activator(
         label="Close",
         widget=CancelButton,
     )
-    submit = Activator(
+    apply = Activator(
         label="Apply",
         widget=ApplyButton,
     )
@@ -64,7 +64,7 @@ def test_submit_dialog(page, mocker, viewname):
     expect(dialog).not_to_be_visible()
     form_collection.first.locator('button[name="click_inside"]').click()
     expect(dialog).to_be_visible()
-    dialog.locator('button[name="submit"]').click()
+    dialog.locator('button[name="apply"]').click()
     popup_name_input = dialog.locator('input[name="name"]')
     expect(popup_name_input.locator('+ [role="alert"]')).to_have_text("This field is required.")
     expect(dialog).to_be_visible()
@@ -72,7 +72,7 @@ def test_submit_dialog(page, mocker, viewname):
     popup_name_input.fill("Barbara")
     expect(popup_name_input.locator('+ [role="alert"]')).to_be_empty()
     popup_name_input.blur()
-    dialog.locator('button[name="submit"]').click()
+    dialog.locator('button[name="apply"]').click()
     expect(dialog).not_to_be_visible()
     customer_name_input = form_collection.first.locator('input[name="name"]')
     customer_name_input.fill("Liskov")
@@ -112,5 +112,5 @@ def test_close_dialog(page, viewname):
     form_collection.nth(2).locator('button[name="click_outside"]').click()
     expect(dialog).to_be_visible()
     dialog.locator('input[name="name"]').blur()
-    dialog.locator('button[name="close"]').click()
+    dialog.locator('button[name="cancel"]').click()
     expect(dialog).not_to_be_visible()
