@@ -2,7 +2,8 @@
 // Build file `client/components/django-formset/actions.ts` using `npm run pegjs`
 
 // ----- A. OperabilityExpression -----
-// The starting rule for `<ANY df-show="..."` …>`, `<ANY df-hide="..." …>` or `<ANY df-disable="..." …>`.
+// The starting rule for `<ANY df-show="..."` …>`, `<ANY df-hide="..." …>`, `<ANY df-disable="..." …>`
+// and the ternary operator in <button df-click="condition ? ... : ...">.
 
 OperabilityExpression
   = _ head:Factor _ tail:(_ Operator _ OperabilityExpression)* _ {
@@ -33,8 +34,8 @@ UnaryOperator
 
 Factor
   = "(" _ expr:OperabilityExpression _ ")" { return `(${expr})`; }
-  / getDataValue
   / scalar
+  / getDataValue
 
 getDataValue
   = path:PATH {
@@ -69,24 +70,33 @@ isButtonActive
 // The starting rule for <button `df-click="..."` …>.
 
 Actions
-  = successChain:chain _ '!~' _ rejectChain:chain _
-  { return { successChain: successChain, rejectChain: rejectChain } }
-  / successChain:chain
-  { return { successChain: successChain, rejectChain: [] } }
+  = successChain:ternary _ '!~' _ rejectChain:ternary _ {
+    return { successChain: successChain, rejectChain: rejectChain };
+  }
+  / successChain:ternary {
+    return { successChain: successChain, rejectChain: [] };
+  }
+
+ternary
+  = _ condition:OperabilityExpression _ "?" _ fulfilled:ternary _ ":" _ otherwise:ternary _ {
+    return condition ? fulfilled : otherwise;
+  }
+  / chain
 
 chain
-  = lhs:function _ '->' _ rhs:chain _
-  { return [lhs].concat(rhs) }
-  / func:function
-  { return [func] }
+  = lhs:function _ '->' _ rhs:chain _ { return [lhs].concat(rhs) }
+  / func:function { return [func] }
 
 function
-  = _ funcname:$keystring '(' args:arglist ')' _
-  { return { funcname: funcname, args: args } }
-  / funcname:$keystring '()'
-  { return { funcname: funcname, args: [] } }
-  / funcname:$keystring
-  { return { funcname: funcname, args: [] } }
+  = _ funcname:$keystring '(' args:arglist ')' _ {
+    return { funcname: funcname, args: args };
+  }
+  / funcname:$keystring '()' {
+    return { funcname: funcname, args: [] };
+  }
+  / funcname:$keystring {
+    return { funcname: funcname, args: [] };
+  }
 
 scalar
   = number
@@ -94,10 +104,8 @@ scalar
   / s:string { return `'${s}'`; }
 
 arglist
-  = lhs:argument _ ',' _ rhs:arglist
-  { return [lhs].concat(rhs) }
-  / arg:argument
-  { return [arg] }
+  = lhs:argument _ ',' _ rhs:arglist { return [lhs].concat(rhs) }
+  / arg:argument { return [arg] }
 
 argument
   = number

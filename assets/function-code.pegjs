@@ -3,12 +3,12 @@
 
 FunctionCode
   = lines
-  / last:last_line
-  { return last.replaceAll(new RegExp('[\t]+', 'g'), ' '); }
+  / last:last_line {
+    return last.replaceAll(new RegExp('[\t]+', 'g'), ' ');
+  }
 
 lines
-  = line:line remain:lines* last:last_line
-  {
+  = line:line remain:lines* last:last_line {
     if (last)
       remain.push(last);
     const result = remain.reduce((lines, l) => `${lines} ${l}`, line);
@@ -16,18 +16,15 @@ lines
   }
 
 line
-  = c:line_comment terminator
-  { return c; }
-  / c:chars terminator
-  { return c; }
+  = c:line_comment terminator { return c; }
+  / c:chars terminator { return c; }
 
 last_line
   = line_comment
   / last:chars
 
 line_comment
-  = c:$(!start_comment !terminator .)* start_comment chars
-  { return c; }
+  = c:$(!start_comment !terminator .)* start_comment chars { return c; }
 
 start_comment
   = "//"
