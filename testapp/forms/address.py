@@ -35,6 +35,6 @@ class AddressForm(forms.Form):
         widget=Button(
             action='reset',
             button_variant=ButtonVariant.WARNING,
-            icon_path='formset/icons/delete-back.svg',
+            icon_path='formset/icons/reset.svg',
         ),
     )

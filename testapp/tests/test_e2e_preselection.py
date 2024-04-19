@@ -174,7 +174,7 @@ def test_many_preselections(page, mocker, viewname):
     assert counties_field.evaluate('elem => elem.value') == ''
     spy = mocker.spy(NativeFormView, 'get')
     states_field.select_option(label=["Oregon", "Minnesota", "North Carolina", "Nebraska"])
-    sleep(0.25)
+    sleep(0.3)
     spy.assert_called()
     assert spy.spy_return.status_code == 200
     content = json.loads(spy.spy_return.content)

@@ -326,6 +326,8 @@ demo_css_classes = {
                 '*': 'mb-2 col-12',
                 'postal_code': 'mb-2 col-4',
                 'city': 'mb-2 col-8',
+                'submit': 'd-grid col-3',
+                'reset': 'd-grid col-3',
             },
         },
         'horizontal': {
