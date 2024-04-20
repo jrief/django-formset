@@ -1,6 +1,5 @@
 django-form-collection {
 	position: relative;
-	display: block;
 
 	&.dj-marked-for-removal {
 		color: gray;
@@ -11,6 +10,7 @@ django-form-collection {
 	}
 
 	&[sibling-position] {
+		display: block;
 
 		> .remove-collection {
 			position: absolute;
