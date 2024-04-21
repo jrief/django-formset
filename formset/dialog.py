@@ -8,6 +8,7 @@ from formset.widgets import Button
 class DialogForm(FormMixin, forms.BaseForm, metaclass=forms.DeclarativeFieldsMetaclass):
     template_name = 'formset/default/form_dialog.html'
     induce_open, induce_close = None, None
+    prologue, epilogue = None, None
     title = None
 
     def __init__(self, induce_open=None, induce_close=None, title=None, **kwargs):

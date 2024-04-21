@@ -9,8 +9,9 @@
 {% endblock %}
 {% block dialog-body %}
 	<form{% include "formset/form_attrs.html" %}></form>
-	{% if form.fields %}
 	<div class="dialog-body">
+	{% if form.prologue %}{{ form.prologue }}{% endif %}
+	{% if form.fields %}
 		{% for field in form %}
 			{% if field.is_hidden %}
 			{{ field }}
@@ -19,8 +20,9 @@
 			{% endif %}
 		{% endfor %}
 		{% if help_text %}{% include help_text_template %}{% endif %}
-	</div>
 	{% endif %}
+	{% if form.epilogue %}{{ form.epilogue }}{% endif %}
+	</div>
 {% endblock %}
 {% block dialog-footer %}
 	<div class="dialog-footer">
