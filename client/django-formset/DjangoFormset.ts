@@ -448,9 +448,34 @@ class ButtonAction {
 		this.args = args;
 	}
 
-	public readonly func: Function;
-	public readonly args: Array<any>;
+	readonly func: Function;
+	readonly args: Array<any>;
 }
+
+
+class ActionChain {
+	constructor(successChain: Array<ButtonAction>, rejectChain: Array<ButtonAction>) {
+		this.successChain = successChain;
+		this.rejectChain = rejectChain;
+	}
+
+	readonly successChain: Array<ButtonAction>;
+	readonly rejectChain: Array<ButtonAction>;
+}
+
+
+class TernaryAction {
+	constructor(condition: Function, fulfilled: TernaryAction|ActionChain, otherwise: TernaryAction|ActionChain) {
+		this.condition = condition;
+		this.fulfilled = fulfilled;
+		this.otherwise = otherwise;
+	}
+
+	readonly condition: Function;
+	readonly fulfilled: TernaryAction|ActionChain;
+	readonly otherwise: TernaryAction|ActionChain;
+}
+
 
 
 class DjangoButton {
@@ -458,8 +483,7 @@ class DjangoButton {
 	public readonly element: HTMLButtonElement;
 	private readonly initialClass: string;
 	private readonly isAutoDisabled: boolean;
-	private readonly successActions = Array<ButtonAction>(0);
-	private readonly rejectActions = Array<ButtonAction>(0);
+	private clickHandler: Function = () => {};
 	private readonly decoratorElement: HTMLElement | null;
 	private readonly spinnerElement: HTMLElement;
 	private readonly okayElement: HTMLElement;
@@ -527,24 +551,7 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private clicked = () => {
-		let promise: Promise<Response> | undefined;
-		for (const [index, action] of this.successActions.entries()) {
-			if (!promise) {
-				promise = action.func.apply(this, action.args)();
-			} else {
-				promise = promise.then(action.func.apply(this, action.args));
-			}
-		}
-		if (promise) {
-			for (const [index, action] of this.rejectActions.entries()) {
-				if (index === 0) {
-					promise = promise.catch(action.func.apply(this, action.args));
-				} else {
-					promise = promise.then(action.func.apply(this, action.args));
-				}
-			}
-			promise.finally(this.restore.apply(this));
-		}
+		this.clickHandler();
 	}
 
 	public autoDisable(formValidity: Boolean) {
@@ -846,11 +853,74 @@ class DjangoButton {
 		}
 	}
 
+	private setClickHandler(actions: TernaryAction|ActionChain) {
+		const successHandler = (actions: Array<ButtonAction>, promise: Promise<Response>|undefined) => {
+			for (const [index, action] of actions.entries()) {
+				if (!promise) {
+					promise = action.func.apply(this, action.args)();
+				} else {
+					promise = promise.then(action.func.apply(this, action.args));
+				}
+			}
+			return promise;
+		};
+
+		const rejectHandler = (actions: Array<ButtonAction>, promise: Promise<Response>) => {
+			for (const [index, action] of actions.entries()) {
+				if (index === 0) {
+					promise = promise.catch(action.func.apply(this, action.args));
+				} else {
+					promise = promise.then(action.func.apply(this, action.args));
+				}
+			}
+			return promise;
+		};
+
+		const ternaryHandler = (ternary: TernaryAction, promise: Promise<Response>|undefined) => {
+			if (ternary.condition.call(this)) {
+				if (ternary.fulfilled instanceof ActionChain) {
+					promise = successHandler(ternary.fulfilled.successChain, promise);
+					if (promise) {
+						promise = rejectHandler(ternary.fulfilled.rejectChain, promise);
+						promise.finally(this.restore.apply(this));
+					}
+				} else {
+					promise = ternaryHandler(ternary.fulfilled, promise);
+				}
+			} else {
+				if (ternary.otherwise instanceof ActionChain) {
+					promise = successHandler(ternary.otherwise.successChain, promise);
+					if (promise) {
+						promise = rejectHandler(ternary.otherwise.rejectChain, promise);
+						promise.finally(this.restore.apply(this));
+					}
+				} else {
+					promise = ternaryHandler(ternary.otherwise, promise);
+				}
+			}
+			return promise;
+		};
+
+		this.clickHandler = () => {
+			let promise: Promise<Response> | undefined;
+			if (actions instanceof ActionChain) {
+				promise = successHandler(actions.successChain, promise);
+				if (promise) {
+					promise = rejectHandler(actions.rejectChain, promise);
+					promise.finally(this.restore.apply(this));
+				}
+			} else {
+				ternaryHandler(actions, promise);
+			}
+		}
+	}
+
 	private parseActionsQueue(actionsQueue: string | null) {
 		if (!actionsQueue)
 			return;
 
-		const createActions = (actions: Array<ButtonAction>, chain: Array<any>) => {
+		const createActions = (chain: Array<any>) => {
+			const actions = new Array<ButtonAction>();
 			for (let action of chain) {
 				const func = this[action.funcname as keyof DjangoButton];
 				if (typeof func !== 'function')
@@ -861,12 +931,27 @@ class DjangoButton {
 				// the actionsQueue must resolve at least once
 				actions.push(new ButtonAction(this.noop, []));
 			}
+			return actions;
+		};
+
+		const createTernaries = (ternary: any) : TernaryAction|ActionChain => {
+			if (ternary.condition === true)
+				return new ActionChain(
+					createActions(ternary.fulfilled.successChain),
+					createActions(ternary.fulfilled.rejectChain)
+				);
+
+			return new TernaryAction(
+				Function(ternary.condition),
+				createTernaries(ternary.fulfilled),
+				createTernaries(ternary.otherwise),
+			);
 		};
 
 		try {
-			const ast = parse(actionsQueue, {startRule: 'Actions'});
-			createActions(this.successActions, ast.successChain);
-			createActions(this.rejectActions, ast.rejectChain);
+			const ast = parse(actionsQueue, {startRule: 'Ternary'});
+			const actions = createTernaries(ast);
+			this.setClickHandler(actions);
 		} catch (error) {
 			throw new Error(`Error while parsing <button df-click="${actionsQueue}">: ${error}.`);
 		}

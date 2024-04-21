@@ -7,7 +7,7 @@
     "esbuild.monolith": "node client/esbuild.monolith.cjs",
     "rollup": "rollup --config client/rollup.config.js",
     "minify": "terser --compress --mangle --output formset/static/formset/js/django-formset.min.js -- formset/static/formset/js/django-formset.js",
-    "tag-attributes": "peggy -o client/django-formset/tag-attributes.ts --allowed-start-rules Actions,OperabilityExpression,InduceExpression --extra-options-file assets/pegjsconf.json --plugin ./node_modules/ts-pegjs/dist/tspegjs assets/tag-attributes.pegjs",
+    "tag-attributes": "peggy -o client/django-formset/tag-attributes.ts --allowed-start-rules Ternary,OperabilityExpression,InduceExpression --extra-options-file assets/pegjsconf.json --plugin ./node_modules/ts-pegjs/dist/tspegjs assets/tag-attributes.pegjs",
     "function-code": "peggy -o client/django-formset/function-code.ts --allowed-start-rules FunctionCode --extra-options-file assets/pegjsconf.json --plugin ./node_modules/ts-pegjs/dist/tspegjs assets/function-code.pegjs",
     "compilescss": "sass --load-path=. assets/scss:formset/static/formset/css",
     "tailwindcss": "tailwindcss --input assets/tailwind-styles.css --config assets/tailwind.config.js --output formset/static/formset/css/tailwind.css",

@@ -1,12 +1,12 @@
 // PEG rules to create parser for various HTML attributes used by django-formset
-// Build file `client/components/django-formset/actions.ts` using `npm run pegjs`
+// Build file `client/django-formset/tag-attributes.ts` using `npm run tag-attributes`
 
 // ----- A. OperabilityExpression -----
 // The starting rule for `<ANY df-show="..."` …>`, `<ANY df-hide="..." …>`, `<ANY df-disable="..." …>`
 // and the ternary operator in <button df-click="condition ? ... : ...">.
 
 OperabilityExpression
-  = _ head:Factor _ tail:(_ Operator _ OperabilityExpression)* _ {
+  = _ head:OperabilityFactor _ tail:(_ Operator _ OperabilityExpression)* _ {
       return tail.reduce((result, element) => result + element[1] + element[3], head);
   }
   / _ { return 'false'; }
@@ -32,7 +32,7 @@ Operator
 UnaryOperator
   = "!"
 
-Factor
+OperabilityFactor
   = "(" _ expr:OperabilityExpression _ ")" { return `(${expr})`; }
   / scalar
   / getDataValue
@@ -56,8 +56,8 @@ InduceExpression
 InduceFactor
   = "(" _ expr:InduceExpression _ ")" { return `(${expr})`; }
   / isButtonActive
-  / getDataValue
   / scalar
+  / getDataValue
 
 isButtonActive
   = path:PATH ":" action:VARIABLE {
@@ -69,23 +69,37 @@ isButtonActive
 // ----- C. Actions -----
 // The starting rule for <button `df-click="..."` …>.
 
+Ternary
+  = _ condition:TernaryCondition _ "?" _ fulfilled:Ternary _ ":" _ otherwise:Ternary _ {
+    return { condition: condition, fulfilled: fulfilled, otherwise: otherwise };
+  }
+  / fulfilled:Actions {
+    return { condition: true, fulfilled: fulfilled, otherwise: null };
+  }
+
 Actions
-  = successChain:ternary _ '!~' _ rejectChain:ternary _ {
+  = successChain:Chain _ '!~' _ rejectChain:Chain _ {
     return { successChain: successChain, rejectChain: rejectChain };
   }
-  / successChain:ternary {
+  / successChain:Chain {
     return { successChain: successChain, rejectChain: [] };
   }
 
-ternary
-  = _ condition:OperabilityExpression _ "?" _ fulfilled:ternary _ ":" _ otherwise:ternary _ {
-    return condition ? fulfilled : otherwise;
-  }
-  / chain
-
-chain
-  = lhs:function _ '->' _ rhs:chain _ { return [lhs].concat(rhs) }
+Chain
+  = lhs:function _ '->' _ rhs:Chain _ { return [lhs].concat(rhs) }
   / func:function { return [func] }
+
+TernaryCondition
+  = _ head:TernaryFactor _ tail:(_ Operator _ OperabilityExpression)* _ {
+      return tail.reduce((result, element) => result + element[1] + element[3], head);
+  }
+  / _ { return 'false'; }
+
+TernaryFactor
+  = "(" _ expr:OperabilityExpression _ ")" { return `(${expr})`; }
+  / scalar
+  / dataValue:getDataValue { return `return ${dataValue}`; }
+
 
 function
   = _ funcname:$keystring '(' args:arglist ')' _ {
