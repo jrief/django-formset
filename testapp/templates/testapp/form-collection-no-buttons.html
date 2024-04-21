@@ -1,0 +1,7 @@
+{% extends framework|default:"testapp"|add:"/base.html" %}
+
+{% block main-content %}
+<django-formset endpoint="{{ request.path }}"{% if force_submission %} force-submission{% endif %}{% if withhold_feedback %} withhold-feedback="{{ withhold_feedback }}"{% endif %} csrf-token="{{ csrf_token }}">
+	{{ form_collection }}
+</django-formset>
+{% endblock %}

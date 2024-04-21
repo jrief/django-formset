@@ -248,6 +248,7 @@ def test_button_submit(page, mocker, viewname):
     button_elem = page.locator('django-formset button').first
     spy = mocker.spy(FormView, 'post')
     button_elem.click()
+    sleep(0.25)
     assert spy.called is True
     request = json.loads(spy.call_args.args[1].body)
     assert request['formset_data']['enter'] == "BAR"

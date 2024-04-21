@@ -33,6 +33,7 @@ from testapp.forms.address import AddressForm
 from testapp.forms.advertisement import AdvertisementForm
 from testapp.forms.article import ArticleForm
 from testapp.forms.blog import BlogModelForm
+from testapp.forms.company import CompanyCollection, CompaniesCollection
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import (
     SimpleContactCollection, ContactCollection, ContactCollectionList, IntermediateContactCollectionList,
@@ -42,6 +43,7 @@ from testapp.forms.booking import BookingBoxForm, BookingCalendarForm, BookingPi
 from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerCollection
+from testapp.forms.gallerycollection import GalleryCollection
 from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputForm, MomentPickerForm
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
 from testapp.forms.opinion import OpinionForm
@@ -52,10 +54,9 @@ from testapp.forms.profile import ProfileCollection
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.schedule import ScheduleBoxForm, ScheduleCalendarForm, SchedulePickerForm
 from testapp.forms.state import StateForm, StatesForm
-from testapp.forms.company import CompanyCollection, CompaniesCollection
+from testapp.forms.terms_of_use import AcceptTermsCollection
 from testapp.forms.user import UserCollection, UserListCollection
 from testapp.forms.upload import UploadForm
-from testapp.forms.gallerycollection import GalleryCollection
 from testapp.models import BlogModel, Company, PersonModel, PollModel
 from testapp.models.gallery import Gallery
 
@@ -316,7 +317,11 @@ demo_css_classes = {
     'default': {'*': {}},
     'bootstrap': {
         '*': {
-            'field_css_classes': 'mb-2',
+            'field_css_classes': {
+                '*': 'mb-2',
+                'submit': 'd-grid col-3',
+                'reset': 'd-grid col-3',
+            },
             'fieldset_css_classes': 'border p-3',
             'button_css_classes': 'mt-4',
         },
@@ -326,8 +331,8 @@ demo_css_classes = {
                 '*': 'mb-2 col-12',
                 'postal_code': 'mb-2 col-4',
                 'city': 'mb-2 col-8',
-                'submit': 'd-grid col-3',
-                'reset': 'd-grid col-3',
+                'submit': 'd-grid col-6 col-md-5 col-lg-4 col-xl-3',
+                'reset': 'd-grid col-6 col-md-5 col-lg-4 col-xl-3',
             },
         },
         'horizontal': {
@@ -351,7 +356,14 @@ demo_css_classes = {
                 'label': 'mb-2 col-4',
                 '*': 'mb-2 col-12',
             },
-        }
+        },
+        # 'terms_of_use': {
+        #     'field_css_classes': {
+        #         '*': 'mb-2 col-12',
+        #         'submit': 'd-grid col-3',
+        #         'reset': 'd-grid col-3',
+        #     },
+        # },
     },
     'bulma': {
         '*': {
@@ -461,6 +473,7 @@ urlpatterns = [
     ), name='complete.horizontal'),
     path('address', DemoFormView.as_view(
         form_class=AddressForm,
+        template_name='testapp/native-form-no-buttons.html'
     ), name='address'),
     path('article', DemoFormView.as_view(
         form_class=ArticleForm,
@@ -519,6 +532,10 @@ urlpatterns = [
     path('simplecontact', DemoFormCollectionView.as_view(
         collection_class=SimpleContactCollection,
         initial={'person': sample_person_data},
+    ), name='simplecontact'),
+    path('terms_of_use', DemoFormCollectionView.as_view(
+        collection_class=AcceptTermsCollection,
+        template_name='testapp/form-collection-no-buttons.html',
     ), name='simplecontact'),
     path('customer', DemoFormCollectionView.as_view(
         collection_class=CustomerCollection,
