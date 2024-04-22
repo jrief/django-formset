@@ -26,6 +26,8 @@ button therefore may look like
 	</django-formset>
 
 
+.. _action-queues:
+
 Action Queues
 =============
 
@@ -155,6 +157,17 @@ Here we use the checkbox to emulate a successful and a failing server side form 
 	
 	In case of failure, we render the bummer symbol for 5 seconds before resetting it to the
 	default.
+
+
+Ternary Operator
+----------------
+
+The ternary operator is a tool to conditionally execute different action queues. This allows us to 
+use one action queue if a certain condition is met, otherwise another action queue is executed. The
+syntax is ``condition ? action1 -> action2 !~ failed : action3 -> action4``. Remember that the
+``!~`` operator is used to catch failed submissions. It has a higher precedence over the ternary
+operator. As ``condition`` one would typically use the value of a field in the current form or
+collections of thereof.
 
 
 Buttons without a Form

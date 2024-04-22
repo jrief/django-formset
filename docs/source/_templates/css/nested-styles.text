@@ -28,6 +28,9 @@ django-formset.bootstrap {
 	dialog {
 		z-index: 51;  /* Furo's <aside>-element has z-index: 50 */
 	}
+	button[name="activate_submit"] {
+		margin-top: 1rem;
+	}
 }
 @nested-import "../../../../formset/static/formset/css/collections.css";
 @nested-import "../../../../formset/static/formset/css/bootstrap5-extra.css";

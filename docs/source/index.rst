@@ -21,6 +21,7 @@ Django ``Form``-s.
 	default-widgets
 	alternative-widgets
 	buttons
+	activators
 	withholding-feedback
 	collections
 	fieldsets

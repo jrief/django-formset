@@ -1,0 +1,6 @@
+{% load render_form from formsetify %}
+
+<django-formset endpoint="{{ request.path }}" force-submission="true" csrf-token="{{ csrf_token }}"{% if framework %} class="{{ framework }}"{% endif %}{% if withhold_feedback %} withhold-feedback="{{ withhold_feedback }}"{% endif %}>
+	{% render_form form framework form_classes=form_css_classes field_classes=field_css_classes fieldset_classes=fieldset_css_classes label_classes=label_css_classes|default:None control_classes=control_css_classes max_options_per_line=max_options_per_line|default:None %}
+	<pre id="{{ pre_id }}-data" class="formset-submit-data"></pre>
+</django-formset>
