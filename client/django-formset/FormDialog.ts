@@ -7,6 +7,7 @@ export abstract class FormDialog {
 	protected readonly element: HTMLDialogElement;
 	protected readonly formElement: HTMLFormElement;
 	private readonly dialogHeaderElement: HTMLElement | null;
+	protected readonly isModal: boolean;
 	protected readonly induceOpen: Function;
 	protected readonly induceClose: Function;
 	private readonly baseSelector = 'dialog[is="django-dialog-form"]';
@@ -23,6 +24,7 @@ export abstract class FormDialog {
 		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
 			this.transferStyles();
 		}
+		this.isModal = this.element.hasAttribute('df-modal');
 		this.induceOpen = this.evalInducer('df-induce-open', () => this.openDialog());
 		this.induceClose = this.evalInducer('df-induce-close', (action: string) => this.closeDialog(action));
 	}
@@ -47,13 +49,17 @@ export abstract class FormDialog {
 		const viewport = window.visualViewport;
 		if (this.element.open || !viewport)
 			return;
-		this.element.show();
-		if (this.dialogHeaderElement && !this.dialogRect) {
-			this.dialogRect = this.element.getBoundingClientRect();
-			this.dialogOffsetY = Math.max((viewport.height - this.dialogRect.height) / 2, 0);
-			this.element.style.transform = `translate(${this.dialogOffsetX}px, ${this.dialogOffsetY}px)`;
-			this.dialogHeaderElement.addEventListener('pointerdown', this.handlePointerDown);
-			this.dialogHeaderElement.addEventListener('touchstart', this.handlePointerDown);
+		if (this.isModal) {
+			this.element.showModal();
+		} else {
+			this.element.show();
+			if (this.dialogHeaderElement && !this.dialogRect) {
+				this.dialogRect = this.element.getBoundingClientRect();
+				this.dialogOffsetY = Math.max((viewport.height - this.dialogRect.height) / 2, 0);
+				this.element.style.transform = `translate(${this.dialogOffsetX}px, ${this.dialogOffsetY}px)`;
+				this.dialogHeaderElement.addEventListener('pointerdown', this.handlePointerDown);
+				this.dialogHeaderElement.addEventListener('touchstart', this.handlePointerDown);
+			}
 		}
 		this.element.addEventListener('close', () => this.closeDialog(), {once: true});
 	}

@@ -232,8 +232,10 @@ django-formset {
 		top: 0;  // compute top using viewport and dialog's height
 		z-index: 1;
 
-		.dialog-header {
+		&:not([df-modal]) .dialog-header {
 			cursor: pointer;
+		}
+		.dialog-header {
 			@include dialog-flex;
 			justify-content: space-between;
 		}

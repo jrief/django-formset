@@ -43,7 +43,7 @@ class UserNameForm(forms.Form):
 class AcceptTermsCollection(FormCollection):
     legend = "User Acceptance Collection"
     user = UserNameForm()
-    accept = AcceptDialogForm()
+    accept = AcceptDialogForm(is_modal=True)
     submit = Activator(
         label="Submit",
         widget=Button(

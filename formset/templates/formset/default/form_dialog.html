@@ -1,5 +1,5 @@
 {% spaceless %}
-<dialog{% if form.induce_open %} df-induce-open="{{ form.induce_open }}"{% endif %}{% if form.induce_close %} df-induce-close="{{ form.induce_close }}"{% endif %}>
+<dialog{% if form.is_modal %} df-modal{% endif %}{% if form.induce_open %} df-induce-open="{{ form.induce_open }}"{% endif %}{% if form.induce_close %} df-induce-close="{{ form.induce_close }}"{% endif %}>
 {% block dialog-header %}
 	{% if form.title %}
 	<div class="dialog-header">
