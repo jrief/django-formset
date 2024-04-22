@@ -35,7 +35,7 @@ def test_submit_customer(page, mocker, viewname):
     spy = mocker.spy(FormCollectionView, 'post')
     page.locator('django-formset button').first.click()
     sleep(0.25)
-    assert spy.called
+    spy.assert_called()
     response = json.loads(spy.call_args.args[1].body)
     assert response == {'formset_data': {
         'customer': {'name': "John Doe", 'address': "123, Lye Street", 'phone_number': ""},

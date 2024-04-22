@@ -236,7 +236,7 @@ def test_lookup_value(page, mocker, form, viewname):
     page.keyboard.press('5')
     page.keyboard.press('9')
     sleep(1)  # because TomSelect delays the lookup
-    assert spy.called is True
+    spy.assert_called()
     assert spy.spy_return.status_code == 200
     content = json.loads(spy.spy_return.content)
     assert content['count'] == 1

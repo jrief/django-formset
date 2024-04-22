@@ -80,7 +80,7 @@ def test_submit_dialog(page, mocker, viewname):
     spy = mocker.spy(FormCollectionView, 'post')
     page.locator('button[df-click="submit -> proceed"]').click()
     sleep(0.25)
-    assert spy.called is True
+    spy.assert_called()
     request = json.loads(spy.call_args.args[1].body)
     assert request['formset_data']['customer']['name'] == "Liskov"
     assert request['formset_data']['popup']['name'] == "Barbara"

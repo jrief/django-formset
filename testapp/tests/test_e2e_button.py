@@ -190,7 +190,8 @@ def test_button_confirm_accept(page, mocker, viewname):
     button = page.locator('django-formset button').first
     spy = mocker.spy(FormView, 'post')
     button.click()
-    assert spy.called is True
+    sleep(0.25)
+    spy.assert_called()
     request = json.loads(spy.call_args.args[1].body)
     assert request['formset_data']['enter'] == "Is Valid"
 

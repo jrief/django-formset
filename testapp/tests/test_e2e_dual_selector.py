@@ -164,7 +164,7 @@ def test_move_all_right(page, mocker, view, form, viewname):
         button.click()  # this triggers loading of more options
         right_option_values = right_option_values.union(left_option_values)
         assert right_option_values == set(select_right_options.nth(i).get_attribute('value') for i in range(select_right_options.count()))
-        assert spy.called is True
+        spy.assert_called()
         assert spy.spy_return.status_code == 200
         content = json.loads(spy.spy_return.content)
         spy.reset_mock()

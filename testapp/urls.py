@@ -3,7 +3,6 @@ from django.conf.urls.static import static
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import include, path
-from django.conf.urls.i18n import i18n_patterns
 from django.views.decorators.cache import cache_page
 from django.views.i18n import JavaScriptCatalog
 
