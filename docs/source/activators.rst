@@ -4,7 +4,7 @@
 Activators and Button Widgets
 =============================
 
-In almost every form, there are some buttons to submit or reset the fields content. In a typical
+In almost every form, there are some buttons to submit or reset the field's contents. In a typical
 Django application, these buttons must be added to the rendering templates as HTML elements. But if
 you think about it, a button also is an input field, sometimes rendered as ``<button …>`` and
 sometimes as ``<input type="submit" …>``. Okay, the button's value is transient and it only is used
@@ -12,19 +12,19 @@ to trigger an action, such as submit or reset. But it still is an input field an
 why does Django not provide a field type for it? 
 
 This is where **django-formset** comes in. It provides a field type for buttons, named
-:class:`formset.fields.Activator`. An ``Activator`` is a field that is used to trigger an action.
-The default widget of an ``Activator`` field is, as one might expect, the
-:class:`formset.widgets.Button` widget. An ``Activator`` can be used inside a Django ``Form`` or a
-``FormCollection``. It then behaves very similar to a normal field. The main difference is that
-it does not store any data. Instead, it waits for click events which then can be intercepted by other
-components of the embedding ``<django-formset>``-component.
+:class:`formset.fields.Activator`. Such an ``Activator`` is a field that can be used to trigger an
+action – more on that later. The default widget of an ``Activator`` field is, as one might expect,
+the :class:`formset.widgets.Button` widget. An ``Activator`` can be used inside any Django ``Form``
+or ``FormCollection``. It then behaves very similar to a normal field. The main difference is that
+it does not store any data and hence can't be initialized. Instead, it waits for click events which
+then can be intercepted by other components of the embedding ``<django-formset>``-component.
 
-This is inversion of control: Instead of adding an event listener to the button, which then performs
-some action, the interested component can listen for the named ``Activator`` field to be clicked. A
-dialog component for instance, can popup and disappear by specifying any condition on buttons and
-other input fields.
+This concept is an inversion of control: Instead of adding an event listener to the button, which
+then performs some action, the interested component can listen for the named ``Activator`` field to
+be clicked. A dialog component for instance, can popup and disappear by specifying any condition on
+buttons and other input fields.
 
-In this example we will show how to use an ``Activator`` field to submit the form.
+This example shows how to use an ``Activator`` field to submit the form:
 
 
 .. django-view:: contact_form
@@ -50,9 +50,11 @@ In this example we will show how to use an ``Activator`` field to submit the for
 	    )
 
 The default widget of an ``Activator`` field is the ``Button`` widget. In this example we use a
-chain of actions, which is triggered when the button is clicked: *disable* the button, then *submit*
-the form's data, and finally *reload* the page. If an error occurred scroll to the first error
-field. The ``action`` attribute can be configured in many different ways, more on this, in section
+chain of actions, which is triggered when the button is clicked: First, *disable* the button, then
+render a *spinner*, then *delay* execution for half a second, then *submit* the form's data, and
+finally *reload* the page. If an error occurred scroll to the first rejected field.
+
+This ``action`` attribute can be configured in many different ways, more on this, in section
 :ref:`action-queues`.
 
 
@@ -80,6 +82,11 @@ manner across the application. These variants are defined in the ``ButtonVariant
 	    template_name = "form-no-button.html"
 	    success_url = "/success"
 
+By allowing activator fields to be part of the form and collection logic, we can declare a
+self-contained submission workflow, rather than the hybrid approach we're use to, where buttons must
+be declared in template and the form is declared in Python. This also allows us to place buttons
+anywhere, and not just at the top or bottom of the form.
+
 
 Button Icons
 ============
@@ -103,7 +110,7 @@ instance by an animated spinner, bummer or success mark when used with the appro
 
 
 Icon Alignment
-==============
+--------------
 
 By default, icons are rendered on the right hand side of the button text. This can be changed by
 setting the ``icon_left`` attribute of the ``Button`` widget to ``True``.

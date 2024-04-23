@@ -19,7 +19,7 @@ class AcceptDialogForm(DialogForm):
             <li>is discriminatory against other groups of users.</li>
             <li>violates the privacy of other users.</li>
         </ul>
-        <p>Before proceeding, please accept the terms of use.</p>
+        <p><strong>Before proceeding, please accept the terms of use.</strong></p>
     """)
     induce_open = 'submit:active'
     induce_close = '.close:active'
