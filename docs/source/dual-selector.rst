@@ -4,23 +4,27 @@
 Dual Selector Widget
 ====================
 
-This widget is usually used to control the mapping of a many-to-many relation. It consists of two
-HTML elements of type ``<select multiple ...>`` placed side by side. The left part contains the
+This widget is usually used to control the mapping of a `many-to-many relationship`_. It consists of
+two HTML elements of type ``<select multiple ...>`` placed side by side. The left part contains the
 available options to select from, while the right part contains the already selected options.
 Between those two select fields, six buttons are located. With the first four, one can move selected
 options from left to right and vice versa. The last two buttons can be used to undo and/or redo a
 missed assignment.
+
+.. _many-to-many relationship: https://docs.djangoproject.com/en/stable/topics/db/examples/many_to_many/
 
 
 Features
 ========
 
 The **DualSelector** widget is well known to Django admin users. There it is named
-filter_horizontal_ which in my opinion is a somehow misleading name. In **django-formset**, this
-widget however offers many more features than its Django's counterpart.
+filter_horizontal_ which in my opinion is a somehow misleading name. Another common name to describe
+this kind of widget is `dual listbox or list builder`_.
 
 .. _filter_horizontal: https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_horizontal
+.. _dual listbox or list builder: https://en.wikipedia.org/wiki/List_builder
 
+In **django-formset**, this widget however offers many more features than its Django's counterpart:
 
 Asynchronous loading
 --------------------
@@ -40,7 +44,7 @@ Search Fields
 On top of the left- and right select fields, there is one search input field each. While typing,
 **django-formset** narrows down the number of available options. Here the left input field sends the
 string typed into, to the server performing a remote lookup. Using the database to search for an
-entry is much more efficient, rather than doing this using JavaScript inside the browser.
+entry is more efficient, rather than doing this using JavaScript inside the browser.
 
 
 Undo and Redo Buttons
@@ -49,6 +53,20 @@ Undo and Redo Buttons
 While working with these kinds of widgets, it can easily happen to accidentally move the wrong
 options. Sometimes the only solution to this is to reset the form and restart over again. By using
 the **DualSelector** widget, one can use the undo and redo buttons to switch to the previous selections.
+
+
+Grouping Options
+----------------
+
+Options can be grouped using the ``<optgroup>`` HTML element. On the right select field, these
+groups then appear as soon as at least one element has been selected.
+
+
+Optional Sorting
+----------------
+
+With a mapping model containing an order field, options can be sorted inside the right select field
+by dragging them.
 
 
 Usage

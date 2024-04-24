@@ -63,7 +63,7 @@ There are two optional CSS files, which might be imported depending on the appli
 
 	<link href="{% static 'formset/css/bootstrap5-extra.css' %}" rel="stylesheet">
 
-It adjusts the styling of the Dual Selector widget. Useful if used in a Bootstrap 5 context. 
+It adjusts the styling of some widget. Useful if used in a Bootstrap 5 context. 
 
 .. code-block:: django
 
@@ -76,7 +76,7 @@ rendered. This style definition style sheet can be applied to all CSS frameworks
 .. rubric:: Include JavaScript
 
 Only one JavaScript file must be included into the head or body of the main template. It is the file
-providing the functionality of our web component:
+providing the functionality of our web components:
 
 .. code-block:: django
 
@@ -88,14 +88,18 @@ providing the functionality of our web component:
 	  ...
 	</head>
 
+This file is kept rather small as it only provides the core functionality. Additional dependencies
+required for all the extra widgets are loaded on demand, if that specific component is used.
+
 .. note:: The provided JavaScript file is optimized for modern browsers, which can handle
 	EcmaScript-ES2020, or later. These browsers are Chrome 94+, Edge 94+, Firefox 93+, Safari 15+
 	and Opera 81+. In the rare occasion that you have to support a legacy browser, choose an
 	appropriate target from the TypeScript build options and recompile the sources.
 
 If you're wondering where **django-formset** keeps the styles for all the widgets it provides, then
-here is a short explanation: **django-formset** relies on the styling definitions of the underlying
-CSS framework rather than imposing their own styles on each component shipped with this library.
-These styles are extracted from the existing HTML elements such as ``<input>``, ``<select>``, etc. 
-They then are applied to the custom elements of the web components. This is why this library adopts
-itself to the given CSS framework without the need to provide a dedicated style sheet.
+here is a short explanation: It doesn't need any framework specific style sheets, instead
+**django-formset** relies on the styling definitions of the underlying CSS framework rather than
+imposing their own styles on each component shipped with this library. These styles are extracted
+from the existing HTML elements such as ``<input>``, ``<select>``, etc. They then are applied to the
+custom elements of the web components. This is why this library adopts itself to the given CSS
+framework without the need to provide a dedicated style sheet.

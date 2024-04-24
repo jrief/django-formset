@@ -25,14 +25,16 @@ Django ``Form``-s.
 	withholding-feedback
 	collections
 	fieldsets
-	model-form
+	model-forms
 	model-collections
 	form-renderer
 	conditionals
 	uploading
 	selectize
 	dual-selector
+	dialog-forms
 	richtext
+	richtext-extensions
 	slug-input
 	date-time-input
 	date-time-range

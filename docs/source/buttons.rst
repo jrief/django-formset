@@ -97,6 +97,9 @@ as queued actions for buttons in **django-formset**:
   an alert box. 
 * ``emit("event name")`` emit a named event to the DOM.
 * ``clearErrors`` clears all error annotations from a previously failed form validation.
+* ``activate`` activates the button to be intercepted by another component, for instance in
+  :ref:`dialog-forms`.
+* ``activate("command")`` The command is passed as an argument to the interceptor.
 * ``noop`` does nothing and can be used as a placeholder.
 * ``intercept`` intercepts the response object after submission and prints it onto the browser
   console. This is only useful for debugging purposes.
@@ -162,12 +165,14 @@ Here we use the checkbox to emulate a successful and a failing server side form 
 Ternary Operator
 ----------------
 
-The ternary operator is a tool to conditionally execute different action queues. This allows us to 
-use one action queue if a certain condition is met, otherwise another action queue is executed. The
-syntax is ``condition ? action1 -> action2 !~ failed : action3 -> action4``. Remember that the
+The `ternary operator`_ is a tool to conditionally execute different action queues. This allows us
+to  use one action queue if a certain condition is met, otherwise another action queue is executed.
+The syntax is ``condition ? action1 -> action2 !~ failed : action3 -> action4``. Remember that the
 ``!~`` operator is used to catch failed submissions. It has a higher precedence over the ternary
-operator. As ``condition`` one would typically use the value of a field in the current form or
-collections of thereof.
+operator. As ``condition`` we typically use the value of a field in the current form or collections
+of thereof.
+
+.. _ternary operator: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_operator
 
 
 Buttons without a Form

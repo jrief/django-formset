@@ -64,8 +64,8 @@ understand.
 By using **django-formset** on the other hand, each Django form corresponds to its own
 self-contained ``<form>``-element. Inside each of these forms, all field names remain unmodified
 and on submission, each form introduces its own namespace, so that the form data is submitted as a
-dictionary of field-value-pairs. By doing so, we can even nest forms deeply, something currently
-not possible with Django FormSets_.
+dictionary of field-value-pairs, where each value can be a subdictionary or array. By doing so, we
+can nest forms deeply, something currently not possible with Django FormSets_.
 
 .. _Form: https://docs.djangoproject.com/en/stable/topics/forms/
 .. _FormSets: https://docs.djangoproject.com/en/stable/topics/forms/formsets/

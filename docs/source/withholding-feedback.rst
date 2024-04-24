@@ -15,7 +15,7 @@ green.
 This default behavior is not always desired and can be configured to be less verbose.
 
 Here is a simple form used to show how to withhold various feedback messages nearby the
-offending fields. This is done by adding the attribute ``withhold-feedback="..."`` with one
+rejected fields. This is done by adding the attribute ``withhold-feedback="..."`` with one
 or a combination of those values: ``messages``, ``errors``, ``warnings`` and/or ``success``.
 These four values can be combined to create the desired feedback.
 

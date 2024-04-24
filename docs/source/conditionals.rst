@@ -34,7 +34,7 @@ deeply nested forms.
 
 
 Questionnaire Form
-------------------
+==================
 
 This form uses a conditional where the value of one field influences if another field is visible.
 
@@ -77,7 +77,7 @@ evaluated.
 
 
 Conditional Fieldset
---------------------
+====================
 
 Conditionals can also be used on a Fieldset element. For example by using
 
@@ -121,7 +121,7 @@ true, the whole fieldset is hidden.
 
 
 Conditional Disable
--------------------
+===================
 
 Conditionals can also be used to disable other fields. By using the attribute
 ``df-disable=<condition>`` we can disable a field, preventing the user to input data.

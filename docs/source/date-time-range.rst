@@ -125,7 +125,7 @@ Applying Context to the Calendar
 One of the advantages of using a server side rendered calendar sheet is, that we are able to enrich
 the rendering context with additional data. This for instance is useful to highlight certain dates.
 
-Here for instance we emulate a reservation calendar, where only every fifth day is available for
+In this example we emulate a reservation calendar, where only every fifth day is available for
 booking. We do this by adding a special CSS class to the calendar cells of the available days and
 set the attribute ``disabled`` otherwise.
 

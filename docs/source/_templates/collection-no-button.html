@@ -1,0 +1,4 @@
+<django-formset endpoint="{{ request.path }}" force-submission="{{ force_submission|yesno:'true,false' }}" withhold-messages="{{ withhold_messages|yesno:'true,false' }}" csrf-token="{{ csrf_token }}"{% if framework %} class="{{ framework }}"{% endif %}>
+	{{ form_collection }}
+	<pre id="{{ pre_id }}-data" class="formset-submit-data"></pre>
+</django-formset>

@@ -26,7 +26,6 @@ buttons and other input fields.
 
 This example shows how to use an ``Activator`` field to submit the form:
 
-
 .. django-view:: contact_form
 	:caption: form.py
 
@@ -57,20 +56,6 @@ finally *reload* the page. If an error occurred scroll to the first rejected fie
 This ``action`` attribute can be configured in many different ways, more on this, in section
 :ref:`action-queues`.
 
-
-Button Variants
-===============
-
-The ``button_variant`` attribute can be used to specify the appearance of the button in a consistent
-manner across the application. These variants are defined in the ``ButtonVariant`` enum type:
-
-* ``ButtonVariant.PRIMARY``: Use this to submit a form.
-* ``ButtonVariant.SECONDARY``: Use this to close a dialog.
-* ``ButtonVariant.SUCCESS``: Use to finalize a transaction.
-* ``ButtonVariant.DANGER``: Use to delete something.
-* ``ButtonVariant.WARNING``: Use to reset the form.
-* ``ButtonVariant.INFO``: Use to navigate somewhere.
-
 .. django-view:: contact_view
 	:view-function: ContactView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'contact-result'}, form_kwargs={'auto_id': 'cf_id_%s'})
 	:hide-code:
@@ -86,6 +71,20 @@ By allowing activator fields to be part of the form and collection logic, we can
 self-contained submission workflow, rather than the hybrid approach we're use to, where buttons must
 be declared in template and the form is declared in Python. This also allows us to place buttons
 anywhere, and not just at the top or bottom of the form.
+
+
+Button Variants
+===============
+
+The ``button_variant`` attribute can be used to specify the appearance of the button in a consistent
+manner across the application. These variants are defined in the ``ButtonVariant`` enum type:
+
+* ``ButtonVariant.PRIMARY``: Use this to submit a form.
+* ``ButtonVariant.SECONDARY``: Use this to close a dialog.
+* ``ButtonVariant.SUCCESS``: Use to finalize a transaction.
+* ``ButtonVariant.DANGER``: Use to delete something.
+* ``ButtonVariant.WARNING``: Use to reset the form.
+* ``ButtonVariant.INFO``: Use to navigate somewhere.
 
 
 Button Icons

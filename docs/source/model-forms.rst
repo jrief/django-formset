@@ -1,4 +1,4 @@
-.. _model_form:
+.. _model_forms:
 
 ==========================
 Creating Forms from Models
@@ -68,7 +68,7 @@ Django for `updating models`_:
 .. _updating models: https://docs.djangoproject.com/en/stable/ref/class-based-views/generic-editing/#django.views.generic.edit.UpdateView
 
 .. django-view:: article_view
-	:view-function: type('ArticleEditView', (SessionModelFormViewMixin, model_form.ArticleEditView), {}).as_view(extra_context={'framework': 'bootstrap'})
+	:view-function: type('ArticleEditView', (SessionModelFormViewMixin, model_forms.ArticleEditView), {}).as_view(extra_context={'framework': 'bootstrap'})
 	:caption: views.py
 
 	from django.views.generic import UpdateView
@@ -131,7 +131,7 @@ As an example let's use a simpler model, offering just one editable field:
 The form and view classes required to edit this model then may look something like this:
 
 .. django-view:: annotation
-	:view-function: type('AnnotationEditView', (SessionModelFormViewMixin, model_form.AnnotationEditView), {}).as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'annotation-result'}, form_kwargs={'auto_id': 'ano_id_%s'})
+	:view-function: type('AnnotationEditView', (SessionModelFormViewMixin, model_forms.AnnotationEditView), {}).as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'annotation-result'}, form_kwargs={'auto_id': 'ano_id_%s'})
 	:hide-view:
 
 	from django.http.response import JsonResponse 
