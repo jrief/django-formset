@@ -1,0 +1,10 @@
+{% load render_richtext from richtext %}
+{% if richtext_footnotes %}
+<ol>
+	{% for footnote in richtext_footnotes %}
+	<li id="_footnote-{{ forloop.counter }}">
+		{% render_richtext footnote.content %}
+	</li>
+	{% endfor %}
+</ol>
+{% endif %}

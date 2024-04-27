@@ -2,7 +2,7 @@ import json
 
 from django import template
 from django.template.loader import get_template
-from django.utils.html import mark_safe
+from django.utils.html import strip_spaces_between_tags, mark_safe
 from django.utils.module_loading import import_string
 
 
@@ -15,8 +15,13 @@ def render_richtext(data, doc_template='richtext/doc.html', framework='default')
         except json.JSONDecodeError:
             root_node = {}
     template = get_template(doc_template)
-    html = template.render({'node': root_node, 'framework': framework}).replace('\t', '').replace('\n', '')
-    return mark_safe(html)
+    context = {
+        'node': root_node,
+        'framework': framework,
+        'richtext_footnotes': [],
+    }
+    html = template.render(context).replace('\t', '').replace('\n', '')
+    return mark_safe(strip_spaces_between_tags(html))
 
 
 def render_attributes(context, attrs):
@@ -30,6 +35,15 @@ def render_attributes(context, attrs):
     return richtext_attributes(attrs)
 
 
+def render_footnote(context, footnote_ref_template, attrs):
+    if not isinstance(attrs, dict):
+        return ''
+    context['richtext_footnotes'].append(attrs)
+    template = get_template(footnote_ref_template)
+    return template.render({'footnote_counter': len(context['richtext_footnotes'])})
+
+
 register = template.Library()
 register.simple_tag(render_richtext, name='render_richtext')
 register.simple_tag(render_attributes, name='render_attributes', takes_context=True)
+register.simple_tag(render_footnote, name='render_footnote', takes_context=True)

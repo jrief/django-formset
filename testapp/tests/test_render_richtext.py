@@ -1,5 +1,6 @@
 from django.views.generic import TemplateView
 from django.template.loader import render_to_string
+from django.utils.html import strip_spaces_between_tags
 
 
 class TiptapView(TemplateView):
@@ -17,10 +18,10 @@ def test_render_heading():
                 },
                 'content': [{
                     'type': 'text',
-                    'text': 'The Title'
+                    'text': 'The Title',
                 }]
             }, {
-                'type': 'paragraph'
+                'type': 'paragraph',
             }]
         }
     }}
@@ -36,16 +37,16 @@ def test_render_bold():
                 'type': 'paragraph',
                 'content': [{
                     'type': 'text',
-                    'text': 'This is '
+                    'text': 'This is ',
                 }, {
                     'type': 'text',
                     'marks': [{
-                        'type': 'bold'
+                        'type': 'bold',
                     }],
-                    'text': 'bold'
+                    'text': 'bold',
                 }, {
                     'type': 'text',
-                    'text': ' text'
+                    'text': ' text',
                 }]
             }]
         }
@@ -62,16 +63,16 @@ def test_render_italic():
                 'type': 'paragraph',
                 'content': [{
                     'type': 'text',
-                    'text': 'This is '
+                    'text': 'This is ',
                 }, {
                     'type': 'text',
                     'marks': [{
-                        'type': 'italic'
+                        'type': 'italic',
                     }],
-                    'text': 'italic'
+                    'text': 'italic',
                 }, {
                     'type': 'text',
-                    'text': ' text'
+                    'text': ' text',
                 }]
             }]
         }
@@ -88,16 +89,16 @@ def test_render_underline():
                 'type': 'paragraph',
                 'content': [{
                     'type': 'text',
-                    'text': 'This is '
+                    'text': 'This is ',
                 }, {
                     'type': 'text',
                     'marks': [{
-                        'type': 'underline'
+                        'type': 'underline',
                     }],
                     'text': 'underlined'
                 }, {
                     'type': 'text',
-                    'text': ' text'
+                    'text': ' text',
                 }]
             }]
         }
@@ -118,7 +119,7 @@ def test_render_bulletlist():
                         'type': 'paragraph',
                         'content': [{
                             'type': 'text',
-                            'text': 'Item 1'
+                            'text': 'Item 1',
                         }]
                     }]
                 }, {
@@ -127,7 +128,7 @@ def test_render_bulletlist():
                         'type': 'paragraph',
                         'content': [{
                             'type': 'text',
-                            'text': 'Item 2'
+                            'text': 'Item 2',
                         }]
                     }]
                 }, {
@@ -136,7 +137,7 @@ def test_render_bulletlist():
                         'type': 'paragraph',
                         'content': [{
                             'type': 'text',
-                            'text': 'Item 3'
+                            'text': 'Item 3',
                         }]
                     }]
                 }]
@@ -159,7 +160,7 @@ def test_render_orderedlist():
                         'type': 'paragraph',
                         'content': [{
                             'type': 'text',
-                            'text': 'Item 1'
+                            'text': 'Item 1',
                         }]
                     }]
                 }, {
@@ -168,7 +169,7 @@ def test_render_orderedlist():
                         'type': 'paragraph',
                         'content': [{
                             'type': 'text',
-                            'text': 'Item 2'
+                            'text': 'Item 2',
                         }]
                     }]
                 }, {
@@ -177,7 +178,7 @@ def test_render_orderedlist():
                         'type': 'paragraph',
                         'content': [{
                             'type': 'text',
-                            'text': 'Item 3'
+                            'text': 'Item 3',
                         }]
                     }]
                 }]
@@ -196,15 +197,15 @@ def test_render_horizontalrule():
                 'type': 'paragraph',
                 'content': [{
                     'type': 'text',
-                    'text': 'above'
+                    'text': 'above',
                 }]
             }, {
-                'type': 'horizontalRule'
+                'type': 'horizontalRule',
             }, {
                 'type': 'paragraph',
                 'content': [{
                     'type': 'text',
-                    'text': 'below'
+                    'text': 'below',
                 }
             ]}
         ]}
@@ -213,7 +214,7 @@ def test_render_horizontalrule():
     assert html == '<p>above</p><hr><p>below</p>'
 
 
-def test_render_link():
+def test_render_simple_link():
     context = {'object': {
         'text': {
             'type': 'doc',
@@ -221,23 +222,111 @@ def test_render_link():
                 'type': 'paragraph',
                 'content': [{
                     'type': 'text',
-                    'text': 'Click '
+                    'text': 'Click ',
                 }, {
                     'type': 'text',
                     'marks': [{
-                        'type': 'link',
+                        'type': 'simple_link',
                         'attrs': {
                             'href': 'https://example.org',
-                            'target': '_blank'
+                            'target': '_blank',
                         }
                     }],
-                    'text': 'here'
+                    'text': 'here',
                 }]
             }]
         }
     }}
     html = render_to_string('testapp/tiptap.html', context)
     assert html == '<p>Click <a href="https://example.org">here</a></p>'
+
+
+def test_render_placeholder():
+    context = {'object': {
+        'text': {
+            'type': 'doc',
+            'content': [{
+                'type': 'paragraph',
+                'content': [{
+                    'type': 'text',
+                    'text': 'Dear '
+                }, {
+                    'type': 'text',
+                    'marks': [{
+                        'type': 'procurator',
+                        'attrs': {
+                            'variable_name': 'full_name',
+                            'sample_value': 'John Doe',
+                            'role': 'placeholder',
+                        },
+                    }],
+                    'text': 'John Doe',
+                }, {
+                    'type': 'text',
+                    'text': ', you have been elected!',
+                }],
+            }],
+        },
+    }}
+    html = render_to_string('testapp/tiptap.html', context)
+    assert html == '<p>Dear {{ full_name|default:"John Doe" }}, you have been elected!</p>'
+
+
+def test_render_footnote():
+    context = {'object': {
+        'text': {
+            'type': 'doc',
+            'content': [{
+                'type': 'paragraph',
+                'content': [{
+                    'type': 'text',
+                    'text': 'Douglas Crockford specified the data format JSON'
+                }, {
+                    'type': "footnote",
+                    'attrs': {
+                        'content': {
+                            'type': 'doc',
+                            'content': [{
+                                'type': 'paragraph',
+                                'content': [{
+                                    'type': 'text',
+                                    'marks': [
+                                         {'type': 'bold'},
+                                    ],
+                                    'text': 'JSON',
+                                }, {
+                                    'type': 'text',
+                                    'text': ': ',
+                                }, {
+                                    'type': 'text',
+                                    'marks': [{
+                                        'type': 'simple_link',
+                                        'attrs': {
+                                            'href': 'https://en.wikipedia.org/wiki/JSON',
+                                        }
+                                    }],
+                                    'text': 'JavaScript Object Notation',
+                                }]
+                            }]
+                        },
+                        'role': 'note',
+                    }
+                }, {
+                    'type': 'text',
+                    'text': '.',
+                }],
+            }],
+        },
+    }}
+    html = render_to_string('testapp/tiptap.html', context)
+    assert html == strip_spaces_between_tags('''
+<p>Douglas Crockford specified the data format JSON<sup><a href="#_footnote-1">[1]</a></sup>.</p>
+<ol>
+    <li id="_footnote-1">
+        <p><strong>JSON</strong>: <a href="https://en.wikipedia.org/wiki/JSON">JavaScript Object Notation</a></p>
+    </li>
+</ol>
+''').replace('\t', '').replace('\n', '')
 
 
 def test_render_alternative_template():
@@ -248,28 +337,28 @@ def test_render_alternative_template():
                 'type': 'paragraph',
                 'content': [{
                     'type': 'text',
-                    'text': 'This is '
+                    'text': 'This is ',
                 }, {
                     'type': 'text',
                     'marks': [{
-                        'type': 'bold'
+                        'type': 'bold',
                     }],
-                    'text': 'bold'
+                    'text': 'bold',
                 }, {
                     'type': 'text',
-                    'text': ' '
+                    'text': ' ',
                 }, {
                     'type': 'text',
                     'marks': [{
-                        'type': 'italic'
+                        'type': 'italic',
                     }],
-                    'text': 'and italic'
+                    'text': 'and italic',
                 }, {
                     'type': 'text',
-                    'text': ' text.'
+                    'text': ' text.',
                 }]
             }]
         }
     }}
     html = render_to_string('testapp/tiptap-alternative.html', context)
-    assert html == '<article><p>This is <strong>bold</strong> <em>and italic</em> text.</p></article>'
+    assert html == '<article><p>This is <strong>bold</strong><em>and italic</em> text.</p></article>'

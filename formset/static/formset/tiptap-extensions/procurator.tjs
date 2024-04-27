@@ -1,5 +1,5 @@
 {
-	name: 'procurator',
+	name: 'procurator',  // implements the Placeholder extension
 	keepOnSplit: false,
 
 	addAttributes() {
