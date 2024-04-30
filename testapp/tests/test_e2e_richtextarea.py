@@ -176,7 +176,7 @@ def test_tiptap_valid_simple_link(page, viewname, richtext_wrapper, menubar, con
     expect(menu_button).to_have_class('active')
     set_caret(page, 3)
     set_caret(page, 2)
-    sleep(0.1)
+    sleep(0.2)
     expect(menu_button).not_to_have_class('active')
 
 
