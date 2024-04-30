@@ -637,7 +637,7 @@ class RichtextFormDialog extends FormDialog {
 		Array.from(this.formElement.elements).forEach(innerElement => {
 			if (innerElement instanceof HTMLInputElement && innerElement.hasAttribute('richtext-selection')) {
 				this.textSelectionField = innerElement;
-			} else if (innerElement.hasAttribute('richtext-map-to')) {
+			} else if (innerElement.hasAttribute('richtext-map-to') || innerElement.hasAttribute('richtext-map-from')) {
 				this.inputElements.push(innerElement as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement);
 			} else if (innerElement instanceof HTMLButtonElement) {
 				const action = innerElement.getAttribute('df-click');
@@ -751,8 +751,7 @@ class RichtextFormDialog extends FormDialog {
 			} else if (mapping) {
 				inputElement.value = getDataValue(attributes, mapping);
 			} else {
-				const mapping = inputElement.getAttribute('richtext-map-to');
-				inputElement.value = getDataValue(attributes, mapping ? mapping : inputElement.name);
+				inputElement.value = getDataValue(attributes, inputElement.name);
 			}
 		});
 		super.openDialog();
@@ -789,13 +788,13 @@ class RichtextFormDialog extends FormDialog {
 				let mapFunction: Function;
 				const mapping = inputElement.getAttribute('richtext-map-to')  ?? '';
 				if (mapping.startsWith('{') && mapping.endsWith('}')) {
-					mapFunction = new Function('element', `return ${mapping}`);
+					mapFunction = new Function('elements', `return ${mapping}`);
 				} else if (mapping) {
-					mapFunction = (element: HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement) => ({[mapping]: inputElement.value});
+					mapFunction = (elements: HTMLFormControlsCollection) => ({[mapping]: inputElement.value});
 				} else {
-					mapFunction = (element: HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement) => ({[inputElement.name]: inputElement.value});
+					mapFunction = (elements: HTMLFormControlsCollection) => ({[inputElement.name]: inputElement.value});
 				}
-				attributes = {...attributes, ...mapFunction(inputElement)};
+				attributes = {...attributes, ...mapFunction(this.formElement.elements)};
 			});
 			this.applyAttributes(editor, attributes);
 		} else if (returnValue === 'revert') {
