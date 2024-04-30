@@ -1,11 +1,13 @@
-=====================================
-Documentation of ``<django-formset>``
-=====================================
+===============================
+Documentation of django-formset
+===============================
 
-**Building beautiful Forms in Django with a contemporary User eXperience has never been easier.**
+**This missing widgets and form manipulation library for Django**
 
-``<django-formset>`` is a web component to let the browser pre-validate one or more standard
-Django ``Form``-s.
+``<django-formset>`` is a web component to let the browser pre-validate and manipulate one or more
+Django ``Form``-s. This facilitates developers to build beautiful forms with a contemporary user
+experience. This library ships with a set of widgets, which integrate seamlessly with their
+Django's counterparts. 
 
 
 .. toctree::
