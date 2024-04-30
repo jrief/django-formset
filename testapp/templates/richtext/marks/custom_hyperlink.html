@@ -1,0 +1,2 @@
+{%  load page_url from hyperlink %}
+<a href="{% if attrs.page_id %}{% page_url attrs.page_id %}{% else %}{{ attrs.href }}{% endif %}">{{ text }}</a>

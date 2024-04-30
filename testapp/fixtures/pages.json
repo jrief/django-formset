@@ -1,0 +1,306 @@
+[
+{
+  "model": "testapp.pagemodel",
+  "pk": 1,
+  "fields": {
+    "title": "The Mythical Man-Month",
+    "slug": "the-mythical-man-month"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 2,
+  "fields": {
+    "title": "Design Patterns",
+    "slug": "design-patterns"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 3,
+  "fields": {
+    "title": "The Pragmatic Programmer",
+    "slug": "the-pragmatic-programmer"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 4,
+  "fields": {
+    "title": "Code Complete",
+    "slug": "code-complete"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 5,
+  "fields": {
+    "title": "Test Driven Development",
+    "slug": "test-driven-development"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 6,
+  "fields": {
+    "title": "Refactoring",
+    "slug": "refactoring"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 7,
+  "fields": {
+    "title": "Extreme Programming Explained",
+    "slug": "extreme-programming-explained"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 8,
+  "fields": {
+    "title": "Succeeding with Agile",
+    "slug": "succeeding-with-agile"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 9,
+  "fields": {
+    "title": "The Deadline",
+    "slug": "the-deadline"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 10,
+  "fields": {
+    "title": "Essential Scrum",
+    "slug": "essential-scrum"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 11,
+  "fields": {
+    "title": "Effective Project Management",
+    "slug": "effective-project-management"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 12,
+  "fields": {
+    "title": "Effective Work Breakdown Structures",
+    "slug": "effective-work-breakdown-structures"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 13,
+  "fields": {
+    "title": "Strategic Project Management Made Simple",
+    "slug": "strategic-project-management-made-simple"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 14,
+  "fields": {
+    "title": "Learning Python",
+    "slug": "learning-python"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 15,
+  "fields": {
+    "title": "Django Design Patterns",
+    "slug": "django-design-patterns"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 16,
+  "fields": {
+    "title": "Learning jQuery",
+    "slug": "learning-jquery"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 17,
+  "fields": {
+    "title": "JavaScript: The Good Parts",
+    "slug": "javascript-the-good-parts"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 18,
+  "fields": {
+    "title": "The C++ Programming Language",
+    "slug": "the-c-programming-language"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 19,
+  "fields": {
+    "title": "C Programming Language",
+    "slug": "c-programming-language"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 20,
+  "fields": {
+    "title": "Clean Code",
+    "slug": "clean-code"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 21,
+  "fields": {
+    "title": "Peopleware",
+    "slug": "peopleware"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 22,
+  "fields": {
+    "title": "Slack",
+    "slug": "slack"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 23,
+  "fields": {
+    "title": "Agile Software Development",
+    "slug": "agile-software-development"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 24,
+  "fields": {
+    "title": "UML for Java Programmers",
+    "slug": "uml-for-java-programmers"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 25,
+  "fields": {
+    "title": "Designing Object Oriented C++ Applications",
+    "slug": "designing-object-oriented-c-applications"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 26,
+  "fields": {
+    "title": "More C++ Gems",
+    "slug": "more-c-gems"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 27,
+  "fields": {
+    "title": "Pragmatic Thinking and Learning",
+    "slug": "pragmatic-thinking-and-learning"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 28,
+  "fields": {
+    "title": "Practices of an Agile Developer",
+    "slug": "practices-of-an-agile-developer"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 29,
+  "fields": {
+    "title": "Learn to Program with Minecraft Plugins",
+    "slug": "learn-to-program-with-minecraft-plugins"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 30,
+  "fields": {
+    "title": "Two Scoops of Django",
+    "slug": "two-scoops-of-django"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 31,
+  "fields": {
+    "title": "Python for Data Analysis",
+    "slug": "python-for-data-analysis"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 32,
+  "fields": {
+    "title": "Effective Pandas",
+    "slug": "effective-pandas"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 33,
+  "fields": {
+    "title": "Fluent Python",
+    "slug": "fluent-python"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 34,
+  "fields": {
+    "title": "Python in a Nutshell",
+    "slug": "python-in-a-nutshell"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 35,
+  "fields": {
+    "title": "Django for Beginners",
+    "slug": "django-for-beginners"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 36,
+  "fields": {
+    "title": "Django for Professionals",
+    "slug": "django-for-professionals"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 37,
+  "fields": {
+    "title": "Django for APIs",
+    "slug": "django-for-apis"
+  }
+},
+{
+  "model": "testapp.pagemodel",
+  "pk": 38,
+  "fields": {
+    "title": "Full Stack Python Security",
+    "slug": "full-stack-python-security"
+  }
+}
+]

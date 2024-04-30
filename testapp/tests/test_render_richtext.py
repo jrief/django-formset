@@ -1,6 +1,12 @@
+import pytest
+
+from django.conf import settings
+from django.core.management import call_command
 from django.views.generic import TemplateView
 from django.template.loader import render_to_string
 from django.utils.html import strip_spaces_between_tags
+
+from testapp.models import PageModel
 
 
 class TiptapView(TemplateView):
@@ -362,3 +368,37 @@ def test_render_alternative_template():
     }}
     html = render_to_string('testapp/tiptap-alternative.html', context)
     assert html == '<article><p>This is <strong>bold</strong><em>and italic</em> text.</p></article>'
+
+
+@pytest.fixture(scope='function')
+def django_db_setup(django_db_blocker):
+    with django_db_blocker.unblock():
+        call_command('loaddata', settings.BASE_DIR / 'testapp/fixtures/pages.json', verbosity=0)
+
+
+@pytest.mark.django_db
+def test_render_custom_hyperlink():
+    page = PageModel.objects.order_by('?').first()
+    context = {'object': {
+        'text': {
+            'type': 'doc',
+            'content': [{
+                'type': 'paragraph',
+                'content': [{
+                    'type': 'text',
+                    'text': 'Click on this ',
+                }, {
+                    'type': 'text',
+                    'marks': [{
+                        'type': 'custom_hyperlink',
+                        'attrs': {
+                            'page_id': page.id,
+                        }
+                    }],
+                    'text': 'page',
+                }]
+            }]
+        }
+    }}
+    html = render_to_string('testapp/tiptap.html', context)
+    assert html == f'<p>Click on this <a href="{page.get_absolute_url()}">page</a></p>'

@@ -1,8 +1,10 @@
-from django.forms import fields, forms, widgets
+from django.forms import fields, forms, models, widgets
 
 from formset.richtext import controls, dialogs
 from formset.richtext.widgets import RichTextarea
+from formset.widgets import Selectize
 
+from testapp.models.page import PageModel
 
 initial_html = """
 <p>
@@ -27,7 +29,7 @@ initial_json = {
             "type": "text",
             "marks": [
               {
-                "type": "simple_link",
+                "type": "custom_hyperlink",
                 "attrs": {
                   "href": "http://example.org"
                 }
@@ -59,33 +61,50 @@ initial_json = {
 }
 
 
-class LinkDialogForm(dialogs.RichtextDialogForm):
-    title = "Edit Link"
-    extension = 'link'
+class CustomHyperlinkDialogForm(dialogs.RichtextDialogForm):
+    title = "Edit Hyperlink"
+    extension = 'custom_hyperlink'
+    extension_script = 'testapp/tiptap-extensions/custom_hyperlink.js'
     plugin_type = 'mark'
-    prefix = 'link_dialog'
-    icon = 'formset/icons/link.svg'
+    prefix = 'custom_hyperlink_dialog'
 
     text = fields.CharField(
-        label="Text",
+        label="Link Text",
         widget=widgets.TextInput(attrs={
             'richtext-selection': True,
             'size': 50,
         })
     )
-    url = fields.URLField(
-        label="Link",
-        widget=widgets.URLInput(attrs={
-            'size': 50,
-            'richtext-mapping': 'href',
-            'df-show': '.type == "external"',
+    link_type = fields.ChoiceField(
+        label="Link Type",
+        choices=[
+            ('external', "External URL"),
+            ('internal', "Internal Page"),
+        ],
+        initial='internal',
+        widget=widgets.Select(attrs={
+            'richtext-map-from': '{value: attributes.href ? "external" : "internal"}',
         }),
     )
-    type = fields.ChoiceField(
-        label="Type",
-        choices=[('internal', "Internal"), ('external', "External")],
-        initial='external',
-        widget=widgets.Select(attrs={'richtext-mapping': True}),
+    url = fields.URLField(
+        label="External URL",
+        widget=widgets.URLInput(attrs={
+            'size': 50,
+            'richtext-map-to': '{href: elements.link_type.value == "external" ? elements.url.value : ""}',
+            'richtext-map-from': 'href',
+            'df-show': '.link_type == "external"',
+            'df-require': '.link_type == "external"',
+        }),
+    )
+    page = models.ModelChoiceField(
+        queryset=PageModel.objects.all(),
+        label="Internal Page",
+        widget=Selectize(attrs={
+            'richtext-map-to': '{page_id: elements.link_type.value == "internal" ? elements.page.value : ""}',
+            'richtext-map-from': 'page_id',
+            'df-show': '.link_type == "internal"',
+            'df-require': '.link_type == "internal"',
+        }),
     )
 
 
@@ -114,7 +133,10 @@ class AdvertisementForm(forms.Form):
             controls.ClearFormat(),
             controls.Redo(),
             controls.Undo(),
-            controls.DialogControl(dialogs.SimpleLinkDialogForm()),
+            controls.DialogControl(
+                CustomHyperlinkDialogForm(),
+                icon='formset/icons/link.svg',
+            ),
             controls.DialogControl(dialogs.SimpleImageDialogForm()),
             controls.DialogControl(dialogs.PlaceholderDialogForm()),
             controls.DialogControl(dialogs.FootnoteDialogForm()),

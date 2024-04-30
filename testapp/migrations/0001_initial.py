@@ -80,14 +80,6 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='PayloadModel',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('data', models.JSONField()),
-                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
-            ],
-        ),
-        migrations.CreateModel(
             name='PollModel',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -209,7 +201,7 @@ class Migration(migrations.Migration):
             name='Company',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, verbose_name='Company name')),
+                ('name', models.CharField(help_text='The name of the company', max_length=50, verbose_name='Company name')),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
             ],
             options={
@@ -222,7 +214,7 @@ class Migration(migrations.Migration):
             name='Department',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, verbose_name='Department name')),
+                ('name', models.CharField(help_text='The name of the department', max_length=50, verbose_name='Department name')),
                 ('company', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='departments', to='testapp.company')),
             ],
             options={
@@ -235,7 +227,7 @@ class Migration(migrations.Migration):
             name='Team',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, verbose_name='Team name')),
+                ('name', models.CharField(help_text='The name of the team', max_length=50, verbose_name='Team name')),
                 ('department', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='teams', to='testapp.department')),
             ],
             options={
@@ -243,6 +235,35 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Teams',
                 'unique_together': {('name', 'department')},
             },
+        ),
+        migrations.CreateModel(
+            name='Gallery',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=50, verbose_name='Gallery name')),
+                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
+            ],
+            options={
+                'verbose_name': 'Gallery',
+                'verbose_name_plural': 'Galleries',
+                'unique_together': {('name', 'created_by')},
+            },
+        ),
+        migrations.CreateModel(
+            name='Image',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('image', models.FileField(blank=True, upload_to='images')),
+                ('gallery', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='images', to='testapp.gallery')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='PageModel',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('title', models.CharField(max_length=100, verbose_name='Page Title')),
+                ('slug', models.SlugField(unique=True, verbose_name='Page Slug')),
+            ],
         ),
         migrations.RunPython(initialize_opinions, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(initialize_counties, reverse_code=migrations.RunPython.noop),
