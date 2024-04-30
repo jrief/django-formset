@@ -55,6 +55,7 @@ class FieldGroup {
 	private readonly fileUploader?: FileUploadWidget;
 	private readonly updateVisibility: Function;
 	private readonly updateDisabled: Function;
+	private readonly updateRequired: Function;
 
 	constructor(form: DjangoForm, element: HTMLElement) {
 		this.form = form;
@@ -129,6 +130,7 @@ class FieldGroup {
 		this.pristineValue = new BoundValue(this.aggregateValue());
 		this.updateVisibility = this.evalVisibility('df-show', true) ?? this.evalVisibility('df-hide', false) ?? function() {};
 		this.updateDisabled = this.evalDisable();
+		this.updateRequired = this.evalRequire();
 		this.untouch();
 		this.setPristine();
 	}
@@ -185,6 +187,7 @@ class FieldGroup {
 	public updateOperability(action?: string) {
 		this.updateVisibility();
 		this.updateDisabled();
+		this.updateRequired();
 		this.fieldElements.filter(
 			fieldElement => typeof (fieldElement as any).updateOperability === 'function'
 		).forEach(
@@ -250,6 +253,21 @@ class FieldGroup {
 			}
 		} catch (error) {
 			throw new Error(`Error while parsing <... df-disable="${attrValue}">: ${error}.`);
+		}
+	}
+
+	private evalRequire(): Function {
+		const attrValue = this.fieldElements[0]?.getAttribute('df-require');
+		if (typeof attrValue !== 'string')
+			return () => {};
+		try {
+			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'OperabilityExpression'}));
+			return () => {
+				const require = evalExpression.call(this);
+				this.fieldElements.forEach((elem, index) => elem.required = require && this.initialRequired[index]);
+			}
+		} catch (error) {
+			throw new Error(`Error while parsing <... df-require="${attrValue}">: ${error}.`);
 		}
 	}
 
@@ -475,7 +493,6 @@ class TernaryAction {
 	readonly fulfilled: TernaryAction|ActionChain;
 	readonly otherwise: TernaryAction|ActionChain;
 }
-
 
 
 class DjangoButton {
