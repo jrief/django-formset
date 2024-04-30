@@ -2,7 +2,7 @@ import json
 
 from django import template
 from django.template.loader import get_template
-from django.utils.html import strip_spaces_between_tags, mark_safe
+from django.utils.html import mark_safe, strip_spaces_between_tags
 from django.utils.module_loading import import_string
 
 
