@@ -14,9 +14,9 @@ export class DjangoSelectize extends IncompleteSelect {
 	protected readonly shadowRoot: ShadowRoot;
 	private readonly extraStyleSheet: CSSStyleSheet = new CSSStyleSheet();
 	private readonly numOptions: number = 12;
-	private readonly tomSelect: TomSelect;
+	public readonly tomSelect: TomSelect;
 	private readonly observer: MutationObserver;
-	private initialValue: string | string[] = '';
+	private readonly initialValue: string|string[] = '';
 	private readonly baseSelector = '.ts-wrapper';
 
 	constructor(tomInput: HTMLSelectElement) {
@@ -127,18 +127,18 @@ export class DjangoSelectize extends IncompleteSelect {
 		this.loadOptions(this.buildFetchQuery(0, query), (options: Array<OptionData>) => {
 			callback(options, this.extractOptGroups(options));
 		});
-	}
+	};
 
 	private blurred = () => {
 		const wrapper = this.shadowRoot.querySelector('.ts-wrapper');
 		wrapper?.classList.remove('dirty');
-	}
+	};
 
 	private inputted = (event: Event) => {
 		const value = event as unknown as string;
 		const wrapper = this.shadowRoot.querySelector('.ts-wrapper');
 		wrapper?.classList.toggle('dirty', value.length > 0);
-	}
+	};
 
 	private validateInput(value: String | Array<string>) {
 		const wrapper = this.shadowRoot.querySelector('.ts-wrapper');
@@ -303,4 +303,18 @@ export class DjangoSelectizeElement extends HTMLSelectElement {
 	connectedCallback() {
 		this[DS].initialize();
 	}
+
+	get value() {
+		const value = this[DS]?.tomSelect.getValue();
+	 	return Array.isArray(value) ? value.join(',') : value;
+	}
+
+	set value(val: string) {
+		if (this.multiple) {
+			this[DS]?.tomSelect.setValue(val.split(','), true);
+		} else {
+			this[DS]?.tomSelect.setValue(val, true);
+		}
+	}
+
 }
