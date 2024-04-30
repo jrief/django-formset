@@ -167,6 +167,8 @@
 			&::after {
 				content: "[*]";
 				font-weight: 500;
+				font-size: 75%;
+				vertical-align: super;
 				color: $richtext-footnote-color;
 			}
 		}
