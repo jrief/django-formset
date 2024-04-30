@@ -1,10 +1,10 @@
 .. _richtext:
 
-==============
-Edit Rich Text
-==============
+=============
+Edit Richtext
+=============
 
-A Rich Textarea allows editing or pasting formatted text, similar to traditional "What you see is
+A ``RichTextarea`` allows editing or pasting formatted text, similar to traditional "What you see is
 what you get" (WYSIWYG) editors. The current implementation offers common text formatting options
 such as paragraphs, headings, emphasized and bold text, ordered and bulleted lists, and hyperlinks.
 More text formatting options will be implemented in the future.
@@ -55,6 +55,9 @@ the widget class ``RichTextarea`` can be configured using various control elemen
 This configuration would only allow to format text using **bold** and *italic*. Currently
 **django-formset** implements these formatting options:
 
+
+Simple Formatting Options
+-------------------------
 
 .. rubric:: Heading
 
@@ -112,12 +115,6 @@ settings of selected text. It can't be further configured.
 
 The classes :class:`formset.richtext.controls.Undo` and :class:`formset.richtext.controls.Redo` can
 be used to undo and redo changes on the current text. They can't be further configured.
-
-
-.. rubric:: Link
-
-The class :class:`formset.richtext.controls.Link` can be used to add a hyperlink to a selected part
-of some text. When choosing this option, a modal dialog pops up and the user can enter a URL.
 
 
 .. rubric:: Subscript
@@ -215,13 +212,91 @@ block. This is useful to show samples of code.
 .. rubric:: Hard Break
 
 The class :class:`formset.richtext.controls.Hardbreak` can be used to add a hard break to a
-paragraph, ie. add a `<br>`.
+paragraph, ie. add a ``<br>`` to the rendered HTML.
 
 
-.. rubric:: Additional Attributes
+Composed Formatting Options
+---------------------------
+
+In addition to the simple formatting options, **django-formset** offer some control elements which
+require multiple parameters. They use the class :class:`formset.richtext.controls.DialogControl`,
+which when clicked opens a ref:dialog-form`, which has to be specified as argument to this control
+element.
+
+Here are the built-in dialog forms:
+
+.. rubric:: Link
+
+The class :class:`formset.richtext.dialog.SimpleLinkDialogForm` can be used to add a hyperlink to a
+selected part of some text. When choosing this option, a dialog pops up and the user can enter a
+URL and edit the selected text.
+
+To declare this control write:
+
+.. code-block:: python
+
+	from formset.richtext.controls import DialogControl
+	from formset.richtext.dialogs import SimpleLinkDialogForm
+
+	DialogControl(SimpleLinkDialogForm())
+
+The form is named ``SimpleLinkDialogForm`` because it only allows to enter a URL. The users of this
+rich text field might however want to edit hyperlinks with the ``ref`` and ``target`` attributes,
+and might also want to set links on Django models providing the method `get_absolute_url`_, but
+referring to the primary key of the provided object. Since there can't be any one-size-fits-all
+solution, it is the implementor responsibility to provide a custom dialog form for this purpose.
+Section :ref:`richtext-extensions` explains in detail how to do this.
+
+.. _get_absolute_url: https://docs.djangoproject.com/en/stable/ref/models/instances/#get-absolute-url
+
+
+.. rubric:: Footnote
+
+The class :class:`formset.richtext.dialog.FootnoteDialogForm` can be used to add a footnote to the
+editable rich text. When choosing this option, a dialog pops up with another richtext editor inside.
+This editor can be configured in the same way as the main editor, but usually one would only allow a
+few formatting options. The content of this editor will be stored as a footnote and is not visible
+in the main text area. Instead, only a ``[*]`` will be rendered.
+
+
+.. rubric:: Image
+
+The class :class:`formset.richtext.dialog.SimpleImageDialogForm` can be used to add an image to the
+editable rich text. When choosing this option, a dialog pops up and the user can drag an image into
+the upload field. It will be uploaded to the server and only a reference to this image will be
+stored inside the text. The form is named ``SimpleImageDialogForm`` because it only allows to upload
+an image. The users of this rich text field might however want to edit the image size, the alt text,
+the caption, the alignment and other custom fields. Since there can't be any one-size-fits-all
+solution, it is the implementor responsibility to provide a custom dialog form for this purpose.
+Therefore this dialog form can be used as a starting point for a custom image uploading dialog form.
+
+
+.. rubric:: Placeholder
+
+The class :class:`formset.richtext.dialog.PlaceholderDialogForm` can be used to add a placeholder to
+the selected part of some text. When choosing this option, a dialog pops up and the user can enter a
+variable name and edit the selected placeholder text. Such a control element can be used to store
+HTML with contextual information. When this HTML content is finally rendered, those placeholder
+entries can be replaced against some context using the built-in Django template rendering functions.
+
+.. note:: Internally the placeholder extension is named "procurator" to avoid a naming conflict,
+	because there is a built-in TipTap extension named "placeholder".
+
+
+Additional Attributes
+---------------------
+
+Apart from the control elements, the rich text editor widget can be configured using additional
+attributes:
+
+.. rubric:: maxlength
 
 By adding ``maxlength`` to the widget's attributes, we can limit the number of characters to be
-entered into this text field. This will also visually show how many characters are left.
+entered into this text field. In the bottom right corner, this will show how many characters can
+still be entered.
+
+
+.. rubric:: placeholder
 
 By adding ``placeholder="Some text"`` to the widget's attributes, we can add a placeholder to the
 text field. This will disappear as soon as we start typing.
@@ -254,7 +329,7 @@ template filter `{{ …|safe }}`_.
 
 While this is a quick and fast solution, we shall always keep in mind that storing plain HTML inside
 a database field, prevents us from transforming the stored information into the final format while
-rendering. This means that the stored HTML is rendered as-is. As an alternative we can store that
+rendering. This means that the stored HTML is rendered as-is. A better alternative is to store that
 data as JSON.
 
 
@@ -290,7 +365,7 @@ available control elements. Such a configured editor then will look like:
 
 	from django.forms.models import ModelForm
 	from formset.richtext import controls
-	from formset.richtext.dialogs import SimpleLinkDialogForm
+	from formset.richtext import dialogs
 	from testapp.models import BlogModel
 
 	class EditorForm(ModelForm):
@@ -311,11 +386,13 @@ available control elements. Such a configured editor then will look like:
 	                controls.TextIndent('outdent'),
 	                controls.TextMargin('increase'),
 	                controls.TextMargin('decrease'),
-	                controls.DialogControl(SimpleLinkDialogForm()),
 	                controls.TextAlign(['left', 'center', 'right']),
 	                controls.HorizontalRule(),
 	                controls.Subscript(),
 	                controls.Superscript(),
+	                controls.DialogControl(dialogs.SimpleLinkDialogForm()),
+	                controls.DialogControl(dialogs.PlaceholderDialogForm()),
+	                controls.DialogControl(dialogs.FootnoteDialogForm()),
 	                controls.Separator(),
 	                controls.ClearFormat(),
 	                controls.Redo(),
@@ -340,8 +417,14 @@ available control elements. Such a configured editor then will look like:
 .. note:: After submission, the content of this form is stored in the database. Therefore after
 	reloading this page, the same content will reappear in the form.
 
-Since the content is stored in JSON, it must be converted to HTML before being rendered. For this
-purpose **django-formset** offers a templatetag, which can be used such as:
+
+.. _rendering-richtext:
+
+Rendering Richtext
+------------------
+
+Since the editor's content is stored in JSON, it must be converted to HTML before being rendered.
+For this purpose **django-formset** offers a templatetag, which can be used such as:
 
 .. code-block:: django
 
@@ -414,10 +497,10 @@ When rendered by the default ``richtext/doc.html`` template, its output looks li
 Implementation Details
 ======================
 
-This rich text area is based on the `headless Tiptap editor`_. This framework offers many more
-formatting options than currently implemented by the **django-formset** library. In the near future
-I will add them in a similar way to the existing control elements. Please help me to implement them
-by contributing to this project.
+This Richtext editing widget is based on the `headless Tiptap editor`_. This framework offers many
+more formatting options than currently implemented by the **django-formset** library. In the near
+future I will add them in a similar way to the existing control elements. Please help me to
+implement them by contributing to this project.
 
 .. _headless Tiptap editor: https://tiptap.dev/
 

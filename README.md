@@ -65,8 +65,7 @@ Or if rendered with the Tailwind renderer:
 
 ### Multiple Input Widgets
 
-Furthermore, it can render all widgets provided by Django (except Geospacials). This includes
-[multiple checkboxes](https://docs.djangoproject.com/en/stable/ref/forms/widgets/#checkboxselectmultiple)
+Furthermore, it can render all widgets provided by Django. This includes [multiple checkboxes](https://docs.djangoproject.com/en/stable/ref/forms/widgets/#checkboxselectmultiple)
 and radio selects, even with multiple option groups:
 
 ![Multiple Inputs](readmeimg/bootstrap-multiple-input.png)
@@ -132,7 +131,7 @@ Not every value or combination of thereof can be validated by the browser, but i
 rejected by the backend application. For instance, the `clean()`- and/or `clean_FIELDNAME()`-methods
 may complain about values using some kind of internal logic.
 
-Those serverside errors are sent back to the client and shown nearby the offending fields without
+Those serverside errors are sent back to the client and shown nearby the rejected fields without
 having to re-render the complete page. On success, a given page is loaded (or another alternative
 action is performed).
 
@@ -241,7 +240,7 @@ possible to the way Django handles forms, models and views.**
   declared for each Django form or model field in Python.
 * The form's data is sent by an Ajax request, preventing a full page reload. This gives a much
   better user experience.
-* Server side validation errors are sent back to the browser, and rendered near the offending
+* Server side validation errors are sent back to the browser, and rendered near the rejected
   form field.
 * Non-field validation errors are renderer together with the form.
 * CSRF-tokens are handled through an HTTP-Header, hence there is no need to add a hidden input field

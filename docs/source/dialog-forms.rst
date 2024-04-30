@@ -4,6 +4,8 @@
 Dialog Forms
 ============
 
+.. versionadded:: 1.4
+
 Dialog forms are a way to create a form that is displayed in a dialog box. In **django-formset**
 this is possible by using a :class:`formset.collection.FormCollection` and as one of its members,
 an instance of type :class:`formset.dialog.DialogForm`. This is very similar to a setup as described
@@ -63,8 +65,8 @@ This example shows how to use an ``Activator`` field to open and close a dialog 
 	    coffee = CoffeeForm()
 	    flavor = FlavorForm()
 
-This Form Dialog class has a few special attributes:
 
+This Form Dialog class has a few special attributes:
 
 .. rubric:: ``title``
  
