@@ -1,1 +1,1 @@
-{% for mark in node.marks %}{% with template="./marks/"|add:mark.type|lower|add:".html" %}{% include template with text=node.text attrs=mark.attrs %}{% endwith %}{% empty %}{{ node.text }}{% endfor %}
+{% for mark in node.marks %}{% with template="richtext/marks/"|add:mark.type|lower|add:".html" %}{% include template with text=node.text attrs=mark.attrs %}{% endwith %}{% empty %}{{ node.text }}{% endfor %}

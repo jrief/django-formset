@@ -1,7 +1,7 @@
 {% if node.content %}
 <li>
 {% for item in node.content %}
-	{% with template="./"|add:item.type|lower|add:".html" %}
+	{% with template="richtext/"|add:item.type|lower|add:".html" %}
 		{% include template with node=item %}
 	{% endwith %}
 {% endfor %}
