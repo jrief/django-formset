@@ -61,6 +61,7 @@ class SimpleLinkDialogForm(RichtextDialogForm):
         widget=widgets.URLInput(attrs={
             'size': 50,
             'richtext-map-to': 'href',
+            'richtext-map-from': 'href',
         }),
     )
 
@@ -75,7 +76,7 @@ class SimpleImageDialogForm(RichtextDialogForm):
     image = fields.ImageField(
         label=_("Uploaded Image"),
         widget=UploadedFileInput(attrs={
-            'richtext-map-to': '{src: JSON.parse(element.dataset.fileupload).download_url, dataset: JSON.parse(element.dataset.fileupload)}',
+            'richtext-map-to': '{src: JSON.parse(elements.image.dataset.fileupload).download_url, dataset: JSON.parse(elements.image.dataset.fileupload)}',
             'richtext-map-from': '{dataset: {fileupload: JSON.stringify(attributes.dataset)}}',
         }),
     )
@@ -132,7 +133,7 @@ class FootnoteDialogForm(RichtextDialogForm):
             ],
             attrs={
                 'use_json': True,
-                'richtext-map-to': '{content: element.value}',
+                'richtext-map-to': '{content: elements.content.value}',
                 'richtext-map-from': '{dataset: {content: JSON.stringify(attributes.content)}}',
             },
         )
