@@ -1,5 +1,16 @@
 ## Changes
 
+1.4
+  * Add support for form dialogs. They can be used standalone or to add complex extensions to the
+    Richtext editor.
+  * Add control element for footnotes to the Richtext editor.
+  * The ternary operator can be used in button actions to distinguish between two possible queues. 
+  * The ``require`` attribute of input fields can be made conditional.
+  * The ``Selectize`` widget now passes the value to and from the underlying implementation.
+  * Activators can be added to ``Form`` and ``FormCollection`` classes. They allow the usage of
+    buttons as first class input fields.
+  * Add support for Django-5.0.
+
 1.3.10
   * Fix #125: IncompleteSelect can't handle collections with siblings.
   * Fix #128: Boolean field shows label twice.
