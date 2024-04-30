@@ -1,5 +1,5 @@
 {
-	name: 'procurator',  // implements the Placeholder extension
+	name: 'procurator',  // renamed extension from "placeholder" to avoid naming conflict
 	keepOnSplit: false,
 
 	addAttributes() {

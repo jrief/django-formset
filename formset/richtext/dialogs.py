@@ -14,6 +14,14 @@ class RichtextDialogForm(DialogForm):
     is_transient = True
     induce_close = 'cancel:active || revert:active || apply:active'
     template_name = 'formset/richtext/form_dialog.html'
+    extension_script = None
+
+    def __init__(self, extension_script=None, **kwargs):
+        if extension_script:
+            self.extension_script = extension_script
+        if not self.extension_script and self.extension:
+            self.extension_script = f'formset/tiptap-extensions/{self.extension}.js'
+        super().__init__(**kwargs)
 
     cancel = Activator(
         label=_("Cancel"),
@@ -30,7 +38,7 @@ class RichtextDialogForm(DialogForm):
 
     def get_context(self):
         context = super().get_context()
-        context['extension_script'] = f'formset/tiptap-extensions/{self.extension}.tjs' if self.extension else None
+        context['extension_script'] = self.extension_script
         return context
 
 
