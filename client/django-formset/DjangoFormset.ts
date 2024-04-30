@@ -265,9 +265,7 @@ class FieldGroup {
 			return () => {
 				const require = evalExpression.call(this);
 				this.fieldElements.forEach((elem, index) => elem.required = require && this.initialRequired[index]);
-				if (!require) {
-					this.form.checkValidity();
-				}
+				this.form.checkValidity();
 			}
 		} catch (error) {
 			throw new Error(`Error while parsing <... df-require="${attrValue}">: ${error}.`);
