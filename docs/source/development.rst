@@ -38,7 +38,7 @@ tool-chain required to build the test application:
 	npm run docscss
 	mkdir workdir
 	export DJANGO_DEBUG=true
-	make --directory=docs json
+	sphinx-build -M json docs/source build
 	testapp/manage.py migrate
 	testapp/manage.py runserver
 
