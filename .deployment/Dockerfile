@@ -33,13 +33,14 @@ COPY .deployment/entrypoint.sh /web/entrypoint.sh
 
 # compile assets
 RUN npm run tag-attributes
+RUN npm run function-code
 RUN npm run compilescss
 RUN npm run tailwindcss
 RUN npm run esbuild
 
 # create documentation
 RUN npm run docscss
-RUN make --directory=docs json
+RUN sphinx-build -M json docs/source build
 
 # handle static and media files
 ENV DJANGO_STATIC_ROOT=/web/staticfiles
