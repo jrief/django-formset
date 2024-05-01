@@ -40,7 +40,7 @@ RUN npm run esbuild
 
 # create documentation
 RUN npm run docscss
-RUN sphinx-build -M json docs/source build
+RUN make --directory=docs json
 
 # handle static and media files
 ENV DJANGO_STATIC_ROOT=/web/staticfiles
