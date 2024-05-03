@@ -336,7 +336,7 @@ class PhoneNumberField {
 		this.inputElement.style.transition = 'none';  // prevent transition while pilfering styles
 		for (let index = 0; declaredStyles.sheet && index < declaredStyles.sheet.cssRules.length; index++) {
 			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
-			let extraStyles: string;
+			let extraStyles = '';
 			switch (cssRule.selectorText.trim()) {
 				case this.baseSelector:
 					loaded = true;
@@ -346,37 +346,35 @@ class PhoneNumberField {
 						'background-color', 'border', 'border-radius', 'color', 'outline', 'height', 'line-height',
 						'padding'
 					]);
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case `${this.baseSelector} + [role="textbox"].focus`:
 					this.inputElement.classList.add('-focus-');
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition']);
 					this.inputElement.classList.remove('-focus-');
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"]`:
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border-radius', 'color', 'line-height', 'padding']);
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] input[type="search"]`:
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border', 'border-radius', 'color', 'line-height', 'padding']);
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}`, ++index);
 					break;
 				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] input[type="search"]:focus`:
 					this.inputElement.classList.add('-focus-');
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'border', 'box-shadow', 'outline', 'transition']);
 					this.inputElement.classList.remove('-focus-');
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}`, ++index);
 					break;
 				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] ul`:
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{height:${Math.floor(window.innerHeight / 3)}px;}`, ++index);
+					extraStyles = `${cssRule.selectorText}{height:${Math.floor(window.innerHeight / 3)}px;}`;
 					break;
 				default:
 					break;
+			}
+			if (extraStyles) {
+				declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 			}
 		}
 		this.inputElement.style.transition = '';

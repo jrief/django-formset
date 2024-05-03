@@ -3,7 +3,7 @@
 [is="django-phone-number"] {
 	--dummy-style: none; // required by PhoneNumberField.transferStyles()
 
-	// Date input fields
+	// number input field
 	+ [role="textbox"] {
 		display: flex;
 		justify-content: flex-start;
