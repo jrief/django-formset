@@ -5,11 +5,13 @@ Selectize Widget
 ================
 
 Rendering choice fields using a ``<select>``-element becomes quite impractical when there are too
-many options to select from. For this purpose, the Django admin backend offers so-called
-`auto complete fields`_, which loads a filtered set of options from the server as soon as the user
-starts typing into the input field. This widget is based on the Select2_ plugin, which itself
-depends upon jQuery, and hence it is not suitable for **django-formset** which aims to be JavaScript
-framework agnostic.
+many options to select from.
+
+For this purpose, the Django admin backend offers so-called `auto complete fields`_, which loads a
+filtered set of options from the server as soon as the user starts typing into the input field. This
+widget is based on the Select2_ plugin, which itself depends upon jQuery, and hence it is not
+suitable for us. Since **django-formset** aims to be JavaScript framework agnostic, it uses an
+alternative widget written in pure JavaScript.
 
 .. _auto complete fields: https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.autocomplete_fields
 .. _Select2: https://select2.org/

@@ -22,7 +22,11 @@ Say, we use a model similar to that described in the Django documentation, ie.
 	    headline = models.CharField(max_length=200)
 	    content = models.TextField()
 	    reporter = models.ForeignKey(Reporter, on_delete=models.CASCADE)
-	    teaser = models.FileField(upload_to='images', blank=True)
+	    teaser = models.FileField(
+	        upload_to='images',
+	        blank=True,
+	        help_text="Maximum file size for uploading is 1MB",
+	    )
 
 We then use that model to create a form class. There however is a caveat: Some Django widgets used
 for rendering HTML fields shall or must be replaced by alternative widgets offered by the 
