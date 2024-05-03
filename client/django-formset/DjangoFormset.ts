@@ -570,7 +570,7 @@ class DjangoButton {
 	// @ts-ignore
 	private clicked = () => {
 		this.clickHandler();
-	}
+	};
 
 	public autoDisable(formValidity: Boolean) {
 		if (this.isAutoDisabled) {
@@ -654,7 +654,9 @@ class DjangoButton {
 					console.warn("Neither a success-, nor a proceed-URL are given.");
 				}
 			}
-			return Promise.resolve(response);
+			// since the new URL is usually loaded before this promise resolves, add a delay
+			// to prevent the restore handler from being called before the new page is loaded.
+			return new Promise(resolve => window.setTimeout(() => resolve(response), 3000));
 		}
 	}
 
@@ -856,7 +858,7 @@ class DjangoButton {
 	 * Called after all actions have been executed.
 	 */
 	private restore() {
-		return () => window.setTimeout(() => this.restoreToInitial());
+		window.setTimeout(() => this.restoreToInitial());
 	}
 
 	private decorate(decorator: HTMLElement, ms: number | undefined) {
@@ -872,65 +874,55 @@ class DjangoButton {
 	}
 
 	private setClickHandler(actions: TernaryAction|ActionChain) {
-		const successHandler = (actions: Array<ButtonAction>, promise: Promise<Response>|undefined) => {
-			for (const [index, action] of actions.entries()) {
-				if (!promise) {
-					promise = action.func.apply(this, action.args)();
-				} else {
-					promise = promise.then(action.func.apply(this, action.args));
-				}
+		const successHandler = (actions: Array<ButtonAction>) => {
+			let promise: Promise<Response>|undefined;
+			for (const action of actions.values()) {
+				promise = promise?.then(action.func.apply(this, action.args)) ?? action.func.apply(this, action.args)();
 			}
 			return promise;
 		};
 
-		const rejectHandler = (actions: Array<ButtonAction>, promise: Promise<Response>) => {
-			for (const [index, action] of actions.entries()) {
-				if (index === 0) {
-					promise = promise.catch(action.func.apply(this, action.args));
-				} else {
-					promise = promise.then(action.func.apply(this, action.args));
-				}
+		const rejectHandler = (actions: Array<ButtonAction>, response: Response) => {
+			let promise: Promise<Response>|undefined;
+			for (const action of actions.values()) {
+				promise = promise?.then(action.func.apply(this, action.args)) ?? action.func.apply(this, action.args)(response);
 			}
 			return promise;
 		};
 
-		const ternaryHandler = (ternary: TernaryAction, promise: Promise<Response>|undefined) => {
+		const actionHandler = (actions: ActionChain) => {
+			successHandler(actions.successChain)?.then(() => {
+				this.restore.apply(this);
+			})?.catch((response: Response) => {
+				rejectHandler(actions.rejectChain, response)?.finally(() => {
+					this.restore.apply(this)
+				});
+			});
+		};
+
+		const ternaryHandler = (ternary: TernaryAction) => {
 			if (ternary.condition.call(this)) {
 				if (ternary.fulfilled instanceof ActionChain) {
-					promise = successHandler(ternary.fulfilled.successChain, promise);
-					if (promise) {
-						promise = rejectHandler(ternary.fulfilled.rejectChain, promise);
-						promise.finally(this.restore.apply(this));
-					}
+					actionHandler(ternary.fulfilled);
 				} else {
-					promise = ternaryHandler(ternary.fulfilled, promise);
+					ternaryHandler(ternary.fulfilled);
 				}
 			} else {
 				if (ternary.otherwise instanceof ActionChain) {
-					promise = successHandler(ternary.otherwise.successChain, promise);
-					if (promise) {
-						promise = rejectHandler(ternary.otherwise.rejectChain, promise);
-						promise.finally(this.restore.apply(this));
-					}
+					actionHandler(ternary.otherwise);
 				} else {
-					promise = ternaryHandler(ternary.otherwise, promise);
+					ternaryHandler(ternary.otherwise);
 				}
 			}
-			return promise;
 		};
 
 		this.clickHandler = () => {
-			let promise: Promise<Response> | undefined;
 			if (actions instanceof ActionChain) {
-				promise = successHandler(actions.successChain, promise);
-				if (promise) {
-					promise = rejectHandler(actions.rejectChain, promise);
-					promise.finally(this.restore.apply(this));
-				}
+				actionHandler(actions);
 			} else {
-				ternaryHandler(actions, promise);
+				ternaryHandler(actions);
 			}
-		}
+		};
 	}
 
 	private parseActionsQueue(actionsQueue: string | null) {
@@ -2016,7 +2008,7 @@ export class DjangoFormset {
 	}
 
 	private reportErrors(body: any) {
-		console.info('Response from server:', body);
+		console.info("Response from server:", body);
 		for (const form of this.forms) {
 			const errors = form.name ? getDataValue(body, form.name.split('.'), null) : body;
 			if (!isEmpty(errors)) {
