@@ -1,5 +1,9 @@
 ## Changes
 
+1.4.1
+  * Fix #136: Submit button shows bummer symbol after okay symbol.
+  * Fix #132: The size of the input window does not change as the window size changes.
+
 1.4
   * Add support for form dialogs. They can be used standalone or to add complex extensions to the
     Richtext editor.
