@@ -45,11 +45,11 @@ msgstr ""
 
 #: boundfield.py:206
 msgid "Please enter a valid mobile number."
-msgstr ""
+msgstr "Bitte geben Sie eine gültige Mobilfunknummer ein."
 
 #: boundfield.py:208
 msgid "Please enter a valid phone number."
-msgstr ""
+msgstr "Bitte geben Sie eine gültige Telefonnummer ein."
 
 #: boundfield.py:217
 msgid "File upload still in progress."
@@ -62,42 +62,42 @@ msgstr "Datei-Upload ist fehlgeschlagen."
 #: collection.py:327
 #, python-brace-format
 msgid "Please correct the duplicate data for {0}."
-msgstr ""
+msgstr "Bitte korrigieren Sie die Duplikate für {0}."
 
 #: collection.py:329
 msgid "and"
-msgstr ""
+msgstr "und"
 
 #: collection.py:330
 #, python-brace-format
 msgid "Please correct the duplicate data for {0}, which must be unique."
-msgstr ""
+msgstr "Bitte korrigieren Sie die Duplikate für {0}, sie müssen eindeutig sein."
 
 #: collection.py:343
 #, python-brace-format
 msgid "Not enough entries in “{collection_name}”, please add another."
-msgstr ""
+msgstr "Nicht genügend Einträge in “{collection_name}”, bitte fügen Sie etwas ein."
 
 #: collection.py:347
 #, python-brace-format
 msgid "Too many entries in “{collection_name}”, please remove one."
-msgstr ""
+msgstr "Zu viele Einträge in “{collection_name}”, bitte entfernen Sie einen."
 
 #: ranges.py:85
 msgid "Enter two valid values."
-msgstr ""
+msgstr "Zwei gültige Werte eingeben."
 
 #: ranges.py:86
 msgid "The start of the range must not exceed the end of the range."
-msgstr ""
+msgstr "Der Anfang des Bereichs darf das Ende des Bereichs nicht überschreiten."
 
 #: ranges.py:122
 msgid "Enter two valid dates."
-msgstr ""
+msgstr "Zwei gültige Daten eingeben."
 
 #: ranges.py:123
 msgid "The start date must be before the end date."
-msgstr ""
+msgstr "Das Anfangsdatum muss vor dem Enddatum liegen."
 
 #: richtext/controls.py:39
 #: templates/formset/default/buttons/richtext_heading.html:4
@@ -111,29 +111,29 @@ msgstr "Überschrift"
 #: templates/formset/default/buttons/richtext_align.html:8
 #: templates/formset/default/buttons/richtext_align.html:10
 msgid "Text Align"
-msgstr ""
+msgstr "Textausrichtung"
 
 #: richtext/controls.py:96
 #: templates/formset/default/buttons/richtext_color.html:2
 #: templates/formset/default/buttons/richtext_color.html:3
 msgid "Text Color"
-msgstr ""
+msgstr "Textfarbe"
 
 #: richtext/controls.py:129
 msgid "Indent First Line"
-msgstr ""
+msgstr "Erste Zeile einrücken"
 
 #: richtext/controls.py:133
 msgid "Outdent First Line"
-msgstr ""
+msgstr "Erste Zeile ausrücken"
 
 #: richtext/controls.py:143
 msgid "Increase Margin"
-msgstr ""
+msgstr "Abstand vergrößern"
 
 #: richtext/controls.py:147
 msgid "Decrease Margin"
-msgstr ""
+msgstr "Abstand verkleinern"
 
 #: richtext/controls.py:155
 msgid "Bold"
@@ -141,15 +141,15 @@ msgstr "Fett"
 
 #: richtext/controls.py:160
 msgid "Blockquote"
-msgstr ""
+msgstr "Blockzitat"
 
 #: richtext/controls.py:165
 msgid "Code Block"
-msgstr ""
+msgstr "Codeblock"
 
 #: richtext/controls.py:170
 msgid "Hard Break"
-msgstr ""
+msgstr "Zeilenumbruch"
 
 #: richtext/controls.py:175
 msgid "Italic"
@@ -177,11 +177,11 @@ msgstr "Format zurücksetzen"
 
 #: richtext/controls.py:205
 msgid "Subscript"
-msgstr ""
+msgstr "Hochgestellt"
 
 #: richtext/controls.py:210
 msgid "Superscript"
-msgstr ""
+msgstr "Tiefgestellt"
 
 #: richtext/controls.py:215
 msgid "Undo"
@@ -193,7 +193,7 @@ msgstr "Nochmals machen"
 
 #: richtext/controls.py:225 richtext/dialogs.py:31
 msgid "Link"
-msgstr ""
+msgstr "Link"
 
 #: richtext/controls.py:231 richtext/dialogs.py:42
 msgid "Image"
@@ -201,7 +201,7 @@ msgstr "Bild"
 
 #: richtext/controls.py:237
 msgid "Placeholder"
-msgstr ""
+msgstr "Platzhalter"
 
 #: richtext/controls.py:242
 msgid "Separator"
@@ -213,7 +213,7 @@ msgstr "Link ändern"
 
 #: richtext/dialogs.py:27
 msgid "Text"
-msgstr ""
+msgstr "Text"
 
 #: richtext/dialogs.py:37
 msgid "Edit Image"
@@ -221,15 +221,15 @@ msgstr "Bild ändern"
 
 #: richtext/dialogs.py:48
 msgid "Edit Placeholder"
-msgstr ""
+msgstr "Platzhalter bearbeiten"
 
 #: richtext/dialogs.py:54
 msgid "Variable Name"
-msgstr ""
+msgstr "Variablenname"
 
 #: richtext/dialogs.py:58
 msgid "Sample Text"
-msgstr ""
+msgstr "Beispieltext"
 
 #: templates/calendar/hours.html:3
 msgid "Previous day"
