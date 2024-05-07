@@ -3,6 +3,7 @@
 1.4.2
   * Fix: `SlugInput` widget used an invalid `pattern` attribute in its input field.
   * Removed `^…` and `…$` from all `pattern` attributes in all fields using regular expressions.
+  * Add delay on `reload()` handler to prevent early firing of restore.
 
 1.4.1
   * Fix #136: Submit button shows bummer symbol after okay symbol.
