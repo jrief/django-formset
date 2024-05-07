@@ -335,7 +335,7 @@ class PhoneNumberInput(TextInput):
         super().__init__(attrs)
         self.attrs.update({
             'is': 'django-phone-number',
-            'pattern': r'^\+\d{3,16}$',  # E.164 format
+            'pattern': r'\+\d{3,16}',  # E.164 format
         })
 
 

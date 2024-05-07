@@ -629,7 +629,9 @@ class DjangoButton {
 	private reload(includeQuery?: Boolean) {
 		return (response: Response) => {
 			includeQuery ? location.reload() : location.replace(window.location.pathname);
-			return Promise.resolve(response);
+			// since the current page usually is reloaded before this promise resolves, add a delay
+			// to prevent the restore handler from being called before the page is reloaded.
+			return new Promise(resolve => window.setTimeout(() => resolve(response), 3000));
 		};
 	}
 
