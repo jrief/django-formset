@@ -359,7 +359,7 @@ class FieldGroup {
 	}
 
 	public validate() {
-		let element: FieldElement | null = null;
+		let element: FieldElement|null = null;
 		for (element of this.fieldElements) {
 			if (element instanceof HTMLInputElement && element.hasAttribute('is')) {
 				// input fields converted to web components may additionally validate themselves
@@ -427,7 +427,7 @@ class FieldGroup {
 	}
 
 	public setValidationError(): boolean {
-		let element: FieldElement | undefined;
+		let element: FieldElement|null = null;
 		for (element of this.fieldElements) {
 			if (!element.validity.valid)
 				break;
@@ -502,7 +502,7 @@ class DjangoButton {
 	private readonly initialClass: string;
 	private readonly isAutoDisabled: boolean;
 	private clickHandler: Function = () => {};
-	private readonly decoratorElement: HTMLElement | null;
+	private readonly decoratorElement: HTMLElement|null;
 	private readonly spinnerElement: HTMLElement;
 	private readonly okayElement: HTMLElement;
 	private readonly bummerElement: HTMLElement;
@@ -604,7 +604,7 @@ class DjangoButton {
 	 * Validate form content and submit to the endpoint given in element `<django-formset>`.
 	 */
 	// @ts-ignore
-	submit(data: Object | undefined) {
+	submit(data?: Object) {
 		return () => {
 			return new Promise((resolve, reject) => {
 				this.formset.submit(data).then(response =>
@@ -642,7 +642,7 @@ class DjangoButton {
 	 * response status.
 	 */
 	// @ts-ignore
-	private proceed(proceedUrl: string | undefined) {
+	private proceed(proceedUrl?: string) {
 		return async (response: Response) => {
 			if (typeof proceedUrl === 'string' && proceedUrl.length > 0) {
 				location.href = proceedUrl;
@@ -688,7 +688,7 @@ class DjangoButton {
 	 * Replace the button's decorator against an okay animation.
 	 */
 	// @ts-ignore
-	private okay(ms: number | undefined) {
+	private okay(ms?: number) {
 		return this.decorate(this.okayElement, ms);
 	}
 
@@ -696,7 +696,7 @@ class DjangoButton {
 	 * Replace the button's decorator against a bummer animation.
 	 */
 	// @ts-ignore
-	private bummer(ms: number | undefined) {
+	private bummer(ms?: number) {
 		return this.decorate(this.bummerElement, ms);
 	}
 
@@ -745,7 +745,7 @@ class DjangoButton {
 	 * @param event: The named event.
 	 */
 	// @ts-ignore
-	private emit(namedEvent: string, detail: Object | undefined) {
+	private emit(namedEvent: string, detail?: Object) {
 		return (response: Response) => {
 			const options = {bubbles: true, cancelable: true};
 			if (detail !== undefined) {
@@ -861,7 +861,7 @@ class DjangoButton {
 		window.setTimeout(() => this.restoreToInitial());
 	}
 
-	private decorate(decorator: HTMLElement, ms: number | undefined) {
+	private decorate(decorator: HTMLElement, ms?: number) {
 		return (response: Response) => {
 			this.decoratorElement?.replaceChildren(decorator);
 			if (typeof ms !== 'number')
@@ -925,7 +925,7 @@ class DjangoButton {
 		};
 	}
 
-	private parseActionsQueue(actionsQueue: string | null) {
+	private parseActionsQueue(actionsQueue: string|null) {
 		if (!actionsQueue)
 			return;
 
@@ -1104,12 +1104,12 @@ class DjangoForm {
 	public readonly formset: DjangoFormset;
 	public readonly element: HTMLFormElement;
 	public readonly path: Array<string>;
-	public readonly fieldset: DjangoFieldset | null;
-	private readonly errorList: Element | null = null;
-	private readonly errorPlaceholder: Element | null = null;
+	public readonly fieldset: DjangoFieldset|null;
+	private readonly errorList: Element|null = null;
+	private readonly errorPlaceholder: Element|null = null;
 	public readonly fieldGroups = Array<FieldGroup>(0);
 	public readonly hiddenInputFields = Array<HTMLInputElement>(0);
-	public readonly parentDialog: PerpetualFormDialog | null = null;
+	public readonly parentDialog: PerpetualFormDialog|null = null;
 	public readonly isTransient: boolean;
 	public markedForRemoval = false;
 
@@ -1145,11 +1145,11 @@ class DjangoForm {
 		return data;
 	}
 
-	public get name() : string | null {
+	public get name() : string|null {
 		return this.element.getAttribute('name');
 	}
 
-	public get formId() : string | null {
+	public get formId() : string|null {
 		return this.element.getAttribute('id');
 	}
 
@@ -1222,13 +1222,13 @@ class DjangoForm {
 			return;
 		}
 		event.preventDefault();
-	}
+	};
 
 	private handleReset = () => {
 		for (const fieldGroup of this.fieldGroups) {
 			fieldGroup.resetToInitial();
 		}
-	}
+	};
 
 	toggleForRemoval(remove: boolean) {
 		this.markedForRemoval = remove;
@@ -1260,7 +1260,7 @@ class DjangoForm {
 		}
 	}
 
-	public findFirstErrorReport() : Element | null {
+	public findFirstErrorReport() : Element|null {
 		if (this.errorList?.textContent)
 			return this.element;  // report a non-field error
 		for (const fieldGroup of this.fieldGroups) {
@@ -1421,7 +1421,7 @@ class DjangoFormCollection {
 		});
 
 		// undo DOM sorting previously changed by SortableJS
-		let prevElement: HTMLElement | null = null;
+		let prevElement: HTMLElement|null = null;
 		for (const collection of formCollections) {
 			if (collection instanceof DjangoFormCollectionSibling) {
 				if (collection.initialPosition === 0) {
@@ -1442,7 +1442,7 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 	public readonly initialPosition: number;
 	public readonly siblingId: number = 0;
 	private readonly minSiblings: number = 0;
-	public readonly maxSiblings: number | null = null;
+	public readonly maxSiblings: number|null = null;
 	private readonly removeButton: HTMLButtonElement;
 	private justAdded = false;
 
@@ -1549,7 +1549,7 @@ class DjangoFormCollectionTemplate {
 	private readonly parent?: DjangoFormCollection;
 	private readonly renderEmptyCollection: Function;
 	private readonly addButton?: HTMLButtonElement;
-	private readonly maxSiblings: number | null = null;
+	private readonly maxSiblings: number|null = null;
 	private readonly baseContext = new Map<string, string>();
 	public readonly prefix: string;
 	public markedForRemoval = false;
@@ -1664,7 +1664,7 @@ class DjangoFormCollectionTemplate {
 		this.addButton.disabled = this.maxSiblings === null ? false : numActiveSiblings >= this.maxSiblings;
 	}
 
-	static findFormCollectionTemplate(formset: DjangoFormset, element: Element, formCollection?: DjangoFormCollection) : DjangoFormCollectionTemplate | undefined {
+	static findFormCollectionTemplate(formset: DjangoFormset, element: Element, formCollection?: DjangoFormCollection) : DjangoFormCollectionTemplate|undefined {
 		const templateElement = element.querySelector(':scope > .collection-siblings > template.empty-collection') as HTMLTemplateElement;
 		if (templateElement) {
 			const formCollectionTemplate = new DjangoFormCollectionTemplate(formset, templateElement as HTMLTemplateElement, formCollection);
@@ -1679,7 +1679,7 @@ export class DjangoFormset {
 	private readonly element: DjangoFormsetElement;
 	public readonly buttons = Array<DjangoButton>(0);
 	private readonly forms = Array<DjangoForm>(0);
-	private readonly CSRFToken: string | null;
+	private readonly CSRFToken: string|null;
 	public readonly formCollections = Array<DjangoFormCollection>(0);
 	public readonly collectionErrorsList = new Map<string, HTMLUListElement>();
 	public formCollectionTemplate?: DjangoFormCollectionTemplate;
@@ -1948,7 +1948,7 @@ export class DjangoFormset {
 		return Object.assign({}, body, {_extra: extraData});
 	}
 
-	async submit(extraData?: Object) : Promise<Response | undefined> {
+	async submit(extraData?: Object) : Promise<Response|undefined> {
 		let formsAreValid = true;
 		this.setSubmitted();
 		if (!this.forceSubmission) {
@@ -2058,7 +2058,7 @@ export class DjangoFormset {
 		return getDataValue(this.data, absPath, null);
 	}
 
-	public findFirstErrorReport() : Element | null {
+	public findFirstErrorReport() : Element|null {
 		for (const form of this.forms) {
 			const errorReportElement = form.findFirstErrorReport();
 			if (errorReportElement)
@@ -2098,7 +2098,7 @@ export class DjangoFormsetElement extends HTMLElement {
 		this[FS].connectedCallback();
 	}
 
-	public async submit(data: Object|undefined): Promise<Response|undefined> {
+	public async submit(data?: Object) : Promise<Response|undefined> {
 		return this[FS].submit(data);
 	}
 
