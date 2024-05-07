@@ -89,7 +89,7 @@ export class FileUploadWidget {
 				this.fieldGroup.validate();
 			});
 		}
-	}
+	};
 
 	private fileRemove = () => {
 		this.inputElement.value = '';  // used to clear readonly `this.inputElement.files`
@@ -101,12 +101,12 @@ export class FileUploadWidget {
 		this.fieldGroup.touch();
 		this.fieldGroup.inputted();
 		this.fieldGroup.validate();
-	}
+	};
 
 	private swallowEvent = (event: Event) => {
 		event.stopPropagation();
 		event.preventDefault();
-	}
+	};
 
 	private async uploadFiles(files: FileList | null) : Promise<void> {
 		if (!files || files.length === 0)

@@ -95,7 +95,7 @@ export abstract class FormDialog {
 		};
 		const handleTouchEnd = (touchEndEvt: TouchEvent) => {
 			dialogHeaderElement.removeEventListener('touchmove', handleTouchMove);
-		}
+		};
 
 		if (event instanceof PointerEvent) {
 			offsetX = event.clientX - this.dialogOffsetX;
