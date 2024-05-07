@@ -1,5 +1,9 @@
 ## Changes
 
+1.4.2
+  * Fix: `SlugInput` widget used an invalid `pattern` attribute in its input field.
+  * Removed `^…` and `…$` from all `pattern` attributes in all fields using regular expressions.
+
 1.4.1
   * Fix #136: Submit button shows bummer symbol after okay symbol.
   * Fix #132: The size of the input window does not change as the window size changes.
@@ -7,6 +11,8 @@
 1.4
   * Add support for form dialogs. They can be used standalone or to add complex extensions to the
     Richtext editor.
+  * **Breaking change:** `controls.Link()` must be replaced by
+    `controls.DialogControl(SimpleLinkDialogForm())`. Check documentation for details.
   * Add control element for footnotes to the Richtext editor.
   * The ternary operator can be used in button actions to distinguish between two possible queues. 
   * The ``require`` attribute of input fields can be made conditional.

@@ -10,7 +10,7 @@ class DateRangeCalendar(DateCalendar):
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
-            'pattern': r'^\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}$',
+            'pattern': r'\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}',
             'is': 'django-daterangecalendar',
         }
         if attrs:
@@ -22,7 +22,7 @@ class DateRangePicker(DatePicker):
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
-            'pattern': r'^\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}$',
+            'pattern': r'\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}',
             'is': 'django-daterangepicker',
         }
         if attrs:
@@ -34,7 +34,7 @@ class DateRangeTextbox(DateTextbox):
     def __init__(self, attrs=None):
         default_attrs = {
             'type': 'regex',
-            'pattern': r'^\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}$',
+            'pattern': r'\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}',
             'is': 'django-daterangefield',
         }
         if attrs:
@@ -48,7 +48,7 @@ class DateTimeRangeCalendar(DateTimeCalendar):
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
-            'pattern': r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2};\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$',
+            'pattern': r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2};\d{4}-\d{2}-\d{2}T\d{2}:\d{2}',
             'is': 'django-datetimerangecalendar',
         }
         if attrs:
@@ -60,7 +60,7 @@ class DateTimeRangePicker(DateTimePicker):
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
-            'pattern': r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2};\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$',
+            'pattern': r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2};\d{4}-\d{2}-\d{2}T\d{2}:\d{2}',
             'is': 'django-datetimerangepicker',
         }
         if attrs:
@@ -72,7 +72,7 @@ class DateTimeRangeTextbox(DateTimeTextbox):
     def __init__(self, attrs=None):
         default_attrs = {
             'type': 'regex',
-            'pattern': r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2};\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$',
+            'pattern': r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2};\d{4}-\d{2}-\d{2}T\d{2}:\d{2}',
             'is': 'django-datetimerangefield',
         }
         if attrs:
