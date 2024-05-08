@@ -265,6 +265,7 @@ class PhoneNumberField {
 				liElem.scrollIntoView();
 			}
 		}
+		this.countryLookupField.focus();
 	}
 
 	private closeInternationalSelector() {
