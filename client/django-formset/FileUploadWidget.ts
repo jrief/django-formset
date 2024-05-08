@@ -176,12 +176,10 @@ export class FileUploadWidget {
 	}
 
 	private renderDropbox() {
-		let list = [];
-		for (const fileHandle of this.uploadedFiles) {
-			list.push(this.dropboxItemTemplate(fileHandle));
-		}
+		const list = this.uploadedFiles.map(this.dropboxItemTemplate);
 		if (list.length > 0) {
 			this.dropbox.innerHTML = list.join('');
+			this.inputElement.dataset.fileupload = JSON.stringify(this.uploadedFiles[0]);
 		} else {
 			this.dropbox.replaceChildren(this.emptyDropboxItem);
 		}
