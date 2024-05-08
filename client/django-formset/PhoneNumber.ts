@@ -109,7 +109,7 @@ class PhoneNumberField {
 		this.inputElement.dispatchEvent(new Event('focus'));
 		event.preventDefault();
 		this.hasFocus = true;
-	}
+	};
 
 	private setCaretToEnd() {
 		const textNode = this.editField.childNodes[0] as Text;
@@ -133,7 +133,7 @@ class PhoneNumberField {
 				this.updateInputField(event.target.innerText);
 			}
 		}
-	}
+	};
 
 	private handleBlur = () => {
 		setTimeout(() => {
@@ -144,7 +144,7 @@ class PhoneNumberField {
 				this.inputElement.dispatchEvent(new Event('blur'));
 			}
 		}, 0);
-	}
+	};
 
 	private handleClick = (event: Event) => {
 		let countryCode: string | null = null;
@@ -168,7 +168,7 @@ class PhoneNumberField {
 			element = element.parentElement;
 		}
 		this.closeInternationalSelector();
-	}
+	};
 
 	private handleSearch = (event: Event) => {
  		const search = this.countryLookupField.value.toLowerCase();
@@ -229,7 +229,7 @@ class PhoneNumberField {
 			default:
 				break;
 		}
-	}
+	};
 
 	private updatePosition = () => {
 		const zIndex = this.textBox.style.zIndex ? parseInt(this.textBox.style.zIndex) : 0;
@@ -238,7 +238,7 @@ class PhoneNumberField {
 		}).then(() => Object.assign(
 			this.internationalSelector.style, {zIndex: `${zIndex + 1}`}
 		));
-	}
+	};
 
 	private deselectAll = () => {
 		this.internationalSelector.querySelectorAll('li[data-country]').forEach(element => {
