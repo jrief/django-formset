@@ -79,9 +79,28 @@ export class FileUploadWidget {
 		}));
 	}
 
+	private matchesMimeType(mimeType: string): boolean {
+		const acceptTypes = this.inputElement.accept.split(',').map(s => s.trim());
+		if (acceptTypes.length === 0)
+			return true;
+		const [mainType, subType] = mimeType.split('/');
+		for (const acceptType of acceptTypes) {
+			if (acceptType === mimeType || subType === '*' && acceptType.split('/')[0] === mainType)
+				return true;
+		}
+		return false;
+	}
+
 	private fileDrop = (event: DragEvent) => {
 		this.swallowEvent(event);
 		if (event.dataTransfer) {
+			for (const file of event.dataTransfer.files) {
+				if (!this.matchesMimeType(file.type)) {
+					event.dataTransfer.clearData();
+					this.fieldGroup.reportFailedUpload();
+					return;
+				}
+			}
 			this.fieldGroup.touch();
 			this.inputElement.files = event.dataTransfer.files;
 			this.uploadFiles(this.inputElement.files).then(() => {

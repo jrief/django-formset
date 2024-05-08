@@ -10,6 +10,7 @@ from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import UploadedFile
 from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
+from django.forms.widgets import FILE_INPUT_CONTRADICTION
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
 from django.forms.widgets import DateTimeBaseInput, FileInput, Select, SelectMultiple, TextInput, Widget
 from django.template.loader import get_template
@@ -371,8 +372,24 @@ class UploadedFileInput(FileInput):
             if not handle:
                 return False  # marked as deleted
             if 'upload_temp_name' not in handle:
-                return
-            # file has just been uploaded
+                return  # widget already initialized, skip checks
+
+            # check if the file type corresponds to the allowed types
+            if accept := self.attrs.get('accept'):
+                main_type, sub_type = handle['content_type'].split('/')
+                try:
+                    accepted = [a.strip().split('/') for a in accept.split(',')]
+                    for acc_main, acc_sub in accepted:
+                        if acc_main == '*' or acc_main == main_type and acc_sub in ['*', sub_type]:
+                            break
+                    else:
+                        # apparently the user has tampered with the content type and bypassed the browser check
+                        # hence prevent the temporarily uploaded file from being moved to its final destination
+                        return FILE_INPUT_CONTRADICTION
+                except ValueError:
+                    pass
+
+            # check if the uploaded file has been signed by the server
             signer = get_cookie_signer(salt='formset')
             upload_temp_name = signer.unsign(handle['upload_temp_name'])
             file = default_storage.open(upload_temp_name, 'rb')
