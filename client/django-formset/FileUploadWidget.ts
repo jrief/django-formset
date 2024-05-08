@@ -49,7 +49,7 @@ export class FileUploadWidget {
 		const dropboxItemTemplate = this.fieldGroup.element.querySelector('.dj-dropbox-items');
 		if (!dropboxItemTemplate)
 			throw new Error('Element <input type="file"> requires sibling element <template class="dj-dropbox-items"></template>');
-		this.dropboxItemTemplate = template(dropboxItemTemplate.innerHTML);
+		this.dropboxItemTemplate = template(dropboxItemTemplate.innerHTML) as Function;
 
 		this.observer = new MutationObserver(mutationsList => this.attributesChanged(mutationsList));
 		this.observer.observe(this.inputElement, {attributes: true});
@@ -171,7 +171,7 @@ export class FileUploadWidget {
 				request.setRequestHeader('X-CSRFToken', csrfToken);
 			}
 			request.responseType = 'json';
-			request.send(body);
+			request.send(body as XMLHttpRequestBodyInit);
 		});
 	}
 
