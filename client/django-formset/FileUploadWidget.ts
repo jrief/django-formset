@@ -49,7 +49,7 @@ export class FileUploadWidget {
 		const dropboxItemTemplate = this.fieldGroup.element.querySelector('.dj-dropbox-items');
 		if (!dropboxItemTemplate)
 			throw new Error('Element <input type="file"> requires sibling element <template class="dj-dropbox-items"></template>');
-		this.dropboxItemTemplate = template(dropboxItemTemplate.innerHTML);
+		this.dropboxItemTemplate = template(dropboxItemTemplate.innerHTML) as Function;
 
 		this.observer = new MutationObserver(mutationsList => this.attributesChanged(mutationsList));
 		this.observer.observe(this.inputElement, {attributes: true});
@@ -79,9 +79,28 @@ export class FileUploadWidget {
 		}));
 	}
 
+	private matchesMimeType(mimeType: string): boolean {
+		const acceptTypes = this.inputElement.accept.split(',').map(s => s.trim());
+		if (acceptTypes.length === 0)
+			return true;
+		const [mainType, subType] = mimeType.split('/');
+		for (const acceptType of acceptTypes) {
+			if (acceptType === mimeType || subType === '*' && acceptType.split('/')[0] === mainType)
+				return true;
+		}
+		return false;
+	}
+
 	private fileDrop = (event: DragEvent) => {
 		this.swallowEvent(event);
 		if (event.dataTransfer) {
+			for (const file of event.dataTransfer.files) {
+				if (!this.matchesMimeType(file.type)) {
+					event.dataTransfer.clearData();
+					this.fieldGroup.reportFailedUpload();
+					return;
+				}
+			}
 			this.fieldGroup.touch();
 			this.inputElement.files = event.dataTransfer.files;
 			this.uploadFiles(this.inputElement.files).then(() => {
@@ -171,17 +190,15 @@ export class FileUploadWidget {
 				request.setRequestHeader('X-CSRFToken', csrfToken);
 			}
 			request.responseType = 'json';
-			request.send(body);
+			request.send(body as XMLHttpRequestBodyInit);
 		});
 	}
 
 	private renderDropbox() {
-		let list = [];
-		for (const fileHandle of this.uploadedFiles) {
-			list.push(this.dropboxItemTemplate(fileHandle));
-		}
+		const list = this.uploadedFiles.map(this.dropboxItemTemplate);
 		if (list.length > 0) {
 			this.dropbox.innerHTML = list.join('');
+			this.inputElement.dataset.fileupload = JSON.stringify(this.uploadedFiles[0]);
 		} else {
 			this.dropbox.replaceChildren(this.emptyDropboxItem);
 		}

@@ -1,5 +1,12 @@
 ## Changes
 
+1.4.3
+  * Fix regression in widget `UploadedFileInput` introduced in 1.4: The Delete button did not work
+    for files added through the `initial` parameter.
+  * Prevent uploading files with unmatching accept attribute.
+  * In widget `PhoneNumberInput`, set focus on country lookup field after opening dropdown box with
+    international prefixes.
+
 1.4.2
   * Fix: `SlugInput` widget used an invalid `pattern` attribute in its input field.
   * Removed `^…` and `…$` from all `pattern` attributes in all fields using regular expressions.
