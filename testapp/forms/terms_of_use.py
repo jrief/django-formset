@@ -1,8 +1,8 @@
-from django.forms import fields, forms
+from django.forms import fields, forms, widgets
 from django.utils.safestring import mark_safe
 
 from formset.collection import FormCollection
-from formset.dialog import ApplyButton, CancelButton, DialogForm
+from formset.dialog import CancelButton, DialogForm
 from formset.fields import Activator
 from formset.renderers import ButtonVariant
 from formset.widgets import Button
@@ -10,7 +10,7 @@ from formset.widgets import Button
 
 class AcceptDialogForm(DialogForm):
     title = "Terms of Use"
-    epilogue = mark_safe("""
+    prologue = mark_safe("""
         <p>This site does not allow content or activity that:</p>
         <ul>
             <li>is unlawful or promotes violence.</li>
@@ -23,9 +23,16 @@ class AcceptDialogForm(DialogForm):
     """)
     induce_open = 'submit:active'
     induce_close = '.close:active'
+    accept_terms = fields.BooleanField(
+        label="Accept terms of use",
+        required=False,
+    )
     close = Activator(
         label="Close",
-        widget=CancelButton,
+        widget=Button(
+            action='transferValue(user.accept_terms, accept.accept_terms) -> activate("cancel")',
+            button_variant=ButtonVariant.SECONDARY,
+        ),
     )
 
 
@@ -35,8 +42,8 @@ class UserNameForm(forms.Form):
         max_length=100,
     )
     accept_terms = fields.BooleanField(
-        label="Accept terms of use",
         required=False,
+        widget=widgets.HiddenInput,
     )
 
 

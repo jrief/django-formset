@@ -102,7 +102,10 @@ TernaryFactor
 
 
 function
-  = _ funcname:$keystring '(' args:arglist ')' _ {
+  = 'transferValue' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
+    return { funcname: 'transferValue', args: [target.split('.'), source] };
+  }
+  / _ funcname:$keystring '(' args:arglist ')' _ {
     return { funcname: funcname, args: args };
   }
   / funcname:$keystring '()' {
@@ -112,10 +115,18 @@ function
     return { funcname: funcname, args: [] };
   }
 
+SOURCEARG
+  = number
+  / boolean
+  / string
+  / path:PATH {
+    return {funcname: 'getDataValue', args: [path.split('.')]};
+  }
+
 scalar
   = number
   / boolean
-  / s:string { return `'${s}'`; }
+  / s:string { return '${s}'; }
 
 arglist
   = lhs:argument _ ',' _ rhs:arglist { return [lhs].concat(rhs) }
@@ -126,7 +137,6 @@ argument
   / string
   / object
   / array
-
 
 // ----- D. JSON -----
 

@@ -532,6 +532,7 @@ urlpatterns = [
     path('simplecontact', DemoFormCollectionView.as_view(
         collection_class=SimpleContactCollection,
         initial={'person': sample_person_data},
+        extra_context={'click_actions': 'disable -> setFieldValue(profession.company, person.last_name) -> submit -> reload !~ scrollToError'},
     ), name='simplecontact'),
     path('terms_of_use', DemoFormCollectionView.as_view(
         collection_class=AcceptTermsCollection,

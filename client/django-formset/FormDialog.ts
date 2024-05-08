@@ -121,8 +121,8 @@ export abstract class FormDialog {
 
 	// Hook to be overridden by subclasses.
 	// It shall return the aggregated data of the form dialog.
-	protected getDataValue(path: Array<string>) : string | null {
-		return null;
+	protected getDataValue(path: Array<string>) : string|undefined {
+		return undefined;
 	}
 
 	// Hook to be overridden by subclasses.

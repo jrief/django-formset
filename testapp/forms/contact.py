@@ -15,7 +15,6 @@ class ProfessionForm(forms.Form):
         max_length=50,
         help_text="The company's name",
     )
-
     job_title = fields.CharField(
         label="Job Title",
         max_length=50,
@@ -27,9 +26,7 @@ class SimpleContactCollection(FormCollection):
     """
     A Form Collection can be used to combine two or more Django Forms into one collection.
     """
-
     person = PersonForm()
-
     profession = ProfessionForm()
 
 

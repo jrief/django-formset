@@ -2,6 +2,7 @@ import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
 import isEqual from 'lodash.isequal';
 import isEmpty from 'lodash.isempty';
+import isPlainObject from 'lodash.isplainobject';
 import template from 'lodash.template';
 import Sortable, {SortableEvent} from 'sortablejs';
 import {FileUploadWidget} from './FileUploadWidget';
@@ -182,6 +183,31 @@ class FieldGroup {
 			}
 			return value;
 		}
+	}
+
+	public setFieldValue(value: FieldValue) {
+		if (this.fieldElements.length === 1) {
+			const element = this.fieldElements[0];
+			if (element.type === 'checkbox') {
+				(element as HTMLInputElement).checked = value === element.value;
+			} else if (element.type === 'select-multiple') {
+				const select = element as HTMLSelectElement;
+				const selectedOptions = Array.from(select.options).filter(o => (value as Array<string>).includes(o.value));
+				for (const option of selectedOptions) {
+					option.selected = true;
+				}
+			} else if (element.type !== 'file') {
+				element.value = value as string;
+			}
+		} else {
+			const values = value as Array<string>;
+			for (let element of this.fieldElements) {
+				if (element.type === 'checkbox') {
+					(element as HTMLInputElement).checked = values.includes(element.value);
+				}
+			}
+		}
+		this.validate();
 	}
 
 	public updateOperability(action?: string) {
@@ -847,6 +873,16 @@ class DjangoButton {
 	}
 
 	/**
+	 * Transfer value from one element to another one.
+ 	 */
+	private setFieldValue(target: Array<string>, source: FieldValue) {
+		return (response: Response) => {
+			this.formset.setFieldValue(target, source);
+			return Promise.resolve(response);
+		}
+	}
+
+	/**
 	 * Dummy action to be called in case of empty actionsQueue.
  	 */
 	private noop() {
@@ -876,10 +912,15 @@ class DjangoButton {
 	}
 
 	private setClickHandler(actions: TernaryAction|ActionChain) {
+		const inner = (action: any) : any => {
+			return action instanceof ButtonAction ? action.func.apply(this, action.args.map(inner)) : action;
+		};
+
 		const successHandler = (actions: Array<ButtonAction>) => {
 			let promise: Promise<Response>|undefined;
 			for (const action of actions.values()) {
-				promise = promise?.then(action.func.apply(this, action.args)) ?? action.func.apply(this, action.args)();
+				const next = action.func.apply(this, action.args.map(inner));
+				promise = promise?.then(next) ?? next();
 			}
 			return promise;
 		};
@@ -887,7 +928,8 @@ class DjangoButton {
 		const rejectHandler = (actions: Array<ButtonAction>, response: Response) => {
 			let promise: Promise<Response>|undefined;
 			for (const action of actions.values()) {
-				promise = promise?.then(action.func.apply(this, action.args)) ?? action.func.apply(this, action.args)(response);
+				const next = action.func.apply(this, action.args.map(inner));
+				promise = promise?.then(next) ?? next(response);
 			}
 			return promise;
 		};
@@ -931,16 +973,20 @@ class DjangoButton {
 		if (!actionsQueue)
 			return;
 
-		const createActions = (chain: Array<any>) => {
-			const actions = new Array<ButtonAction>();
-			for (let action of chain) {
+		const innerAction = (action: any) => {
+			if (isPlainObject(action)) {
 				const func = this[action.funcname as keyof DjangoButton];
 				if (typeof func !== 'function')
 					throw new Error(`Unknown function '${action.funcname}'.`);
-				actions.push(new ButtonAction(func, action.args));
+				return new ButtonAction(func, action.args.map(innerAction));
 			}
+			return action;
+		};
+
+		const createActions = (chain: Array<any>) => {
+			const actions = chain.map(innerAction);
 			if (actions.length === 0) {
-				// the actionsQueue must resolve at least once
+				// each action queue must resolve at least once
 				actions.push(new ButtonAction(this.noop, []));
 			}
 			return actions;
@@ -1037,7 +1083,7 @@ class DjangoFieldset {
 		}
 	}
 
-	private getDataValue(path: Array<string>) {
+	private getDataValue(path: Array<string>) : string|undefined {
 		return this.form.getDataValue(path);
 	}
 
@@ -1082,7 +1128,7 @@ class PerpetualFormDialog extends FormDialog {
 		}
 	}
 
-	protected getDataValue(path: Array<string>) {
+	protected getDataValue(path: Array<string>) : string|undefined {
 		return this.form.getDataValue(path);
 	}
 
@@ -1170,6 +1216,18 @@ class DjangoForm {
 		absPath.splice(absPath.length - delta + 1);
 		absPath.push(...relPath);
 		return this.formset.getDataValue(absPath);
+	}
+
+	public setFieldValue(fieldName: string, value: any) {
+		const fieldGroup = this.fieldGroups.find(group => group.name === fieldName);
+		if (fieldGroup) {
+			fieldGroup.setFieldValue(value);
+		} else if (this.element.elements.namedItem(fieldName)) {
+			(this.element.elements.namedItem(fieldName) as HTMLInputElement).value = value;
+			this.formset.validate();
+		} else {
+			console.warn(`Field group '${fieldName}' not found.`);
+		}
 	}
 
 	public updateOperability(action?: string) {
@@ -2055,9 +2113,17 @@ export class DjangoFormset {
 		}
 	}
 
-	public getDataValue(path: Array<string>) : string | null {
+	public getDataValue(path: Array<string>) : string|undefined {
 		const absPath = ['formset_data', ...path];
-		return getDataValue(this.data, absPath, null);
+		return getDataValue(this.data, absPath);
+	}
+
+	public setFieldValue(path: Array<string>, value: FieldValue) {
+		const formPath = path.slice(0, -1);
+		const destForm = this.forms.find(form => isEqual(form.path, formPath));
+		if (destForm && path.length > 0) {
+			destForm.setFieldValue(path.slice(-1)[0], value);
+		}
 	}
 
 	public findFirstErrorReport() : Element|null {
