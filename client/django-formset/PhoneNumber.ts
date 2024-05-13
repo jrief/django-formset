@@ -171,7 +171,11 @@ class PhoneNumberField {
 	};
 
 	private handleSearch = (event: Event) => {
- 		const search = this.countryLookupField.value.toLowerCase();
+ 		let search = this.countryLookupField.value.toLowerCase();
+		while (search.startsWith('0')) {
+			// no international dialing code starts with 0
+			search = search.slice(1);
+		}
 		this.internationalSelector.querySelectorAll('li[data-country]').forEach(element => {
 			const countryName = (element as HTMLElement).innerText.toLowerCase();
 			(element as HTMLElement).hidden = !countryName.includes(search);
