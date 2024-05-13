@@ -1,6 +1,9 @@
+type JSONValue = string|number|boolean|null|Array<JSONValue>|{[key: string]: JSONValue};
+type Path = Array<string>;
+
 interface DjangoButton {
 	element: HTMLButtonElement;
-	path: Array<string>;
+	path: Path;
 }
 
 interface DjangoFormset {
@@ -11,12 +14,12 @@ interface DjangoFormset {
 
 interface DjangoForm {
 	formset: DjangoFormset;
-	path: Array<string>;
+	path: Path;
 	setPristine(): void;
 	untouch(): void;
 	isValid(): boolean;
 	resetToInitial(): void;
-	getDataValue(path: Array<string>) : string | null;
+	getDataValue(path: Path) : string|null;
 }
 
 interface FieldGroup {

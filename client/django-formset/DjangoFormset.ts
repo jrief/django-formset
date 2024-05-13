@@ -298,7 +298,7 @@ class FieldGroup {
 		}
 	}
 
-	private getDataValue(path: Array<string>) {
+	private getDataValue(path: Path) {
 		return this.form.getDataValue(path);
 	}
 
@@ -532,13 +532,13 @@ class DjangoButton {
 	private readonly spinnerElement: HTMLElement;
 	private readonly okayElement: HTMLElement;
 	private readonly bummerElement: HTMLElement;
-	public readonly path = Array<string>();
+	public readonly path: Path = [];
 	private readonly updateVisibility: Function;
 	private readonly updateDisabled: Function;
 	private originalDecorator?: Node;
 	private timeoutHandler?: number;
 
-	constructor(formset: DjangoFormset, element: HTMLButtonElement, path: Array<string>) {
+	constructor(formset: DjangoFormset, element: HTMLButtonElement, path: Path) {
 		this.formset = formset;
 		this.element = element;
 		this.initialClass = element.getAttribute('class') ?? '';
@@ -875,7 +875,7 @@ class DjangoButton {
 	/**
 	 * Transfer value from one element to another one.
  	 */
-	private setFieldValue(target: Array<string>, source: FieldValue) {
+	private setFieldValue(target: Path, source: FieldValue) {
 		return (response: Response) => {
 			this.formset.setFieldValue(target, source);
 			return Promise.resolve(response);
@@ -1023,7 +1023,7 @@ class DjangoButton {
 		}
 	}
 
-	private getDataValue(path: Array<string>) {
+	private getDataValue(path: Path) {
 		return this.formset.getDataValue(path);
 	}
 
@@ -1083,7 +1083,7 @@ class DjangoFieldset {
 		}
 	}
 
-	private getDataValue(path: Array<string>) : string|undefined {
+	private getDataValue(path: Path) : string|undefined {
 		return this.form.getDataValue(path);
 	}
 
@@ -1128,11 +1128,11 @@ class PerpetualFormDialog extends FormDialog {
 		}
 	}
 
-	protected getDataValue(path: Array<string>) : string|undefined {
+	protected getDataValue(path: Path) : string|undefined {
 		return this.form.getDataValue(path);
 	}
 
-	protected isButtonActive(path: Array<string>, action: string): boolean {
+	protected isButtonActive(path: Path, action: string): boolean {
 		const absPath = path[0] !== '' ? path : (() => {
 			// path is relative, so concatenate it to the form's path
 			const absPath = [...this.form.path];
@@ -1151,7 +1151,7 @@ class PerpetualFormDialog extends FormDialog {
 class DjangoForm {
 	public readonly formset: DjangoFormset;
 	public readonly element: HTMLFormElement;
-	public readonly path: Array<string>;
+	public readonly path: Path;
 	public readonly fieldset: DjangoFieldset|null;
 	private readonly errorList: Element|null = null;
 	private readonly errorPlaceholder: Element|null = null;
@@ -1201,11 +1201,11 @@ class DjangoForm {
 		return this.element.getAttribute('id');
 	}
 
-	public getAbsPath() : Array<string> {
+	public getAbsPath() : Path {
 		return ['formset_data', ...this.path];
 	}
 
-	public getDataValue(path: Array<string>) {
+	public getDataValue(path: Path) {
 		if (path[0] !== '')
 			return this.formset.getDataValue(path);
 
@@ -1945,7 +1945,7 @@ export class DjangoFormset {
 		let dataValue: any;
 		// Build `body`-Object recursively.
 		// Deliberately ignore type-checking, because `body` must be built as POJO to be JSON serializable.
-		function extendBody(entry: any, relPath: Array<string>) {
+		function extendBody(entry: any, relPath: Path) {
 			if (relPath.length === 1) {
 				// the leaf object
 				if (Array.isArray(entry)) {
@@ -2113,12 +2113,12 @@ export class DjangoFormset {
 		}
 	}
 
-	public getDataValue(path: Array<string>) : string|undefined {
+	public getDataValue(path: Path) : string|undefined {
 		const absPath = ['formset_data', ...path];
 		return getDataValue(this.data, absPath);
 	}
 
-	public setFieldValue(path: Array<string>, value: FieldValue) {
+	public setFieldValue(path: Path, value: FieldValue) {
 		const formPath = path.slice(0, -1);
 		const destForm = this.forms.find(form => isEqual(form.path, formPath));
 		if (destForm && path.length > 0) {
