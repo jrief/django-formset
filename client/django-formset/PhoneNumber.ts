@@ -22,8 +22,8 @@ class PhoneNumberField {
 	private readonly codeCountryMap: [string, CountryCallingCode, CountryCode][];
 	private isOpen = false;
 	private isPristine = true;
-	private possibleCallingCode: Element | null = null;
-	private cleanup?: Function;
+	private possibleCallingCode: Element|null = null;
+	private cleanup = () => {};
 
 	constructor(element: HTMLInputElement) {
 		this.inputElement = element;
@@ -37,10 +37,10 @@ class PhoneNumberField {
 		this.mobileOnly = element.hasAttribute('mobile-only');
 		this.asYouType = new AsYouType(this.defaultCountryCode);
 		this.textBox = this.createTextBox();
-		this.editField = this.textBox.querySelector('.phone-number-edit')!;
-		this.internationalOpener = this.textBox.querySelector('.international-picker')!;
+		this.editField = this.textBox.querySelector('.phone-number-edit') as HTMLElement;
+		this.internationalOpener = this.textBox.querySelector('.international-picker') as HTMLElement;
 		this.internationalSelector = this.textBox.nextElementSibling as HTMLElement;
-		this.countryLookupField = this.internationalSelector.querySelector('input[type="search"]')!;
+		this.countryLookupField = this.internationalSelector.querySelector('input[type="search"]') as HTMLInputElement;
 		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
 			this.transferStyles();
 		}
@@ -191,6 +191,8 @@ class PhoneNumberField {
 
 		if (!this.isOpen)
 			return;
+		const visibleCountries = Array.from(this.internationalSelector.querySelectorAll('li[data-country]:not([hidden])'));
+		const selectedIndex = visibleCountries.findIndex(li => li.classList.contains('selected'));
 		switch (event.key) {
 			case 'Enter':
 				const element = this.internationalSelector.querySelector('li[data-country].selected');
@@ -205,22 +207,16 @@ class PhoneNumberField {
 				this.closeInternationalSelector();
 				break;
 			case 'ArrowUp':
-				let prev = this.internationalSelector.querySelector('li[data-country].selected')?.previousElementSibling;
-				if (!prev) {
-					prev = this.possibleCallingCode ?? this.internationalSelector.querySelector('li[data-country]:last-child');
-				}
-				if (prev instanceof HTMLLIElement) {
-					selectElement(prev);
+				const prevItem = visibleCountries[selectedIndex - 1] ?? visibleCountries.slice(-1)[0];
+				if (prevItem instanceof HTMLLIElement) {
+					selectElement(prevItem);
 				}
 				event.preventDefault();
 				break;
 			case 'ArrowDown':
-				let next = this.internationalSelector.querySelector('li[data-country].selected')?.nextElementSibling;
-				if (!next) {
-					next = this.possibleCallingCode ?? this.internationalSelector.querySelector('li[data-country]:first-child');
-				}
-				if (next instanceof HTMLLIElement) {
-					selectElement(next);
+				const nextItem = visibleCountries[selectedIndex + 1] ?? visibleCountries[0];
+				if (nextItem instanceof HTMLLIElement) {
+					selectElement(nextItem);
 				}
 				event.preventDefault();
 				break;
@@ -247,6 +243,11 @@ class PhoneNumberField {
 	private deselectAll = () => {
 		this.internationalSelector.querySelectorAll('li[data-country]').forEach(element => {
 			element.classList.remove('selected');
+		});
+	};
+
+	private clearSearch = () => {
+		this.internationalSelector.querySelectorAll('li[data-country]').forEach(element => {
 			(element as HTMLElement).hidden = false;
 		});
 	};
@@ -261,6 +262,7 @@ class PhoneNumberField {
 		this.isPristine = true;
 		this.countryLookupField.value = '';
 		this.deselectAll();
+		this.clearSearch();
 		const country = this.asYouType.getCountry();
 		if (country) {
 			const liElem = this.internationalSelector.querySelector(`[data-country="${country}"]`);
@@ -275,7 +277,7 @@ class PhoneNumberField {
 	private closeInternationalSelector() {
 		this.isOpen = false;
 		this.textBox.setAttribute('aria-expanded', 'false');
-		this.cleanup?.();
+		this.cleanup();
 	}
 
 	private setInternationalCode(countryCode: CountryCode, callingCode: CountryCallingCode) {
