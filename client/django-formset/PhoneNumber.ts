@@ -4,8 +4,6 @@ import {StyleHelpers} from './helpers';
 import {countries} from './countries';
 import styles from './PhoneNumber.scss';
 
-const gettext = typeof window.gettext === 'function' ? window.gettext : ((s: string) => s);
-
 
 class PhoneNumberField {
 	private readonly inputElement: HTMLInputElement;
