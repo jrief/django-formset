@@ -1,5 +1,12 @@
 ## Changes
 
+1.4.4
+  * Fix: In widget `PhoneNumberInput`, the country lookup field did not behave es expected when
+    using the up- or down-arrow keys to navigate through the list of countries.
+  * In widget `PhoneNumberInput`, entering "0" into the search field now does not filter the list
+    of countries anymore. This is because country codes starting with "00" is not a valid E.164
+    format.
+
 1.4.3
   * Fix regression in widget `UploadedFileInput` introduced in 1.4: The Delete button did not work
     for files added through the `initial` parameter.
