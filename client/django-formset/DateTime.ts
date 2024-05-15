@@ -450,25 +450,29 @@ class DateTimeField extends Widget {
 		let loaded = false;
 		for (let index = 0; declaredStyles.sheet && index < declaredStyles.sheet.cssRules.length; index++) {
 			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
-			let extraStyles: string;
-			switch (cssRule.selectorText) {
+			const selector = cssRule.selectorText.trim();
+			let extraStyles = '';
+			switch (selector) {
 				case this.baseSelector:
 					loaded = true;
 					break;
 				case `${this.baseSelector} + [role="textbox"]`:
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
-						'background-color', 'border', 'color', 'outline', 'height', 'line-height', 'padding']);
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+						'background-color', 'border', 'border-radius', 'color', 'outline', 'height', 'line-height',
+						'padding',
+					]);
 					break;
 				case `${this.baseSelector} + [role="textbox"].focus`:
 					this.inputElement.classList.add('-focus-');
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition']);
 					this.inputElement.classList.remove('-focus-');
-					declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				default:
 					break;
+			}
+			if (extraStyles) {
+				declaredStyles.sheet.insertRule(`${selector}{${extraStyles}}`, ++index);
 			}
 		}
 		this.inputElement.style.transition = '';

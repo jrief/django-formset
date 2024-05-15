@@ -335,15 +335,16 @@ class PhoneNumberField {
 		this.inputElement.style.transition = 'none';  // prevent transition while pilfering styles
 		for (let index = 0; declaredStyles.sheet && index < declaredStyles.sheet.cssRules.length; index++) {
 			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
+			const selector = cssRule.selectorText.trim();
 			let extraStyles = '';
-			switch (cssRule.selectorText.trim()) {
+			switch (selector) {
 				case this.baseSelector:
 					loaded = true;
 					break;
 				case `${this.baseSelector} + [role="textbox"]`:
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border', 'border-radius', 'color', 'outline', 'height', 'line-height',
-						'padding'
+						'padding',
 					]);
 					break;
 				case `${this.baseSelector} + [role="textbox"].focus`:
@@ -351,6 +352,9 @@ class PhoneNumberField {
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition']);
 					this.inputElement.classList.remove('-focus-');
+					break;
+				case `${this.baseSelector} + [role="textbox"] > .phone-number-edit`:
+					extraStyles = `line-height:${window.getComputedStyle(document.querySelector(selector)!).height};`;
 					break;
 				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"]`:
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
@@ -367,13 +371,13 @@ class PhoneNumberField {
 					this.inputElement.classList.remove('-focus-');
 					break;
 				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] ul`:
-					extraStyles = `${cssRule.selectorText}{height:${Math.floor(window.innerHeight / 3)}px;}`;
+					extraStyles = `${selector}{height:${Math.floor(window.innerHeight / 3)}px;}`;
 					break;
 				default:
 					break;
 			}
 			if (extraStyles) {
-				declaredStyles.sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
+				declaredStyles.sheet.insertRule(`${selector}{${extraStyles}}`, ++index);
 			}
 		}
 		this.inputElement.style.transition = '';
