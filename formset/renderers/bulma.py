@@ -62,7 +62,6 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_input,
         'django/forms/widgets/email.html': _amend_input,
-        'django/forms/widgets/date.html': _amend_input,
         'django/forms/widgets/number.html': _amend_input,
         'django/forms/widgets/password.html': _amend_input,
         'django/forms/widgets/url.html': _amend_input,
@@ -70,5 +69,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/textarea.html': _amend_textarea,
         'django/forms/widgets/radio.html': _amend_radio,
         'formset/default/collection.html': _amend_collection,
+        'formset/default/widgets/date.html': _amend_input,
+        'formset/default/widgets/datetime.html': _amend_input,
         'formset/default/widgets/richtextarea.html': _amend_textarea,
     })
