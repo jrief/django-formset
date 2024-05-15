@@ -1,17 +1,6 @@
 import template from 'lodash.template';
 
 
-interface FileUploadResponse {
-	content_type: string;
-	content_type_extra: Object;
-	download_url: string;
-	name: string;
-	size: number;
-	thumbnail_url: string;
-	upload_temp_name: string;
-}
-
-
 export class FileUploadWidget {
 	private readonly fieldGroup: FieldGroup;
 	private readonly inputElement: HTMLInputElement;
@@ -195,6 +184,7 @@ export class FileUploadWidget {
 	}
 
 	private renderDropbox() {
+		// @ts-ignore
 		const list = this.uploadedFiles.map(this.dropboxItemTemplate);
 		if (list.length > 0) {
 			this.dropbox.innerHTML = list.join('');
