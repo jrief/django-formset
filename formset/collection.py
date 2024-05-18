@@ -1,7 +1,6 @@
 import operator
 from functools import reduce
 
-from django import VERSION as DJANGO_VERSION
 from django.core import validators
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.db.utils import IntegrityError
@@ -300,8 +299,6 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     self._errors[name] = {NON_FIELD_ERRORS: ["Form data is missing."]}
 
     def validate_unique(self):
-        if DJANGO_VERSION < (4, 1):
-            return
         unique_fields = {self.related_field} if getattr(self, 'related_field', None) else set()
         all_unique_checks = set()
         for valid_holders in self.valid_holders:

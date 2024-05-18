@@ -3,7 +3,6 @@ name: Test django-formset
 on:
   push:
     branches:
-      - main
       - releases/*
     paths-ignore:
       - '**.md'
@@ -11,7 +10,7 @@ on:
       - '/docs/**'
   pull_request:
     branches:
-      - main
+      - develop
     paths-ignore:
       - '**.md'
       - '**.rst'
@@ -22,17 +21,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11"]
-        django-version: ["4.1.*", "4.2.*", "5.0.*"]
+        python-version: ["3.10", "3.11", "3.12"]
+        django-version: ["4.2.*", "5.0.*"]
         node-version: ["18.x"]
         include:
           - build-client: "esbuild"
-          - build-client: "esbuild"  # rollup is not working in NodeJS 18
-            python-version: "3.10"
-            django-version: "4.1.*"
         exclude:
           - python-version: "3.10"
             django-version: "5.0.*"
+          - python-version: "3.12"
+            django-version: "4.2.*"
 
     steps:
     - uses: actions/checkout@v2
