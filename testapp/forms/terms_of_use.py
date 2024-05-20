@@ -2,7 +2,7 @@ from django.forms import fields, forms, widgets
 from django.utils.safestring import mark_safe
 
 from formset.collection import FormCollection
-from formset.dialog import CancelButton, DialogForm
+from formset.dialog import DialogForm
 from formset.fields import Activator
 from formset.renderers import ButtonVariant
 from formset.widgets import Button
@@ -22,15 +22,18 @@ class AcceptDialogForm(DialogForm):
         <p><strong>Before proceeding, please accept the terms of use.</strong></p>
     """)
     induce_open = 'submit:active'
-    induce_close = '.close:active'
-    accept_terms = fields.BooleanField(
-        label="Accept terms of use",
-        required=False,
-    )
-    close = Activator(
-        label="Close",
+    induce_close = '.accept:active || .deny:active'
+    accept = Activator(
+        label="Accept",
         widget=Button(
-            action='transferValue(user.accept_terms, accept.accept_terms) -> activate("cancel")',
+            action='setFieldValue(user.accept_terms, true) -> activate("close")',
+            button_variant=ButtonVariant.PRIMARY,
+        ),
+    )
+    deny = Activator(
+        label="Deny",
+        widget=Button(
+            action='activate("close")',
             button_variant=ButtonVariant.SECONDARY,
         ),
     )
