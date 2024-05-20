@@ -1273,7 +1273,10 @@ class DjangoForm {
 	reportValidity() {
 		if (this.element.noValidate || this.isTransient)
 			return;
-		this.element.reportValidity();
+		const rect = this.element.getBoundingClientRect();
+		if (rect.width !== 0 || rect.height !== 0) {
+			this.element.reportValidity();
+		}
 	}
 
 	clearCustomErrors() {
