@@ -106,7 +106,7 @@ In addition to the two native widgets :class:`formset.widgets.DatePicker` and
 render the calendar part of the input field server-side, using Python's built-in Calendar_ class.
 This gives us finer control over the styling of the date picker, and offers the same user experience
 across all browsers. They furthermore have a more appealing user interface which is consistent with
-the date- and date-time range fields provided by **django-formset**.
+the :ref:`date-time-range` fields provided by **django-formset**.
 
 In this example, we want to add a field to enter the publishing date of our blog. By using the named
 widgets instead of the default, this input field opens a calendar, whenever the user clicks on it.
@@ -234,7 +234,7 @@ which is rendered when using the widget :class:`formset.widgets.DateTimeInput`. 
 possible, it is not recomended to interchange them on the same page or even application as this
 results in unexpected user experience.
 
-By clicking on a date inside the ``DateTimePicker`` widget, a 24h view appears. Depending on the
+By clicking on a date inside the ``DateTimePicker`` widget, a 24 hour view appears. Depending on the
 chosen value for the ``step`` attribute , the user can then select a certain time interval. The
 ``step`` attribute must be of Python type ``datetime.timedelta`` and can have one of these values:
 ``timedelta(minutes=5)``, ``timedelta(minutes=10)``, ``timedelta(minutes=15)``,

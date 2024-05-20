@@ -116,10 +116,10 @@ To get this example to work, we therefore have to implement those two methods in
 case the ``User`` object. Since we have a *one-to-one* relation, there can only be *no* or *one*
 related ``ExtendUser`` object. If there is none, create it.
 
-Finally, our ``UserCollection`` must be served by a Django view class. Since this is a common use
-case, **django-formset** offers the class :class:`formset.views.EditCollectionView` which is
-specialized in editing related models starting from a dedicated object. The latter usually is
-determined by using a unique identifier, for instance its primary key or a slug.
+Finally, our ``UserCollection`` must be made editable and served by a Django view class. Since this
+is a common use case, **django-formset** offers the class :class:`formset.views.EditCollectionView`
+which is specialized in editing related models starting from a dedicated object. The latter usually
+is determined by using a unique identifier, for instance its primary key or a slug.
 
 .. django-view:: extend_user
 	:view-function: type('UserCollectionView', (SessionFormCollectionViewMixin, model_collections.UserCollectionView), {}).as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'extend-user'}, collection_kwargs={'renderer': FormRenderer(field_css_classes='mb-3')})
@@ -181,7 +181,6 @@ We immediately see that these models have a hierarchy of three levels. In classi
 form to edit them altogether is not an easy task. To solve this, **django-formset** offers the
 possibility to let form collections have siblings. We then can create forms and collection to edit
 the company, its departments and their teams as:
-
 
 .. django-view:: company_collection
 	:hide-view:
@@ -251,6 +250,9 @@ field named ``id`` comes into play. It is a hidden ``IntegerField`` and represen
 of the model instances ``Department`` or ``Team``. Since newly created instances haven't any primary
 key yet, it is marked with ``required=False`` to make it optional.
 
+Finally, our ``CompanyCollection`` must be made editable and served by a Django view class. Here we
+can use the the view class :ref:`formset.views.EditCollectionView` as in the previous example.
+
 .. django-view:: company_view
 	:view-function: type('CompanyCollectionView', (SessionFormCollectionViewMixin, model_collections.CompanyCollectionView), {}).as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'company-collection'}, collection_kwargs={'renderer': FormRenderer(field_css_classes='mb-2')})
 	:swap-code:
@@ -261,17 +263,22 @@ key yet, it is marked with ``required=False`` to make it optional.
 	    collection_class = CompanyCollection
 	    template_name = 'form-collection.html'
 
+The view class ``CompanyCollectionView`` is specialized in editing related models starting from a
+dedicated object. The latter usually is determined by using a unique identifier, for instance its
+primary key or a slug.
+
 .. rubric:: ``related_field``
 
-In this example we have to implement the attribute ``related_field``. This is because
-**django-formset** otherwise does not know how the ``DepartmentCollection`` is related to model
-``Company``, and how the ``TeamCollection`` is related to model ``Department``. 
+In this example we have to implement the attribute ``related_field`` in our main collection class
+``CompanyCollection``. This is because **django-formset** otherwise does not know how the
+``DepartmentCollection`` is related to model ``Company``, and how the ``TeamCollection`` is related
+to model ``Department``. 
 
 .. rubric:: ``retrieve_instance(data)``
 
 We recall that in the form declaration, we added a hidden field named ``id`` to keep track of the
 primary key. During submission, we therefore must find the link between instances of type
-``Department`` to its ``Company``, or between instances of type ``Team`` to their ``Department``.
+``Department`` to their ``Company``, or between instances of type ``Team`` to their ``Department``.
 Forms which have been added using the buttons "Add Team" or "Add Department" have an empty ``id``
 field, because for obvious reasons, no primary key yet exists. For this to work we therefore have to
 implement a custom method ``retrieve_instance(data)``. This method is responsible to retrieve the

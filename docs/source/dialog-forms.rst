@@ -50,6 +50,7 @@ This example shows how to use an ``Activator`` field to open and close a dialog 
 	            ('cream', "Irish Cream"),
 	        ),
 	        widget=RadioSelect,
+	        required=False,
 	    )    
 	    cancel = Activator(
 	        label="Close",
@@ -154,7 +155,7 @@ Here is an example of a modal dialog form:
 	from django.forms.forms import Form
 	from django.utils.safestring import mark_safe
 	from formset.collection import FormCollection
-	from formset.dialog import ApplyButton, CancelButton, DialogForm
+	from formset.dialog import DialogForm
 	from formset.fields import Activator
 	from formset.renderers import ButtonVariant
 	from formset.widgets import Button
@@ -173,10 +174,20 @@ Here is an example of a modal dialog form:
 	        <p><strong>Before proceeding, please accept the terms of use.</strong></p>
 	    """)
 	    induce_open = 'submit:active'
-	    induce_close = '.close:active'
-	    close = Activator(
-	        label="Close",
-	        widget=CancelButton,
+	    induce_close = '.accept:active || .reject:active'
+	    accept = Activator(
+	        label="Accept",
+	        widget=Button(
+	            action='setFieldValue(user.accept_terms, "on") -> activate("cancel")',
+	            button_variant=ButtonVariant.PRIMARY,
+	        ),
+	    )
+	    reject = Activator(
+	        label="Reject",
+	        widget=Button(
+	            action='activate("cancel")',
+	            button_variant=ButtonVariant.SECONDARY,
+	        ),
 	    )
 	
 	class UserNameForm(Form):
@@ -202,17 +213,25 @@ Here is an example of a modal dialog form:
 	        ),
 	    )
 
-Here the ``AcceptDialogForm`` actually does not contain any form fields, but only some informative
-text that is displayed to the user. The dialog is opened when the user clicks the "Submit" button,
-but has forgotten to enable the checkbox labled "Accept terms of use". If the user clicks on the
-"Submit" button, with that checkbox enabled, then the form is submitted and the page is reloaded.
-This differing behaviour is achieved by using the ternary operator
-``condition ? action-queue-1 : action-queue-1``. As condition we use the path to the field named
-``user.accept_terms``. If this field evaluates to ``true``, the first action queue is executed,
-otherwise the second one. The latter just activates the button named ``submit`` which then is
-evaluated by the attribute ``induce_open = 'submit:active'`` in the dialog form named
-``AcceptDialogForm``.
+Again, we have a collection named ``AcceptTermsCollection`` with two forms ``UserNameForm`` and
+``AcceptDialogForm``, where the latter is a modal dialog. The idea is to show the dialog form when
+the user clicks on the "Submit" button, but has not checked the checkbox labeled "Accept terms of
+use". The dialog form contains some informative text about the terms of use, and a button to close
+the dialog.
 
+Here the ``AcceptDialogForm`` actually does not contain any form fields. This dialog opens when the
+user clicks the "Submit" button and the checkbox labled "Accept terms of use" is not checked.
+Otherwise the forms are submitted and the page is reloaded. This differing behaviour is achieved by
+using the ternary operator
+
+.. code-block:: javascript
+
+	user.accept_terms ? submit -> reload !~ scrollToError : activate
+ 
+As condition we use the path to the field named ``user.accept_terms``. If this field is checked and
+evaluates to ``true``, the first action queue is executed, otherwise the second one. Here the second
+action queue just activates the button named ``submit`` which in consequence is evaluated by the
+dialog form's attribute ``induce_open = 'submit:active'``.
 
 .. django-view:: terms_of_use_view
 	:view-function: TermsOfUseView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'terms-result'}, collection_kwargs={'auto_id': 'tou_id_%s', 'renderer': FormRenderer(field_css_classes='mb-3')})
@@ -225,3 +244,17 @@ evaluated by the attribute ``induce_open = 'submit:active'`` in the dialog form 
 	    collection_class = AcceptTermsCollection
 	    template_name = "collection-no-button.html"
 	    success_url = "/success"
+
+If the modal dialog opens, the user has to either accept or reject the terms of use. If the user
+clicks on the "Accept" button, the first action of our action queue is to set the value of the
+field ``accept_terms`` in form named ``user`` to ``on``. The second action of that queue is
+``activate("cancel")`` which just closes the dialog without side effects. This way the checkbox
+is checked by clicking a button in another form.
+
+If the user clicks on the "Reject" button, the dialog is closed without setting the value of the
+checkbox.
+
+.. hint:: Instead of using a checkbox widget for the field ``accept_terms``, it also is possible to
+	use a widget of type ``HiddenInput``. This way the user does not see any checkbox, and so we can
+	assure that the user must open the dialog for reading the terms of use before submitting the
+	form.
