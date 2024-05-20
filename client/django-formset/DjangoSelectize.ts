@@ -297,6 +297,27 @@ export class DjangoSelectize extends IncompleteSelect {
 				}
 			}
 		}
+	};
+
+	public setValue(value: string) {
+		const emitChangeEvent = () => this.tomSelect.input.dispatchEvent(new Event('change', {bubbles: true}));
+
+		this.tomSelect.setValue(value, true);
+		if (this.tomSelect.getValue() !== value) {
+			// value does not exist in the options, try to load from server
+			this.loadOptions(this.buildFetchQuery(0, {pk: value}), (options: Array<OptionData>) => {
+				this.tomSelect.addOptions(options);
+			}).then(() => {
+				this.tomSelect.setValue(value, true);
+				emitChangeEvent();
+			});
+		} else {
+			emitChangeEvent();
+		}
+	}
+
+	public setValues(values: Array<string>) {
+		this.tomSelect.setValue(values, true);
 	}
 }
 
@@ -321,9 +342,9 @@ export class DjangoSelectizeElement extends HTMLSelectElement {
 
 	set value(val: string) {
 		if (this.multiple) {
-			this[DS]?.tomSelect.setValue(val.split(','), true);
+			this[DS]?.setValues(String(val).split(','));
 		} else {
-			this[DS]?.tomSelect.setValue(val, true);
+			this[DS]?.setValue(String(val));
 		}
 	}
 
