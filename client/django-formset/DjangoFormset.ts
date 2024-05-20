@@ -594,8 +594,11 @@ class DjangoButton {
 	 * Event handler to be called when someone clicks on the button.
 	 */
 	// @ts-ignore
-	private clicked = () => {
-		this.clickHandler();
+	private clicked = (event: Event) => {
+		if (event.target === this.element) {
+			this.formset.currentActiveButton = this;
+			this.clickHandler();
+		}
 	};
 
 	public autoDisable(formValidity: Boolean) {
@@ -1021,6 +1024,7 @@ class DjangoButton {
 		if (this.originalDecorator) {
 			this.decoratorElement?.replaceChildren(...this.originalDecorator.cloneNode(true).childNodes);
 		}
+		this.formset.currentActiveButton = null;
 	}
 
 	private getDataValue(path: Path) {
@@ -1143,7 +1147,7 @@ class PerpetualFormDialog extends FormDialog {
 			return absPath;
 		})();
 		const button = this.form.formset.buttons.find(button => isEqual(button.path, absPath));
-		return action === 'active' && button?.element === document.activeElement;
+		return action === 'active' && button === this.form.formset.currentActiveButton;
 	}
 }
 
@@ -1738,6 +1742,7 @@ class DjangoFormCollectionTemplate {
 export class DjangoFormset {
 	private readonly element: DjangoFormsetElement;
 	public readonly buttons = Array<DjangoButton>(0);
+	public currentActiveButton: DjangoButton|null = null;
 	private readonly forms = Array<DjangoForm>(0);
 	private readonly CSRFToken: string|null;
 	public readonly formCollections = Array<DjangoFormCollection>(0);
