@@ -795,14 +795,17 @@ class DjangoButton {
  	 */
 	// @ts-ignore
 	private intercept(selector?: string) {
-		return async (response: Response) => {
+		return (response: Response) => {
 			const body = {
 				request: this.formset.buildBody(),
-				response: await response.clone().json(),
+				response: null,
 			};
 			const element = selector ? document.querySelector(selector) : null;
 			if (element) {
-				element.innerHTML = JSON.stringify(body, null,'  ');
+				response.clone().json().then(response => {
+					body.response = response;
+					element.innerHTML = JSON.stringify(body, null, '  ');
+				});
 			} else {
 				console.info(body);
 			}
@@ -915,15 +918,17 @@ class DjangoButton {
 	}
 
 	private setClickHandler(actions: TernaryAction|ActionChain) {
-		const inner = (action: any) : any => {
-			return action instanceof ButtonAction ? action.func.apply(this, action.args.map(inner)) : action;
+		const inner = (body?: JSONValue) => (action: any) : any => {
+			return action instanceof ButtonAction ? action.func.call(this, ...action.args.map(inner(body)), body) : action;
 		};
 
 		const successHandler = (actions: Array<ButtonAction>) => {
 			let promise: Promise<Response>|undefined;
 			for (const action of actions.values()) {
-				const next = action.func.apply(this, action.args.map(inner));
-				promise = promise?.then(next) ?? next();
+				promise = promise ? promise.then(async response => {
+					const body = response ? await response.clone().json() : {} as JSONValue;
+					return action.func.apply(this, action.args.map(inner(body)))(response);
+				}) : action.func.apply(this, action.args.map(inner()))();
 			}
 			return promise;
 		};
@@ -931,8 +936,10 @@ class DjangoButton {
 		const rejectHandler = (actions: Array<ButtonAction>, response: Response) => {
 			let promise: Promise<Response>|undefined;
 			for (const action of actions.values()) {
-				const next = action.func.apply(this, action.args.map(inner));
-				promise = promise?.then(next) ?? next(response);
+				promise = promise ? promise.then(async response => {
+					const body = response ? await response.clone().json() : {} as JSONValue;
+					return action.func.apply(this, action.args.map(inner(body)))(response);
+				}) : action.func.apply(this, action.args.map(inner()))(response);
 			}
 			return promise;
 		};
