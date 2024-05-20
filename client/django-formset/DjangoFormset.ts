@@ -1121,7 +1121,7 @@ class PerpetualFormDialog extends FormDialog {
 					this.element.close(action);
 				}
 				break;
-			case 'cancel':
+			case 'close':
 				this.element.blur();
 				this.element.close(action);
 				break;
