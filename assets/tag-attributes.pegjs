@@ -102,8 +102,8 @@ TernaryFactor
 
 
 function
-  = 'transferValue' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
-    return { funcname: 'transferValue', args: [target.split('.'), source] };
+  = 'setFieldValue' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
+    return { funcname: 'setFieldValue', args: [target.split('.'), source] };
   }
   / _ funcname:$keystring '(' args:arglist ')' _ {
     return { funcname: funcname, args: args };
@@ -119,6 +119,9 @@ SOURCEARG
   = number
   / boolean
   / string
+  / '^' _ path:PATH {
+    return {funcname: 'getResponseValue', args: [path.split('.')]};
+  }
   / path:PATH {
     return {funcname: 'getDataValue', args: [path.split('.')]};
   }
@@ -126,7 +129,7 @@ SOURCEARG
 scalar
   = number
   / boolean
-  / s:string { return '${s}'; }
+  / s:string { return `"${s}"`; }
 
 arglist
   = lhs:argument _ ',' _ rhs:arglist { return [lhs].concat(rhs) }

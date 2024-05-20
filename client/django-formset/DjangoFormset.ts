@@ -1038,6 +1038,10 @@ class DjangoButton {
 		return this.formset.getDataValue(path);
 	}
 
+	private getResponseValue(path: Path, body: JSONValue) {
+		return getDataValue(body, path);
+	}
+
 	public updateOperability(action?: string) {
 		this.updateVisibility();
 		this.updateDisabled();
