@@ -644,6 +644,21 @@ class DjangoButton {
 	}
 
 	/**
+	 * Validate the current form content and only submit that form's content to the endpoint given in element `<django-formset>`.
+	 */
+	// @ts-ignore
+	submitPartial(data?: Object) {
+		return () => {
+			return new Promise((resolve, reject) => {
+				const path = this.path.slice(0, -1);
+				this.formset.submitPartial(path, data).then(response =>
+					response instanceof Response && response.status === 200 ? resolve(response) : reject(response)
+				);
+			});
+		};
+	}
+
+	/**
 	 * Reset form content to their initial values.
 	 */
 	// @ts-ignore
@@ -2100,6 +2115,50 @@ export class DjangoFormset {
 			for (const form of this.forms) {
 				form.reportValidity();
 			}
+		}
+	}
+
+	async submitPartial(path: Path, extraData?: Object) : Promise<Response|undefined> {
+		if (!this.endpoint)
+			throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
+		this.forms.find(form => isEqual(form.path, path))?.setSubmitted();
+		const fullPath = ['formset_data', ...path];
+		const body = setDataValue({}, fullPath, getDataValue(this.buildBody(extraData), fullPath));
+		try {
+			const headers = new Headers();
+			headers.append('Accept', 'application/json');
+			headers.append('Content-Type', 'application/json');
+			if (this.CSRFToken) {
+				headers.append('X-CSRFToken', this.CSRFToken);
+			}
+			const response = await fetch(this.endpoint, {
+				method: 'PATCH',
+				headers: headers,
+				body: JSON.stringify(body),
+				signal: this.abortController.signal,
+			});
+			switch (response.status) {
+				case 200:
+					this.clearErrors();
+					for (const form of this.forms) {
+						form.element.dispatchEvent(new Event('submitted'));
+					}
+					return response;
+				case 422:
+					this.clearErrors();
+					const body = await response.clone().json();
+					this.reportErrors(body);
+					return response;
+				default:
+					console.warn(`Unknown response status: ${response.status}`);
+					this.clearErrors();
+					this.buttons.forEach(button => button.restoreToInitial());
+					return response;
+			}
+		} catch (error) {
+			this.clearErrors();
+			this.buttons.forEach(button => button.restoreToInitial());
+			alert(error);
 		}
 	}
 

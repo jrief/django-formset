@@ -74,6 +74,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     prefix = None
     template_name = 'formset/default/collection.html'
     instance = None
+    partial = None
     min_siblings = None
     max_siblings = None
     extra_siblings = None
@@ -84,7 +85,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     ignore_marked_for_removal = None
     empty_values = list(validators.EMPTY_VALUES)
 
-    def __init__(self, data=None, initial=None, renderer=None, auto_id=None, prefix=None, instance=None,
+    def __init__(self, data=None, initial=None, renderer=None, auto_id=None, prefix=None, instance=None, partial=None,
                  min_siblings=None, max_siblings=None, extra_siblings=None, is_sortable=None, legend=None,
                  help_text=None):
         self.data = MultiValueDict() if data is None else data
@@ -96,6 +97,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         self._errors = None  # Stores the errors after `clean()` has been called.
         if instance:
             self.instance = instance
+        if partial is True:
+            self.partial = True
         if min_siblings is not None:
             self.min_siblings = min_siblings
         if max_siblings is not None:
@@ -269,7 +272,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                         if holder.is_valid():
                             valid_holders[name] = holder
                         errors[name] = holder._errors
-                    else:
+                    elif not self.partial:
                         # can only happen, if client bypasses browser control
                         errors[name] = {NON_FIELD_ERRORS: ["Form data is missing."]}
                 else:
@@ -289,12 +292,13 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                         data=self.data[name],
                         initial=self.initial.get(name, declared_holder.initial) if self.initial else None,
                         instance=instance,
+                        partial=self.partial,
                         ignore_marked_for_removal=self.ignore_marked_for_removal,
                     )
                     if holder.is_valid():
                         self.valid_holders[name] = holder
                     self._errors[name] = holder._errors
-                else:
+                elif not self.partial:
                     # can only happen, if client bypasses browser control
                     self._errors[name] = {NON_FIELD_ERRORS: ["Form data is missing."]}
 

@@ -197,6 +197,12 @@ class FormCollectionViewMixin(FormsetResponseMixin):
         else:
             return self.form_collection_invalid(form_collection)
 
+    def patch(self, request, **kwargs):
+        """
+        Method `PATCH` is used for partial submits.
+        """
+        return self.post(request, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form_collection'] = self.get_form_collection()
@@ -209,6 +215,7 @@ class FormCollectionViewMixin(FormsetResponseMixin):
     def get_collection_kwargs(self):
         kwargs = {
             'initial': self.get_initial(),
+            'partial': self.request.method == 'PATCH',
         }
         if self.collection_kwargs:
             kwargs.update(**self.collection_kwargs)
@@ -217,7 +224,7 @@ class FormCollectionViewMixin(FormsetResponseMixin):
     def get_form_collection(self):
         collection_class = self.get_collection_class()
         kwargs = self.get_collection_kwargs()
-        if self.request.method in ('POST', 'PUT') and self.request.content_type == 'application/json':
+        if self.request.method in ('PATCH', 'POST', 'PUT') and self.request.content_type == 'application/json':
             body = json.loads(self.request.body)
             kwargs.update(data=body.get('formset_data'))
             if callable(getattr(self, 'get_object', None)):
