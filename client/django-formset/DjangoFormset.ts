@@ -1128,6 +1128,11 @@ class PerpetualFormDialog extends FormDialog {
 			case 'reset':
 				this.form.resetToInitial();
 				break;
+			case 'clear':
+				this.form.resetToInitial();
+				this.element.blur();
+				this.element.close(action);
+				break;
 			default:
 				break;
 		}
