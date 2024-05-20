@@ -2064,7 +2064,7 @@ export class DjangoFormset {
 		this.setSubmitted();
 		if (!this.forceSubmission) {
 			for (const form of this.forms) {
-				if (form.markedForRemoval || form.isTransient)
+				if (form.markedForRemoval || form.isTransient || form.parentDialog?.isOpen() === false)
 					continue;
 				formsAreValid = form.isValid() && formsAreValid;
 			}

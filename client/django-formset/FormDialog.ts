@@ -132,6 +132,10 @@ export abstract class FormDialog {
 		return false;
 	}
 
+	public isOpen() {
+		return this.element.open;
+	}
+
 	public updateOperability(action?: string) {
 		this.induceOpen(action);
 		this.induceClose(action);
