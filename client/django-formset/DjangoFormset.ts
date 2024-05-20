@@ -1157,8 +1157,8 @@ class DjangoForm {
 	public readonly element: HTMLFormElement;
 	public readonly path: Path;
 	public readonly fieldset: DjangoFieldset|null;
-	private readonly errorList: Element|null = null;
-	private readonly errorPlaceholder: Element|null = null;
+	private readonly errorList: HTMLUListElement|null = null;
+	private readonly errorPlaceholder: HTMLLIElement|null = null;
 	public readonly fieldGroups = Array<FieldGroup>(0);
 	public readonly hiddenInputFields = Array<HTMLInputElement>(0);
 	public readonly parentDialog: PerpetualFormDialog|null = null;
@@ -1171,10 +1171,10 @@ class DjangoForm {
 		this.path = this.name?.split('.') ?? [];
 		const next = element.nextSibling;
 		this.fieldset = next instanceof HTMLFieldSetElement && next.form === element ? new DjangoFieldset(this, next) : null;
-		const placeholder = element.nextElementSibling?.querySelector('.dj-form-errors > .dj-errorlist > .dj-placeholder');
+		const placeholder = element.nextElementSibling?.querySelector('.dj-form-errors > ul.dj-errorlist > li.dj-placeholder');
 		if (placeholder) {
-			this.errorList = placeholder.parentElement;
-			this.errorPlaceholder = this.errorList!.removeChild(placeholder);
+			this.errorList = placeholder.parentElement as HTMLUListElement;
+			this.errorPlaceholder = this.errorList.removeChild(placeholder) as HTMLLIElement;
 		}
 		this.isTransient = Boolean(this.element.getAttribute('df-transient'));
 		if (!this.isTransient) {
@@ -1746,6 +1746,8 @@ export class DjangoFormset {
 	private readonly forms = Array<DjangoForm>(0);
 	private readonly CSRFToken: string|null;
 	public readonly formCollections = Array<DjangoFormCollection>(0);
+	private errorList: HTMLUListElement|null = null;
+	private errorPlaceholder: HTMLLIElement|null = null;
 	public readonly collectionErrorsList = new Map<string, HTMLUListElement>();
 	public formCollectionTemplate?: DjangoFormCollectionTemplate;
 	public readonly showFeedbackMessages: boolean;
@@ -1760,6 +1762,7 @@ export class DjangoFormset {
 	}
 
 	connectedCallback() {
+		this.findErrorsPlaceholder();
 		this.findForms();
 		this.findFormCollections();
 		this.findCollectionErrorsList();
@@ -1842,6 +1845,14 @@ export class DjangoFormset {
 					djangoForm.fieldGroups.push(new FieldGroup(djangoForm, fieldGroupElement as HTMLElement));
 				}
 			}
+		}
+	}
+
+	private findErrorsPlaceholder() {
+		const placeholder = this.element.querySelector('.dj-form-errors > ul.dj-errorlist > li.dj-placeholder');
+		if (placeholder) {
+			this.errorList = placeholder.parentElement as HTMLUListElement;
+			this.errorPlaceholder = this.errorList.removeChild(placeholder) as HTMLLIElement;
 		}
 	}
 
@@ -2093,6 +2104,13 @@ export class DjangoFormset {
 				ulElement.appendChild(placeholder);
 			}
 		}
+		if (this.errorList && this.errorPlaceholder && Array.isArray(body[NON_FIELD_ERRORS])) {
+			for (const message of body[NON_FIELD_ERRORS]) {
+				const item = this.errorPlaceholder.cloneNode() as HTMLLIElement;
+				item.innerHTML = message;
+				this.errorList.appendChild(item);
+			}
+		}
 	}
 
 	public resetToInitial() {
@@ -2148,6 +2166,9 @@ export class DjangoFormset {
 			while (ulElement.firstElementChild) {
 				ulElement.removeChild(ulElement.firstElementChild);
 			}
+		}
+		if (this.errorList) {
+			this.errorList.replaceChildren();
 		}
 	}
 }
