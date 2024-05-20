@@ -7,8 +7,9 @@ from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Model
 from django.db.models.fields.files import FieldFile
+from django.forms.models import construct_instance
 from django.forms.renderers import get_default_renderer
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template.loader import get_template
 from django.urls import get_resolver, path
 from django.utils.module_loading import import_string
@@ -47,6 +48,7 @@ from testapp.forms.gallerycollection import GalleryCollection
 from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputForm, MomentPickerForm
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
 from testapp.forms.opinion import OpinionForm
+from testapp.forms.page import EditPageCollection
 from testapp.forms.person import ButtonActionsForm, sample_person_data, ModelPersonForm
 from testapp.forms.phone import PhoneForm
 from testapp.forms.poll import ModelPollForm, PollCollection
@@ -57,7 +59,7 @@ from testapp.forms.state import StateForm, StatesForm
 from testapp.forms.terms_of_use import AcceptTermsCollection
 from testapp.forms.user import UserCollection, UserListCollection
 from testapp.forms.upload import UploadForm
-from testapp.models import BlogModel, Company, PersonModel, PollModel
+from testapp.models import BlogModel, Company, PageModel, PersonModel, PollModel, Reporter
 from testapp.models.gallery import Gallery
 
 
@@ -313,6 +315,19 @@ class GalleryCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionVi
     }
 
 
+class PageCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
+    model = PageModel
+    collection_class = EditPageCollection
+    template_name = 'testapp/form-collection.html'
+
+    def form_collection_valid(self, form_collection):
+        if form_collection.partial:
+            reporter = construct_instance(form_collection.valid_holders['create_reporter'], Reporter())
+            reporter.save()
+            return JsonResponse({'reporter_id': reporter.id})
+        return super().form_collection_valid(form_collection)
+
+
 demo_css_classes = {
     'default': {'*': {}},
     'bootstrap': {
@@ -340,6 +355,14 @@ demo_css_classes = {
             'label_css_classes': 'col-sm-3',
             'control_css_classes': 'col-sm-9',
             'button_css_classes': 'offset-sm-3',
+        },
+        'page': {
+            'form_css_classes': 'row',
+            'field_css_classes': {
+                '*': 'mb-2 col-12',
+                'reporter': 'mb-2 col-9',
+                'add_reporter': 'mb-2 col-3',
+            },
         },
         'simplecontact': {
             'form_css_classes': 'row',
@@ -531,13 +554,17 @@ urlpatterns = [
     ), name='questionnaire'),
     path('simplecontact', DemoFormCollectionView.as_view(
         collection_class=SimpleContactCollection,
-        initial={'person': sample_person_data},
-        extra_context={'click_actions': 'disable -> setFieldValue(profession.company, person.last_name) -> submit -> reload !~ scrollToError'},
+        # initial={'person': sample_person_data},
+        initial={'person': {'first_name': "Jack", 'last_name': "Lee"}, 'profession': {'company': "Awesto"}},
+        extra_context={'click_actions': 'disable -> submit -> setFieldValue(profession.company, ^success_url) !~ scrollToError'},
     ), name='simplecontact'),
     path('terms_of_use', DemoFormCollectionView.as_view(
         collection_class=AcceptTermsCollection,
         template_name='testapp/form-collection-no-buttons.html',
     ), name='simplecontact'),
+    path('page', PageCollectionView.as_view(
+        collection_class=EditPageCollection,
+    ), name='page'),
     path('customer', DemoFormCollectionView.as_view(
         collection_class=CustomerCollection,
     ), name='customer'),
