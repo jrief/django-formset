@@ -2,6 +2,9 @@
 
 1.5
   * Drop support for Django-4.1.
+  * To the button element, add function `setFieldValue`, which can be used to transfer values from
+    one field to another one.
+
 1.4.3
   * Fix regression in widget `UploadedFileInput` introduced in 1.4: The Delete button did not work
     for files added through the `initial` parameter.
