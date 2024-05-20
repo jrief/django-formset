@@ -4,7 +4,9 @@
   "pk": 1,
   "fields": {
     "title": "The Mythical Man-Month",
-    "slug": "the-mythical-man-month"
+    "slug": "the-mythical-man-month",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -12,7 +14,9 @@
   "pk": 2,
   "fields": {
     "title": "Design Patterns",
-    "slug": "design-patterns"
+    "slug": "design-patterns",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -20,7 +24,9 @@
   "pk": 3,
   "fields": {
     "title": "The Pragmatic Programmer",
-    "slug": "the-pragmatic-programmer"
+    "slug": "the-pragmatic-programmer",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -28,7 +34,9 @@
   "pk": 4,
   "fields": {
     "title": "Code Complete",
-    "slug": "code-complete"
+    "slug": "code-complete",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -36,7 +44,9 @@
   "pk": 5,
   "fields": {
     "title": "Test Driven Development",
-    "slug": "test-driven-development"
+    "slug": "test-driven-development",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -44,7 +54,9 @@
   "pk": 6,
   "fields": {
     "title": "Refactoring",
-    "slug": "refactoring"
+    "slug": "refactoring",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -52,7 +64,9 @@
   "pk": 7,
   "fields": {
     "title": "Extreme Programming Explained",
-    "slug": "extreme-programming-explained"
+    "slug": "extreme-programming-explained",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -60,7 +74,9 @@
   "pk": 8,
   "fields": {
     "title": "Succeeding with Agile",
-    "slug": "succeeding-with-agile"
+    "slug": "succeeding-with-agile",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -68,7 +84,9 @@
   "pk": 9,
   "fields": {
     "title": "The Deadline",
-    "slug": "the-deadline"
+    "slug": "the-deadline",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -76,7 +94,9 @@
   "pk": 10,
   "fields": {
     "title": "Essential Scrum",
-    "slug": "essential-scrum"
+    "slug": "essential-scrum",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -84,7 +104,9 @@
   "pk": 11,
   "fields": {
     "title": "Effective Project Management",
-    "slug": "effective-project-management"
+    "slug": "effective-project-management",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -92,7 +114,9 @@
   "pk": 12,
   "fields": {
     "title": "Effective Work Breakdown Structures",
-    "slug": "effective-work-breakdown-structures"
+    "slug": "effective-work-breakdown-structures",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -100,7 +124,9 @@
   "pk": 13,
   "fields": {
     "title": "Strategic Project Management Made Simple",
-    "slug": "strategic-project-management-made-simple"
+    "slug": "strategic-project-management-made-simple",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -108,7 +134,9 @@
   "pk": 14,
   "fields": {
     "title": "Learning Python",
-    "slug": "learning-python"
+    "slug": "learning-python",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -116,7 +144,9 @@
   "pk": 15,
   "fields": {
     "title": "Django Design Patterns",
-    "slug": "django-design-patterns"
+    "slug": "django-design-patterns",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -124,7 +154,9 @@
   "pk": 16,
   "fields": {
     "title": "Learning jQuery",
-    "slug": "learning-jquery"
+    "slug": "learning-jquery",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -132,7 +164,9 @@
   "pk": 17,
   "fields": {
     "title": "JavaScript: The Good Parts",
-    "slug": "javascript-the-good-parts"
+    "slug": "javascript-the-good-parts",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -140,7 +174,9 @@
   "pk": 18,
   "fields": {
     "title": "The C++ Programming Language",
-    "slug": "the-c-programming-language"
+    "slug": "the-c-programming-language",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -148,7 +184,9 @@
   "pk": 19,
   "fields": {
     "title": "C Programming Language",
-    "slug": "c-programming-language"
+    "slug": "c-programming-language",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -156,7 +194,9 @@
   "pk": 20,
   "fields": {
     "title": "Clean Code",
-    "slug": "clean-code"
+    "slug": "clean-code",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -164,7 +204,9 @@
   "pk": 21,
   "fields": {
     "title": "Peopleware",
-    "slug": "peopleware"
+    "slug": "peopleware",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -172,7 +214,9 @@
   "pk": 22,
   "fields": {
     "title": "Slack",
-    "slug": "slack"
+    "slug": "slack",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -180,7 +224,9 @@
   "pk": 23,
   "fields": {
     "title": "Agile Software Development",
-    "slug": "agile-software-development"
+    "slug": "agile-software-development",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -188,7 +234,9 @@
   "pk": 24,
   "fields": {
     "title": "UML for Java Programmers",
-    "slug": "uml-for-java-programmers"
+    "slug": "uml-for-java-programmers",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -196,7 +244,9 @@
   "pk": 25,
   "fields": {
     "title": "Designing Object Oriented C++ Applications",
-    "slug": "designing-object-oriented-c-applications"
+    "slug": "designing-object-oriented-c-applications",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -204,7 +254,9 @@
   "pk": 26,
   "fields": {
     "title": "More C++ Gems",
-    "slug": "more-c-gems"
+    "slug": "more-c-gems",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -212,7 +264,9 @@
   "pk": 27,
   "fields": {
     "title": "Pragmatic Thinking and Learning",
-    "slug": "pragmatic-thinking-and-learning"
+    "slug": "pragmatic-thinking-and-learning",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -220,7 +274,9 @@
   "pk": 28,
   "fields": {
     "title": "Practices of an Agile Developer",
-    "slug": "practices-of-an-agile-developer"
+    "slug": "practices-of-an-agile-developer",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -228,7 +284,9 @@
   "pk": 29,
   "fields": {
     "title": "Learn to Program with Minecraft Plugins",
-    "slug": "learn-to-program-with-minecraft-plugins"
+    "slug": "learn-to-program-with-minecraft-plugins",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -236,7 +294,9 @@
   "pk": 30,
   "fields": {
     "title": "Two Scoops of Django",
-    "slug": "two-scoops-of-django"
+    "slug": "two-scoops-of-django",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -244,7 +304,9 @@
   "pk": 31,
   "fields": {
     "title": "Python for Data Analysis",
-    "slug": "python-for-data-analysis"
+    "slug": "python-for-data-analysis",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -252,7 +314,9 @@
   "pk": 32,
   "fields": {
     "title": "Effective Pandas",
-    "slug": "effective-pandas"
+    "slug": "effective-pandas",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -260,7 +324,9 @@
   "pk": 33,
   "fields": {
     "title": "Fluent Python",
-    "slug": "fluent-python"
+    "slug": "fluent-python",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -268,7 +334,9 @@
   "pk": 34,
   "fields": {
     "title": "Python in a Nutshell",
-    "slug": "python-in-a-nutshell"
+    "slug": "python-in-a-nutshell",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -276,7 +344,9 @@
   "pk": 35,
   "fields": {
     "title": "Django for Beginners",
-    "slug": "django-for-beginners"
+    "slug": "django-for-beginners",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -284,7 +354,9 @@
   "pk": 36,
   "fields": {
     "title": "Django for Professionals",
-    "slug": "django-for-professionals"
+    "slug": "django-for-professionals",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -292,7 +364,9 @@
   "pk": 37,
   "fields": {
     "title": "Django for APIs",
-    "slug": "django-for-apis"
+    "slug": "django-for-apis",
+    "reporter": 369,
+    "created_by": "abc"
   }
 },
 {
@@ -300,7 +374,9 @@
   "pk": 38,
   "fields": {
     "title": "Full Stack Python Security",
-    "slug": "full-stack-python-security"
+    "slug": "full-stack-python-security",
+    "reporter": 369,
+    "created_by": "abc"
   }
 }
 ]
