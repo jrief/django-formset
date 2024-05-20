@@ -123,8 +123,8 @@ export class DjangoSelectize extends IncompleteSelect {
 		return Array.from(groupnames).map(name => ({label: name, value: name}));
 	}
 
-	private load = (query: string, callback: Function) => {
-		this.loadOptions(this.buildFetchQuery(0, query), (options: Array<OptionData>) => {
+	private load = (search: string, callback: Function) => {
+		this.loadOptions(this.buildFetchQuery(0, {search}), (options: Array<OptionData>) => {
 			callback(options, this.extractOptGroups(options));
 		});
 	};

@@ -49,13 +49,15 @@ export abstract class IncompleteSelect extends Widget {
 	protected touch = () => {
 		this.fieldGroup.classList.remove('dj-untouched', 'dj-validated');
 		this.fieldGroup.classList.add('dj-touched');
-	}
+	};
 
-	protected buildFetchQuery(offset: number, searchStr?: string) : URLSearchParams {
+	protected buildFetchQuery(offset: number, q?: {pk?: string, search?: string}) : URLSearchParams {
 		const query = new URLSearchParams();
 		query.set('offset', String(offset));
-		if (searchStr) {
-			query.set('search', encodeURIComponent(searchStr));
+		if (q?.pk) {
+			query.set('pk', q.pk);
+		} else if (q?.search) {
+			query.set('search', encodeURIComponent(q.search));
 		}
 		for (const [key, value] of this.filterByValues) {
 			if (typeof value === 'string') {

@@ -61,7 +61,10 @@ class IncompleteSelectResponseMixin:
             queryset = queryset.filter(widget.build_filter_query(filters))
             incomplete = None  # incomplete state unknown
 
-        if search := request.GET.get('search'):
+        if pk := request.GET.get('pk'):
+            queryset = queryset.filter(pk=pk)
+            incomplete = None  # incomplete state unknown
+        elif search := request.GET.get('search'):
             data['search'] = search
             queryset = queryset.filter(widget.build_search_query(search))
             incomplete = None  # incomplete state unknown

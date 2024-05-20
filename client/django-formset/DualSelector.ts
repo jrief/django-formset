@@ -152,10 +152,10 @@ export class DualSelector extends IncompleteSelect {
 
 	private async remoteLookup() {
 		let query: URLSearchParams;
-		const searchString = this.searchLeftInput?.value;
-		if (searchString) {
+		const search = this.searchLeftInput?.value;
+		if (search) {
 			const offset = this.selectLeftElement.querySelectorAll('option:not([hidden])').length;
-			query = this.buildFetchQuery(offset, searchString);
+			query = this.buildFetchQuery(offset, {search});
 		} else {
 			query = this.buildFetchQuery(this.selectorElement.childElementCount);
 		}
