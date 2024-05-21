@@ -2,10 +2,44 @@
 
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
+from django.core.management import call_command
 import django.utils.timezone
 import formset.fields
 import formset.richtext.fields
+
+
+def initialize_opinions(apps, schema_editor):
+    OpinionModel = apps.get_model('testapp', 'OpinionModel')
+    for counter in range(1, 3000):
+        label = f"Opinion {counter:04}"
+        OpinionModel.objects.create(tenant=1, label=label)
+    for counter in range(1, 500):
+        label = f"Übung {counter:04}"
+        OpinionModel.objects.create(tenant=1, label=label)
+    for counter in range(1, 500):
+        label = f"Оптион {counter:04}"
+        OpinionModel.objects.create(tenant=1, label=label)
+    for counter in range(1, 500):
+        label = f"επιλογή {counter:04}"
+        OpinionModel.objects.create(tenant=1, label=label)
+
+
+def initialize_counties(apps, schema_editor):
+    call_command('loaddata', settings.BASE_DIR / 'testapp/fixtures/counties.json', verbosity=0)
+    CountyUnnormalized = apps.get_model('testapp', 'CountyUnnormalized')
+    State = apps.get_model('testapp', 'State')
+    County = apps.get_model('testapp', 'County')
+    for county in CountyUnnormalized.objects.all():
+        state, _ = State.objects.get_or_create(code=county.state_code, name=county.state_name)
+        County.objects.create(state=state, name=county.county_name)
+
+
+def initialize_reporters(apps, schema_editor):
+    call_command('loaddata', settings.BASE_DIR / 'testapp/fixtures/reporters.json', verbosity=0)
+
+
+def initialize_pages(apps, schema_editor):
+    call_command('loaddata', settings.BASE_DIR / 'testapp/fixtures/pages.json', verbosity=0)
 
 
 class Migration(migrations.Migration):
@@ -236,4 +270,7 @@ class Migration(migrations.Migration):
                 'unique_together': {('name', 'department')},
             },
         ),
+        migrations.RunPython(initialize_opinions, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(initialize_counties, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(initialize_reporters, reverse_code=migrations.RunPython.noop),
     ]
