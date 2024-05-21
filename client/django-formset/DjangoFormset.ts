@@ -999,7 +999,7 @@ class DjangoButton {
 			return;
 
 		const innerAction = (action: any) => {
-			if (isPlainObject(action)) {
+			if (isPlainObject(action) && typeof action.funcname === 'string' && Array.isArray(action.args)) {
 				const func = this[action.funcname as keyof DjangoButton];
 				if (typeof func !== 'function')
 					throw new Error(`Unknown function '${action.funcname}'.`);
