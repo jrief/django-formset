@@ -11,6 +11,8 @@ from formset.widgets import Selectize, SelectizeMultiple
 
 from testapp.models import OpinionModel
 
+from .utils import get_javascript_catalog
+
 
 class NativeFormView(FormView):
     template_name = 'testapp/native-form.html'
@@ -83,6 +85,7 @@ views = {
 }
 
 urlpatterns = [path(name, view, name=name) for name, view in views.items()]
+urlpatterns.append(get_javascript_catalog())
 
 
 @pytest.fixture

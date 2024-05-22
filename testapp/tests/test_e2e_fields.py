@@ -8,6 +8,8 @@ from django.urls import path
 
 from formset.views import FormView
 
+from .utils import get_javascript_catalog
+
 
 FieldTuple = namedtuple('FieldTuple', ['name', 'field', 'extra_context'])
 
@@ -68,6 +70,7 @@ views = {
 }
 
 urlpatterns = [path(name, view, name=name) for name, view in views.items()]
+urlpatterns.append(get_javascript_catalog())
 
 
 @pytest.fixture

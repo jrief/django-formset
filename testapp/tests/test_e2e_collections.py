@@ -10,6 +10,8 @@ from formset.collection import FormCollection
 from formset.utils import MARKED_FOR_REMOVAL
 from formset.views import FormCollectionView
 
+from .utils import get_javascript_catalog
+
 
 class PersonForm(forms.Form):
     full_name = fields.CharField(
@@ -147,6 +149,7 @@ urlpatterns = [
         initial=initial_bulk_sample_data,
         extra_context={'click_actions': 'submit -> proceed', 'force_submission': True},
     ), name='bulk_initial_contacts'),
+    get_javascript_catalog(),
 ]
 
 

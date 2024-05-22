@@ -10,6 +10,8 @@ from formset.validators import phone_number_validator
 from formset.views import FormView
 from formset.widgets import PhoneNumberInput
 
+from .utils import get_javascript_catalog
+
 
 class PhoneForm(forms.Form):
     phone_number = fields.CharField(
@@ -27,6 +29,7 @@ class DemoFormView(FormView):
 urlpatterns = [
     path('landline', DemoFormView.as_view(form_class=PhoneForm), name='landline'),
     path('national', DemoFormView.as_view(form_class=PhoneForm), name='national'),
+    get_javascript_catalog(),
 ]
 
 

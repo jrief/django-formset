@@ -10,6 +10,8 @@ from formset.utils import MARKED_FOR_REMOVAL
 from formset.collection import FormCollection
 from formset.views import FormCollectionView
 
+from .utils import get_javascript_catalog
+
 
 class TeamForm(forms.Form):
     name = fields.CharField()
@@ -94,6 +96,7 @@ urlpatterns = [
         initial=initial_sample_data,
         extra_context={'click_actions': 'submit -> proceed', 'force_submission': True},
     ), name='company_4'),
+    get_javascript_catalog(),
 ]
 
 @pytest.mark.urls(__name__)

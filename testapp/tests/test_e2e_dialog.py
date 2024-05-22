@@ -13,6 +13,8 @@ from formset.renderers import ButtonVariant
 from formset.views import FormCollectionView
 from formset.widgets import Button
 
+from .utils import get_javascript_catalog
+
 
 class CustomerForm(forms.Form):
     name = fields.CharField()
@@ -52,6 +54,7 @@ urlpatterns = [
         template_name='testapp/form-collection.html',
         extra_context={'click_actions': 'submit -> proceed', 'force_submission': True},
     ), name='dialog'),
+    get_javascript_catalog(),
 ]
 
 

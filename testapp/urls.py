@@ -3,6 +3,7 @@ from django.conf.urls.static import static
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import include, path
+from django.conf.urls.i18n import i18n_patterns
 from django.views.decorators.cache import cache_page
 from django.views.i18n import JavaScriptCatalog
 
@@ -34,10 +35,13 @@ urlpatterns = [
     path('foundation/', include(('testapp.views', 'foundation'))),
     path('tailwind/', include(('testapp.views', 'tailwind'))),
     path('uikit/', include(('testapp.views', 'uikit'))),
-    path('jsi18n/formset.js', cache_page(604800, key_prefix='jsi18n-countries')(
-        JavaScriptCatalog.as_view()), name='javascript-catalog',
-    )
 ]
+if settings.USE_I18N:
+    urlpatterns.extend(i18n_patterns(path(
+        'jsi18n/',
+        cache_page(3600)(JavaScriptCatalog.as_view(packages=['formset'])),
+        name='javascript-catalog'
+    )))
 urlpatterns.extend(static(
     settings.MEDIA_URL,
     document_root=settings.MEDIA_ROOT

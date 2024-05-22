@@ -15,6 +15,8 @@ from formset.widgets import DualSelector, Selectize, SelectizeMultiple
 
 from testapp.models import County, CountyUnnormalized, State
 
+from .utils import get_javascript_catalog
+
 
 class NativeFormView(IncompleteSelectResponseMixin, FormViewMixin, GenericFormView):
     template_name = 'testapp/native-form.html'
@@ -99,6 +101,7 @@ urlpatterns = [
     path('single_form', NativeFormView.as_view(form_class=SingleForm), name='single_form'),
     path('multi_form', NativeFormView.as_view(form_class=MultiForm), name='multi_form'),
     path('many_form', NativeFormView.as_view(form_class=ManyForm), name='many_form'),
+    get_javascript_catalog(),
 ]
 
 

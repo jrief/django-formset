@@ -10,6 +10,8 @@ from formset.richtext import controls, dialogs
 from formset.richtext.widgets import RichTextarea
 from formset.views import FormView
 
+from .utils import get_javascript_catalog
+
 
 control_elements = [
     controls.Heading([1, 2, 3]),
@@ -53,6 +55,7 @@ urlpatterns = [
     path('json_richtext', DemoFormView.as_view(
         form_class=JSONRichTextForm,
     ), name='json_richtext'),
+    get_javascript_catalog(),
 ]
 
 
@@ -176,7 +179,7 @@ def test_tiptap_valid_simple_link(page, viewname, richtext_wrapper, menubar, con
     expect(menu_button).to_have_class('active')
     set_caret(page, 3)
     set_caret(page, 2)
-    sleep(0.2)
+    sleep(0.25)
     expect(menu_button).not_to_have_class('active')
 
 

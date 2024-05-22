@@ -13,6 +13,8 @@ from formset.views import FormView
 
 from testapp.forms.upload import UploadForm
 
+from .utils import get_javascript_catalog
+
 
 class DemoFormView(FormView):
     template_name = 'testapp/native-form.html'
@@ -21,6 +23,7 @@ class DemoFormView(FormView):
 
 
 urlpatterns = [path('upload', DemoFormView.as_view(), name='upload')]
+urlpatterns.append(get_javascript_catalog())
 
 
 @pytest.mark.urls(__name__)

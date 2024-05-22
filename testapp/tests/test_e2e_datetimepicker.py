@@ -12,6 +12,8 @@ from formset.calendar import CalendarResponseMixin
 from formset.views import FormView
 from formset.widgets import DateTimePicker
 
+from .utils import get_javascript_catalog
+
 
 class ScheduleForm(forms.Form):
     schedule = fields.DateTimeField(
@@ -34,6 +36,7 @@ schedule_datetime = datetime(2023, 2, 13, 9, 10)
 urlpatterns = [
     path('new_schedule', DemoFormView.as_view(), name='new_schedule'),
     path('current_schedule', DemoFormView.as_view(initial={'schedule': schedule_datetime}), name='current_schedule'),
+    get_javascript_catalog(),
 ]
 
 

@@ -8,6 +8,7 @@ from django.urls import path
 from formset.views import FormCollectionView
 
 from testapp.forms.customer import CustomerCollection
+from .utils import get_javascript_catalog
 
 
 urlpatterns = [
@@ -17,6 +18,7 @@ urlpatterns = [
         success_url='/success',
         extra_context = {'click_actions': 'submit -> proceed', 'force_submission': True},
     ), name='customer'),
+    get_javascript_catalog(),
 ]
 
 

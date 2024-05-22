@@ -7,6 +7,8 @@ from formset.views import FormView
 
 from testapp.forms.article import ArticleForm
 
+from .utils import get_javascript_catalog
+
 
 class DemoFormView(FormView):
     template_name = 'testapp/native-form.html'
@@ -17,6 +19,7 @@ class DemoFormView(FormView):
 urlpatterns = [
     path('new_article', DemoFormView.as_view(), name='new_article'),
     path('current_article', DemoFormView.as_view(initial={'slug': "foo-bar"}), name='current_article'),
+    get_javascript_catalog(),
 ]
 
 

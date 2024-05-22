@@ -12,6 +12,8 @@ from django.urls import path
 
 from formset.views import FormView
 
+from .utils import get_javascript_catalog
+
 
 class SampleForm(Form):
     enter = fields.CharField(min_length=2)
@@ -60,6 +62,7 @@ views['test_button_alert'] = ForbiddenView.as_view(
 )
 
 urlpatterns = [path(name, view, name=name) for name, view in views.items()]
+urlpatterns.append(get_javascript_catalog())
 
 
 @pytest.mark.urls(__name__)

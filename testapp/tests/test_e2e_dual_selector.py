@@ -13,6 +13,8 @@ from formset.widgets import DualSelector, DualSortableSelector
 
 from testapp.models import OpinionModel, PollModel
 
+from .utils import get_javascript_catalog
+
 
 class WeightedOpinionsForm(models.ModelForm):
     """
@@ -97,6 +99,7 @@ views['selectorP'] = ModelFormView.as_view(
 )
 
 urlpatterns = [path(name, view, name=name) for name, view in views.items()]
+urlpatterns.append(get_javascript_catalog())
 
 
 @pytest.fixture

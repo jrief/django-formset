@@ -8,6 +8,8 @@ from django.urls import path
 
 from formset.views import FormView
 
+from .utils import get_javascript_catalog
+
 
 class QuestionnaireForm(Form):
     full_name = CharField(
@@ -44,6 +46,7 @@ urlpatterns = [
         template_name='testapp/native-form.html',
         initial={'full_name': "Company Ltd.", 'gender': 'x'},
     ), name='questionnaire_initial_inapplicable'),
+    get_javascript_catalog(),
 ]
 
 

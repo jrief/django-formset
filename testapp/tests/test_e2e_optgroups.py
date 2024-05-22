@@ -14,6 +14,8 @@ from formset.widgets import DualSelector, Selectize, SelectizeMultiple, DualSort
 from testapp.forms.county import CountyForm
 from testapp.models import County, CountyUnnormalized, State
 
+from .utils import get_javascript_catalog
+
 
 class NativeFormView(IncompleteSelectResponseMixin, FormViewMixin, GenericFormView):
     template_name = 'testapp/native-form.html'
@@ -102,6 +104,7 @@ views = {
 }
 
 urlpatterns = [path(name, view, name=name) for name, view in views.items()]
+urlpatterns.append(get_javascript_catalog())
 
 
 @pytest.fixture

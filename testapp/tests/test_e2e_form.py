@@ -8,6 +8,8 @@ from django.urls import path
 
 from formset.views import FormView
 
+from .utils import get_javascript_catalog
+
 
 class FullNameForm(forms.Form):
     full_name = fields.RegexField(
@@ -38,6 +40,7 @@ class DemoFormView(FormView):
 
 urlpatterns = [
     path('full_name', DemoFormView.as_view(), name='full_name'),
+    get_javascript_catalog(),
 ]
 
 

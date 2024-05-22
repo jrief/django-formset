@@ -12,6 +12,8 @@ from formset.calendar import CalendarResponseMixin
 from formset.views import FormView
 from formset.ranges import DateRangeField, DateRangeCalendar, DateTimeRangeField, DateTimeRangePicker
 
+from .utils import get_javascript_catalog
+
 
 class BookingForm(forms.Form):
     range = DateRangeField(
@@ -40,6 +42,7 @@ class DemoFormView(CalendarResponseMixin, FormView):
 urlpatterns = [
     path('booking', DemoFormView.as_view(form_class=BookingForm), name='booking'),
     path('reservation', DemoFormView.as_view(form_class=ReservationForm), name='reservation'),
+    get_javascript_catalog(),
 ]
 
 
