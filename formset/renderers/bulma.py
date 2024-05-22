@@ -62,6 +62,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_input,
         'django/forms/widgets/email.html': _amend_input,
+        'django/forms/widgets/date.html': _amend_input,
         'django/forms/widgets/number.html': _amend_input,
         'django/forms/widgets/password.html': _amend_input,
         'django/forms/widgets/url.html': _amend_input,
