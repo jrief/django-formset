@@ -595,7 +595,7 @@ class DjangoButton {
 	 */
 	// @ts-ignore
 	private clicked = (event: Event) => {
-		if (event.target === this.element) {
+		if (event.currentTarget === this.element) {
 			this.formset.currentActiveButton = this;
 			this.clickHandler();
 		}
