@@ -1203,7 +1203,7 @@ class DjangoForm {
 		this.path = this.name?.split('.') ?? [];
 		const next = element.nextSibling;
 		this.fieldset = next instanceof HTMLFieldSetElement && next.form === element ? new DjangoFieldset(this, next) : null;
-		const placeholder = element.nextElementSibling?.querySelector('.dj-form-errors > ul.dj-errorlist > li.dj-placeholder');
+		const placeholder = element.nextElementSibling?.querySelector(':scope > .dj-form-errors > ul.dj-errorlist > li.dj-placeholder');
 		if (placeholder) {
 			this.errorList = placeholder.parentElement as HTMLUListElement;
 			this.errorPlaceholder = this.errorList.removeChild(placeholder) as HTMLLIElement;
@@ -1884,7 +1884,7 @@ export class DjangoFormset {
 	}
 
 	private findErrorsPlaceholder() {
-		const placeholder = this.element.querySelector('.dj-form-errors > ul.dj-errorlist > li.dj-placeholder');
+		const placeholder = this.element.querySelector(':scope > .dj-form-errors > ul.dj-errorlist > li.dj-placeholder');
 		if (placeholder) {
 			this.errorList = placeholder.parentElement as HTMLUListElement;
 			this.errorPlaceholder = this.errorList.removeChild(placeholder) as HTMLLIElement;
