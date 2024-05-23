@@ -33,7 +33,8 @@ UnaryOperator
   = "!"
 
 OperabilityFactor
-  = "(" _ expr:OperabilityExpression _ ")" { return `(${expr})`; }
+  = UnaryOperator _ expr:OperabilityExpression { return `!(${expr})`; }
+  / "(" _ expr:OperabilityExpression _ ")" { return `(${expr})`; }
   / scalar
   / getDataValue
 
