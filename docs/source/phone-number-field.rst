@@ -123,8 +123,9 @@ Extra Settings
 The following settings can be used to customize the behavior of the phone number widget:
 
 * Adding ``"default-country-code": "XX"`` to the widget's ``attrs`` dictionary, preselects the
-  named country, so that users must not enter their international prefix. Entering a foreign phone
-  number is still possible. Remember to replace ``XX`` by the desired two-letter country code.
+  named country, so that users are not required to enter their international prefix. Entering a
+  foreign phone number is still possible. Remember to replace ``XX`` by the desired two-letter
+  country code.
 * Adding ``mobile-only: True`` to the widget's ``attrs`` dictionary, restricts the phone number to
   mobile phones only. This is useful if the number is required for sending SMS messages.
 
