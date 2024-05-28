@@ -4,6 +4,7 @@ from base64 import b16encode
 from datetime import date, timedelta, timezone
 from functools import reduce
 from operator import and_, or_
+from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.core.files.storage import default_storage
@@ -372,7 +373,8 @@ class UploadedFileInput(FileInput):
             if not handle:
                 return False  # marked as deleted
             if 'upload_temp_name' not in handle:
-                return  # widget already initialized, skip checks
+                # widget already initialized, mark as Path to bypass ``clean()``-method
+                return Path(handle['path'])
 
             # check if the file type corresponds to the allowed types
             if accept := self.attrs.get('accept'):
