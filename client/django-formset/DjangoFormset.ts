@@ -2142,9 +2142,9 @@ export class DjangoFormset {
 			switch (response.status) {
 				case 200:
 					this.clearErrors();
-					for (const form of this.forms) {
-						form.element.dispatchEvent(new Event('submitted'));
-					}
+					this.forms.filter(form => isEqual(form.path, path)).forEach(form => {
+						form.element.dispatchEvent(new Event('submitted'))
+					});
 					return response;
 				case 422:
 					this.clearErrors();
