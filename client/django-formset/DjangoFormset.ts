@@ -2137,7 +2137,6 @@ export class DjangoFormset {
 				method: 'PATCH',
 				headers: headers,
 				body: JSON.stringify(body),
-				signal: this.abortController.signal,
 			});
 			switch (response.status) {
 				case 200:
