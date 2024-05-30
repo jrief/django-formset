@@ -87,8 +87,8 @@ Actions
   }
 
 Chain
-  = lhs:function _ '->' _ rhs:Chain _ { return [lhs].concat(rhs) }
-  / func:function { return [func] }
+  = lhs:Function _ '->' _ rhs:Chain _ { return [lhs].concat(rhs) }
+  / func:Function { return [func] }
 
 TernaryCondition
   = _ head:TernaryFactor _ tail:(_ Operator _ OperabilityExpression)* _ {
@@ -102,7 +102,7 @@ TernaryFactor
   / dataValue:getDataValue { return `return ${dataValue}`; }
 
 
-function
+Function
   = 'setFieldValue' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
     return { funcname: 'setFieldValue', args: [target.split('.'), source] };
   }
@@ -138,9 +138,14 @@ arglist
 
 argument
   = number
+  / boolean
   / string
   / object
   / array
+  / path:PATH {
+    return {funcname: 'getDataValue', args: [path.split('.')]};
+  }
+
 
 // ----- D. JSON -----
 

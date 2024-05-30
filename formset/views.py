@@ -187,7 +187,10 @@ class FormCollectionViewMixin(FormsetResponseMixin):
     collection_kwargs = None
 
     def get(self, request, *args, **kwargs):
-        """Handle GET requests: instantiate blank versions of the forms in the collection."""
+        if request.accepts('application/json') and set(['path', 'pk']).issubset(request.GET):
+            # invoked by `DjangoFormset.prefillPartial()`
+            return self._fetch_partial_data()
+        # instantiate blank versions of the forms in the collection
         return self.render_to_response(self.get_context_data())
 
     def post(self, request, **kwargs):
@@ -202,6 +205,25 @@ class FormCollectionViewMixin(FormsetResponseMixin):
         Method `PATCH` is used for partial submits.
         """
         return self.post(request, **kwargs)
+
+    def _fetch_partial_data(self):
+        collection_class = self.get_collection_class()
+        empty_holder = collection_class
+        initial = self.get_initial()
+        bucket = None
+        for part in self.request.GET['path'].split('.'):
+            if not (empty_holder := empty_holder.declared_holders.get(part)):
+                break
+            bucket = initial.setdefault(part, {})
+        if bucket is not None:
+            try:
+                instance = empty_holder._meta.model.objects.get(pk=self.request.GET.get('pk'))
+                bucket.update(**type(empty_holder)(instance=instance).initial)
+            except empty_holder._meta.model.DoesNotExist:
+                pass
+            else:
+                return JsonResponse(initial)
+        return HttpResponseBadRequest("Invalid path value")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

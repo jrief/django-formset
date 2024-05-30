@@ -1137,6 +1137,9 @@ class PerpetualFormDialog extends FormDialog {
 			return;
 		this.form.setPristine();
 		this.form.untouch();
+		if (args.length === 2 && args[0] === 'prefill') {
+			this.form.formset.prefillPartial(args[1], this.form.path);
+		}
 		super.openDialog(...args);
  	}
 
@@ -2092,9 +2095,7 @@ export class DjangoFormset {
 				switch (response.status) {
 					case 200:
 						this.clearErrors();
-						for (const form of this.forms) {
-							form.element.dispatchEvent(new Event('submitted'));
-						}
+						this.forms.forEach(form => form.element.dispatchEvent(new Event('submitted')));
 						return response;
 					case 422:
 						this.clearErrors();
@@ -2117,6 +2118,43 @@ export class DjangoFormset {
 			for (const form of this.forms) {
 				form.reportValidity();
 			}
+		}
+	}
+
+	async prefillPartial(pk: string, path: Path) : Promise<Response|undefined> {
+		if (!this.endpoint)
+			throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
+		try {
+			const query = new URLSearchParams({pk, path: path.join('.')});
+			const headers = new Headers();
+			headers.append('Accept', 'application/json');
+			const response = await fetch(`${this.endpoint}?${query.toString()}`, {headers});
+			switch (response.status) {
+				case 200:
+					this.clearErrors();
+					const formData = await response.json();
+					const form = this.forms.find(form => isEqual(form.path, path));
+					if (form?.element) {
+						for (const [name, value] of Object.entries(getDataValue(formData, path, {}))) {
+							const fieldElement = form.element.elements.namedItem(name);
+							if (typeof value === 'string' && (
+								fieldElement instanceof HTMLInputElement || fieldElement instanceof HTMLSelectElement || fieldElement instanceof HTMLTextAreaElement
+							)) {
+								fieldElement.value = value;
+							}
+						}
+					}
+					return response;
+				default:
+					console.warn(`Unknown response status: ${response.status}`);
+					this.clearErrors();
+					this.buttons.forEach(button => button.restoreToInitial());
+					return response;
+			}
+		} catch (error) {
+			this.clearErrors();
+			this.buttons.forEach(button => button.restoreToInitial());
+			alert(error);
 		}
 	}
 

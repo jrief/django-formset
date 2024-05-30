@@ -97,8 +97,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         self._errors = None  # Stores the errors after `clean()` has been called.
         if instance:
             self.instance = instance
-        if partial is True:
-            self.partial = True
+        if partial is not None:
+            self.partial = partial
         if min_siblings is not None:
             self.min_siblings = min_siblings
         if max_siblings is not None:
@@ -407,9 +407,9 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
 
     def model_to_dict(self, instance):
         """
-        Create initial data from a starting instance. This instance may be traversed recusively and shall be used to
+        Create initial data from a starting instance. This instance may be traversed recursively and shall be used to
         fill the initial data for all its sub-collections and forms.
-        Forms which do not correspond to the model given by the starting instance, are themselves responsible to
+        Forms which do not correspond to the model given by the starting instance, are responsible themselves to
         access the proper referenced models by following the reverse relations through the given foreign keys.
         """
         object_data = {}

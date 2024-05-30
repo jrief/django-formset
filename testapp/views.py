@@ -9,7 +9,7 @@ from django.db.models import Model
 from django.db.models.fields.files import FieldFile
 from django.forms.models import construct_instance
 from django.forms.renderers import get_default_renderer
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.template.loader import get_template
 from django.urls import get_resolver, path
 from django.utils.module_loading import import_string
@@ -322,7 +322,12 @@ class PageCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewM
 
     def form_collection_valid(self, form_collection):
         if form_collection.partial:
-            reporter = construct_instance(form_collection.valid_holders['create_reporter'], Reporter())
+            if not (valid_holder := form_collection.valid_holders.get(
+                'create_reporter',
+                form_collection.valid_holders.get('edit_reporter')
+            )):
+                return HttpResponseBadRequest("Form data is missing.")
+            reporter = construct_instance(valid_holder, Reporter())
             reporter.save()
             return JsonResponse({'reporter_id': reporter.id})
         return super().form_collection_valid(form_collection)
@@ -360,8 +365,9 @@ demo_css_classes = {
             'form_css_classes': 'row',
             'field_css_classes': {
                 '*': 'mb-2 col-12',
-                'reporter': 'mb-2 col-9',
-                'add_reporter': 'mb-2 col-3',
+                'reporter': 'mb-2 col-lg-8 col-md-6',
+                'edit_reporter': 'mt-4 pt-2 col-lg-2 col-md-3',
+                'add_reporter': 'mt-4 pt-2 col-lg-2 col-md-3',
             },
         },
         'simplecontact': {

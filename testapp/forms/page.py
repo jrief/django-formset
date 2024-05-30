@@ -10,22 +10,12 @@ from formset.widgets import Button, Selectize, SlugInput
 from testapp.models import Reporter, PageModel
 
 
-class CreateReporterDialogForm(DialogModelForm):
-    title = "Create Reporter"
-    induce_open = 'page.add_reporter:active'
-    induce_close = '.create:active || .cancel:active'
+class ChangeReporterDialogForm(DialogModelForm):
     cancel = Activator(
         label="Cancel",
         widget=Button(
             action='activate("close")',
             button_variant=ButtonVariant.SECONDARY,
-        ),
-    )
-    create = Activator(
-        label="Create Reporter",
-        widget=Button(
-            action='submitPartial -> setFieldValue(page.reporter, ^reporter_id) -> activate("clear")',
-            button_variant=ButtonVariant.PRIMARY,
         ),
     )
 
@@ -38,6 +28,34 @@ class CreateReporterDialogForm(DialogModelForm):
             return super().is_valid()
         self._errors = {}
         return True
+
+
+class EditReporterDialogForm(ChangeReporterDialogForm):
+    title = "Edit Reporter"
+    induce_open = 'page.edit_reporter:active'
+    induce_close = '.change:active || .cancel:active'
+
+    change = Activator(
+        label="Change Reporter",
+        widget=Button(
+            action='submitPartial -> setFieldValue(page.reporter, ^reporter_id) -> activate("clear")',
+            button_variant=ButtonVariant.PRIMARY,
+        ),
+    )
+
+
+class CreateReporterDialogForm(ChangeReporterDialogForm):
+    title = "Create Reporter"
+    induce_open = 'page.add_reporter:active'
+    induce_close = '.create:active || .cancel:active'
+
+    create = Activator(
+        label="Create Reporter",
+        widget=Button(
+            action='submitPartial -> setFieldValue(page.reporter, ^reporter_id) -> activate("clear")',
+            button_variant=ButtonVariant.PRIMARY,
+        ),
+    )
 
 
 class PageForm(ModelForm):
@@ -58,6 +76,14 @@ class PageForm(ModelForm):
         ),
         required=False,
     )
+    edit_reporter = Activator(
+        label="Edit Reporter",
+        widget=Button(
+            action='activate("prefill", page.reporter)',
+            attrs={'df-disable': '!page.reporter'},
+            button_variant=ButtonVariant.SUCCESS,
+        ),
+    )
     add_reporter = Activator(
         label="Add Reporter",
         widget=Button(
@@ -73,6 +99,7 @@ class PageForm(ModelForm):
 
 class EditPageCollection(FormCollection):
     create_reporter = CreateReporterDialogForm()
+    edit_reporter = EditReporterDialogForm()
     page = PageForm()
 
     def construct_instance(self, main_object):
