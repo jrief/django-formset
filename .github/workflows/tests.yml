@@ -57,6 +57,7 @@ jobs:
       run: |
         npm run ${{ matrix.build-client }}
         npm run compilescss
-    - name: Test with pytest
+    - name: Run tests
       run: |
         python -m pytest testapp
+        npm run testclient

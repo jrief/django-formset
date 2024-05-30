@@ -319,6 +319,9 @@ database.
 One must note that it is only possible to reorder collections inside its direct parent collection.
 It therefore is not possible to drag a sub collection into another collection.
 
+.. note:: The field used to enter a phone number just uses a regular expression. This is just for
+	demonstration purpose. In a real world application, one should use a specialized widget for the
+	:ref:`phone-number-field`.
 
 .. rubric:: Footnotes
 
