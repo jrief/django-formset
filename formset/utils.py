@@ -1,4 +1,5 @@
 import copy
+from pathlib import Path
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -162,6 +163,15 @@ class FormMixin(FormDecoratorMixin, HolderMixin):
 
     def get_field(self, field_name):
         return self.fields[field_name]
+
+
+class FileFieldMixin:
+    def clean(self, value, initial):
+        if isinstance(value, Path) and initial is not None:
+            initial = copy.copy(initial)
+            initial.name = str(value)
+            return initial
+        return super().clean(value, initial)
 
 
 class RenderableDetachedFieldMixin(RenderableMixin):

@@ -2,8 +2,16 @@ from django.core import checks
 from django.db.models.fields.related import ManyToManyField
 from django.forms import fields
 
-from formset.utils import HolderMixin
-from formset.widgets import Button, DualSortableSelector
+from formset.utils import FileFieldMixin, HolderMixin
+from formset.widgets import Button, DualSortableSelector, UploadedFileInput
+
+
+class FileField(FileFieldMixin, fields.FileField):
+    """
+    A replacement for the built-in FileField that uses the custom widget and a custom
+    clean() method.
+    """
+    widget = UploadedFileInput
 
 
 class Activator(HolderMixin, fields.Field):

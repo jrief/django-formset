@@ -6,7 +6,7 @@ from django.forms.fields import FileField, JSONField
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from formset.fields import Activator
+from formset.fields import Activator, FileFieldMixin
 from formset.renderers import ClassList
 from formset.upload import get_file_info
 from formset.widgets import UploadedFileInput
@@ -24,6 +24,12 @@ class CheckboxInputMixin:
 
 
 class BoundField(boundfield.BoundField):
+    def __init__(self, form, field, name):
+        if isinstance(field, FileField) and not isinstance(field, FileFieldMixin):
+            # Fields of type ``FileField`` require a modified ``clean()``-method to handle Path objects
+            field.__class__ = type(field.__class__.__name__, (FileFieldMixin, field.__class__), {})
+        super().__init__(form, field, name)
+
     @property
     def errors(self):
         errors = self.form.errors.get(self.name, self.form.error_class())

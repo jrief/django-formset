@@ -386,7 +386,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         """
         Return the cleaned data for this collection and nested forms/collections.
         """
-        if not self.is_valid():
+        if self._errors is None or not self.is_valid():
             raise AttributeError(f"'{self.__class__}' object has no attribute 'cleaned_data'")
         if self.has_many:
             return [{name: holder.cleaned_data} for valid_holders in self.valid_holders for name, holder in valid_holders.items()]

@@ -84,7 +84,7 @@ There is a good reason to follow this rule: Strings intended for humans, sometim
 apostrophes, for instance `"This is John's profile"`. By using double quotes, those apostrophes must
 not be escaped. On the other side whenever we write HTML, we have to use double quotes for
 parameters, for instance `'<a href="https://example.org">Click here!</a>'`. By using single quotes,
-those double quotes must not be escaped.
+those double quotes do not have to be escaped.
 
 
 Lists versus Tuples
