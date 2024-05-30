@@ -25,8 +25,8 @@ export abstract class FormDialog {
 			this.transferStyles();
 		}
 		this.isModal = this.element.hasAttribute('df-modal');
-		this.induceOpen = this.evalInducer('df-induce-open', () => this.openDialog());
-		this.induceClose = this.evalInducer('df-induce-close', (action: string) => this.closeDialog(action));
+		this.induceOpen = this.evalInducer('df-induce-open', (...args: any[]) => this.openDialog(...args));
+		this.induceClose = this.evalInducer('df-induce-close', (...args: any[]) => this.closeDialog(...args));
 	}
 
 	protected evalInducer(attr: string, inducer: Function) : Function {
@@ -35,9 +35,9 @@ export abstract class FormDialog {
 			return () => {};
 		try {
 			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'InduceExpression'})}`);
-			return (action?: string) => {
+			return (...args: any[]) => {
 				if (evalExpression.call(this)) {
-					inducer(action);
+					inducer(...args);
 				}
 			};
 		} catch (error) {
@@ -45,7 +45,7 @@ export abstract class FormDialog {
 		}
 	}
 
-	protected openDialog(){
+	protected openDialog(...args: any[]) {
 		const viewport = window.visualViewport;
 		if (this.element.open || !viewport)
 			return;
@@ -136,8 +136,8 @@ export abstract class FormDialog {
 		return this.element.open;
 	}
 
-	public updateOperability(action?: string) {
-		this.induceOpen(action);
-		this.induceClose(action);
+	public updateOperability(...args: any[]) {
+		this.induceOpen(...args);
+		this.induceClose(...args);
 	}
 }

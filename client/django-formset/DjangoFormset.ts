@@ -210,14 +210,14 @@ class FieldGroup {
 		this.validate();
 	}
 
-	public updateOperability(action?: string) {
+	public updateOperability(...args: any[]) {
 		this.updateVisibility();
 		this.updateDisabled();
 		this.updateRequired();
 		this.fieldElements.filter(
 			fieldElement => typeof (fieldElement as any).updateOperability === 'function'
 		).forEach(
-			fieldElement => (fieldElement as any).updateOperability(action)
+			fieldElement => (fieldElement as any).updateOperability(...args)
 		);
 	}
 
@@ -886,9 +886,9 @@ class DjangoButton {
 	/**
 	 * Action to activate a button so that it can be used
  	 */
-	private activate(action?: string) {
+	private activate(...args: any[]) {
 		return (response: Response) => {
-			this.formset.updateOperability(action);
+			this.formset.updateOperability(...args);
 			return Promise.resolve(response);
 		}
 	}
@@ -1057,7 +1057,7 @@ class DjangoButton {
 		return getDataValue(body, path);
 	}
 
-	public updateOperability(action?: string) {
+	public updateOperability(...args: any[]) {
 		this.updateVisibility();
 		this.updateDisabled();
 	}
@@ -1117,7 +1117,7 @@ class DjangoFieldset {
 		return this.form.getDataValue(path);
 	}
 
-	public updateOperability(action?: string) {
+	public updateOperability(...args: any[]) {
 		this.updateVisibility();
 		this.updateDisabled();
 	}
@@ -1132,24 +1132,26 @@ class PerpetualFormDialog extends FormDialog {
 		this.form = form;
 	}
 
-	protected openDialog() {
+	protected openDialog(...args: any[]) {
 		if (this.element.open)
 			return;
 		this.form.setPristine();
 		this.form.untouch();
-		super.openDialog();
+		super.openDialog(...args);
  	}
 
-	protected closeDialog(action: string) {
-		switch (action) {
+	protected closeDialog(...args: any[]) {
+		if (args.length === 0)
+			return;
+		switch (args[0]) {
 			case 'apply':
 				if (this.form.isValid()) {
-					this.element.close(action);
+					this.element.close('apply');
 				}
 				break;
 			case 'close':
 				this.element.blur();
-				this.element.close(action);
+				this.element.close('close');
 				break;
 			case 'reset':
 				this.form.resetToInitial();
@@ -1157,7 +1159,7 @@ class PerpetualFormDialog extends FormDialog {
 			case 'clear':
 				this.form.resetToInitial();
 				this.element.blur();
-				this.element.close(action);
+				this.element.close('clear');
 				break;
 			default:
 				break;
@@ -1266,10 +1268,10 @@ class DjangoForm {
 		}
 	}
 
-	public updateOperability(action?: string) {
-		this.fieldset?.updateOperability(action);
-		this.fieldGroups.forEach(fieldGroup => fieldGroup.updateOperability(action));
-		this.parentDialog?.updateOperability(action);
+	public updateOperability(...args: any[]) {
+		this.fieldset?.updateOperability(...args);
+		this.fieldGroups.forEach(fieldGroup => fieldGroup.updateOperability(...args));
+		this.parentDialog?.updateOperability(...args);
 	}
 
 	setSubmitted() {
@@ -1969,14 +1971,14 @@ export class DjangoFormset {
 		this.updateOperability();
 	}
 
-	public updateOperability(action?: string) {
+	public updateOperability(...args: any[]) {
 		for (const form of this.forms) {
 			if (form.markedForRemoval)
 				continue;
-			form.updateOperability(action);
+			form.updateOperability(...args);
 		}
 		for (const button of this.buttons) {
-			button.updateOperability(action);
+			button.updateOperability(...args);
 		}
 	}
 
