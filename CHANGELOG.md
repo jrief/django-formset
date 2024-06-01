@@ -2,8 +2,9 @@
 
 1.5
   * Drop support for Django-4.1.
-  * To the button element, add function `setFieldValue`, which can be used to transfer values from
-    one field to another one.
+  * Attribute `<button df-click="…">` now accepts function `setFieldValue()`. This can be used to
+    transfer values from one field to another one.
+  * 
 
 1.4.5
   * Fix: When submitting a form with a `FileField`, the `UploadedFileInput` widget returns ``None``
