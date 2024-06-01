@@ -174,12 +174,12 @@ def test_tiptap_valid_simple_link(page, viewname, richtext_wrapper, menubar, con
     expect(dialog.locator('button[name="revert"]')).not_to_be_visible()
     dialog.locator('button[name="apply"]').click()
     expect(dialog).not_to_be_visible()
-    assert contenteditable.inner_html() == '<p>Click <a href="https://example.org/">here</a></p>'
+    expect(contenteditable.locator('p')).to_have_text('Click here')
+    expect(contenteditable.locator('p a')).to_have_text('here')
+    expect(contenteditable.locator('p a')).to_have_attribute('href', 'https://example.org/')
     set_caret(page, 9)
     expect(menu_button).to_have_class('active')
-    set_caret(page, 3)
     set_caret(page, 2)
-    sleep(0.25)
     expect(menu_button).not_to_have_class('active')
 
 
