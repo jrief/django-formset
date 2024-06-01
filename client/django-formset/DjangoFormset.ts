@@ -2137,10 +2137,10 @@ export class DjangoFormset {
 					if (form?.element) {
 						for (const [name, value] of Object.entries(getDataValue(formData, path, {}))) {
 							const fieldElement = form.element.elements.namedItem(name);
-							if (typeof value === 'string' && (
+							if ((typeof value === 'string' || typeof value === 'number')  && (
 								fieldElement instanceof HTMLInputElement || fieldElement instanceof HTMLSelectElement || fieldElement instanceof HTMLTextAreaElement
 							)) {
-								fieldElement.value = value;
+								fieldElement.value = value as string;
 							}
 						}
 					}

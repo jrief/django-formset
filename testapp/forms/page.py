@@ -1,5 +1,6 @@
 from django.forms.fields import CharField, SlugField
 from django.forms.models import ModelChoiceField, ModelForm, construct_instance
+from django.forms.widgets import HiddenInput
 
 from formset.collection import FormCollection
 from formset.dialog import DialogModelForm
@@ -19,10 +20,6 @@ class ChangeReporterDialogForm(DialogModelForm):
         ),
     )
 
-    class Meta:
-        model = Reporter
-        fields = ['full_name']
-
     def is_valid(self):
         if self.partial:
             return super().is_valid()
@@ -35,6 +32,7 @@ class EditReporterDialogForm(ChangeReporterDialogForm):
     induce_open = 'page.edit_reporter:active'
     induce_close = '.change:active || .cancel:active'
 
+    id = CharField(widget=HiddenInput)
     change = Activator(
         label="Change Reporter",
         widget=Button(
@@ -42,6 +40,10 @@ class EditReporterDialogForm(ChangeReporterDialogForm):
             button_variant=ButtonVariant.PRIMARY,
         ),
     )
+
+    class Meta:
+        model = Reporter
+        fields = ['id', 'full_name']
 
 
 class CreateReporterDialogForm(ChangeReporterDialogForm):
@@ -56,6 +58,10 @@ class CreateReporterDialogForm(ChangeReporterDialogForm):
             button_variant=ButtonVariant.PRIMARY,
         ),
     )
+
+    class Meta:
+        model = Reporter
+        fields = ['full_name']
 
 
 class PageForm(ModelForm):

@@ -322,12 +322,13 @@ class PageCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewM
 
     def form_collection_valid(self, form_collection):
         if form_collection.partial:
-            if not (valid_holder := form_collection.valid_holders.get(
-                'create_reporter',
-                form_collection.valid_holders.get('edit_reporter')
-            )):
+            if valid_holder := form_collection.valid_holders.get('create_reporter'):
+                reporter = construct_instance(valid_holder, Reporter())
+            elif valid_holder := form_collection.valid_holders.get('edit_reporter'):
+                reporter = Reporter.objects.get(id=valid_holder.cleaned_data['id'])
+                construct_instance(valid_holder, reporter)
+            else:
                 return HttpResponseBadRequest("Form data is missing.")
-            reporter = construct_instance(valid_holder, Reporter())
             reporter.save()
             return JsonResponse({'reporter_id': reporter.id})
         return super().form_collection_valid(form_collection)

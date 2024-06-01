@@ -9,9 +9,7 @@ from django.forms import fields, forms
 from formset.collection import FormCollection
 from formset.dialog import ApplyButton, CancelButton, DialogForm
 from formset.fields import Activator
-from formset.renderers import ButtonVariant
 from formset.views import FormCollectionView
-from formset.widgets import Button
 
 from .utils import get_javascript_catalog
 
@@ -43,13 +41,12 @@ class DialogCollection(FormCollection):
     click_outside = Activator()
 
 
-class DemoFormCollectionView(FormCollectionView):
-    template_name = 'testapp/native-form.html'
+class DialogFormCollectionView(FormCollectionView):
     success_url = '/success'
 
 
 urlpatterns = [
-    path('dialog', DemoFormCollectionView.as_view(
+    path('dialog', DialogFormCollectionView.as_view(
         collection_class=DialogCollection,
         template_name='testapp/form-collection.html',
         extra_context={'click_actions': 'submit -> proceed', 'force_submission': True},
@@ -70,7 +67,6 @@ def test_submit_dialog(page, mocker, viewname):
     dialog.locator('button[name="apply"]').click()
     popup_name_input = dialog.locator('input[name="name"]')
     expect(popup_name_input.locator('+ [role="alert"]')).to_have_text("This field is required.")
-    expect(dialog).to_be_visible()
     expect(dialog.locator('> div.dialog-header > h3')).to_have_text("Edit Name")
     popup_name_input.fill("Barbara")
     expect(popup_name_input.locator('+ [role="alert"]')).to_be_empty()

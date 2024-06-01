@@ -299,19 +299,25 @@ export class DjangoSelectize extends IncompleteSelect {
 		}
 	};
 
-	public setValue(value: string) {
+	public setValue(value: string|number) {
 		const emitChangeEvent = () => this.tomSelect.input.dispatchEvent(new Event('change', {bubbles: true}));
 
-		this.tomSelect.setValue(value, true);
-		if (this.tomSelect.getValue() !== value) {
-			// value does not exist in the options, try to load from server
-			this.loadOptions(this.buildFetchQuery(0, {pk: value}), (options: Array<OptionData>) => {
-				this.tomSelect.addOptions(options);
+		if (typeof value === 'number') {
+			// if the value is a number, enforce re-fetching object from the server
+			this.loadOptions(this.buildFetchQuery(0, {pk: value.toString()}), (options: Array<OptionData>) => {
+				if (this.tomSelect.getValue() === value.toString()) {
+					// object already loaded by tom-select
+					this.tomSelect.updateOption(value.toString(), options[0]);
+				} else {
+					// object must be added to tom-select
+					this.tomSelect.addOptions(options);
+				}
 			}).then(() => {
-				this.tomSelect.setValue(value, true);
+				this.tomSelect.setValue(value.toString(), true);
 				emitChangeEvent();
 			});
 		} else {
+			this.tomSelect.setValue(value, true);
 			emitChangeEvent();
 		}
 	}
@@ -340,12 +346,17 @@ export class DjangoSelectizeElement extends HTMLSelectElement {
 	 	return Array.isArray(value) ? value.join(',') : value;
 	}
 
-	set value(val: string) {
+	set value(val: any) {
 		if (this.multiple) {
-			this[DS]?.setValues(String(val).split(','));
+			if (typeof val === 'string') {
+				this[DS]?.setValues(val.split(','));
+			} else if (Array.isArray(val)) {
+				this[DS]?.setValues(val);
+			}
 		} else {
-			this[DS]?.setValue(String(val));
+			if (typeof val === 'string' || typeof val === 'number') {
+				this[DS]?.setValue(val);
+			}
 		}
 	}
-
 }
