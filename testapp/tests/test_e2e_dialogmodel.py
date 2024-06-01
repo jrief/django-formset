@@ -68,16 +68,20 @@ class PageForm(ModelForm):
         required=False,
     )
     edit_reporter = Activator(
-        label="Edit Reporter",
         widget=Button(
             action='activate("prefill", page.reporter)',
             attrs={'df-disable': '!page.reporter'},
         ),
     )
     add_reporter = Activator(
-        label="Add Reporter",
         widget=Button(
             action='activate',
+        ),
+    )
+    delete_reporter = Activator(
+        widget=Button(
+            action='deletePartial(change_reporter, page.reporter) -> setFieldValue(page.reporter, "")',
+            attrs={'df-disable': '!page.reporter'},
         ),
     )
 
@@ -196,3 +200,29 @@ def test_edit_reporter(page, mocker, viewname):
     assert Reporter.objects.get(id=reporter.id).full_name == "Sarah Johnson"
     expect(select_reporter).to_have_value(str(reporter.id))
     expect(pseudo_input).to_have_text("Sarah Johnson")
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['page'])
+def test_delete_reporter(page, mocker, viewname):
+    form_collection = page.locator('django-formset > django-form-collection')
+    dialog = form_collection.nth(0).locator('> dialog')
+    expect(dialog).not_to_be_visible()
+    select_reporter = form_collection.locator('select[name="reporter"]')
+    expect(select_reporter).to_have_value('')
+    reporter, _ = Reporter.objects.get_or_create(full_name="Sarah Hemingway")
+    select_reporter.evaluate(f'el => el.value = {reporter.id}')
+    expect(select_reporter).to_have_value(str(reporter.id))
+    pseudo_input = form_collection.nth(1).locator(f'.ts-wrapper div.item[data-value=\"{reporter.id}\"]')
+    expect(pseudo_input).to_have_text("Sarah Hemingway")
+
+    # delete the current reporter remotely
+    spy = mocker.spy(PageCollectionView, 'delete')
+    form_collection.nth(1).locator('button[name="delete_reporter"]').click()
+
+    # check if the reporter was deleted from the database and from the selectize widget
+    sleep(1)
+    spy.assert_called()
+    assert not Reporter.objects.filter(id=reporter.id).exists()
+    expect(select_reporter).to_have_value('')
+    expect(pseudo_input).not_to_be_visible()

@@ -4,7 +4,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
 from django.db.models import QuerySet
 from django.forms.fields import CallableChoiceIterator
-from django.http.response import HttpResponseBadRequest, JsonResponse
+from django.http.response import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest, JsonResponse
 from django.utils.encoding import force_str
 from django.utils.functional import cached_property
 from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
@@ -206,6 +206,14 @@ class FormCollectionViewMixin(FormsetResponseMixin):
         """
         return self.post(request, **kwargs)
 
+    def delete(self, request, **kwargs):
+        """
+        Method `DELETE` is used for partial deletion.
+        """
+        if set(['path', 'pk']).issubset(request.GET):
+            return self._delete_partial()
+        return HttpResponseForbidden("Method DELETE not supported in this context")
+
     def _fetch_partial_data(self):
         collection_class = self.get_collection_class()
         empty_holder = collection_class
@@ -223,6 +231,22 @@ class FormCollectionViewMixin(FormsetResponseMixin):
                 pass
             else:
                 return JsonResponse(initial)
+        return HttpResponseBadRequest("Invalid path value")
+
+    def _delete_partial(self):
+        collection_class = self.get_collection_class()
+        empty_holder = collection_class
+        for part in self.request.GET['path'].split('.'):
+            if not (empty_holder := empty_holder.declared_holders.get(part)):
+                break
+        if empty_holder is not None:
+            try:
+                instance = empty_holder._meta.model.objects.get(pk=self.request.GET.get('pk'))
+            except empty_holder._meta.model.DoesNotExist:
+                pass
+            else:
+                instance.delete()
+                return HttpResponse(status=204)
         return HttpResponseBadRequest("Invalid path value")
 
     def get_context_data(self, **kwargs):

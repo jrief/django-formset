@@ -106,6 +106,9 @@ Function
   = 'setFieldValue' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
     return { funcname: 'setFieldValue', args: [target.split('.'), source] };
   }
+  / 'deletePartial' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
+    return { funcname: 'deletePartial', args: [target.split('.'), source] };
+  }
   / _ funcname:$keystring '(' args:arglist ')' _ {
     return { funcname: funcname, args: args };
   }

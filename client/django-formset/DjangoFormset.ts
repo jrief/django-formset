@@ -884,7 +884,7 @@ class DjangoButton {
 	}
 
 	/**
-	 * Action to activate a button so that it can be used
+	 * Action to activate a button so that it can be used by dialogs.
  	 */
 	private activate(...args: any[]) {
 		return (response: Response) => {
@@ -899,6 +899,15 @@ class DjangoButton {
 	private setFieldValue(target: Path, source: FieldValue) {
 		return (response: Response) => {
 			this.formset.setFieldValue(target, source);
+			return Promise.resolve(response);
+		}
+	}
+
+	private deletePartial(target: Path, source: FieldValue) {
+		return (response: Response) => {
+			if (typeof source === 'string' && parseInt(source)) {
+				this.formset.deletePartial(target, source);
+			}
 			return Promise.resolve(response);
 		}
 	}
@@ -2187,6 +2196,36 @@ export class DjangoFormset {
 					this.clearErrors();
 					const body = await response.clone().json();
 					this.reportErrors(body);
+					return response;
+				default:
+					console.warn(`Unknown response status: ${response.status}`);
+					this.clearErrors();
+					this.buttons.forEach(button => button.restoreToInitial());
+					return response;
+			}
+		} catch (error) {
+			this.clearErrors();
+			this.buttons.forEach(button => button.restoreToInitial());
+			alert(error);
+		}
+	}
+
+	async deletePartial(path: Path, pk: string) : Promise<Response|undefined> {
+		if (!this.endpoint)
+			throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
+		try {
+			const query = new URLSearchParams({pk, path: path.join('.')});
+			const headers = new Headers();
+			if (this.CSRFToken) {
+				headers.append('X-CSRFToken', this.CSRFToken);
+			}
+			const response = await fetch(`${this.endpoint}?${query.toString()}`, {
+				method: 'DELETE',
+				headers,
+			});
+			switch (response.status) {
+				case 204:
+					this.clearErrors();
 					return response;
 				default:
 					console.warn(`Unknown response status: ${response.status}`);
