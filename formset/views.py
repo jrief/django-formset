@@ -3,8 +3,13 @@ import json
 from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
 from django.db.models import QuerySet
-from django.forms.fields import CallableChoiceIterator
 from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
+
+try:
+    from django.utils.choices import CallableChoiceIterator
+except ImportError:  # Django<5.0
+    from django.forms.fields import CallableChoiceIterator
+
 from django.utils.encoding import force_str
 from django.utils.functional import cached_property
 from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
