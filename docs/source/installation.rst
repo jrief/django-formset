@@ -13,6 +13,7 @@ Just as with any other third party Django app, install this package using
 and add this app to the project's ``settings.py``:
 
 .. code-block:: python
+	:caption: settings.py
 
 	INSTALLED_APPS = [
 	    ...
@@ -35,8 +36,27 @@ lookup path as
 	    ('node_modules', BASE_DIR / 'node_modules'),
 	]
 
+The client implementation makes use of Django's gettext_ functionality. To make sure that the
+JavaScript files can be translated, include the following line in the project's ``urls.py``:
+
+.. _gettext: https://docs.djangoproject.com/en/stable/topics/i18n/translation/#internationalization-in-javascript-code
+
+.. code-block:: python
+	:caption: urls.py
+
+	urlpatterns = [
+	    ...
+	    path(
+	        'jsi18n/',
+	        cache_page(3600)(JavaScriptCatalog.as_view(packages=['formset'])),
+	        name='javascript-catalog'
+	    ),
+	    ...
+	]
+
+
 Assure that ``BASE_DIR`` points onto the root of your project. By doing so, the CSS file for
-Bootstrap (and all other assets in ``node_modules``) can be included as
+Bootstrap (and all other assets in ``node_modules``) can be included as:
 
 .. code-block:: django
 
@@ -45,6 +65,8 @@ Bootstrap (and all other assets in ``node_modules``) can be included as
 	<head>
 	  ...
 	  <link href="{% static 'node_modules/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+	  ...
+	  <script src="{% url 'javascript-catalog' %}"></script>
 	  ...
 	</head>
 
