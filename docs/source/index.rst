@@ -35,6 +35,7 @@ Django's counterparts.
 	selectize
 	dual-selector
 	dialog-forms
+	dialog-model-forms
 	richtext
 	richtext-extensions
 	slug-input

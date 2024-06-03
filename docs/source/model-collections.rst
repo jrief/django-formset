@@ -251,7 +251,7 @@ of the model instances ``Department`` or ``Team``. Since newly created instances
 key yet, it is marked with ``required=False`` to make it optional.
 
 Finally, our ``CompanyCollection`` must be made editable and served by a Django view class. Here we
-can use the the view class :ref:`formset.views.EditCollectionView` as in the previous example.
+can use the the view class :class:`formset.views.EditCollectionView` as in the previous example.
 
 .. django-view:: company_view
 	:view-function: type('CompanyCollectionView', (SessionFormCollectionViewMixin, model_collections.CompanyCollectionView), {}).as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'company-collection'}, collection_kwargs={'renderer': FormRenderer(field_css_classes='mb-2')})
