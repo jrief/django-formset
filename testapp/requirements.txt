@@ -1,7 +1,7 @@
 asgiref==3.7.2
 beautifulsoup4==4.12.2
 coverage==7.3.1
-django-countries==7.5.1
+https://github.com/jrief/django-countries/archive/refs/heads/main.zip
 docutils==0.20.1
 greenlet==3.0.3
 iniconfig==2.0.0
