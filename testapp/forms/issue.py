@@ -1,4 +1,4 @@
-from django.forms.fields import CharField, SlugField
+from django.forms.fields import CharField, IntegerField
 from django.forms.models import ModelChoiceField, ModelForm, construct_instance
 from django.forms.widgets import HiddenInput
 
@@ -6,9 +6,9 @@ from formset.collection import FormCollection
 from formset.dialog import DialogModelForm
 from formset.fields import Activator
 from formset.renderers import ButtonVariant
-from formset.widgets import Button, Selectize, SlugInput
+from formset.widgets import Button, Selectize
 
-from testapp.models import Reporter, PageModel
+from testapp.models import Reporter, IssueModel
 
 
 class ChangeReporterDialogForm(DialogModelForm):
@@ -29,14 +29,14 @@ class ChangeReporterDialogForm(DialogModelForm):
 
 class EditReporterDialogForm(ChangeReporterDialogForm):
     title = "Edit Reporter"
-    induce_open = 'page.edit_reporter:active'
+    induce_open = 'issue.edit_reporter:active'
     induce_close = '.change:active || .cancel:active'
 
-    id = CharField(widget=HiddenInput)
+    id = IntegerField(widget=HiddenInput)
     change = Activator(
         label="Change Reporter",
         widget=Button(
-            action='submitPartial -> setFieldValue(page.reporter, ^reporter_id) -> activate("clear")',
+            action='submitPartial -> setFieldValue(issue.reporter, ^reporter_id) -> activate("clear")',
             button_variant=ButtonVariant.PRIMARY,
         ),
     )
@@ -48,13 +48,13 @@ class EditReporterDialogForm(ChangeReporterDialogForm):
 
 class CreateReporterDialogForm(ChangeReporterDialogForm):
     title = "Create Reporter"
-    induce_open = 'page.add_reporter:active'
+    induce_open = 'issue.add_reporter:active'
     induce_close = '.create:active || .cancel:active'
 
     create = Activator(
         label="Create Reporter",
         widget=Button(
-            action='submitPartial -> setFieldValue(page.reporter, ^reporter_id) -> activate("clear")',
+            action='submitPartial -> setFieldValue(issue.reporter, ^reporter_id) -> activate("clear")',
             button_variant=ButtonVariant.PRIMARY,
         ),
     )
@@ -64,15 +64,10 @@ class CreateReporterDialogForm(ChangeReporterDialogForm):
         fields = ['full_name']
 
 
-class PageForm(ModelForm):
+class IssueForm(ModelForm):
     title = CharField(
         label="Title",
         max_length=100,
-    )
-    slug = SlugField(
-        label="Slug",
-        required=False,
-        widget=SlugInput(populate_from='title'),
     )
     reporter = ModelChoiceField(
         queryset=Reporter.objects.all(),
@@ -85,8 +80,8 @@ class PageForm(ModelForm):
     edit_reporter = Activator(
         label="Edit Reporter",
         widget=Button(
-            action='activate("prefill", page.reporter)',
-            attrs={'df-disable': '!page.reporter'},
+            action='activate("prefill", issue.reporter)',
+            attrs={'df-disable': '!issue.reporter'},
             button_variant=ButtonVariant.SUCCESS,
         ),
     )
@@ -99,17 +94,17 @@ class PageForm(ModelForm):
     )
 
     class Meta:
-        model = PageModel
-        fields = ['title', 'slug', 'reporter']
+        model = IssueModel
+        fields = ['title', 'reporter']
 
 
-class EditPageCollection(FormCollection):
+class EditIssueCollection(FormCollection):
     create_reporter = CreateReporterDialogForm()
     edit_reporter = EditReporterDialogForm()
-    page = PageForm()
+    issue = IssueForm()
 
     def construct_instance(self, main_object):
         assert not self.partial
-        instance = construct_instance(self.valid_holders['page'], main_object)
+        instance = construct_instance(self.valid_holders['issue'], main_object)
         instance.save()
         return instance

@@ -3,7 +3,7 @@ from time import sleep
 from playwright.sync_api import expect
 
 from django.urls import path
-from django.forms.fields import CharField, SlugField
+from django.forms.fields import CharField, IntegerField
 from django.forms.models import ModelChoiceField, ModelForm, construct_instance
 from django.forms.widgets import HiddenInput
 from django.http import JsonResponse, HttpResponseBadRequest
@@ -12,19 +12,19 @@ from formset.collection import FormCollection
 from formset.dialog import DialogModelForm
 from formset.fields import Activator
 from formset.views import EditCollectionView
-from formset.widgets import Button, Selectize, SlugInput
+from formset.widgets import Button, Selectize
 
 from .utils import get_javascript_catalog
 
-from testapp.models import Reporter, PageModel
+from testapp.models import Reporter, IssueModel
 
 
 class ChangeReporterDialogForm(DialogModelForm):
     title = "Edit Reporter"
-    induce_open = 'page.edit_reporter:active || page.add_reporter:active'
+    induce_open = 'issue.edit_reporter:active || issue.add_reporter:active'
     induce_close = '.change:active || .cancel:active'
 
-    id = CharField(
+    id = IntegerField(
         widget=HiddenInput,
         required=False,
         help_text="Primary key of Reporter object. Leave empty to create a new object.",
@@ -34,7 +34,7 @@ class ChangeReporterDialogForm(DialogModelForm):
     )
     change = Activator(
         widget=Button(
-            action='submitPartial -> setFieldValue(page.reporter, ^reporter_id) -> activate("clear")',
+            action='submitPartial -> setFieldValue(issue.reporter, ^reporter_id) -> activate("clear")',
         ),
     )
 
@@ -49,28 +49,18 @@ class ChangeReporterDialogForm(DialogModelForm):
         return True
 
 
-class PageForm(ModelForm):
-    title = CharField(
-        label="Title",
-        max_length=100,
-    )
-    slug = SlugField(
-        label="Slug",
-        required=False,
-        widget=SlugInput(populate_from='title'),
-    )
+class IssueForm(ModelForm):
+    title = CharField()
     reporter = ModelChoiceField(
         queryset=Reporter.objects.all(),
-        label="Reporter",
         widget=Selectize(
             search_lookup='full_name__icontains',
         ),
-        required=False,
     )
     edit_reporter = Activator(
         widget=Button(
-            action='activate("prefill", page.reporter)',
-            attrs={'df-disable': '!page.reporter'},
+            action='activate("prefill", issue.reporter)',
+            attrs={'df-disable': '!issue.reporter'},
         ),
     )
     add_reporter = Activator(
@@ -80,30 +70,30 @@ class PageForm(ModelForm):
     )
     delete_reporter = Activator(
         widget=Button(
-            action='deletePartial(change_reporter, page.reporter) -> setFieldValue(page.reporter, "")',
-            attrs={'df-disable': '!page.reporter'},
+            action='deletePartial(change_reporter, issue.reporter) -> setFieldValue(issue.reporter, "")',
+            attrs={'df-disable': '!issue.reporter'},
         ),
     )
 
     class Meta:
-        model = PageModel
-        fields = ['title', 'slug', 'reporter']
+        model = IssueModel
+        fields = ['title', 'reporter']
 
 
-class EditPageCollection(FormCollection):
+class EditIssueCollection(FormCollection):
     change_reporter = ChangeReporterDialogForm()
-    page = PageForm()
+    issue = IssueForm()
 
     def construct_instance(self, main_object):
         assert not self.partial
-        instance = construct_instance(self.valid_holders['page'], main_object)
+        instance = construct_instance(self.valid_holders['issue'], main_object)
         instance.save()
         return instance
 
 
-class PageCollectionView(EditCollectionView):
-    model = PageModel
-    collection_class = EditPageCollection
+class IssueCollectionView(EditCollectionView):
+    model = IssueModel
+    collection_class = EditIssueCollection
     template_name = 'testapp/form-collection.html'
 
     def get_object(self, queryset=None):
@@ -126,17 +116,17 @@ class PageCollectionView(EditCollectionView):
 
 
 urlpatterns = [
-    path('page', PageCollectionView.as_view(
-        collection_class=EditPageCollection,
+    path('issue', IssueCollectionView.as_view(
+        collection_class=EditIssueCollection,
         template_name='testapp/form-collection.html',
         extra_context={'click_actions': 'submit -> proceed', 'force_submission': True},
-    ), name='page'),
+    ), name='issue'),
     get_javascript_catalog(),
 ]
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['page'])
+@pytest.mark.parametrize('viewname', ['issue'])
 def test_add_reporter(page, mocker, viewname):
     form_collection = page.locator('django-formset > django-form-collection')
     dialog = form_collection.nth(0).locator('> dialog')
@@ -155,7 +145,7 @@ def test_add_reporter(page, mocker, viewname):
     full_name_input.fill("Sarah Hemingway")
     expect(full_name_input.locator('+ [role="alert"]')).to_be_empty()
     full_name_input.blur()
-    spy = mocker.spy(PageCollectionView, 'post')
+    spy = mocker.spy(IssueCollectionView, 'post')
     dialog.locator('button[name="change"]').click()
     expect(dialog).not_to_be_visible()
 
@@ -169,7 +159,7 @@ def test_add_reporter(page, mocker, viewname):
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['page'])
+@pytest.mark.parametrize('viewname', ['issue'])
 def test_edit_reporter(page, mocker, viewname):
     form_collection = page.locator('django-formset > django-form-collection')
     dialog = form_collection.nth(0).locator('> dialog')
@@ -190,7 +180,7 @@ def test_edit_reporter(page, mocker, viewname):
     expect(dialog.locator('> div.dialog-header > h3')).to_have_text("Edit Reporter")
     full_name_input.fill("Sarah Johnson")
     full_name_input.blur()
-    spy = mocker.spy(PageCollectionView, 'post')
+    spy = mocker.spy(IssueCollectionView, 'post')
     dialog.locator('button[name="change"]').click()
     expect(dialog).not_to_be_visible()
 
@@ -203,7 +193,7 @@ def test_edit_reporter(page, mocker, viewname):
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['page'])
+@pytest.mark.parametrize('viewname', ['issue'])
 def test_delete_reporter(page, mocker, viewname):
     form_collection = page.locator('django-formset > django-form-collection')
     dialog = form_collection.nth(0).locator('> dialog')
@@ -217,7 +207,7 @@ def test_delete_reporter(page, mocker, viewname):
     expect(pseudo_input).to_have_text("Sarah Hemingway")
 
     # delete the current reporter remotely
-    spy = mocker.spy(PageCollectionView, 'delete')
+    spy = mocker.spy(IssueCollectionView, 'delete')
     form_collection.nth(1).locator('button[name="delete_reporter"]').click()
 
     # check if the reporter was deleted from the database and from the selectize widget

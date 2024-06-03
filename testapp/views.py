@@ -45,10 +45,10 @@ from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerCollection
 from testapp.forms.gallerycollection import GalleryCollection
+from testapp.forms.issue import EditIssueCollection
 from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputForm, MomentPickerForm
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
 from testapp.forms.opinion import OpinionForm
-from testapp.forms.page import EditPageCollection
 from testapp.forms.person import ButtonActionsForm, sample_person_data, ModelPersonForm
 from testapp.forms.phone import PhoneForm
 from testapp.forms.poll import ModelPollForm, PollCollection
@@ -59,7 +59,7 @@ from testapp.forms.state import StateForm, StatesForm
 from testapp.forms.terms_of_use import AcceptTermsCollection
 from testapp.forms.user import UserCollection, UserListCollection
 from testapp.forms.upload import UploadForm
-from testapp.models import BlogModel, Company, PageModel, PersonModel, PollModel, Reporter
+from testapp.models import BlogModel, Company, IssueModel, PersonModel, PollModel, Reporter
 from testapp.models.gallery import Gallery
 
 
@@ -315,9 +315,9 @@ class GalleryCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionVi
     }
 
 
-class PageCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
-    model = PageModel
-    collection_class = EditPageCollection
+class IssueCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
+    model = IssueModel
+    collection_class = EditIssueCollection
     template_name = 'testapp/form-collection.html'
 
     def form_collection_valid(self, form_collection):
@@ -569,9 +569,7 @@ urlpatterns = [
         collection_class=AcceptTermsCollection,
         template_name='testapp/form-collection-no-buttons.html',
     ), name='simplecontact'),
-    path('page', PageCollectionView.as_view(
-        collection_class=EditPageCollection,
-    ), name='page'),
+    path('issue', IssueCollectionView.as_view(), name='issue'),
     path('customer', DemoFormCollectionView.as_view(
         collection_class=CustomerCollection,
     ), name='customer'),

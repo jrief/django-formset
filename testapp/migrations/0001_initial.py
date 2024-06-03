@@ -270,6 +270,15 @@ class Migration(migrations.Migration):
                 'unique_together': {('name', 'department')},
             },
         ),
+        migrations.CreateModel(
+            name='IssueModel',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('title', models.CharField(max_length=100, verbose_name='Issue Title')),
+                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
+                ('reporter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='issues', to='testapp.reporter', verbose_name='Reporter')),
+            ],
+        ),
         migrations.RunPython(initialize_opinions, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(initialize_counties, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(initialize_reporters, reverse_code=migrations.RunPython.noop),
