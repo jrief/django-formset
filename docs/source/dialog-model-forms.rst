@@ -63,11 +63,10 @@ be able to add a new user on the fly using a dialog form.
 	        return True
 
 Here we create the dialog form ``ChangeReporterDialogForm``. It inherits from ``DialogModelForm``
-and is a combination of the well known Django ModelForm_ and the :ref:`dialog-forms` from the
-previous chapter. In class ``Meta`` we specify the model and the form fields. Since we also want
-to edit existing objects from our model ``Reporter``, we need a hidden identifier for reference.
-Here we use the hidden field named ``id``, which points to the primary key of an editable
-``Reporter`` object.
+and is a combination of the well known Django ModelForm_ and :ref:`dialog-forms` from the previous
+chapter. In class ``Meta`` we specify the model and the form fields. Since we also want to edit
+existing objects from our model ``Reporter``, we need a hidden identifier for reference. Here we use
+the hidden field named ``id``, which points to the primary key of an editable ``Reporter`` object.
 
 .. _ModelForm: https://docs.djangoproject.com/en/stable/topics/forms/modelforms/
 
@@ -97,7 +96,7 @@ response of this view then is handled over to the next action in the queue:
 
 This takes the field ``reporter_id`` from the response and applies it to the field named
 ``issue.reporter``. Here we must use the caret symbol ``^`` so that **django-formset** can
-distinguish a server side response from another field in this collections of forms.
+distinguish a server side response from another field in this collection of forms.
 
 .. rubric:: ``activate("clear")``
 
@@ -137,13 +136,13 @@ The parameter "clear" then implies to clear all the fields.
 	        fields = ['title', 'reporter']
 
 This is the main form of the collection and is used to edit the issue related fields. It just offers
-one field named ``title``; this is just for demonstration purpose, a real application would of
+one field named ``title``; this is just for demonstration purposes, a real application would of
 course offer many more fields.
 
 In addition to its lonely ``title`` field, this form offers the two activators as mentioned in the
 previous section. They are named ``edit_reporter`` and ``add_reporter``. When clicked, they induce
-to open the dialog form as already explained. However, the button ``edit_reporter`` is when clicked,
-configured to "prefill" the form's content using the value of the field ``issue.reporter``.
+the opening of the dialog form as already explained. However, the button ``edit_reporter`` is when
+clicked, configured to "prefill" the form's content using the value of the field ``issue.reporter``.
 Prefilling is done by fetching the form's related data from the server and changing the field's
 values accordingly. Here the fields named ``id`` and ``full_name`` are filled with data fetched from
 the server.
@@ -204,15 +203,15 @@ model. The latter is handled in method ``form_collection_valid`` as explained in
 This view handles our form collection consisting of the two forms ``ChangeReporterDialogForm`` and
 ``IssueForm``. On a complete submission of this view, method ``form_collection_valid`` behaves
 as implemented by default. However, since the dialog form is submitted partially, we use that
-information to modify the default behaviour:
+information to modify the default behavior:
 
-If the hidden field named ``id`` has a value, the dialog form was opened to *edit* a reporter.
+If the hidden field named ``id`` has a value, the dialog form is opened to *edit* a reporter.
 Therefore we fetch that object from the database and change it using the modified form's content.
 
-If the hidden field named ``id`` has no value, the dialog form was opened to *add* a reporter.
+If the hidden field named ``id`` has no value, the dialog form is opened to *add* a reporter.
 Here we can just construct a new instance using an empty ``Reporter`` object.
 
-In both cases, the primary key of the edited or added ``Reporter`` object is send back to the
+In both cases, the primary key of the edited or added ``Reporter`` object is sent back to the
 client using the statement ``JsonResponse({'reporter_id': reporter.id})``. Remember the button's
 action ``setFieldValue(issue.reporter, ^reporter_id)`` as mentioned in the first section. This takes
 that response value from ``reporter_id`` and applies it to the field named ``issue.reporter``. The
