@@ -1,4 +1,4 @@
-import { Widget } from './Widget';
+import {Widget} from 'django-formset/Widget';
 
 
 export abstract class IncompleteSelect extends Widget {

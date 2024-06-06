@@ -1,7 +1,7 @@
 import {autoPlacement, autoUpdate, computePosition} from '@floating-ui/dom';
 import {AsYouType, CountryCode, CountryCallingCode, getCountries, getCountryCallingCode} from 'libphonenumber-js/max';
-import {StyleHelpers} from './helpers';
-import {countries} from './countries';
+import {StyleHelpers} from 'django-formset/helpers';
+import {countries} from 'django-formset/countries';
 import styles from './PhoneNumber.scss';
 
 

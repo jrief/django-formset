@@ -1,7 +1,7 @@
-import {IncompleteSelect} from './IncompleteSelect';
-import {SortableSelectElement} from './SortableSelect';
-import {StyleHelpers} from "./helpers";
 import template from 'lodash.template';
+import {IncompleteSelect} from 'django-formset/IncompleteSelect';
+import {SortableSelectElement} from 'django-formset/SortableSelect';
+import {StyleHelpers} from 'django-formset/helpers';
 
 
 export class DualSelector extends IncompleteSelect {

@@ -1,4 +1,7 @@
-import styles from './RichtextArea.scss';
+import template from 'lodash.template';
+import isEmpty from 'lodash.isempty';
+import isEqual from 'lodash.isequal';
+import getDataValue from 'lodash.get';
 import {computePosition} from '@floating-ui/dom';
 import {Editor, Extension, Mark, Node, markPasteRule, mergeAttributes, getAttributes, JSONContent} from '@tiptap/core';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
@@ -23,16 +26,13 @@ import Superscript from '@tiptap/extension-superscript';
 import Text from '@tiptap/extension-text';
 import {TextAlign, TextAlignOptions} from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
-import {TextIndent, TextIndentOptions } from './tiptap-extensions/indent';
-import {TextMargin, TextMarginOptions } from './tiptap-extensions/margin';
-import {TextColor} from './tiptap-extensions/color';
-import {StyleHelpers} from './helpers';
-import template from 'lodash.template';
-import {FormDialog} from './FormDialog';
-import {parse} from './function-code';
-import isEmpty from 'lodash.isempty';
-import isEqual from 'lodash.isequal';
-import getDataValue from 'lodash.get';
+import {TextIndent, TextIndentOptions } from 'tiptap-extensions/indent';
+import {TextMargin, TextMarginOptions } from 'tiptap-extensions/margin';
+import {TextColor} from 'tiptap-extensions/color';
+import {StyleHelpers} from 'django-formset/helpers';
+import {FormDialog} from 'django-formset/FormDialog';
+import {parse} from 'build/function-code';
+import styles from './RichtextArea.scss';
 
 
 abstract class Action {
