@@ -95,6 +95,11 @@ as queued actions for buttons in **django-formset**:
 * ``alertOnError`` typically is added after the ``!~`` operator. In case the form submission
   generated an non-form-validation error, for instance "permission denied", this error is shown in
   an alert box. 
+* ``setFieldValue(path.to.target, source_value)`` sets a value to the field specified by the target
+  path. The source value can be a string, number, boolean or the path to another source field. In
+  the latter case that value is transferred to the target field.
+  By prefixing the source value with a ``^`` caret, the value is taken from a response object
+  fetched by a previous request.
 * ``emit("event name")`` emit a named event to the DOM.
 * ``clearErrors`` clears all error annotations from a previously failed form validation.
 * ``activate`` activates the button to be intercepted by another component, for instance in
