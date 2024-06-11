@@ -1,4 +1,4 @@
-import {parse} from '../django-formset/tag-attributes';
+import {parse} from 'build/tag-attributes';
 
 test('action1 -> action2 !~ action3', () => {
 	const ast = parse('action1 -> action2 !~ action3', {startRule: 'Ternary'});
