@@ -522,6 +522,22 @@ class TernaryAction {
 }
 
 
+/*
+ * Decorator to be added to functions in class DjangoButton which are eligible to be chained into an action queue.
+ */
+function allowedAction(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+	const originalMethod = descriptor.value;
+	descriptor.value = function(...args: any[]) {
+		const action = originalMethod.apply(this, args);
+		return typeof action === 'function' ? (...funcArgs: any[]) => action.apply(target, funcArgs) : action;
+	};
+
+	descriptor.value.isAllowedAction = true;  // tag function to be allowed as ButtonAction
+	return descriptor;
+}
+
+
+
 class DjangoButton {
 	private readonly formset: DjangoFormset;
 	public readonly element: HTMLButtonElement;
@@ -593,7 +609,6 @@ class DjangoButton {
 	/**
 	 * Event handler to be called when someone clicks on the button.
 	 */
-	// @ts-ignore
 	private clicked = (event: Event) => {
 		if (event.currentTarget === this.element) {
 			this.formset.currentActiveButton = this;
@@ -610,7 +625,7 @@ class DjangoButton {
 	/**
 	 * Disable the button for further submission.
 	 */
-	// @ts-ignore
+	@allowedAction
 	private disable() {
 		return (response: Response) => {
 			this.element.disabled = true;
@@ -621,7 +636,7 @@ class DjangoButton {
 	/**
 	 * Re-enable the button for further submission.
 	 */
-	// @ts-ignore
+	@allowedAction
 	private enable() {
 		return (response: Response) => {
 			this.element.disabled = false;
@@ -632,7 +647,7 @@ class DjangoButton {
 	/**
 	 * Validate form content and submit to the endpoint given in element `<django-formset>`.
 	 */
-	// @ts-ignore
+	@allowedAction
 	submit(data?: Object) {
 		return () => {
 			return new Promise((resolve, reject) => {
@@ -646,7 +661,7 @@ class DjangoButton {
 	/**
 	 * Validate the current form content and only submit that form's content to the endpoint given in element `<django-formset>`.
 	 */
-	// @ts-ignore
+	@allowedAction
 	submitPartial(data?: Object) {
 		return () => {
 			return new Promise((resolve, reject) => {
@@ -661,7 +676,7 @@ class DjangoButton {
 	/**
 	 * Reset form content to their initial values.
 	 */
-	// @ts-ignore
+	@allowedAction
 	reset() {
 		return (response: Response) => {
 			this.formset.resetToInitial();
@@ -669,7 +684,7 @@ class DjangoButton {
 		};
 	}
 
-	// @ts-ignore
+	@allowedAction
 	private reload(includeQuery?: Boolean) {
 		return (response: Response) => {
 			includeQuery ? location.reload() : location.replace(window.location.pathname);
@@ -687,7 +702,7 @@ class DjangoButton {
 	 * @param proceedUrl (optional): If set, proceed to that URL regardless of the
 	 * response status.
 	 */
-	// @ts-ignore
+	@allowedAction
 	private proceed(proceedUrl?: string) {
 		return async (response: Response) => {
 			if (typeof proceedUrl === 'string' && proceedUrl.length > 0) {
@@ -711,7 +726,7 @@ class DjangoButton {
 	 *
 	 * @param ms: Time to wait in milliseconds.
 	 */
-	// @ts-ignore
+	@allowedAction
 	private delay(ms: number) {
 		return (response: Response) => new Promise(resolve => this.timeoutHandler = window.setTimeout(() => {
 			this.timeoutHandler = undefined;
@@ -722,7 +737,7 @@ class DjangoButton {
 	/**
 	 * Replace the button's decorator against a spinner icon.
 	 */
-	// @ts-ignore
+	@allowedAction
 	private spinner() {
 		return (response: Response) => {
 			this.decoratorElement?.replaceChildren(this.spinnerElement);
@@ -733,7 +748,7 @@ class DjangoButton {
 	/**
 	 * Replace the button's decorator against an okay animation.
 	 */
-	// @ts-ignore
+	@allowedAction
 	private okay(ms?: number) {
 		return this.decorate(this.okayElement, ms);
 	}
@@ -741,7 +756,7 @@ class DjangoButton {
 	/**
 	 * Replace the button's decorator against a bummer animation.
 	 */
-	// @ts-ignore
+	@allowedAction
 	private bummer(ms?: number) {
 		return this.decorate(this.bummerElement, ms);
 	}
@@ -751,7 +766,7 @@ class DjangoButton {
 	 *
 	 * @param cssClass: The CSS class.
 	 */
-	// @ts-ignore
+	@allowedAction
 	private addClass(cssClass: string) {
 		return (response: Response) => {
 			this.element.classList.add(cssClass);
@@ -764,7 +779,7 @@ class DjangoButton {
 	 *
 	 * @param cssClass: The CSS class.
 	 */
-	// @ts-ignore
+	@allowedAction
 	private removeClass(cssClass: string) {
 		return (response: Response) => {
 			this.element.classList.remove(cssClass);
@@ -777,7 +792,7 @@ class DjangoButton {
 	 *
 	 * @param cssClass: The CSS class.
 	 */
-	// @ts-ignore
+	@allowedAction
 	private toggleClass(cssClass: string) {
 		return (response: Response) => {
 			this.element.classList.toggle(cssClass);
@@ -790,7 +805,7 @@ class DjangoButton {
 	 *
 	 * @param event: The named event.
 	 */
-	// @ts-ignore
+	@allowedAction
 	private emit(namedEvent: string, detail?: Object) {
 		return (response: Response) => {
 			const options = {bubbles: true, cancelable: true};
@@ -808,7 +823,7 @@ class DjangoButton {
 	 * For debugging purpose only: Intercept, log and forward the response object to the next handler.
 	 * @param selector: If selector points onto a valid element in the DOM, the server response is inserted.
  	 */
-	// @ts-ignore
+	@allowedAction
 	private intercept(selector?: string) {
 		return (response: Response) => {
 			const body = {
@@ -831,7 +846,7 @@ class DjangoButton {
 	/**
 	 * Clear all errors in the current django-formset.
  	 */
-	// @ts-ignore
+	@allowedAction
 	private clearErrors() {
 		return (response: Response) => {
 			this.formset.clearErrors();
@@ -842,7 +857,7 @@ class DjangoButton {
 	/**
 	 * Scroll to first element reporting an error.
  	 */
-	// @ts-ignore
+	@allowedAction
 	private scrollToError() {
 		return (response: Response) => {
 			const errorReportElement = this.formset.findFirstErrorReport();
@@ -856,7 +871,7 @@ class DjangoButton {
 	/**
 	 * Confirm a user response. If it is accepted proceed, otherwise reject.
  	 */
-	// @ts-ignore
+	@allowedAction
 	private confirm(message: string) {
 		if (typeof message !== 'string')
 			throw new Error("The confirm() action requires a message.")
@@ -873,7 +888,7 @@ class DjangoButton {
 	 * Show an alert message with the response text for other types of errors, such as permission denied.
 	 * This can be useful information to the end user in case the Django endpoint can not process a request.
  	 */
-	// @ts-ignore
+	@allowedAction
 	private alertOnError() {
 		return (response: Response) => {
 			if (response.status !== 422) {
@@ -884,8 +899,9 @@ class DjangoButton {
 	}
 
 	/**
-	 * Action to activate a button so that it can be used by dialogs.
+	 * Action to activate a button so that a dialog can be induced by it.
  	 */
+	@allowedAction
 	private activate(...args: any[]) {
 		return (response: Response) => {
 			this.formset.updateOperability(...args);
@@ -896,6 +912,7 @@ class DjangoButton {
 	/**
 	 * Transfer value from one element to another one.
  	 */
+	@allowedAction
 	private setFieldValue(target: Path, source: FieldValue) {
 		return (response: Response) => {
 			this.formset.setFieldValue(target, source);
@@ -903,6 +920,7 @@ class DjangoButton {
 		}
 	}
 
+	@allowedAction
 	private deletePartial(target: Path, source: FieldValue) {
 		return (response: Response) => {
 			if (typeof source === 'string' && parseInt(source)) {
@@ -915,13 +933,13 @@ class DjangoButton {
 	/**
 	 * Dummy action to be called in case of empty actionsQueue.
  	 */
+	@allowedAction
 	private noop() {
 		return (response: Response) => {
 			return Promise.resolve(response);
 		}
 	}
 
-	// @ts-ignore
 	/*
 	 * Called after all actions have been executed.
 	 */
@@ -1010,7 +1028,7 @@ class DjangoButton {
 		const innerAction = (action: any) => {
 			if (isPlainObject(action) && typeof action.funcname === 'string' && Array.isArray(action.args)) {
 				const func = this[action.funcname as keyof DjangoButton];
-				if (typeof func !== 'function')
+				if (typeof func !== 'function' || !((func as any)['isAllowedAction']))
 					throw new Error(`Unknown function '${action.funcname}'.`);
 				return new ButtonAction(func, action.args.map(innerAction));
 			}
@@ -1058,10 +1076,12 @@ class DjangoButton {
 		this.formset.currentActiveButton = null;
 	}
 
+	@allowedAction
 	private getDataValue(path: Path) {
 		return this.formset.getDataValue(path);
 	}
 
+	@allowedAction
 	private getResponseValue(path: Path, body: JSONValue) {
 		return getDataValue(body, path);
 	}

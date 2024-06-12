@@ -9,7 +9,7 @@
     "esModuleInterop": false,
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": false,
+    "experimentalDecorators": true,
     "importHelpers": true,
     "rootDir": "./",
     "baseUrl": "./client",
