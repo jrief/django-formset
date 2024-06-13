@@ -95,6 +95,7 @@ def set_caret(page, position):
     page.keyboard.press('Home')
     for _ in range(position):
         page.keyboard.press('ArrowRight')
+        sleep(0.02)
 
 
 @pytest.mark.urls(__name__)
