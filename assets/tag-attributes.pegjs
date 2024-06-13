@@ -104,19 +104,19 @@ TernaryFactor
 
 Function
   = 'setFieldValue' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
-    return { funcname: 'setFieldValue', args: [target.split('.'), source] };
+    return {_funcName: 'setFieldValue', _funcArgs: [target.split('.'), source]};
   }
   / 'deletePartial' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
-    return { funcname: 'deletePartial', args: [target.split('.'), source] };
+    return {_funcName: 'deletePartial', _funcArgs: [target.split('.'), source]};
   }
   / _ funcname:$keystring '(' args:arglist ')' _ {
-    return { funcname: funcname, args: args };
+    return {_funcName: funcname, _funcArgs: args};
   }
   / funcname:$keystring '()' {
-    return { funcname: funcname, args: [] };
+    return {_funcName: funcname, _funcArgs: []};
   }
   / funcname:$keystring {
-    return { funcname: funcname, args: [] };
+    return {_funcName: funcname, _funcArgs: []};
   }
 
 SOURCEARG
@@ -124,10 +124,10 @@ SOURCEARG
   / boolean
   / string
   / '^' _ path:PATH {
-    return {funcname: 'getResponseValue', args: [path.split('.')]};
+    return {_funcName: 'getResponseValue', _funcArgs: [path.split('.')]};
   }
   / path:PATH {
-    return {funcname: 'getDataValue', args: [path.split('.')]};
+    return {_funcName: 'getDataValue', _funcArgs: [path.split('.')]};
   }
 
 scalar
@@ -146,7 +146,7 @@ argument
   / object
   / array
   / path:PATH {
-    return {funcname: 'getDataValue', args: [path.split('.')]};
+    return {_funcName: 'getDataValue', _funcArgs: [path.split('.')]};
   }
 
 

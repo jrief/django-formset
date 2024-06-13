@@ -528,8 +528,8 @@ class TernaryAction {
 function allowedAction(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
 	const originalMethod = descriptor.value;
 	descriptor.value = function(...args: any[]) {
-		const action = originalMethod.apply(this, args);
-		return typeof action === 'function' ? (...funcArgs: any[]) => action.apply(target, funcArgs) : action;
+		const result = originalMethod.apply(this, args);
+		return typeof result === 'function' ? (...funcArgs: any[]) => result.apply(target, funcArgs) : result;
 	};
 
 	descriptor.value.isAllowedAction = true;  // tag function to be allowed as ButtonAction
@@ -1026,11 +1026,11 @@ class DjangoButton {
 			return;
 
 		const innerAction = (action: any) => {
-			if (isPlainObject(action) && typeof action.funcname === 'string' && Array.isArray(action.args)) {
-				const func = this[action.funcname as keyof DjangoButton];
+			if (isPlainObject(action) && typeof action._funcName === 'string' && Array.isArray(action._funcArgs)) {
+				const func = this[action._funcName as keyof DjangoButton];
 				if (typeof func !== 'function' || !((func as any)['isAllowedAction']))
-					throw new Error(`Unknown function '${action.funcname}'.`);
-				return new ButtonAction(func, action.args.map(innerAction));
+					throw new Error(`Unknown function '${action._funcName}'.`);
+				return new ButtonAction(func, action._funcArgs.map(innerAction));
 			}
 			return action;
 		};
