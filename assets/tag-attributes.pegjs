@@ -87,8 +87,8 @@ Actions
   }
 
 Chain
-  = lhs:Function _ '->' _ rhs:Chain _ { return [lhs].concat(rhs) }
-  / func:Function { return [func] }
+  = lhs:MainFunction _ '->' _ rhs:Chain _ { return [lhs].concat(rhs) }
+  / func:MainFunction { return [func] }
 
 TernaryCondition
   = _ head:TernaryFactor _ tail:(_ Operator _ OperabilityExpression)* _ {
@@ -101,6 +101,12 @@ TernaryFactor
   / scalar
   / dataValue:getDataValue { return `return ${dataValue}`; }
 
+MainFunction
+  = Function
+  // allow exception: MainFunction also accepts function name without braches
+  / funcname:$keystring {
+    return {_funcName: funcname, _funcArgs: []};
+  }
 
 Function
   = 'setFieldValue' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
@@ -109,13 +115,10 @@ Function
   / 'deletePartial' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
     return {_funcName: 'deletePartial', _funcArgs: [target.split('.'), source]};
   }
-  / _ funcname:$keystring '(' args:arglist ')' _ {
+  / _ funcname:$keystring _ '(' args:arglist ')' _ {
     return {_funcName: funcname, _funcArgs: args};
   }
-  / funcname:$keystring '()' {
-    return {_funcName: funcname, _funcArgs: []};
-  }
-  / funcname:$keystring {
+  / funcname:$keystring '(' _ ')' {
     return {_funcName: funcname, _funcArgs: []};
   }
 
@@ -136,8 +139,8 @@ scalar
   / s:string { return `"${s}"`; }
 
 arglist
-  = lhs:argument _ ',' _ rhs:arglist { return [lhs].concat(rhs) }
-  / arg:argument { return [arg] }
+  = _ lhs:argument _ ',' _ rhs:arglist { return [lhs].concat(rhs) }
+  / _ arg:argument _ { return [arg] }
 
 argument
   = number
@@ -145,6 +148,7 @@ argument
   / string
   / object
   / array
+  / Function
   / path:PATH {
     return {_funcName: 'getDataValue', _funcArgs: [path.split('.')]};
   }
@@ -298,8 +302,8 @@ VAR_REMAINDER
 
 
 // ----- Core ABNF Rules -----
-
 // See RFC 4234, Appendix B (http://tools.ietf.org/html/rfc4234).
+
 _ = [ \t\n\r]*
 DIGIT  = [0-9]
 HEXDIG = [0-9a-f]i

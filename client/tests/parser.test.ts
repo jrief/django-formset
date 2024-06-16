@@ -41,3 +41,28 @@ test('activate(prefill(a.b))', () => {
 		otherwise: null,
 	});
 });
+
+
+test('activate(prefill(a.b))', () => {
+	const ast = parse(' activate ( prefill ( a.b ) ) ', {startRule: 'Ternary'});
+	expect(ast).toEqual( {
+		condition: true,
+		fulfilled: {
+			rejectChain: [{
+				args: [],
+				funcname: 'action3',
+			}],
+			successChain: [{
+				_funcName: 'activate',
+				_funcArgs: [{
+					_funcName: 'prefill',
+					_funcArgs: [{
+						_funcName: 'getDataValue',
+						_funcArgs: [['a', 'b']],
+					}]
+				}],
+			}],
+		},
+		otherwise: null,
+	});
+});

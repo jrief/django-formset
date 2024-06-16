@@ -80,7 +80,7 @@ class IssueForm(ModelForm):
     edit_reporter = Activator(
         label="Edit Reporter",
         widget=Button(
-            action='activate("prefill", issue.reporter)',
+            action='activate(prefillPartial(issue.reporter))',
             attrs={'df-disable': '!issue.reporter'},
             button_variant=ButtonVariant.SUCCESS,
         ),

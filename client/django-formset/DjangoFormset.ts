@@ -523,7 +523,7 @@ class TernaryAction {
 
 
 /*
- * Decorator to be added to functions in class DjangoButton which are eligible to be chained into an action queue.
+ * Decorator for functions in class DjangoButton to make them eligible for chaining into an action queue.
  */
 function allowedAction(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
 	const originalMethod = descriptor.value;
@@ -904,7 +904,7 @@ class DjangoButton {
 	@allowedAction
 	private activate(...args: any[]) {
 		return (response: Response) => {
-			this.formset.updateOperability(...args);
+			this.formset.updateOperability(this, ...args);
 			return Promise.resolve(response);
 		}
 	}
@@ -926,6 +926,17 @@ class DjangoButton {
 			if (typeof source === 'string' && parseInt(source)) {
 				this.formset.deletePartial(target, source);
 			}
+			return Promise.resolve(response);
+		}
+	}
+
+	/**
+	 * Prefill partial form with data fetched from endpoint.
+ 	 */
+	@allowedAction
+	private prefillPartial(pk: string) {
+		return (path: Path) => {
+			const response = this.formset.prefillPartial(pk, path);
 			return Promise.resolve(response);
 		}
 	}
@@ -1166,16 +1177,16 @@ class PerpetualFormDialog extends FormDialog {
 			return;
 		this.form.setPristine();
 		this.form.untouch();
-		if (args.length === 2 && args[0] === 'prefill') {
-			this.form.formset.prefillPartial(args[1], this.form.path);
+		if (args[0] instanceof DjangoButton && typeof args[1] === 'function') {
+			args[1].call(args[0], this.form.path);
 		}
 		super.openDialog(...args);
  	}
 
 	protected closeDialog(...args: any[]) {
-		if (args.length === 0)
+		if (args.length < 2)
 			return;
-		switch (args[0]) {
+		switch (args[1]) {
 			case 'apply':
 				if (this.form.isValid()) {
 					this.element.close('apply');
