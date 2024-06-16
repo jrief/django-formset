@@ -1,3 +1,4 @@
+import isString from 'lodash.isstring';
 import {StyleHelpers} from 'django-formset/helpers';
 import {parse} from 'build/tag-attributes';
 import styles from './DjangoFormset.scss';
@@ -31,7 +32,7 @@ export abstract class FormDialog {
 
 	protected evalInducer(attr: string, inducer: Function) : Function {
 		const attrValue = this.element?.getAttribute(attr);
-		if (typeof attrValue !== 'string')
+		if (!isString(attrValue))
 			return () => {};
 		try {
 			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'InduceExpression'})}`);

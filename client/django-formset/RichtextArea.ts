@@ -1,6 +1,7 @@
 import template from 'lodash.template';
 import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
+import isString from 'lodash.isstring';
 import getDataValue from 'lodash.get';
 import {computePosition} from '@floating-ui/dom';
 import {Editor, Extension, Mark, Node, markPasteRule, mergeAttributes, getAttributes, JSONContent} from '@tiptap/core';

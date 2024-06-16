@@ -1,3 +1,4 @@
+import isString from 'lodash.isstring';
 import template from 'lodash.template';
 import {IncompleteSelect} from 'django-formset/IncompleteSelect';
 import {SortableSelectElement} from 'django-formset/SortableSelect';
@@ -124,7 +125,7 @@ export class DualSelector extends IncompleteSelect {
 		if (optionElement instanceof HTMLOptionElement)
 			return optionElement;  // prevent duplicates
 		const newOptionElement = new Option(option.label, option.id);
-		if (typeof option.optgroup === 'string') {
+		if (isString(option.optgroup)) {
 			let optGroupElement = target.querySelector(`optgroup[label="${option.optgroup}"]`);
 			if (!optGroupElement) {
 				optGroupElement = document.createElement('optgroup');

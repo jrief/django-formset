@@ -3,6 +3,7 @@ import setDataValue from 'lodash.set';
 import isEqual from 'lodash.isequal';
 import isEmpty from 'lodash.isempty';
 import isPlainObject from 'lodash.isplainobject';
+import isString from 'lodash.isstring';
 import template from 'lodash.template';
 import Sortable, {SortableEvent} from 'sortablejs';
 import {FileUploadWidget} from 'django-formset/FileUploadWidget';
@@ -251,7 +252,7 @@ class FieldGroup {
 		}
 
 		const attrValue = this.fieldElements[0]?.getAttribute(attribute);
-		if (typeof attrValue !== 'string')
+		if (!isString(attrValue))
 			return null;
 		try {
 			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})};`);
@@ -269,7 +270,7 @@ class FieldGroup {
 
 	private evalDisable(): Function {
 		const attrValue = this.fieldElements[0]?.getAttribute('df-disable');
-		if (typeof attrValue !== 'string')
+		if (!isString(attrValue))
 			return () => {};
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'OperabilityExpression'}));
@@ -284,7 +285,7 @@ class FieldGroup {
 
 	private evalRequire(): Function {
 		const attrValue = this.fieldElements[0]?.getAttribute('df-require');
-		if (typeof attrValue !== 'string')
+		if (!isString(attrValue))
 			return () => {};
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'OperabilityExpression'}));
@@ -596,7 +597,7 @@ class DjangoButton {
 
 	private evalDisable(): Function {
 		const attrValue = this.element.getAttribute('df-disable');
-		if (typeof attrValue !== 'string')
+		if (!isString(attrValue))
 			return () => {};
 		try {
 			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})}`);
@@ -705,7 +706,7 @@ class DjangoButton {
 	@allowedAction
 	private proceed(proceedUrl?: string) {
 		return async (response: Response) => {
-			if (typeof proceedUrl === 'string' && proceedUrl.length > 0) {
+			if (isString(proceedUrl) && proceedUrl.length > 0) {
 				location.href = proceedUrl;
 			} else if (response instanceof Response && response.status === 200) {
 				const body = await response.clone().json();
@@ -873,7 +874,7 @@ class DjangoButton {
  	 */
 	@allowedAction
 	private confirm(message: string) {
-		if (typeof message !== 'string')
+		if (!isString(message))
 			throw new Error("The confirm() action requires a message.")
 		return (response: Response) => {
 			if (window.confirm(message)) {
@@ -923,7 +924,7 @@ class DjangoButton {
 	@allowedAction
 	private deletePartial(target: Path, source: FieldValue) {
 		return (response: Response) => {
-			if (typeof source === 'string' && parseInt(source)) {
+			if (isString(source) && parseInt(source)) {
 				this.formset.deletePartial(target, source);
 			}
 			return Promise.resolve(response);
@@ -1037,7 +1038,7 @@ class DjangoButton {
 			return;
 
 		const innerAction = (action: any) => {
-			if (isPlainObject(action) && typeof action._funcName === 'string' && Array.isArray(action._funcArgs)) {
+			if (isPlainObject(action) && isString(action._funcName) && Array.isArray(action._funcArgs)) {
 				const func = this[action._funcName as keyof DjangoButton];
 				if (typeof func !== 'function' || !((func as any)['isAllowedAction']))
 					throw new Error(`Unknown function '${action._funcName}'.`);
@@ -1143,7 +1144,7 @@ class DjangoFieldset {
 
 	private evalDisable(): Function {
 		const attrValue = this.element.getAttribute('df-disable');
-		if (typeof attrValue !== 'string')
+		if (!isString(attrValue))
 			return () => {};
 		try {
 			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})}`);
@@ -2177,7 +2178,7 @@ export class DjangoFormset {
 					if (form?.element) {
 						for (const [name, value] of Object.entries(getDataValue(formData, path, {}))) {
 							const fieldElement = form.element.elements.namedItem(name);
-							if ((typeof value === 'string' || typeof value === 'number')  && (
+							if ((isString(value) || typeof value === 'number')  && (
 								fieldElement instanceof HTMLInputElement || fieldElement instanceof HTMLSelectElement || fieldElement instanceof HTMLTextAreaElement
 							)) {
 								fieldElement.value = value as string;

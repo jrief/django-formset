@@ -1,3 +1,4 @@
+import isString from 'lodash.isstring';
 import TomSelect from 'tom-select/src/tom-select';
 import {TomSettings} from 'tom-select/src/types/settings';
 import {RecursivePartial, TomOption} from 'tom-select/src/types';
@@ -116,7 +117,7 @@ export class DjangoSelectize extends IncompleteSelect {
 	private extractOptGroups(options: Array<OptionData>) {
 		const groupnames = new Set<string>();
 		options.forEach(o => {
-			if (typeof o.optgroup === 'string') {
+			if (isString(o.optgroup)) {
 				groupnames.add(o.optgroup);
 			}
 		});
@@ -348,13 +349,13 @@ export class DjangoSelectizeElement extends HTMLSelectElement {
 
 	set value(val: any) {
 		if (this.multiple) {
-			if (typeof val === 'string') {
+			if (isString(val)) {
 				this[DS]?.setValues(val.split(','));
 			} else if (Array.isArray(val)) {
 				this[DS]?.setValues(val);
 			}
 		} else {
-			if (typeof val === 'string' || typeof val === 'number') {
+			if (isString(val) || typeof val === 'number') {
 				this[DS]?.setValue(val);
 			}
 		}

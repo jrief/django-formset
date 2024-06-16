@@ -1,3 +1,4 @@
+import isString from 'lodash.isstring';
 import {Widget} from 'django-formset/Widget';
 
 
@@ -60,7 +61,7 @@ export abstract class IncompleteSelect extends Widget {
 			query.set('search', encodeURIComponent(q.search));
 		}
 		for (const [key, value] of this.filterByValues) {
-			if (typeof value === 'string') {
+			if (isString(value)) {
 				query.set(`filter-${key}`, encodeURIComponent(value));
 			} else if (Array.isArray(value)) {
 				if (value.length === 0) {
