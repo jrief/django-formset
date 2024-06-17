@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "esbuild": "node client/esbuild.cjs",
-    "esbuild.monolith": "node client/esbuild.monolith.cjs",
+    "esbuild.monolith": "node client/esbuild.cjs --monolith",
     "rollup": "rollup --config client/rollup.config.js",
     "minify": "terser --compress --mangle --output formset/static/formset/js/django-formset.min.js -- formset/static/formset/js/django-formset.js",
     "tag-attributes": "peggy -o client/build/tag-attributes.ts --allowed-start-rules Ternary,OperabilityExpression,InduceExpression --extra-options-file assets/pegjsconf.json --plugin ./node_modules/ts-pegjs/dist/tspegjs assets/tag-attributes.pegjs",
