@@ -774,11 +774,11 @@ class RichtextFormDialog extends FormDialog {
 		this.richtext.textAreaElement.dispatchEvent(new Event('blur', {bubbles: true}));
 	}
 
-	protected closeDialog(returnValue?: string) {
-		if (!returnValue)
+	protected closeDialog(...args: any[]) {
+		if (!isString(args[1]))
 			return;
 		const editor = this.richtext.editor;
-		if (returnValue === 'apply') {
+		if (args[1] === 'apply') {
 			this.formElement.dispatchEvent(new Event('submit', {bubbles: true}));
 			if (!this.formElement.checkValidity()) {
 				// checkValidity() triggers the invalid event for each invalid input field
@@ -798,7 +798,7 @@ class RichtextFormDialog extends FormDialog {
 				attributes = {...attributes, ...mapFunction(this.formElement.elements)};
 			});
 			this.applyAttributes(editor, attributes);
-		} else if (returnValue === 'revert') {
+		} else if (args[1] === 'revert') {
 			this.revertAttributes(editor);
 		}
 		// reset form to be pristine for the next invocation
@@ -833,8 +833,8 @@ class RichtextFormDialog extends FormDialog {
 		editor.chain().focus().deleteRange({from, to}).run();
 	}
 
-	public updateOperability(action?: string) {
-		super.updateOperability(action);
+	public updateOperability(...args: any[]) {
+		super.updateOperability(...args);
 		if (this.applyButton?.hasAttribute('auto-disable')) {
 			this.applyButton.disabled = !this.formElement.checkValidity();
 		}
@@ -1136,8 +1136,8 @@ class RichtextArea {
 		return this.useJson ? this.editor.getJSON() : this.editor.getHTML();
 	}
 
-	public updateOperability(action: string) : void {
-		this.formDialogs.forEach(dialog => dialog.updateOperability(action));
+	public updateOperability(...args: any[]) : void {
+		this.formDialogs.forEach(dialog => dialog.updateOperability(...args));
 	}
 }
 
@@ -1173,7 +1173,7 @@ export class RichTextAreaElement extends HTMLTextAreaElement {
 		return this[RA].isInitialized;
 	}
 
-	public updateOperability(action: string) : void {
-		this[RA].updateOperability(action);
+	public updateOperability(...args: any[]) : void {
+		this[RA].updateOperability(...args);
 	}
 }

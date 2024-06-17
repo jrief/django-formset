@@ -65,11 +65,11 @@ export abstract class FormDialog {
 		this.element.addEventListener('close', () => this.closeDialog(), {once: true});
 	}
 
-	protected closeDialog(returnValue?: string) {
-		this.element.close(returnValue);
+	protected closeDialog(...args: any[]) {
+		this.element.close(args[1]);
 	}
 
-	private handlePointerDown = (event: PointerEvent | TouchEvent) => {
+	private handlePointerDown = (event: PointerEvent|TouchEvent) => {
 		const viewport = window.visualViewport!;
 		const dialogRect = this.dialogRect!;
 		const dialogHeaderElement = this.dialogHeaderElement!;
