@@ -1,13 +1,16 @@
 ## Changes
 
 1.5
+  * **Breaking Change:** Always include `<script src="{% url 'javascript-catalog' %}"></script>` to
+    the `<head>`-section of an HTML template. This is because `gettext` is used inside many
+    JavaScript files. 
   * Drop support for Django-4.1 and Python-3.9.
   * Add support for Python-3.12.
   * Attribute `<button df-click="…">` now accepts function `setFieldValue()`. This can be used to
     transfer values from one field to another one.
-  * Introduce partial submits and prefilling forms in collections.
-  * **Always** include `<script src="{% url 'javascript-catalog' %}"></script>` to the `<head>`-
-    section of an HTML template. This is because `gettext` is used inside many JavaScript files. 
+  * Introduce partial submits and prefilling of dialog forms in collections.
+  * The parser generator allows whitespace inside parentheses.
+  * Add `jest` to explicitly test the parser generator.
 
 1.4.5
   * Fix: When submitting a form with a `FileField`, the `UploadedFileInput` widget returns ``None``
