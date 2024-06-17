@@ -173,12 +173,3 @@ export class SortableSelectElement extends HTMLElement {
 		}
 	}
 }
-
-
-export class SortableOptGroupElement extends HTMLOptGroupElement {
-	private lastSelected: HTMLOptionElement | null = null;
-
-	constructor() {
-		super();
-	}
-}

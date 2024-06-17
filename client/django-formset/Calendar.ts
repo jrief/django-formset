@@ -24,7 +24,7 @@ enum Direction {
 export type CalendarSettings = {
 	dateOnly: boolean,  // if true, time is not displayed
 	withRange: boolean,  // if true, a range of dates can be selected
-	hour12: boolean,  // if true, use 12 hour format
+	hour12: boolean,  // if true, use 12-hour format
 	pure: boolean,  // if true, use pure calendar without input element
 	inputElement: HTMLInputElement,  // input element to pilfer styles from
 	updateDate: Function,  // callback to update date input
@@ -34,7 +34,7 @@ export type CalendarSettings = {
 
 type DateRange = [Date, Date] | [Date, null] | [null, null];
 
-export class Calendar extends Widget {
+export class CalendarSheet extends Widget {
 	public readonly element: HTMLElement;
 	private viewMode!: ViewMode;
 	private settings: CalendarSettings;
@@ -434,11 +434,11 @@ export class Calendar extends Widget {
 
 	private turnPrev = () => {
 		this.fetchCalendar(this.prevSheetDate, this.viewMode);
-	}
+	};
 
 	private turnNext = () => {
 		this.fetchCalendar(this.nextSheetDate, this.viewMode);
-	}
+	};
 
 	private turnNarrow = () => {
 		if (this.narrowSheetDate) {
@@ -450,7 +450,7 @@ export class Calendar extends Widget {
 				this.fetchCalendar(this.narrowSheetDate, this.viewMode);
 			}
 		}
-	}
+	};
 
 	private turnExtend = () => {
 		if (this.extendSheetDate) {
@@ -462,7 +462,7 @@ export class Calendar extends Widget {
 				this.fetchCalendar(this.extendSheetDate, ViewMode.years);
 			}
 		}
-	}
+	};
 
 	private turnToday = () => {
 		if (this.settings.dateOnly) {
@@ -470,7 +470,7 @@ export class Calendar extends Widget {
 		} else {
 			this.fetchCalendar(new Date(), ViewMode.hours);
 		}
-	}
+	};
 
 	private getDateSelector(date: Date) : string {
 		const utcDateString = this.asUTCDate(date).toISOString();
@@ -741,19 +741,19 @@ export class Calendar extends Widget {
 				this.fetchCalendar(this.getDate(event.target), ViewMode.hours);
 			}
 		}
-	}
+	};
 
 	private selectMonth = (event: Event) => {
 		if (event.target instanceof HTMLLIElement) {
 			this.fetchCalendar(this.getDate(event.target), ViewMode.weeks);
 		}
-	}
+	};
 
 	private selectYear = (event: Event) => {
 		if (event.target instanceof HTMLLIElement) {
 			this.fetchCalendar(this.getDate(event.target), ViewMode.months);
 		}
-	}
+	};
 
 	private async goto(direction: Direction) {
 		let selectedDate: Date|null = null;
@@ -934,64 +934,154 @@ export class Calendar extends Widget {
 const CAL = Symbol('Calendar');
 
 export class DateCalendarElement extends HTMLInputElement {
-	private [CAL]!: Calendar;  // hides internal implementation
+	private [CAL]!: CalendarSheet;  // hides internal implementation
 
 	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		const dateOnly = ['django-datecalendar', 'django-datepicker', 'django-daterangecalendar', 'django-daterangepicker'].includes(this.getAttribute('is') ?? '');
-		const withRange = ['django-daterangecalendar', 'django-daterangepicker', 'django-datetimerangecalendar', 'django-datetimerangepicker'].includes(this.getAttribute('is') ?? '');
 		const dateTimeFormat = Intl.DateTimeFormat(navigator.language, {hour: '2-digit'});
 		const settings: CalendarSettings = {
-			dateOnly: dateOnly,
-			withRange: withRange,
+			dateOnly: true,
+			withRange: false,
 			inputElement: this,
 			hour12: dateTimeFormat.resolvedOptions().hour12 ?? false,
 			pure: true,
-			updateDate: () => {},
+			updateDate: (date: Date) => {
+				this.value = date.toISOString().slice(0, 10);
+				this.dispatchEvent(new Event('input'));
+				this.dispatchEvent(new Event('blur'));
+			},
 			close: () => {},
 		};
-		if (withRange) {
-			settings.updateDate = (lowerDate: Date, upperDate?: Date) => {
-				const dateStrings = [
-					lowerDate.toISOString().slice(0, dateOnly ? 10 : 16),
-					upperDate?.toISOString().slice(0, dateOnly ? 10 : 16) ?? '',
-				]
-				this.value = dateStrings.join(';');
-				this.dispatchEvent(new Event('input'));
-				this.dispatchEvent(new Event('blur'));
-			};
-		} else {
-			settings.updateDate = (date: Date) => {
-				this.value = date.toISOString().slice(0, dateOnly ? 10 : 16);
-				this.dispatchEvent(new Event('input'));
-				this.dispatchEvent(new Event('blur'));
-			};
-		}
 
-		this[CAL] = new Calendar(calendarElement as HTMLElement, settings);
+		this[CAL] = new CalendarSheet(calendarElement as HTMLElement, settings);
 		if (this.value) {
-			if (withRange) {
-				const [start, end] = this.value.split(';');
-				this[CAL].updateDate(new Date(start), new Date(end));
-			} else {
-				this[CAL].updateDate(new Date(this.value), null);
-			}
-		}
-		if (!settings.pure) {
-			document.addEventListener('keydown', async (event: KeyboardEvent) => {
-				const preventDefault = await this[CAL].navigate(event.key) ?? false;
-				if (preventDefault) {
-					event.preventDefault();
-				}
-			});
+			this[CAL].updateDate(new Date(this.value), null);
 		}
 		this.hidden = true;
 	}
 
-	get valueAsDate() : Date | null {
+	get valueAsDate() : Date|null {
+		return this[CAL].valueAsDate();
+	}
+}
+
+
+export class DateTimeCalendarElement extends HTMLInputElement {
+	private [CAL]!: CalendarSheet;  // hides internal implementation
+
+	connectedCallback() {
+		const fieldGroup = this.closest('[role="group"]');
+		if (!fieldGroup)
+			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
+		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
+		const dateTimeFormat = Intl.DateTimeFormat(navigator.language, {hour: '2-digit'});
+		const settings: CalendarSettings = {
+			dateOnly: false,
+			withRange: false,
+			inputElement: this,
+			hour12: dateTimeFormat.resolvedOptions().hour12 ?? false,
+			pure: true,
+			updateDate: (date: Date) => {
+				this.value = date.toISOString().slice(0, 16);
+				this.dispatchEvent(new Event('input'));
+				this.dispatchEvent(new Event('blur'));
+			},
+			close: () => {},
+		};
+
+		this[CAL] = new CalendarSheet(calendarElement as HTMLElement, settings);
+		if (this.value) {
+			this[CAL].updateDate(new Date(this.value), null);
+		}
+		this.hidden = true;
+	}
+
+	get valueAsDate() : Date|null {
+		return this[CAL].valueAsDate();
+	}
+}
+
+
+export class DateRangeCalendarElement extends HTMLInputElement {
+	private [CAL]!: CalendarSheet;  // hides internal implementation
+
+	connectedCallback() {
+		const fieldGroup = this.closest('[role="group"]');
+		if (!fieldGroup)
+			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
+		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
+		const dateTimeFormat = Intl.DateTimeFormat(navigator.language, {hour: '2-digit'});
+		const settings: CalendarSettings = {
+			dateOnly: true,
+			withRange: true,
+			inputElement: this,
+			hour12: dateTimeFormat.resolvedOptions().hour12 ?? false,
+			pure: true,
+			updateDate: (lowerDate: Date, upperDate?: Date) => {
+				const dateStrings = [
+					lowerDate.toISOString().slice(0, 10),
+					upperDate?.toISOString().slice(0, 10) ?? '',
+				];
+				this.value = dateStrings.join(';');
+				this.dispatchEvent(new Event('input'));
+				this.dispatchEvent(new Event('blur'));
+			},
+			close: () => {},
+		};
+
+		this[CAL] = new CalendarSheet(calendarElement as HTMLElement, settings);
+		if (this.value) {
+			const [start, end] = this.value.split(';');
+			this[CAL].updateDate(new Date(start), new Date(end));
+		}
+		this.hidden = true;
+	}
+
+	get valueAsDate() : Date|null {
+		return this[CAL].valueAsDate();
+	}
+}
+
+
+export class DateTimeRangeCalendarElement extends HTMLInputElement {
+	private [CAL]!: CalendarSheet;  // hides internal implementation
+
+	connectedCallback() {
+		const fieldGroup = this.closest('[role="group"]');
+		if (!fieldGroup)
+			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
+		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
+		const dateTimeFormat = Intl.DateTimeFormat(navigator.language, {hour: '2-digit'});
+		const settings: CalendarSettings = {
+			dateOnly: false,
+			withRange: true,
+			inputElement: this,
+			hour12: dateTimeFormat.resolvedOptions().hour12 ?? false,
+			pure: true,
+			updateDate: (lowerDate: Date, upperDate?: Date) => {
+				const dateStrings = [
+					lowerDate.toISOString().slice(0, 16),
+					upperDate?.toISOString().slice(0, 16) ?? '',
+				];
+				this.value = dateStrings.join(';');
+				this.dispatchEvent(new Event('input'));
+				this.dispatchEvent(new Event('blur'));
+			},
+			close: () => {},
+		};
+
+		this[CAL] = new CalendarSheet(calendarElement as HTMLElement, settings);
+		if (this.value) {
+			const [start, end] = this.value.split(';');
+			this[CAL].updateDate(new Date(start), new Date(end));
+		}
+		this.hidden = true;
+	}
+
+	get valueAsDate() : Date|null {
 		return this[CAL].valueAsDate();
 	}
 }

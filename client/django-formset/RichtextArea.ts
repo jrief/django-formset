@@ -1131,7 +1131,7 @@ class RichtextArea {
 	}
 
 	public getValue() : JSONContent | string {
-		if (this.editor.isEmpty)
+		if (this.editor === undefined || this.editor.isEmpty)
 			return '';  // otherwise empty field is not detected by calling function
 		return this.useJson ? this.editor.getJSON() : this.editor.getHTML();
 	}

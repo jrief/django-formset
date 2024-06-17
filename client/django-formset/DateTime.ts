@@ -1,5 +1,5 @@
 import {autoUpdate, computePosition, flip, shift} from '@floating-ui/dom';
-import {Calendar, CalendarSettings} from 'django-formset/Calendar';
+import {CalendarSheet, CalendarSettings} from 'django-formset/Calendar';
 import {Widget} from 'django-formset/Widget';
 import {StyleHelpers} from 'django-formset/helpers';
 import styles from './DateTime.scss';
@@ -25,16 +25,16 @@ class DateTimeField extends Widget {
 	private readonly textBox: HTMLElement;
 	private readonly dateOnly: boolean;
 	private readonly withRange: boolean;
-	private readonly calendar: Calendar | null = null;
+	private readonly calendar: CalendarSheet|null = null;
 	private readonly inputFields: Array<HTMLElement> = [];
 	private readonly inputFieldsOrder: Array<number> = [];
 	private readonly baseSelector = '[is^="django-date"]';
 	private hour12: boolean = false;
-	private currentDate: Date | null = null;  // when withRange=true, this is the lower bound
-	private extendedDate: Date | null = null;  // when withRange=true, this is the upper bound, otherwise unused
-	private calendarOpener: HTMLElement | null = null;
+	private currentDate: Date|null = null;  // when withRange=true, this is the lower bound
+	private extendedDate: Date|null = null;  // when withRange=true, this is the upper bound, otherwise unused
+	private calendarOpener: HTMLElement|null = null;
 	private dateTimeFormat?: Intl.DateTimeFormat;
-	private hasFocus: HTMLElement | null = null;
+	private hasFocus: HTMLElement|null = null;
 	private cleanup?: Function;
 	private isOpen: boolean = false;
 
@@ -46,7 +46,7 @@ class DateTimeField extends Widget {
 		this.textBox = this.createTextBox();
 		this.setInitialDate();
 		if (calendarElement) {
-			this.calendar = new Calendar(calendarElement, this.getCalendarSettings());
+			this.calendar = new CalendarSheet(calendarElement, this.getCalendarSettings());
 			const calendarOpener = this.textBox.querySelector('.calendar-picker-indicator');
 			if (!(calendarOpener instanceof HTMLElement))
 				throw new Error("Missing selector .calendar-picker-indicator");

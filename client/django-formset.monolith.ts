@@ -1,16 +1,17 @@
 import '@ungap/custom-elements';
-import {DjangoFormsetElement} from './django-formset/DjangoFormset';
-import {StyleHelpers} from './django-formset/helpers';
+import {DjangoFormsetElement} from 'django-formset/DjangoFormset';
+import {StyleHelpers} from 'django-formset/helpers';
 
 // remember to always reflect imports below here also in django-formset.ts
-import {DjangoSelectizeElement} from './django-formset/DjangoSelectize';
-import {CountrySelectizeElement} from './django-formset/CountrySelectize';
-import {SortableSelectElement} from './django-formset/SortableSelect';
-import {DualSelectorElement} from './django-formset/DualSelector';
-import {PhoneNumberElement} from './django-formset/PhoneNumber';
-import {RichTextAreaElement} from './django-formset/RichtextArea';
-import {DjangoSlugElement} from './django-formset/DjangoSlug';
-import {DateFieldElement, DatePickerElement, DateTimeFieldElement, DateTimePickerElement} from './django-formset/DateTime';
+import {DjangoSelectizeElement} from 'django-formset/DjangoSelectize';
+import {CountrySelectizeElement} from 'django-formset/CountrySelectize';
+import {SortableSelectElement} from 'django-formset/SortableSelect';
+import {DualSelectorElement} from 'django-formset/DualSelector';
+import {PhoneNumberElement} from 'django-formset/PhoneNumber';
+import {RichTextAreaElement} from 'django-formset/RichtextArea';
+import {DjangoSlugElement} from 'django-formset/DjangoSlug';
+import {DateCalendarElement, DateTimeCalendarElement, DateRangeCalendarElement, DateTimeRangeCalendarElement} from 'django-formset/Calendar';
+import {DateFieldElement, DatePickerElement, DateTimeFieldElement, DateTimePickerElement, DateRangeFieldElement, DateTimeRangeFieldElement, DateRangePickerElement, DateTimeRangePickerElement} from 'django-formset/DateTime';
 
 
 window.addEventListener('DOMContentLoaded', (event) => {
@@ -43,27 +44,27 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	customElementNames.push('django-slug');
 	window.customElements.define('django-datefield', DateFieldElement, {extends: 'input'});
 	customElementNames.push('django-datefield');
-	window.customElements.define('django-datecalendar', DateFieldElement, {extends: 'input'});
+	window.customElements.define('django-datecalendar', DateCalendarElement, {extends: 'input'});
 	customElementNames.push('django-datecalendar');
 	window.customElements.define('django-datepicker', DatePickerElement, {extends: 'input'});
 	customElementNames.push('django-datepicker');
 	window.customElements.define('django-datetimefield', DateTimeFieldElement, {extends: 'input'});
 	customElementNames.push('django-datetimefield');
-	window.customElements.define('django-datetimecalendar', DateFieldElement, {extends: 'input'});
+	window.customElements.define('django-datetimecalendar', DateTimeCalendarElement, {extends: 'input'});
 	customElementNames.push('django-datetimecalendar');
 	window.customElements.define('django-datetimepicker', DateTimePickerElement, {extends: 'input'});
 	customElementNames.push('django-datetimepicker');
-	window.customElements.define('django-daterangefield', DateTimePickerElement, {extends: 'input'});
+	window.customElements.define('django-daterangefield', DateRangeFieldElement, {extends: 'input'});
 	customElementNames.push('django-daterangefield');
-	window.customElements.define('django-daterangecalendar', DateTimePickerElement, {extends: 'input'});
+	window.customElements.define('django-daterangecalendar', DateRangeCalendarElement, {extends: 'input'});
 	customElementNames.push('django-daterangecalendar');
-	window.customElements.define('django-daterangepicker', DateTimePickerElement, {extends: 'input'});
+	window.customElements.define('django-daterangepicker', DateRangePickerElement, {extends: 'input'});
 	customElementNames.push('django-daterangepicker');
-	window.customElements.define('django-datetimerangefield', DateTimePickerElement, {extends: 'input'});
+	window.customElements.define('django-datetimerangefield', DateTimeRangeFieldElement, {extends: 'input'});
 	customElementNames.push('django-datetimerangefield');
-	window.customElements.define('django-datetimerangecalendar', DateTimePickerElement, {extends: 'input'});
+	window.customElements.define('django-datetimerangecalendar', DateTimeRangeCalendarElement, {extends: 'input'});
 	customElementNames.push('django-datetimerangecalendar');
-	window.customElements.define('django-datetimerangepicker', DateTimePickerElement, {extends: 'input'});
+	window.customElements.define('django-datetimerangepicker', DateTimeRangePickerElement, {extends: 'input'});
 	customElementNames.push('django-datetimerangepicker');
 
 	const foundIds = new Set<string>();
