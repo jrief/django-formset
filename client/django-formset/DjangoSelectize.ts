@@ -1,3 +1,4 @@
+import isFinite from 'lodash.isfinite';
 import isString from 'lodash.isstring';
 import TomSelect from 'tom-select/src/tom-select';
 import {TomSettings} from 'tom-select/src/types/settings';
@@ -303,7 +304,7 @@ export class DjangoSelectize extends IncompleteSelect {
 	public setValue(value: string|number) {
 		const emitChangeEvent = () => this.tomSelect.input.dispatchEvent(new Event('change', {bubbles: true}));
 
-		if (typeof value === 'number') {
+		if (isFinite(value)) {
 			// if the value is a number, enforce re-fetching object from the server
 			this.loadOptions(this.buildFetchQuery(0, {pk: value.toString()}), (options: Array<OptionData>) => {
 				if (this.tomSelect.getValue() === value.toString()) {
@@ -317,7 +318,7 @@ export class DjangoSelectize extends IncompleteSelect {
 				this.tomSelect.setValue(value.toString(), true);
 				emitChangeEvent();
 			});
-		} else {
+		} else if (isString(value)) {
 			this.tomSelect.setValue(value, true);
 			emitChangeEvent();
 		}
@@ -355,7 +356,7 @@ export class DjangoSelectizeElement extends HTMLSelectElement {
 				this[DS]?.setValues(val);
 			}
 		} else {
-			if (isString(val) || typeof val === 'number') {
+			if (isString(val) || isFinite(val)) {
 				this[DS]?.setValue(val);
 			}
 		}

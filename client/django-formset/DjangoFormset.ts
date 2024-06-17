@@ -1,9 +1,11 @@
 import getDataValue from 'lodash.get';
-import setDataValue from 'lodash.set';
 import isEqual from 'lodash.isequal';
 import isEmpty from 'lodash.isempty';
+import isFinite from 'lodash.isfinite';
+import isFunction from 'lodash.isfunction';
 import isPlainObject from 'lodash.isplainobject';
 import isString from 'lodash.isstring';
+import setDataValue from 'lodash.set';
 import template from 'lodash.template';
 import Sortable, {SortableEvent} from 'sortablejs';
 import {FileUploadWidget} from 'django-formset/FileUploadWidget';
@@ -216,7 +218,7 @@ class FieldGroup {
 		this.updateDisabled();
 		this.updateRequired();
 		this.fieldElements.filter(
-			fieldElement => typeof (fieldElement as any).updateOperability === 'function'
+			fieldElement => isFunction((fieldElement as any).updateOperability)
 		).forEach(
 			fieldElement => (fieldElement as any).updateOperability(...args)
 		);
@@ -530,7 +532,7 @@ function allowedAction(target: any, propertyKey: string, descriptor: PropertyDes
 	const originalMethod = descriptor.value;
 	descriptor.value = function(...args: any[]) {
 		const result = originalMethod.apply(this, args);
-		return typeof result === 'function' ? (...funcArgs: any[]) => result.apply(target, funcArgs) : result;
+		return isFunction(result) ? (...funcArgs: any[]) => result.apply(target, funcArgs) : result;
 	};
 
 	descriptor.value.isAllowedAction = true;  // tag function to be allowed as ButtonAction
@@ -962,7 +964,7 @@ class DjangoButton {
 	private decorate(decorator: HTMLElement, ms?: number) {
 		return (response: Response) => {
 			this.decoratorElement?.replaceChildren(decorator);
-			if (typeof ms !== 'number')
+			if (!isFinite(ms))
 				return Promise.resolve(response);
 			return new Promise(resolve => this.timeoutHandler = window.setTimeout(() => {
 				this.timeoutHandler = undefined;
@@ -1040,7 +1042,7 @@ class DjangoButton {
 		const innerAction = (action: any) => {
 			if (isPlainObject(action) && isString(action._funcName) && Array.isArray(action._funcArgs)) {
 				const func = this[action._funcName as keyof DjangoButton];
-				if (typeof func !== 'function' || !((func as any)['isAllowedAction']))
+				if (!isFunction(func) || !((func as any)['isAllowedAction']))
 					throw new Error(`Unknown function '${action._funcName}'.`);
 				return new ButtonAction(func, action._funcArgs.map(innerAction));
 			}
@@ -1178,14 +1180,14 @@ class PerpetualFormDialog extends FormDialog {
 			return;
 		this.form.setPristine();
 		this.form.untouch();
-		if (args[0] instanceof DjangoButton && typeof args[1] === 'function') {
+		if (args[0] instanceof DjangoButton && isFunction(args[1])) {
 			args[1].call(args[0], this.form.path);
 		}
 		super.openDialog(...args);
  	}
 
 	protected closeDialog(...args: any[]) {
-		if (args.length < 2)
+		if (!isString(args[1]))
 			return;
 		switch (args[1]) {
 			case 'apply':
@@ -2178,7 +2180,7 @@ export class DjangoFormset {
 					if (form?.element) {
 						for (const [name, value] of Object.entries(getDataValue(formData, path, {}))) {
 							const fieldElement = form.element.elements.namedItem(name);
-							if ((isString(value) || typeof value === 'number')  && (
+							if ((isString(value) || isFinite(value)) && (
 								fieldElement instanceof HTMLInputElement || fieldElement instanceof HTMLSelectElement || fieldElement instanceof HTMLTextAreaElement
 							)) {
 								fieldElement.value = value as string;
