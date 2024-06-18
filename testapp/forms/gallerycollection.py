@@ -3,6 +3,7 @@ from django.forms.models import ModelForm
 
 from formset.collection import FormCollection
 from formset.widgets import UploadedFileInput
+
 from testapp.models.gallery import Image, Gallery
 
 
@@ -12,15 +13,12 @@ class ImageForm(ModelForm):
         widget=widgets.HiddenInput,
     )
 
-    image = fields.FileField(
-        label="Image",
-        widget=UploadedFileInput,
-        required=False,
-    )
-
     class Meta:
         model = Image
-        fields = ['id', 'image']
+        fields = ['id', 'image', 'caption']
+        widgets = {
+            'image': UploadedFileInput,
+        }
 
 
 class ImageCollection(FormCollection):
