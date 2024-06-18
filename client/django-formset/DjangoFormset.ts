@@ -554,7 +554,7 @@ class DjangoButton {
 	public readonly path: Path = [];
 	private readonly updateVisibility: Function;
 	private readonly updateDisabled: Function;
-	private originalDecorator?: Node;
+	private readonly originalDecorator?: Node;
 	private timeoutHandler?: number;
 
 	constructor(formset: DjangoFormset, element: HTMLButtonElement, path: Path) {
@@ -877,7 +877,7 @@ class DjangoButton {
 	@allowedAction
 	private confirm(message: string) {
 		if (!isString(message))
-			throw new Error("The confirm() action requires a message.")
+			throw new Error("The confirm() action requires a message.");
 		return (response: Response) => {
 			if (window.confirm(message)) {
 				return Promise.resolve(response);
@@ -1392,7 +1392,7 @@ class DjangoForm {
 	reportCustomErrors(errors: Map<string, Array<string>>) {
 		this.clearCustomErrors();
 		const nonFieldErrors = errors.get(NON_FIELD_ERRORS);
-		if (this.errorList && nonFieldErrors instanceof Array && this.errorPlaceholder) {
+		if (this.errorList && Array.isArray(nonFieldErrors) && this.errorPlaceholder) {
 			for (const message of nonFieldErrors) {
 				const item = this.errorPlaceholder.cloneNode() as Element;
 				item.innerHTML = message;
@@ -1401,7 +1401,7 @@ class DjangoForm {
 		}
 		for (const fieldGroup of this.fieldGroups) {
 			const fieldErrors = errors.get(fieldGroup.name);
-			if (fieldErrors instanceof Array && fieldErrors.length > 0) {
+			if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
 				fieldGroup.reportCustomError(fieldErrors[0]);
 			}
 		}
@@ -1597,12 +1597,12 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 		super(formset, element, parent);
 		const position = element.getAttribute('sibling-position');
 		if (!position)
-			throw new Error("Missing argument 'sibling-position' in <django-form-collection>")
+			throw new Error("Missing argument 'sibling-position' in <django-form-collection>");
 		this.position = this.initialPosition = parseInt(position);
 		this.siblingId = siblingId;
 		const minSiblings = element.getAttribute('min-siblings');
 		if (!minSiblings)
-			throw new Error("Missing argument 'min-siblings' in <django-form-collection>")
+			throw new Error("Missing argument 'min-siblings' in <django-form-collection>");
 		this.minSiblings = parseInt(minSiblings);
 		const maxSiblings = element.getAttribute('max-siblings');
 		if (maxSiblings) {
@@ -1628,7 +1628,7 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 		siblings.forEach(sibling => sibling.updateRemoveButtonAttrs());
 		const formCollectionTemplate = this.parent?.formCollectionTemplate ?? this.formset.formCollectionTemplate;
 		formCollectionTemplate!.updateAddButtonAttrs();
-	}
+	};
 
 	protected disconnect() {
 		this.removeButton!.removeEventListener('click', this.removeCollection);
@@ -1705,7 +1705,7 @@ class DjangoFormCollectionTemplate {
 		this.formset = formset;
 		this.element = element;
 		this.parent = parent;
-		const matches = element.innerHTML.matchAll(/\$\{([^} ]+)\}/g);
+		const matches = element.innerHTML.matchAll(/\$\{([^} ]+)}/g);
 		for (const match of matches) {
 			this.baseContext.set(match[1], match[0]);
 		}
@@ -1750,7 +1750,7 @@ class DjangoFormCollectionTemplate {
 			siblings.forEach((sibling, position) => sibling.repositionForms(pathIndex, position));
 			this.formset.validate();
 		}
-	}
+	};
 
 	private appendFormCollectionSibling = () => {
 		const context = Object.fromEntries(this.baseContext);
@@ -1781,7 +1781,7 @@ class DjangoFormCollectionTemplate {
 		this.formset.validate();
 		siblings.forEach(sibling => sibling.updateRemoveButtonAttrs());
 		this.updateAddButtonAttrs();
-	}
+	};
 
 	private getNextPositionAndSiblingId() {
 		// look for the highest position number inside interconnected DjangoFormCollectionSiblings

@@ -594,7 +594,7 @@ export class CalendarSheet extends Widget {
 			if (this.dateRange[0] && this.dateRange[1]) {
 				this.markDateRange(this.dateRange[0], this.dateRange[1]);
 				this.calendarItems.item(this.indexOfCalendarItem(this.dateRange[0]))?.classList.add('selected');
-				const upperIndex = this.indexOfCalendarItem(this.dateRange[1])
+				const upperIndex = this.indexOfCalendarItem(this.dateRange[1]);
 				if (upperIndex !==0 || this.viewMode !== ViewMode.hours || this.dateRange[1].getHours() !== 0 || this.dateRange[1].getMinutes() !== 0) {
 					// if upper range is midnight, mark the last hour as selected instead of the first hour of the next day
 					this.calendarItems.item(upperIndex)?.classList.add('selected');
