@@ -231,7 +231,7 @@ export class DualSelector extends IncompleteSelect {
 			} else {
 				const newOptGroupElement = document.createElement('optgroup');
 				newOptGroupElement.label = sourceOptGroupElement.label;
-				newOptGroupElement.appendChild(optionElement)
+				newOptGroupElement.appendChild(optionElement);
 				selectElement.add(newOptGroupElement);
 			}
 			if (!sourceOptGroupElement.querySelector('option')) {
@@ -479,7 +479,7 @@ export class DualSelector extends IncompleteSelect {
 		this.setHistoryCursor(0);
 
 		let selectorChanged = false;
-		const leftOptions = Array.from(this.selectLeftElement.querySelectorAll('option'))
+		const leftOptions = Array.from(this.selectLeftElement.querySelectorAll('option'));
 		leftOptions.filter(o => currentValues.includes(o.value)).forEach(optionElement => {
 			this.moveOptionToSelectElement(optionElement, this.selectRightElement);
 			selectorChanged = true;

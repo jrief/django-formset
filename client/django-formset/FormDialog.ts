@@ -87,7 +87,7 @@ export abstract class FormDialog {
 			moveDialog(pointerMoveEvt.clientX, pointerMoveEvt.clientY);
 		};
 		const handleTouchMove = (touchMoveEvt: TouchEvent) => {
-			touchMoveEvt.preventDefault()
+			touchMoveEvt.preventDefault();
 			moveDialog(touchMoveEvt.touches[0].clientX, touchMoveEvt.touches[0].clientY);
 		};
 		const handlePointerUp = (pointerUpEvt: PointerEvent) => {

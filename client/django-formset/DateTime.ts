@@ -32,7 +32,7 @@ class DateTimeField extends Widget {
 	private hour12: boolean = false;
 	private currentDate: Date|null = null;  // when withRange=true, this is the lower bound
 	private extendedDate: Date|null = null;  // when withRange=true, this is the upper bound, otherwise unused
-	private calendarOpener: HTMLElement|null = null;
+	private readonly calendarOpener: HTMLElement|null = null;
 	private dateTimeFormat?: Intl.DateTimeFormat;
 	private hasFocus: HTMLElement|null = null;
 	private cleanup?: Function;
@@ -242,7 +242,7 @@ class DateTimeField extends Widget {
 				this.inputFields[hour].innerText = String(newDate.getHours()).padStart(2, '0');
 				this.inputFields[minute].innerText = String(newDate.getMinutes()).padStart(2, '0');
 			}
-		}
+		};
 		if (this.currentDate) {
 			setDateParts(this.currentDate, FieldPart.year, FieldPart.month, FieldPart.day, FieldPart.hour, FieldPart.minute);
 			this.inputElement.value = this.currentDate.toISOString().slice(0, this.dateOnly ? 10 : 16);
@@ -307,7 +307,7 @@ class DateTimeField extends Widget {
 			element = element.parentElement;
 		}
 		this.closeCalendar();
-	}
+	};
 
 	private updatePosition = () => {
 		if (!this.calendar)
@@ -318,7 +318,7 @@ class DateTimeField extends Widget {
 		}).then(({y}) => Object.assign(
 			this.calendar!.element.style, {top: `${y}px`, zIndex: `${zIndex + 1}`}
 		));
-	}
+	};
 
 	private handleFocus = (event: Event) => {
 		if (this.inputFields.some(inputField => {
@@ -334,7 +334,7 @@ class DateTimeField extends Widget {
 		} else {
 			this.hasFocus = null;
 		}
-	}
+	};
 
 	private handleBlur = () => {
 		setTimeout(() => {
@@ -348,7 +348,7 @@ class DateTimeField extends Widget {
 		}, 0);
 		this.hasFocus = null;
 		this.inputElement.dispatchEvent(new Event('input'));
-	}
+	};
 
 	private handleKeypress = async (event: KeyboardEvent) => {
 		let preventDefault = false;
@@ -360,7 +360,7 @@ class DateTimeField extends Widget {
 		if (preventDefault) {
 			event.preventDefault();
 		}
-	}
+	};
 
 	private editTextBox(key: string) : boolean {
 		const hasFocus = this.hasFocus!;
