@@ -2,7 +2,10 @@ from django.forms import fields, widgets
 from django.forms.models import ModelForm
 
 from formset.collection import FormCollection
+from formset.richtext.dialogs import SimpleLinkDialogForm
+from formset.richtext.widgets import RichTextarea, controls
 from formset.widgets import UploadedFileInput
+
 from testapp.models.gallery import Image, Gallery
 
 
@@ -11,16 +14,22 @@ class ImageForm(ModelForm):
         required=False,
         widget=widgets.HiddenInput,
     )
-
     image = fields.FileField(
         label="Image",
         widget=UploadedFileInput,
         required=False,
     )
+    caption = fields.CharField(
+        label="Caption",
+        required=False,
+        widget=RichTextarea(
+            #attrs={'use_json': True},
+        )
+    )
 
     class Meta:
         model = Image
-        fields = ['id', 'image']
+        fields = ['id', 'image', 'caption']
 
 
 class ImageCollection(FormCollection):
