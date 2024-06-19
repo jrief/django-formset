@@ -504,3 +504,5 @@ export class DualSelectorElement extends HTMLSelectElement {
 		this[DS].initialize();
 	}
 }
+
+export {SortableSelectElement};
