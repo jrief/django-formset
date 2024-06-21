@@ -8,15 +8,13 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	const promises = Array<Promise<void>>();
 
 	function defineComponent(resolve: Function, selector: string, newComponent: CustomElementConstructor, options: ElementDefinitionOptions|undefined=undefined) {
-		if (customElements.get(selector) instanceof Function) {
-			resolve();
-		} else {
+		window.customElements.whenDefined(selector).then(() => resolve());
+		if (!(window.customElements.get(selector) instanceof Function)) {
 			window.customElements.define(selector, newComponent, options);
-			window.customElements.whenDefined(selector).then(() => resolve());
 		}
 	}
 
-	function domLookup(fragmentRoot: Document|DocumentFragment) {
+	function domLookup(fragmentRoot: Document|DocumentFragment, isTemplate: boolean=false) {
 		// remember to always reflect imports below here also in django-formset.monolith.ts
 		if (fragmentRoot.querySelector('select[is="django-selectize"]')) {
 			promises.push(new Promise((resolve, reject) => {
@@ -32,31 +30,19 @@ window.addEventListener('DOMContentLoaded', (event) => {
 				}).catch(err => reject(err));
 			}));
 		}
-		if (fragmentRoot.querySelector('django-sortable-select')) {
+		if (fragmentRoot.querySelector('select[is="django-dual-selector"], django-sortable-select')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/SortableSelect').then(({SortableSelectElement}) => {
-					if (customElements.get('django-sortable-select') instanceof Function) {
-						resolve();
-					} else {
+				import('django-formset/DualSelector').then(({DualSelectorElement, SortableSelectElement}) => {
+					Promise.all([
+						window.customElements.whenDefined('django-sortable-select'),
+						window.customElements.whenDefined('django-dual-selector'),
+					]).then(() => resolve());
+					if (!(window.customElements.get('django-sortable-select') instanceof Function)) {
 						window.customElements.define('django-sortable-select', SortableSelectElement);
 					}
-					import('django-formset/DualSelector').then(({DualSelectorElement}) => {
-						if (customElements.get('django-dual-selector') instanceof Function) {
-							resolve();
-						} else {
-							window.customElements.define('django-dual-selector', DualSelectorElement, {extends: 'select'});
-							Promise.all([
-								window.customElements.whenDefined('django-sortable-select'),
-								window.customElements.whenDefined('django-dual-selector'),
-							]).then(() => resolve());
-						}
-					}).catch(err => reject(err));
-				}).catch(err => reject(err));
-			}));
-		} else if (fragmentRoot.querySelector('select[is="django-dual-selector"]')) {
-			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/DualSelector').then(({DualSelectorElement}) => {
-					defineComponent(resolve, 'django-dual-selector', DualSelectorElement, {extends: 'select'});
+					if (!(window.customElements.get('django-dual-selector') instanceof Function)) {
+						window.customElements.define('django-dual-selector', DualSelectorElement, {extends: 'select'});
+					}
 				}).catch(err => reject(err));
 			}));
 		}
@@ -67,30 +53,25 @@ window.addEventListener('DOMContentLoaded', (event) => {
 				}).catch(err => reject(err));
 			}));
 		}
-		const textareaElements = fragmentRoot.querySelectorAll('textarea[is="django-richtext"]');
-		textareaElements.forEach(textareaElement => {
+		if (fragmentRoot.querySelector('textarea[is="django-richtext"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				const resolveWhenConnected = () => {
-					// RichtextArea connects asynchronously, so we need to wait until it is connected to the DOM
-					if ((textareaElement as any).isInitialized) {
-						// <textarea is="django-richtext"> is already connected and initialized
-						resolve();
-					} else {
-						// <textarea is="django-richtext"> is waiting to be connected and initialized
-						textareaElement.addEventListener('connected', () => resolve(), {once: true});
-					}
-				};
-
 				import('django-formset/RichtextArea').then(({RichTextAreaElement}) => {
-					if (customElements.get('django-richtext') instanceof Function) {
-						resolveWhenConnected();
-					} else {
+					const textareaElements = fragmentRoot.querySelectorAll('textarea[is="django-richtext"]');
+					window.customElements.whenDefined('django-richtext').then(() => {
+						Promise.all(Array.from(textareaElements).map(textareaElement => new Promise<void>(resolve => {
+							if (isTemplate || (textareaElement as any).isInitialized) {
+								resolve();
+							} else {
+								textareaElement.addEventListener('connected', () => resolve(), {once: true});
+							}
+						}))).then(() => resolve());
+					}).then(() => resolve());
+					if (!(window.customElements.get('django-richtext') instanceof Function)) {
 						window.customElements.define('django-richtext', RichTextAreaElement, {extends: 'textarea'});
-						window.customElements.whenDefined('django-richtext').then(resolveWhenConnected);
 					}
 				}).catch(err => reject(err));
 			}));
-		});
+		}
 		if (fragmentRoot.querySelector('input[is="django-slug"]')) {
 			promises.push(new Promise((resolve, reject) => {
 				import('django-formset/DjangoSlug').then(({DjangoSlugElement}) => {
@@ -186,7 +167,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
 	document.querySelectorAll('template.empty-collection').forEach(element => {
 		if (element instanceof HTMLTemplateElement && element.content instanceof DocumentFragment) {
-			domLookup(element.content);
+			domLookup(element.content, true);
 		}
 	});
 	domLookup(document);

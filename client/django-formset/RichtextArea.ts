@@ -990,12 +990,12 @@ class RichtextArea {
 	private focused = () => {
 		this.wrapperElement.classList.add('focused');
 		this.textAreaElement.dispatchEvent(new Event('focus'));
-	}
+	};
 
 	private updated = () => {
 		this.textAreaElement.innerHTML = this.editor.getHTML();
 		this.textAreaElement.dispatchEvent(new Event('input'));
-	}
+	};
 
 	private blurred = () => {
 		this.registeredActions.forEach(action => action.deactivate());
@@ -1008,19 +1008,19 @@ class RichtextArea {
 			this.wrapperElement.classList.remove('invalid');
 		}
 		this.textAreaElement.dispatchEvent(new Event('blur'));
-	}
+	};
 
 	private contentUpdate = () => {
 		if (this.charaterCountDiv && this.characterCountTemplate) {
 			const context = {count: this.editor.storage.characterCount.characters()};
 			this.charaterCountDiv.innerHTML = this.characterCountTemplate(context);
 		}
-	}
+	};
 
 	private selectionUpdate = () => {
 		this.registeredActions.forEach(action => action.activate(this.editor));
 		this.formDialogs.forEach(dialog => dialog.activate(this.editor));
-	}
+	};
 
 	private formResetted = () => {
 		const chain = this.editor.chain().clearContent();
@@ -1032,9 +1032,9 @@ class RichtextArea {
 			}
 			chain.run();
 		}
-	}
+	};
 
-	private formSubmitted = () => {}
+	private formSubmitted = () => {};
 
 	private attributesChanged(mutationsList: Array<MutationRecord>) {
 		for (const mutation of mutationsList) {
@@ -1169,11 +1169,7 @@ export class RichTextAreaElement extends HTMLTextAreaElement {
 		return this[RA].getValue();
 	}
 
-	public get isInitialized() : boolean {
-		return this[RA].isInitialized;
-	}
-
-	public updateOperability(...args: any[]) : void {
+	updateOperability(...args: any[]) : void {
 		this[RA].updateOperability(...args);
 	}
 }

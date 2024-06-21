@@ -6,6 +6,7 @@
     JavaScript files. 
   * Drop support for Django-4.1 and Python-3.9.
   * Add support for Python-3.12.
+  * Fix #142: A `FormCollection` with siblings and multiple `RichtextArea` widgets did not work.
   * Attribute `<button df-click="…">` now accepts function `setFieldValue()`. This can be used to
     transfer values from one field to another one.
   * Introduce partial submits and prefilling of dialog forms in collections.
