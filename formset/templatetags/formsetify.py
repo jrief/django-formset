@@ -49,7 +49,7 @@ def formsetify(context, form, *args, **kwargs):
 def render_form(context, form, *args, **kwargs):
     get_token(context['request'])  # ensures that the CSRF-Cookie is set
     form = _formsetify(form, *args, **kwargs)
-    return form.render(template_name='formset/default/form.html')
+    return form.render(template_name='django/forms/default.html')
 
 
 register = template.Library()
