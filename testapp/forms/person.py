@@ -3,6 +3,8 @@ from time import sleep
 from django.core.exceptions import ValidationError
 from django.forms import fields, forms, models, widgets
 
+from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
+from formset.utils import FormMixin
 from formset.widgets import DateInput, Selectize, SelectizeMultiple, UploadedFileInput
 
 from testapp.models import PersonModel
@@ -36,6 +38,18 @@ class PersonForm(SimplePersonForm):
         if cd.get('first_name', '').lower().startswith("john") and cd.get('last_name', '').lower().startswith("doe"):
             raise ValidationError(f"{cd['first_name']} {cd['last_name']} is persona non grata here!")
         return cd
+
+
+class PersonFormBootstrapRenderer(FormMixin, PersonForm):
+    """
+    This form class shows how to use a custom renderer. The form then can be rendered using ``{{ form }}``
+    """
+    default_renderer = BootstrapFormRenderer(
+        field_css_classes='row mb-3',
+        label_css_classes='col-sm-3',
+        control_css_classes='col-sm-9',
+    )
+
 
 
 class ButtonActionsForm(forms.Form):

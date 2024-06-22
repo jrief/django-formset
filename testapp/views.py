@@ -38,7 +38,8 @@ from testapp.forms.company import CompanyCollection, CompaniesCollection
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import (
     SimpleContactCollection, ContactCollection, ContactCollectionList, IntermediateContactCollectionList,
-    SortableContactCollection, SortableContactCollectionList)
+    SortableContactCollection, SortableContactCollectionList
+)
 from testapp.forms.birthdate import BirthdateBoxForm, BirthdateCalendarForm, BirthdateInputForm, BirthdatePickerForm
 from testapp.forms.booking import BookingBoxForm, BookingCalendarForm, BookingPickerForm
 from testapp.forms.country import CountryForm
@@ -49,7 +50,9 @@ from testapp.forms.issue import EditIssueCollection
 from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputForm, MomentPickerForm
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
 from testapp.forms.opinion import OpinionForm
-from testapp.forms.person import ButtonActionsForm, sample_person_data, ModelPersonForm
+from testapp.forms.person import (
+    ButtonActionsForm, sample_person_data, ModelPersonForm, PersonForm, PersonFormBootstrapRenderer,
+)
 from testapp.forms.phone import PhoneForm
 from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.profile import ProfileCollection
@@ -173,7 +176,8 @@ class DemoFormViewMixin(DemoViewMixin, CalendarResponseMixin, IncompleteSelectRe
 
     def get_form_class(self):
         form_class = super().get_form_class()
-        assert not issubclass(form_class, FormMixin)
+        if issubclass(form_class, FormMixin):
+            return form_class
         attrs = self.get_css_classes()
         attrs.pop('button_css_classes', None)
         renderer_class = import_string(f'formset.renderers.{self.framework}.FormRenderer')
@@ -612,6 +616,14 @@ urlpatterns = [
         form_class=ModelPersonForm,
         model=PersonModel,
     ), name='person'),
+    path('person-bootstrap-renderer', DemoFormView.as_view(
+        form_class=PersonFormBootstrapRenderer,
+        template_name='testapp/extended-form.html',
+    ), name='person-bootstrap-renderer'),
+    path('person-bootstrap-params', DemoFormView.as_view(
+        form_class=PersonForm,
+        template_name='bootstrap/person-form.html',
+    ), name='person-bootstrap-params'),
     path('poll', DemoModelFormView.as_view(
         form_class=ModelPollForm,
         model=PollModel,
