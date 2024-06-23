@@ -27,7 +27,7 @@ class ScheduleForm(forms.Form):
 
 class DemoFormView(CalendarResponseMixin, FormView):
     template_name = 'testapp/native-form.html'
-    form_class=ScheduleForm
+    form_class = ScheduleForm
     success_url = '/success'
 
 
