@@ -332,15 +332,17 @@ export class DjangoSelectize extends IncompleteSelect {
 const DS = Symbol('DjangoSelectize');
 
 export class DjangoSelectizeElement extends HTMLSelectElement {
-	private [DS]: DjangoSelectize;  // hides internal implementation
+	private [DS]?: DjangoSelectize;  // hides internal implementation
 
 	constructor() {
 		super();
-		this[DS] = new DjangoSelectize(this);
+		if (this.form) {
+			this[DS] = new DjangoSelectize(this);
+		}
 	}
 
 	connectedCallback() {
-		this[DS].initialize();
+		this[DS]?.initialize();
 	}
 
 	get value() {
