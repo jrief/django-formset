@@ -42,6 +42,7 @@ jobs:
     - name: Build Client
       run: |
         npm run esbuild
+        npm run esbuild.monolith
     - name: Translate *.po files
       run: cd formset && django-admin compilemessages
     - name: Build 🐍 Python 📦 Package
