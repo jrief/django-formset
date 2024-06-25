@@ -14,6 +14,7 @@
     transfer values from one field to another one.
   * Introduce partial submits and prefilling of dialog forms in collections.
   * The parser generator allows whitespace inside parentheses.
+  * Perform all E2E tests by also using the monolithic build. 
   * Add `jest` to explicitly test the parser generator.
 
 1.4.5
