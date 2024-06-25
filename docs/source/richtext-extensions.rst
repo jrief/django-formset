@@ -8,15 +8,15 @@ Richtext Extensions
 
 Having a Richtext editor which can set simple property values such as **bold** or *italic* on
 editable text elements is not a big deal, even the most basic implementation can do that. The
-difficulty arises when you want to set more than one property on a certain element. Take for
-instance the hyperlink, the most basic implementation requires two fields: the URL and the text to
-display. But some implementers might want to set more properties, such as the rel_, the target_
-attribute or they want to use links to download files or to link onto phone numbers or email
-addresses.
+difficulty arises when you want to set more than one property on a certain element.
 
-If the Richtext editor shall be used in a CMS, one might want to set a link to an internal page
-instead of an external URL. This requires a dialog form to be shown, where the user can select the
-page to link to from a list of available pages.
+Take for instance the hyperlink, the most basic implementation requires two fields: the URL and the
+text to display. But some implementers might want to set more properties, such as the rel_, the
+target_ attribute or they want to use links to download files or to link onto phone numbers or email
+addresses. If the Richtext editor shall be used in a CMS or an e-commerce site, one might want to
+set a link to an internal CMS page or a product instead of an external URL. This requires a dialog
+form to be shown, where the user can select a page or product and select this out of a list of
+available options.
 
 .. _rel: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#rel
 .. _target: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#target
