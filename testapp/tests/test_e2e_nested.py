@@ -10,7 +10,7 @@ from formset.utils import MARKED_FOR_REMOVAL
 from formset.collection import FormCollection
 from formset.views import FormCollectionView
 
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
 
 
 class TeamForm(forms.Form):
@@ -71,6 +71,10 @@ initial_sample_data = {
     ],
     'company': {'name': 'Coca Cola'},
 }
+
+
+class FormCollectionView(ContextMixin, FormCollectionView):
+    success_url = '/success'
 
 
 urlpatterns = [

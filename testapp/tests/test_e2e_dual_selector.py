@@ -13,7 +13,7 @@ from formset.widgets import DualSelector, DualSortableSelector
 
 from testapp.models import OpinionModel, PollModel
 
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
 
 
 class WeightedOpinionsForm(models.ModelForm):
@@ -29,13 +29,13 @@ class WeightedOpinionsForm(models.ModelForm):
         }
 
 
-class NativeFormView(IncompleteSelectResponseMixin, FormViewMixin, GenericFormView):
+class NativeFormView(ContextMixin, IncompleteSelectResponseMixin, FormViewMixin, GenericFormView):
     template_name = 'testapp/native-form.html'
     success_url = '/success'
     extra_context = {'click_actions': 'submit -> proceed'}
 
 
-class ModelFormView(IncompleteSelectResponseMixin, FormViewMixin, UpdateView):
+class ModelFormView(ContextMixin, IncompleteSelectResponseMixin, FormViewMixin, UpdateView):
     template_name = 'testapp/native-form.html'
     success_url = '/success'
     form_class = WeightedOpinionsForm

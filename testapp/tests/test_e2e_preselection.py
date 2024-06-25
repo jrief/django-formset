@@ -15,10 +15,10 @@ from formset.widgets import DualSelector, Selectize, SelectizeMultiple
 
 from testapp.models import County, CountyUnnormalized, State
 
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
 
 
-class NativeFormView(IncompleteSelectResponseMixin, FormViewMixin, GenericFormView):
+class NativeFormView(ContextMixin, IncompleteSelectResponseMixin, FormViewMixin, GenericFormView):
     template_name = 'testapp/native-form.html'
     success_url = '/success'
 

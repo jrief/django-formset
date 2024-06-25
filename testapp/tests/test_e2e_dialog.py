@@ -11,7 +11,7 @@ from formset.dialog import ApplyButton, CancelButton, DialogForm
 from formset.fields import Activator
 from formset.views import FormCollectionView
 
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
 
 
 class CustomerForm(forms.Form):
@@ -41,7 +41,7 @@ class DialogCollection(FormCollection):
     click_outside = Activator()
 
 
-class DialogFormCollectionView(FormCollectionView):
+class DialogFormCollectionView(ContextMixin, FormCollectionView):
     success_url = '/success'
 
 

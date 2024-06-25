@@ -12,7 +12,7 @@ from formset.calendar import CalendarResponseMixin
 from formset.views import FormView
 from formset.widgets import DateTimePicker
 
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
 
 
 class ScheduleForm(forms.Form):
@@ -25,7 +25,7 @@ class ScheduleForm(forms.Form):
     )
 
 
-class DemoFormView(CalendarResponseMixin, FormView):
+class DemoFormView(ContextMixin, CalendarResponseMixin, FormView):
     template_name = 'testapp/native-form.html'
     form_class = ScheduleForm
     success_url = '/success'

@@ -10,7 +10,7 @@ from formset.validators import phone_number_validator
 from formset.views import FormView
 from formset.widgets import PhoneNumberInput
 
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
 
 
 class PhoneForm(forms.Form):
@@ -21,7 +21,7 @@ class PhoneForm(forms.Form):
     )
 
 
-class DemoFormView(FormView):
+class DemoFormView(ContextMixin, FormView):
     template_name = 'testapp/native-form.html'
     success_url = '/success'
 

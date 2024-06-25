@@ -11,10 +11,10 @@ from formset.widgets import Selectize, SelectizeMultiple
 
 from testapp.models import OpinionModel
 
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
 
 
-class NativeFormView(FormView):
+class NativeFormView(ContextMixin, FormView):
     template_name = 'testapp/native-form.html'
     success_url = '/success'
     extra_context = {'click_actions': 'submit -> proceed'}

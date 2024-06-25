@@ -14,7 +14,7 @@ from formset.fields import Activator
 from formset.views import EditCollectionView
 from formset.widgets import Button, Selectize
 
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
 
 from testapp.models import Reporter, IssueModel
 
@@ -91,7 +91,7 @@ class EditIssueCollection(FormCollection):
         return instance
 
 
-class IssueCollectionView(EditCollectionView):
+class IssueCollectionView(ContextMixin, EditCollectionView):
     model = IssueModel
     collection_class = EditIssueCollection
     template_name = 'testapp/form-collection.html'

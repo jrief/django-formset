@@ -25,7 +25,9 @@ jobs:
         django-version: ["4.2.*", "5.0.*"]
         node-version: ["18.x"]
         include:
-          - build-client: "esbuild"
+          - use-monolithic: "1"
+            python-version: "3.11"
+            django-version: "5.0.*"
         exclude:
           - python-version: "3.10"
             django-version: "5.0.*"
@@ -55,8 +57,10 @@ jobs:
         npm run function-code
     - name: Build Client
       run: |
-        npm run ${{ matrix.build-client }}
+        npm run esbuild
+        npm run esbuild.monolith
         npm run compilescss
     - name: Test with pytest
       run: |
+        export PYTEST_USE_MONOLITHIC_BUILD=${{ matrix.use-monolithic }}
         python -m pytest testapp

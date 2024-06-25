@@ -12,7 +12,7 @@ from formset.calendar import CalendarResponseMixin
 from formset.views import FormView
 from formset.ranges import DateRangeField, DateRangeCalendar, DateTimeRangeField, DateTimeRangePicker
 
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
 
 
 class BookingForm(forms.Form):
@@ -34,7 +34,7 @@ class ReservationForm(forms.Form):
     )
 
 
-class DemoFormView(CalendarResponseMixin, FormView):
+class DemoFormView(ContextMixin, CalendarResponseMixin, FormView):
     template_name = 'testapp/native-form.html'
     success_url = '/success'
 

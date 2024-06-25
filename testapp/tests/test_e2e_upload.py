@@ -13,10 +13,10 @@ from formset.views import FormView
 
 from testapp.forms.upload import UploadForm
 
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
 
 
-class DemoFormView(FormView):
+class DemoFormView(ContextMixin, FormView):
     template_name = 'testapp/native-form.html'
     form_class=UploadForm
     success_url = '/success'

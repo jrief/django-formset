@@ -10,7 +10,7 @@ from formset.collection import FormCollection
 from formset.utils import MARKED_FOR_REMOVAL
 from formset.views import FormCollectionView
 
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
 
 
 class PersonForm(forms.Form):
@@ -113,6 +113,10 @@ initial_bulk_sample_data = [{
         {'number': {'phone_number': "+49 89 7178864"}},
     ],
 }]
+
+
+class FormCollectionView(ContextMixin, FormCollectionView):
+    success_url='/success'
 
 
 urlpatterns = [

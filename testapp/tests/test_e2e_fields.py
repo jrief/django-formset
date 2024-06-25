@@ -8,7 +8,7 @@ from django.urls import path
 
 from formset.views import FormView
 
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
 
 
 FieldTuple = namedtuple('FieldTuple', ['name', 'field', 'extra_context'])
@@ -18,7 +18,7 @@ def snake2camel(string):
     return ''.join(s.capitalize() for s in string.split('_'))
 
 
-class NativeFormView(FormView):
+class NativeFormView(ContextMixin, FormView):
     template_name = 'testapp/native-form.html'
     success_url = '/success'
 

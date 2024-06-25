@@ -8,7 +8,7 @@ from django.urls import path
 
 from formset.views import FormView
 
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
 
 
 class QuestionnaireForm(Form):
@@ -25,25 +25,21 @@ class QuestionnaireForm(Form):
     )
 
 
+class QuestionnaireFormView(ContextMixin, FormView):
+    form_class = QuestionnaireForm
+    template_name = 'testapp/native-form.html'
+    success_url = '/success'
+
+
 urlpatterns = [
-    path('questionnaire', FormView.as_view(
-        form_class=QuestionnaireForm,
-        template_name='testapp/native-form.html',
-        success_url='/success',
-    ), name='questionnaire'),
-    path('questionnaire_initial_male', FormView.as_view(
-        form_class=QuestionnaireForm,
-        template_name='testapp/native-form.html',
+    path('questionnaire', QuestionnaireFormView.as_view(), name='questionnaire'),
+    path('questionnaire_initial_male', QuestionnaireFormView.as_view(
         initial={'full_name': "John Doe", 'gender': 'm'},
     ), name='questionnaire_initial_male'),
-    path('questionnaire_initial_female', FormView.as_view(
-        form_class=QuestionnaireForm,
-        template_name='testapp/native-form.html',
+    path('questionnaire_initial_female', QuestionnaireFormView.as_view(
         initial={'full_name': "Johanna Doe", 'gender': 'f'},
     ), name='questionnaire_initial_female'),
-    path('questionnaire_initial_inapplicable', FormView.as_view(
-        form_class=QuestionnaireForm,
-        template_name='testapp/native-form.html',
+    path('questionnaire_initial_inapplicable', QuestionnaireFormView.as_view(
         initial={'full_name': "Company Ltd.", 'gender': 'x'},
     ), name='questionnaire_initial_inapplicable'),
     get_javascript_catalog(),

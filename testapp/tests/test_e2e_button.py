@@ -12,7 +12,7 @@ from django.urls import path
 
 from formset.views import FormView
 
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
 
 
 class SampleForm(Form):
@@ -25,7 +25,7 @@ class SampleForm(Form):
         return cd
 
 
-class NativeFormView(FormView):
+class NativeFormView(ContextMixin, FormView):
     template_name = 'testapp/native-form.html'
     form_class = SampleForm
     success_url = '/success'

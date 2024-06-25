@@ -8,14 +8,18 @@ from django.urls import path
 from formset.views import FormCollectionView
 
 from testapp.forms.customer import CustomerCollection
-from .utils import get_javascript_catalog
+from .utils import ContextMixin, get_javascript_catalog
+
+
+class FormCollectionView(ContextMixin, FormCollectionView):
+    success_url = '/success'
 
 
 urlpatterns = [
     path('customer', FormCollectionView.as_view(
         collection_class=CustomerCollection,
         template_name='testapp/form-collection.html',
-        success_url='/success',
+
         extra_context = {'click_actions': 'submit -> proceed', 'force_submission': True},
     ), name='customer'),
     get_javascript_catalog(),
