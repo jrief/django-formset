@@ -16,7 +16,7 @@ RUN pip install --upgrade pip
 # install Node specific requirements
 COPY package.json /web/package.json
 COPY package-lock.json /web/package-lock.json
-RUN npm ci
+RUN npm install --include=dev
 
 # install Python specific requirements
 RUN pip install django Pillow uWSGI docutils Sphinx sphinx-toolbox furo django-countries phonenumbers
