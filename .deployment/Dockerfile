@@ -36,7 +36,7 @@ RUN npm run tag-attributes
 RUN npm run function-code
 RUN npm run compilescss
 RUN npm run tailwindcss
-RUN npm run esbuild
+RUN npm run esbuild -- --debug
 
 # create documentation
 RUN npm run docscss
