@@ -1,5 +1,5 @@
 import Sortable, {MultiDrag, SortableEvent} from 'sortablejs';
-import {StyleHelpers} from 'django-formset/helpers';
+import {StyleHelpers} from './helpers';
 import styles from './SortableSelect.scss';
 
 Sortable.mount(new MultiDrag());

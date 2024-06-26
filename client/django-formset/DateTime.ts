@@ -1,9 +1,9 @@
 import {autoUpdate, computePosition, flip, shift} from '@floating-ui/dom';
-import {CalendarSheet, CalendarSettings} from 'django-formset/Calendar';
-import {Widget} from 'django-formset/Widget';
-import {StyleHelpers} from 'django-formset/helpers';
+import {CalendarSheet, CalendarSettings} from './Calendar';
+import {Widget} from './Widget';
+import {StyleHelpers} from './helpers';
 import styles from './DateTime.scss';
-import calendarIcon from 'icons/calendar.svg';
+import calendarIcon from '../icons/calendar.svg';
 
 
 enum FieldPart {

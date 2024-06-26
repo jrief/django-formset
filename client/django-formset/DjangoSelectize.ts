@@ -5,8 +5,8 @@ import {TomSettings} from 'tom-select/src/types/settings';
 import {RecursivePartial, TomOption} from 'tom-select/src/types';
 import TomSelect_remove_button from 'tom-select/src/plugins/remove_button/plugin';
 import template from 'lodash.template';
-import {IncompleteSelect} from 'django-formset/IncompleteSelect';
-import {StyleHelpers} from 'django-formset/helpers';
+import {IncompleteSelect} from './IncompleteSelect';
+import {StyleHelpers} from './helpers';
 import styles from './DjangoSelectize.scss';
 
 TomSelect.define('remove_button', TomSelect_remove_button);

@@ -1,17 +1,17 @@
 import '@ungap/custom-elements';
-import {DjangoFormsetElement} from 'django-formset/DjangoFormset';
-import {StyleHelpers} from 'django-formset/helpers';
+import {DjangoFormsetElement} from './django-formset/DjangoFormset';
+import {StyleHelpers} from './django-formset/helpers';
 
 // remember to always reflect imports below here also in django-formset.ts
-import {DjangoSelectizeElement} from 'django-formset/DjangoSelectize';
-import {CountrySelectizeElement} from 'django-formset/CountrySelectize';
-import {SortableSelectElement} from 'django-formset/SortableSelect';
-import {DualSelectorElement} from 'django-formset/DualSelector';
-import {PhoneNumberElement} from 'django-formset/PhoneNumber';
-import {RichTextAreaElement} from 'django-formset/RichtextArea';
-import {DjangoSlugElement} from 'django-formset/DjangoSlug';
-import {DateCalendarElement, DateTimeCalendarElement, DateRangeCalendarElement, DateTimeRangeCalendarElement} from 'django-formset/Calendar';
-import {DateFieldElement, DatePickerElement, DateTimeFieldElement, DateTimePickerElement, DateRangeFieldElement, DateTimeRangeFieldElement, DateRangePickerElement, DateTimeRangePickerElement} from 'django-formset/DateTime';
+import {DjangoSelectizeElement} from './django-formset/DjangoSelectize';
+import {CountrySelectizeElement} from './django-formset/CountrySelectize';
+import {SortableSelectElement} from './django-formset/SortableSelect';
+import {DualSelectorElement} from './django-formset/DualSelector';
+import {PhoneNumberElement} from './django-formset/PhoneNumber';
+import {RichTextAreaElement} from './django-formset/RichtextArea';
+import {DjangoSlugElement} from './django-formset/DjangoSlug';
+import {DateCalendarElement, DateTimeCalendarElement, DateRangeCalendarElement, DateTimeRangeCalendarElement} from './django-formset/Calendar';
+import {DateFieldElement, DatePickerElement, DateTimeFieldElement, DateTimePickerElement, DateRangeFieldElement, DateTimeRangeFieldElement, DateRangePickerElement, DateTimeRangePickerElement} from './django-formset/DateTime';
 
 
 window.addEventListener('DOMContentLoaded', (event) => {

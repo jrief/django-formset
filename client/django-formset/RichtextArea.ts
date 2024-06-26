@@ -27,12 +27,12 @@ import Superscript from '@tiptap/extension-superscript';
 import Text from '@tiptap/extension-text';
 import {TextAlign, TextAlignOptions} from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
-import {TextIndent, TextIndentOptions } from 'tiptap-extensions/indent';
-import {TextMargin, TextMarginOptions } from 'tiptap-extensions/margin';
-import {TextColor} from 'tiptap-extensions/color';
-import {StyleHelpers} from 'django-formset/helpers';
-import {FormDialog} from 'django-formset/FormDialog';
-import {parse} from 'build/function-code';
+import {TextIndent, TextIndentOptions } from '../tiptap-extensions/indent';
+import {TextMargin, TextMarginOptions } from '../tiptap-extensions/margin';
+import {TextColor} from '../tiptap-extensions/color';
+import {StyleHelpers} from './helpers';
+import {FormDialog} from './FormDialog';
+import {parse} from '../build/function-code';
 import styles from './RichtextArea.scss';
 
 

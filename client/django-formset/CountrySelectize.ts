@@ -1,4 +1,4 @@
-import {DjangoSelectize} from 'django-formset/DjangoSelectize';
+import {DjangoSelectize} from './DjangoSelectize';
 import {RecursivePartial, TomOption} from 'tom-select/src/types';
 import {TomSettings} from 'tom-select/src/types/settings';
 import template from 'lodash.template';
