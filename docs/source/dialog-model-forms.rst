@@ -11,16 +11,16 @@ are, as one might expect, bound to a Django model. They are very useful for a co
 
 *A form with a select element to choose an object from a foreign key relationship.* 
 
-We typically use the :ref:`selectize` to offer a selection method for choosing from a foreign
-relation. However, if that foreign relation does not yet exist, the user may want to add it on
-the fly without leaving the current form. This is a widespread pattern in many web applications, and
-**django-formset** provides a way to handle this as well.
+We typically use the :ref:`selectize` to offer a selection method for choosing an entity from a
+foreign relation. However, if that foreign entity does not yet exist, the user may want to add it
+on the fly without leaving the current form. This is a widespread pattern in many web applications,
+and **django-formset** provides a way to handle this as well.
 
-Assume we have a form for an issue tracker. This form has a field for the issue's reporter, which
-is a foreign key to the user model. If that user does not exist, we would have to switch to a
-different form, create the reporter object there, return back to the current form and then select
-the newly created user from the dropdown list. This is not very user-friendly, and we would like to
-be able to add a new user on the fly using a dialog form.
+Assume that we have a form for an issue tracker. This form has a field for the issue's reporter,
+which is a foreign key to the user model. If that user does not exist, we would have to switch to a
+different form, create the user object there, return back to the current form and then select
+that newly created user from the dropdown list. This is not very user-friendly, and instead we would
+like to be able to add a new user on the fly using a dialog form.
 
 .. django-view:: 1_reporter_dialog
 	:caption: dialog.py
