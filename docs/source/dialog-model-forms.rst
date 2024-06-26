@@ -11,16 +11,16 @@ are, as one might expect, bound to a Django model. They are very useful for a co
 
 *A form with a select element to choose an object from a foreign key relationship.* 
 
-We typically use the :ref:`selectize` to offer a selection method for choosing from a foreign
-relation. However, if that foreign relation does not yet exist, the user may want to add it on
-the fly without leaving the current form. This is a widespread pattern in many web applications, and
-**django-formset** provides a way to handle this as well.
+We typically use the :ref:`selectize` to offer a selection method for choosing an entity from a
+foreign relation. However, if that foreign entity does not yet exist, the user may want to add it
+on the fly without leaving the current form. This is a widespread pattern in many web applications,
+and **django-formset** provides a way to handle this as well.
 
-Assume we have a form for an issue tracker. This form has a field for the issue's reporter, which
-is a foreign key to the user model. If that user does not exist, we would have to switch to a
-different form, create the reporter object there, return back to the current form and then select
-the newly created user from the dropdown list. This is not very user-friendly, and we would like to
-be able to add a new user on the fly using a dialog form.
+Assume that we have a form for an issue tracker. This form has a field for the issue's reporter,
+which is a foreign key to the user model. If that user does not exist, we would have to switch to a
+different form, create the user object there, return back to the current form and then select
+that newly created user from the dropdown list. This is not very user-friendly, and instead we would
+like to be able to add a new user on the fly using a dialog form.
 
 .. django-view:: 1_reporter_dialog
 	:caption: dialog.py
@@ -143,15 +143,19 @@ In addition to its lonely ``title`` field, this form offers the two activators a
 previous section. They are named ``edit_reporter`` and ``add_reporter``. When clicked, they induce
 the opening of the dialog form as already explained. However, the button ``edit_reporter`` is when
 clicked, configured to "prefill" the form's content using the value of the field ``issue.reporter``.
-Prefilling is done by fetching the form's related data from the server and changing the field's
-values accordingly. Here the fields named ``id`` and ``full_name`` are filled with data fetched from
-the server.
 
-This feature allows a user to first select a reporter, and then edit its content using the given
-dialog form.
+.. rubric:: ``prefillPartial(path.to.field)``
 
-We also add the attribute ``df-disable=!issue.reporter`` to the button labled "Edit Reporter" in
-order to disable it when no reporter is selected.
+The action ``prefillPartial`` typically is used inside an ``activate(…)``-invocation. It is used to
+prefill a dialog form with data fetched from the server. Fetching this data is done by sending the
+value of the field ``path.to.field`` to the server. Implicitly this fetch operation also adds the
+path to the dialog form to be filled. The server then responds with the related data, here with a
+dictionary containing the values for the fields ``id`` and ``full_name``. This response then is
+applied to the given dialog form filling the fields with the values sent by the server.
+
+This feature allows a user to first select a reporter, and immediately edit its content using a
+dialog form. Here ee also add the attribute ``df-disable=!issue.reporter`` to the button labeled
+"Edit Reporter" in order to disable it when no reporter is selected.
 
 .. django-view:: 3_issue_collection
 	:caption: collection.py
