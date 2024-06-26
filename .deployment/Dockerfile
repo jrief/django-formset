@@ -53,7 +53,7 @@ RUN DJANGO_DEPLOYED=1 ./testapp/manage.py collectstatic --noinput
 
 # handle permissions
 RUN useradd -M -d /web -s /bin/bash django
-RUN chown -R django.django $DJANGO_STATIC_ROOT
+RUN chown -R django:django $DJANGO_STATIC_ROOT
 
 EXPOSE 8080
 
