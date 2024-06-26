@@ -9,7 +9,7 @@ Dialog Model Forms
 Together with :ref:`dialog-forms`, **django-formset** also offers dialog *model* forms. These forms
 are, as one might expect, bound to a Django model. They are very useful for a common use case:
 
-*A form with a select element to choose an object from a foreign key relationship.* 
+*A form with a select element to choose an entity from a foreign key relationship.* 
 
 We typically use the :ref:`selectize` to offer a selection method for choosing an entity from a
 foreign relation. However, if that foreign entity does not yet exist, the user may want to add it
@@ -17,10 +17,11 @@ on the fly without leaving the current form. This is a widespread pattern in man
 and **django-formset** provides a way to handle this as well.
 
 Assume that we have a form for an issue tracker. This form has a field for the issue's reporter,
-which is a foreign key to the user model. If that user does not exist, we would have to switch to a
-different form, create the user object there, return back to the current form and then select
-that newly created user from the dropdown list. This is not very user-friendly, and instead we would
-like to be able to add a new user on the fly using a dialog form.
+which is a foreign key to a model named ``Reporter``. If that reporter does not exist, we would have
+to switch to a different form, create a reporter object there, return back to the current form and
+then select that newly created reporter from the dropdown list. This is not very user-friendly, and
+instead we would like to be able to add a new reporter on the fly using a dialog form popping out
+of our current "Issue" form.
 
 .. django-view:: 1_reporter_dialog
 	:caption: dialog.py
@@ -65,8 +66,9 @@ like to be able to add a new user on the fly using a dialog form.
 Here we create the dialog form ``ChangeReporterDialogForm``. It inherits from ``DialogModelForm``
 and is a combination of the well known Django ModelForm_ and :ref:`dialog-forms` from the previous
 chapter. In class ``Meta`` we specify the model and the form fields. Since we also want to edit
-existing objects from our model ``Reporter``, we need a hidden identifier for reference. Here we use
-the hidden field named ``id``, which points to the primary key of an editable ``Reporter`` object.
+existing entities from our model ``Reporter``, we need a hidden identifier as a reference. Here we
+use the hidden field named ``id``, which points to the primary key of an editable ``Reporter``
+object.
 
 .. _ModelForm: https://docs.djangoproject.com/en/stable/topics/forms/modelforms/
 
@@ -90,7 +92,7 @@ Let's go through it in detail:
 This submits the complete collection of forms but tells the accepting Django endpoint, to only
 validate the current form, ie. ``ChangeReporterDialogForm``. Check method ``form_collection_valid``
 in view ``IssueCollectionView`` on how this validated form is further processed (see below). The
-response of this view then is handled over to the next action in the queue:
+response of this action then is handled over to the next action in the queue:
 
 .. rubric:: ``setFieldValue(issue.reporter, ^reporter_id)``
 
@@ -135,14 +137,15 @@ The parameter "clear" then implies to clear all the fields.
 	        model = IssueModel
 	        fields = ['title', 'reporter']
 
-This is the main form of the collection and is used to edit the issue related fields. It just offers
-one field named ``title``; this is just for demonstration purposes, a real application would of
-course offer many more fields.
+This is the main form of the collection and is used to edit the "Issue"-related fields. For
+demonstration purposes it just offers one field named ``title``, a real issue-tracker application
+would of course offer many more fields.
 
 In addition to its lonely ``title`` field, this form offers the two activators as mentioned in the
 previous section. They are named ``edit_reporter`` and ``add_reporter``. When clicked, they induce
 the opening of the dialog form as already explained. However, the button ``edit_reporter`` is when
-clicked, configured to "prefill" the form's content using the value of the field ``issue.reporter``.
+clicked, configured to "prefill" the dialog form's content using the value of the field
+``issue.reporter``.
 
 .. rubric:: ``prefillPartial(path.to.field)``
 
@@ -154,7 +157,7 @@ dictionary containing the values for the fields ``id`` and ``full_name``. This r
 applied to the given dialog form filling the fields with the values sent by the server.
 
 This feature allows a user to first select a reporter, and immediately edit its content using a
-dialog form. Here ee also add the attribute ``df-disable=!issue.reporter`` to the button labeled
+dialog form. Here we also add the attribute ``df-disable=!issue.reporter`` to the button labeled
 "Edit Reporter" in order to disable it when no reporter is selected.
 
 .. django-view:: 3_issue_collection
