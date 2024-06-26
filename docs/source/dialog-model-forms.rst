@@ -11,8 +11,8 @@ are, as one might expect, bound to a Django model. They are very useful for a co
 
 *A form with a select element to choose an object from a foreign key relationship.* 
 
-This is a very common use case and we typically use the :ref:`selectize` to offer a selection method
-to the user. However, if that foreign relation does not yet exist, the user may want to add it on
+We typically use the :ref:`selectize` to offer a selection method for choosing from a foreign
+relation. However, if that foreign relation does not yet exist, the user may want to add it on
 the fly without leaving the current form. This is a widespread pattern in many web applications, and
 **django-formset** provides a way to handle this as well.
 
@@ -123,7 +123,7 @@ The parameter "clear" then implies to clear all the fields.
 	    )
 	    edit_reporter = Activator(
 	        widget=Button(
-	            action='activate("prefill", issue.reporter)',
+	            action='activate(prefillPartial(issue.reporter))',
 	            attrs={'df-disable': '!issue.reporter'},
 	        ),
 	    )
@@ -150,8 +150,8 @@ the server.
 This feature allows a user to first select a reporter, and then edit its content using the given
 dialog form.
 
-Here we also add the attribute ``df-disable=!issue.reporter`` to the button in order to disable
-it when no reporter is selected.
+We also add the attribute ``df-disable=!issue.reporter`` to the button labled "Edit Reporter" in
+order to disable it when no reporter is selected.
 
 .. django-view:: 3_issue_collection
 	:caption: collection.py
