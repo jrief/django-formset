@@ -1,4 +1,4 @@
-import { Extension } from '@tiptap/core'
+import {Extension} from '@tiptap/core';
 
 export interface TextIndentOptions {
 	types: string[],
