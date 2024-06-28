@@ -1,6 +1,6 @@
 import isString from 'lodash.isstring';
-import {StyleHelpers} from 'django-formset/helpers';
-import {parse} from 'build/tag-attributes';
+import {StyleHelpers} from './helpers';
+import {parse} from '../build/tag-attributes';
 import styles from './DjangoFormset.scss';
 
 

@@ -283,4 +283,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(initialize_opinions, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(initialize_counties, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(initialize_reporters, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(initialize_pages, reverse_code=migrations.RunPython.noop),
     ]

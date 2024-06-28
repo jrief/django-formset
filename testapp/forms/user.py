@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.forms.fields import IntegerField
 from django.forms.models import ModelForm, construct_instance, model_to_dict
 from django.forms.widgets import HiddenInput, PasswordInput
@@ -6,12 +5,12 @@ from django.forms.widgets import HiddenInput, PasswordInput
 from formset.collection import FormCollection
 from formset.widgets import DualSelector, SelectizeMultiple
 
-from testapp.models import ExtendUser, UserContact
+from testapp.models import User, ExtendUser, UserContact
 
 
 class UserForm(ModelForm):
     class Meta:
-        model = get_user_model()
+        model = User
         exclude = ['username', 'password', 'last_login', 'date_joined']
         widgets = {
             'password': PasswordInput,
@@ -50,6 +49,9 @@ class UserContactForm(ModelForm):
 
 
 class UserCollection(FormCollection):
+    """
+    Show how to combine multiple related forms into a single form collection.
+    """
     user = UserForm()
     contact = UserContactForm()
 

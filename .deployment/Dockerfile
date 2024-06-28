@@ -16,7 +16,7 @@ RUN pip install --upgrade pip
 # install Node specific requirements
 COPY package.json /web/package.json
 COPY package-lock.json /web/package-lock.json
-RUN npm ci
+RUN npm install --include=dev
 
 # install Python specific requirements
 RUN pip install django Pillow uWSGI docutils Sphinx sphinx-toolbox furo django-countries phonenumbers
@@ -36,7 +36,7 @@ RUN npm run tag-attributes
 RUN npm run function-code
 RUN npm run compilescss
 RUN npm run tailwindcss
-RUN npm run esbuild
+RUN npm run esbuild -- --debug
 
 # create documentation
 RUN npm run docscss
@@ -53,7 +53,7 @@ RUN DJANGO_DEPLOYED=1 ./testapp/manage.py collectstatic --noinput
 
 # handle permissions
 RUN useradd -M -d /web -s /bin/bash django
-RUN chown -R django.django $DJANGO_STATIC_ROOT
+RUN chown -R django:django $DJANGO_STATIC_ROOT
 
 EXPOSE 8080
 

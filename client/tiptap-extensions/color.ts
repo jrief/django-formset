@@ -1,6 +1,6 @@
 // Do not mix this Tiptap extension with `@tiptap/extension-text-style`
 // as they interfere making this extension unusable
-import { Mark } from '@tiptap/core';
+import {Mark} from '@tiptap/core';
 
 export interface TextColorOptions {
 	allowedClasses: string[],

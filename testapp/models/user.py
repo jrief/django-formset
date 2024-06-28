@@ -30,7 +30,6 @@ class User(models.Model):
         default=False,
         help_text="Designates that this user has all permissions without explicitly assigning them."
     )
-
     created_by = models.CharField(
         editable=False,
         max_length=40,
@@ -48,7 +47,6 @@ class ExtendUser(models.Model):
         related_name='extend_user',
         primary_key=True,
     )
-
     phone_number = models.CharField(
         verbose_name="Phone Number",
         max_length=25,

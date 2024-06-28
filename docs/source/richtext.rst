@@ -220,8 +220,8 @@ Composed Formatting Options
 
 In addition to the simple formatting options, **django-formset** offer some control elements which
 require multiple parameters. They use the class :class:`formset.richtext.controls.DialogControl`,
-which when clicked opens a ref:dialog-form`, which has to be specified as argument to this control
-element.
+which when clicked opens a :ref:`dialog-form`. As its only argument, it takes an instance of a
+dialog form. Check the possible options below:
 
 Here are the built-in dialog forms:
 
@@ -252,11 +252,14 @@ Section :ref:`richtext-extensions` explains in detail how to do this.
 
 .. rubric:: Footnote
 
-The class :class:`formset.richtext.dialog.FootnoteDialogForm` can be used to add a footnote to the
-editable rich text. When choosing this option, a dialog pops up with another richtext editor inside.
-This editor can be configured in the same way as the main editor, but usually one would only allow a
-few formatting options. The content of this editor will be stored as a footnote and is not visible
-in the main text area. Instead, only a ``[*]`` will be rendered.
+An instance of the class :class:`formset.richtext.dialog.FootnoteDialogForm` can be used to add a
+footnote editor to the editable rich text. When choosing this option, a dialog pops up with another
+richtext editor inside. This editor can be configured in the same way as the main editor, but
+usually one would only allow very few formatting options. The content of this editor will be stored
+as a footnote and is not visible in the main text area. Instead, only a ``[*]`` will be rendered.
+
+This control element only works if the editor's payload is stored as JSON. Reason is that the
+richtext renderer adds them to the end of the document in a second run. Check for details below.
 
 
 .. rubric:: Image

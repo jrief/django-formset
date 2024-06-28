@@ -1,7 +1,7 @@
-import {StyleHelpers} from 'django-formset/helpers';
-import {Widget} from 'django-formset/Widget';
-import contractLeftIcon from 'icons/contract-left.svg';
-import contractRightIcon from 'icons/contract-right.svg';
+import {StyleHelpers} from './helpers';
+import {Widget} from './Widget';
+import contractLeftIcon from '../icons/contract-left.svg';
+import contractRightIcon from '../icons/contract-right.svg';
 import styles from './Calendar.scss';
 
 

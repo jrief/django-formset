@@ -1,6 +1,6 @@
 import '@ungap/custom-elements';
-import {DjangoFormsetElement} from 'django-formset/DjangoFormset';
-import {StyleHelpers} from 'django-formset/helpers';
+import {DjangoFormsetElement} from './django-formset/DjangoFormset';
+import {StyleHelpers} from './django-formset/helpers';
 
 
 window.addEventListener('DOMContentLoaded', (event) => {
@@ -18,21 +18,21 @@ window.addEventListener('DOMContentLoaded', (event) => {
 		// remember to always reflect imports below here also in django-formset.monolith.ts
 		if (fragmentRoot.querySelector('select[is="django-selectize"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/DjangoSelectize').then(({DjangoSelectizeElement}) => {
+				import('./django-formset/DjangoSelectize').then(({DjangoSelectizeElement}) => {
 					defineComponent(resolve, 'django-selectize', DjangoSelectizeElement, {extends: 'select'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('select[is="django-country-selectize"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/CountrySelectize').then(({CountrySelectizeElement}) => {
+				import('./django-formset/CountrySelectize').then(({CountrySelectizeElement}) => {
 					defineComponent(resolve, 'django-country-selectize', CountrySelectizeElement, {extends: 'select'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('select[is="django-dual-selector"], django-sortable-select')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/DualSelector').then(({DualSelectorElement, SortableSelectElement}) => {
+				import('./django-formset/DualSelector').then(({DualSelectorElement, SortableSelectElement}) => {
 					Promise.all([
 						window.customElements.whenDefined('django-sortable-select'),
 						window.customElements.whenDefined('django-dual-selector'),
@@ -48,14 +48,14 @@ window.addEventListener('DOMContentLoaded', (event) => {
 		}
 		if (fragmentRoot.querySelector('input[is="django-phone-number"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/PhoneNumber').then(({PhoneNumberElement}) => {
+				import('./django-formset/PhoneNumber').then(({PhoneNumberElement}) => {
 					defineComponent(resolve, 'django-phone-number', PhoneNumberElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('textarea[is="django-richtext"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/RichtextArea').then(({RichTextAreaElement}) => {
+				import('./django-formset/RichtextArea').then(({RichTextAreaElement}) => {
 					const textareaElements = fragmentRoot.querySelectorAll('textarea[is="django-richtext"]');
 					window.customElements.whenDefined('django-richtext').then(() => {
 						Promise.all(Array.from(textareaElements).map(textareaElement => new Promise<void>(resolve => {
@@ -74,91 +74,91 @@ window.addEventListener('DOMContentLoaded', (event) => {
 		}
 		if (fragmentRoot.querySelector('input[is="django-slug"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/DjangoSlug').then(({DjangoSlugElement}) => {
+				import('./django-formset/DjangoSlug').then(({DjangoSlugElement}) => {
 					defineComponent(resolve, 'django-slug', DjangoSlugElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('input[is="django-datefield"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/DateTime').then(({DateFieldElement}) => {
+				import('./django-formset/DateTime').then(({DateFieldElement}) => {
 					defineComponent(resolve, 'django-datefield', DateFieldElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('input[is="django-datecalendar"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/Calendar').then(({DateCalendarElement}) => {
+				import('./django-formset/Calendar').then(({DateCalendarElement}) => {
 					defineComponent(resolve, 'django-datecalendar', DateCalendarElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('input[is="django-datepicker"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/DateTime').then(({DatePickerElement}) => {
+				import('./django-formset/DateTime').then(({DatePickerElement}) => {
 					defineComponent(resolve, 'django-datepicker', DatePickerElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('input[is="django-datetimefield"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/DateTime').then(({DateTimeFieldElement}) => {
+				import('./django-formset/DateTime').then(({DateTimeFieldElement}) => {
 					defineComponent(resolve, 'django-datetimefield', DateTimeFieldElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('input[is="django-datetimecalendar"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/Calendar').then(({DateTimeCalendarElement}) => {
+				import('./django-formset/Calendar').then(({DateTimeCalendarElement}) => {
 					defineComponent(resolve, 'django-datetimecalendar', DateTimeCalendarElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('input[is="django-datetimepicker"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/DateTime').then(({DateTimePickerElement}) => {
+				import('./django-formset/DateTime').then(({DateTimePickerElement}) => {
 					defineComponent(resolve, 'django-datetimepicker', DateTimePickerElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('input[is="django-daterangefield"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/DateTime').then(({DateRangeFieldElement}) => {
+				import('./django-formset/DateTime').then(({DateRangeFieldElement}) => {
 					defineComponent(resolve, 'django-daterangefield', DateRangeFieldElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('input[is="django-daterangecalendar"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/Calendar').then(({DateRangeCalendarElement}) => {
+				import('./django-formset/Calendar').then(({DateRangeCalendarElement}) => {
 					defineComponent(resolve, 'django-daterangecalendar', DateRangeCalendarElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('input[is="django-daterangepicker"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/DateTime').then(({DateRangePickerElement}) => {
+				import('./django-formset/DateTime').then(({DateRangePickerElement}) => {
 					defineComponent(resolve, 'django-daterangepicker', DateRangePickerElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('input[is="django-datetimerangefield"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/DateTime').then(({DateTimeRangeFieldElement}) => {
+				import('./django-formset/DateTime').then(({DateTimeRangeFieldElement}) => {
 					defineComponent(resolve, 'django-datetimerangefield', DateTimeRangeFieldElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('input[is="django-datetimerangecalendar"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/Calendar').then(({DateTimeRangeCalendarElement}) => {
+				import('./django-formset/Calendar').then(({DateTimeRangeCalendarElement}) => {
 					defineComponent(resolve, 'django-datetimerangecalendar', DateTimeRangeCalendarElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));
 		}
 		if (fragmentRoot.querySelector('input[is="django-datetimerangepicker"]')) {
 			promises.push(new Promise((resolve, reject) => {
-				import('django-formset/DateTime').then(({DateTimeRangePickerElement}) => {
+				import('./django-formset/DateTime').then(({DateTimeRangePickerElement}) => {
 					defineComponent(resolve, 'django-datetimerangepicker', DateTimeRangePickerElement, {extends: 'input'});
 				}).catch(err => reject(err));
 			}));

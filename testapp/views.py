@@ -2,7 +2,6 @@ import functools
 import json
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Model
@@ -60,9 +59,9 @@ from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.schedule import ScheduleBoxForm, ScheduleCalendarForm, SchedulePickerForm
 from testapp.forms.state import StateForm, StatesForm
 from testapp.forms.terms_of_use import AcceptTermsCollection
-from testapp.forms.user import UserCollection, UserListCollection
+from testapp.forms.user import UserCollection
 from testapp.forms.upload import UploadForm
-from testapp.models import BlogModel, Company, IssueModel, PersonModel, PollModel, Reporter
+from testapp.models import BlogModel, Company, IssueModel, PersonModel, PollModel, Reporter, User
 from testapp.models.gallery import Gallery
 
 
@@ -260,7 +259,7 @@ class DemoFormCollectionView(DemoFormCollectionViewMixin, FormCollectionView):
 
 
 class UserCollectionView(DemoFormCollectionViewMixin, EditCollectionView):
-    model = get_user_model()
+    model = User
     template_name = 'testapp/form-collection.html'
 
     def get_object(self, queryset=None):
@@ -636,9 +635,9 @@ urlpatterns = [
     path('user', UserCollectionView.as_view(
         collection_class=UserCollection
     ), name='user'),
-    path('userlist', UserCollectionView.as_view(
-        collection_class=UserListCollection
-    ), name='userlist'),
+    # path('userlist', UserCollectionView.as_view(
+    #     collection_class=UserListCollection
+    # ), name='userlist'),
     path('profile', DemoFormCollectionView.as_view(
         collection_class=ProfileCollection
     ), name='profile'),

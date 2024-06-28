@@ -1,5 +1,5 @@
 import isString from 'lodash.isstring';
-import {Widget} from 'django-formset/Widget';
+import {Widget} from './Widget';
 
 
 export abstract class IncompleteSelect extends Widget {
