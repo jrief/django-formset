@@ -7,22 +7,33 @@ Activators and Button Widgets
 In almost every form, there are some buttons to submit or reset the field's contents. In a typical
 Django application, these buttons must be added to the rendering templates as HTML elements. But if
 you think about it, a button also is an input field, sometimes rendered as ``<button …>`` and
-sometimes as ``<input type="submit" …>``. Okay, the button's value is transient and it only is used
-to trigger an action, such as submit or reset. But it still is an input field and it has a name, so
-why does Django not provide a field type for it? 
+sometimes as ``<input type="button" …>``. Okay, the button's value is transient and it only is used
+to trigger an action, such as submit, reset or a custom event. But it still is an input field with a
+name and a value, so why does Django not provide a field type for it? 
 
-This is where **django-formset** comes in. It provides a field type for buttons, named
-:class:`formset.fields.Activator`. Such an ``Activator`` is a field that can be used to trigger an
-action – more on that later. The default widget of an ``Activator`` field is, as one might expect,
-the :class:`formset.widgets.Button` widget. An ``Activator`` can be used inside any Django ``Form``
-or ``FormCollection``. It then behaves very similar to a normal field. The main difference is that
-it does not store any data and hence can't be initialized. Instead, it waits for click events which
-then can be intercepted by other components of the embedding ``<django-formset>``-component.
+This is where **django-formset** comes in. It provides a field type for buttons named "Activator".
+This name was chosen to distinguish it from the term "Button", which is used for its representation
+in HTML. Such an :class:`formset.fields.Activator` behaves as any other Django Form field and can be
+used to trigger an action – more on that later. The default widget of an ``Activator`` field is, as
+one might expect, the :class:`formset.widgets.Button` widget. An ``Activator`` can be used inside
+any Django ``Form`` or ``FormCollection``. It then behaves very similar to a normal field. The main
+difference is that it does not store any data and hence can't be initialized. Instead, it waits for
+click events which then can be intercepted by other components of the embedding
+``<django-formset>``-component.
 
-This concept is an inversion of control: Instead of adding an event listener to the button, which
-then performs some action, the interested component can listen for the named ``Activator`` field to
-be clicked. A dialog component for instance, can popup and disappear by specifying any condition on
-buttons and other input fields.
+
+Listening for Activation Events
+===============================
+
+In a typical JavaScript application, we would add an event handler to a button element to listen for
+click events. On activation, this handler then would perform some action such as submitting a form
+or opening a dialog. While this approach is very flexible, it does not fit well into Django's form
+concept which aims to be declarative. We therefore need to invert the flow of control.
+
+Instead of adding an event listener to the button which then performs some action, the interested
+component can listen for the named ``Activator`` field to be clicked. A dialog component for
+instance, can popup and disappear by specifying any condition on button activation and the state of
+other input fields.
 
 This example shows how to use an ``Activator`` field to submit the form:
 
