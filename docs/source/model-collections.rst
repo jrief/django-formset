@@ -172,7 +172,7 @@ only stores their names.
 	
 	class Team(models.Model):
 	    name = models.CharField(verbose_name="Team name", max_length=50)
-	    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+	    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='teams')
 	
 	    class Meta:
 	        unique_together = ['name', 'department']
@@ -223,7 +223,7 @@ the company, its departments and their teams as:
 	class DepartmentCollection(FormCollection):
 	    min_siblings = 0
 	    department = DepartmentForm()
-	    teams = TeamCollection()
+	    teams = TeamCollection() # attribute name MUST match related_name (see note below)
 	    legend = "Departments"
 	    add_label = "Add Department"
 	    related_field = 'company'
@@ -242,13 +242,20 @@ the company, its departments and their teams as:
 	
 	class CompanyCollection(FormCollection):
 	    company = CompanyForm()
-	    departments = DepartmentCollection()
+	    department_set = DepartmentCollection() # attribute name MUST match related_name (see note below)
 
 As we expect, we see that every Django model is represented by its form. Since we want to edit more
 instances of the same model type, we somehow need a way to distinguish them. This is where the form
 field named ``id`` comes into play. It is a hidden ``IntegerField`` and represents the primary key
 of the model instances ``Department`` or ``Team``. Since newly created instances haven't any primary
 key yet, it is marked with ``required=False`` to make it optional.
+
+.. note:: Take care when naming related collections on a parent ``FormCollection``. The name must 
+	match the reverse accessor of the related field. In this example, the ``related_name`` of the 
+	department field has been set to ``'teams'``, therefore we can specify ``teams = TeamCollection()`` 
+	on the ``DepartmentCollection``. Conversely, no ``related_name`` is set on the company field 
+	of the ``Department`` model, so we must instead specify ``department_set = DepartmentCollection()`` 
+	on the ``CompanyCollection``.
 
 Finally, our ``CompanyCollection`` must be made editable and served by a Django view class. Here we
 can use the the view class :class:`formset.views.EditCollectionView` as in the previous example.
