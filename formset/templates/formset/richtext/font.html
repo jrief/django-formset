@@ -1,0 +1,12 @@
+{% load i18n %}{% spaceless %}
+<button type="button" richtext-click="fontFamily" aria-label="{% translate 'Font' %}" aria-haspopup="true" aria-expanded="false">{% include "formset/icons/font.svg" %}</button>
+<ul{% block dropdown_menu_class %}{% endblock %} role="menu" aria-labelledby="{% translate 'Font' %}">
+	{% for css_class, font_name in css_classes.items %}
+	<li{% block dropdown_menu_item %}{% endblock %}>
+		<span {% if css_class %}richtext-click="font:{{ css_class }}" class="{{ css_class }}"{% else %}richtext-click="font:null"{% endif %} role="menuitem">
+			{{ font_name }}
+		</span>
+	</li>
+	{% endfor %}
+</ul>
+{% endspaceless %}

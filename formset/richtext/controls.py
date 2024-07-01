@@ -127,6 +127,28 @@ class TextColor(ControlElement):
         })
 
 
+class FontFamily(ControlElement):
+    extension = 'fontFamily'
+    label = _("Font Family")
+    template_name = 'formset/richtext/font.html'
+
+    def __init__(self, css_classes):
+        if not isinstance(css_classes, dict) or len(css_classes) == 0:
+            raise ImproperlyConfigured("FontFamily() requires a dict with at least one entry")
+        class_pattern = re.compile(r'^-?[_a-zA-Z]+[_a-zA-Z0-9-]*$')
+        for css_class in css_classes.keys():
+            if not re.match(class_pattern, css_class):
+                raise ImproperlyConfigured(f"Given color {css_class} does not look like a valid CSS class name")
+        self.css_classes = {None: _("Default")}  # the default font
+        self.css_classes.update(css_classes)
+
+    def render(self, renderer):
+        template = self.get_template(renderer)
+        return template.render({
+            'css_classes': self.css_classes,
+        })
+
+
 class TextIndent(ControlElement):
     def __init__(self, indent='indent'):
         if indent == 'indent':

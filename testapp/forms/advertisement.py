@@ -108,6 +108,19 @@ class CustomHyperlinkDialogForm(dialogs.RichtextDialogForm):
     )
 
 
+font_classes = {
+    'open-sans-regular': 'Open Sans',
+    'dancing-script-regular': 'Dancing Script',
+    'lato-regular': 'Lato',
+    'merriweather-regular': 'Merriweather',
+    'montserrat-regular': 'Montserrat',
+    'roboto-regular': 'Roboto',
+    'pacifio-regular': 'Pacifico',
+    'incosolata-regular': 'Incosolata',
+    'playfair-display-regular': 'Playfair Display',
+}
+
+
 class AdvertisementForm(forms.Form):
     ad_text = fields.CharField(
         widget=RichTextarea(control_elements=[
@@ -120,6 +133,7 @@ class AdvertisementForm(forms.Form):
             controls.Underline(),
             #controls.TextColor(['rgb(212, 0, 0)', 'rgb(0, 212, 0)', 'rgb(0, 0, 212)']),
             controls.TextColor(['text-red', 'text-green', 'text-blue']),
+            controls.FontFamily(font_classes),
             controls.TextIndent(),
             controls.TextIndent('outdent'),
             controls.TextMargin('increase'),

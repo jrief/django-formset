@@ -30,6 +30,7 @@ import Underline from '@tiptap/extension-underline';
 import {TextIndent, TextIndentOptions } from '../tiptap-extensions/indent';
 import {TextMargin, TextMarginOptions } from '../tiptap-extensions/margin';
 import {TextColor} from '../tiptap-extensions/color';
+import {FontFamily} from '../tiptap-extensions/font';
 import {StyleHelpers} from './helpers';
 import {FormDialog} from './FormDialog';
 import {parse} from '../build/function-code';
@@ -304,6 +305,89 @@ namespace controls {
 						editor.chain().focus().setColor(color).run();
 					} else {
 						editor.chain().focus().unsetColor().run();
+					}
+					this.activate(editor);
+					this.toggleMenu(editor, false);
+					break;
+				}
+				element = element.parentElement;
+			}
+		}
+	}
+
+	export class FontFamilyAction extends DropdownAction {
+		private allowedClasses: Array<string> = [];
+
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button, '[richtext-click^="font:"]');
+			if (!(button.nextElementSibling instanceof HTMLUListElement) || button.nextElementSibling.getAttribute('role') !== 'menu')
+				throw new Error('Font Family requires a sibling element <ul role="menu">…</ul>');
+			this.collectFonts();
+		}
+
+		private collectFonts() {
+			this.dropdownItems.forEach(element => {
+				const cssClass = this.extractFont(element);
+				if (!cssClass)
+					return;
+				if (/^-?[_a-zA-Z]+[_a-zA-Z0-9-]*$/.test(cssClass)) {
+					this.allowedClasses.push(cssClass);
+				} else {
+					throw new Error(`${cssClass} is not a valid CSS class.`);
+				}
+			});
+		}
+
+		private extractFont(element: Element) {
+			const parts = element.getAttribute('richtext-click')?.split(':') ?? [];
+			if (parts.length !== 2)
+				throw new Error(`Element ${element} requires attribute 'richtext-click'.`);
+			if (parts[1] === 'null')
+				return null;
+			return parts[1];
+		}
+
+		clicked() {}
+
+		activate(editor: Editor) {
+			let isActive = false;
+			this.dropdownItems.forEach(element => {
+				const fontFamily = this.extractFont(element);
+				if (fontFamily) {
+					if (editor.isActive({fontFamily})) {
+						isActive = true
+					}
+				}
+			});
+			this.button.classList.toggle('active', isActive);
+		}
+
+		extendExtensions(extensions: Array<Extension|Mark|Node>) {
+			let unmergedOptions = true;
+			extensions.forEach(e => {
+				if (e.name === 'fontFamily')
+					throw new Error("RichtextArea allows only one control element with 'fontFamily'.");
+			});
+			extensions.push(FontFamily.configure({allowedClasses: this.allowedClasses}));
+		}
+
+		protected toggleMenu(editor: Editor, force?: boolean) {
+			super.toggleMenu(editor, force);
+			this.dropdownItems.forEach(element => {
+				const cssClass = this.extractFont(element);
+				element.parentElement?.classList.toggle('active', editor.isActive({fontFamily: cssClass}));
+			});
+		}
+
+		protected toggleItem(event: MouseEvent, editor: Editor) {
+			let element = event.target instanceof Element ? event.target : null;
+			while (element) {
+				if (element.role === 'menuitem') {
+					const cssClass = this.extractFont(element);
+					if (cssClass) {
+						editor.chain().focus().setFont(cssClass).run();
+					} else {
+						editor.chain().focus().unsetFont().run();
 					}
 					this.activate(editor);
 					this.toggleMenu(editor, false);
