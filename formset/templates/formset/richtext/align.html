@@ -11,7 +11,7 @@
 	{% for alignment in alignments %}
 	<li{% block dropdown_menu_item %}{% endblock %}>
 		{% with icon="formset/icons/align-"|add:alignment|add:".svg" %}
-		<a richtext-click="alignment:{{ alignment }}">{% include icon %}</a>
+		<span richtext-click="alignment:{{ alignment }}" role="menuitem">{% include icon %}</span>
 		{% endwith %}
 	</li>
 	{% endfor %}

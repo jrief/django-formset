@@ -220,10 +220,10 @@ namespace controls {
 			super(wrapperElement, name, button, '[richtext-click^="color:"]');
 			if (!(button.nextElementSibling instanceof HTMLUListElement) || button.nextElementSibling.getAttribute('role') !== 'menu')
 				throw new Error('Text color requires a sibling element <ul role="menu">…</ul>');
-			this.collecColors();
+			this.collectColors();
 		}
 
-		private collecColors() {
+		private collectColors() {
 			this.dropdownItems.forEach(element => {
 				const color = this.extractColor(element);
 				if (!color)
@@ -298,7 +298,7 @@ namespace controls {
 		protected toggleItem(event: MouseEvent, editor: Editor) {
 			let element = event.target instanceof Element ? event.target : null;
 			while (element) {
-				if (element instanceof HTMLAnchorElement) {
+				if (element.role === 'menuitem') {
 					const color = this.extractColor(element);
 					if (color) {
 						editor.chain().focus().setColor(color).run();
@@ -492,7 +492,7 @@ namespace controls {
 		protected toggleItem(event: MouseEvent, editor: Editor) {
 			let element = event.target instanceof Element ? event.target : null;
 			while (element) {
-				if (element instanceof HTMLButtonElement || element instanceof HTMLAnchorElement) {
+				if (element.role === 'menuitem') {
 					const level = this.extractLevel(element);
 					editor.chain().focus().setHeading({level: level}).run();
 					this.activate(editor);
@@ -582,7 +582,7 @@ namespace controls {
 		protected toggleItem(event: MouseEvent, editor: Editor) {
 			let element = event.target instanceof Element ? event.target : null;
 			while (element) {
-				if (element instanceof HTMLButtonElement || element instanceof HTMLAnchorElement) {
+				if (element.role === 'menuitem') {
 					const alignment = this.extractAlignment(element);
 					editor.chain().focus().setTextAlign(alignment).run();
 					this.activate(editor);

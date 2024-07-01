@@ -9,7 +9,7 @@
 	{% for level in levels %}
 	<li{% block dropdown_menu_item %}{% endblock %}>
 		{% with icon="formset/icons/heading"|add:level|add:".svg" %}
-		<a richtext-click="heading:{{ level }}">{% include icon %}</a>
+		<span richtext-click="heading:{{ level }}" role="menuitem">{% include icon %}</span>
 		{% endwith %}
 	</li>
 	{% endfor %}

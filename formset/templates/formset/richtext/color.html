@@ -3,9 +3,9 @@
 <ul{% block dropdown_menu_class %}{% endblock %} role="menu" aria-labelledby="{% translate 'Text Color' %}">
 	{% for color in colors %}
 	<li{% block dropdown_menu_item %}{% endblock %}>
-		<a {% if color %}richtext-click="color:{{ color }}" {% if class_based %}class="{{ color }}"{% else %}style="color: {{ color }};"{% endif %}{% else %}richtext-click="color:null"{% endif %}>
+		<span {% if color %}richtext-click="color:{{ color }}" {% if class_based %}class="{{ color }}"{% else %}style="color: {{ color }};"{% endif %}{% else %}richtext-click="color:null"{% endif %} role="menuitem">
 			{% include "formset/icons/letters.svg" %}
-		</a>
+		</span>
 	</li>
 	{% endfor %}
 </ul>
