@@ -223,7 +223,7 @@ the company, its departments and their teams as:
 	class DepartmentCollection(FormCollection):
 	    min_siblings = 0
 	    department = DepartmentForm()
-	    teams = TeamCollection()
+	    teams = TeamCollection() # attribute name MUST match related_name (see note below)
 	    legend = "Departments"
 	    add_label = "Add Department"
 	    related_field = 'company'
@@ -242,7 +242,7 @@ the company, its departments and their teams as:
 	
 	class CompanyCollection(FormCollection):
 	    company = CompanyForm()
-	    department_set = DepartmentCollection()
+	    department_set = DepartmentCollection() # attribute name MUST match related_name (see note below)
 
 As we expect, we see that every Django model is represented by its form. Since we want to edit more
 instances of the same model type, we somehow need a way to distinguish them. This is where the form
