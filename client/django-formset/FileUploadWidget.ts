@@ -69,12 +69,12 @@ export class FileUploadWidget {
 	}
 
 	private matchesMimeType(mimeType: string): boolean {
-		const acceptTypes = this.inputElement.accept.split(',').map(s => s.trim());
-		if (acceptTypes.length === 0)
+		if (!this.inputElement.accept)
 			return true;
+		const acceptTypes = this.inputElement.accept.split(',').map(s => s.trim());
 		const [mainType, subType] = mimeType.split('/');
 		for (const acceptType of acceptTypes) {
-			if (acceptType === mimeType || subType === '*' && acceptType.split('/')[0] === mainType)
+			if (!acceptType || acceptType === mimeType || subType === '*' && acceptType.split('/')[0] === mainType)
 				return true;
 		}
 		return false;
