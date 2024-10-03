@@ -1,5 +1,8 @@
 ## Changes
 
+1.5.4
+  * Fix: Regression in `FileUploadWidget`, drag and drop of file into drag area does not work.
+
 1.5.3
   * Fix: Regression in `RichtextArea`, heading with a single level does not work.
 
