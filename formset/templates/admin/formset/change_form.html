@@ -1,14 +1,30 @@
-{% extends "admin/change_form.html" %}
-{% load static %}
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static formset_admin %}
 
-{% block extrahead %}
-	{{ block.super }}
-	<script type="module"
-            src="{% if use_monolithic_build %}{% static 'formset/js/django-formset.monolith.js' %}{% else %}{% static 'formset/js/django-formset.js' %}{% endif %}"></script>
+{% block extrahead %}{{ block.super }}
+<script src="{% url 'admin:jsi18n' %}"></script>
+<script
+	type="module"
+	src="{% if use_monolithic_build %}{% static 'formset/js/django-formset.monolith.js' %}{% else %}{% static 'formset/js/django-formset.js' %}{% endif %}"
+></script>
+{{ media }}
 {% endblock %}
 
-{% block content %}
-<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
-	{{ block.super }}
-</django-formset>
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static "admin/css/forms.css" %}"><link rel="stylesheet" href="{% static "formset/css/adminform.css" %}">{% endblock %}
+
+{% block content %}<div id="content-main">
+{% block object-tools %}
+{% if change and not is_popup %}
+  <ul class="object-tools">
+    {% block object-tools-items %}
+      {% change_form_object_tools %}
+    {% endblock %}
+  </ul>
+{% endif %}
+{% endblock %}
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
+		{{ adminform.form }}
+		{% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
+	</django-formset>
+</div>
 {% endblock %}

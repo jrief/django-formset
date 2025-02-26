@@ -1,0 +1,15 @@
+{% spaceless %}
+<form{% include "formset/form_attrs.html" %}></form>
+<fieldset class="{% if form_css_classes %}{{ form_css_classes }}{% endif %}">
+{% include "formset/non_field_errors.html" %}
+{% block fields %}
+	{% for field in form %}
+		{% if field.is_hidden %}
+			{{ field }}
+		{% else %}
+			{% include "formset/admin/field_group.html" %}
+		{% endif %}
+	{% endfor %}
+{% endblock %}
+</fieldset>
+{% endspaceless %}

@@ -1,0 +1,15 @@
+.dj-form {
+	margin: 0;
+	min-width: 0;
+	padding: 0;
+}
+.aligned .dj-field-errors {
+	margin-left: 160px;
+	ul {
+		padding-left: 10px;
+
+		> li {
+			list-style: none;
+		}
+	}
+}

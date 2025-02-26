@@ -67,7 +67,7 @@ TIME_ZONE = 'UTC'
 MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'testapp.middleware.AutoLoginMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -76,6 +76,8 @@ MIDDLEWARE = [
 USE_I18N = True
 
 ROOT_URLCONF = 'testapp.urls'
+
+SILENCED_SYSTEM_CHECKS = ['admin.E408']  # required for AutoLoginMiddleware
 
 STATICFILES_DIRS = [
     ('node_modules', BASE_DIR / 'node_modules'),

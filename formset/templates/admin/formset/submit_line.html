@@ -1,0 +1,17 @@
+{% load i18n admin_urls %}
+<div class="submit-row">
+{% block submit-row %}
+{% if show_save %}<button type="button" class="button default" df-click="submit({name: '_save'})">{% translate 'Save' %}</button>{% endif %}
+{% if show_save_as_new %}<button type="button" class="button" df-click="submit({name: '_saveasnew'})">{% translate 'Save as new' %}</button>{% endif %}
+{% if show_save_and_add_another %}<button type="button" class="button" df-click="submit({name: '_addanother'})">{% translate 'Save and add another' %}</button>{% endif %}
+{% if show_save_and_continue %}<button type="button" class="button" df-click="submit({name: '_continue'})">{% if can_change %}{% translate 'Save and continue editing' %}{% else %}{% translate 'Save and view' %}{% endif %}</button>{% endif %}
+{% if show_close %}
+    {% url opts|admin_urlname:'changelist' as changelist_url %}
+    <a href="{% add_preserved_filters changelist_url %}" class="closelink">{% translate 'Close' %}</a>
+{% endif %}
+{% if show_delete_link and original %}
+    {% url opts|admin_urlname:'delete' original.pk|admin_urlquote as delete_url %}
+    <a href="{% add_preserved_filters delete_url %}" class="deletelink">{% translate "Delete" %}</a>
+{% endif %}
+{% endblock %}
+</div>

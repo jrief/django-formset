@@ -1,9 +1,9 @@
 from django.contrib import admin
+from formset.admin import ModelAdmin
 
-from .forms.complete import CompleteForm
+from .models.person import PersonModel
 
 
-# @admin.register(DummyModel)
-class DummyAdmin(admin.ModelAdmin):
-    form = CompleteForm
-    change_form_template = 'admin/formset/change_form.html'
+@admin.register(PersonModel)
+class PersonAdmin(ModelAdmin):
+    pass
