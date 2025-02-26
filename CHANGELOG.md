@@ -1,5 +1,9 @@
 ## Changes
 
+- 1.7.3
+  * Fix: Adopt signature of `clean()` method to Django's clean form.
+  * Fix #196: Temporarily disable Calendar while fetching new sheet.
+
 - 1.7.2
   * Fix: Aggregate data before submitting untouched form collections.
   * Fix: Dispatch `Event('invalid')` for invalid fields only if form validation didn't do it during
