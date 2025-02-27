@@ -35,18 +35,16 @@ fields, but not on an individual level.
 We therefore parametrize the provided renderer class. For each supported CSS framework, there is a
 specialized ``FormRenderer`` class. For Bootstrap, that class can be found at
 :class:`formset.renderers.bootstrap.FormRenderer`. The form to be rendered, hence requires a
-parametrized renderer. Since **django-formset** renders forms using a different notation for field
-names, that form must additionally inherit from the special mixin :class:`formset.utils.FormMix`. It
-would thus be written as:
+parametrized renderer.
 
 .. django-view:: address_form
 	:caption: forms.py
 
 	from django.forms import forms, fields
 	from formset.renderers.bootstrap import FormRenderer
-	from formset.utils import FormMixin
+	from formset.form import Form
 	
-	class AddressForm(FormMixin, forms.Form):
+	class AddressForm(Form):
 	    default_renderer = FormRenderer(
 	        form_css_classes='row',
 	        field_css_classes={
@@ -59,6 +57,23 @@ would thus be written as:
 	    recipient = fields.CharField(label="Recipient", max_length=100)
 	    postal_code = fields.CharField(label="Postal Code", max_length=8)
 	    city = fields.CharField(label="City", max_length=50)
+
+If for any reason the form class can not be declared to inherit from :class:`formset.form.Form`,
+for instance because it is a subclass of Django's ``forms.Form``, then  **django-forset** provides a
+special ``metaclass`` to be injected into the form declaration.
+
+In this example we assume to have a base form class ``BaseAddressForm`` which is a subclass of
+Django's ``forms.Form``. We then create a new form class ``AddressForm`` which inherits from that
+base form class and injects ``metaclass=DeclarativeFieldsetMetaclass``. This then adopts the form
+class to be rendered with the attributed required by the client side of **django-formset**.
+
+.. code-block:: python
+
+	from formset.form import DeclarativeFieldsetMetaclass
+
+	class AddressForm(BaseAddressForm, metaclass=DeclarativeFieldsetMetaclass):
+	    # same as above
+	    ...
 
 Since that form now knows how to render itself, it does not require the templatetag ``render_form``
 anymore. It instead can be rendered just by string expansion. The template to render that form hence
@@ -104,9 +119,10 @@ using these parameters.
 
 .. code-block:: python
 
+	from formset.form import Form
 	from formset.renderers.bootstrap import FormRenderer
 
-	class AddressForm(forms.Form):
+	class AddressForm(Form):
 	    default_renderer = FormRenderer(
 	        field_css_classes='row mb-3',
 	        label_css_classes='col-sm-3',
@@ -151,10 +167,11 @@ preferences.
 
 	from django.forms import fields, forms, widgets
 	from formset.collection import FormCollection
+	from formset.form import Form
 	from formset.renderers.bootstrap import FormRenderer
 	from formset.views import FormCollectionView
 
-	class UserForm(forms.Form):
+	class UserForm(Form):
 	    legend = "Assigned License"
 	    first_name = fields.RegexField(
 	        r"^[A-Z][a-z -]+$",
@@ -166,7 +183,7 @@ preferences.
 	        max_length=50
 	    )
 
-	class PreferencesForm(forms.Form):
+	class PreferencesForm(Form):
 	    eating = fields.ChoiceField(
 	        choices=[("🥗", "Vegan"), ("🧀", "Vegetarian"), ("🍗", "Carnivore")],
 	        widget=widgets.RadioSelect,

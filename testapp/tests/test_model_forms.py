@@ -2,7 +2,7 @@ import json
 import pytest
 from bs4 import BeautifulSoup
 
-from django.test import Client, RequestFactory
+from django.test import Client
 from django.utils.timezone import datetime
 from django.views.generic.edit import CreateView, UpdateView
 
@@ -29,12 +29,11 @@ def create_view(framework):
 
 
 @pytest.fixture
-def native_soup(create_view):
+def native_soup(rf, create_view):
     view_initkwargs = create_view.view_initkwargs
     framework = view_initkwargs['extra_context']['framework']
     url = f'/{framework}/person' if framework else '/default/person'
-    request = RequestFactory().get(url)
-    response = create_view(request)
+    response = create_view(rf.get(url))
     response.render()
     soup = BeautifulSoup(response.content, 'html.parser')
     return soup, framework
@@ -123,7 +122,7 @@ def update_view():
 
 
 @pytest.mark.django_db
-def test_modify_person(create_view, update_view):
+def test_modify_person(rf, create_view, update_view):
     opinions = OpinionModel.objects.order_by('?').values_list('id', flat=True)
     form_data = {
         'full_name': "John Doe",
@@ -134,7 +133,7 @@ def test_modify_person(create_view, update_view):
         'opinions': opinions[10:15],
         'continent': '2',
     }
-    request = RequestFactory().post('/default/person', form_data)
+    request = rf.post('/default/person', form_data)
     response = create_view(request)
     assert response.status_code == 200
     assert json.loads(response.getvalue())['success_url'] == '/success'
@@ -156,7 +155,7 @@ def test_modify_person(create_view, update_view):
         'opinions': opinions[190:201],
         'continent': '1',
     })
-    request = RequestFactory().post('/default/person', form_data)
+    request = rf.post('/default/person', form_data)
     response = update_view(request, pk=person.pk)
     assert response.status_code == 200
     assert json.loads(response.getvalue())['success_url'] == '/success'
@@ -170,7 +169,7 @@ def test_modify_person(create_view, update_view):
     assert person.opinions.exclude(id__in=list(form_data['opinions'])).count() == 0
     assert person.continent == 1
 
-    request = RequestFactory().get('/default/person')
+    request = rf.get('/default/person')
     response = update_view(request, pk=person.pk)
     assert response.status_code == 200
     response.render()

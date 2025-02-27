@@ -1,9 +1,7 @@
 {% spaceless %}
-<form{% include "formset/form_attrs.html" %}></form>
-<fieldset form="{{ form_id }}"{% if css_classes %} class="{{ css_classes }}"{% endif %}{% if show_condition %} df-show="{{ show_condition }}"{% endif %}{% if hide_condition %} df-hide="{{ hide_condition }}"{% endif %}{% if disable_condition %} df-disable="{{ disable_condition }}"{% endif %}>
+<fieldset name="{{ name }}"{% if css_classes %} class="{{ css_classes }}"{% endif %}{% if show_condition %} df-show="{{ show_condition }}"{% endif %}{% if hide_condition %} df-hide="{{ hide_condition }}"{% endif %}{% if disable_condition %} df-disable="{{ disable_condition }}"{% endif %}>
 	{% if legend %}<legend>{{ legend }}</legend>{% endif %}
-	{% include "formset/non_field_errors.html" %}
-	{% for field in form %}
+	{% for field in fields %}
 		{% if field.is_hidden %}
 			{{ field }}
 		{% else %}

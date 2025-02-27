@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup
 from copy import copy
 from django.forms.fields import CharField
 from django.forms.forms import Form
-from django.test import RequestFactory
 
 from formset.collection import COLLECTION_ERRORS, FormCollection
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
@@ -38,7 +37,7 @@ class ContactCollection(FormCollection):
     numbers = PhoneNumberCollection(min_siblings=2, max_siblings=5, extra_siblings=1)
 
 
-def test_person_form_get():
+def test_person_form_get(rf):
     view = FormView.as_view(
         form_class=AddressForm,
         template_name='testapp/native-form.html',
@@ -47,7 +46,7 @@ def test_person_form_get():
             'field_css_classes': {'*': 'mb-2 col-12', 'postal_code': 'mb-2 col-4', 'city': 'mb-2 col-8'},
         }
     )
-    response = view(RequestFactory().get('/'))
+    response = view(rf.get('/'))
     response.render()
     soup = BeautifulSoup(response.content, 'html.parser')
     form_wrapper = soup.find('div', class_='dj-form')
@@ -61,14 +60,14 @@ def test_person_form_get():
     assert 'col-8' in field_group_elems[2].attrs['class']
 
 
-def test_address_form_post():
+def test_address_form_post(rf):
     view = FormView.as_view(
         form_class=AddressForm,
         template_name='testapp/native-form.html',
         success_url='/success',
     )
     formset_data = {'recipient': "Max Sampleman", 'postal_code': "ZIP123"}
-    http_request = RequestFactory().post('/', data={'formset_data': formset_data}, content_type='application/json')
+    http_request = rf.post('/', data={'formset_data': formset_data}, content_type='application/json')
     response = view(http_request)
     assert response.status_code == 422
     body = json.loads(response.content)
@@ -76,7 +75,7 @@ def test_address_form_post():
 
     # fix the missing field
     formset_data['city'] = "Somewhere"
-    http_request = RequestFactory().post('/', data={'formset_data': formset_data}, content_type='application/json')
+    http_request = rf.post('/', data={'formset_data': formset_data}, content_type='application/json')
     response = view(http_request)
     assert response.status_code == 200
     body = json.loads(response.content)
@@ -84,13 +83,13 @@ def test_address_form_post():
 
 
 @pytest.mark.parametrize('initial', [{}, {'person': sample_person_data}])
-def test_simple_collection_get(initial):
+def test_simple_collection_get(rf, initial):
     view = FormCollectionView.as_view(
         collection_class=SimpleContactCollection,
         template_name='testapp/form-collection.html',
         initial=initial,
     )
-    response = view(RequestFactory().get('/'))
+    response = view(rf.get('/'))
     response.render()
     soup = BeautifulSoup(response.content, 'html.parser')
     collection_elems = soup.find_all('django-form-collection')
@@ -129,7 +128,7 @@ def test_simple_collection_get(initial):
         assert 'value' not in input_elem.attrs  # profession has no initial data
 
 
-def test_simple_collection_post():
+def test_simple_collection_post(rf):
     view = FormCollectionView.as_view(
         collection_class=SimpleContactCollection,
         success_url='/success',
@@ -141,7 +140,7 @@ def test_simple_collection_post():
             'job_title': "clerk",
         }
     }
-    http_request = RequestFactory().post('/', data={'formset_data': formset_data}, content_type='application/json')
+    http_request = rf.post('/', data={'formset_data': formset_data}, content_type='application/json')
     response = view(http_request)
     assert response.status_code == 422
     body = json.loads(response.content)
@@ -150,7 +149,7 @@ def test_simple_collection_post():
 
     # fix the first form
     formset_data['person']['last_name'] = "Jones"
-    http_request = RequestFactory().post('/', data={'formset_data': formset_data}, content_type='application/json')
+    http_request = rf.post('/', data={'formset_data': formset_data}, content_type='application/json')
     response = view(http_request)
     assert response.status_code == 422
     body = json.loads(response.content)
@@ -158,20 +157,20 @@ def test_simple_collection_post():
 
     # fix the
     formset_data['profession']['company'] = "Django Formset Inc."
-    http_request = RequestFactory().post('/', data={'formset_data': formset_data}, content_type='application/json')
+    http_request = rf.post('/', data={'formset_data': formset_data}, content_type='application/json')
     response = view(http_request)
     assert response.status_code == 200
     body = json.loads(response.content)
     assert body == {'success_url': '/success'}
 
 
-def test_collection_get():
+def test_collection_get(rf):
     view = FormCollectionView.as_view(
         collection_class=ContactCollection,
         template_name='testapp/form-collection.html',
         initial={'person': sample_person_data},
     )
-    response = view(RequestFactory().get('/'))
+    response = view(rf.get('/'))
     response.render()
     soup = BeautifulSoup(response.content, 'html.parser')
     formset_elem = soup.find('django-formset')
@@ -298,13 +297,13 @@ collection_formset_data = [{
 
 
 @pytest.mark.parametrize('counter,formset_data', enumerate(collection_formset_data))
-def test_collection_post(counter, formset_data):
+def test_collection_post(rf, counter, formset_data):
     view = FormCollectionView.as_view(
         collection_class=ContactCollection,
         success_url='/success',
         template_name='bootstrap/form-collection.html',
     )
-    http_request = RequestFactory().post('/', data={'formset_data': formset_data}, content_type='application/json')
+    http_request = rf.post('/', data={'formset_data': formset_data}, content_type='application/json')
     response = view(http_request)
     body = json.loads(response.content)
     if counter == 0:

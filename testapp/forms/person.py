@@ -3,8 +3,8 @@ from time import sleep
 from django.core.exceptions import ValidationError
 from django.forms import fields, forms, models, widgets
 
+from formset.form import FormMixin
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
-from formset.utils import FormMixin
 from formset.widgets import DateInput, Selectize, SelectizeMultiple, UploadedFileInput
 
 from testapp.models import PersonModel
@@ -39,7 +39,7 @@ class PersonForm(SimplePersonForm):
         return cd
 
 
-class BootstrapRenderedPersonForm(FormMixin, PersonForm):
+class BootstrapRenderedPersonForm(PersonForm):
     """
     This form class shows how to use a custom renderer. The form then can be rendered using ``{{ form }}``
     """

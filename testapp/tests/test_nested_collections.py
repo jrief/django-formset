@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup, Tag
 
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.forms import fields, forms
-from django.test import RequestFactory
 
 from formset.collection import COLLECTION_ERRORS, FormCollection
 from formset.views import EditCollectionView, FormCollectionView
@@ -29,9 +28,8 @@ def single_collection_view():
     return CompanyCollectionView.as_view()
 
 
-def test_render(single_collection_view):
-    request = RequestFactory().get('/')
-    response = single_collection_view(request)
+def test_render(rf, single_collection_view):
+    response = single_collection_view(rf.get('/'))
     response.render()
     soup = BeautifulSoup(response.content, 'html.parser')
     django_formset = soup.find('django-formset')
@@ -41,14 +39,14 @@ def test_render(single_collection_view):
 
 
 @pytest.mark.django_db
-def test_create_company(single_collection_view):
+def test_create_company(rf, single_collection_view):
     form_data = {
         "formset_data": {
             "departments": [],
             "company": {"name": "Pepsi"},
         }
     }
-    request = RequestFactory().post('/', form_data, content_type='application/json')
+    request = rf.post('/', form_data, content_type='application/json')
     response = single_collection_view(request)
     assert response.status_code == 200
     assert json.loads(response.getvalue())['success_url'] == '/success'
@@ -57,7 +55,7 @@ def test_create_company(single_collection_view):
 
 
 @pytest.mark.django_db
-def test_create_company_with_department(single_collection_view):
+def test_create_company_with_department(rf, single_collection_view):
     form_data = {
         'formset_data': {
             'departments': [{
@@ -69,7 +67,7 @@ def test_create_company_with_department(single_collection_view):
             "company": {"name": "Pepsi"},
         }
     }
-    request = RequestFactory().post('/', form_data, content_type='application/json')
+    request = rf.post('/', form_data, content_type='application/json')
     response = single_collection_view(request)
     assert response.status_code == 200
     assert json.loads(response.getvalue())['success_url'] == '/success'
@@ -86,7 +84,7 @@ def created_company():
     return company
 
 @pytest.mark.django_db
-def test_edit_copmany_and_department_and_team(single_collection_view, created_company):
+def test_edit_copmany_and_department_and_team(rf, single_collection_view, created_company):
     form_data = {
         'formset_data': {
             'departments': [{
@@ -104,7 +102,7 @@ def test_edit_copmany_and_department_and_team(single_collection_view, created_co
             "company": {"name": "Coke"},
         }
     }
-    request = RequestFactory().post('/', form_data, content_type='application/json')
+    request = rf.post('/', form_data, content_type='application/json')
     response = single_collection_view(request)
     assert response.status_code == 200
     assert json.loads(response.getvalue())['success_url'] == '/success'
@@ -115,7 +113,7 @@ def test_edit_copmany_and_department_and_team(single_collection_view, created_co
 
 
 @pytest.mark.django_db
-def test_add_department(single_collection_view, created_company):
+def test_add_department(rf, single_collection_view, created_company):
     department = created_company.departments.first()
     form_data = {
         'formset_data': {
@@ -134,7 +132,7 @@ def test_add_department(single_collection_view, created_company):
             "company": {"name": created_company.name},
         }
     }
-    request = RequestFactory().post('/', form_data, content_type='application/json')
+    request = rf.post('/', form_data, content_type='application/json')
     response = single_collection_view(request)
     assert response.status_code == 200
     assert json.loads(response.getvalue())['success_url'] == '/success'
@@ -145,7 +143,7 @@ def test_add_department(single_collection_view, created_company):
 
 
 @pytest.mark.django_db
-def test_check_unique_department(single_collection_view, created_company):
+def test_check_unique_department(rf, single_collection_view, created_company):
     department = created_company.departments.first()
     form_data = {
         'formset_data': {
@@ -164,7 +162,7 @@ def test_check_unique_department(single_collection_view, created_company):
             "company": {"name": created_company.name},
         }
     }
-    request = RequestFactory().post('/', form_data, content_type='application/json')
+    request = rf.post('/', form_data, content_type='application/json')
     response = single_collection_view(request)
     assert response.status_code == 422
     response_body = json.loads(response.getvalue())
@@ -209,7 +207,7 @@ def contact_collection_view():
     )
 
 
-def test_check_too_many_collections(contact_collection_view):
+def test_check_too_many_collections(rf, contact_collection_view):
     form_data = {
         'formset_data': {
             'person': {
@@ -223,7 +221,7 @@ def test_check_too_many_collections(contact_collection_view):
             ],
         }
     }
-    request = RequestFactory().post('/', form_data, content_type='application/json')
+    request = rf.post('/', form_data, content_type='application/json')
     response = contact_collection_view(request)
     assert response.status_code == 422
     response_body = json.loads(response.getvalue())
@@ -233,7 +231,7 @@ def test_check_too_many_collections(contact_collection_view):
     }
 
 
-def test_check_too_few_collections(contact_collection_view):
+def test_check_too_few_collections(rf, contact_collection_view):
     form_data = {
         'formset_data': {
             'person': {
@@ -242,7 +240,7 @@ def test_check_too_few_collections(contact_collection_view):
             'numbers': [],
         }
     }
-    request = RequestFactory().post('/', form_data, content_type='application/json')
+    request = rf.post('/', form_data, content_type='application/json')
     response = contact_collection_view(request)
     assert response.status_code == 422
     response_body = json.loads(response.getvalue())
@@ -252,14 +250,14 @@ def test_check_too_few_collections(contact_collection_view):
     }
 
 
-def test_missing_formset_data(contact_collection_view):
+def test_missing_formset_data(rf, contact_collection_view):
     form_data = {
         'person': {
             'full_name': "John Doe",
         },
         'numbers': [],
     }
-    request = RequestFactory().post('/', form_data, content_type='application/json')
+    request = rf.post('/', form_data, content_type='application/json')
     response = contact_collection_view(request)
     assert response.status_code == 422
     response_body = json.loads(response.getvalue())
@@ -269,11 +267,11 @@ def test_missing_formset_data(contact_collection_view):
     }
 
 
-def test_check_bogous_formset_data(contact_collection_view):
+def test_check_bogous_formset_data(rf, contact_collection_view):
     form_data = {
         'formset_data': [0, 'A', 2]
     }
-    request = RequestFactory().post('/', form_data, content_type='application/json')
+    request = rf.post('/', form_data, content_type='application/json')
     response = contact_collection_view(request)
     assert response.status_code == 422
     response_body = json.loads(response.getvalue())
@@ -283,14 +281,14 @@ def test_check_bogous_formset_data(contact_collection_view):
     }
 
 
-def test_check_boguous_collection_data(contact_collection_view):
+def test_check_boguous_collection_data(rf, contact_collection_view):
     form_data = {
         'person': [0, 'A', 2],
         'numbers': {
             'full_name': "John Doe"
         }
     }
-    request = RequestFactory().post('/', form_data, content_type='application/json')
+    request = rf.post('/', form_data, content_type='application/json')
     response = contact_collection_view(request)
     assert response.status_code == 422
     response_body = json.loads(response.getvalue())
@@ -300,12 +298,12 @@ def test_check_boguous_collection_data(contact_collection_view):
     }
 
 
-def test_check_missing_collection_data(contact_collection_view):
+def test_check_missing_collection_data(rf, contact_collection_view):
     form_data = {
         'person': None,
         'numbers': None,
     }
-    request = RequestFactory().post('/', form_data, content_type='application/json')
+    request = rf.post('/', form_data, content_type='application/json')
     response = contact_collection_view(request)
     assert response.status_code == 422
     response_body = json.loads(response.getvalue())

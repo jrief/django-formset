@@ -4,7 +4,7 @@
 {% include "formset/non_field_errors.html" %}
 {% block fields %}
 	{% for field in form %}
-		{% if field.is_hidden %}
+		{% if field.is_hidden or field.fieldset_name %}
 			{{ field }}
 		{% else %}
 			{% include "formset/default/field_group.html" %}

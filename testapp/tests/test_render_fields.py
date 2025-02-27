@@ -1,17 +1,18 @@
 import pytest
+import types
 
 from bs4 import BeautifulSoup
 
 from django.forms import widgets
 from django.test import RequestFactory
 
+from formset.form import DeclarativeFieldsetMetaclass, FormMixin
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
 from formset.renderers.bulma import FormRenderer as BulmaFormRenderer
 from formset.renderers.foundation import FormRenderer as FoundationFormRenderer
 from formset.renderers.tailwind import FormRenderer as TailwindFormRenderer
 from formset.renderers.uikit import FormRenderer as UIKitFormRenderer
-from formset.utils import FormMixin
 from formset.views import FormView
 
 from testapp.forms.complete import CompleteForm, sample_complete_data
@@ -45,7 +46,12 @@ def native_view(framework, initial):
     DefaultFormRenderer, BootstrapFormRenderer, BulmaFormRenderer, FoundationFormRenderer,
     TailwindFormRenderer, UIKitFormRenderer])
 def extended_view(request, initial):
-    form_class = type(CompleteForm.__name__, (FormMixin, CompleteForm), {'default_renderer': request.param})
+    form_class = types.new_class(
+        CompleteForm.__name__,
+        bases=(FormMixin, CompleteForm),
+        kwds={'metaclass': DeclarativeFieldsetMetaclass},
+        exec_body=lambda ns: ns.update(default_renderer=request.param),
+    )
     return FormView.as_view(
         template_name='testapp/extended-form.html',
         form_class=form_class,

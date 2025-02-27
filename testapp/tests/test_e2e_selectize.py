@@ -237,7 +237,9 @@ def test_lookup_value(page, mocker, form, viewname):
     input_element.click()
     spy = mocker.spy(FormView, 'get')
     page.keyboard.press('1')
+    sleep(0.1)
     page.keyboard.press('5')
+    sleep(0.1)
     page.keyboard.press('9')
     sleep(1)  # because TomSelect delays the lookup
     spy.assert_called()
