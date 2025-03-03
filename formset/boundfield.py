@@ -1,9 +1,12 @@
+from functools import lru_cache
+
 from django.core import validators
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.fields.files import FieldFile
 from django.forms import boundfield
 from django.forms.fields import FileField, JSONField
 from django.utils.functional import cached_property
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from formset.fields import Activator, FileFieldMixin
@@ -127,6 +130,49 @@ class BoundField(boundfield.BoundField):
         if isinstance(value, FieldFile):
             return get_file_info(value)
         return value
+
+    @lru_cache
+    def _get_fieldset_info(self):
+        fieldset = None
+        parts = self.name.split('.')[:-1]
+        declared_fieldsets = self.form.declared_fieldsets
+        for name in parts:
+            if fieldset := declared_fieldsets.get(name):
+                declared_fieldsets = fieldset.declared_fieldsets
+            else:
+                parts = []
+                break
+        return fieldset, '.'.join(parts)
+
+    def as_fieldset(self):
+        fieldset, fieldset_name = self._get_fieldset_info()
+        return fieldset and fieldset_name != self.renderer._rendered_fields.get(self.name)
+
+    def __str__(self):
+        """Render this field as an HTML widget or as fieldset with widgets."""
+        rendered_fieldset_name = self.renderer._rendered_fields.get(self.name)
+        if rendered_fieldset_name is True:
+            return ''  # field already rendered
+        _, fieldset_name = self._get_fieldset_info()
+        if (
+            rendered_fieldset_name is None and fieldset_name or
+            rendered_fieldset_name and rendered_fieldset_name != fieldset_name
+        ):
+            return self._render_fieldset()
+        return super().__str__()
+
+    def _render_fieldset(self):
+        fieldset, fieldset_name = self._get_fieldset_info()
+        field_names = [f'{fieldset_name}.{field_name}' for field_name in fieldset.declared_fields.keys()]
+        context = fieldset.get_context()
+        context.update(
+            name=fieldset_name,
+            fieldset=[self.form[field_name] for field_name in field_names],
+        )
+        self.renderer._rendered_fields.update({field_name: fieldset_name for field_name in field_names})
+        rendered = self.renderer.render(fieldset.template_name, context)
+        self.renderer._rendered_fields.update({field_name: True for field_name in field_names})
+        return mark_safe(rendered)
 
     def _get_client_messages(self):
         """

@@ -2,6 +2,6 @@
 
 {% block fields %}{% spaceless %}
 	{% for field in form %}
-		{% if field.is_hidden %}{{ field }}{% else %}{% include "formset/bulma/field_group.html" %}{% endif %}
+		{% if field.is_hidden or field.as_fieldset %}{{ field }}{% else %}{% include "formset/bulma/field_group.html" %}{% endif %}
 	{% endfor %}
 {% endspaceless %}{% endblock %}

@@ -43,8 +43,8 @@ would thus be written as:
 	:caption: forms.py
 
 	from django.forms import forms, fields
+	from formset.forms import FormMixin
 	from formset.renderers.bootstrap import FormRenderer
-	from formset.utils import FormMixin
 	
 	class AddressForm(FormMixin, forms.Form):
 	    default_renderer = FormRenderer(
