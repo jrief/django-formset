@@ -3,8 +3,8 @@ from time import sleep
 from django.core.exceptions import ValidationError
 from django.forms import fields, forms, models, widgets
 
+from formset.forms import FormMixin
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
-from formset.utils import FormMixin
 from formset.widgets import DateInput, Selectize, SelectizeMultiple, UploadedFileInput
 
 from testapp.models import PersonModel

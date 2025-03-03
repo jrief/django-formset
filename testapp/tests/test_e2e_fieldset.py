@@ -5,21 +5,20 @@ from playwright.sync_api import expect
 
 from django.urls import path
 
-from formset.views import FormCollectionView
+from formset.views import FormView
 
-from testapp.forms.customer import CustomerCollection
+from testapp.forms.customer import CustomerForm
 from .utils import ContextMixin, get_javascript_catalog
 
 
-class FormCollectionView(ContextMixin, FormCollectionView):
+class DemoFormView(ContextMixin, FormView):
+    template_name = 'testapp/native-form.html'
     success_url = '/success'
 
 
 urlpatterns = [
-    path('customer', FormCollectionView.as_view(
-        collection_class=CustomerCollection,
-        template_name='testapp/form-collection.html',
-
+    path('customer', DemoFormView.as_view(
+        form_class=CustomerForm,
         extra_context = {'click_actions': 'submit -> proceed', 'force_submission': True},
     ), name='customer'),
     get_javascript_catalog(),
@@ -28,40 +27,61 @@ urlpatterns = [
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['customer'])
-def test_submit_customer(page, mocker, viewname):
-    customer_collections = page.locator('django-formset > django-form-collection')
-    expect(customer_collections).to_have_count(2)
-    fieldset = customer_collections.first.locator('fieldset[df-hide]')
-    expect(fieldset).to_be_visible()
-    legend = fieldset.locator('legend')
-    expect(legend).to_have_text("Customer")
-    expect(customer_collections.last.locator('fieldset')).not_to_be_visible()
-    page.fill('#id_customer\\.name', "John Doe")
-    page.fill('#id_customer\\.address', "123, Lye Street")
-    spy = mocker.spy(FormCollectionView, 'post')
+def test_submit_fieldsets(page, mocker, viewname):
+    fieldset = page.locator('django-formset > .dj-form fieldset')
+    expect(fieldset).to_have_count(2)
+    expect(fieldset.nth(0)).to_be_visible()
+    expect(fieldset.nth(1)).to_be_visible()
+    expect(fieldset.nth(0)).to_have_attribute('name', 'billing_address')
+    expect(fieldset.nth(1)).to_have_attribute('name', 'shipping_address')
+    expect(fieldset.nth(0).locator('legend')).to_have_text("Billing Address")
+    expect(fieldset.nth(1).locator('legend')).to_have_text("Shipping Address")
+    page.fill('#id_billing_address\\.recipient', "John Doe")
+    page.fill('#id_billing_address\\.postal_code', "12345")
+    page.fill('#id_billing_address\\.city', "Springfield")
+    page.fill('#id_shipping_address\\.recipient', "Jane Doe")
+    page.fill('#id_shipping_address\\.postal_code', "54321")
+    page.fill('#id_shipping_address\\.city', "Shelbyville")
+    spy = mocker.spy(DemoFormView, 'post')
     page.locator('django-formset button').first.click()
     sleep(0.25)
+    expected = {'formset_data': {
+        'billing_address.recipient': "John Doe",
+        'billing_address.postal_code': "12345",
+        'billing_address.city': "Springfield",
+        'shipping_address.recipient': "Jane Doe",
+        'shipping_address.postal_code': "54321",
+        'shipping_address.city': "Shelbyville",
+        'use_billing_address': "",
+    }}
     spy.assert_called()
     response = json.loads(spy.call_args.args[1].body)
-    assert response == {'formset_data': {
-        'customer': {'name': "John Doe", 'address': "123, Lye Street", 'phone_number': ""},
-        'register': {'no_customer': ""}
-    }}
+    assert response == expected
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['customer'])
-def test_submit_no_customer(page, mocker, viewname):
-    fieldset = page.locator('django-formset > django-form-collection fieldset')
-    expect(fieldset).to_have_attribute('df-hide', 'register.no_customer')
-    page.locator('#id_register\\.no_customer').click()
+def test_submit_hidden_fieldset(page, mocker, viewname):
+    page.fill('#id_billing_address\\.recipient', "John Doe")
+    page.fill('#id_billing_address\\.postal_code', "12345")
+    page.fill('#id_billing_address\\.city', "Springfield")
+    fieldset = page.locator('django-formset > .dj-form fieldset[name="shipping_address"]')
+    expect(fieldset).to_be_visible()
+    expect(fieldset).to_have_attribute('df-hide', 'use_billing_address')
+    page.click('#id_use_billing_address')
     expect(fieldset).to_be_hidden()
-    spy = mocker.spy(FormCollectionView, 'post')
+    spy = mocker.spy(DemoFormView, 'post')
     page.locator('django-formset button').first.click()
     sleep(0.25)
+    expected = {'formset_data': {
+        'billing_address.recipient': "John Doe",
+        'billing_address.postal_code': "12345",
+        'billing_address.city': "Springfield",
+        'shipping_address.recipient': "",
+        'shipping_address.postal_code': "",
+        'shipping_address.city': "",
+        'use_billing_address': "on",
+    }}
     spy.assert_called()
     response = json.loads(spy.call_args.args[1].body)
-    assert response == {'formset_data': {
-        'customer': {'name': "", 'address': "", 'phone_number': ""},
-        'register': {'no_customer': "on"}
-    }}
+    assert response == expected

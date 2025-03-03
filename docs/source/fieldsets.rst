@@ -6,37 +6,35 @@ Fieldsets
 
 In HTML the ``<form>``-element is just a data-abstraction layer. It has no display properties and is
 not intended to be styled or annotated. Its purpose is to group one or more input fields, in order
-to submit their gathered input data to the server altogether.
+to submit their gathered input data to the server altogether. This is especially true in
+**django-formset**, where fields are only assigned to a form, but not their descendants in the DOM.
 
-On the other side, we might want to visually group those input fields and optionally add a legend
-tag to create a caption for the form. We also might want to group related input fields visually by
-surrounding them with a border. For this purpose the HTML standard defines the ``<fieldset>`` tag.
+On the other side, we might want to visually group related input fields surrounding them with a
+border and optionally add a legend tag to create a caption for them. For this purpose the HTML
+standard defines the ``<fieldset>`` tag.
+
 Django itself does not offer any abstraction for this HTML tag. If one wants to use it, this has to
-be done on the template level when rendering the form.
-
-To fill this gap, **django-formset** introduces a Python class to handle the ``<fieldset>``-element.
-From a technical point of view, a fieldset behaves exactly like a single form and in HTML it always
-must be wrapped inside a ``<form>``-element. If we want to use more than one fieldset, then we have
-to group them using :ref:`collections`, just as we would do with normal forms.
+be done on the template level when rendering the form. To fill this gap, **django-formset**
+introduces the Python class :class:`formset.fieldset.Fieldset` to group multiple input elements into
+a ``<fieldset>``-element. Such a ``Fieldset`` class can be used multiple times in a form. To
+distinguish those fields, each field is prefixed with the fieldset's name, separated by a dot.
 
 A fieldset accepts the optional string attribute ``legend``. This then is rendered as a
 ``<legend>``-element inside the ``<fieldset>``. A fieldset also accepts the optional string
 attribute ``help_text``. This is rendered as a muted ``<p>``-element after the last field but inside
 that fieldset.
 
-Another purpose of using fieldsets, apart from adding a border and a legend to a form, is to use
-:ref:`conditionals`. This allows us to hide or disable the whole fieldset depending on the context
-of other fields.
+Another purpose of using fieldsets, is to use :ref:`conditionals`. This allows us to hide or disable
+the whole fieldset depending on the context of another field.
 
 
 Example
 =======
 
-In this example we use two forms, a fieldset to ask for some customer's personal data and a form
-with just one Boolean field, both nested in a ``FormCollection``. Remember, a ``Fieldset`` behaves
-exactly as a ``Form`` instance and can be used as a replacement, although with additional styling
-possibilities. Here we group those two forms into one collection named ``CustomerCollection`` to
-build one submittable entity.
+In this example form we use the same fieldset twice. The fieldset is used to group the input fields
+for an address. Inside the form we then use that fieldset once for the billing- and once for the
+shipping address. Since the billing address might be the same as the shipping address, we offer a
+checkbox to hide the latter. Here we create this form to build one submittable entity:
 
 .. django-view:: import
 	:hide-code:
@@ -45,47 +43,69 @@ build one submittable entity.
 	from formset.renderers.bootstrap import FormRenderer
 
 .. django-view:: fieldset
-	:view-function: CustomerView.as_view(extra_context={'framework': 'bootstrap'})
+	:view-function: CustomerView.as_view(extra_context={'framework': 'bootstrap'}, form_kwargs={'renderer': FormRenderer(field_css_classes='mb-2', fieldset_css_classes='border rounded p-3 mb-3')}, template_name='form-extended.html')
 
-	from django.forms import fields, forms
+	from django.forms import fields
 	from formset.fieldset import Fieldset
-	from formset.collection import FormCollection
-	from formset.views import FormCollectionView
+	from formset.forms import Form
+	from formset.views import FormView
 
-	class CustomerForm(Fieldset):
-	    legend = "Customer"
-	    hide_condition = 'register.no_customer'
-	    recipient = fields.CharField(label="Recipient", required=False)
-	    address = fields.CharField(label="Address", required=False)
-	
-	class RegisterForm(forms.Form):
-	    no_customer = fields.BooleanField(
-	        label="I'm not a customer",
+	class AddressFieldset(Fieldset):
+	    recipient = fields.CharField(
+	        label="Recipient",
+	        max_length=50,
+	        required=False,
+	    )
+	    address = fields.CharField(
+	        label="Address",
+	        max_length=100,
+	        required=False,
+	    )
+
+	class CustomerForm(Form):
+	    billing_address = AddressFieldset(
+	        legend="Billing Address",
+	    )
+	    shipping_address = AddressFieldset(
+	        legend="Shipping Address",
+	        hide_condition='use_billing_address',
+	    )
+	    use_billing_address = fields.BooleanField(
+	        label="Use billing Address for shipping",
 	        required=False,
 	    )
 	
-	class CustomerCollection(FormCollection):
-	    customer = CustomerForm()
-	    register = RegisterForm()
-	    default_renderer = FormRenderer(
-	        field_css_classes='mb-3',
-	        fieldset_css_classes='border rounded p-3 mb-3',
-	    )
-
-	class CustomerView(FormCollectionView):
-	    collection_class = CustomerCollection
-	    template_name = "form-collection.html"
+	class CustomerView(FormView):
+	    form_class = CustomerForm
 	    success_url = "/success"
 
-.. note:: Bootstrap hides the border of fieldsets. Therefore in this example, we added a default
-	renderer, to set the proper CSS classes for the given fieldset.
+.. note:: Bootstrap hides the border of fieldsets. Therefore in this example, we added a special
+	renderer, to set the CSS classes for the given fieldset to ``border rounded p-3 mb-3``.
 
-The interesting part of this collection is that we can hide the entire fieldset by clicking on the
-checkbox named "I'm not a customer". This means that by using conditionals, we can dynamically
-adjust the visibility of a complete fieldset. In this example we add
-``hide_condition = 'register.no_customer'`` to the class ``CustomerForm``. Whenever someone clicks
-onto that checkbox, the whole upper fieldset is hidden.
+The interesting part of this form is that we can hide the entire fieldset by clicking on the
+checkbox labeled "Use billing Address for shipping". This means that by using conditionals, we can
+dynamically adjust the visibility of a complete fieldset. In this example we add
+``hide_condition = 'use_billing_address'`` when declaring the shipping address fieldset. Whenever
+someone clicks onto that checkbox, that whole fieldset becomes hidden.
 
 Remember to make the fields in the fieldset optional. Otherwise if the fieldset is hidden, the form
 submission will fail without being able to give feedback which fields are missing. If you need a
 specific validation logic, add it to the form's ``clean()``-method.
+
+
+Initial Data
+============
+
+Since fieldsets are their own entity, they must be initialized using a special format for the keys
+in the initial data dictionary. The key must be prefixed with the fieldset's name, followed by a dot
+and then with the field's name. This is necessary to distinguish the data if multiple fieldsets are
+used in the same form. For the above exaple the initial dictionary would look like this:
+
+.. code-block:: python
+
+	initial = {
+		'billing_address.recipient': 'John Doe',
+		'billing_address.address': 'Main Street 123',
+		'shipping_address.recipient': 'Jane Doe',
+		'shipping_address.address': 'Second Street 456',
+	}

@@ -49,6 +49,9 @@ class FormRenderer(DjangoTemplates):
             control_css_classes=self.control_css_classes,
             form_css_classes=self.form_css_classes,
         )
+        # temporary storage to keep track of which fields have already been rendered by a Fieldset.
+        # This is necessary to prevent double rendering of fields.
+        self._rendered_fields = {}
         return context
 
     def _amend_label(self, context, hide_checkbox_label=False):

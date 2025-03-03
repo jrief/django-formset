@@ -4,6 +4,7 @@ from django.db.models.fields.files import FieldFile
 from django.forms import boundfield
 from django.forms.fields import FileField, JSONField
 from django.utils.functional import cached_property
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from formset.fields import Activator, FileFieldMixin
@@ -127,6 +128,41 @@ class BoundField(boundfield.BoundField):
         if isinstance(value, FieldFile):
             return get_file_info(value)
         return value
+
+    @cached_property
+    def fieldset_name(self):
+        return '.'.join(self.name.split('.')[:-1])
+
+    def as_fieldset(self):
+        return self.renderer._rendered_fields.get(self.name) != self.fieldset_name
+
+    def __str__(self):
+        """Render this field as an HTML widget or as fieldset with widgets."""
+        rendered_fieldset_name = self.renderer._rendered_fields.get(self.name)
+        if rendered_fieldset_name is True:
+            return ''  # field already rendered
+        if (
+            rendered_fieldset_name is None and self.fieldset_name or
+            rendered_fieldset_name and rendered_fieldset_name != self.fieldset_name
+        ):
+            return self._render_fieldset()
+        return super().__str__()
+
+    def _render_fieldset(self):
+        declared_fieldsets = self.form.declared_fieldsets
+        for name in self.name.split('.')[:-1]:
+            fieldset = declared_fieldsets[name]
+            declared_fieldsets = fieldset.declared_fieldsets
+        field_names = [f'{self.fieldset_name}.{field_name}' for field_name in fieldset.declared_fields.keys()]
+        context = fieldset.get_context()
+        context.update(
+            name=self.fieldset_name,
+            fieldset=[self.form[field_name] for field_name in field_names],
+        )
+        self.renderer._rendered_fields.update({field_name: self.fieldset_name for field_name in field_names})
+        rendered = self.renderer.render(fieldset.template_name, context)
+        self.renderer._rendered_fields.update({field_name: True for field_name in field_names})
+        return mark_safe(rendered)
 
     def _get_client_messages(self):
         """
