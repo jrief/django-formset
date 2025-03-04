@@ -1,5 +1,10 @@
 ## Changes
 
+- 1.8
+  * **Breaking Change:** The `Fieldset` class is a standalone entity to group multiple input fields
+    into a ``<fieldset>``-element. It is not a subclass of Django's `Form` class anymore. Read the
+    [documentation](https://django-formset.fly.dev/fieldsets/) on how to use it.
+
 - 1.7.3
   * Fix: Adopt signature of `clean()` method to Django's clean form.
   * Fix #196: Temporarily disable Calendar while fetching new sheet.

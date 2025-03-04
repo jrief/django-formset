@@ -4,6 +4,14 @@
 Fieldsets
 =========
 
+.. versionchanged:: 1.8
+
+	Until version 1.7, the ``Fieldset`` class was a form wrapped into a ``<fieldset>``-element.
+	This only made sense in combination with a ``FormCollection``. Since version 1.8, the
+	``Fieldset`` class is a standalone entity to group multiple input fields into a ``<fieldset>``,
+	just as the HTML standard defines it. Please adopt your code accordingly, if you used the
+	``Fieldset`` class in version 1.7 or below.
+
 In HTML the ``<form>``-element is just a data-abstraction layer. It has no display properties and is
 not intended to be styled or annotated. Its purpose is to group one or more input fields, in order
 to submit their gathered input data to the server altogether. This is especially true in
@@ -109,3 +117,11 @@ used in the same form. For the above exaple the initial dictionary would look li
 		'shipping_address.recipient': 'Jane Doe',
 		'shipping_address.address': 'Second Street 456',
 	}
+
+
+Nesting Fieldsets
+=================
+
+Fieldsets can be nested. This means that a fieldset can contain another fieldset. This is useful to
+group fields even more. The field names then are prefixed with the parent fieldset's name, separated
+by another dot.
