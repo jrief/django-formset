@@ -42,5 +42,6 @@ test('activate(prefill(a.b))', () => {
 		otherwise: null,
 	};
 	expect(parse('activate(prefill(a.b)) ', {startRule: 'Ternary'})).toEqual(expected);
+	expect(parse('activate ( prefill ( a.b ) )', {startRule: 'Ternary'})).toEqual(expected);
 	expect(parse(' activate ( prefill ( a.b ) ) ', {startRule: 'Ternary'})).toEqual(expected);
 });
