@@ -1,10 +1,10 @@
 .. _conditionals:
 
-==========================================
-Conditional Field and Fieldset Expressions
-==========================================
+=======================
+Conditional Expressions
+=======================
 
-Sometimes it doesn't make sense to render all fields of a form. Consider for instance a
+Sometimes it doesn't make sense to render all fields or fieldsets of a form. Consider for instance a
 questionnaire of a radiologist, who needs to know if his patient is pregnant. Some male patients
 might be offended by that question. The most user-friendly solution to this is to hide or disable
 such a field.
@@ -77,7 +77,8 @@ evaluated.
 Conditional Fieldset
 ====================
 
-Conditionals can also be used on a Fieldset element. For example by using
+Conditionals can also be used on a :ref:`fieldsets`. For instance, this fieldset can be hidden
+depending on the value of another checkbox field:
 
 .. django-view:: conditional_fieldset
 	:hide-view:
