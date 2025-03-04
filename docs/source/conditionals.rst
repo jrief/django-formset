@@ -84,36 +84,39 @@ Conditionals can also be used on a Fieldset element. For example by using
 .. django-view:: conditional_fieldset
 	:hide-view:
 
-	from django.forms import fields
+	from django.forms import fields, forms
+	from formset.collection import FormCollection
 	from formset.fieldset import Fieldset
-	from formset.form import Form
 
-	class CustomerFieldset(Fieldset):
+	class CustomerForm(Fieldset):
 	    legend = "Customer"
-	    hide_condition = 'no_customer'
+	    hide_condition = 'register.no_customer'
 
-	    recipient = fields.CharField(label="Recipient", required=False)
+	    recipient = fields.CharField(label="Recipient")
 	    email = fields.EmailField(label="Email", required=False)
 
-	class RegisterForm(Form):
-	    customer = CustomerFieldset()
+	class RegisterForm(forms.Form):
 	    no_customer = fields.BooleanField(
 	        label="I'm not a customer",
 	        required=False,
 	    )
 
+	class CustomerCollection(FormCollection):
+	    customer = CustomerForm()
+	    register = RegisterForm()
+
 Here we use the value of the field ``no_customer`` in form ``RegisterForm``. If it evaluates to
-true, the whole ``CustomerFieldset`` is hidden.
+true, the whole fieldset is hidden.
 
 .. django-view:: conditional_collection
-	:view-function: CustomerView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'customer-result'}, form_kwargs={'renderer': FormRenderer(field_css_classes='mb-2')})
+	:view-function: CustomerView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'collection-result'}, collection_kwargs={'renderer': FormRenderer(field_css_classes='mb-3')})
 	:hide-code:
 
-	from formset.views import FormView
+	from formset.views import FormCollectionView
 
-	class CustomerView(FormView):
-	    form_class = RegisterForm
-	    template_name = "form-extended.html"
+	class CustomerView(FormCollectionView):
+	    collection_class = CustomerCollection
+	    template_name = "form-collection.html"
 	    success_url = "/success"
 
 

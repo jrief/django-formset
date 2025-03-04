@@ -1,25 +1,18 @@
-import types
-
 from django import template
-from django.forms.forms import BaseForm
-from django.forms.models import BaseModelForm
+from django.forms import BaseForm
 from django.middleware.csrf import get_token
 from django.template.exceptions import TemplateSyntaxError
 from django.utils.module_loading import import_string
 
-from formset.form import FormMixin, ModelFormMixin
 from formset.renderers.default import FormRenderer
-from formset.utils import FormsetErrorList
+from formset.utils import FormMixin, FormsetErrorList
 
 
 def _formsetify(form, *args, **kwargs):
+    assert isinstance(form, BaseForm), \
+        "Must be applied to a Form object inheriting from 'django.forms.BaseForm'."
     if not isinstance(form, FormMixin):
-        if isinstance(form, BaseModelForm):
-            form.__class__ = type(form.__class__.__name__, (ModelFormMixin, form.__class__), {})
-        elif isinstance(form, BaseForm):
-            form.__class__ = type(form.__class__.__name__, (FormMixin, form.__class__), {})
-        else:
-            raise TemplateSyntaxError("Must be applied to a Form object inheriting from 'django.forms.BaseForm'.")
+        form.__class__ = type(form.__class__.__name__, (FormMixin, form.__class__), {})
 
     renderer_args = [
         ('form_css_classes', kwargs.pop('form_classes', None)),

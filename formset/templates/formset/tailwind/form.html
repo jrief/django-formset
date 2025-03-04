@@ -2,10 +2,6 @@
 
 {% block fields %}{% spaceless %}
 	{% for field in form %}
-		{% if field.is_hidden or field.fieldset_name %}
-			{{ field }}
-		{% else %}
-			{% include "formset/tailwind/field_group.html" %}
-		{% endif %}
+		{% if field.is_hidden %}{{ field }}{% else %}{% include "formset/tailwind/field_group.html" %}{% endif %}
 	{% endfor %}
 {% endspaceless %}{% endblock %}

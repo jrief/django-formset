@@ -45,7 +45,6 @@ class FormRenderer(DjangoTemplates):
         return super().get_template(template_name)
 
     def _amend_form(self, context):
-        self._rendered_fields = {}  # temporary storage to keep track of fields rendered by a Fieldset
         context.update(
             control_css_classes=self.control_css_classes,
             form_css_classes=self.form_css_classes,

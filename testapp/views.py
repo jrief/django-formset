@@ -6,8 +6,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Model
 from django.db.models.fields.files import FieldFile
-from django.forms.forms import BaseForm
-from django.forms.models import BaseModelForm, construct_instance
+from django.forms.models import construct_instance
 from django.forms.renderers import get_default_renderer
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.template.loader import get_template
@@ -23,7 +22,7 @@ from docutils.parsers.rst import Parser
 from docutils.writers import get_writer_class
 
 from formset.calendar import CalendarResponseMixin
-from formset.form import FormMixin, ModelFormMixin
+from formset.utils import FormMixin
 from formset.views import (
     FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormCollectionViewMixin, FormViewMixin,
     EditCollectionView, BulkEditCollectionView
@@ -46,7 +45,7 @@ from testapp.forms.cafeteria import CafeteriaCollection, CoffeeOrderCollection
 from testapp.forms.checkout import CheckoutCollection
 from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
-from testapp.forms.customer import CustomerForm
+from testapp.forms.customer import CustomerCollection
 from testapp.forms.gallerycollection import GalleryCollection
 from testapp.forms.issue import EditIssueCollection
 from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputForm, MomentPickerForm
@@ -185,12 +184,7 @@ class DemoFormViewMixin(DemoViewMixin, CalendarResponseMixin, IncompleteSelectRe
         renderer_class = import_string(f'formset.renderers.{self.framework}.FormRenderer')
         if self.mode != 'native':
             renderer = renderer_class(**attrs)
-            if issubclass(form_class, BaseModelForm):
-                form_class = type(form_class.__name__, (ModelFormMixin, form_class), {'default_renderer': renderer})
-            elif issubclass(form_class, BaseForm):
-                form_class = type(form_class.__name__, (FormMixin, form_class), {'default_renderer': renderer})
-            else:
-                raise TypeError(f"Unsupported form class: {form_class}")
+            form_class = type(form_class.__name__, (FormMixin, form_class), {'default_renderer': renderer})
         return form_class
 
 
@@ -354,7 +348,7 @@ demo_css_classes = {
                 'submit': 'd-grid col-3',
                 'reset': 'd-grid col-3',
             },
-            'fieldset_css_classes': 'border p-3 mb-4',
+            'fieldset_css_classes': 'border p-3',
             'button_css_classes': 'mt-4',
         },
         'address': {
@@ -616,9 +610,8 @@ urlpatterns = [
     path('cafeteria', DemoFormCollectionView.as_view(
         collection_class=CafeteriaCollection,
     ), name='cafeteria'),
-    path('customer', DemoFormView.as_view(
-        form_class=CustomerForm,
-        initial={'billing_address.recipient': "John Doe", 'billing_address.postal_code': "12345", 'billing_address.city': "Springfield", 'use_billing_address': True},
+    path('customer', DemoFormCollectionView.as_view(
+        collection_class=CustomerCollection,
     ), name='customer'),
     path('contact', DemoFormCollectionView.as_view(
         collection_class=ContactCollection,

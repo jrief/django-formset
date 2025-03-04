@@ -14,9 +14,8 @@ from django.utils.translation import gettext_lazy
 
 from formset.exceptions import FormCollectionError
 from formset.fields import Activator
-from formset.form import FormMixin, ModelFormMixin
 from formset.renderers.default import FormRenderer
-from formset.utils import MARKED_FOR_REMOVAL, FormsetErrorList, HolderMixin, RenderableDetachedFieldMixin
+from formset.utils import MARKED_FOR_REMOVAL, FormMixin, FormsetErrorList, HolderMixin, RenderableDetachedFieldMixin
 
 COLLECTION_ERRORS = '_collection_errors_'
 
@@ -36,22 +35,15 @@ class FormCollectionMeta(MediaDefiningClass):
                     value.__class__ = type(
                         value.__class__.__name__,
                         (RenderableDetachedFieldMixin, value.__class__),
-                        {},
+                        {}
                     )
-                elif isinstance(value, BaseModelForm):
-                    if not isinstance(value, ModelFormMixin):
-                        value = type(
-                            value.__class__.__name__,
-                            (ModelFormMixin, value.__class__),
-                            {'error_class': FormsetErrorList}
-                        )
-                elif isinstance(value, BaseForm):
-                    if not isinstance(value, FormMixin):
-                        value = type(
-                            value.__class__.__name__,
-                            (FormMixin, value.__class__),
-                            {'error_class': FormsetErrorList}
-                        )
+                if isinstance(value, BaseForm) and not isinstance(value, FormMixin):
+                    value.__class__ = type(
+                        value.__class__.__name__,
+                        (FormMixin, value.__class__),
+                        {}
+                    )
+                    value.error_class = FormsetErrorList
                 attrs['declared_holders'][key] = value
 
         new_class = super().__new__(cls, name, bases, attrs)

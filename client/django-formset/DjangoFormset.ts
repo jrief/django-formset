@@ -1183,7 +1183,7 @@ class DjangoForm {
 	public readonly formset: DjangoFormset;
 	public readonly element: HTMLFormElement;
 	public readonly path: Path;
-	public readonly fieldsets = Array<DjangoFieldset>(0);
+	public readonly fieldset: DjangoFieldset|null;
 	private readonly errorList: HTMLUListElement|null = null;
 	private readonly errorPlaceholder: HTMLLIElement|null = null;
 	public readonly fieldGroups = Array<FieldGroup>(0);
@@ -1195,7 +1195,8 @@ class DjangoForm {
 		this.formset = formset;
 		this.element = element;
 		this.path = this.name?.split('.') ?? [];
-		this.findFieldsets();
+		const next = element.nextSibling;
+		this.fieldset = next instanceof HTMLFieldSetElement && next.form === element ? new DjangoFieldset(this, next) : null;
 		const placeholder = element.nextElementSibling?.querySelector(':scope > .dj-form-errors > ul.dj-errorlist > li.dj-placeholder');
 		if (placeholder) {
 			this.errorList = placeholder.parentElement as HTMLUListElement;
@@ -1204,13 +1205,6 @@ class DjangoForm {
 		this.isTransient = this.element.hasAttribute('df-transient');
 		this.element.addEventListener('submit', this.handleSubmit);
 		this.element.addEventListener('reset', this.handleReset);
-	}
-
-	private findFieldsets() {
-		const nextSibling = this.element.nextElementSibling;
-		nextSibling?.querySelectorAll('FIELDSET').forEach(element => {
-			this.fieldsets.push(new DjangoFieldset(this, element as HTMLFieldSetElement));
-		});
 	}
 
 	aggregateValues(): Map<string, FieldValue> {
@@ -1263,7 +1257,7 @@ class DjangoForm {
 	}
 
 	public updateOperability(...args: any[]) {
-		this.fieldsets.forEach(fieldset => fieldset.updateOperability(...args));
+		this.fieldset?.updateOperability(...args);
 		this.fieldGroups.forEach(fieldGroup => fieldGroup.updateOperability(...args));
 	}
 

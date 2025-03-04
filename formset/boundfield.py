@@ -4,7 +4,6 @@ from django.db.models.fields.files import FieldFile
 from django.forms import boundfield
 from django.forms.fields import FileField, JSONField
 from django.utils.functional import cached_property
-from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from formset.fields import Activator, FileFieldMixin
@@ -128,39 +127,6 @@ class BoundField(boundfield.BoundField):
         if isinstance(value, FieldFile):
             return get_file_info(value)
         return value
-
-    @cached_property
-    def fieldset_name(self):
-        for name, fieldset in self.form.declared_fieldsets.items():
-            for key in fieldset.declared_fields.keys():
-                if self.name == f'{name}.{key}':
-                    return name
-
-    def __str__(self):
-        """Render this field as an HTML widget or as fieldset with widgets."""
-        if self.fieldset_name and self.fieldset_name in self.form.declared_fieldsets:
-            if self.name in self.renderer._rendered_fields:
-                if self.renderer._rendered_fields[self.name]:
-                    return ''  # field already rendered
-            else:
-                return self._render_fieldset()
-        return super().__str__()
-
-    def _render_fieldset(self):
-        fieldset = self.form.declared_fieldsets[self.fieldset_name]
-        field_names = [
-            f'{self.fieldset_name}.{field_name}'
-            for field_name in fieldset.declared_fields.keys()
-        ]
-        context = fieldset.get_context()
-        context.update(
-            name=self.fieldset_name,
-            fields=[self.form[field_name] for field_name in field_names],
-        )
-        self.renderer._rendered_fields.update({field_name: False for field_name in field_names})
-        rendered = mark_safe(self.renderer.render(fieldset.template_name, context))
-        self.renderer._rendered_fields.update({field_name: True for field_name in field_names})
-        return rendered
 
     def _get_client_messages(self):
         """
