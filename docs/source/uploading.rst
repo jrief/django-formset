@@ -8,8 +8,8 @@ In traditionally rendered forms, the payload of files to be uploaded is submitte
 form data. This approach is not very user friendly, because submitting such a form can take a
 considerable amount of time on slow Internet connections. Even worse, if the form does not validate
 on the server, that upload must be repeated again. Moreover, if a form contains more than one file
-to be uploaded, the maximum size a client can upload to the server must be shared for all of them
-[#1]_, [#2]_.
+to be uploaded, the maximum size a client can upload to the server must be shared among all of the
+file input fields. [#1]_, [#2]_
 
 .. _LimitRequestBody: https://httpd.apache.org/docs/2.4/mod/core.html#limitrequestbody
 .. _client_max_body_size: http://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size
@@ -75,6 +75,16 @@ for example: ``UploadedFileInput(attrs={'accept': 'image/png, image/jpeg'})``.
 
 The maximum size of uploaded files can be limited by setting the ``max-size`` attribute of the
 widget's ``attrs``, for example: ``UploadedFileInput(attrs={'max-size': 1024 * 1024})``.
+
+
+.. rubric:: Cleaning up dangling files
+
+Since uploading files is asynchronous, it can happen that a file is uploaded but the associated form
+never was submitted. To cleanup those dangling files, a management command is provided:
+
+.. code-block:: bash
+
+	python manage.py cleanup_files
 
 
 .. rubric:: Footnotes

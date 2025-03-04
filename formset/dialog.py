@@ -1,8 +1,8 @@
-from django.forms.forms import BaseForm, DeclarativeFieldsMetaclass
-from django.forms.models import BaseModelForm, ModelFormMetaclass
+from django.forms.forms import BaseForm
+from django.forms.models import BaseModelForm
 
+from formset.forms import FormMixin, DeclarativeFieldsetMetaclass, FieldsetModelFormMetaclass
 from formset.renderers import ButtonVariant
-from formset.utils import FormMixin
 from formset.widgets import Button
 
 
@@ -29,11 +29,11 @@ class DialogFormMixin(FormMixin):
         return context
 
 
-class DialogForm(DialogFormMixin, BaseForm, metaclass=DeclarativeFieldsMetaclass):
+class DialogForm(DialogFormMixin, BaseForm, metaclass=DeclarativeFieldsetMetaclass):
     template_name = 'formset/default/form_dialog.html'
 
 
-class DialogModelForm(DialogFormMixin, BaseModelForm, metaclass=ModelFormMetaclass):
+class DialogModelForm(DialogFormMixin, BaseModelForm, metaclass=FieldsetModelFormMetaclass):
     template_name = 'formset/default/form_dialog.html'
 
 

@@ -1,4 +1,5 @@
 import operator
+import types
 from functools import reduce
 
 from django.core import validators
@@ -14,8 +15,9 @@ from django.utils.translation import gettext_lazy
 
 from formset.exceptions import FormCollectionError
 from formset.fields import Activator
+from formset.forms import DeclarativeFieldsetMetaclass, FieldsetModelFormMetaclass, FormMixin
 from formset.renderers.default import FormRenderer
-from formset.utils import MARKED_FOR_REMOVAL, FormMixin, FormsetErrorList, HolderMixin, RenderableDetachedFieldMixin
+from formset.utils import MARKED_FOR_REMOVAL, FormsetErrorList, HolderMixin, RenderableDetachedFieldMixin
 
 COLLECTION_ERRORS = '_collection_errors_'
 
@@ -37,13 +39,23 @@ class FormCollectionMeta(MediaDefiningClass):
                         (RenderableDetachedFieldMixin, value.__class__),
                         {}
                     )
-                if isinstance(value, BaseForm) and not isinstance(value, FormMixin):
-                    value.__class__ = type(
-                        value.__class__.__name__,
-                        (FormMixin, value.__class__),
-                        {}
-                    )
-                    value.error_class = FormsetErrorList
+                elif not isinstance(value, FormMixin):
+                    if isinstance(value, BaseModelForm):
+                        value.__class__ = types.new_class(
+                            value.__class__.__name__,
+                            bases=(FormMixin, value.__class__),
+                            kwds={'metaclass': FieldsetModelFormMetaclass},
+                            # exec_body=lambda ns: ns.update(error_class=FormsetErrorList),
+                        )
+                        value.error_class = FormsetErrorList
+                    elif isinstance(value, BaseForm):
+                        value.__class__ = types.new_class(
+                            value.__class__.__name__,
+                            bases=(FormMixin, value.__class__),
+                            kwds={'metaclass': DeclarativeFieldsetMetaclass},
+                            # exec_body=lambda ns: ns.update(error_class=FormsetErrorList),
+                        )
+                        value.error_class = FormsetErrorList
                 attrs['declared_holders'][key] = value
 
         new_class = super().__new__(cls, name, bases, attrs)

@@ -148,14 +148,14 @@ rendered by using the template expansion, ie.
 
 	{{ form }}
 
-using this, our form class has to additionally inherit from :class:`formset.utils.FormMixin`.
+using this, our form class has to additionally inherit from :class:`formset.forms.FormMixin`.
 Such a form could for instance be defined as:
 
 .. code-block:: python
 
 	from django.forms import forms, fields
+	from formset.forms import FormMixin
 	from formset.renderers.tailwind import FormRenderer
-	from formset.utils import FormMixin
 	
 	class PersonForm(FormMixin, forms.Form):
 	    default_renderer = FormRenderer()
@@ -219,7 +219,7 @@ Let's discuss these lines of HTML code step by step:
 
 First we have to "formsetify" our form. This is required in order to change the signature of the
 form class as described in the previous section. If the form instance already inherits from
-:class:`formset.utils.FormMixin`, then this operation can be skipped.
+:class:`formset.forms.FormMixin`, then this operation can be skipped.
 
 We then iterate over all form fields. Here we must distinguish between hidden and visible input
 fields. While the latter shall be wrapped inside a ``<div role="group">`` each, the former shall

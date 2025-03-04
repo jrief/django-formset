@@ -1,39 +1,46 @@
-from django.forms import fields, forms
+from django.forms import fields
 
 from formset.fieldset import Fieldset
-from formset.collection import FormCollection
+from formset.forms import Form
 
 
-class CustomerForm(Fieldset):
-    legend = "Customer"
-    hide_condition = 'register.no_customer'
+class AddressFieldset(Fieldset):
+    legend = "Address"
 
-    name = fields.CharField(
+    postal_code = fields.CharField(
+        label="Postal Code",
+        max_length=8,
+        required=False,
+    )
+    city = fields.CharField(
+        label="City",
+        max_length=50,
+        required=False,
+    )
+
+
+class CustomerFieldset(Fieldset):
+    recipient = fields.CharField(
         label="Recipient",
         max_length=100,
-    )
-
-    address = fields.CharField(
-        label="Address",
-        max_length=100,
-    )
-
-    phone_number = fields.RegexField(
-        r'^\+?[ 0-9.\-]{4,25}$',
-        label="Phone Number",
-        error_messages={'invalid': "Phone number have 4-25 digits and may start with '+'."},
         required=False,
     )
+    address = AddressFieldset()
 
 
-class RegisterForm(forms.Form):
-    no_customer = fields.BooleanField(
-        label="I'm not a customer",
+class CustomerForm(Form):
+    """
+    This form shows how to use nested Fieldsets.
+    """
+
+    billing = CustomerFieldset(
+        legend="Billing",
+    )
+    shipping = CustomerFieldset(
+        legend="Shipping",
+        hide_condition='use_billing_address',
+    )
+    use_billing_address = fields.BooleanField(
+        label="Use Billing Address for Shipping",
         required=False,
     )
-
-
-class CustomerCollection(FormCollection):
-    customer = CustomerForm()
-
-    register = RegisterForm()

@@ -1,10 +1,10 @@
 .. _conditionals:
 
-==========================================
-Conditional Field and Fieldset Expressions
-==========================================
+=======================
+Conditional Expressions
+=======================
 
-Sometimes it doesn't make sense to render all fields of a form. Consider for instance a
+Sometimes it doesn't make sense to render all fields or fieldsets of a form. Consider for instance a
 questionnaire of a radiologist, who needs to know if his patient is pregnant. Some male patients
 might be offended by that question. The most user-friendly solution to this is to hide or disable
 such a field.
@@ -46,13 +46,11 @@ This form uses a conditional where the value of one field influences if another 
 	
 	class QuestionnaireForm(forms.Form):
 	    full_name = fields.CharField(label="Full Name")
-
 	    gender = fields.ChoiceField(
 	        label="Gender",
 	        choices=[('f', "Female"), ('m', "Male")],
 	        widget=widgets.RadioSelect,
 	    )
-	
 	    pregnant = fields.BooleanField(
 	        label="Are you pregnant?",
 	        required=False,
@@ -79,44 +77,42 @@ evaluated.
 Conditional Fieldset
 ====================
 
-Conditionals can also be used on a Fieldset element. For example by using
+Conditionals can also be used on a :ref:`fieldsets`. For instance, this fieldset can be hidden
+depending on the value of another checkbox field:
 
 .. django-view:: conditional_fieldset
 	:hide-view:
 
 	from django.forms import fields, forms
-	from formset.collection import FormCollection
 	from formset.fieldset import Fieldset
+	from formset.forms import Form
 
-	class CustomerForm(Fieldset):
+	class CustomerFieldset(Fieldset):
 	    legend = "Customer"
-	    hide_condition = 'register.no_customer'
+	    hide_condition = 'no_customer'
 
-	    recipient = fields.CharField(label="Recipient")
+	    recipient = fields.CharField(label="Recipient", required=False)
 	    email = fields.EmailField(label="Email", required=False)
 
-	class RegisterForm(forms.Form):
+	class RegisterForm(Form):
+	    customer = CustomerFieldset()
 	    no_customer = fields.BooleanField(
 	        label="I'm not a customer",
 	        required=False,
 	    )
 
-	class CustomerCollection(FormCollection):
-	    customer = CustomerForm()
-	    register = RegisterForm()
-
 Here we use the value of the field ``no_customer`` in form ``RegisterForm``. If it evaluates to
-true, the whole fieldset is hidden.
+true, the whole ``CustomerFieldset`` is hidden.
 
 .. django-view:: conditional_collection
-	:view-function: CustomerView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'collection-result'}, collection_kwargs={'renderer': FormRenderer(field_css_classes='mb-3')})
+	:view-function: CustomerView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'customer-result'}, form_kwargs={'renderer': FormRenderer(field_css_classes='mb-2')})
 	:hide-code:
 
-	from formset.views import FormCollectionView
+	from formset.views import FormView
 
-	class CustomerView(FormCollectionView):
-	    collection_class = CustomerCollection
-	    template_name = "form-collection.html"
+	class CustomerView(FormView):
+	    form_class = RegisterForm
+	    template_name = "form-extended.html"
 	    success_url = "/success"
 
 
@@ -134,7 +130,6 @@ Conditionals can also be used to disable other fields. By using the attribute
 	        label="Accept terms and conditions",
 	        required=False,
 	    )
-
 	    email = fields.EmailField(
 	        label="Email",
 	        widget=widgets.EmailInput(attrs={'df-disable': ".accept_terms==''"})
