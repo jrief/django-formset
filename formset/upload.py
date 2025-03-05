@@ -3,9 +3,11 @@ from pathlib import Path
 
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.files.storage import default_storage
+from django.core.files.uploadhandler import UploadFileException
 from django.core.signing import get_cookie_signer
 from django.http.response import HttpResponseBadRequest, JsonResponse
 
+FILENAME_MAX_LENGTH = 250
 THUMBNAIL_MAX_HEIGHT = 200
 THUMBNAIL_MAX_WIDTH = 350
 UPLOAD_TEMP_DIR = Path('upload_temp')
@@ -84,49 +86,50 @@ def get_file_info(field_file):
     }
 
 
+def receive_uploaded_file(file_obj, image_height=None):
+    """
+    Accept an uploaded file and return a handle to it.
+    """
+    if not file_obj:
+        raise UploadFileException(f"File upload failed.")
+    signer = get_cookie_signer(salt='formset')
+
+    temp_path = default_storage.save(UPLOAD_TEMP_DIR / file_obj.name, file_obj)
+    assert default_storage.size(temp_path) == file_obj.size
+    download_url = default_storage.url(temp_path)
+
+    # dict returned by the form on submission
+    mime_type, sub_type = split_mime_type(file_obj.content_type)
+    if mime_type == 'image':
+        if sub_type == 'svg+xml':
+            thumbnail_url = download_url
+        else:
+            thumbnail_url = thumbnail_image(default_storage, temp_path, image_height=image_height)
+    else:
+        thumbnail_url = file_icon_url(mime_type, sub_type)
+    return {
+        'upload_temp_name': signer.sign(temp_path),
+        'content_type': f'{mime_type}/{sub_type}',
+        'content_type_extra': file_obj.content_type_extra,
+        'name': file_obj.name[:FILENAME_MAX_LENGTH],
+        'download_url': download_url,
+        'thumbnail_url': thumbnail_url,
+        'size': file_obj.size,
+    }
+
+
 class FileUploadMixin:
     """
     Add this mixin to any Django View class using a form which accept file uploads through
     the provided widget :class:`formset.widgets.UploadedFileInput`.
     """
-    filename_max_length = 250
-
     def post(self, request, **kwargs):
         if request.content_type == 'multipart/form-data' and 'temp_file' in request.FILES and 'image_height' in request.POST:
-            return self._receive_uploaded_file(request.FILES['temp_file'], request.POST['image_height'])
+            try:
+                return JsonResponse(receive_uploaded_file(request.FILES['temp_file'], request.POST['image_height']))
+            except Exception as e:
+                return HttpResponseBadRequest(str(e))
         return super().post(request, **kwargs)
-
-    def _receive_uploaded_file(self, file_obj, image_height=None):
-        """
-        Iterate over all uploaded files.
-        """
-        if not file_obj:
-            return HttpResponseBadRequest(f"File upload failed for '{file_obj.name}'.")
-        signer = get_cookie_signer(salt='formset')
-
-        temp_path = default_storage.save(UPLOAD_TEMP_DIR / file_obj.name, file_obj)
-        assert default_storage.size(temp_path) == file_obj.size
-        download_url = default_storage.url(temp_path)
-
-        # dict returned by the form on submission
-        mime_type, sub_type = split_mime_type(file_obj.content_type)
-        if mime_type == 'image':
-            if sub_type == 'svg+xml':
-                thumbnail_url = download_url
-            else:
-                thumbnail_url = thumbnail_image(default_storage, temp_path, image_height=image_height)
-        else:
-            thumbnail_url = file_icon_url(mime_type, sub_type)
-        file_handle = {
-            'upload_temp_name': signer.sign(temp_path),
-            'content_type': f'{mime_type}/{sub_type}',
-            'content_type_extra': file_obj.content_type_extra,
-            'name': file_obj.name[:self.filename_max_length],
-            'download_url': download_url,
-            'thumbnail_url': thumbnail_url,
-            'size': file_obj.size,
-        }
-        return JsonResponse(file_handle)
 
 
 def depict_size(size):
