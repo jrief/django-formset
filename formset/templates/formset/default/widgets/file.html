@@ -12,7 +12,7 @@
 	{% block "controller" %}
 	<div>
 		{% block "choose-file" %}
-		<button type="button" class="dj-choose-file">{% trans "Choose file" %}</button>
+		<button type="button" aria-controls="{{ widget.attrs.id }}">{% trans "Choose file" %}</button>
 		{% endblock %}
 		{% block "progress-bar" %}
 		<progress max="1" value="0" style="visibility: hidden;"></progress>
@@ -40,8 +40,10 @@
 			<dt>{% trans 'Size' %}:</dt>
 			<dd>${size}</dd>
 		</dl>
-		<a class="dj-delete-file" href="javascript:void(0);">{% trans "Delete" %}</a>
-		<a class="dj-download-file" href="${download_url}" download="${name}">{% trans "Download" %}</a>
+		<div>
+			<a class="dj-delete-file" href="javascript:void(0);">{% trans "Delete" %}</a>
+			<a class="dj-download-file" href="${download_url}" download="${name}">{% trans "Download" %}</a>
+		</div>
 	</figcaption>
 	{% endblock %}
 </template>

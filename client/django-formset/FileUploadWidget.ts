@@ -22,9 +22,9 @@ export class FileUploadWidget {
 		if (!this.dropbox)
 			throw new Error('Element <input type="file"> requires sibling element <figure class="dj-dropbox"></figure>');
 
-		this.chooseFileButton = this.fieldGroup.element.querySelector('button.dj-choose-file') as HTMLButtonElement;
+		this.chooseFileButton = this.fieldGroup.element.querySelector(`button[aria-controls="${inputElement.id}"]`) as HTMLButtonElement;
 		if (!this.chooseFileButton)
-			throw new Error('Element <input type="file"> requires sibling element <button class="dj-choose-file"></button>');
+			throw new Error(`Element ${inputElement} requires sibling element <button aria-controls="${inputElement.id}"></button>`);
 
 		this.progressBar = this.fieldGroup.element.querySelector('progress') as HTMLProgressElement;
 		if (this.progressBar) {

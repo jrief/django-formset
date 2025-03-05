@@ -11,6 +11,7 @@ class FormRenderer(DefaultFormRenderer):
 
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
         'django/forms/div.html': 'formset/admin/form.html',
+        'formset/default/widgets/file.html': 'formset/admin/widgets/file.html',
     })
 
     def _amend_label(self, context, **kwargs):

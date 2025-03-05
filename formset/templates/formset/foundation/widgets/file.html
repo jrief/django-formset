@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block "choose-file" %}
-<button type="button" class="dj-choose-file button">{% trans "Choose file" %}</button>
+<button type="button" aria-controls="{{ widget.attrs.id }}" class="button">{% trans "Choose file" %}</button>
 {% endblock %}
 
 {% block "file-caption" %}
@@ -15,7 +15,9 @@
 		<dt>{% trans 'Content-Type (Size)' %}:</dt>
 		<dd>${content_type} (${size})</dd>
 	</dl>
-	<a class="dj-delete-file button alert tiny" style="margin-bottom:0;">{% trans "Delete" %}</a>
-	<a class="dj-download-file button tiny" href="${download_url}" download="${name}" style="margin-bottom:0;">{% trans "Download" %}</a>
+	<div>
+		<a class="dj-delete-file button alert tiny" style="margin-bottom:0;">{% trans "Delete" %}</a>
+		<a class="dj-download-file button tiny" href="${download_url}" download="${name}" style="margin-bottom:0;">{% trans "Download" %}</a>
+	</div>
 </figcaption>
 {% endblock %}
