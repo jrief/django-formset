@@ -28,7 +28,7 @@ urlpatterns.append(get_javascript_catalog())
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_image(page, mocker, settings, viewname):
-    choose_file_button = page.locator('django-formset .dj-form button.dj-choose-file')
+    choose_file_button = page.locator('django-formset .dj-form button[aria-controls="id_avatar"]')
     expect(choose_file_button).to_be_visible()  # that button would open the file selector
     dropbox = page.locator('django-formset .dj-form figure.dj-dropbox')
     expect(dropbox.locator('div.dj-empty-item')).to_have_text("Drag file here")
