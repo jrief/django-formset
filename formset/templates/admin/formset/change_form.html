@@ -22,7 +22,7 @@
   </ul>
 {% endif %}
 {% endblock %}
-	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
+	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}" force-submission>
 		{{ adminform.form }}
 		{% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
 	</django-formset>

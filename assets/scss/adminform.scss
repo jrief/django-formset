@@ -13,3 +13,14 @@
 		}
 	}
 }
+input[type^="date"] {
+	border: 1px solid var(--border-color);
+	border-radius: 4px;
+	padding: 5px 6px;
+	margin-top: 0;
+	color: var(--body-fg);
+	background-color: var(--body-bg);
+}
+.form-row:has([role="dialog"]) {
+	overflow: visible;
+}

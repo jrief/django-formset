@@ -6,4 +6,4 @@ from .models.person import PersonModel
 
 @admin.register(PersonModel)
 class PersonAdmin(ModelAdmin):
-    pass
+    save_as = True
