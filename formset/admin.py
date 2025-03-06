@@ -1,20 +1,36 @@
+import json
+import types
+
 from django.contrib import admin as django_admin
 from django.contrib.admin import helpers
 from django.contrib.admin.options import IS_POPUP_VAR, TO_FIELD_VAR
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.core.exceptions import PermissionDenied
+from django.db.models.fields import DateField, DateTimeField
 from django.db.models.fields.files import FileField
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.urls import reverse
 from django.utils.translation import gettext
+
+from formset.calendar import CalendarRenderer
+from formset.forms import FormMixin, FieldsetModelFormMetaclass
 from formset.renderers.admin import FormRenderer
-from formset.utils import FormMixin
-from formset.widgets import UploadedFileInput
+from formset.upload import receive_uploaded_file
+from formset.widgets import DatePicker, DateTimePicker, UploadedFileInput
 
 
 class ModelAdmin(django_admin.ModelAdmin):
     change_form_template = 'admin/formset/change_form.html'
     formfield_overrides = {
         FileField: {'widget': UploadedFileInput},
+        DateField: {'widget': DatePicker},
+        DateTimeField: {'widget': DateTimePicker},
     }
+    calendar_renderer_class = CalendarRenderer
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        return fieldsets
 
     def get_form(self, request, obj=None, change=False, **kwargs):
         def init(self, *args, **kwargs):
@@ -22,11 +38,15 @@ class ModelAdmin(django_admin.ModelAdmin):
             super(self.__class__, self).__init__(*args, **kwargs)
 
         form = super().get_form(request, obj, change, **kwargs)
-        attrs = {
-            '__init__': init,
-            'default_renderer': FormRenderer(),
-        }
-        form = type(form.__name__, (FormMixin, form), attrs)
+        form = types.new_class(
+            form.__name__,
+            bases=(FormMixin, form),
+            kwds={'metaclass': FieldsetModelFormMetaclass},
+            exec_body=lambda ns: ns.update({
+                '__init__': init,
+                'default_renderer': FormRenderer(),
+            }),
+        )
         return form
 
     def _changeform_view(self, request, object_id, form_url, extra_context):
@@ -66,32 +86,78 @@ class ModelAdmin(django_admin.ModelAdmin):
             request, obj, change=not add, fields=flatten_fieldsets(fieldsets)
         )
         if request.method == "POST":
-            form = ModelForm(request.POST, request.FILES, instance=obj)
-            formsets, inline_instances = self._create_formsets(
-                request,
-                form.instance,
-                change=not add,
-            )
-            form_validated = form.is_valid()
-            if form_validated:
-                new_object = self.save_form(request, form, change=not add)
+            if request.content_type == 'application/json':
+                request_body = json.loads(request.body)
+                formset_data = request_body.get('formset_data')
+                request_target = request_body.get('_extra', {}).get('name')
+            elif request.content_type == 'multipart/form-data' and 'temp_file' in request.FILES and 'image_height' in request.POST:
+                try:
+                    return JsonResponse(
+                        receive_uploaded_file(request.FILES['temp_file'], request.POST['image_height'])
+                    )
+                except Exception as e:
+                    return HttpResponseBadRequest(str(e))
+
+            if request_target == '_saveasnew':
+                form = ModelForm(data=formset_data)
             else:
-                new_object = form.instance
-            if django_admin.all_valid(formsets) and form_validated:
-                self.save_model(request, new_object, form, not add)
-                self.save_related(request, form, formsets, not add)
-                change_message = self.construct_change_message(
-                    request, form, formsets, add
-                )
-                if add:
-                    self.log_addition(request, new_object, change_message)
-                    return self.response_add(request, new_object)
-                else:
-                    self.log_change(request, new_object, change_message)
-                    return self.response_change(request, new_object)
+                form = ModelForm(data=formset_data, instance=obj)
+            # formsets, inline_instances = self._create_formsets(
+            #     request,
+            #     form.instance,
+            #     change=not add,
+            # )
+            if form.is_valid():
+                new_object = form.save()
+                if request_target == '_save' or request_target == '_saveasnew' and not self.save_as_continue:
+                    return JsonResponse({
+                        'success_url': reverse(
+                            f'admin:{self.opts.app_label}_{self.opts.model_name}_changelist',
+                            current_app=self.admin_site.name,
+                        ),
+                    })
+                if request_target == '_addanother':
+                    return JsonResponse({
+                        'success_url': reverse(
+                            f'admin:{self.opts.app_label}_{self.opts.model_name}_add',
+                            current_app=self.admin_site.name,
+                        ),
+                    })
+                if request_target == '_continue' or request_target == '_saveasnew' and self.save_as_continue:
+                    return JsonResponse({
+                        'success_url': reverse(
+                            f'admin:{self.opts.app_label}_{self.opts.model_name}_change',
+                            args=(new_object.pk,),
+                            current_app=self.admin_site.name,
+                        ),
+                    })
             else:
-                form_validated = False
+                return JsonResponse(form.errors, status=422, safe=False)
+            # if django_admin.all_valid(formsets) and form_validated:
+            #     self.save_model(request, new_object, form, not add)
+            #     self.save_related(request, form, formsets, not add)
+            #     change_message = self.construct_change_message(
+            #         request, form, formsets, add
+            #     )
+            #     if add:
+            #         self.log_addition(request, new_object, change_message)
+            #         return self.response_add(request, new_object)
+            #     else:
+            #         self.log_change(request, new_object, change_message)
+            #         return self.response_change(request, new_object)
+            # else:
+            #     form_validated = False
         else:
+            if request.accepts('text/html') and 'calendar' in request.GET:
+                try:
+                    start_datetime, hour12, pure, view_mode, interval = self.calendar_renderer_class.parse_request(
+                        request
+                    )
+                except (TypeError, ValueError):
+                    return HttpResponseBadRequest("Invalid parameter 'calendar'")
+                cal = self.calendar_renderer_class(start_datetime=start_datetime)
+                return HttpResponse(cal.render(view_mode, hour12, pure, interval))
+
             if add:
                 initial = self.get_changeform_initial_data(request)
                 form = ModelForm(initial=initial)
