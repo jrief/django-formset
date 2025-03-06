@@ -54,12 +54,8 @@ class FormMixin(FormDecoratorMixin, HolderMixin):
         return self.fields[field_name]
 
 
-class DeclarativeFieldsetMetaclass(DeclarativeFieldsMetaclass):
-    """
-    Modified metaclass to collect Fields and Fieldsets from the Form class definition.
-    """
-    @staticmethod
-    def extract_fieldsets(attrs):
+class FormsetMetaclassMixin(type):
+    def __new__(mcs, name, bases, attrs):
         attrs_list, declared_fieldsets = [], {}
         for key, value in list(attrs.items()):
             if isinstance(value, Fieldset):
@@ -68,11 +64,13 @@ class DeclarativeFieldsetMetaclass(DeclarativeFieldsMetaclass):
                     attrs_list.append((f'{key}.{field_name}', field))
             else:
                 attrs_list.append((key, value))
-        return dict(attrs_list, declared_fieldsets=declared_fieldsets)
+        return super().__new__(mcs, name, bases, dict(attrs_list, declared_fieldsets=declared_fieldsets))
 
-    def __new__(mcs, name, bases, attrs):
-        # Collect fieldsets from current class and move its fields into new_class.
-        return super().__new__(mcs, name, bases, DeclarativeFieldsetMetaclass.extract_fieldsets(attrs))
+
+class DeclarativeFieldsetMetaclass(FormsetMetaclassMixin, DeclarativeFieldsMetaclass):
+    """
+    Modified metaclass to collect Fields and Fieldsets from the Form class definition.
+    """
 
 
 class Form(FormMixin, BaseForm, metaclass=DeclarativeFieldsetMetaclass):
@@ -81,10 +79,10 @@ class Form(FormMixin, BaseForm, metaclass=DeclarativeFieldsetMetaclass):
     """
 
 
-class FieldsetModelFormMetaclass(ModelFormMetaclass):
-    def __new__(mcs, name, bases, attrs):
-        # Collect fieldsets from current class and move its fields into new_class.
-        return super().__new__(mcs, name, bases, DeclarativeFieldsetMetaclass.extract_fieldsets(attrs))
+class FieldsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):
+    """
+    Modified metaclass to collect Fields and Fieldsets from the ModelForm class definition.
+    """
 
 
 class ModelForm(FormMixin, BaseModelForm, metaclass=FieldsetModelFormMetaclass):
