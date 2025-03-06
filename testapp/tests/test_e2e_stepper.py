@@ -64,6 +64,7 @@ def test_steps_remain_inactive(page, mocker, viewname):
     expect(fields_error_list[1]).to_be_empty()
     spy = mocker.spy(FormCollectionView, 'patch')
     collections[0].locator('button[name="next"]').click()
+    sleep(0.2)
     spy.assert_called()
     assert spy.spy_return.status_code == 422
     expect(collections[0].locator('.dj-form-errors .dj-errorlist')).to_be_empty()
