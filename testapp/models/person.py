@@ -59,6 +59,37 @@ class PersonModel(models.Model):
         max_length=40,
         db_index=True,
     )
+    weight = models.IntegerField(
+        verbose_name="Weight in kg",
+        validators=[
+            MinValueValidator(42, message="You are too lightweight."),
+            MaxValueValidator(95, message="You are too obese."),
+        ],
+        blank=True,
+        null=True,
+    )
+    height = models.FloatField(
+        verbose_name="Height in meters",
+        validators=[
+            MinValueValidator(1.45, message="You are too short."),
+            MaxValueValidator(1.95, message="You are too tall."),
+        ],
+        blank=True,
+        null=True,
+    )
+    annotation = models.TextField(
+        verbose_name="Annotation",
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        app_label = "testapp"
+        verbose_name = "Person"
+        verbose_name_plural = "Persons"
+
+    def __str__(self):
+        return self.full_name
 
 
 class UserContact(models.Model):
