@@ -91,7 +91,7 @@ class PersonModel(models.Model):
         verbose_name_plural = "Persons"
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return self.full_name
 
 
 class UserContact(models.Model):
