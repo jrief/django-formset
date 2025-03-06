@@ -4,7 +4,7 @@
 Fieldsets
 =========
 
-.. versionchanged:: 1.8
+.. versionchanged:: 2.0
 
 	Until version 1.7, the ``Fieldset`` class was a form wrapped into a ``<fieldset>``-element.
 	This only made sense in combination with a ``FormCollection``. Since version 1.8, the

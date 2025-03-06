@@ -1,9 +1,14 @@
 ## Changes
 
-- 1.8
+- 2.0
   * **Breaking Change:** The `Fieldset` class is a standalone entity to group multiple input fields
     into a ``<fieldset>``-element. It is not a subclass of Django's `Form` class anymore. Read the
     [documentation](https://django-formset.fly.dev/fieldsets/) on how to use it.
+  * **Breaking Change:** The `FormMixin` class has been moved from `formset.utils` to
+    `formset.forms`. There are two new classes `formset.forms.Form` and `formset.forms.ModelForm`
+    which shall be used as base classes for forms and model forms.
+  * Add management command `./manage.py cleanup_files` to delete dangling files. This is because the
+    `UploadedFileInput` widget accepts files before their form is submitted and hence processed.
 
 - 1.7.3
   * Fix: Adopt signature of `clean()` method to Django's clean form.
