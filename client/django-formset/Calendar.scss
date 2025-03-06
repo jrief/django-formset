@@ -92,7 +92,6 @@
 		}
 
 		ul {
-			list-style: none;
 			margin: 0;
 			padding: 0;
 			text-align: center;
@@ -104,11 +103,14 @@
 				background-color: $calendar-range-background-color;
 			}
 
-			> li::selection {
-				background-color: transparent;
-			}
-
 			> li {
+				list-style: none;
+				border-radius: 1px;
+
+				&::selection {
+					background-color: transparent;
+				}
+
 				&.preselected {
 					outline: 2px solid $selected-item-background-color;
 				}

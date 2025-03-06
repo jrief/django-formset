@@ -180,6 +180,21 @@ class CalendarRenderer:
             template = get_template('calendar/range.html')
         return template.render({'calendar': context})
 
+    @classmethod
+    def parse_request(cls, request):
+        """
+        Parse a request object to extract the parameters for the calendar.
+        """
+        start_datetime = datetime.fromisoformat(request.GET.get('date'))
+        hour12 = 'hour12' in request.GET
+        pure = 'pure' in request.GET
+        view_mode = ViewMode.frommode(request.GET.get('mode'))
+        if 'interval' in request.GET:
+            interval = timedelta(minutes=int(request.GET.get('interval')))
+        else:
+            interval = None
+        return start_datetime, hour12, pure, view_mode, interval
+
 
 class CalendarResponseMixin:
     """
@@ -190,14 +205,7 @@ class CalendarResponseMixin:
     def get(self, request, **kwargs):
         if request.accepts('text/html') and 'calendar' in request.GET:
             try:
-                start_datetime = datetime.fromisoformat(request.GET.get('date'))
-                hour12 = 'hour12' in request.GET
-                pure = 'pure' in request.GET
-                view_mode = ViewMode.frommode(request.GET.get('mode'))
-                if 'interval' in request.GET:
-                    interval = timedelta(minutes=int(request.GET.get('interval')))
-                else:
-                    interval = None
+                start_datetime, hour12, pure, view_mode, interval = self.calendar_renderer_class.parse_request(request)
             except (TypeError, ValueError):
                 return HttpResponseBadRequest("Invalid parameter 'calendar'")
             cal = self.calendar_renderer_class(start_datetime=start_datetime)
