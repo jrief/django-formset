@@ -218,6 +218,75 @@ Setting up forms using filters, can improve the user experience, because it redu
 options to choose from. This might be a more friendly alternative rather than using option groups.
 
 
+Filtering using the ``django-filter`` library
+---------------------------------------------
+
+It sometimes might be more convenient to use the popular `django-filter`_ library to filter the
+options for a select field. This library offers a more flexible way and allows the developer to
+filter the options based on a combination of various fields. The following example shows how to
+implement the above example inheriting from a ``DjangoFilterSet``:
+
+.. _django-filter: https://django-filter.readthedocs.io/en/stable/
+
+.. django-view:: use_filterset_county_form
+	:caption: forms.py
+	:emphasize-lines: 30
+
+	from django_filters import FilterSet, ModelChoiceFilter
+
+	class StateFilterSet(FilterSet):
+	    state = ModelChoiceFilter(
+	        queryset=State.objects.all(),
+	    )
+	
+	    @property
+	    def qs(self):
+	        parent_qs = super().qs
+	        if state := self.request.GET.get('filter-state'):
+	            return parent_qs.filter(state=state)
+	        return parent_qs
+
+	class FilteredCountyFormUsingFilterSet(forms.Form):
+	    state = models.ModelChoiceField(
+	        label="State",
+	        queryset=State.objects.all(),
+	        widget=Selectize(
+	            search_lookup='name__icontains',
+	            placeholder="First, select a state"
+	        ),
+	        required=False,
+	    )
+	    county = models.ModelChoiceField(
+	        label="County",
+	        queryset=County.objects.all(),
+	        widget=Selectize(
+	            search_lookup=['name__icontains'],
+	            use_filter_set=StateFilterSet,
+	            placeholder="Then, select a county"
+	        ),
+	        required=True,
+	    )
+
+Here we use the argument ``use_filter_set`` instead of ``filter_by`` when declaring the widget used
+by the field the select the county. This argument expects a class inheriting from ``FilterSet``,
+here it's named ``StateFilterSet``. On this filterset we can declare one or more filter fields to
+be applied to the queryset. Remember that all fields from this filterset are prefixed with
+``filter-<fieldname>`` when being fetched by client side of the **django-formset** library. These
+fields then must be extracted from the ``request.GET`` object. In this example this happens inside
+the property ``qs``. The filter ``state`` is then used to filter the queryset of the counties.
+
+.. django-view:: use_filterset_county_view
+	:view-function: UseFilterSetCountyView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'use-filter-set-county-result'}, form_kwargs={'auto_id': 'ufs_id_%s'})
+	:hide-code:
+
+	class UseFilterSetCountyView(SelectizeView):
+	    form_class = FilteredCountyFormUsingFilterSet
+
+The ``django-filter`` library is an optional dependency. It only must be installed if you want to
+use the ``use_filter_set`` feature. No part of the **django-formset** library imports any modules
+from that library.
+
+
 .. _selectize-multiple:
 
 Selectize Multiple Widget
