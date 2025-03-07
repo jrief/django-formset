@@ -1,5 +1,8 @@
 ## Changes
 
+1.7.4
+  * Fix #80: Allow to use `django_filters.FilterSet` on filtered widgets.
+
 - 1.7.3
   * Fix: Adopt signature of `clean()` method to Django's clean form.
   * Fix #196: Temporarily disable Calendar while fetching new sheet.
