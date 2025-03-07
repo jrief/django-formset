@@ -3,6 +3,7 @@ import struct
 from base64 import b16encode
 from datetime import date, timedelta, timezone
 from functools import reduce
+from inspect import isclass
 from operator import and_, or_
 from pathlib import Path
 
@@ -105,22 +106,30 @@ class IncompleteSelectMixin:
     search_lookup = None
     group_field_name = None
     filter_by = None
+    use_filter_set = None
 
-    def __init__(self, attrs=None, choices=(), search_lookup=None, group_field_name=None, filter_by=None):
+    def __init__(self, attrs=None, choices=(), search_lookup=None, group_field_name=None, filter_by=None, use_filter_set=None):
         if search_lookup:
             self.search_lookup = search_lookup
         if isinstance(self.search_lookup, str):
             self.search_lookup = [self.search_lookup]
         if isinstance(group_field_name, str):
             self.group_field_name = group_field_name
+        if filter_by and use_filter_set:
+            raise ImproperlyConfigured("Attributes 'filter_by' and 'use_filter_set' are mutually exclusive.")
         if isinstance(filter_by, dict):
             self.filter_by = filter_by
+        elif (
+            isclass(use_filter_set) and  # this avoids the need to import `django_filters.FilterSet`
+            any((b.__name__, b.__module__) == ('FilterSet', 'django_filters.filterset') for b in use_filter_set.mro())
+        ):
+            self.use_filter_set = use_filter_set
         super().__init__(attrs, choices)
 
-    def build_filter_query(self, filters):
+    def build_filter_query(self, filtervalues):
         queries = []
         for fieldname, lookup in self.filter_by.items():
-            filtervalue = filters[fieldname]
+            filtervalue = filtervalues[fieldname]
             if isinstance(filtervalue, list):
                 subqueries = [Q(**{lookup: val if val else None}) for val in filtervalue]
                 queries.append(reduce(or_, subqueries, Q()))
@@ -152,6 +161,8 @@ class IncompleteSelectMixin:
                 attrs['incomplete'] = True
             if self.filter_by:
                 attrs['filter-by'] = ','.join(self.filter_by.keys())
+            elif self.use_filter_set:
+                attrs['filter-by'] = ','.join(self.use_filter_set.base_filters.keys())
         return attrs
 
     def get_context(self, name, value, attrs):
@@ -239,8 +250,17 @@ class Selectize(IncompleteSelectMixin, Select):
     webcomponent = 'django-selectize'
     placeholder = _("Select")
 
-    def __init__(self, attrs=None, choices=(), search_lookup=None, group_field_name=None, filter_by=None, placeholder=None):
-        super().__init__(attrs, choices, search_lookup, group_field_name, filter_by)
+    def __init__(
+        self,
+        attrs=None,
+        choices=(),
+        search_lookup=None,
+        group_field_name=None,
+        filter_by=None,
+        use_filter_set=None,
+        placeholder=None,
+    ):
+        super().__init__(attrs, choices, search_lookup, group_field_name, filter_by, use_filter_set)
         if placeholder is not None:
             self.placeholder = placeholder
 
