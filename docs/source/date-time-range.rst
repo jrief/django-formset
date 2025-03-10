@@ -36,15 +36,15 @@ In a Django form class, the field can be used like this:
 	        widget=DateRangePicker(),
 	    )
 
-The `DateRangeField` can be configured to use one of these widgets:
+The ``DateRangeField`` can be configured to use one of these widgets:
 
-* :class:`formset.widgets.DateRangePicker` – shown here
-* :class:`formset.widgets.DateRangeTextox` – just an input field accepting two dates 
-* :class:`formset.widgets.DateRangeCalendar` – just the calendar widget without input field
+* :class:`formset.widgets.DateRangePicker` – as shown here.
+* :class:`formset.widgets.DateRangeTextbox` – just an input field accepting two dates.
+* :class:`formset.widgets.DateRangeCalendar` – just the calendar widget without input field.
 
 If this field shall be initialized with a default value using attribute ``initial``, the given value
-must be a tuple or list of two dates. Then the first date is the start date, the second date is the
-end date of the range.
+must be a tuple or list of two dates. Then the first date is the start date and the second date is
+the end date of the given range.
 
 The view handling this form can be implemented like this:
 
@@ -91,11 +91,11 @@ subclasses of Django's :class:`django.forms.fields.MultiValueField` and maps two
 	        ),
 	    )
 
-The `DateTimeRangeField` can be configured to use one of these widgets:
+The ``DateTimeRangeField`` can be configured to use one of these widgets:
 
-* :class:`formset.widgets.DateTimeRangePicker` – shown here
-* :class:`formset.widgets.DateTimeRangeTextbox` – as input field accepting two timestamps  
-* :class:`formset.widgets.DateTimeRangeCalendar` – just the calendar widget without input field
+* :class:`formset.widgets.DateTimeRangePicker` – as shown here.
+* :class:`formset.widgets.DateTimeRangeTextbox` – as input field accepting two timestamps.
+* :class:`formset.widgets.DateTimeRangeCalendar` – just the calendar widget without input field.
 
 Configuring a `DateTimeRangeField` without a calendar picker makes sense whenever we do not want to
 specify a range interval. In this case, we can use the `DateTimeRangeTextbox` widget to specify two

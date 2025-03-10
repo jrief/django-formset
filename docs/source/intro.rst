@@ -114,9 +114,9 @@ slightly modified Django view:
 
 It should be mentioned that this view must be rendered by wrapping the form inside the web component
 ``<django-formset>``. This web component then controls the client side functionality, such as
-pre- and post-validation, submission, etc. The content of the two form fields is submitted to the
-``endpoint="{{ request.path }}"``. Here this is the same Django view, which also is responsible for
-rendering that form.
+pre- and post-validation, submission, and more. The content of the two form fields is submitted to
+the ``endpoint="{{ request.path }}"``. Here this is the same Django view, which also is responsible
+for rendering that form.
 
 .. code-block:: django
 	:caption: form.html
@@ -132,7 +132,7 @@ rendering that form.
 When looking at the rendered HTML code, there are a few things, which admittedly, may seem unusual
 to us:
 
-* The ``<form>`` tag neither contains a ``method`` nor an ``action`` attribute.
+* The ``<form>`` tag is empty and neither contains a ``method`` nor an ``action`` attribute.
 * The CSRF-token is added to ``<django-formset>`` instead of using an
   ``<input type="hidden" value="…" />`` field.
 * The "Submit" and "Reset" buttons are located outside of the ``<form>`` element.
@@ -145,7 +145,7 @@ to us:
 In this example, the form is rendered by the special templatetag
 ``{% render_form form "tailwind" %}``. This templatetag can be parametrized to use the correct
 style-guide for each of the supported CSS frameworks. It can also be used to pass in our own CSS
-classes for labels, fields and field groups. More on this can be found in chapter
+classes for labels, fields, fieldsets and field groups. More on this can be found in chapter
 :ref:`native_form`.
 
 It also is possible to render the form using the classic approach with mustaches, ie.
@@ -169,7 +169,7 @@ Web components are based on existing web standards. Features to support web comp
 being added to the HTML and DOM specs, letting web developers easily extend HTML with new elements
 with encapsulated styling and custom behavior.
 
-The JavaScript behind this component now handles the following functions:
+The JavaScript code behind this web component handles the following functionality:
 
 * Client-side validation of our form fields using the constraints defined by our form.
 * Serializes the data entered into our form fields.

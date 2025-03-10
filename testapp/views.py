@@ -61,7 +61,7 @@ from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.profile import ProfileCollection
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.schedule import ScheduleBoxForm, ScheduleCalendarForm, SchedulePickerForm
-from testapp.forms.state import StateForm, StatesForm
+from testapp.forms.state import StateFilteredForm, StateForm, StatesForm
 from testapp.forms.terms_of_use import AcceptTermsCollection
 from testapp.forms.user import UserCollection
 from testapp.forms.upload import UploadForm
@@ -657,6 +657,9 @@ urlpatterns = [
     path('counties', DemoFormView.as_view(
         form_class=CountyForm,
     ), name='counties'),
+    path('state-filtered', DemoFormView.as_view(
+        form_class=StateFilteredForm,
+    ), name='state-filtered'),
     path('state', DemoFormView.as_view(
         form_class=StateForm,
     ), name='state'),
@@ -666,6 +669,10 @@ urlpatterns = [
     path('person', DemoModelFormView.as_view(
         form_class=ModelPersonForm,
         model=PersonModel,
+        extra_context={
+            'click_actions': 'disable -> submit -> reload !~ scrollToError',
+            'force_submission': True,
+        }
     ), name='person'),
     path('person-bootstrap-renderer', DemoFormView.as_view(
         form_class=BootstrapRenderedPersonForm,
