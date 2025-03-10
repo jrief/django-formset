@@ -10,6 +10,9 @@
   * Add management command `./manage.py cleanup_files` to delete dangling files. This is because the
     `UploadedFileInput` widget accepts files before their form is submitted and hence processed.
 
+- 1.7.4
+  * Fix #80: Allow to use `django_filters.FilterSet` on filtered widgets.
+
 - 1.7.3
   * Fix: Adopt signature of `clean()` method to Django's clean form.
   * Fix #196: Temporarily disable Calendar while fetching new sheet.
