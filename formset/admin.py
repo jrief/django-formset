@@ -9,7 +9,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models.fields import DateField, DateTimeField
 from django.db.models.fields.files import FileField
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.urls import path, reverse
+from django.urls import reverse
 from django.utils.translation import gettext
 
 from formset.calendar import CalendarRenderer
@@ -28,20 +28,20 @@ class ModelAdmin(django_admin.ModelAdmin):
     }
     calendar_renderer_class = CalendarRenderer
 
-    def get_urls(self):
-        my_urls = [
-            path(
-                'do_nothing/',
-                self.admin_site.admin_view(self.do_nothing),
-                name='do_nothing',
-            ),
-        ]
-
-        urls = super().get_urls()
-        return urls
-
-    def do_nothing(self, request):
-        return HttpResponse('Nothing to see here.')
+    # def get_urls(self):
+    #     my_urls = [
+    #         path(
+    #             'do_nothing/',
+    #             self.admin_site.admin_view(self.do_nothing),
+    #             name='do_nothing',
+    #         ),
+    #     ]
+    #
+    #     urls = super().get_urls()
+    #     return urls
+    #
+    # def do_nothing(self, request):
+    #     return HttpResponse('Nothing to see here.')
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = super().get_fieldsets(request, obj)
