@@ -212,9 +212,16 @@ class Migration(migrations.Migration):
                 ('continent', models.IntegerField(choices=[(1, 'America'), (2, 'Europe'), (3, 'Asia'), (4, 'Africa'), (5, 'Australia'), (6, 'Oceania'), (7, 'Antartica')], verbose_name='Continent')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
+                ('weight', models.IntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(42, message='You are too lightweight.'), django.core.validators.MaxValueValidator(95, message='You are too obese.')], verbose_name='Weight in kg')),
+                ('height', models.FloatField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(1.45, message='You are too short.'), django.core.validators.MaxValueValidator(1.95, message='You are too tall.')], verbose_name='Height in meters')),
+                ('annotation', models.TextField(blank=True, null=True, verbose_name='Annotation')),
                 ('opinion', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='persons', to='testapp.opinionmodel', verbose_name='Opinion')),
                 ('opinions', models.ManyToManyField(related_name='person_groups', to='testapp.opinionmodel', verbose_name='Opinions')),
             ],
+            options={
+                'verbose_name': 'Person',
+                'verbose_name_plural': 'Persons',
+            },
         ),
         migrations.CreateModel(
             name='PageModel',
