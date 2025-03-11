@@ -17,7 +17,7 @@
 .formset-dual-selector-lookup {
 	@apply formset-text-input border-b-0 rounded-b-none !important;
 }
-.dj-dual-selector ~ .dj-field-errors {
+.df-dual-selector ~ .dj-field-errors {
 	@apply text-end;
 }
 [is="django-dual-selector"] {

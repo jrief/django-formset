@@ -22,12 +22,12 @@ export class DualSelector extends IncompleteSelect {
 	private historyCursor: number = 0;
 	private lastRemoteQuery = new URLSearchParams();
 	private readonly renderNoResults: Function;
-	private readonly baseSelector = 'django-formset [role="group"] .dj-dual-selector';
+	private readonly baseSelector = 'django-formset [role="group"] .df-dual-selector';
 
 	constructor(selectorElement: HTMLSelectElement, name: string) {
 		super(selectorElement);
 		this.selectorElement = selectorElement;
-		this.containerElement = this.fieldGroup.querySelector('.dj-dual-selector');
+		this.containerElement = this.fieldGroup.querySelector('.df-dual-selector');
 		selectorElement.setAttribute('multiple', 'multiple');
 		const inputs = this.fieldGroup.querySelectorAll('input[type="text"]');
 		if (inputs.length === 2) {
@@ -48,12 +48,12 @@ export class DualSelector extends IncompleteSelect {
 		} else {
 			throw new Error(`<select is="${name}"> requires two <select>-elements`);
 		}
-		this.moveAllRightButton = this.fieldGroup.querySelector('button.dj-move-all-right') as HTMLButtonElement;
-		this.moveSelectedRightButton = this.fieldGroup.querySelector('button.dj-move-selected-right') as HTMLButtonElement;
-		this.moveSelectedLeftButton = this.fieldGroup.querySelector('button.dj-move-selected-left') as HTMLButtonElement;
-		this.moveAllLeftButton = this.fieldGroup.querySelector('button.dj-move-all-left') as HTMLButtonElement;
-		this.undoButton = this.fieldGroup.querySelector('button.dj-undo-selected') as HTMLButtonElement;
-		this.redoButton = this.fieldGroup.querySelector('button.dj-redo-selected') as HTMLButtonElement;
+		this.moveAllRightButton = this.fieldGroup.querySelector('button[aria-label="move all right"]') as HTMLButtonElement;
+		this.moveSelectedRightButton = this.fieldGroup.querySelector('button[aria-label="move selected right"]') as HTMLButtonElement;
+		this.moveSelectedLeftButton = this.fieldGroup.querySelector('button[aria-label="move selected left"]') as HTMLButtonElement;
+		this.moveAllLeftButton = this.fieldGroup.querySelector('button[aria-label="move all left"]') as HTMLButtonElement;
+		this.undoButton = this.fieldGroup.querySelector('button[aria-label="undo assignment"]') as HTMLButtonElement;
+		this.redoButton = this.fieldGroup.querySelector('button[aria-label="redo assignment"]') as HTMLButtonElement;
 		this.selectorElement.classList.add('dj-concealed');
 		const templ = selectorElement.parentElement?.querySelector('template.select-no-results');
 		this.renderNoResults = (data: any) => templ ? template(templ.innerHTML)(data) : "No results";

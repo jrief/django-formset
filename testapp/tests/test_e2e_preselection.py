@@ -182,7 +182,7 @@ def test_many_preselections(page, mocker, viewname):
     content = json.loads(spy.spy_return.content)
     spy.reset_mock()
     assert content['count'] == SelectizeMultiple.max_prefetch_choices
-    page.locator('django-formset .dj-dual-selector .left-column input').type("linc", delay=100)
-    page.locator('django-formset .dj-dual-selector .dj-move-all-right').click()
-    right_select = page.locator('django-formset .dj-dual-selector .right-column select')
+    page.locator('django-formset .df-dual-selector .left-column input').type("linc", delay=100)
+    page.locator('django-formset .df-dual-selector button[aria-label="move all right"]').click()
+    right_select = page.locator('django-formset .df-dual-selector .right-column select')
     expect(right_select.locator('option')).to_have_count(4)

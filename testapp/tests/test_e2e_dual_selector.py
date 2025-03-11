@@ -147,12 +147,12 @@ def test_move_all_right(page, mocker, view, form, viewname):
     else:
         assert incomplete is True
         assert selector_options.count() == DualSelector.max_prefetch_choices
-    select_left_element = page.locator('django-formset .dj-dual-selector .left-column select')
-    button = page.locator('django-formset .dj-dual-selector .control-column button.dj-move-all-right')
+    select_left_element = page.locator('django-formset .df-dual-selector .left-column select')
+    button = page.locator('django-formset .df-dual-selector .control-column button[aria-label="move all right"]')
     if viewname == 'selectorP':
-        select_right_element = page.locator('django-formset .dj-dual-selector .right-column django-sortable-select')
+        select_right_element = page.locator('django-formset .df-dual-selector .right-column django-sortable-select')
     else:
-        select_right_element = page.locator('django-formset .dj-dual-selector .right-column select')
+        select_right_element = page.locator('django-formset .df-dual-selector .right-column select')
     select_left_options = select_left_element.locator('option')
     select_right_options = select_right_element.locator('option')
     assert select_left_options.count() + select_right_options.count() == selector_options.count()
@@ -183,24 +183,24 @@ def test_move_all_right(page, mocker, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0', 'selector3'])
 def test_move_selected_right(page, mocker, view, form, viewname):
-    select_left = page.locator('django-formset .dj-dual-selector .left-column select')
+    select_left = page.locator('django-formset .df-dual-selector .left-column select')
     left_option_values = set()
     for index in range(30, 39):
         left_option_values.add(select_left.locator(f'option').nth(index).get_attribute('value'))
     select_left.select_option(value=list(left_option_values))
-    select_right = page.locator('django-formset .dj-dual-selector .right-column select')
+    select_right = page.locator('django-formset .df-dual-selector .right-column select')
     if form.name == 'selector_initialized':
         expect(select_right.locator('option')).to_have_count(len(get_initial_opinions()))
         left_option_values.update(o.get_attribute('value') for o in select_right.locator('option').all())
     else:
         expect(select_right.locator('option')).to_have_count(0)
-    page.locator('django-formset .dj-dual-selector button.dj-move-selected-right').click()
+    page.locator('django-formset .df-dual-selector button[aria-label="move selected right"]').click()
     right_option_values = set(o.get_attribute('value') for o in select_right.locator('option').all())
     assert left_option_values == right_option_values
     option = select_right.locator('option').nth(6)
     option.click()
     option_value = option.get_attribute('value')
-    page.locator('django-formset .dj-dual-selector button.dj-move-selected-left').click()
+    page.locator('django-formset .df-dual-selector button[aria-label="move selected left"]').click()
     left_option_values = set(o.get_attribute('value') for o in select_left.locator('option').all())
     right_option_values = set(o.get_attribute('value') for o in select_right.locator('option').all())
     assert option_value in left_option_values
@@ -217,7 +217,7 @@ def test_move_selected_right(page, mocker, view, form, viewname):
 @pytest.mark.parametrize('viewname', ['selector0'])
 def test_infinite_scroll(page, mocker, view, form, viewname):
     selector_element = page.locator('django-formset select[is="django-dual-selector"]')
-    select_left_element = page.locator('django-formset .dj-dual-selector .left-column select')
+    select_left_element = page.locator('django-formset .df-dual-selector .left-column select')
     left_options = select_left_element.locator('option')
     left_option_values = [left_options.nth(i).get_attribute('value') for i in range(left_options.count())]
     assert len(left_option_values) == DualSelector.max_prefetch_choices
@@ -260,15 +260,15 @@ def test_infinite_scroll(page, mocker, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0'])
 def test_submit_valid_form(page, mocker, view, form, viewname):
-    select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
+    select_left_element = page.query_selector('django-formset .df-dual-selector .left-column select')
     assert select_left_element is not None
     left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option')]
     select_left_element.focus()
     select_left_element.select_option(left_option_values[48:63])
-    move_button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-move-selected-right')
+    move_button = page.query_selector('django-formset .df-dual-selector .control-column button[aria-label="move selected right"]')
     assert move_button is not None
     move_button.click()
-    select_right_element = page.query_selector('django-formset .dj-dual-selector .right-column select')
+    select_right_element = page.query_selector('django-formset .df-dual-selector .right-column select')
     assert select_right_element is not None
     assert len(select_right_element.query_selector_all('option')) == 15
     select_right_element.query_selector('option[value="{}"]'.format(left_option_values[50])).dblclick()
@@ -321,11 +321,11 @@ def test_reset_selector(page, view, form, viewname):
     selector_element = page.locator('django-formset select[is="django-dual-selector"]')
     expect(selector_element).to_be_visible()
     initial_values = selector_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
-    select_left_element = page.locator('django-formset .dj-dual-selector .left-column select')
+    select_left_element = page.locator('django-formset .df-dual-selector .left-column select')
     expect(select_left_element).to_be_visible()
     left_option_values = [o.get_attribute('value') for o in select_left_element.locator('option').all()]
     select_left_element.locator('option[value="{}"]'.format(left_option_values[50])).dblclick()
-    select_right_element = page.locator('django-formset .dj-dual-selector .right-column select')
+    select_right_element = page.locator('django-formset .df-dual-selector .right-column select')
     expect(select_right_element).to_be_visible()
     right_option_values = [o.get_attribute('value') for o in select_right_element.locator('option').all()]
     assert set(initial_values).union([left_option_values[50]]) == set(right_option_values)
@@ -344,13 +344,13 @@ def test_touch_selector(page, form, viewname):
     expect(field_group).to_have_class('dj-untouched dj-pristine')
     placeholder = page.locator('django-formset ul.dj-errorlist > li.dj-placeholder')
     expect(placeholder).to_have_text('')
-    select_left_element = page.locator('django-formset .dj-dual-selector .left-column select')
+    select_left_element = page.locator('django-formset .df-dual-selector .left-column select')
     expect(select_left_element).to_be_visible()
     select_left_element.focus()
     expect(field_group).to_have_class('dj-pristine dj-touched')
     page.locator('django-formset').evaluate('elem => elem.reset()')
     expect(field_group).to_have_class('dj-pristine dj-untouched')
-    select_right_element = page.locator('django-formset .dj-dual-selector .right-column select')
+    select_right_element = page.locator('django-formset .df-dual-selector .right-column select')
     expect(select_right_element).to_be_visible()
     select_right_element.focus()
     expect(field_group).to_have_class('dj-pristine dj-touched')
@@ -359,9 +359,9 @@ def test_touch_selector(page, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0'])
 def test_left_selector_lookup(page, mocker, view, form, viewname):
-    select_left_element = page.locator('django-formset .dj-dual-selector .left-column select')
+    select_left_element = page.locator('django-formset .df-dual-selector .left-column select')
     expect(select_left_element).to_be_visible()
-    input_element = page.locator('django-formset .dj-dual-selector .left-column input')
+    input_element = page.locator('django-formset .df-dual-selector .left-column input')
     expect(input_element).to_be_visible()
     input_element.focus()
     spy = mocker.spy(view.view_class, 'get')
@@ -384,11 +384,11 @@ def test_left_selector_lookup(page, mocker, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector3'])
 def test_right_selector_lookup(page, form, viewname):
-    select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
+    select_left_element = page.query_selector('django-formset .df-dual-selector .left-column select')
     assert select_left_element is not None
-    select_right_element = page.query_selector('django-formset .dj-dual-selector .right-column select')
+    select_right_element = page.query_selector('django-formset .df-dual-selector .right-column select')
     assert select_right_element is not None
-    input_element = page.query_selector('django-formset .dj-dual-selector .right-column input')
+    input_element = page.query_selector('django-formset .df-dual-selector .right-column input')
     assert input_element is not None
     right_option_values = [o.get_attribute('value') for o in select_right_element.query_selector_all('option') if not o.is_hidden()]
     assert set(right_option_values) == set(str(o) for o in get_initial_opinions())
@@ -397,7 +397,7 @@ def test_right_selector_lookup(page, form, viewname):
     page.keyboard.press('5')
     option = select_right_element.query_selector('option:not([hidden])')
     assert option.text_content() == "Opinion 0045"
-    button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-move-all-left')
+    button = page.query_selector('django-formset .df-dual-selector .control-column button[aria-label="move all left"]')
     assert button is not None
     button.click()
     left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option')]
@@ -412,23 +412,23 @@ def test_undo_redo(page, view, form, viewname):
     selector_element = page.query_selector('django-formset select[is="django-dual-selector"]')
     assert selector_element is not None
     initial_values = selector_element.evaluate('elem => Array.from(elem.selectedOptions).map(o => o.value)')
-    undo_button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-undo-selected')
+    undo_button = page.query_selector('django-formset .df-dual-selector .control-column button[aria-label="undo assignment"]')
     assert undo_button is not None
     assert undo_button.is_disabled()
-    redo_button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-redo-selected')
+    redo_button = page.query_selector('django-formset .df-dual-selector .control-column button[aria-label="redo assignment"]')
     assert redo_button is not None
     assert redo_button.is_disabled()
-    select_left_element = page.query_selector('django-formset .dj-dual-selector .left-column select')
+    select_left_element = page.query_selector('django-formset .df-dual-selector .left-column select')
     assert select_left_element is not None
     left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option')]
     select_left_element.focus()
     select_left_element.select_option(left_option_values[68:83])
-    move_button = page.query_selector('django-formset .dj-dual-selector .control-column button.dj-move-selected-right')
+    move_button = page.query_selector('django-formset .df-dual-selector .control-column button[aria-label="move selected right"]')
     assert move_button is not None
     move_button.click()
     assert not undo_button.is_disabled()
     assert redo_button.is_disabled()
-    select_right_element = page.query_selector('django-formset .dj-dual-selector .right-column select')
+    select_right_element = page.query_selector('django-formset .df-dual-selector .right-column select')
     assert select_right_element is not None
     select_right_element.query_selector('option[value="{}"]'.format(left_option_values[70])).dblclick()
     assert len(select_right_element.query_selector_all('option')) == 14 + len(initial_values)
@@ -458,12 +458,12 @@ def test_undo_redo(page, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectorP'])
 def test_selector_sorting(page, mocker, view, form, viewname):
-    select_left_element = page.locator('django-formset .dj-dual-selector .left-column select')
+    select_left_element = page.locator('django-formset .df-dual-selector .left-column select')
     select_left_element.locator('option').nth(40).click()
     select_left_element.locator('option').nth(47).click(modifiers=['Shift'])
-    select_right_element = page.locator('django-formset .dj-dual-selector .right-column django-sortable-select')
+    select_right_element = page.locator('django-formset .df-dual-selector .right-column django-sortable-select')
     assert select_right_element.locator('option').count() == 0
-    page.locator('django-formset .dj-dual-selector .control-column button.dj-move-selected-right').click()
+    page.locator('django-formset .df-dual-selector .control-column button[aria-label="move selected right"]').click()
     assert select_right_element.locator('option').count() == 8
     first_option = select_right_element.locator('option').first
     first_option.click()
@@ -478,7 +478,7 @@ def test_selector_sorting(page, mocker, view, form, viewname):
     fourth_option = select_right_element.locator('option').nth(4)
     fourth_option.drag_to(select_right_element.locator('option').nth(6))
     sleep(0.2)  # animation is set to 150ms
-    page.locator('django-formset .dj-dual-selector .control-column button.dj-undo-selected').click()
+    page.locator('django-formset .df-dual-selector .control-column button[aria-label="undo assignment"]').click()
     spy = mocker.spy(view.view_class, 'post')
     page.locator('django-formset button[df-click]').first.click()
     sleep(0.2)  # animation is set to 150ms

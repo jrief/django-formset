@@ -3,12 +3,12 @@
 
 django-formset {
 	@media (max-width: 575.98px) {
-		.dj-dual-selector :is(.dj-move-all-right, .dj-move-selected-right, .dj-move-all-left, .dj-move-selected-left) svg {
+		.df-dual-selector :is(.df-move-all-right, .df-move-selected-right, .df-move-all-left, .df-move-selected-left) svg {
 			transform: rotate(90deg);
 		}
 	}
 
-	.dj-dual-selector {
+	.df-dual-selector {
 		input {
 			border-bottom-left-radius: 0;
 			border-bottom-right-radius: 0;

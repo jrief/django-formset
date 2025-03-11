@@ -32,7 +32,7 @@ django-formset.bootstrap {
 		border-bottom: 1px solid rgb(206, 212, 218);
 		margin-bottom: -9px;
 	}
-	.dj-dual-selector {
+	.df-dual-selector {
 		input {
 			border-bottom-left-radius: 0;
 			border-bottom-right-radius: 0;
@@ -42,6 +42,9 @@ django-formset.bootstrap {
 			border-top-right-radius: 0;
 			margin-top: -1px;
 			width: 100% !important;
+		}
+		django-sortable-select.focus {
+			border-color: rgb(134, 183, 254);
 		}
 	}
 	dialog {
