@@ -27,6 +27,10 @@ class PersonModel(models.Model):
         upload_to='images',
         blank=True,
     )
+    is_active = models.BooleanField(
+        verbose_name="Active",
+        default=False,
+    )
     gender = models.CharField(
         verbose_name="Gender",
         choices=Gender.choices,

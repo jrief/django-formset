@@ -158,6 +158,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('full_name', models.CharField(max_length=50, verbose_name='Full Name')),
                 ('avatar', models.FileField(blank=True, upload_to='images')),
+                ('is_active', models.BooleanField(default=False, verbose_name='Active')),
                 ('gender', models.CharField(choices=[('female', 'Female'), ('male', 'Male')], default=None, max_length=10, verbose_name='Gender')),
                 ('birth_date', models.DateField(verbose_name='Birth Date')),
                 ('continent', models.IntegerField(choices=[(1, 'America'), (2, 'Europe'), (3, 'Asia'), (4, 'Africa'), (5, 'Australia'), (6, 'Oceania'), (7, 'Antartica')], verbose_name='Continent')),
