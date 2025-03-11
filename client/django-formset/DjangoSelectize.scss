@@ -16,6 +16,11 @@
 		flex-wrap: wrap;
 		align-content: center;
 
+		background-image: var(--django-formset-dropdown-caret);
+		background-position: right 0.25rem center;
+		background-repeat: no-repeat;
+		background-size: 1rem;
+
 		> input {
 			flex: 1 1 auto;
 			box-sizing: border-box;
