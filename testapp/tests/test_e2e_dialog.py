@@ -51,12 +51,17 @@ urlpatterns = [
         template_name='testapp/form-collection.html',
         extra_context={'click_actions': 'submit -> proceed', 'force_submission': True},
     ), name='dialog'),
+    path('dialog-valid', DialogFormCollectionView.as_view(
+        collection_class=DialogCollection,
+        template_name='testapp/form-collection.html',
+        extra_context={'click_actions': 'submit -> proceed'},
+    ), name='dialog-valid'),
     get_javascript_catalog(),
 ]
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['dialog'])
+@pytest.mark.parametrize('viewname', ['dialog', 'dialog-valid'])
 def test_submit_dialog(page, mocker, viewname):
     # check that induce_open = 'customer.click_inside:active || …' works
     form_collection = page.locator('django-formset > django-form-collection')
