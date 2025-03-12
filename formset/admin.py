@@ -8,15 +8,15 @@ from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.core.exceptions import PermissionDenied
 from django.db.models.fields import BooleanField
 from django.db.models.fields.files import FileField
+from django.db.models.fields.related import ManyToManyField
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.urls import reverse
 from django.utils.translation import gettext
 
-from formset.boundfield import ClassList
 from formset.forms import FormMixin, FieldsetModelFormMetaclass
 from formset.renderers.admin import FormRenderer
 from formset.upload import receive_uploaded_file
-from formset.widgets import UploadedFileInput
+from formset.widgets import DualSelector, UploadedFileInput
 
 
 class ModelAdmin(django_admin.ModelAdmin):
@@ -24,6 +24,7 @@ class ModelAdmin(django_admin.ModelAdmin):
     formfield_overrides = {
         BooleanField: {'label_suffix': ''},
         FileField: {'widget': UploadedFileInput},
+        ManyToManyField: {'widget': DualSelector},
     }
 
     def get_fieldsets(self, request, obj=None):

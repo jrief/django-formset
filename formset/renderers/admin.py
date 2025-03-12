@@ -30,10 +30,14 @@ class FormRenderer(DefaultFormRenderer):
         context['widget']['attrs']['class'].add('vTextField')
         return context
 
+    def _amend_dual_selector(self, context):
+        breakpoint('amend_dual_selector')
+        return context
+
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
         'django/forms/div.html': DefaultFormRenderer._amend_form,
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_input,
         'formset/default/widgets/datetime.html': _amend_input,
-        # 'formset/default/widgets/dual_selector.html': _amend_input,
+        'formset/default/widgets/dual_selector.html': _amend_dual_selector,
     })
