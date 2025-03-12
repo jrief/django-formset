@@ -35,9 +35,9 @@ library with a form each. Each form validates the user input according to the co
 by their physicochemical characteristics.
 
 In a typical Django application we now would have to create one form and combine the fields from
-both libraries, then create a validation method (typically `clean()`) integrating the contraints for
-both of them. But in order to keep our software modular, we would like to leave those independent
-forms as separate entities.
+both libraries, then create a validation method (typically ``clean()``) integrating the constraints
+for both of them. But in order to keep our software modular, we would like to leave those
+independent forms as separate entities.
 
 Here is a very simplified example showing how we can achive this:
 
