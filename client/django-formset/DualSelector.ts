@@ -21,7 +21,7 @@ export class DualSelector extends IncompleteSelect {
 	private historicValues: string[][] = [];
 	private historyCursor: number = 0;
 	private lastRemoteQuery = new URLSearchParams();
-	private readonly renderNoResults: Function;
+	private readonly renderNoResults = template(gettext("No results found for '${input}'"));
 	private readonly baseSelector = 'django-formset [role="group"] .df-dual-selector';
 
 	constructor(selectorElement: HTMLSelectElement, name: string) {
@@ -55,8 +55,6 @@ export class DualSelector extends IncompleteSelect {
 		this.undoButton = this.fieldGroup.querySelector('button[aria-label="undo assignment"]') as HTMLButtonElement;
 		this.redoButton = this.fieldGroup.querySelector('button[aria-label="redo assignment"]') as HTMLButtonElement;
 		this.selectorElement.classList.add('dj-concealed');
-		const templ = selectorElement.parentElement?.querySelector('template.select-no-results');
-		this.renderNoResults = (data: any) => templ ? template(templ.innerHTML)(data) : "No results";
 		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
 			this.transferStyles();
 		}

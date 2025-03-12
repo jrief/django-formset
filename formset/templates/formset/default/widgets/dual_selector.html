@@ -1,8 +1,5 @@
 {% load translate from i18n %}
 {% spaceless %}
-{% block "select-no-results" %}
-<template class="select-no-results">{% translate "No results found for '${input}'" %}</template>
-{% endblock %}
 {% block "select-extra-styles" %}{% endblock %}
 {% with select_size=widget.attrs.size|default:8 %}
 <div class="{% block "wrapper_classes" %}df-dual-selector{% endblock %}">
