@@ -134,6 +134,7 @@ export abstract class FormDialogBase {
 
 class FormDialog extends FormDialogBase implements Inducible {
 	private form?: DjangoForm;
+	private formIsValid: Function = () => false;
 
 	constructor(element: HTMLDialogElement) {
 		super(element);
@@ -147,8 +148,16 @@ class FormDialog extends FormDialogBase implements Inducible {
 		if (!(event instanceof CustomEvent))
 			return;
 		this.form = event.detail.form as DjangoForm;
+		this.formIsValid = this.form.isValid;
+		this.form.isValid = this.isDialogValid.bind(this);  // override DjangoForm's isValid() method
 		this.form.formset.registerInducer(this, this.updateOperability);
 	};
+
+	private isDialogValid() {
+		if (!this.element.open)
+			return true;  // closed dialogs are considered as valid because they are unable to report errors
+		return this.formIsValid();
+	}
 
 	protected openDialog(...args: any[]) {
 		if (this.element.open)
@@ -166,10 +175,9 @@ class FormDialog extends FormDialogBase implements Inducible {
 	protected closeDialog(...args: any[]) {
 		if (!isString(args[1]))
 			return;
-		const form = this.form!;
 		switch (args[1]) {
 			case 'apply':
-				if (form.isValid()) {
+				if (this.formIsValid()) {
 					this.element.close('apply');
 				}
 				break;
@@ -178,10 +186,10 @@ class FormDialog extends FormDialogBase implements Inducible {
 				this.element.close('close');
 				break;
 			case 'reset':
-				form.resetToInitial();
+				this.form?.resetToInitial();
 				break;
 			case 'clear':
-				form.resetToInitial();
+				this.form?.resetToInitial();
 				this.element.blur();
 				this.element.close('clear');
 				break;

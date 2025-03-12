@@ -1270,7 +1270,7 @@ class DjangoForm {
 		return this.formset.validate();
 	}
 
-	isValid() : boolean {
+	isValid = () : boolean => {
 		if (this.element.noValidate)
 			return true;
 		let isValid = true;
@@ -1278,7 +1278,7 @@ class DjangoForm {
 			isValid = fieldGroup.setValidationError() && isValid;
 		}
 		return isValid;
-	}
+	};
 
 	checkValidity() {
 		if (this.element.noValidate || this.isTransient)
