@@ -55,9 +55,9 @@ class FormRenderer(DjangoTemplates):
         return context
 
     def _amend_label(self, context, hide_checkbox_label=False):
+        if not isinstance(context['attrs'], dict):
+            context['attrs'] = {}
         if self.label_css_classes:
-            if not isinstance(context['attrs'], dict):
-                context['attrs'] = {}
             context['attrs']['class'] = ClassList(self.label_css_classes)
         widget_type = context['field'].widget_type
         if hide_checkbox_label and widget_type == 'checkbox':

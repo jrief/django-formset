@@ -6,42 +6,25 @@ from django.contrib.admin import helpers
 from django.contrib.admin.options import IS_POPUP_VAR, TO_FIELD_VAR
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.core.exceptions import PermissionDenied
-from django.db.models.fields import DateField, DateTimeField
+from django.db.models.fields import BooleanField
 from django.db.models.fields.files import FileField
-from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.urls import reverse
 from django.utils.translation import gettext
 
-from formset.calendar import CalendarRenderer
+from formset.boundfield import ClassList
 from formset.forms import FormMixin, FieldsetModelFormMetaclass
 from formset.renderers.admin import FormRenderer
 from formset.upload import receive_uploaded_file
-from formset.widgets import DatePicker, DateTimePicker, UploadedFileInput
+from formset.widgets import UploadedFileInput
 
 
 class ModelAdmin(django_admin.ModelAdmin):
     change_form_template = 'admin/formset/change_form.html'
     formfield_overrides = {
+        BooleanField: {'label_suffix': ''},
         FileField: {'widget': UploadedFileInput},
-        DateField: {'widget': DatePicker},
-        DateTimeField: {'widget': DateTimePicker},
     }
-    calendar_renderer_class = CalendarRenderer
-
-    # def get_urls(self):
-    #     my_urls = [
-    #         path(
-    #             'do_nothing/',
-    #             self.admin_site.admin_view(self.do_nothing),
-    #             name='do_nothing',
-    #         ),
-    #     ]
-    #
-    #     urls = super().get_urls()
-    #     return urls
-    #
-    # def do_nothing(self, request):
-    #     return HttpResponse('Nothing to see here.')
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = super().get_fieldsets(request, obj)
@@ -53,22 +36,23 @@ class ModelAdmin(django_admin.ModelAdmin):
             super(self.__class__, self).__init__(*args, **kwargs)
 
         form = super().get_form(request, obj, change, **kwargs)
+        field_css_classes = {key: f'field-{key}' for key in form.base_fields.keys()}
         form = types.new_class(
             form.__name__,
             bases=(FormMixin, form),
             kwds={'metaclass': FieldsetModelFormMetaclass},
             exec_body=lambda ns: ns.update({
                 '__init__': init,
-                'default_renderer': FormRenderer(),
+                'default_renderer': FormRenderer(field_css_classes=field_css_classes),
             }),
         )
         return form
 
-    def add_view(self, request, form_url="", extra_context=None):
-        return self.changeform_view(request, None, form_url, extra_context)
-
-    def change_view(self, request, object_id, form_url="", extra_context=None):
-        return self.changeform_view(request, object_id, form_url, extra_context)
+    # def add_view(self, request, form_url="", extra_context=None):
+    #     return self.changeform_view(request, None, form_url, extra_context)
+    #
+    # def change_view(self, request, object_id, form_url="", extra_context=None):
+    #     return self.changeform_view(request, object_id, form_url, extra_context)
 
     def _changeform_view(self, request, object_id, form_url, extra_context):
         to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
@@ -169,15 +153,8 @@ class ModelAdmin(django_admin.ModelAdmin):
             # else:
             #     form_validated = False
         else:
-            if request.accepts('text/html') and 'calendar' in request.GET:
-                try:
-                    start_datetime, hour12, pure, view_mode, interval = self.calendar_renderer_class.parse_request(
-                        request
-                    )
-                except (TypeError, ValueError):
-                    return HttpResponseBadRequest("Invalid parameter 'calendar'")
-                cal = self.calendar_renderer_class(start_datetime=start_datetime)
-                return HttpResponse(cal.render(view_mode, hour12, pure, interval))
+            if 'calendar' in request.GET:
+                return self.get(request)
 
             if add:
                 initial = self.get_changeform_initial_data(request)

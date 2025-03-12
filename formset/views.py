@@ -38,7 +38,10 @@ class IncompleteSelectResponseMixin:
             field = self.get_field(field_path)
         except (KeyError, ValueError):
             return HttpResponseBadRequest(f"No such field: {field_path}")
-        assert isinstance(field.widget, (Selectize, DualSelector))
+        assert (
+            isinstance(field.widget, (Selectize, DualSelector)),
+            f"Field {field_path} must use widget either `Selectize` or `DualSelector`."
+        )
         widget = field.widget
         try:
             offset = int(request.GET.get('offset'))

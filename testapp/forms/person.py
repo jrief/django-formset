@@ -5,7 +5,7 @@ from django.forms import fields, forms, models, widgets
 
 from formset.forms import FormMixin
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
-from formset.widgets import DateInput, Selectize, SelectizeMultiple, UploadedFileInput
+from formset.widgets import DatePicker, DualSelector, Selectize, SelectizeMultiple, UploadedFileInput
 
 from testapp.models import PersonModel
 
@@ -106,7 +106,8 @@ class ModelPersonForm(models.ModelForm):
         widgets = {
             'avatar': UploadedFileInput,
             'gender': widgets.RadioSelect,
-            'birth_date': DateInput,
+            'birth_date': DatePicker,
             'opinion': Selectize(search_lookup='label__icontains'),
-            'opinions': SelectizeMultiple(search_lookup='label__icontains', max_items=15),
+            #'opinions': SelectizeMultiple(search_lookup='label__icontains', max_items=15),
+            'opinions': DualSelector(search_lookup='label__icontains'),
         }

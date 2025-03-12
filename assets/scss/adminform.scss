@@ -21,6 +21,40 @@ input[type^="date"] {
 	color: var(--body-fg);
 	background-color: var(--body-bg);
 }
-.form-row:has([role="dialog"]) {
+.form-row:has([role="dialog"], [is="django-selectize"]) {
 	overflow: visible;
+}
+.form-row [is="django-selectize"] {
+	width: calc(100% - 170px);
+}
+.df-dual-selector {
+	input {
+		border-bottom-left-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+
+	:is(select, django-sortable-select) {
+		border-top-left-radius: 0;
+		border-top-right-radius: 0;
+		margin-top: -1px;
+	}
+
+	.control-panel {
+		padding: 1rem 1rem 0 !important;
+
+		button:is(.df-move-all-right, .df-move-selected-right, .df-move-all-left, .df-move-selected-left, .df-undo-assignment, .df-redo-assignment) {
+			background: var(--button-bg);
+			padding: 2px 8px;
+			border: none;
+			border-radius: 4px;
+			color: var(--button-fg);
+			cursor: pointer;
+			transition: background 0.15s;
+			margin: 1px;
+
+			&:hover {
+				background: var(--button-hover-bg);
+			}
+		}
+	}
 }
