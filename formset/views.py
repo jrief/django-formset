@@ -17,7 +17,7 @@ from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormView as GenericFormView
 
 from formset.upload import FileUploadMixin
-from formset.widgets import DualSelector, Selectize
+from formset.widgets import IncompleteSelectMixin
 
 
 class IncompleteSelectResponseMixin:
@@ -39,8 +39,8 @@ class IncompleteSelectResponseMixin:
         except (KeyError, ValueError):
             return HttpResponseBadRequest(f"No such field: {field_path}")
         assert (
-            isinstance(field.widget, (Selectize, DualSelector)),
-            f"Field {field_path} must use widget either `Selectize` or `DualSelector`."
+            isinstance(field.widget, IncompleteSelectMixin),
+            f"Field {field_path} must use a widget inheriting from `IncompleteSelectMixin`."
         )
         widget = field.widget
         try:

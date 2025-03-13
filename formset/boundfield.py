@@ -101,7 +101,7 @@ class BoundField(boundfield.BoundField):
             attrs['pattern'] = self.field.regex.pattern
         if isinstance(self.field, JSONField):
             attrs['use_json'] = True
-        if isinstance(self.field, Activator):
+        if isinstance(self.field, Activator) or self.widget_type == 'dualselector':
             label = self.name.replace('_', ' ').title() if self.field.label is None else self.field.label
             attrs['label'] = label  # remember label for ButtonWidget.get_context()
         return attrs

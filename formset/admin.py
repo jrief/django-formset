@@ -5,10 +5,10 @@ from django.contrib import admin as django_admin
 from django.contrib.admin import helpers
 from django.contrib.admin.options import IS_POPUP_VAR, TO_FIELD_VAR
 from django.contrib.admin.utils import flatten_fieldsets, unquote
+from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
 from django.core.exceptions import PermissionDenied
 from django.db.models.fields import BooleanField
 from django.db.models.fields.files import FileField
-from django.db.models.fields.related import ManyToManyField
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.urls import reverse
 from django.utils.translation import gettext
@@ -16,15 +16,16 @@ from django.utils.translation import gettext
 from formset.forms import FormMixin, FieldsetModelFormMetaclass
 from formset.renderers.admin import FormRenderer
 from formset.upload import receive_uploaded_file
-from formset.widgets import DualSelector, UploadedFileInput
+from formset.calendar import CalendarResponseMixin
+from formset.views import IncompleteSelectResponseMixin
+from formset.widgets import UploadedFileInput
 
 
-class ModelAdmin(django_admin.ModelAdmin):
+class ModelAdmin(CalendarResponseMixin, IncompleteSelectResponseMixin, django_admin.ModelAdmin):
     change_form_template = 'admin/formset/change_form.html'
     formfield_overrides = {
         BooleanField: {'label_suffix': ''},
         FileField: {'widget': UploadedFileInput},
-        ManyToManyField: {'widget': DualSelector},
     }
 
     def get_fieldsets(self, request, obj=None):
@@ -38,6 +39,13 @@ class ModelAdmin(django_admin.ModelAdmin):
 
         form = super().get_form(request, obj, change, **kwargs)
         field_css_classes = {key: f'field-{key}' for key in form.base_fields.keys()}
+        # we have to add fields using our own widgets (`Selectize`, `SelectizeMultiple` and `DualSelector`) to
+        # `raw_id_fields` in order to prevent Django from rendering them inside a `RelatedFieldWidgetWrapper`.
+        # See ticket https://code.djangoproject.com/ticket/36250 for details.
+        self.raw_id_fields = [
+            name for name, field in form.base_fields.items()
+            if isinstance(field.widget, RelatedFieldWidgetWrapper)
+        ] + list(self.raw_id_fields)
         form = types.new_class(
             form.__name__,
             bases=(FormMixin, form),
@@ -49,11 +57,9 @@ class ModelAdmin(django_admin.ModelAdmin):
         )
         return form
 
-    # def add_view(self, request, form_url="", extra_context=None):
-    #     return self.changeform_view(request, None, form_url, extra_context)
-    #
-    # def change_view(self, request, object_id, form_url="", extra_context=None):
-    #     return self.changeform_view(request, object_id, form_url, extra_context)
+    def get_field(self, field_path):
+        field_name = field_path.split('.')[-1]
+        return self.form_class.base_fields[field_name]
 
     def _changeform_view(self, request, object_id, form_url, extra_context):
         to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
@@ -116,45 +122,28 @@ class ModelAdmin(django_admin.ModelAdmin):
             if form.is_valid():
                 new_object = form.save()
                 if request_target == '_save' or request_target == '_saveasnew' and not self.save_as_continue:
-                    return JsonResponse({
-                        'success_url': reverse(
-                            f'admin:{self.opts.app_label}_{self.opts.model_name}_changelist',
-                            current_app=self.admin_site.name,
-                        ),
-                    })
-                if request_target == '_addanother':
-                    return JsonResponse({
-                        'success_url': reverse(
-                            f'admin:{self.opts.app_label}_{self.opts.model_name}_add',
-                            current_app=self.admin_site.name,
-                        ),
-                    })
-                if request_target == '_continue' or request_target == '_saveasnew' and self.save_as_continue:
-                    return JsonResponse({
-                        'success_url': reverse(
-                            f'admin:{self.opts.app_label}_{self.opts.model_name}_change',
-                            args=(new_object.pk,),
-                            current_app=self.admin_site.name,
-                        ),
-                    })
+                    success_url = reverse(
+                        f'admin:{self.opts.app_label}_{self.opts.model_name}_changelist',
+                        current_app=self.admin_site.name,
+                    )
+                elif request_target == '_addanother':
+                    success_url = reverse(
+                        f'admin:{self.opts.app_label}_{self.opts.model_name}_add',
+                        current_app=self.admin_site.name,
+                    )
+                else:
+                    assert request_target == '_continue' or request_target == '_saveasnew' and self.save_as_continue
+                    success_url = reverse(
+                        f'admin:{self.opts.app_label}_{self.opts.model_name}_change',
+                        args=(new_object.pk,),
+                        current_app=self.admin_site.name,
+                    )
+                return JsonResponse({'success_url': success_url})
             else:
                 return JsonResponse(form.errors, status=422, safe=False)
-            # if django_admin.all_valid(formsets) and form_validated:
-            #     self.save_model(request, new_object, form, not add)
-            #     self.save_related(request, form, formsets, not add)
-            #     change_message = self.construct_change_message(
-            #         request, form, formsets, add
-            #     )
-            #     if add:
-            #         self.log_addition(request, new_object, change_message)
-            #         return self.response_add(request, new_object)
-            #     else:
-            #         self.log_change(request, new_object, change_message)
-            #         return self.response_change(request, new_object)
-            # else:
-            #     form_validated = False
         else:
-            if 'calendar' in request.GET:
+            if 'calendar' in request.GET or 'field' in request.GET:
+                self.form_class = ModelForm
                 return self.get(request)
 
             if add:
@@ -213,19 +202,6 @@ class ModelAdmin(django_admin.ModelAdmin):
             "errors": django_admin.helpers.AdminErrorList(form, formsets),
             "preserved_filters": self.get_preserved_filters(request),
         }
-
-        # Hide the "Save" and "Save and continue" buttons if "Save as New" was
-        # previously chosen to prevent the interface from getting confusing.
-        if (
-            request.method == "POST"
-            and not form_validated
-            and "_saveasnew" in request.POST
-        ):
-            context["show_save"] = False
-            context["show_save_and_continue"] = False
-            # Use the change template instead of the add template.
-            add = False
-
         context.update(extra_context or {})
 
         return self.render_change_form(

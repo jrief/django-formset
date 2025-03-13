@@ -1,7 +1,42 @@
 {% extends "formset/default/widgets/dual_selector.html" %}
+{% load i18n %}
 
-{% block "wrapper_classes" %}{{ block.super }} related-widget-wrapper jacob-test{% endblock %}
-<div class="selector">
-{% block "left-column" %}<div class="selector-available">{{ block.super }}</div>{% endblock %}
-{% block "right-column" %}<div class="selector-chosen">{{ block.super }}</div>{% endblock %}
-</div>
+{% block "wrapper_classes" %}{{ block.super }} selector{% endblock %}
+{% block "left-column" %}
+	<div class="selector-available">
+		{% with label=widget.attrs.label %}
+		<h2>{% blocktranslate %}Available {{ label }}{% endblocktranslate %}<span class="help help-tooltip help-icon" title="{% blocktranslate %}This is the list of available {{ label }}. You may choose some by selecting them in the box below and then clicking the &quot;Choose&quot; arrow between the two boxes.{% endblocktranslate %}"></span></h2>
+		<p class="selector-filter">
+			<label>
+				<span class="help-tooltip search-label-icon" title="{% blocktranslate %}Type into this box to filter down the list of available {{ label }}.{% endblocktranslate %}"></span>
+			</label>
+			<input type="text" class="dj-exempt-feedback" placeholder="{% translate 'Filter' %}" />
+		</p>
+		<select multiple class="dj-exempt-feedback" size="{{ select_size }}"></select>
+		{% endwith %}
+	</div>
+{% endblock %}
+{% block "control-panel" %}
+	<ul class="selector-chooser">
+		<li>{% include "formset/default/buttons/move_all_right.html" %}</li>
+		<li>{% include "formset/default/buttons/move_selected_right.html" %}</li>
+		<li>{% include "formset/default/buttons/move_selected_left.html" %}</li>
+		<li>{% include "formset/default/buttons/move_all_left.html" %}</li>
+		<li>{% include "formset/default/buttons/undo_assignment.html" %}</li>
+		<li>{% include "formset/default/buttons/redo_assignment.html" %}</li>
+	</ul>
+{% endblock %}
+{% block "right-column" %}
+	<div class="selector-chosen">
+		{% with label=widget.attrs.label %}
+		<h2>{% blocktranslate %}Chosen {{ label }}{% endblocktranslate %}<span class="help help-tooltip help-icon" title="{% blocktranslate %}This is the list of chosen {{ label }}. You may remove some by selecting them in the box below and then clicking the &quot;Remove&quot; arrow between the two boxes.{% endblocktranslate %}"></span></h2>
+		<p class="selector-filter">
+			<label>
+				<span class="help-tooltip search-label-icon" title="{% blocktranslate %}Type into this box to filter down the list of available {{ label }}.{% endblocktranslate %}"></span>
+			</label>
+			<input type="text" class="dj-exempt-feedback" placeholder="{% translate 'Filter' %}" />
+		</p>
+		<select multiple class="dj-exempt-feedback" size="{{ select_size }}"></select>
+		{% endwith %}
+	</div>
+{% endblock %}

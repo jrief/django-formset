@@ -12,7 +12,7 @@ class FormRenderer(DefaultFormRenderer):
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
         'django/forms/div.html': 'formset/admin/form.html',
         'formset/default/widgets/file.html': 'formset/admin/widgets/file.html',
-        'admin/widgets/related_widget_wrapper.html': 'formset/admin/widgets/related_widget_wrapper.html',
+        'formset/default/widgets/dual_selector.html': 'formset/admin/widgets/dual_selector.html',
     })
 
     def _amend_label(self, context):
@@ -39,5 +39,5 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_input,
         'formset/default/widgets/datetime.html': _amend_input,
-        'formset/default/widgets/dual_selector.html': _amend_dual_selector,
+        #'formset/default/widgets/dual_selector.html': _amend_dual_selector,
     })

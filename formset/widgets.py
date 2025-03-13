@@ -327,6 +327,7 @@ class DualSortableSelector(DualSelector):
         context = super().get_context(name, value, attrs)
         context['is_sortable'] = True
         return context
+
     def _options_model_choice(self, name, values, attrs=None):
         values_list = [str(val) for val in values]
         optgroups, counter = [], 0
