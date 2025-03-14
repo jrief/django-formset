@@ -163,12 +163,16 @@ class FieldGroup {
 			if (element instanceof HTMLInputElement) {
 				if (window.customElements.get('django-datefield') && element.getAttribute('is') === 'django-datefield'
 				 || window.customElements.get('django-datecalendar') && element.getAttribute('is') === 'django-datecalendar'
-				 || window.customElements.get('django-datepicker') && element.getAttribute('is') === 'django-datepicker')
-					return element.valueAsDate?.toISOString().slice(0, 10) ?? '';
+				 || window.customElements.get('django-datepicker') && element.getAttribute('is') === 'django-datepicker') {
+					const date = element.valueAsDate;
+				 	return date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10) : '';
+				 }
 				if (window.customElements.get('django-datetimefield') && element.getAttribute('is') === 'django-datetimefield'
 				 || window.customElements.get('django-datetimecalendar') && element.getAttribute('is') === 'django-datetimecalendar'
-				 || window.customElements.get('django-datetimepicker') && element.getAttribute('is') === 'django-datetimepicker')
-					return element.valueAsDate?.toISOString().replace('T', ' '). slice(0, 16) ?? '';
+				 || window.customElements.get('django-datetimepicker') && element.getAttribute('is') === 'django-datetimepicker') {
+					const date = element.valueAsDate;
+				 	return date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().replace('T', ' ').slice(0, 16) : '';
+				}
 				if (window.customElements.get('django-daterangefield') && element.getAttribute('is') === 'django-daterangefield'
 				 || window.customElements.get('django-daterangecalendar') && element.getAttribute('is') === 'django-daterangecalendar'
 				 || window.customElements.get('django-daterangepicker') && element.getAttribute('is') === 'django-daterangepicker')
