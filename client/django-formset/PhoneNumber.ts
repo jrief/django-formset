@@ -232,7 +232,7 @@ class PhoneNumberField {
 		computePosition(this.textBox, this.internationalSelector, {
 			middleware: [autoPlacement()],
 		}).then(() => Object.assign(
-			this.internationalSelector.style, {zIndex: `${zIndex + 1}`}
+			this.internationalSelector.style, {zIndex: `${zIndex + 2}`}
 		));
 	};
 

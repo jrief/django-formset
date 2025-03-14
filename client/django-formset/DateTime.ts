@@ -325,7 +325,7 @@ class DateTimeField extends Widget {
 		computePosition(this.textBox, this.calendar.element, {
 			middleware: [flip(), shift()],
 		}).then(({y}) => Object.assign(
-			this.calendar!.element.style, {top: `${y}px`, zIndex: `${zIndex + 1}`}
+			this.calendar!.element.style, {top: `${y}px`, zIndex: `${zIndex + 2}`}
 		));
 	};
 
