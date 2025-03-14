@@ -5,7 +5,7 @@
 {% block "left-column" %}
 	<div class="selector-available">
 		{% with label=widget.attrs.label %}
-		<h2>{% blocktranslate %}Available {{ label }}{% endblocktranslate %}<span class="help help-tooltip help-icon" title="{% blocktranslate %}This is the list of available {{ label }}. You may choose some by selecting them in the box below and then clicking the &quot;Choose&quot; arrow between the two boxes.{% endblocktranslate %}"></span></h2>
+		<h2>{% blocktranslate %}Available {{ label }}{% endblocktranslate %} <span class="help help-tooltip help-icon" title="{% blocktranslate %}This is the list of available {{ label }}. You may choose some by selecting them in the box below and then clicking the &quot;Choose&quot; arrow between the two boxes.{% endblocktranslate %}"></span></h2>
 		<p class="selector-filter">
 			<label>
 				<span class="help-tooltip search-label-icon" title="{% blocktranslate %}Type into this box to filter down the list of available {{ label }}.{% endblocktranslate %}"></span>
@@ -29,7 +29,7 @@
 {% block "right-column" %}
 	<div class="selector-chosen">
 		{% with label=widget.attrs.label %}
-		<h2>{% blocktranslate %}Chosen {{ label }}{% endblocktranslate %}<span class="help help-tooltip help-icon" title="{% blocktranslate %}This is the list of chosen {{ label }}. You may remove some by selecting them in the box below and then clicking the &quot;Remove&quot; arrow between the two boxes.{% endblocktranslate %}"></span></h2>
+		<h2>{% blocktranslate %}Chosen {{ label }}{% endblocktranslate %} <span class="help help-tooltip help-icon" title="{% blocktranslate %}This is the list of chosen {{ label }}. You may remove some by selecting them in the box below and then clicking the &quot;Remove&quot; arrow between the two boxes.{% endblocktranslate %}"></span></h2>
 		<p class="selector-filter">
 			<label>
 				<span class="help-tooltip search-label-icon" title="{% blocktranslate %}Type into this box to filter down the list of available {{ label }}.{% endblocktranslate %}"></span>
