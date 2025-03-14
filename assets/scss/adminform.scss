@@ -72,14 +72,16 @@ input[type^="date"] {
 				background-color: var(--close-button-bg);
 				color: var(--primary-fg);
 				opacity: 0.8;
+				width: 16px;
+				height: 16px;
 
 				&:hover {
 					opacity: 1;
 				}
 
 				svg {
-					width: 80%;
-					height: 80%;
+					width: 75%;
+					height: 75%;
 				}
 			}
 		}
