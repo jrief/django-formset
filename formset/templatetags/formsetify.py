@@ -7,7 +7,7 @@ from django.middleware.csrf import get_token
 from django.template.exceptions import TemplateSyntaxError
 from django.utils.module_loading import import_string
 
-from formset.forms import FormMixin, DeclarativeFieldsetMetaclass, FieldsetModelFormMetaclass
+from formset.forms import FormMixin, DeclarativeFieldsetMetaclass, FormsetModelFormMetaclass
 from formset.renderers.default import FormRenderer
 from formset.utils import FormsetErrorList
 
@@ -17,7 +17,7 @@ def _formsetify(form, *args, **kwargs):
         "Must be applied to a Form object inheriting from 'django.forms.BaseForm'."
     if not isinstance(form, FormMixin):
         if isinstance(form, BaseModelForm):
-            metaclass = FieldsetModelFormMetaclass
+            metaclass = FormsetModelFormMetaclass
         elif isinstance(form, BaseForm):
             metaclass = DeclarativeFieldsetMetaclass
         else:

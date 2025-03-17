@@ -3,7 +3,7 @@ from django.db.models.fields.related import ManyToManyField
 from django.forms import fields
 
 from formset.utils import FileFieldMixin, HolderMixin
-from formset.widgets import Button, DualSortableSelector, UploadedFileInput
+from formset.widgets import Button, DualSortableSelector, EmptyWidget, UploadedFileInput
 
 
 class FileField(FileFieldMixin, fields.FileField):
@@ -99,3 +99,15 @@ class SortableManyToManyField(ManyToManyField):
         if not isinstance(form_field.widget, DualSortableSelector):
             form_field.widget = DualSortableSelector()
         return form_field
+
+
+class ShadowField(fields.Field):
+    """
+    A pseudo field to be used for mimicking a field value, which actually is not rendered inside the form.
+    This is required for forms using the `fields_map` option.
+    """
+    widget = EmptyWidget
+
+    def __init__(self, required=False, *args, **kwargs):
+        # a ShadowField can not be required
+        super().__init__(required=required, *args, **kwargs)

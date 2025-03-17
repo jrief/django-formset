@@ -13,7 +13,7 @@ from django.http import HttpResponseBadRequest, JsonResponse
 from django.urls import reverse
 from django.utils.translation import gettext
 
-from formset.forms import FormMixin, FieldsetModelFormMetaclass
+from formset.forms import FormMixin, FormsetModelFormMetaclass
 from formset.renderers.admin import FormRenderer
 from formset.upload import receive_uploaded_file
 from formset.calendar import CalendarResponseMixin
@@ -27,10 +27,6 @@ class ModelAdmin(CalendarResponseMixin, IncompleteSelectResponseMixin, django_ad
         BooleanField: {'label_suffix': ''},
         FileField: {'widget': UploadedFileInput},
     }
-
-    def get_fieldsets(self, request, obj=None):
-        fieldsets = super().get_fieldsets(request, obj)
-        return fieldsets
 
     def get_form(self, request, obj=None, change=False, **kwargs):
         def init(self, *args, **kwargs):
@@ -46,15 +42,16 @@ class ModelAdmin(CalendarResponseMixin, IncompleteSelectResponseMixin, django_ad
             name for name, field in form.base_fields.items()
             if isinstance(field.widget, RelatedFieldWidgetWrapper)
         ] + list(self.raw_id_fields)
-        form = types.new_class(
-            form.__name__,
-            bases=(FormMixin, form),
-            kwds={'metaclass': FieldsetModelFormMetaclass},
-            exec_body=lambda ns: ns.update({
-                '__init__': init,
-                'default_renderer': FormRenderer(field_css_classes=field_css_classes),
-            }),
-        )
+        if not isinstance(form, FormMixin):
+            form = types.new_class(
+                form.__name__,
+                bases=(FormMixin, form),
+                kwds={'metaclass': FormsetModelFormMetaclass},
+                exec_body=lambda ns: ns.update({
+                    '__init__': init,
+                    'default_renderer': FormRenderer(field_css_classes=field_css_classes),
+                }),
+            )
         return form
 
     def get_field(self, field_path):

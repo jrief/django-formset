@@ -15,7 +15,7 @@ from django.utils.translation import gettext_lazy
 
 from formset.exceptions import FormCollectionError
 from formset.fields import Activator
-from formset.forms import DeclarativeFieldsetMetaclass, FieldsetModelFormMetaclass, FormMixin
+from formset.forms import DeclarativeFieldsetMetaclass, FormsetModelFormMetaclass, FormMixin
 from formset.renderers.default import FormRenderer
 from formset.utils import MARKED_FOR_REMOVAL, FormsetErrorList, HolderMixin, RenderableDetachedFieldMixin
 
@@ -44,7 +44,7 @@ class FormCollectionMeta(MediaDefiningClass):
                         value.__class__ = types.new_class(
                             value.__class__.__name__,
                             bases=(FormMixin, value.__class__),
-                            kwds={'metaclass': FieldsetModelFormMetaclass},
+                            kwds={'metaclass': FormsetModelFormMetaclass},
                             # exec_body=lambda ns: ns.update(error_class=FormsetErrorList),
                         )
                         value.error_class = FormsetErrorList

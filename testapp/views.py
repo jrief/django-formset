@@ -24,7 +24,7 @@ from docutils.parsers.rst import Parser
 from docutils.writers import get_writer_class
 
 from formset.calendar import CalendarResponseMixin
-from formset.forms import DeclarativeFieldsetMetaclass, FieldsetModelFormMetaclass, FormMixin
+from formset.forms import DeclarativeFieldsetMetaclass, FormsetModelFormMetaclass, FormMixin
 from formset.views import (
     FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormCollectionViewMixin, FormViewMixin,
     EditCollectionView, BulkEditCollectionView
@@ -57,6 +57,7 @@ from testapp.forms.person import (
     ButtonActionsForm, sample_person_data, BootstrapRenderedPersonForm, ModelPersonForm, PersonForm,
 )
 from testapp.forms.phone import PhoneForm
+from testapp.forms.product import ProductForm
 from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.profile import ProfileCollection
 from testapp.forms.questionnaire import QuestionnaireForm
@@ -65,7 +66,7 @@ from testapp.forms.state import StateFilteredForm, StateForm, StatesForm
 from testapp.forms.terms_of_use import AcceptTermsCollection
 from testapp.forms.user import UserCollection
 from testapp.forms.upload import UploadForm
-from testapp.models import BlogModel, Company, IssueModel, PersonModel, PollModel, Reporter, User
+from testapp.models import BlogModel, Company, IssueModel, PersonModel, PollModel, ProductModel, Reporter, User
 from testapp.models.gallery import Gallery
 
 
@@ -187,7 +188,7 @@ class DemoFormViewMixin(DemoViewMixin, CalendarResponseMixin, IncompleteSelectRe
         if self.mode != 'native':
             renderer = renderer_class(**attrs)
             if issubclass(form_class, BaseModelForm):
-                metaclass = FieldsetModelFormMetaclass
+                metaclass = FormsetModelFormMetaclass
             elif issubclass(form_class, BaseForm):
                 metaclass = DeclarativeFieldsetMetaclass
             else:
@@ -671,9 +672,15 @@ urlpatterns = [
         model=PersonModel,
         extra_context={
             'click_actions': 'disable -> submit -> reload !~ scrollToError',
-            'force_submission': True,
         }
     ), name='person'),
+    path('product', DemoModelFormView.as_view(
+        form_class=ProductForm,
+        model=ProductModel,
+        extra_context={
+            'click_actions': 'disable -> submit -> reload !~ scrollToError',
+        }
+    ), name='product'),
     path('person-bootstrap-renderer', DemoFormView.as_view(
         form_class=BootstrapRenderedPersonForm,
         template_name='testapp/extended-form.html',

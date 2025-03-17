@@ -200,6 +200,7 @@ class Migration(migrations.Migration):
                 ('annotation', models.TextField(blank=True, null=True, verbose_name='Annotation')),
                 ('opinion', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='persons', to='testapp.opinionmodel', verbose_name='Opinion')),
                 ('opinions', models.ManyToManyField(related_name='person_groups', to='testapp.opinionmodel', verbose_name='Opinions')),
+                ('extra_data', models.JSONField(default=dict, blank=True)),
             ],
             options={
                 'verbose_name': 'Person',
@@ -285,6 +286,18 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Teams',
                 'unique_together': {('name', 'department')},
             },
+        ),
+        migrations.CreateModel(
+            name='ProductModel',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('title', models.CharField(max_length=50, verbose_name='Title')),
+                ('price', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Price')),
+                ('properties', models.JSONField(default=dict)),
+                ('extra_data', models.JSONField(default=dict)),
+                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
+                ('last_modified_at', models.DateTimeField(auto_now=True)),
+            ],
         ),
         migrations.RunPython(initialize_opinions, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(initialize_counties, reverse_code=migrations.RunPython.noop),

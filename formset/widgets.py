@@ -609,3 +609,19 @@ class DateTimePicker(CalendarRendererMixin, DateTimeTextbox):
             assert self.interval in CalendarRenderer.valid_intervals, \
                 f"{self.interval} is not a valid interval for {self.__class__}"
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
+
+
+class EmptyWidget(Widget):
+    """
+    Just a placeholder for a widget that does not render anything. Used by ShadowField.
+    """
+
+    @property
+    def is_hidden(self):
+        return True
+
+    def value_omitted_from_data(self, data, files, name):
+        return False
+
+    def render(self, name, value, attrs=None, renderer=None):
+        return ""

@@ -3,9 +3,9 @@ from time import sleep
 from django.core.exceptions import ValidationError
 from django.forms import fields, forms, models, widgets
 
-from formset.forms import FormMixin
+from formset.forms import FormMixin, ModelForm
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
-from formset.widgets import DatePicker, DualSelector, Selectize, SelectizeMultiple, UploadedFileInput
+from formset.widgets import DatePicker, DateTimePicker, DualSelector, Selectize, SelectizeMultiple, UploadedFileInput
 
 from testapp.models import PersonModel
 
@@ -95,19 +95,25 @@ sample_person_data = {
 }
 
 
-class ModelPersonForm(models.ModelForm):
-    """
-    This form is created by Django's helper functions that creates a ModelForm class out of a Django model.
-    """
+class ModelPersonForm(ModelForm):
+    field_order = ['full_name', 'avatar', 'activity_days', 'activity_datetime']
+    activity_datetime = fields.DateTimeField(
+        label="Activity timestamp",
+        widget=DateTimePicker,
+    )
+    activity_days = fields.IntegerField(
+        label="Activity days",
+    )
 
     class Meta:
         model = PersonModel
         fields = '__all__'
+        fields_map = {'extra_data': ['activity_datetime', 'activity_days']}
         widgets = {
             'avatar': UploadedFileInput,
             'gender': widgets.RadioSelect,
             'birth_date': DatePicker,
             'opinion': Selectize(search_lookup='label__icontains'),
-            'opinions': SelectizeMultiple(search_lookup='label__icontains', max_items=15),
-            #'opinions': DualSelector(search_lookup='label__icontains'),
+            #'opinions': SelectizeMultiple(search_lookup='label__icontains', max_items=15),
+            'opinions': DualSelector(search_lookup='label__icontains'),
         }

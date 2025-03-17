@@ -88,6 +88,7 @@ class PersonModel(models.Model):
         blank=True,
         null=True,
     )
+    extra_data = models.JSONField(default=dict, blank=True)
 
     class Meta:
         app_label = "testapp"
