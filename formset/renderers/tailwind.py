@@ -12,7 +12,7 @@ class FormRenderer(DefaultFormRenderer):
 
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
         'django/forms/div.html': 'formset/tailwind/form.html',
-        'django/forms/default.html': 'formset/tailwind/form.html',
+        'formset/form.html': 'formset/tailwind/form.html',
         'django/forms/widgets/checkbox.html': 'formset/tailwind/widgets/checkbox.html',
         'django/forms/widgets/radio.html': 'formset/tailwind/widgets/multiple_input.html',
         'formset/default/widgets/dual_selector.html': 'formset/tailwind/widgets/dual_selector.html',

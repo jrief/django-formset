@@ -7,7 +7,7 @@ class FormRenderer(DefaultFormRenderer):
 
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
         'django/forms/div.html': 'formset/foundation/form.html',
-        'django/forms/default.html': 'formset/foundation/form.html',
+        'formset/form.html': 'formset/foundation/form.html',
         'django/forms/widgets/checkbox.html': 'formset/foundation/widgets/checkbox.html',
         'django/forms/widgets/radio.html': 'formset/foundation/widgets/multiple_input.html',
         'formset/default/widgets/file.html': 'formset/foundation/widgets/file.html',

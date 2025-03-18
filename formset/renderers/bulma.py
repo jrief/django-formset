@@ -12,7 +12,7 @@ class FormRenderer(DefaultFormRenderer):
 
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
         'django/forms/div.html': 'formset/bulma/form.html',
-        'django/forms/default.html': 'formset/bulma/form.html',
+        'formset/form.html': 'formset/bulma/form.html',
         'django/forms/widgets/checkbox.html': 'formset/bulma/widgets/checkbox.html',
         'django/forms/widgets/radio.html': 'formset/bulma/widgets/multiple_input.html',
         'django/forms/widgets/select.html': 'formset/bulma/widgets/select.html',

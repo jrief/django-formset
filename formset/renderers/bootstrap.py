@@ -14,7 +14,7 @@ class FormRenderer(DefaultFormRenderer):
 
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
         'django/forms/div.html': 'formset/bootstrap/form.html',
-        'django/forms/default.html': 'formset/bootstrap/form.html',
+        'formset/form.html': 'formset/bootstrap/form.html',  # non-existing template used as key
         'django/forms/widgets/checkbox.html': 'formset/bootstrap/widgets/checkbox.html',
         'django/forms/widgets/radio.html': 'formset/bootstrap/widgets/multiple_input.html',
         'django/forms/widgets/checkbox_select.html': 'formset/bootstrap/widgets/multiple_input.html',
