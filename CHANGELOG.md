@@ -1,5 +1,10 @@
 ## Changes
 
+1.7.5
+  * Fix #208: Closed form dialogs are always considered as valid.
+  * Fix in web component ``date-picker`` and ``date-time-picker``: On submission the timezone offset
+    now is removed, this sometimes caused the submission of incorrect date/time stamps.
+
 1.7.4
   * Fix #80: Allow to use `django_filters.FilterSet` on filtered widgets.
 
