@@ -1,11 +1,11 @@
 from django.forms.fields import RegexField, ChoiceField
 from django.forms.widgets import RadioSelect, TextInput
-from formset.forms import ModelForm
+from formset.forms import Form, ModelForm
 
 from testapp.models import ProductModel
 
 
-class ProductForm(ModelForm):
+class ProductFormUnmapped(ModelForm):
     size = ChoiceField(
         label="Size",
         choices=[
@@ -25,5 +25,3 @@ class ProductForm(ModelForm):
     class Meta:
         model = ProductModel
         fields = '__all__'
-        # exclude = ['extra_data']
-        fields_map = {'properties': ['size'], 'extra_data': ['color']}

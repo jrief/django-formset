@@ -57,7 +57,7 @@ from testapp.forms.person import (
     ButtonActionsForm, sample_person_data, BootstrapRenderedPersonForm, ModelPersonForm, PersonForm,
 )
 from testapp.forms.phone import PhoneForm
-from testapp.forms.product import ProductForm
+from testapp.forms.product import ProductFormUnmapped
 from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.profile import ProfileCollection
 from testapp.forms.questionnaire import QuestionnaireForm
@@ -95,6 +95,15 @@ def render_suburls(request, extra_context=None):
         context.update(extra_context)
     template = get_template('testapp/index.html')
     return HttpResponse(template.render(context))
+
+
+class ProductForm(ProductFormUnmapped):
+    """
+    How to map Django Form fields to one or more JSONField-s.
+    """
+    class Meta(ProductFormUnmapped.Meta):
+        exclude = ['extra_data']
+        fields_map = {'properties': ['size', 'color']}
 
 
 class SuccessView(TemplateView):
