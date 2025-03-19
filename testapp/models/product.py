@@ -1,5 +1,3 @@
-from django.conf import settings
-from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.db import models
 
 

@@ -1,6 +1,6 @@
 from django.forms.fields import RegexField, ChoiceField
 from django.forms.widgets import RadioSelect, TextInput
-from formset.forms import Form, ModelForm
+from formset.forms import ModelForm
 
 from testapp.models import ProductModel
 

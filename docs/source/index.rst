@@ -29,6 +29,7 @@ Django's counterparts.
 	collections
 	fieldsets
 	model-forms
+	fields-mapping
 	model-collections
 	form-renderer
 	conditionals
