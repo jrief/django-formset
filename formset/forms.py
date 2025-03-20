@@ -94,7 +94,7 @@ class Form(FormMixin, BaseForm, metaclass=DeclarativeFieldsetMetaclass):
     """
 
 
-class ModelFormMixin:
+class ModelFormMixin(FormMixin):
     def __init__(self, instance=None, *args, **kwargs):
         if hasattr(self._meta, 'fields_map') and instance is not None:
             initial = kwargs.get('initial', {})
@@ -233,7 +233,7 @@ class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):
         return fields
 
 
-class ModelForm(FormMixin, BaseModelForm, metaclass=FormsetModelFormMetaclass):
+class ModelForm(ModelFormMixin, BaseModelForm, metaclass=FormsetModelFormMetaclass):
     """
     Base class for all Django ModelForm classes.
     """
