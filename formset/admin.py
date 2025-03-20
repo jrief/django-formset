@@ -13,7 +13,7 @@ from django.http import HttpResponseBadRequest, JsonResponse
 from django.urls import reverse
 from django.utils.translation import gettext
 
-from formset.forms import FormMixin, FormsetModelFormMetaclass
+from formset.forms import ModelFormMixin, FormsetModelFormMetaclass
 from formset.renderers.admin import FormRenderer
 from formset.upload import receive_uploaded_file
 from formset.calendar import CalendarResponseMixin
@@ -21,7 +21,7 @@ from formset.views import IncompleteSelectResponseMixin
 from formset.widgets import UploadedFileInput
 
 
-class ModelAdmin(CalendarResponseMixin, IncompleteSelectResponseMixin, django_admin.ModelAdmin):
+class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin):
     change_form_template = 'admin/formset/change_form.html'
     formfield_overrides = {
         BooleanField: {'label_suffix': ''},
@@ -42,10 +42,12 @@ class ModelAdmin(CalendarResponseMixin, IncompleteSelectResponseMixin, django_ad
             name for name, field in form.base_fields.items()
             if isinstance(field.widget, RelatedFieldWidgetWrapper)
         ] + list(self.raw_id_fields)
-        if not isinstance(form, FormMixin):
+        if issubclass(form, ModelFormMixin):
+            form.default_renderer = FormRenderer(field_css_classes=field_css_classes)
+        else:
             form = types.new_class(
                 form.__name__,
-                bases=(FormMixin, form),
+                bases=(ModelFormMixin, form),
                 kwds={'metaclass': FormsetModelFormMetaclass},
                 exec_body=lambda ns: ns.update({
                     '__init__': init,
@@ -204,3 +206,9 @@ class ModelAdmin(CalendarResponseMixin, IncompleteSelectResponseMixin, django_ad
         return self.render_change_form(
             request, context, add=add, change=not add, obj=obj, form_url=form_url
         )
+
+
+class ModelAdmin(ModelAdminMixin, django_admin.ModelAdmin):
+    """
+    Base class for all Django ModelAdmin classes using django-formset forms instead of the default.
+    """
