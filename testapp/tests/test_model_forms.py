@@ -2,14 +2,36 @@ import json
 import pytest
 from bs4 import BeautifulSoup
 
+from django.forms import fields, ModelForm, widgets
 from django.test import Client, RequestFactory
 from django.utils.timezone import datetime
 from django.views.generic.edit import CreateView, UpdateView
 
 from formset.views import FormViewMixin
+from formset.widgets import UploadedFileInput, Selectize, SelectizeMultiple
 
-from testapp.forms.person import ModelPersonForm
 from testapp.models import OpinionModel, PersonModel
+
+
+class PersonForm(ModelForm):
+    field_order = ['full_name', 'avatar', 'activity_days', 'activity_datetime']
+    activity_datetime = fields.DateTimeField(
+        label="Activity timestamp",
+    )
+    activity_days = fields.IntegerField(
+        label="Activity days",
+    )
+
+    class Meta:
+        model = PersonModel
+        fields = '__all__'
+        fields_map = {'extra_data': ['activity_datetime', 'activity_days']}
+        widgets = {
+            'avatar': UploadedFileInput,
+            'gender': widgets.RadioSelect,
+            'opinion': Selectize(search_lookup='label__icontains'),
+            'opinions': SelectizeMultiple(search_lookup='label__icontains'),
+        }
 
 
 @pytest.fixture(params=[None, 'bootstrap', 'bulma', 'foundation', 'tailwind', 'uikit'])
@@ -22,7 +44,7 @@ def create_view(framework):
     view_class = type('CreateView', (FormViewMixin, CreateView), {})
     return view_class.as_view(
         template_name='testapp/native-form.html',
-        form_class=ModelPersonForm,
+        form_class=PersonForm,
         extra_context={'framework': framework},
         success_url = '/success',
     )
@@ -117,7 +139,7 @@ def update_view():
     return view_class.as_view(
         model=PersonModel,
         template_name='testapp/native-form.html',
-        form_class=ModelPersonForm,
+        form_class=PersonForm,
         success_url='/success',
     )
 
@@ -133,6 +155,8 @@ def test_modify_person(create_view, update_view):
         'opinion': opinions[0],
         'opinions': opinions[10:15],
         'continent': '2',
+        'activity_days': 17,
+        'activity_datetime': '2021-01-01T12:00:00',
     }
     request = RequestFactory().post('/default/person', form_data)
     response = create_view(request)
