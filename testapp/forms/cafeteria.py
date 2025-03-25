@@ -16,7 +16,7 @@ class CoffeeForm(Form):
 
 class FlavorForm(DialogForm):
     title = "Choose a Flavor"
-    induce_open = 'coffee.add_flavor:active'
+    induce_open = '..coffee.add_flavor:active'
     induce_close = '.cancel:active || .apply:active'
 
     flavors = ChoiceField(
@@ -50,7 +50,7 @@ class CoffeeOrderCollection(FormCollection):
 class MultipleCoffeeOrderCollection(FormCollection):
     legend = "Order your coffee"
     add_label = "Add Coffee Order"
-    min_siblings = 1
+    min_siblings = 2
     extra_siblings = 1
     coffee = CoffeeForm()
     flavor = FlavorForm()
