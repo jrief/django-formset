@@ -261,6 +261,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             self._errors = ErrorList()
             for index, data in enumerate(self.data):
                 if data is None:
+                    # JavaScript allows arrays with holes
                     continue
                 initial = self.initial[index] if self.initial and index < len(self.initial) else None
                 instance = self.retrieve_instance(data)
