@@ -1425,8 +1425,11 @@ class DjangoFormCollection {
 	}
 
 	public assignForms(forms: Array<DjangoForm>) {
-		this.forms = forms.filter(form => form.element.parentElement?.isEqualNode(this.element));
+		// assign direct forms of this collection
+		this.forms = forms.filter(form => this.element.contains(form.element));
 		for (const formCollection of this.children) {
+			// but filter out forms that belong to child collections
+			this.forms = this.forms.filter(form => !formCollection.element.contains(form.element));
 			formCollection.assignForms(forms);
 		}
 	}
@@ -1480,7 +1483,15 @@ class DjangoFormCollection {
 	public markAsFreshAndEmpty(justAdded?: boolean) {
 		this.children.forEach(child => child.markAsFreshAndEmpty(justAdded));
 		if (justAdded) {
-			this.forms.forEach(form => form.disableRequiredConstraints());
+			this.forms.forEach(form => {
+				form.disableRequiredConstraints();
+				const parentFormPath = form.path.slice(0, -1);
+				this.formset.forms.forEach(siblingForm => {
+					if (isEqual(siblingForm.path.slice(0, -1), parentFormPath)) {
+						siblingForm.element.dispatchEvent(new CustomEvent('django-formset-connected', {detail: {form: siblingForm}}));
+					}
+				});
+			});
 		}
 	}
 
@@ -1781,7 +1792,7 @@ export class DjangoFormset implements DjangoFormset {
 	private readonly element: DjangoFormsetElement;
 	public readonly buttons = Array<DjangoButton>(0);
 	public currentActiveButton: DjangoButton|null = null;
-	private readonly forms = Array<DjangoForm>(0);
+	public readonly forms = Array<DjangoForm>(0);
 	private readonly inducers = Array<[Inducible, Function]>(0);
 	private readonly CSRFToken: string|null;
 	public readonly formCollections = Array<DjangoFormCollection>(0);
