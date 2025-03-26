@@ -6,17 +6,17 @@ Fields Mapping
 
 .. versionadded:: 2.0
 
-A Django Model may contain fields which accept arbitrary data stored as JSON. Django itself,
-provides a `JSON field`_ to store arbitrary serializable data.
+A class inheriting from a Django model may contain fields which accept arbitrary data stored as
+JSON. Django itself, for that purpose provides a JSONField_ to store any kind of serializable data.
 
-.. _JSON field: https://docs.djangoproject.com/en/stable/ref/models/fields/#jsonfield
+.. _JSONField: https://docs.djangoproject.com/en/stable/ref/models/fields/#jsonfield
 
-When creating a form from a model, the input field associated with a JSON field, typically is a
+When creating a form from a model, the input field associated with a ``JSONField``, typically is a
 ``<textarea ...></textarea>``. This textarea widget is very impracticable for editing, because it
 just contains a textual representation of that object notation. One possibility is to use a generic
 JSON editor, which with some JavaScript, transforms the widget into an attribute-value-pair editor.
 This approach however requires us to manage the field keys ourselves. It furthermore prevents us
-from utilizing all the nice features provided by the Django Form framework, such as field
+from utilizing all the nice features provided by the Django forms framework, such as field
 validation, normalization of data and the usage of foreign keys.
 
 By using **django-formset**, one can inherit from a Django ModelForm_, and store all, or a subset of

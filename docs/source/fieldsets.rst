@@ -7,10 +7,10 @@ Fieldsets
 .. versionchanged:: 2.0
 
 	Until version 1.7, the ``Fieldset`` class was a form wrapped into a ``<fieldset>``-element.
-	This only made sense in combination with a ``FormCollection``. Since version 1.8, the
+	This only made sense in combination with a ``FormCollection``. Since version 2.0, the
 	``Fieldset`` class is a standalone entity to group multiple input fields into a ``<fieldset>``,
 	just as the HTML standard defines it. Please adopt your code accordingly, if you used the
-	``Fieldset`` class in version 1.7 or below.
+	``Fieldset`` class from version 1.7 or below.
 
 In HTML the ``<form>``-element is just a data-abstraction layer. It has no display properties and is
 not intended to be styled or annotated. Its purpose is to group one or more input fields, in order
