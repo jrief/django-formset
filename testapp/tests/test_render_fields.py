@@ -4,7 +4,6 @@ import types
 from bs4 import BeautifulSoup
 
 from django.forms import widgets
-from django.test import RequestFactory
 
 from formset.forms import FormMixin, DeclarativeFieldsetMetaclass
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
@@ -16,9 +15,6 @@ from formset.renderers.uikit import FormRenderer as UIKitFormRenderer
 from formset.views import FormView
 
 from testapp.forms.complete import CompleteForm, sample_complete_data
-
-
-http_request = RequestFactory().get('/')
 
 
 @pytest.fixture(scope='session', params=[None, 'bootstrap', 'bulma', 'foundation', 'tailwind', 'uikit'])
@@ -233,9 +229,9 @@ def check_field(framework, form, field_name, soup, initial):
                 assert 'formset-radio-select' in input_elem.attrs['class']
 
 
-@pytest.fixture(scope='session')
-def native_soup(native_view):
-    response = native_view(http_request)
+@pytest.fixture
+def native_soup(native_view, rf):
+    response = native_view(rf.get('/'))
     response.render()
     soup = BeautifulSoup(response.content, 'html.parser')
     view_initkwargs = native_view.view_initkwargs
@@ -245,9 +241,9 @@ def native_soup(native_view):
     return framework, form_class, soup, initial
 
 
-@pytest.fixture(scope='session')
-def extended_soup(extended_view):
-    response = extended_view(http_request)
+@pytest.fixture
+def extended_soup(extended_view, rf):
+    response = extended_view(rf.get('/'))
     response.render()
     soup = BeautifulSoup(response.content, 'html.parser')
     view_initkwargs = extended_view.view_initkwargs
