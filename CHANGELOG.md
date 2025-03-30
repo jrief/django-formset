@@ -1,5 +1,8 @@
 ## Changes
 
+1.7.6
+  * Fix #209: Induce button now also work for fresh form collections.
+
 1.7.5
   * Fix #208: Closed form dialogs are always considered as valid.
   * Fix in web component ``date-picker`` and ``date-time-picker``: On submission the timezone offset
