@@ -7,7 +7,6 @@ class Company(models.Model):
         max_length=50,
         help_text="The name of the company",
     )
-
     created_by = models.CharField(
         editable=False,
         max_length=40,
@@ -29,7 +28,6 @@ class Department(models.Model):
         max_length=50,
         help_text="The name of the department",
     )
-
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
