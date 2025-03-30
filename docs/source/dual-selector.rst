@@ -26,8 +26,7 @@ this kind of widget is `dual listbox or list builder`_.
 
 In **django-formset**, this widget however offers many more features than its Django's counterpart:
 
-Asynchronous loading
---------------------
+.. rubric:: Asynchronous loading
 
 While assigning options, the Django model used to map from – can be huge and contain millions of
 entries. In such a situation it would take a lot of resources to load all the options at once.
@@ -38,8 +37,7 @@ of the select element rather than scrolling down and waiting for the next chunk 
 loaded from the server.
 
 
-Search Fields
--------------
+.. rubric:: Search Fields
 
 On top of the left- and right select fields, there is one search input field each. While typing,
 **django-formset** narrows down the number of available options. Here the left input field sends the
@@ -47,23 +45,20 @@ string typed into, to the server performing a remote lookup. Using the database 
 entry is more efficient, rather than doing this using JavaScript inside the browser.
 
 
-Undo and Redo Buttons
----------------------
+.. rubric:: Undo and Redo Buttons
 
 While working with these kinds of widgets, it can easily happen to accidentally move the wrong
 options. Sometimes the only solution to this is to reset the form and restart over again. By using
 the **DualSelector** widget, one can use the undo and redo buttons to switch to the previous selections.
 
 
-Grouping Options
-----------------
+.. rubric:: Grouping Options
 
 Options can be grouped using the ``<optgroup>`` HTML element. On the right select field, these
 groups then appear as soon as at least one element has been selected.
 
 
-Optional Sorting
-----------------
+.. rubric:: Optional Sorting
 
 With a mapping model containing an order field, options can be sorted inside the right select field
 by dragging them.
@@ -119,20 +114,20 @@ Here we instantiate the widget :class:`formset.widgets.DualSelector` using the f
 	    success_url = "/success"
 
 
-Comparison with SelectizeMultiple
----------------------------------
+Comparison with ``SelectizeMultiple``
+-------------------------------------
 
 The **DualSelector** widget can be considered as the big sibling of the :ref:`selectize-multiple`.
 Both widgets use the same lookup interface and hence can arbitrarily be swapped out against each
 other, by either changing the widget argument in the choice field or by replacing the widget using
 the form's ``Meta`` class.
 
-From a usability point of view, the **SelectizeMultiple** widget probably is easier to understand,
+From a usability point of view, the ``SelectizeMultiple`` widget probably is easier to understand,
 especially for inexperienced users. It is best suited when only a few options (say, less than 15)
 shall be selectable together. And since it's much more compact, it shall be used if rendering space
 is a concern.
 
-On the other hand, the **DualSelector** widget shall be used whenever a user may select many
+On the other hand, the ``DualSelector`` widget shall be used whenever a user may select many
 options out of a list of options. Therefore this widget does not limit the maximum number of
 selectable options. It also might make sense to use this widget, whenever some kind of undo/redo
 functionality is required.
@@ -207,7 +202,6 @@ adjacent fields for preselecting options:
 	        required=False,
 	        help_text="Select up to 5 states",
 	    )
-
 	    county = models.ModelMultipleChoiceField(
 	        label="County",
 	        queryset=County.objects.all(),
@@ -219,13 +213,13 @@ adjacent fields for preselecting options:
 	    )
 
 This form shows the usage of two adjacent fields, where the first field's value is used to filter
-the options for the next field. Here with the field **state**, the user can make a preselection of
-one or more states. When the state is changed, the other field **county** gets filled with all
+the options for the next field. Here with the field ``state``, the user can make a preselection of
+one or more states. When the state is changed, the other field ``county`` gets filled with all
 counties belonging to one of the selected states.
 
-To enable this feature, widget ``DualSelector`` accepts the optional argument ``filter_by`` which
-contains a dictionary such as ``{'state': 'state__id'}`` defining the lookup expression on the given
-queryset. Here each key maps to an adjacent field and its value contains a lookup expression.
+To enable this feature, the widget ``DualSelector`` accepts the optional argument ``filter_by``
+which contains a dictionary such as ``{'state': 'state__id'}`` defining the lookup expression on the
+given queryset. Here each key maps to an adjacent field and its value contains a lookup expression.
 
 .. django-view:: filtered_county_view
 	:view-function: FilteredCountyView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'filtered-county-result'}, form_kwargs={'auto_id': 'fc_id_%s'})
@@ -278,12 +272,10 @@ weighting.
 	        PollModel,
 	        on_delete=models.CASCADE,
 	    )
-	
 	    opinion = models.ForeignKey(
 	        OpinionModel,
 	        on_delete=models.CASCADE,
 	    )
-	
 	    weight = models.BigIntegerField(
 	        default=0,
 	        db_index=True,

@@ -85,6 +85,10 @@ in this collection is, as expected, unrelated. We therefore have to tell one of 
 their generating models relate to each other. For this to work, each ``FormCollection`` and each
 Django ``Form`` can implement two methods, ``model_to_dict(…)`` and ``construct_instance(…)``.
 
+
+Collection Attributes Usage
+---------------------------
+
 .. rubric:: ``model_to_dict(main_object)``
 
 This method creates the initial data for a form starting from ``main_object`` as reference. It is
@@ -160,26 +164,44 @@ only stores their names.
 	from django.db import models
 	
 	class Company(models.Model):
-	    name = models.CharField(verbose_name="Company name", max_length=50)
+	    name = models.CharField(
+	        verbose_name="Company name",
+	        max_length=50,
+	        help_text="The name of the company",
+	    )
 	
 	class Department(models.Model):
-	    name = models.CharField(verbose_name="Department name", max_length=50)
-	    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+	    name = models.CharField(
+	        verbose_name="Department name",
+	        max_length=50,
+	    )
+	    company = models.ForeignKey(
+	        Company,
+	        on_delete=models.CASCADE,
+	        related_name='departments',
+	    )
 	
 	    class Meta:
 	        unique_together = ['name', 'company']
 	
 	class Team(models.Model):
-	    name = models.CharField(verbose_name="Team name", max_length=50)
-	    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='teams')
+	    name = models.CharField(
+	        verbose_name="Team name",
+	        max_length=50,
+	    )
+	    department = models.ForeignKey(
+	        Department,
+	        on_delete=models.CASCADE,
+	        related_name='teams',
+	    )
 	
 	    class Meta:
 	        unique_together = ['name', 'department']
 
-We immediately see that these models have a hierarchy of three levels. In classic Django, creating a
-form to edit them altogether is not an easy task. To solve this, **django-formset** offers the
-possibility to let form collections have siblings. We then can create forms and collection to edit
-the company, its departments and their teams as:
+We immediately see that these models assemble a hierarchy of three levels. With the builtin Django
+remedies, creating a form to edit them altogether is not an easy task. To solve this problem,
+**django-formset** offers the possibility to let form collections have siblings. We then can create
+forms and collection to edit the company, its departments and their teams such as:
 
 .. django-view:: company_collection
 	:hide-view:
@@ -192,18 +214,21 @@ the company, its departments and their teams as:
 	from testapp.models import Company, Department, Team
 	
 	class TeamForm(ModelForm):
-	    id = IntegerField(required=False, widget=HiddenInput)
+	    id = IntegerField(
+	        required=False,
+	        widget=HiddenInput,
+	    )
 	
 	    class Meta:
 	        model = Team
 	        fields = ['id', 'name']
 	
 	class TeamCollection(FormCollection):
-	    min_siblings = 0
-	    team = TeamForm()
 	    legend = "Teams"
 	    add_label = "Add Team"
 	    related_field = 'department'
+	    team = TeamForm()
+	    min_siblings = 0
 	
 	    def retrieve_instance(self, data):
 	        if data := data.get('team'):
@@ -213,19 +238,22 @@ the company, its departments and their teams as:
 	                return Team(name=data.get('name'), department=self.instance)
 	
 	class DepartmentForm(ModelForm):
-	    id = IntegerField(required=False, widget=HiddenInput)
+	    id = IntegerField(
+	        required=False,
+	        widget=HiddenInput,
+	    )
 	
 	    class Meta:
 	        model = Department
 	        fields = ['id', 'name']
 	
 	class DepartmentCollection(FormCollection):
-	    min_siblings = 0
-	    department = DepartmentForm()
-	    teams = TeamCollection()  # attribute name MUST match related_name (see note below)
 	    legend = "Departments"
 	    add_label = "Add Department"
 	    related_field = 'company'
+	    department = DepartmentForm()
+	    teams = TeamCollection()  # attribute name MUST match related_name (see note below)
+	    min_siblings = 0
 	
 	    def retrieve_instance(self, data):
 	        if data := data.get('department'):
@@ -241,20 +269,22 @@ the company, its departments and their teams as:
 	
 	class CompanyCollection(FormCollection):
 	    company = CompanyForm()
-	    department_set = DepartmentCollection()  # attribute name MUST match related_name (see note below)
+	    departments = DepartmentCollection()  # attribute name MUST match related_name (see note below)
 
 As we expect, we see that every Django model is represented by its form. Since we want to edit more
 instances of the same model type, we somehow need a way to distinguish them. This is where the form
 field named ``id`` comes into play. It is a hidden ``IntegerField`` and represents the primary key
-of the model instances ``Department`` or ``Team``. Since newly created instances haven't any primary
-key yet, it is marked with ``required=False`` to make it optional.
+of the model instances for the ``Department`` or ``Team``. Since newly created instances haven't any
+primary key yet, they are marked with ``required=False`` to make them optional.
 
-.. note:: Take care when naming related collections on a parent ``FormCollection``. The name must 
-	match the reverse accessor of the related field. In this example, the ``related_name`` of the 
-	department field has been set to ``'teams'``, therefore we can specify ``teams = TeamCollection()`` 
-	on the ``DepartmentCollection``. Conversely, no ``related_name`` is set on the company field 
-	of the ``Department`` model, so we must instead specify ``department_set = DepartmentCollection()`` 
-	on the ``CompanyCollection``.
+.. note:: Take care when naming related collections on a parent ``FormCollection``. The name **must 
+	match** the reverse accessor of the related field. In this example, the ``ForeinKey`` pointing
+	from model ``Team`` to ``Department`` has its ``related_name`` set to ``'teams'``, therefore we
+	**must specify** ``teams = TeamCollection()`` in our ``DepartmentCollection``. The same pattern
+	applies	for the relationship between our ``CompanyCollection`` and ``DepartmentCollection``.
+	Conversely, if no ``related_name`` would have been set on the ``ForeignKey`` pointing from model
+	``Department`` to ``Company``, then in ``CompanyCollection`` we instead would have to specify 
+	``department_set = DepartmentCollection()``. 
 
 Finally, our ``CompanyCollection`` must be made editable and served by a Django view class. Here we
 can use the the view class :class:`formset.views.EditCollectionView` as in the previous example.
@@ -269,9 +299,16 @@ can use the the view class :class:`formset.views.EditCollectionView` as in the p
 	    collection_class = CompanyCollection
 	    template_name = 'form-collection.html'
 
+.. note:: After submission, the content of these form collections is stored in the database.
+	Therefore after reloading this page, the same content will reappear in the form.
+
 The view class ``CompanyCollectionView`` is specialized in editing related models starting from a
 dedicated object. The latter usually is determined by using a unique identifier, for instance its
 primary key or a slug.
+
+
+Collection Attributes Usage
+---------------------------
 
 .. rubric:: ``related_field``
 
