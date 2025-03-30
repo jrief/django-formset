@@ -72,10 +72,10 @@ is not what we want! Instead, we can map the fields of our form to the keys of t
 	        fields_map = {'properties': ['color', 'size']}
 
 Additionally, we add a special dictionary named ``fields_map`` to the ``Meta``-class of that form.
-Inside this dictionary, the key (here ``properties``) refers to the JSON-field in our model Product.
-The value (here ``['color', 'size']``) is a list of named form fields, declared in our form- or
-base-class of thereof. This allows us to assign all standard Django form fields to arbitrary JSON
-fields declared in our Django model.
+Inside this dictionary, the key (here ``properties``) refers to the JSON-field in our Django model
+named ``ProductModel``. The value (here ``['color', 'size']``) is a list of named form fields,
+declared in our form- or base-class of thereof. This allows us to assign all standard Django form
+fields to arbitrary JSON fields declared in our Django model.
 
 .. django-view:: product_view
 	:view-function: ProductView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'product-result'}, form_kwargs={'auto_id': 'pr_id_%s'})
