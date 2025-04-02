@@ -13,7 +13,6 @@ class ArticleForm(forms.Form):
         label="Title",
         max_length=100,
     )
-
     slug = fields.SlugField(
         label="Slug",
         widget=SlugInput('title'),

@@ -295,6 +295,7 @@ class Migration(migrations.Migration):
                 ('price', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Price')),
                 ('properties', models.JSONField(default=dict)),
                 ('extra_data', models.JSONField(default=dict)),
+                ('supplier_name', models.CharField(max_length=100, verbose_name='Supplier Name')),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
                 ('last_modified_at', models.DateTimeField(auto_now=True)),
             ],

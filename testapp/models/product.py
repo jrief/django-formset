@@ -13,6 +13,10 @@ class ProductModel(models.Model):
     )
     properties = models.JSONField(default=dict)
     extra_data = models.JSONField(default=dict)
+    supplier_name = models.CharField(
+        verbose_name="Supplier Name",
+        max_length=100,
+    )
     last_modified_at = models.DateTimeField(
         auto_now=True,
     )
