@@ -61,21 +61,18 @@ Say we have a typical Django form, such as
 	        error_messages={'invalid': "A first name must start in upper case."},
 	        help_text="Must start in upper case followed by one or more lowercase characters.",
 	    )
-
 	    last_name = fields.CharField(
 	        label="Last name",
 	        min_length=2,
 	        max_length=50,
 	        help_text="Please enter at least two, but no more than 50 characters.",
 	    )
-
 	    gender = fields.ChoiceField(
 	        label="Gender",
 	        choices=[('m', "Male"), ('f', "Female")],
 	        widget=widgets.RadioSelect,
 	        error_messages={'invalid_choice': "Please select your gender."},
 	    )
-
 	    authorized = fields.BooleanField(
 	        label="Authorized to sign?",
 	    )
@@ -289,12 +286,11 @@ To adopt the form element styles, **django-formset** provides these CSS classes:
 Please use the file :asset:`tailwind-styles.css <assets/tailwind-styles.css>` as a starting point.
 
 
-
 UIKit
 =====
 
 UIKit claims to be a lightweight and modular front-end framework for developing fast and powerful
-web interfaces. It has been added for completeness to test the form rendering capabilities of
+web interfaces. It has been added for completeness and to test the form rendering capabilities of
 **django-formset** when working with exotic CSS frameworks. It offers a renderer, which renders all
 input fields as proposed by `UIKit's form rendering guide`_.
 
