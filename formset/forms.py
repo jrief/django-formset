@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 from django.apps import apps
 from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.fields import Field as BaseField, JSONField
@@ -99,24 +97,33 @@ class ModelFormMixin(FormMixin):
         if hasattr(self._meta, 'fields_map') and instance is not None:
             initial = kwargs.get('initial', {})
             for field_name, assigned_fields in self._meta.fields_map.items():
-                for af in assigned_fields:
-                    reference = getattr(instance, field_name).get(af)
-                    if isinstance(self.base_fields[af], ModelMultipleChoiceField):
-                        try:
-                            Model = apps.get_model(reference['model'])
-                            initial[af] = Model.objects.filter(
-                                pk__in=reference['p_keys']
-                            )
-                        except (KeyError, TypeError):
-                            pass
-                    elif isinstance(self.base_fields[af], ModelChoiceField):
-                        try:
-                            Model = apps.get_model(reference['model'])
-                            initial[af] = Model.objects.get(pk=reference['pk'])
-                        except (KeyError, ObjectDoesNotExist, TypeError):
-                            pass
-                    else:
-                        initial.setdefault(af, self.base_fields[af].to_python(reference))
+                if isinstance(assigned_fields, list):
+                    for af in assigned_fields:
+                        reference = getattr(instance, field_name).get(af)
+                        field_obj = self.base_fields[af]
+                        if isinstance(field_obj, ModelMultipleChoiceField):
+                            try:
+                                Model = apps.get_model(reference['model'])
+                                initial[af] = Model.objects.filter(
+                                    pk__in=reference['p_keys']
+                                )
+                            except (KeyError, TypeError):
+                                pass
+                        elif isinstance(field_obj, ModelChoiceField):
+                            try:
+                                Model = apps.get_model(reference['model'])
+                                initial[af] = Model.objects.get(pk=reference['pk'])
+                            except (KeyError, ObjectDoesNotExist, TypeError):
+                                pass
+                        else:
+                            initial.setdefault(af, field_obj.to_python(reference))
+                elif isinstance(assigned_fields, str):
+                    field_obj = self.base_fields[assigned_fields]
+                    assert not isinstance(field_obj, (ModelChoiceField, ModelMultipleChoiceField))
+                    reference = getattr(instance, field_name)
+                    initial.setdefault(assigned_fields, field_obj.to_python(reference))
+                else:
+                    raise TypeError(f"Invalid type for field {field_name}: {type(assigned_fields)}")
             kwargs['initial'] = initial
         super().__init__(instance=instance, *args, **kwargs)
 
@@ -129,38 +136,46 @@ class ModelFormMixin(FormMixin):
                 if key not in self._meta.fields_map
             }
             for field_name, assigned_fields in self._meta.fields_map.items():
-                # Keep other fields in JSON
-                if self.instance and hasattr(self.instance, field_name):
-                    cleaned_data[field_name] = getattr(self.instance, field_name) or {}
-                else:
-                    cleaned_data[field_name] = {}
-                for af in assigned_fields:
-                    if af not in self.cleaned_data:
-                        continue
-                    if isinstance(
-                        self.base_fields[af], ModelMultipleChoiceField
-                    ) and isinstance(self.cleaned_data[af], QuerySet):
-                        opts = self.cleaned_data[af].model._meta
-                        cleaned_data[field_name][af] = {
-                            'model': '{}.{}'.format(opts.app_label, opts.model_name),
-                            'p_keys': list(
-                                self.cleaned_data[af].values_list('pk', flat=True)
-                            ),
-                        }
-                    elif isinstance(self.base_fields[af], ModelChoiceField) and isinstance(
-                        self.cleaned_data[af], Model
-                    ):
-                        opts = self.cleaned_data[af]._meta
-                        cleaned_data[field_name][af] = {
-                            'model': '{}.{}'.format(opts.app_label, opts.model_name),
-                            'pk': self.cleaned_data[af].pk,
-                        }
+                if isinstance(assigned_fields, list):
+                    # Keep other fields in JSON
+                    if self.instance and hasattr(self.instance, field_name):
+                        cleaned_data[field_name] = getattr(self.instance, field_name) or {}
                     else:
-                        value = self.base_fields[af].prepare_value(self.cleaned_data[af])
-                        try:
-                            cleaned_data[field_name][af] = encoder.default(value)
-                        except TypeError:
-                            cleaned_data[field_name][af] = value
+                        cleaned_data[field_name] = {}
+                    for af in assigned_fields:
+                        if af not in self.cleaned_data:
+                            continue
+                        if isinstance(self.base_fields[af], ModelMultipleChoiceField) and isinstance(
+                            self.cleaned_data[af], QuerySet
+                        ):
+                            opts = self.cleaned_data[af].model._meta
+                            cleaned_data[field_name][af] = {
+                                'model': '{}.{}'.format(opts.app_label, opts.model_name),
+                                'p_keys': list(
+                                    self.cleaned_data[af].values_list('pk', flat=True)
+                                ),
+                            }
+                        elif isinstance(self.base_fields[af], ModelChoiceField) and isinstance(
+                            self.cleaned_data[af], Model
+                        ):
+                            opts = self.cleaned_data[af]._meta
+                            cleaned_data[field_name][af] = {
+                                'model': '{}.{}'.format(opts.app_label, opts.model_name),
+                                'pk': self.cleaned_data[af].pk,
+                            }
+                        else:
+                            value = self.base_fields[af].prepare_value(self.cleaned_data[af])
+                            try:
+                                cleaned_data[field_name][af] = encoder.default(value)
+                            except TypeError:
+                                cleaned_data[field_name][af] = value
+                elif isinstance(assigned_fields, str):
+                    value = self.base_fields[assigned_fields].prepare_value(self.cleaned_data[assigned_fields])
+                    try:
+                        cleaned_data[field_name] = encoder.default(value)
+                    except TypeError:
+                        cleaned_data[field_name] = value
+
             self.cleaned_data = cleaned_data
 
 
@@ -175,7 +190,12 @@ class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):
 
         # Modify fields_map to respect Meta.fields and Meta.exclude
         fields = getattr(Meta, 'fields', None)
-        if fields_map := deepcopy(getattr(Meta, 'fields_map', None)):
+        if fields_map := getattr(Meta, 'fields_map', None):
+            assert isinstance(fields_map, dict), (
+                "fields_map must be a dict of model field names mapped to "
+                "a list of form field names or a single form field name."
+            )
+            fields_map = dict(fields_map)  # copy for modification
             exclude = getattr(Meta, 'exclude', None)
             model_fields = fields_for_model(
                 Meta.model,
@@ -183,9 +203,15 @@ class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):
                 exclude=exclude,
             )
             Meta.fields = mcs._create_fields_option(model_fields, fields_map)
-            for key in fields_map.keys():
+            for key, value in fields_map.items():
+                if isinstance(value, (list, tuple)):
+                    fields_map[key] = list(value)
+                elif isinstance(value, str):
+                    fields_map[key] = value
+                else:
+                    raise TypeError(f"Invalid type for field {key}: Must be str or list, not {type(value)}")
                 attrs[key] = ShadowField()
-        disabled_fields = deepcopy(getattr(Meta, 'disabled_fields', []))
+        disabled_fields = list(getattr(Meta, 'disabled_fields', []))
 
         if not any(issubclass(base, ModelFormMixin) for base in bases):
             bases = (ModelFormMixin,) + bases
@@ -198,12 +224,22 @@ class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):
         # perform some model checks
         if fields_map:
             for modelfield_name in fields_map.keys():
-                for field_name in fields_map[modelfield_name]:
-                    assert (
-                        field_name in new_class.base_fields
-                    ), "Field {} listed in `{}.Meta.fields_map['{}']` is missing in Form declaration".format(
-                        field_name, name, modelfield_name
-                    )
+                assert isinstance(new_class.base_fields[modelfield_name], ShadowField)
+                if isinstance(fields_map[modelfield_name], list):
+                    for field_name in fields_map[modelfield_name]:
+                        assert (
+                            field_name in new_class.base_fields
+                        ), "Field {} listed in `{}.Meta.fields_map['{}']` is missing in Form declaration".format(
+                            field_name, name, modelfield_name
+                        )
+                else:
+                    assert isinstance(
+                        new_class.base_fields[fields_map[modelfield_name]],
+                        model_fields[modelfield_name].__class__
+                    ), (
+                        "Field {} listed in `{}.Meta.fields_map['{}']` is not of the same type as the model field".format(
+                        fields_map[modelfield_name], name, modelfield_name
+                    ))
 
             new_class._meta.fields_map = fields_map
         return new_class
@@ -227,9 +263,12 @@ class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):
         for modelfield_name, model_field in model_fields.items():
             fields.append(modelfield_name)
             if modelfield_name in fields_map:
-                if not isinstance(model_field, JSONField):
-                    raise TypeError("Field `{name}` is not JSON serializable".format(name=modelfield_name))
-                fields.extend(fields_map[modelfield_name])
+                if isinstance(model_field, JSONField):
+                    assert isinstance(fields_map[modelfield_name], list)
+                    fields.extend(fields_map[modelfield_name])
+                else:
+                    assert isinstance(fields_map[modelfield_name], str)
+                    fields.append(fields_map[modelfield_name])
         return fields
 
 
