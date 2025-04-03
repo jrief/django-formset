@@ -16,6 +16,8 @@ class ProductModel(models.Model):
     supplier_name = models.CharField(
         verbose_name="Supplier Name",
         max_length=100,
+        blank=True,
+        null=True,
     )
     last_modified_at = models.DateTimeField(
         auto_now=True,
