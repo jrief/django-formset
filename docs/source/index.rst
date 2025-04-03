@@ -27,10 +27,10 @@ Django's counterparts.
 	activators
 	withholding-feedback
 	collections
-	fieldsets
-	model-forms
 	fields-mapping
+	model-forms
 	model-collections
+	fieldsets
 	form-renderer
 	conditionals
 	uploading
