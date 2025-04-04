@@ -395,7 +395,7 @@ still be entered.
 
 If the content of the rich text editor shall be stored as JSON, set ``use_json=True``. This only is
 required when using this widget for a Django form's ``CharField``. When using the model field class
-:class:`formset.richtext.fields.RichTextField`, this is not necessary.
+:class:`formset.richtext.models.fields.RichTextField`, this is not necessary.
 
 .. rubric:: placeholder
 
@@ -450,10 +450,10 @@ not require to sanitize the content, because the JSON structure is only converte
 allowed by the implementation.
 
 **django-formset** provides a special model field class
-:class:`formset.richtext.fields.RichTextField`. It shall be used as a replacement to Django's model
-field class ``TextField``. This model field provides the widget ``RichTextarea`` using the default
-settings. Often that might not be the desired configuration, and it may be necessary to re-declare
-that widget, while creating the form from the model.
+:class:`formset.richtext.models.fields.RichTextField`. It shall be used as a replacement to Django's
+model field class ``TextField``. This model field provides the widget ``RichTextarea`` using the
+default settings. Often that might not be the desired configuration, and it may be necessary to
+re-declare that widget, while creating the form from the model.
 
 In this example we use a model with one field for storing the rich text entered by the user:
 
@@ -461,7 +461,7 @@ In this example we use a model with one field for storing the rich text entered 
 	:caption: models.py
 
 	from django.db.models import Model
-	from formset.richtext.fields import RichTextField
+	from formset.richtext.models.fields import RichTextField
 	
 	class BlogModel(Model):
 	    body = RichTextField()

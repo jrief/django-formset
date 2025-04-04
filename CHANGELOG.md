@@ -7,6 +7,9 @@
   * **Breaking Change:** The `FormMixin` class has been moved from `formset.utils` to
     `formset.forms`. There are two new classes `formset.forms.Form` and `formset.forms.ModelForm`
     which shall be used as base classes for forms and model forms.
+  * **Breaking Change:** The model field :class:`formset.richtext.fields.RichTextField` has been
+    moved from `formset.richtext.fields` to `formset.richtext.models.fields` in order to correspond
+    to the naming conventions in Django.
   * Add management command `./manage.py cleanup_files` to delete dangling files. This is because the
     `UploadedFileInput` widget accepts files before their form is submitted and hence processed.
 

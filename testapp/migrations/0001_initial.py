@@ -61,7 +61,7 @@ class Migration(migrations.Migration):
             name='BlogModel',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('body', formset.richtext.fields.RichTextField()),
+                ('body', formset.richtext.models.fields.RichTextField()),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
             ],
         ),
@@ -168,7 +168,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('image', models.FileField(blank=True, upload_to='images')),
-                ('caption', formset.richtext.fields.RichTextField(blank=True, null=True)),
+                ('caption', formset.richtext.models.fields.RichTextField(blank=True, null=True)),
                 ('gallery', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='images', to='testapp.gallery')),
             ],
         ),
