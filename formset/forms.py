@@ -1,6 +1,11 @@
+from pathlib import Path
+
 from django.apps import apps
 from django.core.serializers.json import DjangoJSONEncoder
-from django.forms.fields import Field as BaseField, JSONField
+from django.core.files import File
+from django.core.files.uploadedfile import UploadedFile
+from django.db.models.fields.files import FieldFile, FileField as FileModelField
+from django.forms.fields import JSONField, FileField as FileFormField
 from django.forms.forms import BaseForm, DeclarativeFieldsMetaclass
 from django.forms.models import (
     ALL_FIELDS,
@@ -115,13 +120,19 @@ class ModelFormMixin(FormMixin):
                                 initial[af] = Model.objects.get(pk=reference['pk'])
                             except (KeyError, ObjectDoesNotExist, TypeError):
                                 pass
+                        elif isinstance(field_obj, FileFormField):
+                            initial[af] = FieldFile(instance, FileModelField(name=af), reference)
                         else:
                             initial.setdefault(af, field_obj.to_python(reference))
                 elif isinstance(assigned_fields, str):
+                    # direct mapping of a model field to a form field
                     field_obj = self.base_fields[assigned_fields]
                     assert not isinstance(field_obj, (ModelChoiceField, ModelMultipleChoiceField))
                     reference = getattr(instance, field_name)
-                    initial.setdefault(assigned_fields, field_obj.to_python(reference))
+                    if isinstance(field_obj, FileFormField):
+                        initial[assigned_fields] = FieldFile(instance, FileModelField(name=assigned_fields), reference)
+                    else:
+                        initial.setdefault(assigned_fields, field_obj.to_python(reference))
                 else:
                     raise TypeError(f"Invalid type for field {field_name}: {type(assigned_fields)}")
             kwargs['initial'] = initial
@@ -163,6 +174,21 @@ class ModelFormMixin(FormMixin):
                                 'model': '{}.{}'.format(opts.app_label, opts.model_name),
                                 'pk': self.cleaned_data[af].pk,
                             }
+                        elif isinstance(self.base_fields[af], FileFormField):
+                            uploaded_file = self.cleaned_data[af]
+                            if isinstance(uploaded_file, UploadedFile):
+                                # A file has been uploaded using the FileField mapped onto a JSONField, hence we
+                                # must serialize the `UploadedFile` object, otherwise the JSON validator complains.
+                                # In method `save()` this serialized description is then converted back to an
+                                # `UploadedFile` object.
+                                cleaned_data[field_name][af] = {
+                                    'uploaded_file_path': uploaded_file.file.name,
+                                    'name': uploaded_file.name,
+                                    'content_type': uploaded_file.content_type,
+                                    'content_type_extra': uploaded_file.content_type_extra,
+                                    'size': uploaded_file.size,
+                                    'charset': uploaded_file.charset,
+                                }
                         else:
                             value = self.base_fields[af].prepare_value(self.cleaned_data[af])
                             try:
@@ -177,6 +203,26 @@ class ModelFormMixin(FormMixin):
                         cleaned_data[field_name] = value
 
             self.cleaned_data = cleaned_data
+
+    def save(self, commit=True):
+        if hasattr(self._meta, 'fields_map'):
+            for field_name, assigned_fields in self._meta.fields_map.items():
+                if isinstance(assigned_fields, list):
+                    for af in assigned_fields:
+                        if isinstance(self.base_fields[af], FileFormField):
+                            file_info = self.cleaned_data[field_name][af]
+                            if isinstance(file_info, dict) and 'uploaded_file_path' in file_info:
+                                # Deserialize the cleaned data back to an `UploadedFile` object so that it can
+                                # be stored as a file and used as a `FieldFile` object.
+                                file_path = Path(file_info.pop('uploaded_file_path'))
+                                file_model_field = FileModelField(name=af)
+                                file_model_field.attname = af
+                                with file_path.open(mode='rb') as fh:
+                                    uploaded_file = UploadedFile(File(fh, name=file_path.name), **file_info)
+                                    field_file = FieldFile(self.instance, file_model_field, uploaded_file.name)
+                                    field_file.save(field_file.name, uploaded_file, save=False)
+                                self.cleaned_data[field_name][af] = field_file.name
+        return super().save(commit)
 
 
 class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):
@@ -197,12 +243,12 @@ class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):
             )
             fields_map = dict(fields_map)  # copy for modification
             exclude = getattr(Meta, 'exclude', None)
-            model_fields = fields_for_model(
+            form_fields = fields_for_model(
                 Meta.model,
                 fields=None if fields == ALL_FIELDS else fields,
                 exclude=exclude,
             )
-            Meta.fields = mcs._create_fields_option(model_fields, fields_map)
+            Meta.fields = mcs._create_fields_option(form_fields, fields_map)
             for key, value in fields_map.items():
                 if isinstance(value, (list, tuple)):
                     fields_map[key] = list(value)
@@ -223,22 +269,22 @@ class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):
 
         # perform some model checks
         if fields_map:
-            for modelfield_name in fields_map.keys():
-                assert isinstance(new_class.base_fields[modelfield_name], ShadowField)
-                if isinstance(fields_map[modelfield_name], list):
-                    for field_name in fields_map[modelfield_name]:
+            for shadowfield_name in fields_map.keys():
+                assert isinstance(new_class.base_fields[shadowfield_name], ShadowField)
+                if isinstance(fields_map[shadowfield_name], list):
+                    for field_name in fields_map[shadowfield_name]:
                         assert (
                             field_name in new_class.base_fields
                         ), "Field {} listed in `{}.Meta.fields_map['{}']` is missing in Form declaration".format(
-                            field_name, name, modelfield_name
+                            field_name, name, shadowfield_name
                         )
                 else:
                     assert isinstance(
-                        new_class.base_fields[fields_map[modelfield_name]],
-                        model_fields[modelfield_name].__class__
+                        new_class.base_fields[fields_map[shadowfield_name]],
+                        form_fields[shadowfield_name].__class__
                     ), (
                         "Field {} listed in `{}.Meta.fields_map['{}']` is not of the same type as the model field".format(
-                        fields_map[modelfield_name], name, modelfield_name
+                        fields_map[shadowfield_name], name, shadowfield_name
                     ))
 
             new_class._meta.fields_map = fields_map
@@ -258,17 +304,17 @@ class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):
         return type('Meta', (), {})
 
     @classmethod
-    def _create_fields_option(mcs, model_fields, fields_map):
+    def _create_fields_option(mcs, form_fields, fields_map):
         fields = []
-        for modelfield_name, model_field in model_fields.items():
-            fields.append(modelfield_name)
-            if modelfield_name in fields_map:
-                if isinstance(model_field, JSONField):
-                    assert isinstance(fields_map[modelfield_name], list)
-                    fields.extend(fields_map[modelfield_name])
+        for field_name, form_field in form_fields.items():
+            fields.append(field_name)
+            if field_name in fields_map:
+                if isinstance(form_field, JSONField):
+                    assert isinstance(fields_map[field_name], list)
+                    fields.extend(fields_map[field_name])
                 else:
-                    assert isinstance(fields_map[modelfield_name], str)
-                    fields.append(fields_map[modelfield_name])
+                    assert isinstance(fields_map[field_name], str)
+                    fields.append(fields_map[field_name])
         return fields
 
 

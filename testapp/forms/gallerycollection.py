@@ -40,9 +40,13 @@ class ImageCollection(FormCollection):
 class GalleryForm(ModelForm):
     class Meta:
         model = Gallery
-        fields = '__all__'
+        fields = ['name']
 
 
 class GalleryCollection(FormCollection):
+    """
+    Shows how to use a FormCollection for models.
+    """
+
     gallery = GalleryForm()
     images = ImageCollection()

@@ -50,7 +50,7 @@ class FormRenderer(DjangoTemplates):
             form_css_classes=self.form_css_classes,
         )
         # temporary storage to keep track of which fields have already been rendered by a Fieldset.
-        # This is necessary to prevent double rendering of fields.
+        # This is necessary to prevent double rendering of fields inside the same form.
         self._rendered_fields = {}
         return context
 

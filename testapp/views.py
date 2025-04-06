@@ -49,6 +49,7 @@ from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerForm
 from testapp.forms.gallerycollection import GalleryCollection
+from testapp.forms.galleryform import GalleryForm
 from testapp.forms.issue import EditIssueCollection
 from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputForm, MomentPickerForm
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
@@ -721,6 +722,9 @@ urlpatterns = [
         template_name='testapp/button-actions.html',
         extra_context={'click_actions': 'clearErrors -> disable -> spinner -> submit -> okay(1500) -> proceed !~ enable -> bummer(9999)'},
     ), name='button-actions'),
-    path('gallerycollection', GalleryCollectionView.as_view(
-    ), name='gallerycollection'),
+    path('gallerycollection', GalleryCollectionView.as_view(), name='gallerycollection'),
+    path('galleryform', DemoModelFormView.as_view(
+        form_class=GalleryForm,
+        model=Gallery,
+    ), name='galleryform'),
 ]

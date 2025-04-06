@@ -13,6 +13,7 @@ class Gallery(models.Model):
         max_length=40,
         db_index=True,
     )
+    extra_data = models.JSONField(default=dict)
 
     class Meta:
         verbose_name = "Gallery"

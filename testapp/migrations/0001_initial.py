@@ -156,6 +156,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=50, verbose_name='Gallery name')),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
+                ('extra_data', models.JSONField(default=dict)),
             ],
             options={
                 'verbose_name': 'Gallery',
