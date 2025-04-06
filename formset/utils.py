@@ -32,7 +32,8 @@ class FormsetErrorList(ErrorList):
         }
 
     def __repr__(self):
-        return f'<{self.__class__.__name__}: {[item for item in self]} {self.client_messages}>'
+        client_messages = getattr(self, 'client_messages', '')
+        return f'<{self.__class__.__name__}: {[item for item in self]} {client_messages}>'
 
 
 class HolderMixin:
