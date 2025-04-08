@@ -49,7 +49,7 @@ from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerForm
 from testapp.forms.gallerycollection import GalleryCollection
-from testapp.forms.galleryform import GalleryForm
+from testapp.forms.galleryform import GalleryImageForm
 from testapp.forms.issue import EditIssueCollection
 from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputForm, MomentPickerForm
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
@@ -181,13 +181,15 @@ class DemoFormViewMixin(DemoViewMixin, CalendarResponseMixin, IncompleteSelectRe
 
     def get_form_class(self):
         form_class = super().get_form_class()
-        if issubclass(form_class, FormMixin):
-            return form_class
+        renderer_class = import_string(f'formset.renderers.{self.framework}.FormRenderer')
         attrs = self.get_css_classes()
         attrs.pop('button_css_classes', None)
-        renderer_class = import_string(f'formset.renderers.{self.framework}.FormRenderer')
+        renderer = renderer_class(**attrs)
+        if issubclass(form_class, FormMixin):
+            if form_class.default_renderer is None:
+                form_class.default_renderer = renderer
+            return form_class
         if self.mode != 'native':
-            renderer = renderer_class(**attrs)
             if issubclass(form_class, BaseModelForm):
                 metaclass = FormsetModelFormMetaclass
             elif issubclass(form_class, BaseForm):
@@ -724,7 +726,7 @@ urlpatterns = [
     ), name='button-actions'),
     path('gallerycollection', GalleryCollectionView.as_view(), name='gallerycollection'),
     path('galleryform', DemoModelFormView.as_view(
-        form_class=GalleryForm,
+        form_class=GalleryImageForm,
         model=Gallery,
     ), name='galleryform'),
 ]

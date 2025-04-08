@@ -1,5 +1,6 @@
 from django.forms import fields, forms
 
+from formset.fields.collection import CollectionField
 from formset.collection import FormCollection
 from formset.forms import ModelForm
 from formset.richtext.fields import RichTextField
@@ -31,8 +32,8 @@ class ImageCollection(FormCollection):
     ignore_marked_for_removal = True
 
 
-class GalleryForm(ModelForm):
-    # images = ImageCollection()
+class GalleryImageForm(ModelForm):
+    image_collection = CollectionField(ImageCollection())
     image = fields.ImageField(
         label="Image",
         required=True,
@@ -47,5 +48,5 @@ class GalleryForm(ModelForm):
         model = Gallery
         fields = ['name', 'extra_data']
         fields_map = {
-            'extra_data': ['image'],
+            'extra_data': ['image', 'image_collection'],
         }
