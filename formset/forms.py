@@ -2,7 +2,6 @@ from pathlib import Path
 
 from django.apps import apps
 from django.core.serializers.json import DjangoJSONEncoder
-from django.core.files import File
 from django.core.files.uploadedfile import UploadedFile
 from django.db.models.fields.files import FieldFile, FileField as FileModelField
 from django.forms.fields import JSONField, FileField as FileFormField
@@ -18,7 +17,8 @@ from django.forms.models import (
 from django.db.models import Model, ObjectDoesNotExist, QuerySet
 from django.utils.functional import cached_property
 
-from formset.fields import ShadowField
+from formset.fields import CollectionField
+from formset.fields.shadow import ShadowField
 from formset.fieldset import Fieldset
 from formset.utils import FormsetErrorList, HolderMixin
 

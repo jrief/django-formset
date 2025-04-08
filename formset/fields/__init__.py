@@ -2,8 +2,12 @@ from django.core import checks
 from django.db.models.fields.related import ManyToManyField
 from django.forms import fields
 
-from formset.utils import FileFieldMixin, HolderMixin
-from formset.widgets import Button, DualSortableSelector, EmptyWidget, UploadedFileInput
+from formset.fields.activator import Activator
+from formset.fields.collection import CollectionField
+from formset.utils import FileFieldMixin
+from formset.widgets import DualSortableSelector, UploadedFileInput
+
+__all__ = ['Activator', 'CollectionField', 'FileField', 'SortableManyToManyField']
 
 
 class FileField(FileFieldMixin, fields.FileField):
@@ -12,20 +16,6 @@ class FileField(FileFieldMixin, fields.FileField):
     clean() method.
     """
     widget = UploadedFileInput
-
-
-class Activator(HolderMixin, fields.Field):
-    default_renderer = None
-    widget = Button(action='activate')
-
-    def __init__(self, renderer=None, **kwargs):
-        self.renderer = renderer or self.default_renderer
-        kwargs.update(
-            required=False,
-            validators=[],
-            label_suffix='',
-        )
-        super().__init__(**kwargs)
 
 
 class SortableMultipleChoiceMixin:
@@ -99,15 +89,3 @@ class SortableManyToManyField(ManyToManyField):
         if not isinstance(form_field.widget, DualSortableSelector):
             form_field.widget = DualSortableSelector()
         return form_field
-
-
-class ShadowField(fields.Field):
-    """
-    A pseudo field to be used for mimicking a field value, which actually is not rendered inside the form.
-    This is required for forms using the `fields_map` option.
-    """
-    widget = EmptyWidget
-
-    def __init__(self, required=False, *args, **kwargs):
-        # a ShadowField can not be required
-        super().__init__(required=required, *args, **kwargs)

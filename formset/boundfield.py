@@ -9,7 +9,7 @@ from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
-from formset.fields import Activator, FileFieldMixin
+from formset.fields import Activator, CollectionField, FileFieldMixin
 from formset.renderers import ClassList
 from formset.upload import get_file_info
 from formset.widgets import UploadedFileInput
@@ -104,6 +104,8 @@ class BoundField(boundfield.BoundField):
         if isinstance(self.field, Activator) or self.widget_type == 'dualselector':
             label = self.name.replace('_', ' ').title() if self.field.label is None else self.field.label
             attrs['label'] = label  # remember label for ButtonWidget.get_context()
+        if isinstance(self.field, CollectionField):
+            attrs['has_many'] = self.field.collection.has_many
         return attrs
 
     @cached_property
