@@ -17,7 +17,9 @@ from formset.exceptions import FormCollectionError
 from formset.fields import Activator
 from formset.forms import DeclarativeFieldsetMetaclass, FormsetModelFormMetaclass, FormMixin
 from formset.renderers.default import FormRenderer
-from formset.utils import MARKED_FOR_REMOVAL, FormsetErrorList, HolderMixin, RenderableDetachedFieldMixin
+from formset.utils import (
+    MARKED_FOR_REMOVAL, FormsetErrorList, HolderMixin, RenderableDetachedFieldMixin
+)
 
 COLLECTION_ERRORS = '_collection_errors_'
 
@@ -45,7 +47,6 @@ class FormCollectionMeta(MediaDefiningClass):
                             value.__class__.__name__,
                             bases=(FormMixin, value.__class__),
                             kwds={'metaclass': FormsetModelFormMetaclass},
-                            # exec_body=lambda ns: ns.update(error_class=FormsetErrorList),
                         )
                         value.error_class = FormsetErrorList
                     elif isinstance(value, BaseForm):
@@ -53,7 +54,6 @@ class FormCollectionMeta(MediaDefiningClass):
                             value.__class__.__name__,
                             bases=(FormMixin, value.__class__),
                             kwds={'metaclass': DeclarativeFieldsetMetaclass},
-                            # exec_body=lambda ns: ns.update(error_class=FormsetErrorList),
                         )
                         value.error_class = FormsetErrorList
                 attrs['declared_holders'][key] = value
@@ -402,7 +402,10 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         if self._errors is None or not self.is_valid():
             raise AttributeError(f"'{self.__class__}' object has no attribute 'cleaned_data'")
         if self.has_many:
-            return [{name: holder.cleaned_data} for valid_holders in self.valid_holders for name, holder in valid_holders.items()]
+            return [
+                {name: holder.cleaned_data}
+                for valid_holders in self.valid_holders for name, holder in valid_holders.items()
+            ]
         else:
             return {name: holder.cleaned_data for name, holder in self.valid_holders.items()}
 
