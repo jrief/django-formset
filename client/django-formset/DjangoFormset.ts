@@ -1929,12 +1929,18 @@ export class DjangoFormset implements DjangoFormset {
 		if (forms.length === 1)
 			return;
 		const formNames = Array<string>();
-		forms.forEach(form => {
-			if (!form.name)
-				throw new Error("Multiple <form>-elements in a <django-formset> require a unique name each.");
-			if (form.name in formNames)
-				throw new Error(`Duplicate name "${form.name}" used in multiple forms of same <django-formset>.`);
-			formNames.push(form.name);
+		forms.forEach((form, counter) => {
+			if (counter === 0) {
+				if (form.name) {
+					formNames.push(form.name);
+				}
+			} else {
+				if (!form.name)
+					throw new Error("Multiple <form>-elements in a <django-formset> require a unique name each.");
+				if (form.name in formNames)
+					throw new Error(`Duplicate name "${form.name}" used in multiple forms of same <django-formset>.`);
+				formNames.push(form.name);
+			}
 		});
 	}
 
@@ -2061,7 +2067,7 @@ export class DjangoFormset implements DjangoFormset {
 		}
 
 		// Build a nested data structure (body) reflecting the shape of collections and forms
-		const body = {};
+		const body = {formset_data: {}};
 
 		// 1. extend body with empty arrays from Form Collections with siblings
 		for (const prefix of this.emptyCollectionPrefixes) {
@@ -2071,20 +2077,21 @@ export class DjangoFormset implements DjangoFormset {
 		}
 
 		// 2. iterate over all forms and fill the data structure with content
-		for (const form of this.forms) {
-			if (!form.name) {
-				// it's a single form, which doesn't have a name
-				const formsetData = Object.fromEntries(form.aggregateValues());
-				return Object.assign({}, {'formset_data': formsetData}, {_extra: extraData});
-			}
-			if (form.isTransient)
+		for (const [index, form] of this.forms.entries()) {
+			if (form.isTransient) {
 				continue;
-			const absPath = form.getAbsPath();
-			dataValue = getDataValue(this.data, absPath);
-			if (form.markedForRemoval) {
-				dataValue[MARKED_FOR_REMOVAL] = true;
+			} else if (index === 0 && !form.name) {
+				// a single form, which doesn't have a name
+				const formsetData = Object.fromEntries(form.aggregateValues());
+				Object.assign(body['formset_data'], formsetData);
+			} else {
+				const absPath = form.getAbsPath();
+				dataValue = getDataValue(this.data, absPath);
+				if (form.markedForRemoval) {
+					dataValue[MARKED_FOR_REMOVAL] = true;
+				}
+				extendBody(body, absPath);
 			}
-			extendBody(body, absPath);
 		}
 
 		// 3. extend data structure with extra data, for instance from buttons
