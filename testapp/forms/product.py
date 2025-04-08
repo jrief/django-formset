@@ -47,12 +47,13 @@ class Supplier(Fieldset):
 
 class ProductForm(ProductFormUnmapped):
     """
-    How to map Django Form fields to one or more JSONField-s.
+    How to map fields for a Django Form and a Fieldset to one or more JSONField-s.
     """
     supplier = Supplier()
 
     class Meta(ProductFormUnmapped.Meta):
-        exclude = ['extra_data']
+        fields = ['title', 'price', 'properties', 'supplier_name']
+        # exclude = ['extra_data']
         fields_map = {
             'properties': ['size', 'color', 'supplier.origin'],
             'supplier_name': 'supplier.name',

@@ -7,7 +7,7 @@ from formset.richtext.widgets import RichTextarea
 
 class RichTextField(Field):
     """
-    Use this field to embed a rich text content into a JSONField when used in combination with a ``fields_map``.
+    Use this field to store rich text content in JSON.
     """
     def __init__(self, widget=None, *args, **kwargs):
         if isinstance(widget, RichTextarea):
