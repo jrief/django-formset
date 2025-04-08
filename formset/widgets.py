@@ -121,7 +121,7 @@ class IncompleteSelectMixin:
             self.filter_by = filter_by
         elif (
             isclass(use_filter_set) and  # this avoids the need to import `django_filters.FilterSet`
-            any((b.__name__, b.__module__) == ('FilterSet', 'django_filters.filterset') for b in use_filter_set.mro())
+            any((b.__module__, b.__name__) == ('django_filters.filterset', 'FilterSet') for b in use_filter_set.mro())
         ):
             self.use_filter_set = use_filter_set
         super().__init__(attrs, choices)
@@ -429,6 +429,13 @@ class UploadedFileInput(FileInput):
                 content_type_extra=handle['content_type_extra'],
             )
         return files.get(name)
+
+
+class CollectionWidget(Widget):
+    """
+    Widget to be used if a collection is rendered using :class:`formset.fields.CollectionField`.
+    """
+    template_name = 'formset/default/widgets/collection.html'
 
 
 class DateInput(DateTimeBaseInput):

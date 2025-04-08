@@ -74,15 +74,24 @@ class FormMixin(FormDecoratorMixin, HolderMixin):
 
 class FormsetMetaclassMixin(type):
     def __new__(mcs, name, bases, attrs):
-        attrs_list, declared_fieldsets = [], {}
+        attrs_list, declared_collections, declared_fieldsets = [], {}, {}
+        # prefix = attrs.pop('prefix', None)
         for key, value in list(attrs.items()):
-            if isinstance(value, Fieldset):
+            if isinstance(value, CollectionField):
+                declared_collections[key] = value
+                attrs_list.append((key, value))
+                # if prefix is None:
+                #     # if we add a CollectionField, the current form must set a prefix
+                #     attrs_list.append(('prefix',name.lower()))
+            elif isinstance(value, Fieldset):
                 declared_fieldsets[key] = value
                 for field_name, field in value.declared_fields.items():
                     attrs_list.append((f'{key}.{field_name}', field))
             else:
                 attrs_list.append((key, value))
-        return super().__new__(mcs, name, bases, dict(attrs_list, declared_fieldsets=declared_fieldsets))
+        attrs = dict(attrs_list, declared_fieldsets=declared_fieldsets, declared_collections=declared_collections)
+        new_class = super().__new__(mcs, name, bases, attrs)
+        return new_class
 
 
 class DeclarativeFieldsetMetaclass(FormsetMetaclassMixin, DeclarativeFieldsMetaclass):
@@ -96,34 +105,95 @@ class Form(FormMixin, BaseForm, metaclass=DeclarativeFieldsetMetaclass):
     Base class for all Django Form classes.
     """
 
+def pre_serialize(instance, field_name, value):
+    """
+    Pre-serialize the cleaned data recursively to be usable for a JSONField.
+    This function
+    - stores all entities of `UploadedFile` to disk and returns their file name.
+    - converts all `FieldFile` objects to their file name.
+    - converts all `ModelChoiceField` and `ModelMultipleChoiceField` objects to a serializable representation.
+    """
+    if isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, list):
+        return [pre_serialize(instance, field_name, val) for val in value]
+    if isinstance(value, dict):
+        return {key: pre_serialize(instance, field_name, val) for key, val in value.items()}
+    if isinstance(value, UploadedFile):
+        file_model_field = FileModelField(name=field_name)
+        file_model_field.attname = field_name
+        field_file = FieldFile(instance, file_model_field, value.name)
+        field_file.save(field_file.name, value, save=False)
+        return field_file.name
+    if isinstance(value, FieldFile):
+        return value.name
+    if isinstance(value, Model):
+        opts = value._meta
+        return {
+            'model': '{}.{}'.format(opts.app_label, opts.model_name),
+            'pk': value.pk,
+        }
+    if isinstance(value, QuerySet):
+        opts = value.model._meta
+        return {
+            'model': '{}.{}'.format(opts.app_label, opts.model_name),
+            'p_keys': list(
+                value.values_list('pk', flat=True)
+            ),
+        }
+
 
 class ModelFormMixin(FormMixin):
+    def _prepare_initial(self, instance, field_name, field, value):
+        """
+        Prepare initial data from a serialized representation to be usable for a CollectionField.
+        This function converts entities into a `FieldFile`, `ModelChoiceField` or `ModelMultipleChoiceField` object.
+        """
+        # if isinstance(value, list):
+        #     return [self._prepare_initial(instance, field_name, field, val) for val in value]
+        # if isinstance(value, dict):
+        #     return {key: self._prepare_initial(instance, key, field, val) for key, val in value.items()}
+        if isinstance(field, ModelMultipleChoiceField):
+            try:
+                Model = apps.get_model(value['model'])
+                return Model.objects.filter(
+                    pk__in=value['p_keys']
+                )
+            except (KeyError, TypeError):
+                return
+        if isinstance(field, ModelChoiceField):
+            try:
+                Model = apps.get_model(value['model'])
+                return Model.objects.get(pk=value['pk'])
+            except (KeyError, ObjectDoesNotExist, TypeError):
+                pass
+        if isinstance(field, FileFormField):
+            return FieldFile(instance, FileModelField(name=field_name), value)
+        if isinstance(field, CollectionField):
+            if field.collection.has_many and not isinstance(value, list):
+                return
+            if not field.collection.has_many and not isinstance(value, dict):
+                return
+            if not (renderer := getattr(field.collection, 'renderer', field.collection.default_renderer)):
+                renderer = getattr(self, 'renderer', self.default_renderer)
+            # TODO: start recursion
+            return field.collection.replicate(
+                initial=value,
+                prefix=field_name,
+                renderer=renderer,
+            )
+
+        return field.to_python(value)
+
     def __init__(self, instance=None, *args, **kwargs):
         if hasattr(self._meta, 'fields_map') and instance is not None:
             initial = kwargs.get('initial', {})
             for field_name, assigned_fields in self._meta.fields_map.items():
                 if isinstance(assigned_fields, list):
                     for af in assigned_fields:
-                        reference = getattr(instance, field_name).get(af)
-                        field_obj = self.base_fields[af]
-                        if isinstance(field_obj, ModelMultipleChoiceField):
-                            try:
-                                Model = apps.get_model(reference['model'])
-                                initial[af] = Model.objects.filter(
-                                    pk__in=reference['p_keys']
-                                )
-                            except (KeyError, TypeError):
-                                pass
-                        elif isinstance(field_obj, ModelChoiceField):
-                            try:
-                                Model = apps.get_model(reference['model'])
-                                initial[af] = Model.objects.get(pk=reference['pk'])
-                            except (KeyError, ObjectDoesNotExist, TypeError):
-                                pass
-                        elif isinstance(field_obj, FileFormField):
-                            initial[af] = FieldFile(instance, FileModelField(name=af), reference)
-                        else:
-                            initial.setdefault(af, field_obj.to_python(reference))
+                        value = getattr(instance, field_name).get(af)
+                        value = self._prepare_initial(instance, af, self.base_fields[af], value)
+                        initial.setdefault(af, value)
                 elif isinstance(assigned_fields, str):
                     # direct mapping of a model field to a form field
                     field_obj = self.base_fields[assigned_fields]
@@ -142,10 +212,14 @@ class ModelFormMixin(FormMixin):
         super()._clean_form()
         if hasattr(self._meta, 'fields_map'):
             encoder = DjangoJSONEncoder()
+            mapped_fields = []
+            for key, value in self._meta.fields_map.items():
+                mapped_fields.extend([key, *(value if isinstance(value, list) else [value])])
             cleaned_data = {
                 key: value for key, value in self.cleaned_data.items()
-                if key not in self._meta.fields_map
+                if key not in mapped_fields
             }
+            print('before:', cleaned_data)
             for field_name, assigned_fields in self._meta.fields_map.items():
                 if isinstance(assigned_fields, list):
                     # Keep other fields in JSON
@@ -156,73 +230,24 @@ class ModelFormMixin(FormMixin):
                     for af in assigned_fields:
                         if af not in self.cleaned_data:
                             continue
-                        if isinstance(self.base_fields[af], ModelMultipleChoiceField) and isinstance(
-                            self.cleaned_data[af], QuerySet
-                        ):
-                            opts = self.cleaned_data[af].model._meta
-                            cleaned_data[field_name][af] = {
-                                'model': '{}.{}'.format(opts.app_label, opts.model_name),
-                                'p_keys': list(
-                                    self.cleaned_data[af].values_list('pk', flat=True)
-                                ),
-                            }
-                        elif isinstance(self.base_fields[af], ModelChoiceField) and isinstance(
-                            self.cleaned_data[af], Model
-                        ):
-                            opts = self.cleaned_data[af]._meta
-                            cleaned_data[field_name][af] = {
-                                'model': '{}.{}'.format(opts.app_label, opts.model_name),
-                                'pk': self.cleaned_data[af].pk,
-                            }
-                        elif isinstance(self.base_fields[af], FileFormField):
-                            uploaded_file = self.cleaned_data[af]
-                            if isinstance(uploaded_file, UploadedFile):
-                                # A file has been uploaded using the FileField mapped onto a JSONField, hence we
-                                # must serialize the `UploadedFile` object, otherwise the JSON validator complains.
-                                # In method `save()` this serialized description is then converted back to an
-                                # `UploadedFile` object.
-                                cleaned_data[field_name][af] = {
-                                    'uploaded_file_path': uploaded_file.file.name,
-                                    'name': uploaded_file.name,
-                                    'content_type': uploaded_file.content_type,
-                                    'content_type_extra': uploaded_file.content_type_extra,
-                                    'size': uploaded_file.size,
-                                    'charset': uploaded_file.charset,
-                                }
-                        else:
-                            value = self.base_fields[af].prepare_value(self.cleaned_data[af])
-                            try:
-                                cleaned_data[field_name][af] = encoder.default(value)
-                            except TypeError:
-                                cleaned_data[field_name][af] = value
+                        value = self.base_fields[af].prepare_value(self.cleaned_data[af])
+                        try:
+                            cleaned_data[field_name][af] = encoder.default(value)
+                        except TypeError:
+                            cleaned_data[field_name][af] = value
                 elif isinstance(assigned_fields, str):
                     value = self.base_fields[assigned_fields].prepare_value(self.cleaned_data[assigned_fields])
                     try:
                         cleaned_data[field_name] = encoder.default(value)
                     except TypeError:
                         cleaned_data[field_name] = value
-
             self.cleaned_data = cleaned_data
 
-    def save(self, commit=True):
-        if hasattr(self._meta, 'fields_map'):
-            for field_name, assigned_fields in self._meta.fields_map.items():
-                if isinstance(assigned_fields, list):
-                    for af in assigned_fields:
-                        if isinstance(self.base_fields[af], FileFormField):
-                            file_info = self.cleaned_data[field_name][af]
-                            if isinstance(file_info, dict) and 'uploaded_file_path' in file_info:
-                                # Deserialize the cleaned data back to an `UploadedFile` object so that it can
-                                # be stored as a file and used as a `FieldFile` object.
-                                file_path = Path(file_info.pop('uploaded_file_path'))
-                                file_model_field = FileModelField(name=af)
-                                file_model_field.attname = af
-                                with file_path.open(mode='rb') as fh:
-                                    uploaded_file = UploadedFile(File(fh, name=file_path.name), **file_info)
-                                    field_file = FieldFile(self.instance, file_model_field, uploaded_file.name)
-                                    field_file.save(field_file.name, uploaded_file, save=False)
-                                self.cleaned_data[field_name][af] = field_file.name
-        return super().save(commit)
+    def _post_clean(self):
+        print('post_clean: ', self.cleaned_data)
+        for field_name in self._meta.fields_map.keys():
+            self.cleaned_data[field_name] = pre_serialize(self.instance, field_name, self.cleaned_data[field_name])
+        super()._post_clean()
 
 
 class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):
