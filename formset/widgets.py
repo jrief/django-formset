@@ -433,9 +433,14 @@ class UploadedFileInput(FileInput):
 
 class CollectionWidget(Widget):
     """
-    Widget to be used if a collection is rendered using :class:`formset.fields.CollectionField`.
+    Widget to be used by :class:`formset.collection.CollectionField`.
     """
     template_name = 'formset/default/widgets/collection.html'
+
+    def get_context(self, name, value, attrs):
+        return {
+            'collection': value,
+        }
 
 
 class DateInput(DateTimeBaseInput):

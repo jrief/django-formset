@@ -3,6 +3,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.forms.fields import Field
 from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
 from django.utils.safestring import mark_safe
 
@@ -174,3 +175,13 @@ class RenderableDetachedFieldMixin(RenderableMixin):
 
     __str__ = render
     __html__ = render
+
+
+class CollectionFieldBase(Field):
+    """
+    Mixin class to be added to CollectionField if it used as a field holding a FormCollection.
+    """
+    def clean(self, value):
+        collection = self.replicate(data=value)
+        collection.full_clean()
+        return collection.cleaned_data

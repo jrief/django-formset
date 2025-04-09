@@ -3,11 +3,10 @@ from django.db.models.fields.related import ManyToManyField
 from django.forms import fields
 
 from formset.fields.activator import Activator
-from formset.fields.collection import CollectionField
 from formset.utils import FileFieldMixin
 from formset.widgets import DualSortableSelector, UploadedFileInput
 
-__all__ = ['Activator', 'CollectionField', 'FileField', 'SortableManyToManyField']
+__all__ = ['Activator', 'FileField', 'SortableManyToManyField']
 
 
 class FileField(FileFieldMixin, fields.FileField):

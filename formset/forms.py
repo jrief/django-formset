@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from django.apps import apps
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.files.uploadedfile import UploadedFile
@@ -17,10 +15,9 @@ from django.forms.models import (
 from django.db.models import Model, ObjectDoesNotExist, QuerySet
 from django.utils.functional import cached_property
 
-from formset.fields import CollectionField
 from formset.fields.shadow import ShadowField
 from formset.fieldset import Fieldset
-from formset.utils import FormsetErrorList, HolderMixin
+from formset.utils import CollectionFieldBase, FormsetErrorList, HolderMixin
 
 
 class FormDecoratorMixin:
@@ -77,12 +74,13 @@ class FormsetMetaclassMixin(type):
         attrs_list, declared_collections, declared_fieldsets = [], {}, {}
         # prefix = attrs.pop('prefix', None)
         for key, value in list(attrs.items()):
-            if isinstance(value, CollectionField):
-                declared_collections[key] = value
-                attrs_list.append((key, value))
+            if isinstance(value, CollectionFieldBase):
+                declared_collections[key] = value  # TODO: declared_collections actually is never used
+                # attrs_list.append((key, value))
                 # if prefix is None:
                 #     # if we add a CollectionField, the current form must set a prefix
                 #     attrs_list.append(('prefix',name.lower()))
+                attrs_list.append((key, value))
             elif isinstance(value, Fieldset):
                 declared_fieldsets[key] = value
                 for field_name, field in value.declared_fields.items():
@@ -169,15 +167,15 @@ class ModelFormMixin(FormMixin):
                 pass
         if isinstance(field, FileFormField):
             return FieldFile(instance, FileModelField(name=field_name), value)
-        if isinstance(field, CollectionField):
-            if field.collection.has_many and not isinstance(value, list):
+        if isinstance(field, CollectionFieldBase):
+            if field.has_many and not isinstance(value, list):
                 return
-            if not field.collection.has_many and not isinstance(value, dict):
+            if not field.has_many and not isinstance(value, dict):
                 return
-            if not (renderer := getattr(field.collection, 'renderer', field.collection.default_renderer)):
+            if not (renderer := getattr(field, 'renderer', field.default_renderer)):
                 renderer = getattr(self, 'renderer', self.default_renderer)
             # TODO: start recursion
-            return field.collection.replicate(
+            return field.replicate(
                 initial=value,
                 prefix=field_name,
                 renderer=renderer,
