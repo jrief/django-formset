@@ -138,7 +138,6 @@ class ModelFormMixin(FormMixin):
                     af = assigned_fields
                     cleaned_data[af] = post_serialize(self.instance, af, self.cleaned_data[af])
             self.cleaned_data = cleaned_data
-            print('after clean form:', cleaned_data)
 
 
 class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):

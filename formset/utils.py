@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.fields import Field, FileField as FileFormField
+from django.forms.forms import Form
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
 from django.db.models import Model, ObjectDoesNotExist, QuerySet
@@ -72,7 +73,7 @@ def prepare_initial(instance, field_name, field, value):
 
 def post_serialize(instance, field_name, value):
     """
-    Pre-serialize the POST data recursively to be usable for a JSONField.
+    Post-serialize the POST data recursively to be usable for a JSONField.
     This function
     - stores all entities of `UploadedFile` to disk and returns their file name.
     - converts all `FieldFile` objects to their file name.
@@ -122,6 +123,7 @@ class HolderMixin:
 
     def replicate(self, data=None, initial=None, auto_id=None, prefix=None, instance=None, partial=None, renderer=None,
                   ignore_marked_for_removal=None):
+        # print("replicate: ", self.__class__, prefix, initial)
         replica = copy.copy(self)
         if hasattr(self, 'declared_holders'):
             replica.declared_holders = {
@@ -131,23 +133,45 @@ class HolderMixin:
                 ) for key, holder in self.declared_holders.items()
             }
             # some initial values must be converted to Python types
-            if self.has_many is True:
-                initial = [
-                    {key: {
+            if self.has_many is True and isinstance(initial, list):
+                # replica.initial = []
+                # for item in initial:
+                #     replica.initial.append({})
+                #     for key, holder in self.declared_holders.items():
+                #         if key not in item:
+                #             continue
+                #         if isinstance(holder, Form):
+                #             replica.initial[-1].update({key: {
+                #                 name: prepare_initial(instance, name, field, item[key][name])
+                #                 for name, field in holder.fields.items() if name in item[key]
+                #             }})
+                #         else:
+                #             replica.initial[-1].update({key: {
+                #                 name: item[key][name]
+                #                 for name, field in holder.declared_holders.items() if name in item[key]
+                #             }})
+
+                replica.initial = [{
+                    key: {
                         name: prepare_initial(instance, name, field, item[key][name])
-                        for name, field in holder.base_fields.items() if name in item[key]
-                    }}
-                    for item in initial
-                    for key, holder in self.declared_holders.items() if key in item
-                ] if isinstance(initial, list) else []
-            elif self.has_many is False:
-                initial = {
+                        for name, field in holder.fields.items() if name in item[key]
+                    } if isinstance(holder, Form) else {
+                        name: item[key][name]
+                        for name in holder.declared_holders if name in item[key]
+                    } for key, holder in self.declared_holders.items() if key in item
+                } for item in initial]
+            elif self.has_many is False and isinstance(initial, dict):
+                replica.initial = {
                     key: {
                         name: prepare_initial(instance, name, field, initial[key][name])
-                        for name, field in holder.base_fields.items() if name in initial[key]
-                    }
-                    for key, holder in self.declared_holders.items() if key in initial
-                } if isinstance(initial, dict) else {}
+                        for name, field in holder.fields.items() if name in initial[key]
+                    } if isinstance(holder, Form) else {
+                        name: initial[key][name]
+                        for name in holder.declared_holders if name in initial[key]
+                    } for key, holder in self.declared_holders.items() if key in initial
+                }
+        elif initial:
+            replica.initial = initial
         replica.data = data
         replica.is_bound = data is not None
         replica._errors = None
@@ -157,8 +181,6 @@ class HolderMixin:
             pass
         if hasattr(replica, 'files'):
             replica.files.clear()
-        if initial:
-            replica.initial = initial
         if auto_id:
             replica.auto_id = auto_id
         if prefix:

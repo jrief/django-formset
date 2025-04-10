@@ -407,8 +407,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             raise AttributeError(f"'{self.__class__}' object has no attribute 'cleaned_data'")
         if self.has_many:
             return [
-                {name: holder.cleaned_data}
-                for valid_holders in self.valid_holders for name, holder in valid_holders.items()
+                {name: holder.cleaned_data for name, holder in valid_holders.items()}
+                for valid_holders in self.valid_holders
             ]
         else:
             return {name: holder.cleaned_data for name, holder in self.valid_holders.items()}

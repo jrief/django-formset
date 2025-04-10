@@ -1,5 +1,6 @@
 from django.forms import fields, forms
 
+from formset.collection import FormCollection
 from formset.fields.collection import CollectionField
 from formset.fieldset import Fieldset
 from formset.forms import ModelForm
@@ -11,6 +12,18 @@ from formset.widgets import CountrySelectize
 from django_countries import countries
 
 from testapp.models.gallery import Gallery
+
+
+class SingleForm(forms.Form):
+    text = fields.CharField(label="Text")
+    image = fields.ImageField(
+        label="Next",
+        required=False,
+        widget=UploadedFileInput,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 class ImageForm(forms.Form):
@@ -25,11 +38,19 @@ class ImageForm(forms.Form):
         widget=RichTextarea,
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class SingleText(FormCollection):
+    single_text = SingleForm()
+
 
 class ImageCollection(CollectionField):
     min_siblings = 0
     extra_siblings = 1
-    image = ImageForm()
+    image_form = ImageForm()
+    text_form = SingleText()
     legend = "Gallery Images"
     add_label = "Add Image"
     ignore_marked_for_removal = True
@@ -52,12 +73,12 @@ class Supplement(Fieldset):
 
 class GalleryImageForm(ModelForm):
     image_collection = ImageCollection()
-    image = fields.ImageField(
+    main_image = fields.ImageField(
         label="Image",
         required=True,
         widget=UploadedFileInput,
     )
-    caption = RichTextField(
+    main_caption = RichTextField(
         label="Caption",
         required=False,
     )
@@ -67,6 +88,5 @@ class GalleryImageForm(ModelForm):
         model = Gallery
         fields = ['name', 'extra_data']
         fields_map = {
-            #'extra_data': ['image'],
-            'extra_data': ['image', 'caption', 'image_collection', 'supplement.name', 'supplement.origin'],
+            'extra_data': ['main_image', 'main_caption', 'image_collection', 'supplement.name', 'supplement.origin'],
         }
