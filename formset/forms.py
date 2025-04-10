@@ -1,23 +1,11 @@
-from django.apps import apps
-from django.core.serializers.json import DjangoJSONEncoder
-from django.core.files.uploadedfile import UploadedFile
-from django.db.models.fields.files import FieldFile, FileField as FileModelField
-from django.forms.fields import JSONField, FileField as FileFormField
+from django.forms.fields import JSONField
 from django.forms.forms import BaseForm, DeclarativeFieldsMetaclass
-from django.forms.models import (
-    ALL_FIELDS,
-    BaseModelForm,
-    ModelFormMetaclass,
-    ModelChoiceField,
-    ModelMultipleChoiceField,
-    fields_for_model,
-)
-from django.db.models import Model, ObjectDoesNotExist, QuerySet
+from django.forms.models import ALL_FIELDS, BaseModelForm, ModelFormMetaclass, fields_for_model
 from django.utils.functional import cached_property
 
 from formset.fields.shadow import ShadowField
 from formset.fieldset import Fieldset
-from formset.utils import CollectionFieldBase, FormsetErrorList, HolderMixin
+from formset.utils import CollectionFieldBase, FormsetErrorList, HolderMixin, prepare_initial, post_serialize
 
 
 class FormDecoratorMixin:
@@ -72,14 +60,9 @@ class FormMixin(FormDecoratorMixin, HolderMixin):
 class FormsetMetaclassMixin(type):
     def __new__(mcs, name, bases, attrs):
         attrs_list, declared_collections, declared_fieldsets = [], {}, {}
-        # prefix = attrs.pop('prefix', None)
         for key, value in list(attrs.items()):
             if isinstance(value, CollectionFieldBase):
                 declared_collections[key] = value  # TODO: declared_collections actually is never used
-                # attrs_list.append((key, value))
-                # if prefix is None:
-                #     # if we add a CollectionField, the current form must set a prefix
-                #     attrs_list.append(('prefix',name.lower()))
                 attrs_list.append((key, value))
             elif isinstance(value, Fieldset):
                 declared_fieldsets[key] = value
@@ -103,104 +86,31 @@ class Form(FormMixin, BaseForm, metaclass=DeclarativeFieldsetMetaclass):
     Base class for all Django Form classes.
     """
 
-def pre_serialize(instance, field_name, value):
-    """
-    Pre-serialize the cleaned data recursively to be usable for a JSONField.
-    This function
-    - stores all entities of `UploadedFile` to disk and returns their file name.
-    - converts all `FieldFile` objects to their file name.
-    - converts all `ModelChoiceField` and `ModelMultipleChoiceField` objects to a serializable representation.
-    """
-    if isinstance(value, (str, int, float, bool)):
-        return value
-    if isinstance(value, list):
-        return [pre_serialize(instance, field_name, val) for val in value]
-    if isinstance(value, dict):
-        return {key: pre_serialize(instance, field_name, val) for key, val in value.items()}
-    if isinstance(value, UploadedFile):
-        file_model_field = FileModelField(name=field_name)
-        file_model_field.attname = field_name
-        field_file = FieldFile(instance, file_model_field, value.name)
-        field_file.save(field_file.name, value, save=False)
-        return field_file.name
-    if isinstance(value, FieldFile):
-        return value.name
-    if isinstance(value, Model):
-        opts = value._meta
-        return {
-            'model': '{}.{}'.format(opts.app_label, opts.model_name),
-            'pk': value.pk,
-        }
-    if isinstance(value, QuerySet):
-        opts = value.model._meta
-        return {
-            'model': '{}.{}'.format(opts.app_label, opts.model_name),
-            'p_keys': list(
-                value.values_list('pk', flat=True)
-            ),
-        }
-
 
 class ModelFormMixin(FormMixin):
-    def _prepare_initial(self, instance, field_name, field, value):
-        """
-        Prepare initial data from a serialized representation to be usable for a CollectionField.
-        This function converts entities into a `FieldFile`, `ModelChoiceField` or `ModelMultipleChoiceField` object.
-        """
-        # if isinstance(value, list):
-        #     return [self._prepare_initial(instance, field_name, field, val) for val in value]
-        # if isinstance(value, dict):
-        #     return {key: self._prepare_initial(instance, key, field, val) for key, val in value.items()}
-        if isinstance(field, ModelMultipleChoiceField):
-            try:
-                Model = apps.get_model(value['model'])
-                return Model.objects.filter(
-                    pk__in=value['p_keys']
-                )
-            except (KeyError, TypeError):
-                return
-        if isinstance(field, ModelChoiceField):
-            try:
-                Model = apps.get_model(value['model'])
-                return Model.objects.get(pk=value['pk'])
-            except (KeyError, ObjectDoesNotExist, TypeError):
-                pass
-        if isinstance(field, FileFormField):
-            return FieldFile(instance, FileModelField(name=field_name), value)
-        if isinstance(field, CollectionFieldBase):
-            if field.has_many and not isinstance(value, list):
-                return
-            if not field.has_many and not isinstance(value, dict):
-                return
-            if not (renderer := getattr(field, 'renderer', field.default_renderer)):
-                renderer = getattr(self, 'renderer', self.default_renderer)
-            # TODO: start recursion
-            return field.replicate(
-                initial=value,
-                prefix=field_name,
-                renderer=renderer,
-            )
-
-        return field.to_python(value)
 
     def __init__(self, instance=None, *args, **kwargs):
+        def initial_value(field_name, field, value):
+            if isinstance(field, CollectionFieldBase):
+                if not (renderer := getattr(field, 'renderer', field.default_renderer)):
+                    renderer = getattr(self, 'renderer', self.default_renderer)
+                return field.replicate(instance=instance, initial=value, prefix=field_name, renderer=renderer)
+            else:
+                return prepare_initial(instance, field_name, field, value)
+
         if hasattr(self._meta, 'fields_map') and instance is not None:
             initial = kwargs.get('initial', {})
             for field_name, assigned_fields in self._meta.fields_map.items():
                 if isinstance(assigned_fields, list):
                     for af in assigned_fields:
                         value = getattr(instance, field_name).get(af)
-                        value = self._prepare_initial(instance, af, self.base_fields[af], value)
-                        initial.setdefault(af, value)
+                        if value is None:
+                            continue
+                        initial[af] = initial_value(af, self.base_fields[af], value)
                 elif isinstance(assigned_fields, str):
                     # direct mapping of a model field to a form field
-                    field_obj = self.base_fields[assigned_fields]
-                    assert not isinstance(field_obj, (ModelChoiceField, ModelMultipleChoiceField))
-                    reference = getattr(instance, field_name)
-                    if isinstance(field_obj, FileFormField):
-                        initial[assigned_fields] = FieldFile(instance, FileModelField(name=assigned_fields), reference)
-                    else:
-                        initial.setdefault(assigned_fields, field_obj.to_python(reference))
+                    af = assigned_fields
+                    initial[af] = initial_value(af, self.base_fields[af], value)
                 else:
                     raise TypeError(f"Invalid type for field {field_name}: {type(assigned_fields)}")
             kwargs['initial'] = initial
@@ -209,7 +119,6 @@ class ModelFormMixin(FormMixin):
     def _clean_form(self):
         super()._clean_form()
         if hasattr(self._meta, 'fields_map'):
-            encoder = DjangoJSONEncoder()
             mapped_fields = []
             for key, value in self._meta.fields_map.items():
                 mapped_fields.extend([key, *(value if isinstance(value, list) else [value])])
@@ -217,10 +126,9 @@ class ModelFormMixin(FormMixin):
                 key: value for key, value in self.cleaned_data.items()
                 if key not in mapped_fields
             }
-            print('before:', cleaned_data)
+            # move values of mapped fields into JSON
             for field_name, assigned_fields in self._meta.fields_map.items():
                 if isinstance(assigned_fields, list):
-                    # Keep other fields in JSON
                     if self.instance and hasattr(self.instance, field_name):
                         cleaned_data[field_name] = getattr(self.instance, field_name) or {}
                     else:
@@ -228,24 +136,12 @@ class ModelFormMixin(FormMixin):
                     for af in assigned_fields:
                         if af not in self.cleaned_data:
                             continue
-                        value = self.base_fields[af].prepare_value(self.cleaned_data[af])
-                        try:
-                            cleaned_data[field_name][af] = encoder.default(value)
-                        except TypeError:
-                            cleaned_data[field_name][af] = value
+                        cleaned_data[field_name][af] = post_serialize(self.instance, af, self.cleaned_data[af])
                 elif isinstance(assigned_fields, str):
-                    value = self.base_fields[assigned_fields].prepare_value(self.cleaned_data[assigned_fields])
-                    try:
-                        cleaned_data[field_name] = encoder.default(value)
-                    except TypeError:
-                        cleaned_data[field_name] = value
+                    af = assigned_fields
+                    cleaned_data[af] = post_serialize(self.instance, af, self.cleaned_data[af])
             self.cleaned_data = cleaned_data
-
-    def _post_clean(self):
-        print('post_clean: ', self.cleaned_data)
-        for field_name in self._meta.fields_map.keys():
-            self.cleaned_data[field_name] = pre_serialize(self.instance, field_name, self.cleaned_data[field_name])
-        super()._post_clean()
+            print('after clean form:', cleaned_data)
 
 
 class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):

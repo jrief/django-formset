@@ -1,10 +1,17 @@
 import copy
 from pathlib import Path
 
+from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.forms.fields import Field
+from django.core.files.uploadedfile import UploadedFile
+from django.core.serializers.json import DjangoJSONEncoder
+from django.forms.fields import Field, FileField as FileFormField
+from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
+from django.db.models import Model, ObjectDoesNotExist, QuerySet
+from django.db.models.fields.files import FieldFile, FileField as FileModelField
+from django.db.models.utils import AltersData
 from django.utils.safestring import mark_safe
 
 from formset.renderers.default import FormRenderer
@@ -37,6 +44,74 @@ class FormsetErrorList(ErrorList):
         return f'<{self.__class__.__name__}: {[item for item in self]} {client_messages}>'
 
 
+def prepare_initial(instance, field_name, field, value):
+    """
+    Prepare initial data from a serialized representation to be usable for fields requiring an object.
+    This function converts entities into a `FieldFile`, `ModelChoiceField`, `ModelMultipleChoiceField` object
+    or leaves the value as is.
+    """
+    if isinstance(field, ModelMultipleChoiceField):
+        try:
+            Model = apps.get_model(value['model'])
+            return Model.objects.filter(
+                pk__in=value['p_keys']
+            )
+        except (KeyError, TypeError):
+            return
+    elif isinstance(field, ModelChoiceField):
+        try:
+            Model = apps.get_model(value['model'])
+            return Model.objects.get(pk=value['pk'])
+        except (KeyError, ObjectDoesNotExist, TypeError):
+            pass
+    elif isinstance(field, FileFormField):
+        return FieldFile(instance, FileModelField(name=field_name), value)
+    else:
+        return field.to_python(value)
+
+
+def post_serialize(instance, field_name, value):
+    """
+    Pre-serialize the POST data recursively to be usable for a JSONField.
+    This function
+    - stores all entities of `UploadedFile` to disk and returns their file name.
+    - converts all `FieldFile` objects to their file name.
+    - converts all `ModelChoiceField` and `ModelMultipleChoiceField` objects to a serializable representation.
+    """
+    if isinstance(value, list):
+        return [post_serialize(instance, field_name, val) for val in value]
+    if isinstance(value, dict):
+        return {key: post_serialize(instance, field_name, val) for key, val in value.items()}
+    if isinstance(value, UploadedFile):
+        file_model_field = FileModelField(name=field_name)
+        file_model_field.attname = field_name
+        field_file = FieldFile(instance, file_model_field, value.name)
+        field_file.save(field_file.name, value, save=False)
+        return field_file.name
+    if isinstance(value, FieldFile):
+        return value.name
+    if isinstance(value, Model):
+        opts = value._meta
+        return {
+            'model': '{}.{}'.format(opts.app_label, opts.model_name),
+            'pk': value.pk,
+        }
+    if isinstance(value, QuerySet):
+        opts = value.model._meta
+        return {
+            'model': '{}.{}'.format(opts.app_label, opts.model_name),
+            'p_keys': list(
+                value.values_list('pk', flat=True)
+            ),
+        }
+    try:
+        return post_serialize.encoder.default(value)
+    except TypeError:
+        return value
+
+post_serialize.encoder = DjangoJSONEncoder()
+
+
 class HolderMixin:
     ignore_marked_for_removal = getattr(settings, 'FORMSET_IGNORE_MARKED_FOR_REMOVAL', False)
     marked_for_removal = False
@@ -55,6 +130,24 @@ class HolderMixin:
                     ignore_marked_for_removal=ignore_marked_for_removal,
                 ) for key, holder in self.declared_holders.items()
             }
+            # some initial values must be converted to Python types
+            if self.has_many is True:
+                initial = [
+                    {key: {
+                        name: prepare_initial(instance, name, field, item[key][name])
+                        for name, field in holder.base_fields.items() if name in item[key]
+                    }}
+                    for item in initial
+                    for key, holder in self.declared_holders.items() if key in item
+                ] if isinstance(initial, list) else []
+            elif self.has_many is False:
+                initial = {
+                    key: {
+                        name: prepare_initial(instance, name, field, initial[key][name])
+                        for name, field in holder.base_fields.items() if name in initial[key]
+                    }
+                    for key, holder in self.declared_holders.items() if key in initial
+                } if isinstance(initial, dict) else {}
         replica.data = data
         replica.is_bound = data is not None
         replica._errors = None
@@ -119,12 +212,21 @@ class HolderMixin:
 
 
 class FileFieldMixin:
-    def clean(self, value, initial=None):
-        if isinstance(value, Path) and initial is not None:
-            initial = copy.copy(initial)
-            initial.name = str(value)
-            return initial
-        return super().clean(value, initial)
+    """
+    Mixin class added by BoundField to fields inheriting from `django.forms.fields.FileField`.
+    """
+
+    def _clean_bound_field(self, bf):
+        value = bf.initial if self.disabled else bf.data
+        if isinstance(value, Path):
+            if bf.initial:
+                initial = copy.copy(bf.initial)
+                initial.name = str(value)
+                return initial
+            # CollectionField has no instance, so create a summy
+            instance = AltersData()
+            return FieldFile(instance, FileModelField(name=bf.name), str(value))
+        return self.clean(value, bf.initial)
 
 
 class RenderableDetachedFieldMixin(RenderableMixin):
@@ -181,7 +283,9 @@ class CollectionFieldBase(Field):
     """
     Mixin class to be added to CollectionField if it used as a field holding a FormCollection.
     """
-    def clean(self, value):
-        collection = self.replicate(data=value)
+    def _clean_bound_field(self, bf):
+        if self.disabled:
+            return bf.initial
+        collection = self.replicate(data=bf.data)
         collection.full_clean()
-        return collection.cleaned_data
+        return post_serialize(bf.form.instance, bf.name, collection.cleaned_data)

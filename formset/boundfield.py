@@ -12,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from formset.fields import Activator
 from formset.renderers import ClassList
 from formset.upload import get_file_info
-from formset.utils import FileFieldMixin
+from formset.utils import CollectionFieldBase, FileFieldMixin
 from formset.widgets import UploadedFileInput
 
 
@@ -68,8 +68,8 @@ class BoundField(boundfield.BoundField):
         )
 
     def label_tag(self, **kwargs):
-        if isinstance(self.field, Activator):
-            return ''  # label of an Activator is placed inside its widget
+        if isinstance(self.field, (Activator, CollectionFieldBase)):
+            return ''  # label of an Activator is placed inside its widget, CollectionField shall use legend
         return super().label_tag(**kwargs)
 
     def css_classes(self, extra_classes=None):
