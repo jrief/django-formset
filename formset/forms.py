@@ -59,18 +59,15 @@ class FormMixin(FormDecoratorMixin, HolderMixin):
 
 class FormsetMetaclassMixin(type):
     def __new__(mcs, name, bases, attrs):
-        attrs_list, declared_collections, declared_fieldsets = [], {}, {}
+        attrs_list, declared_fieldsets = [], {}
         for key, value in list(attrs.items()):
-            if isinstance(value, CollectionFieldBase):
-                declared_collections[key] = value  # TODO: declared_collections actually is never used
-                attrs_list.append((key, value))
-            elif isinstance(value, Fieldset):
+            if isinstance(value, Fieldset):
                 declared_fieldsets[key] = value
                 for field_name, field in value.declared_fields.items():
                     attrs_list.append((f'{key}.{field_name}', field))
             else:
                 attrs_list.append((key, value))
-        attrs = dict(attrs_list, declared_fieldsets=declared_fieldsets, declared_collections=declared_collections)
+        attrs = dict(attrs_list, declared_fieldsets=declared_fieldsets)
         new_class = super().__new__(mcs, name, bases, attrs)
         return new_class
 
