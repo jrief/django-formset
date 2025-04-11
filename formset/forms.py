@@ -95,22 +95,21 @@ class ModelFormMixin(FormMixin):
             else:
                 return prepare_initial(instance, field_name, field, value)
 
-        if hasattr(self._meta, 'fields_map') and instance is not None:
-            initial = kwargs.get('initial', {})
-            for field_name, assigned_fields in self._meta.fields_map.items():
-                if isinstance(assigned_fields, list):
-                    for af in assigned_fields:
-                        value = getattr(instance, field_name).get(af)
-                        if value is None:
-                            continue
-                        initial[af] = initial_value(af, self.base_fields[af], value)
-                elif isinstance(assigned_fields, str):
-                    # direct mapping of a model field to a form field
-                    af = assigned_fields
+        initial = kwargs.get('initial', {})
+        fields_map = getattr(self._meta, 'fields_map', {})
+        for field_name, assigned_fields in fields_map.items():
+            if isinstance(assigned_fields, list):
+                for af in assigned_fields:
+                    value = getattr(instance, field_name).get(af) if instance else None
                     initial[af] = initial_value(af, self.base_fields[af], value)
-                else:
-                    raise TypeError(f"Invalid type for field {field_name}: {type(assigned_fields)}")
-            kwargs['initial'] = initial
+            elif isinstance(assigned_fields, str):
+                # direct mapping of a model field to a form field
+                af = assigned_fields
+                value = getattr(instance, field_name) if instance else None
+                initial[af] = initial_value(af, self.base_fields[af], value)
+            else:
+                raise TypeError(f"Invalid type for field {field_name}: {type(assigned_fields)}")
+        kwargs['initial'] = initial
         super().__init__(instance=instance, *args, **kwargs)
 
     def _clean_form(self):

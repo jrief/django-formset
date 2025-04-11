@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.fields import Field, FileField as FileFormField
-from django.forms.forms import Form
+from django.forms.forms import BaseForm
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
 from django.db.models import Model, ObjectDoesNotExist, QuerySet
@@ -134,28 +134,11 @@ class HolderMixin:
             }
             # some initial values must be converted to Python types
             if self.has_many is True and isinstance(initial, list):
-                # replica.initial = []
-                # for item in initial:
-                #     replica.initial.append({})
-                #     for key, holder in self.declared_holders.items():
-                #         if key not in item:
-                #             continue
-                #         if isinstance(holder, Form):
-                #             replica.initial[-1].update({key: {
-                #                 name: prepare_initial(instance, name, field, item[key][name])
-                #                 for name, field in holder.fields.items() if name in item[key]
-                #             }})
-                #         else:
-                #             replica.initial[-1].update({key: {
-                #                 name: item[key][name]
-                #                 for name, field in holder.declared_holders.items() if name in item[key]
-                #             }})
-
                 replica.initial = [{
                     key: {
                         name: prepare_initial(instance, name, field, item[key][name])
                         for name, field in holder.fields.items() if name in item[key]
-                    } if isinstance(holder, Form) else {
+                    } if isinstance(holder, BaseForm) else {
                         name: item[key][name]
                         for name in holder.declared_holders if name in item[key]
                     } for key, holder in self.declared_holders.items() if key in item
@@ -165,7 +148,7 @@ class HolderMixin:
                     key: {
                         name: prepare_initial(instance, name, field, initial[key][name])
                         for name, field in holder.fields.items() if name in initial[key]
-                    } if isinstance(holder, Form) else {
+                    } if isinstance(holder, BaseForm) else {
                         name: initial[key][name]
                         for name in holder.declared_holders if name in initial[key]
                     } for key, holder in self.declared_holders.items() if key in initial
