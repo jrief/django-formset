@@ -12,13 +12,13 @@ from django.utils.translation import gettext_lazy as _
 from formset.fields import Activator
 from formset.renderers import ClassList
 from formset.upload import get_file_info
-from formset.utils import CollectionFieldBase, FileFieldMixin
+from formset.utils import FileFieldMixin
 from formset.widgets import UploadedFileInput
 
 
 class CheckboxInputMixin:
     """
-    This hack is required for adding the field's label to the rendering context.
+    This special mixin is required for adding the field's label to the rendering context.
     This is to make the single checkbox to be rendered with its label after the input field.
     """
     def get_context(self, name, value, attrs):
@@ -68,8 +68,8 @@ class BoundField(boundfield.BoundField):
         )
 
     def label_tag(self, **kwargs):
-        if isinstance(self.field, (Activator, CollectionFieldBase)):
-            return ''  # label of an Activator is placed inside its widget, CollectionField shall use legend
+        if isinstance(self.field, Activator):
+            return ''  # label of an Activator is placed inside its widget
         return super().label_tag(**kwargs)
 
     def css_classes(self, extra_classes=None):
