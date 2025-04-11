@@ -15,7 +15,7 @@
     "testclient": "jest"
   },
   "dependencies": {
-    "flag-icons": "^6.15.0"
+    "flag-icons": "^7.3.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.25.9",
