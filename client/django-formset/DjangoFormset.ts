@@ -2067,7 +2067,7 @@ export class DjangoFormset implements DjangoFormset {
 		}
 
 		// Build a nested data structure (body) reflecting the shape of collections and forms
-		const body = {formset_data: {}};
+		const body = {formset_data: Array.isArray((this.data as any)['formset_data']) ? [] : {}};
 
 		// 1. extend body with empty arrays from Form Collections with siblings
 		for (const prefix of this.emptyCollectionPrefixes) {
