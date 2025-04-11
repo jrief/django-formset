@@ -123,7 +123,7 @@ class HolderMixin:
 
     def replicate(self, data=None, initial=None, auto_id=None, prefix=None, instance=None, partial=None, renderer=None,
                   ignore_marked_for_removal=None):
-        # print("replicate: ", self.__class__, prefix, initial)
+
         replica = copy.copy(self)
         if hasattr(self, 'declared_holders'):
             replica.declared_holders = {
@@ -132,29 +132,7 @@ class HolderMixin:
                     ignore_marked_for_removal=ignore_marked_for_removal,
                 ) for key, holder in self.declared_holders.items()
             }
-            # some initial values must be converted to Python types
-            if self.has_many is True and isinstance(initial, list):
-                replica.initial = [{
-                    key: {
-                        name: prepare_initial(instance, name, field, item[key][name])
-                        for name, field in holder.fields.items() if name in item[key]
-                    } if isinstance(holder, BaseForm) else {
-                        name: item[key][name]
-                        for name in holder.declared_holders if name in item[key]
-                    } for key, holder in self.declared_holders.items() if key in item
-                } for item in initial]
-            elif self.has_many is False and isinstance(initial, dict):
-                replica.initial = {
-                    key: {
-                        name: prepare_initial(instance, name, field, initial[key][name])
-                        for name, field in holder.fields.items() if name in initial[key]
-                    } if isinstance(holder, BaseForm) else {
-                        name: initial[key][name]
-                        for name in holder.declared_holders if name in initial[key]
-                    } for key, holder in self.declared_holders.items() if key in initial
-                }
-        elif initial:
-            replica.initial = initial
+
         replica.data = data
         replica.is_bound = data is not None
         replica._errors = None
@@ -164,6 +142,8 @@ class HolderMixin:
             pass
         if hasattr(replica, 'files'):
             replica.files.clear()
+        if initial:
+            replica.initial = initial
         if auto_id:
             replica.auto_id = auto_id
         if prefix:
@@ -288,6 +268,21 @@ class CollectionFieldBase(Field):
     """
     Mixin class to be added to CollectionField if it used as a field holding a FormCollection.
     """
+    @classmethod
+    def traverse_initial(cls, holder, instance, value):
+        if isinstance(value, list):
+            return [cls.traverse_initial(holder, instance, item) for item in value]
+        assert isinstance(value, dict)
+        if isinstance(holder, BaseForm):
+            return {
+                name: prepare_initial(instance, name, field, value[name])
+                for name, field in holder.fields.items() if name in value
+            }
+        return {
+            key: cls.traverse_initial(collection, instance, value[key])
+            for key, collection in holder.declared_holders.items() if key in value
+        }
+
     def _clean_bound_field(self, bf):
         if self.disabled:
             return bf.initial

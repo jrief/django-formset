@@ -91,7 +91,8 @@ class ModelFormMixin(FormMixin):
             if isinstance(field, CollectionFieldBase):
                 if not (renderer := getattr(field, 'renderer', field.default_renderer)):
                     renderer = getattr(self, 'renderer', self.default_renderer)
-                return field.replicate(instance=instance, initial=value, prefix=field_name, renderer=renderer)
+                initial = CollectionFieldBase.traverse_initial(field, instance, value)
+                return field.replicate(instance=instance, initial=initial, prefix=field_name, renderer=renderer)
             else:
                 return prepare_initial(instance, field_name, field, value)
 
