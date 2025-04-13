@@ -7,6 +7,7 @@ class CollectionField(CollectionFieldBase, BaseFormCollection, metaclass=FormCol
     widget = CollectionWidget
 
     def __init__(self, label=None, *args, **kwargs):
+        CollectionFieldBase._check_collection(self)
         if label is None:
             # collections usually do not need a label, since each of their fields have their own
             label = ''

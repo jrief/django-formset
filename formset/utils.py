@@ -8,7 +8,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.fields import Field, FileField as FileFormField
 from django.forms.forms import BaseForm
-from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
+from django.forms.models import BaseModelForm, ModelChoiceField, ModelMultipleChoiceField
 from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
 from django.db.models import Model, ObjectDoesNotExist, QuerySet
 from django.db.models.fields.files import FieldFile, FileField as FileModelField
@@ -69,48 +69,6 @@ def prepare_initial(instance, field_name, field, value):
         return FieldFile(instance, FileModelField(name=field_name), value)
     else:
         return field.to_python(value)
-
-
-def post_serialize(instance, field_name, value):
-    """
-    Post-serialize the POST data recursively to be usable for a JSONField.
-    This function
-    - stores all entities of `UploadedFile` to disk and returns their file name.
-    - converts all `FieldFile` objects to their file name.
-    - converts all `ModelChoiceField` and `ModelMultipleChoiceField` objects to a serializable representation.
-    """
-    if isinstance(value, list):
-        return [post_serialize(instance, field_name, val) for val in value]
-    if isinstance(value, dict):
-        return {key: post_serialize(instance, field_name, val) for key, val in value.items()}
-    if isinstance(value, UploadedFile):
-        file_model_field = FileModelField(name=field_name)
-        file_model_field.attname = field_name
-        field_file = FieldFile(instance, file_model_field, value.name)
-        field_file.save(field_file.name, value, save=False)
-        return field_file.name
-    if isinstance(value, FieldFile):
-        return value.name
-    if isinstance(value, Model):
-        opts = value._meta
-        return {
-            'model': '{}.{}'.format(opts.app_label, opts.model_name),
-            'pk': value.pk,
-        }
-    if isinstance(value, QuerySet):
-        opts = value.model._meta
-        return {
-            'model': '{}.{}'.format(opts.app_label, opts.model_name),
-            'p_keys': list(
-                value.values_list('pk', flat=True)
-            ),
-        }
-    try:
-        return post_serialize.encoder.default(value)
-    except TypeError:
-        return value
-
-post_serialize.encoder = DjangoJSONEncoder()
 
 
 class HolderMixin:
@@ -268,6 +226,48 @@ class CollectionFieldBase(Field):
     """
     Mixin class to be added to CollectionField if it used as a field holding a FormCollection.
     """
+    encoder = DjangoJSONEncoder()
+
+    @classmethod
+    def pre_serialize(cls, instance, field_name, value):
+        """
+        Pre-serialize cleaned data recursively to be usable for a JSONField.
+        This function
+        - stores all entities of `UploadedFile` to disk and returns their file name.
+        - converts all `FieldFile` objects to their file name.
+        - converts all `Model` and `QuerySet` objects to a serializable representation.
+        """
+        if isinstance(value, list):
+            return [cls.pre_serialize(instance, field_name, val) for val in value]
+        if isinstance(value, dict):
+            return {key: cls.pre_serialize(instance, field_name, val) for key, val in value.items()}
+        if isinstance(value, UploadedFile):
+            file_model_field = FileModelField(name=field_name)
+            file_model_field.attname = field_name
+            field_file = FieldFile(instance, file_model_field, value.name)
+            field_file.save(field_file.name, value, save=False)
+            return field_file.name
+        if isinstance(value, FieldFile):
+            return value.name
+        if isinstance(value, Model):
+            opts = value._meta
+            return {
+                'model': '{}.{}'.format(opts.app_label, opts.model_name),
+                'pk': value.pk,
+            }
+        if isinstance(value, QuerySet):
+            opts = value.model._meta
+            return {
+                'model': '{}.{}'.format(opts.app_label, opts.model_name),
+                'p_keys': list(
+                    value.values_list('pk', flat=True)
+                ),
+            }
+        try:
+            return cls.encoder.default(value)
+        except TypeError:
+            return value
+
     @classmethod
     def traverse_initial(cls, holder, instance, value):
         if isinstance(value, list):
@@ -283,9 +283,16 @@ class CollectionFieldBase(Field):
             for key, collection in holder.declared_holders.items() if key in value
         }
 
-    def _clean_bound_field(self, bf):
-        if self.disabled:
-            return bf.initial
-        collection = self.replicate(data=bf.data)
+    def clean(self, value):
+        collection = self.replicate(data=value)
         collection.full_clean()
-        return post_serialize(bf.form.instance, bf.name, collection.cleaned_data)
+        return collection.cleaned_data
+
+    @classmethod
+    def _check_collection(cls, holder):
+        if isinstance(holder, BaseForm):
+            if isinstance(holder, BaseModelForm):
+                raise TypeError(f"In {cls} form must be of type Form not {holder.__class__}.")
+        else:
+            for collection in holder.declared_holders.values():
+                cls._check_collection(collection)

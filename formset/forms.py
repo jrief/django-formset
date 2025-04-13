@@ -5,7 +5,7 @@ from django.utils.functional import cached_property
 
 from formset.fields.shadow import ShadowField
 from formset.fieldset import Fieldset
-from formset.utils import CollectionFieldBase, FormsetErrorList, HolderMixin, prepare_initial, post_serialize
+from formset.utils import CollectionFieldBase, FormsetErrorList, HolderMixin, prepare_initial
 
 
 class FormDecoratorMixin:
@@ -133,10 +133,14 @@ class ModelFormMixin(FormMixin):
                     for af in assigned_fields:
                         if af not in self.cleaned_data:
                             continue
-                        cleaned_data[field_name][af] = post_serialize(self.instance, af, self.cleaned_data[af])
+                        cleaned_data[field_name][af] = CollectionFieldBase.pre_serialize(
+                            self.instance,
+                            af,
+                            self.cleaned_data[af]
+                        )
                 elif isinstance(assigned_fields, str):
                     af = assigned_fields
-                    cleaned_data[af] = post_serialize(self.instance, af, self.cleaned_data[af])
+                    cleaned_data[af] = CollectionFieldBase.pre_serialize(self.instance, af, self.cleaned_data[af])
             self.cleaned_data = cleaned_data
 
 
