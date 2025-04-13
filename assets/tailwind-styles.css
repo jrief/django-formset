@@ -83,3 +83,9 @@
 .dj-richtext-wrapper a {
 	@apply text-blue-500 underline;
 }
+.add-collection {
+	@apply bg-teal-300;
+}
+.remove-collection {
+	@apply bg-fuchsia-300;
+}
