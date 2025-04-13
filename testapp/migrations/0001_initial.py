@@ -2,7 +2,6 @@ from django.conf import settings
 from django.db import migrations, models
 from django.core.management import call_command
 import django.utils.timezone
-import formset.fields
 import formset.richtext.fields
 
 
@@ -273,7 +272,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='pollmodel',
             name='weighted_opinions',
-            field=formset.fields.SortableManyToManyField(through='testapp.WeightedOpinion', to='testapp.opinionmodel', verbose_name='Weighted Opinions'),
+            field=formset.formfields.SortableManyToManyField(through='testapp.WeightedOpinion', to='testapp.opinionmodel', verbose_name='Weighted Opinions'),
         ),
         migrations.CreateModel(
             name='Team',

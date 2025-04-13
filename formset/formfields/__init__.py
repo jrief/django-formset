@@ -2,7 +2,7 @@ from django.core import checks
 from django.db.models.fields.related import ManyToManyField
 from django.forms import fields
 
-from formset.fields.activator import Activator
+from formset.formfields.activator import Activator
 from formset.utils import FileFieldMixin
 from formset.widgets import DualSortableSelector, UploadedFileInput
 

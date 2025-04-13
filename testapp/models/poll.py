@@ -1,5 +1,5 @@
 from django.db import models
-from formset.fields import SortableManyToManyField
+from formset.formfields import SortableManyToManyField
 
 
 class OpinionModel(models.Model):

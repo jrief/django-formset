@@ -238,7 +238,7 @@ Sortable Dual Selector Widget
 By default, Django handles the necessary mapping model for a many-to-many relation by itself.
 In some situations one might want to add additional `fields to that intermediate mapping model`_,
 for example to sort the selected opinions according to the user's preference. This is where the
-special model field :class:`formset.fields.SortableManyToManyField` becomes useful.
+special model field :class:`formset.formfields.SortableManyToManyField` becomes useful.
 
 .. _fields to that intermediate mapping model: https://docs.djangoproject.com/en/stable/topics/db/models/#intermediary-manytomany
 
@@ -253,7 +253,7 @@ weighting.
 .. code-block:: python
 
 	from django.db import models
-	from formset.fields import SortableManyToManyField
+	from formset.formfields import SortableManyToManyField
 	
 	class OpinionModel(models.Model):
 	    label = models.CharField(

@@ -3,7 +3,7 @@ from django.forms import fields, forms
 from formset.collection import FormCollection
 from django.core.exceptions import NON_FIELD_ERRORS
 from formset.dialog import ApplyButton, CancelButton, DialogForm
-from formset.fields import Activator
+from formset.formfields import Activator
 from formset.widgets import Button, UploadedFileInput
 
 

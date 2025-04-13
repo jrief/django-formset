@@ -5,15 +5,15 @@
 Developing in django-formset
 ============================
 
-**django-formset** is a 3rd party Django library partially written in Python, TypeScript_ and
-`PEGGY.js`_. The last two applications are required for the client part and make up about one third
-of the code base.
+**django-formset** is a 3rd party Django library partially written in Python, TypeScript_ and PEG_.
+The last two applications are required for the client part and make up about one third of the code
+base.
 
 The code can be found on GitHub_. Please use the issue tracker **only** to report bugs. For
 questions and new ideas, please use the discussion board.
 
 .. _TypeScript: https://www.typescriptlang.org/
-.. _PEGGY.js: https://peggyjs.org/documentation.html
+.. _PEG: https://peggyjs.org/documentation.html
 .. _GitHub: https://github.com/jrief/django-formset
 
 When building this library locally, it therefore is strongly recommended that you install the whole

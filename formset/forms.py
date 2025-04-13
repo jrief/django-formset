@@ -3,7 +3,7 @@ from django.forms.forms import BaseForm, DeclarativeFieldsMetaclass
 from django.forms.models import ALL_FIELDS, BaseModelForm, ModelFormMetaclass, fields_for_model
 from django.utils.functional import cached_property
 
-from formset.fields.shadow import ShadowField
+from formset.formfields.shadow import ShadowField
 from formset.fieldset import Fieldset
 from formset.utils import CollectionFieldBase, FormsetErrorList, HolderMixin, prepare_initial
 

@@ -1,9 +1,10 @@
 from django.forms.fields import CharField, ChoiceField
 from django.forms.forms import Form
 from django.forms.widgets import RadioSelect
+
 from formset.collection import FormCollection
 from formset.dialog import ApplyButton, CancelButton, DialogForm
-from formset.fields import Activator
+from formset.formfields import Activator
 
 
 class CoffeeForm(Form):

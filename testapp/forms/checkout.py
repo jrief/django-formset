@@ -2,7 +2,7 @@ from django.forms.fields import CharField, RegexField
 from django.forms.forms import Form
 from django.forms.widgets import TextInput
 
-from formset.fields import Activator
+from formset.formfields import Activator
 from formset.renderers import ButtonVariant
 from formset.stepper import StepperCollection
 from formset.widgets import Button

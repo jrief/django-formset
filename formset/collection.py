@@ -14,7 +14,7 @@ from django.utils.text import get_text_list
 from django.utils.translation import gettext_lazy
 
 from formset.exceptions import FormCollectionError
-from formset.fields import Activator
+from formset.formfields import Activator
 from formset.forms import DeclarativeFieldsetMetaclass, FormsetModelFormMetaclass, FormMixin
 from formset.renderers.default import FormRenderer
 from formset.utils import (

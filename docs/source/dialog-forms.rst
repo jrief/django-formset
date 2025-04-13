@@ -23,7 +23,7 @@ This example shows how to use an ``Activator`` field to open and close a dialog 
 	from django.forms.widgets import RadioSelect
 	from formset.collection import FormCollection
 	from formset.dialog import ApplyButton, CancelButton, DialogForm
-	from formset.fields import Activator
+	from formset.formfields import Activator
 	from formset.renderers import ButtonVariant
 	from formset.widgets import Button
 
@@ -156,7 +156,7 @@ Here is an example of a modal dialog form:
 	from django.utils.safestring import mark_safe
 	from formset.collection import FormCollection
 	from formset.dialog import DialogForm
-	from formset.fields import Activator
+	from formset.formfields import Activator
 	from formset.renderers import ButtonVariant
 	from formset.widgets import Button
 

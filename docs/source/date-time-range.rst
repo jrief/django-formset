@@ -13,7 +13,7 @@ of dates or date-times.
 Date Range Field
 ================
 
-**django-formset** offers the extra field :class:`formset.fields.DateRangeField`. This is a
+**django-formset** offers the extra field :class:`formset.formfields.DateRangeField`. This is a
 subclasses of Django's :class:`django.forms.fields.MultiValueField` and maps two fields of type
 :class:`django.forms.fields.DateField` field. The field's value is a tuple of two dates, the start
 and the end date of the given range.
@@ -68,7 +68,7 @@ which is rendered by the server. This mixin is not required if you use the
 Date-Time Range Field
 =====================
 
-**django-formset** offers the extra fields :class:`formset.fields.DateTimeRangeField`. This is a
+**django-formset** offers the extra fields :class:`formset.formfields.DateTimeRangeField`. This is a
 subclasses of Django's :class:`django.forms.fields.MultiValueField` and maps two fields of type
 :class:`django.forms.fields.DateTimeField` to a single field.
 

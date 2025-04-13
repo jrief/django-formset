@@ -13,12 +13,12 @@ name and a value, so why does Django not provide a field type for it?
 
 This is where **django-formset** steps in. It provides a field type for buttons named "Activator".
 This name was chosen to distinguish it from the term "Button", which is used for its representation
-in HTML. Such an :class:`formset.fields.Activator` behaves like any other Django Form field and can
-be used to trigger an action – more on that later. The default widget of an ``Activator`` field is,
-as one might expect, the :class:`formset.widgets.Button` widget. An ``Activator`` can be used inside
-any Django ``Form`` or ``FormCollection``. There it behaves very similar to a normal field. The main
-difference is that it does not store any data and hence can't be initialized. Instead, it waits for
-click events which then can be intercepted by other components of the embedding
+in HTML. Such an :class:`formset.formfields.Activator` behaves like any other Django Form field and
+can be used to trigger an action – more on that later. The default widget of an ``Activator`` field
+is, as one might expect, the :class:`formset.widgets.Button` widget. An ``Activator`` can be used
+inside any Django ``Form`` or ``FormCollection``. There it behaves very similar to a normal field.
+The main difference is that it does not store any data and hence can't be initialized. Instead, it
+waits for click events which then can be intercepted by other components of the embedding
 ``<django-formset>``-component.
 
 
@@ -42,7 +42,7 @@ This example shows how to use an ``Activator`` field to submit the form:
 
 	from django.forms.fields import CharField
 	from django.forms.forms import Form
-	from formset.fields import Activator
+	from formset.formfields import Activator
 	from formset.renderers import ButtonVariant
 	from formset.widgets import Button
 
