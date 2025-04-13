@@ -19,7 +19,6 @@ class FormRenderer(DjangoTemplates):
     _template_mapping = {
         'django/forms/errors/list/default.html': 'formset/default/field_errors.html',
         'django/forms/div.html': 'formset/default/form.html',
-        'formset/form.html': 'formset/default/form.html',  # non-existing template used as key
         'django/forms/widgets/file.html': 'formset/default/widgets/file.html',
         'django/forms/widgets/radio.html': 'formset/default/widgets/multiple_input.html',
         'django/forms/widgets/checkbox_select.html': 'formset/default/widgets/multiple_input.html',
@@ -108,11 +107,7 @@ class FormRenderer(DjangoTemplates):
 
     def _amend_collection(self, context):
         context.update(
-            add_collection_button='formset/default/buttons/add_collection.html',
-            remove_collection_button='formset/default/buttons/remove_collection.html',
-            help_text_template='formset/default/help_text.html',
             css_classes=self.collection_css_classes,
-            add_collection_label=context['collection'].add_label,
         )
         return context
 
@@ -122,7 +117,6 @@ class FormRenderer(DjangoTemplates):
 
     _context_modifiers = {
         'django/forms/div.html': _amend_form,
-        'formset/form.html': _amend_form,
         'formset/default/form.html': _amend_form,
         'formset/default/form_dialog.html': _amend_form,
         'django/forms/label.html': _amend_label,
@@ -131,6 +125,7 @@ class FormRenderer(DjangoTemplates):
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/detached_field.html': _amend_detached_field,
         'formset/default/collection.html': _amend_collection,
+        'formset/default/widgets/collection.html': _amend_collection,
         'formset/richtext/form_dialog.html': _amend_richtext_form_dialog,
     }
 

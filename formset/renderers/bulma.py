@@ -12,11 +12,13 @@ class FormRenderer(DefaultFormRenderer):
 
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
         'django/forms/div.html': 'formset/bulma/form.html',
-        'formset/form.html': 'formset/bulma/form.html',
         'django/forms/widgets/checkbox.html': 'formset/bulma/widgets/checkbox.html',
         'django/forms/widgets/radio.html': 'formset/bulma/widgets/multiple_input.html',
         'django/forms/widgets/select.html': 'formset/bulma/widgets/select.html',
         'django/forms/widgets/checkbox_select.html': 'formset/bulma/widgets/multiple_input.html',
+        'formset/default/form.html': 'formset/bulma/form.html',
+        'formset/default/collection.html': 'formset/bulma/collection.html',
+        'formset/default/widgets/collection.html': 'formset/bulma/widgets/collection.html',
         'formset/default/widgets/selectize.html': 'formset/bulma/widgets/select.html',
         'formset/default/widgets/file.html': 'formset/bulma/widgets/file.html',
         'formset/default/widgets/dual_selector.html': 'formset/bulma/widgets/dual_selector.html',
@@ -50,14 +52,6 @@ class FormRenderer(DefaultFormRenderer):
         context['widget']['attrs']['class'] = ClassList('textarea')
         return context
 
-    def _amend_collection(self, context):
-        context = super()._amend_collection(context)
-        context.update({
-            'add_collection_button': 'formset/bulma/buttons/add_collection.html',
-            'remove_collection_button': 'formset/bulma/buttons/remove_collection.html',
-        })
-        return context
-
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_input,
@@ -69,7 +63,6 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox_select.html': _amend_checkbox_select,
         'django/forms/widgets/textarea.html': _amend_textarea,
         'django/forms/widgets/radio.html': _amend_radio,
-        'formset/default/collection.html': _amend_collection,
         'formset/default/widgets/date.html': _amend_input,
         'formset/default/widgets/datetime.html': _amend_input,
         'formset/default/widgets/richtextarea.html': _amend_textarea,

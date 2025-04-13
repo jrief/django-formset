@@ -34,7 +34,7 @@ def test_render_unmapped_form():
     assert form._meta.exclude is None
     with pytest.raises(AttributeError):
         form._meta.fields_map
-    html = _formsetify(form).render(template_name='formset/form.html')
+    html = _formsetify(form).render(template_name='formset/default/form.html')
     soup = BeautifulSoup(html, 'html.parser')
     form_element = soup.find('form', id='id_productformunmapped')
     assert isinstance(form_element, element.Tag)
@@ -57,7 +57,7 @@ def test_render_mapped_form():
     assert form._meta.fields == ['title', 'price', 'properties', 'size', 'extra_data', 'color', 'supplier_name']
     assert form._meta.exclude is None
     assert form._meta.fields_map == {'properties': ['size'], 'extra_data': ['color']}
-    html = _formsetify(form).render(template_name='formset/form.html')
+    html = _formsetify(form).render(template_name='formset/default/form.html')
     soup = BeautifulSoup(html, 'html.parser')
     form_element = soup.find('form', id='id_productformmapped')
     assert isinstance(form_element, element.Tag)
@@ -96,7 +96,7 @@ def test_render_factorized_form():
     assert form._meta.fields == ['title']
     assert form._meta.exclude is None
     assert form._meta.fields_map == {'properties': ['size'], 'extra_data': ['color']}
-    html = _formsetify(form).render(template_name='formset/form.html')
+    html = _formsetify(form).render(template_name='formset/default/form.html')
     soup = BeautifulSoup(html, 'html.parser')
     form_element = soup.find('form', id='id_productmodelform')
     assert isinstance(form_element, element.Tag)
@@ -117,7 +117,7 @@ def test_render_factorized_properties_form():
     assert form._meta.fields == ['title', 'price', 'properties', 'size', 'color', 'extra_data', 'fit', 'supplier_name']
     assert form._meta.exclude is None
     assert form._meta.fields_map == {'properties': ['size', 'color'], 'extra_data': ['fit']}
-    html = _formsetify(form).render(template_name='formset/form.html')
+    html = _formsetify(form).render(template_name='formset/default/form.html')
     soup = BeautifulSoup(html, 'html.parser')
     form_element = soup.find('form', id='id_productmodelform')
     assert isinstance(form_element, element.Tag)

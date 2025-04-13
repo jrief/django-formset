@@ -32,10 +32,9 @@ class ImageForm(forms.Form):
         required=True,
         widget=UploadedFileInput,
     )
-    caption = fields.CharField(
+    caption = RichTextField(
         label="Caption",
         required=False,
-        widget=RichTextarea,
     )
 
     def __init__(self, *args, **kwargs):
@@ -52,7 +51,7 @@ class ImageCollection(CollectionField):
     image_form = ImageForm()
     text_form = SingleText()
     legend = "Gallery Images"
-    add_label = "Add Image"
+    add_label = "Add other Gallery"
     ignore_marked_for_removal = True
 
 
@@ -79,7 +78,7 @@ class GalleryImageForm(ModelForm):
         widget=UploadedFileInput,
     )
     main_caption = RichTextField(
-        label="Caption",
+        label="Main Caption",
         required=False,
     )
     supplement = Supplement()

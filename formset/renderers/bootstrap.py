@@ -14,10 +14,12 @@ class FormRenderer(DefaultFormRenderer):
 
     _template_mapping = dict(DefaultFormRenderer._template_mapping, **{
         'django/forms/div.html': 'formset/bootstrap/form.html',
-        'formset/form.html': 'formset/bootstrap/form.html',  # non-existing template used as key
         'django/forms/widgets/checkbox.html': 'formset/bootstrap/widgets/checkbox.html',
         'django/forms/widgets/radio.html': 'formset/bootstrap/widgets/multiple_input.html',
         'django/forms/widgets/checkbox_select.html': 'formset/bootstrap/widgets/multiple_input.html',
+        'formset/default/form.html': 'formset/bootstrap/form.html',
+        'formset/default/collection.html': 'formset/bootstrap/collection.html',
+        'formset/default/widgets/collection.html': 'formset/bootstrap/widgets/collection.html',
         'formset/default/widgets/dual_selector.html': 'formset/bootstrap/widgets/dual_selector.html',
         'formset/default/widgets/file.html': 'formset/bootstrap/widgets/file.html',
         'formset/default/widgets/richtextarea.html': 'formset/bootstrap/widgets/richtextarea.html',
@@ -80,15 +82,6 @@ class FormRenderer(DefaultFormRenderer):
         )
         return context
 
-    def _amend_collection(self, context):
-        context = super()._amend_collection(context)
-        context.update(
-            add_collection_button='formset/bootstrap/buttons/add_collection.html',
-            remove_collection_button='formset/bootstrap/buttons/remove_collection.html',
-            help_text_template='formset/bootstrap/help_text.html',
-        )
-        return context
-
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_input,
@@ -112,7 +105,6 @@ class FormRenderer(DefaultFormRenderer):
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/detached_field.html': _amend_detached_field,
-        'formset/default/widgets/collection.html': _amend_collection,
         'formset/default/widgets/richtextarea.html': _amend_input,
     })
 
