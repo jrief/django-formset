@@ -52,9 +52,10 @@ def file_icon_url(mime_type, sub_type):
 
 
 def get_file_info(field_file):
-    if not field_file:
-        return None
-    file_path = Path(field_file.path)
+    try:
+        file_path = Path(field_file.path)
+    except (AttributeError, TypeError):
+        return
     content_type, _ = mimetypes.guess_type(file_path)
     mime_type, sub_type = split_mime_type(content_type)
     if mime_type == 'image':
