@@ -425,6 +425,9 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             renderer = FormRenderer()
         return super().render(template_name, context, renderer)
 
+    __str__ = render
+    __html__ = render
+
     def model_to_dict(self, instance):
         """
         Create initial data from a starting instance. This instance may be traversed recursively and shall be used to
@@ -512,15 +515,6 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     except IntegrityError as error:
                         holder._update_errors(error)
 
-    __str__ = render
-    __html__ = render
-
-
-class FormCollection(BaseFormCollection, metaclass=FormCollectionMeta):
-    """
-    Base class for a collection of forms. Attributes of this class which inherit from
-    `django.forms.forms.BaseForm` are managed by this class.
-    """
     def get_field(self, field_path):
         if self.has_many:
             index, key, path = field_path.split('.', 2)
@@ -528,3 +522,10 @@ class FormCollection(BaseFormCollection, metaclass=FormCollectionMeta):
         else:
             key, path = field_path.split('.', 1)
         return self.declared_holders[key].get_field(path)
+
+
+class FormCollection(BaseFormCollection, metaclass=FormCollectionMeta):
+    """
+    Base class for a collection of forms. Attributes of this class which inherit from
+    `django.forms.forms.BaseForm` are managed by this class.
+    """
