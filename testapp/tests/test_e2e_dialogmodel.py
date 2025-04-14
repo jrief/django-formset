@@ -1,5 +1,4 @@
 import pytest
-from time import sleep
 from playwright.sync_api import expect
 
 from django.urls import path
@@ -127,7 +126,7 @@ urlpatterns = [
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['issue'])
-def test_add_reporter(page, mocker, viewname):
+def test_add_reporter(page, viewname):
     form_collection = page.locator('django-formset > django-form-collection')
     dialog = form_collection.nth(0).locator('> dialog')
     expect(dialog).not_to_be_visible()
@@ -145,14 +144,14 @@ def test_add_reporter(page, mocker, viewname):
     full_name_input.fill("Sarah Hemingway")
     expect(full_name_input.locator('+ [role="alert"]')).to_be_empty()
     full_name_input.blur()
-    spy = mocker.spy(IssueCollectionView, 'post')
-    dialog.locator('button[name="change"]').click()
+    with page.expect_response(page.url) as response_info:
+        dialog.locator('button[name="change"]').click()
+    assert response_info.value.ok is True
     expect(dialog).not_to_be_visible()
 
     # check if the reporter was added to main form
-    sleep(0.25)
-    spy.assert_called()
     reporter = Reporter.objects.get(full_name="Sarah Hemingway")
+    assert response_info.value.json() == {'reporter_id': reporter.id}
     expect(select_reporter).to_have_value(str(reporter.id))
     pseudo_input = form_collection.nth(1).locator(f'.ts-wrapper div.item[data-value=\"{reporter.id}\"]')
     expect(pseudo_input).to_have_text("Sarah Hemingway")
@@ -160,7 +159,7 @@ def test_add_reporter(page, mocker, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['issue'])
-def test_edit_reporter(page, mocker, viewname):
+def test_edit_reporter(page, viewname):
     form_collection = page.locator('django-formset > django-form-collection')
     dialog = form_collection.nth(0).locator('> dialog')
     expect(dialog).not_to_be_visible()
@@ -180,21 +179,21 @@ def test_edit_reporter(page, mocker, viewname):
     expect(dialog.locator('> div.dialog-header > h3')).to_have_text("Edit Reporter")
     full_name_input.fill("Sarah Johnson")
     full_name_input.blur()
-    spy = mocker.spy(IssueCollectionView, 'post')
-    dialog.locator('button[name="change"]').click()
+    with page.expect_response(page.url) as response_info:
+        dialog.locator('button[name="change"]').click()
+    assert response_info.value.ok is True
     expect(dialog).not_to_be_visible()
 
     # check if the reporter was changed on the main form
-    sleep(0.25)
-    spy.assert_called()
     assert Reporter.objects.get(id=reporter.id).full_name == "Sarah Johnson"
+    assert response_info.value.json() == {'reporter_id': reporter.id}
     expect(select_reporter).to_have_value(str(reporter.id))
     expect(pseudo_input).to_have_text("Sarah Johnson")
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['issue'])
-def test_delete_reporter(page, mocker, viewname):
+def test_delete_reporter(page, viewname):
     form_collection = page.locator('django-formset > django-form-collection')
     dialog = form_collection.nth(0).locator('> dialog')
     expect(dialog).not_to_be_visible()
@@ -207,12 +206,10 @@ def test_delete_reporter(page, mocker, viewname):
     expect(pseudo_input).to_have_text("Sarah Hemingway")
 
     # delete the current reporter remotely
-    spy = mocker.spy(IssueCollectionView, 'delete')
-    form_collection.nth(1).locator('button[name="delete_reporter"]').click()
+    with page.expect_response(f'{page.url}?pk={reporter.pk}&path=change_reporter'):
+        form_collection.nth(1).locator('button[name="delete_reporter"]').click()
 
     # check if the reporter was deleted from the database and from the selectize widget
-    sleep(1)
-    spy.assert_called()
-    assert not Reporter.objects.filter(id=reporter.id).exists()
+    assert Reporter.objects.filter(id=reporter.id).exists() is False
     expect(select_reporter).to_have_value('')
     expect(pseudo_input).not_to_be_visible()
