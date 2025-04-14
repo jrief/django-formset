@@ -9,7 +9,8 @@ the representation layer from the logical layer of forms. And it allows us to re
 for different CSS frameworks without modifying a single field. The only thing we have to do, is to
 replace the default form renderer with an alternative one.
 
-.. _renderer: https://docs.djangoproject.com/en/4.0/ref/forms/renderers/#the-low-level-render-api
+.. _renderer: https://docs.djangoproject.com/en/stable/ref/forms/renderers/#the-low-level-render-api
+
 
 Form Grid Example
 =================

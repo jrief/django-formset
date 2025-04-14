@@ -77,9 +77,9 @@ Usage with dynamic Number of Choices
 Often we can't handle the choices using a static list. This happens for instance, when we store them
 in a Django model. We then point a foreign key onto the chosen entry of that model. The above
 example then can be rewritten by replacing the ChoiceField_ against a ModelChoiceField_. Instead of
-``choices`` this field then requires an argument ``queryset``. For the form we defined above, we
-use a Django model named ``County`` with ``name`` as identifier. All counties we can select from,
-are now stored in a database table.
+``choices`` this field then requires an argument ``queryset``. For the form defined above, we use a
+Django model named ``County`` with ``name`` as identifier. All counties we can select from, are now
+stored in a database table.
 
 .. _ModelChoiceField: https://docs.djangoproject.com/en/stable/ref/forms/fields/#django.forms.ModelChoiceField 
 
@@ -408,18 +408,6 @@ controlled by a view inheriting from :class:`formset.views.IncompleteSelectRespo
 .. _Django-Select2: https://django-select2.readthedocs.io/en/latest/
 
 
-Implementation Details
-======================
-
-The client part of the ``Selectize`` widget relies on Tom-Select_ which itself is a fork of the
-popular `Selectize.js`_-library, but rewritten in pure TypeScript and without any other external
-dependencies. This made it suitable for the client part of **django-formset**, which itself is a
-self-contained JavaScript library compiled out of TypeScript.
-
-.. _Tom-Select: https://tom-select.js.org/
-.. _Selectize.js: https://selectize.dev/
-
-
 Adding extra Options on the Fly
 ===============================
 
@@ -433,3 +421,15 @@ which opens a form dialog, the user can create a new instance with all required 
 For details please refer to the page on :ref:`dialog-model-forms`.
 
 .. _add new options on the fly: https://tom-select.js.org/examples/create-filter/
+
+
+Implementation Details
+======================
+
+The client part of the ``Selectize`` widget relies on Tom-Select_ which itself is a fork of the
+popular `Selectize.js`_-library, but rewritten in pure TypeScript and without any other external
+dependencies. This made it suitable for the client part of **django-formset**, which itself is a
+self-contained JavaScript library compiled out of TypeScript.
+
+.. _Tom-Select: https://tom-select.js.org/
+.. _Selectize.js: https://selectize.dev/

@@ -82,6 +82,7 @@ depending on the value of another checkbox field:
 
 .. django-view:: conditional_fieldset
 	:hide-view:
+	:emphasize-lines: 7
 
 	from django.forms import fields, forms
 	from formset.fieldset import Fieldset
