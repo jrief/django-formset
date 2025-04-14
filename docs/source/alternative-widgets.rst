@@ -73,7 +73,7 @@ class instantiating the model.
 
 .. code-block:: python
 
-	from formset.richtext.widgets import RichTextarea
+	from formset.widgets import RichTextarea
 
 	class ArticleForm(ModelForm):
 	    class Meta:
@@ -86,7 +86,7 @@ class instantiating the model.
 Usually you don't want to use the default control elements for that rich text editor, but instead
 configure your own preferences.
 
-The model field :class:`formset.richtext.models.fields.RichTextField` maps to widget
+The model field :class:`formset.modelfields.RichTextField` maps to widget
 ``RichTextarea`` by default, but again you may prefer to use your own configuration of control
 elements and hence you have to map the widget in the ``Meta`` class of the form class instantiating
 the model.

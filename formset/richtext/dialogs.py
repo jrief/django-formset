@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from formset.dialog import ApplyButton, CancelButton, DialogForm, RevertButton
 from formset.formfields import Activator
 from formset.richtext import controls
-from formset.richtext.widgets import RichTextarea
+from formset.widgets import RichTextarea
 from formset.widgets import UploadedFileInput
 
 

@@ -1,6 +1,6 @@
 from django.forms.fields import Field
 
-from formset.widgets import EmptyWidget
+from formset.widgets.models import EmptyWidget
 
 
 class ShadowField(Field):

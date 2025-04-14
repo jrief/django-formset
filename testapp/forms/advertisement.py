@@ -1,7 +1,7 @@
 from django.forms import fields, forms, models, widgets
 
 from formset.richtext import controls, dialogs
-from formset.richtext.widgets import RichTextarea
+from formset.widgets import RichTextarea
 from formset.widgets import Selectize
 
 from testapp.models.page import PageModel

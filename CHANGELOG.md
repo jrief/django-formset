@@ -10,8 +10,9 @@
   * **Breaking Change:** The form field class `formset.richtext.fields.RichTextField` has been
     moved from `formset.richtext.fields` to `formset.formfields`. The model field class
     `formset.richtext.fields.RichTextField` has been moved from `formset.richtext.models.fields` to
-    `formset.modelfields`. This change was made to create a consistent naming convention for form-
-    and model fields.
+    `formset.modelfields`. The widget class `formset.richtext.widgets.RichTextArea` has been moved
+    from `formset.richtext.widgets` to `formset.widgets`. This change was made to create a
+    consistent naming convention across all widgets, form- and model fields.
   * Add management command `./manage.py cleanup_files` to delete dangling files. This is because the
     `UploadedFileInput` widget accepts files before their form is submitted and hence processed.
 

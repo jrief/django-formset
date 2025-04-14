@@ -2,7 +2,7 @@ import json
 
 from django.forms.fields import JSONField
 
-from formset.richtext.widgets import RichTextarea
+from formset.widgets import RichTextarea
 
 
 class RichTextField(JSONField):
