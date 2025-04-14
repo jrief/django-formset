@@ -161,14 +161,15 @@ class FileFieldMixin:
 
     def _clean_bound_field(self, bf):
         value = bf.initial if self.disabled else bf.data
+        instance = AltersData()  # collectionField has no instance, so create a dummy
         if isinstance(value, Path):
             if bf.initial:
                 initial = copy.copy(bf.initial)
                 initial.name = str(value)
                 return initial
-            # CollectionField has no instance, so create a summy
-            instance = AltersData()
             return FieldFile(instance, FileModelField(name=bf.name), str(value))
+        elif value is None:
+            return FieldFile(instance, FileModelField(name=bf.name), None)
         return self.clean(value, bf.initial)
 
 
