@@ -1,6 +1,6 @@
 from django.db import models
 
-from formset.richtext.models.fields import RichTextField
+from formset.modelfields import RichTextField
 
 
 class Gallery(models.Model):

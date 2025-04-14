@@ -2,7 +2,8 @@ from django.conf import settings
 from django.db import migrations, models
 from django.core.management import call_command
 import django.utils.timezone
-import formset.richtext.fields
+import formset.formfields
+import formset.modelfields
 
 
 def initialize_opinions(apps, schema_editor):
@@ -60,7 +61,7 @@ class Migration(migrations.Migration):
             name='BlogModel',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('body', formset.richtext.models.fields.RichTextField()),
+                ('body', formset.modelfields.RichTextField()),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
             ],
         ),
@@ -168,7 +169,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('image', models.FileField(blank=True, upload_to='images')),
-                ('caption', formset.richtext.models.fields.RichTextField(blank=True, null=True)),
+                ('caption', formset.modelfields.RichTextField(blank=True, null=True)),
                 ('gallery', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='images', to='testapp.gallery')),
             ],
         ),

@@ -1,29 +1,17 @@
 from django.forms import fields, forms
+from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 
-from formset.collection import FormCollection
 from formset.formfields.collection import CollectionField
 from formset.fieldset import Fieldset
 from formset.forms import ModelForm
-from formset.richtext.fields import RichTextField
-from formset.richtext.widgets import RichTextarea
+from formset.formfields import RichTextField
 from formset.widgets import UploadedFileInput
 
-from formset.widgets import CountrySelectize
+from formset.widgets import CountrySelectize, Selectize, SelectizeMultiple
 from django_countries import countries
 
 from testapp.models.gallery import Gallery
-
-
-class SingleForm(forms.Form):
-    text = fields.CharField(label="Text")
-    image = fields.ImageField(
-        label="Next",
-        required=False,
-        widget=UploadedFileInput,
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+from testapp.models.reporter import Reporter
 
 
 class ImageForm(forms.Form):
@@ -36,20 +24,30 @@ class ImageForm(forms.Form):
         label="Caption",
         required=False,
     )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-
-class SingleText(FormCollection):
-    single_text = SingleForm()
+    reporter = ModelChoiceField(
+        label="Reporter",
+        queryset=Reporter.objects.all(),
+        widget=Selectize(
+            search_lookup='full_name__icontains',
+            placeholder="Main reporter"
+        ),
+        required=True,
+    )
+    extra_reporters = ModelMultipleChoiceField(
+        label="Reporters",
+        queryset=Reporter.objects.all(),
+        widget=SelectizeMultiple(
+            search_lookup='full_name__icontains',
+            placeholder="Extra reporters"
+        ),
+        required=False,
+    )
 
 
 class ImageCollection(CollectionField):
     min_siblings = 0
     extra_siblings = 1
     image_form = ImageForm()
-    text_form = SingleText()
     legend = "Gallery Images"
     add_label = "Add other Gallery"
     ignore_marked_for_removal = True
