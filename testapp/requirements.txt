@@ -9,7 +9,7 @@ iniconfig==2.0.0
 packaging==23.1
 Pillow==10.3.0
 phonenumbers==8.13.34
-playwright==1.43.0
+playwright==1.51.0
 pluggy==1.4.0
 pyee==11.1.0
 pytest==8.1.1
