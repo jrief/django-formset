@@ -136,7 +136,7 @@ class BoundField(boundfield.BoundField):
     def _get_fieldset_info(self):
         fieldset = None
         parts = self.name.split('.')[:-1]
-        declared_fieldsets = self.form.declared_fieldsets
+        declared_fieldsets = getattr(self.form, 'declared_fieldsets', {})
         for name in parts:
             if fieldset := declared_fieldsets.get(name):
                 declared_fieldsets = fieldset.declared_fieldsets
