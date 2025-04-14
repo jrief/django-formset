@@ -1,11 +1,11 @@
 import json
 
-from django.forms.fields import Field
+from django.forms.fields import JSONField
 
 from formset.richtext.widgets import RichTextarea
 
 
-class RichTextField(Field):
+class RichTextField(JSONField):
     """
     Use this field to store rich text content in JSON.
     """
@@ -18,17 +18,12 @@ class RichTextField(Field):
 
     def to_python(self, value):
         """Return a dict as required by TipTap."""
-        if isinstance(value, dict):
-            return value
         if value in self.empty_values:
             return {'type': 'doc', 'content': []}
-        try:
-            return json.loads(value)
-        except ValueError:
-            return {'type': 'doc', 'content': [{'type': 'text', 'text': str(value)}]}
+        return super().to_python(value)
 
     def validate(self, value):
         if not isinstance(value, dict):
-            raise ValueError("Invalid value: expected a dictionary.")
+            raise ValueError("Invalid value: Expected a dictionary.")
         if value.get('type') != 'doc' or not isinstance(value.get('content'), list):
-            raise ValueError("Invalid value: expected a document with content.")
+            raise ValueError("Invalid value: Expected a document with content.")
