@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
-from django.forms.fields import Field, FileField as FileFormField
+from django.forms.fields import FileField as FileFormField, JSONField
 from django.forms.forms import BaseForm
 from django.forms.models import BaseModelForm, ModelChoiceField, ModelMultipleChoiceField
 from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
@@ -223,11 +223,11 @@ class RenderableDetachedFieldMixin(RenderableMixin):
     __html__ = render
 
 
-class CollectionFieldBase(Field):
+class CollectionFieldBase(JSONField):
     """
     Mixin class to be added to CollectionField if it used as a field holding a FormCollection.
     """
-    encoder = DjangoJSONEncoder()
+    default_encoder = DjangoJSONEncoder()
 
     @classmethod
     def pre_serialize(cls, instance, field_name, value):
@@ -265,7 +265,7 @@ class CollectionFieldBase(Field):
                 ),
             }
         try:
-            return cls.encoder.default(value)
+            return cls.default_encoder.default(value)
         except TypeError:
             return value
 

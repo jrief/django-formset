@@ -59,7 +59,6 @@ class FormCollectionMeta(MediaDefiningClass):
                 attrs['declared_holders'][key] = value
             elif isinstance(value, CollectionFieldBase):
                 pass
-                # attrs.pop(key)
 
         new_class = super().__new__(cls, name, bases, attrs)
 

@@ -1,6 +1,6 @@
 from django.db import models
 
-from formset.modelfields import RichTextField
+from formset.modelfields import CollectionField, RichTextField
 
 
 class Gallery(models.Model):
@@ -14,6 +14,7 @@ class Gallery(models.Model):
         db_index=True,
     )
     extra_data = models.JSONField(default=dict)
+    collection_field = CollectionField()
 
     class Meta:
         verbose_name = "Gallery"

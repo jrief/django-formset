@@ -83,7 +83,7 @@ class GalleryImageForm(ModelForm):
 
     class Meta:
         model = Gallery
-        fields = ['name', 'extra_data']
+        fields = ['name', 'extra_data', 'collection_field']
         fields_map = {
             'extra_data': ['main_image', 'main_caption', 'image_collection', 'supplement.name', 'supplement.origin'],
         }

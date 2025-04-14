@@ -157,6 +157,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=50, verbose_name='Gallery name')),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
                 ('extra_data', models.JSONField(default=dict)),
+                ('collection_field', formset.modelfields.collection.CollectionField(default=dict)),
             ],
             options={
                 'verbose_name': 'Gallery',

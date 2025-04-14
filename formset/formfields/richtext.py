@@ -1,5 +1,3 @@
-import json
-
 from django.forms.fields import JSONField
 
 from formset.widgets import RichTextarea
