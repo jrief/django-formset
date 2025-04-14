@@ -3,6 +3,7 @@ from django.db.models.fields.related import ManyToManyField
 from django.forms import fields
 
 from formset.formfields.activator import Activator
+from formset.formfields.collection import CollectionField
 from formset.formfields.richtext import RichTextField
 from formset.utils import FileFieldMixin
 from formset.widgets import DualSortableSelector, UploadedFileInput

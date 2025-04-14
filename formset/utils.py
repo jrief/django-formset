@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
-from django.forms.fields import FileField as FileFormField, JSONField
+from django.forms.fields import FileField as FileFormField, JSONField, Field
 from django.forms.forms import BaseForm
 from django.forms.models import BaseModelForm, ModelChoiceField, ModelMultipleChoiceField
 from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
@@ -223,11 +223,11 @@ class RenderableDetachedFieldMixin(RenderableMixin):
     __html__ = render
 
 
-class CollectionFieldBase(JSONField):
+class CollectionFieldMixin:
     """
     Mixin class to be added to CollectionField if it used as a field holding a FormCollection.
     """
-    default_encoder = DjangoJSONEncoder()
+    encoder = DjangoJSONEncoder()
 
     @classmethod
     def pre_serialize(cls, instance, field_name, value):
@@ -265,7 +265,7 @@ class CollectionFieldBase(JSONField):
                 ),
             }
         try:
-            return cls.default_encoder.default(value)
+            return cls.encoder.default(value)
         except TypeError:
             return value
 
@@ -284,13 +284,11 @@ class CollectionFieldBase(JSONField):
             for key, collection in holder.declared_holders.items() if key in value
         }
 
-    def clean(self, value):
-        collection = self.replicate(data=value)
-        collection.full_clean()
-        return collection.cleaned_data
-
     @classmethod
     def _check_collection(cls, holder):
+        """
+        Run this after instantiation to check if the collection does not contain any ModelForm class.
+        """
         if isinstance(holder, BaseForm):
             if isinstance(holder, BaseModelForm):
                 raise TypeError(f"In {cls} form must be of type Form not {holder.__class__}.")

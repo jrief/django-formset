@@ -1,7 +1,8 @@
 from django.forms import fields, forms
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 
-from formset.formfields.collection import CollectionField
+from formset.collection import FormCollection
+from formset.formfields import CollectionField
 from formset.fieldset import Fieldset
 from formset.forms import ModelForm
 from formset.formfields import RichTextField
@@ -44,7 +45,7 @@ class ImageForm(forms.Form):
     )
 
 
-class ImageCollection(CollectionField):
+class ImageCollection(FormCollection):
     min_siblings = 0
     extra_siblings = 1
     image_form = ImageForm()
@@ -69,7 +70,7 @@ class Supplement(Fieldset):
 
 
 class GalleryImageForm(ModelForm):
-    image_collection = ImageCollection()
+    image_collection = CollectionField(ImageCollection)
     main_image = fields.ImageField(
         label="Image",
         required=True,
@@ -83,7 +84,7 @@ class GalleryImageForm(ModelForm):
 
     class Meta:
         model = Gallery
-        fields = ['name', 'extra_data', 'collection_field']
+        fields = ['name', 'extra_data']
         fields_map = {
             'extra_data': ['main_image', 'main_caption', 'image_collection', 'supplement.name', 'supplement.origin'],
         }

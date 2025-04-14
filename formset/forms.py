@@ -5,7 +5,7 @@ from django.utils.functional import cached_property
 
 from formset.formfields.shadow import ShadowField
 from formset.fieldset import Fieldset
-from formset.utils import CollectionFieldBase, FormsetErrorList, HolderMixin, prepare_initial
+from formset.utils import CollectionFieldMixin, FormsetErrorList, HolderMixin, prepare_initial
 
 
 class FormDecoratorMixin:
@@ -88,11 +88,11 @@ class ModelFormMixin(FormMixin):
 
     def __init__(self, instance=None, *args, **kwargs):
         def initial_value(field_name, field, value):
-            if isinstance(field, CollectionFieldBase):
-                if not (renderer := getattr(field, 'renderer', field.default_renderer)):
-                    renderer = getattr(self, 'renderer', self.default_renderer)
-                initial = CollectionFieldBase.traverse_initial(field, instance, value)
-                return field.replicate(instance=instance, initial=initial, prefix=field_name, renderer=renderer)
+            if isinstance(field, CollectionFieldMixin):
+                collection = field.collection
+                renderer = getattr(self, 'renderer', self.default_renderer)
+                initial = CollectionFieldMixin.traverse_initial(collection, instance, value)
+                return collection.replicate(instance=instance, initial=initial, prefix=field_name, renderer=renderer)
             else:
                 return prepare_initial(instance, field_name, field, value)
 
@@ -133,14 +133,14 @@ class ModelFormMixin(FormMixin):
                     for af in assigned_fields:
                         if af not in self.cleaned_data:
                             continue
-                        cleaned_data[field_name][af] = CollectionFieldBase.pre_serialize(
+                        cleaned_data[field_name][af] = CollectionFieldMixin.pre_serialize(
                             self.instance,
                             af,
                             self.cleaned_data[af]
                         )
                 elif isinstance(assigned_fields, str):
                     af = assigned_fields
-                    cleaned_data[af] = CollectionFieldBase.pre_serialize(self.instance, af, self.cleaned_data[af])
+                    cleaned_data[af] = CollectionFieldMixin.pre_serialize(self.instance, af, self.cleaned_data[af])
             self.cleaned_data = cleaned_data
 
 

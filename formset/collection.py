@@ -18,7 +18,7 @@ from formset.formfields import Activator
 from formset.forms import DeclarativeFieldsetMetaclass, FormsetModelFormMetaclass, FormMixin
 from formset.renderers.default import FormRenderer
 from formset.utils import (
-    MARKED_FOR_REMOVAL, CollectionFieldBase, FormsetErrorList, HolderMixin, RenderableDetachedFieldMixin
+    MARKED_FOR_REMOVAL, CollectionFieldMixin, FormsetErrorList, HolderMixin, RenderableDetachedFieldMixin
 )
 
 COLLECTION_ERRORS = '_collection_errors_'
@@ -57,7 +57,7 @@ class FormCollectionMeta(MediaDefiningClass):
                         )
                         value.error_class = FormsetErrorList
                 attrs['declared_holders'][key] = value
-            elif isinstance(value, CollectionFieldBase):
+            elif isinstance(value, CollectionFieldMixin):
                 pass
 
         new_class = super().__new__(cls, name, bases, attrs)
