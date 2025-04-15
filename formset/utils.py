@@ -227,6 +227,7 @@ class CollectionFieldMixin:
     """
     Mixin class to be added to CollectionField if it used as a field holding a FormCollection.
     """
+    collection = None
     encoder = DjangoJSONEncoder()
 
     @classmethod
@@ -271,9 +272,11 @@ class CollectionFieldMixin:
 
     @classmethod
     def traverse_initial(cls, holder, instance, value):
+        if value is None:
+            return
         if isinstance(value, list):
             return [cls.traverse_initial(holder, instance, item) for item in value]
-        assert isinstance(value, dict)
+        assert isinstance(value, dict), "Value must be a dict or list."
         if isinstance(holder, BaseForm):
             return {
                 name: prepare_initial(instance, name, field, value[name])

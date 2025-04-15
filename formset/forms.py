@@ -97,17 +97,22 @@ class ModelFormMixin(FormMixin):
                 return prepare_initial(instance, field_name, field, value)
 
         initial = kwargs.get('initial', {})
+        for field_name, field in self.base_fields.items():
+            if isinstance(field, CollectionFieldMixin):
+                value = getattr(instance, field_name, None)
+                initial.setdefault(field_name, initial_value(field_name, field, value))
         fields_map = getattr(self._meta, 'fields_map', {})
         for field_name, assigned_fields in fields_map.items():
             if isinstance(assigned_fields, list):
+                # map form fields to given JSONField in the model
                 for af in assigned_fields:
-                    value = getattr(instance, field_name).get(af) if instance else None
-                    initial[af] = initial_value(af, self.base_fields[af], value)
+                    value = getattr(instance, field_name, {}).get(af)
+                    initial.setdefault(af, initial_value(af, self.base_fields[af], value))
             elif isinstance(assigned_fields, str):
                 # direct mapping of a model field to a form field
                 af = assigned_fields
-                value = getattr(instance, field_name) if instance else None
-                initial[af] = initial_value(af, self.base_fields[af], value)
+                value = getattr(instance, field_name, None)
+                initial.setdefault(af, initial_value(af, self.base_fields[af], value))
             else:
                 raise TypeError(f"Invalid type for field {field_name}: {type(assigned_fields)}")
         kwargs['initial'] = initial
@@ -142,6 +147,13 @@ class ModelFormMixin(FormMixin):
                     af = assigned_fields
                     cleaned_data[af] = CollectionFieldMixin.pre_serialize(self.instance, af, self.cleaned_data[af])
             self.cleaned_data = cleaned_data
+        for field_name, field in self.base_fields.items():
+            if isinstance(field, CollectionFieldMixin) and hasattr(self.instance, field_name):
+                self.cleaned_data[field_name] = CollectionFieldMixin.pre_serialize(
+                    self.instance,
+                    field_name,
+                    self.cleaned_data[field_name]
+                )
 
 
 class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):

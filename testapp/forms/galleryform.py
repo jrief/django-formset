@@ -70,7 +70,8 @@ class Supplement(Fieldset):
 
 
 class GalleryImageForm(ModelForm):
-    image_collection = CollectionField(ImageCollection)
+    collection = CollectionField(ImageCollection)
+    # extra_collection = CollectionField(ImageCollection)
     main_image = fields.ImageField(
         label="Image",
         required=True,
@@ -84,7 +85,7 @@ class GalleryImageForm(ModelForm):
 
     class Meta:
         model = Gallery
-        fields = ['name', 'extra_data']
+        fields = ['name', 'extra_data', 'collection']
         fields_map = {
-            'extra_data': ['main_image', 'main_caption', 'image_collection', 'supplement.name', 'supplement.origin'],
+            'extra_data': ['main_image', 'main_caption', 'supplement.name', 'supplement.origin'],
         }

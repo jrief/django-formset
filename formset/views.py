@@ -16,9 +16,9 @@ from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormView as GenericFormView
 
-from formset.collection import BaseFormCollection
 from formset.upload import FileUploadMixin
 from formset.widgets.models import IncompleteSelectMixin
+from formset.utils import CollectionFieldMixin
 
 
 class IncompleteSelectResponseMixin:
@@ -151,8 +151,8 @@ class FormViewMixin(FormsetResponseMixin):
         parts = field_path.split('.')
         if parts[0] == '__default__':
             return self.form_class.base_fields[parts[1]]
-        if isinstance(self.form_class.base_fields[parts[0]], BaseFormCollection):
-            return self.form_class.base_fields[parts[0]].get_field('.'.join(parts[1:]))
+        if isinstance(self.form_class.base_fields[parts[0]], CollectionFieldMixin):
+            return self.form_class.base_fields[parts[0]].collection.get_field('.'.join(parts[1:]))
         raise KeyError(f"Field {field_path} not found in formset {self.form_class.__name__}.")
 
 

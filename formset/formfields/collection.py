@@ -8,7 +8,7 @@ from formset.widgets import CollectionWidget
 class CollectionField(CollectionFieldMixin, Field):
     widget = CollectionWidget
 
-    def __init__(self, collection, label=None, *args, **kwargs):
+    def __init__(self, collection, label=None, required=None, *args, **kwargs):
         if isinstance(collection, type):
             collection = collection()
         if not isinstance(collection, BaseFormCollection):
@@ -18,7 +18,8 @@ class CollectionField(CollectionFieldMixin, Field):
         if label is None:
             # collections do not need a label since each of their fields have their own
             label = ''
-        super().__init__(label=label, *args, **kwargs)
+        # CollectionField is never required because their own fields perform the validation
+        super().__init__(label=label, required=False, *args, **kwargs)
 
     def clean(self, value):
         collection = self.collection.replicate(data=value)
