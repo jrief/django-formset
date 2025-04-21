@@ -16,7 +16,7 @@ class Company(models.Model):
     class Meta:
         verbose_name = "Company"
         verbose_name_plural = "Companies"
-        unique_together = ['name', 'created_by']
+        constraints = [models.UniqueConstraint(fields=['name', 'created_by'], name='unique_company')]
 
     def __str__(self):
         return self.name
@@ -37,7 +37,7 @@ class Department(models.Model):
     class Meta:
         verbose_name = "Department"
         verbose_name_plural = "Departments"
-        unique_together = ['name', 'company']
+        constraints = [models.UniqueConstraint(fields=['name', 'company'], name='unique_department')]
 
     def __str__(self):
         return self.name
@@ -59,7 +59,7 @@ class Team(models.Model):
     class Meta:
         verbose_name = "Team"
         verbose_name_plural = "Teams"
-        unique_together = ['name', 'department']
+        constraints = [models.UniqueConstraint(fields=['name', 'department'], name='unique_team')]
 
     def __str__(self):
         return self.name

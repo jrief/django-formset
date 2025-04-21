@@ -11,7 +11,7 @@ class OpinionModel(models.Model):
     )
 
     class Meta:
-        unique_together = ['tenant', 'label']
+        constraints = [models.UniqueConstraint(fields=['tenant', 'label'], name='unique_label')]
 
     def __str__(self):
         return self.label

@@ -127,7 +127,7 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'Company',
                 'verbose_name_plural': 'Companies',
-                'unique_together': {('name', 'created_by')},
+                'constraints': [models.UniqueConstraint(fields=('name', 'created_by'), name='unique_company')],
             },
         ),
         migrations.CreateModel(
@@ -140,7 +140,7 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'Department',
                 'verbose_name_plural': 'Departments',
-                'unique_together': {('name', 'company')},
+                'constraints': [models.UniqueConstraint(fields=['name', 'company'], name='unique_department')],
             },
         ),
         migrations.CreateModel(
@@ -157,12 +157,11 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=50, verbose_name='Gallery name')),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
                 ('extra_data', models.JSONField(default=dict)),
-                ('collection', models.JSONField(default=dict)),
             ],
             options={
                 'verbose_name': 'Gallery',
                 'verbose_name_plural': 'Galleries',
-                'unique_together': {('name', 'created_by')},
+                'constraints': [models.UniqueConstraint(fields=['name', 'created_by'], name='unique_name')]
             },
         ),
         migrations.CreateModel(
@@ -182,7 +181,7 @@ class Migration(migrations.Migration):
                 ('label', models.CharField(max_length=50, verbose_name='Opinion')),
             ],
             options={
-                'unique_together': {('tenant', 'label')},
+                'constraints': [models.UniqueConstraint(fields=['tenant', 'label'], name='unique_label')],
             },
         ),
         migrations.CreateModel(
@@ -286,7 +285,7 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'Team',
                 'verbose_name_plural': 'Teams',
-                'unique_together': {('name', 'department')},
+                'constraints': [models.UniqueConstraint(fields=['name', 'department'], name='unique_team')],
             },
         ),
         migrations.CreateModel(

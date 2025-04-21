@@ -14,12 +14,11 @@ class Gallery(models.Model):
         db_index=True,
     )
     extra_data = models.JSONField(default=dict)
-    collection = models.JSONField(default=dict)
 
     class Meta:
         verbose_name = "Gallery"
         verbose_name_plural = "Galleries"
-        unique_together = ['name', 'created_by']
+        constraints = [models.UniqueConstraint(fields=['name', 'created_by'], name='unique_name')]
 
     def __str__(self):
         return self.name
