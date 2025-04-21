@@ -90,23 +90,26 @@ class ModelFormMixin(FormMixin):
         def initial_value(field_name, field, value):
             if isinstance(field, CollectionFieldMixin):
                 collection = field.collection
-                renderer = getattr(self, 'renderer', self.default_renderer)
                 initial = CollectionFieldMixin.traverse_initial(collection, instance, value)
                 return collection.replicate(instance=instance, initial=initial, prefix=field_name, renderer=renderer)
             else:
                 return prepare_initial(instance, field_name, field, value)
 
+        renderer = kwargs.get('renderer', getattr(self, 'renderer', self.default_renderer))
+        model_field_names = [f.name for f in self._meta.model._meta.get_fields()]
         initial = kwargs.get('initial', {})
         for field_name, field in self.base_fields.items():
-            if isinstance(field, CollectionFieldMixin):
-                value = getattr(instance, field_name, None)
-                initial.setdefault(field_name, initial_value(field_name, field, value))
+            if isinstance(field, CollectionFieldMixin) and field_name in model_field_names:
+                initial.setdefault(field_name, initial_value(field_name, field, getattr(instance, field_name, None)))
         fields_map = getattr(self._meta, 'fields_map', {})
         for field_name, assigned_fields in fields_map.items():
             if isinstance(assigned_fields, list):
                 # map form fields to given JSONField in the model
                 for af in assigned_fields:
-                    value = getattr(instance, field_name, {}).get(af)
+                    try:
+                        value = getattr(instance, field_name)[af]
+                    except (AttributeError, KeyError, TypeError):
+                        value = None
                     initial.setdefault(af, initial_value(af, self.base_fields[af], value))
             elif isinstance(assigned_fields, str):
                 # direct mapping of a model field to a form field
@@ -120,6 +123,7 @@ class ModelFormMixin(FormMixin):
 
     def _clean_form(self):
         super()._clean_form()
+        model_field_names = [f.name for f in self._meta.model._meta.get_fields()]
         if hasattr(self._meta, 'fields_map'):
             mapped_fields = []
             for key, value in self._meta.fields_map.items():
@@ -128,12 +132,14 @@ class ModelFormMixin(FormMixin):
                 key: value for key, value in self.cleaned_data.items()
                 if key not in mapped_fields
             }
-            # move values of mapped fields into JSON
+            # move values of mapped fields into destination dict
             for field_name, assigned_fields in self._meta.fields_map.items():
                 if isinstance(assigned_fields, list):
-                    if self.instance and hasattr(self.instance, field_name):
-                        cleaned_data[field_name] = getattr(self.instance, field_name) or {}
-                    else:
+                    try:
+                        if field_name not in model_field_names:
+                            raise AttributeError
+                        cleaned_data[field_name] = dict(getattr(self.instance, field_name))
+                    except (AttributeError, ValueError):
                         cleaned_data[field_name] = {}
                     for af in assigned_fields:
                         if af not in self.cleaned_data:
@@ -148,7 +154,7 @@ class ModelFormMixin(FormMixin):
                     cleaned_data[af] = CollectionFieldMixin.pre_serialize(self.instance, af, self.cleaned_data[af])
             self.cleaned_data = cleaned_data
         for field_name, field in self.base_fields.items():
-            if isinstance(field, CollectionFieldMixin) and hasattr(self.instance, field_name):
+            if isinstance(field, CollectionFieldMixin) and field_name in model_field_names:
                 self.cleaned_data[field_name] = CollectionFieldMixin.pre_serialize(
                     self.instance,
                     field_name,
