@@ -31,6 +31,7 @@ from formset.views import (
 )
 
 from testapp.demo_helpers import SessionFormCollectionViewMixin
+from testapp.forms.accordion import AccordionForm
 from testapp.forms.address import AddressForm
 from testapp.forms.advertisement import AdvertisementForm
 from testapp.forms.article import ArticleForm
@@ -44,6 +45,7 @@ from testapp.forms.contact import (
 from testapp.forms.birthdate import BirthdateBoxForm, BirthdateCalendarForm, BirthdateInputForm, BirthdatePickerForm
 from testapp.forms.booking import BookingBoxForm, BookingCalendarForm, BookingPickerForm
 from testapp.forms.cafeteria import CafeteriaCollection, CoffeeOrderCollection
+from testapp.forms.carousel import CarouselForm
 from testapp.forms.checkout import CheckoutCollection
 from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
@@ -326,6 +328,17 @@ class CompaniesCollectionView(DemoFormCollectionViewMixin, BulkEditCollectionVie
             holder['company'].instance.created_by = self.request.session.session_key
         return super().form_collection_valid(form_collection)
 
+
+class ComponentFormView(DemoModelFormView):
+    filtered_type = None
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(type=self.filtered_type)
+
+    def form_valid(self, form):
+        form.instance.type = self.filtered_type
+        return super().form_valid(form)
 
 class GalleryCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
     model = Gallery
@@ -729,4 +742,14 @@ urlpatterns = [
         form_class=GalleryImageForm,
         model=Gallery,
     ), name='galleryform'),
+    path('accordion', ComponentFormView.as_view(
+        form_class=AccordionForm,
+        model=AccordionForm._meta.model,
+        filtered_type='accordion',
+    ), name='accordion'),
+    path('carousel', ComponentFormView.as_view(
+        form_class=CarouselForm,
+        model=CarouselForm._meta.model,
+        filtered_type='carousel',
+    ), name='carousel'),
 ]

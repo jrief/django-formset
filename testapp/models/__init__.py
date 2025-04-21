@@ -1,6 +1,7 @@
 from .article import Article, Reporter
 from .annotation import Annotation
 from .company import Company, Department, Team
+from .component import Component
 from .county import County, CountyUnnormalized, State
 from .blog import BlogModel
 from .issue import IssueModel

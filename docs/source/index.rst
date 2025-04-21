@@ -31,6 +31,7 @@ Django's counterparts.
 	model-forms
 	model-collections
 	fieldsets
+	collection-fields
 	form-renderer
 	conditionals
 	uploading

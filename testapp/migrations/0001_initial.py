@@ -131,6 +131,20 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
+            name='Component',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('type', models.CharField(max_length=16)),
+                ('created_by', models.CharField(editable=False, max_length=40)),
+                ('context', models.JSONField(default=dict)),
+            ],
+            options={
+                'verbose_name': 'Component',
+                'verbose_name_plural': 'Components',
+                'constraints': [models.UniqueConstraint(fields=['type', 'created_by'], name='unique_type')],
+            },
+        ),
+        migrations.CreateModel(
             name='Department',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
