@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.forms import fields, forms, models, widgets
 
 from formset.forms import FormMixin, ModelForm
+from formset.formfields import DateRangeField
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
 from formset.widgets import DatePicker, DateTimePicker, DualSelector, Selectize, SelectizeMultiple, UploadedFileInput
 
@@ -96,7 +97,7 @@ sample_person_data = {
 
 
 class ModelPersonForm(ModelForm):
-    field_order = ['full_name', 'avatar', 'activity_days', 'activity_datetime']
+    field_order = ['full_name', 'avatar', 'validity', 'activity_days', 'activity_datetime']
     activity_datetime = fields.DateTimeField(
         label="Activity timestamp",
         widget=DateTimePicker,
@@ -104,11 +105,16 @@ class ModelPersonForm(ModelForm):
     activity_days = fields.IntegerField(
         label="Activity days",
     )
+    validity = DateRangeField(
+        label="Validity",
+        required=False,
+        help_text="This field is not saved in the database.",
+    )
 
     class Meta:
         model = PersonModel
         fields = '__all__'
-        fields_map = {'extra_data': ['activity_datetime', 'activity_days']}
+        fields_map = {'extra_data': ['activity_datetime', 'activity_days', 'validity']}
         widgets = {
             'avatar': UploadedFileInput,
             'gender': widgets.RadioSelect,
