@@ -3,7 +3,8 @@ from datetime import timedelta
 from django import forms
 from django.utils.timezone import datetime
 
-from formset.ranges import DateTimeRangeCalendar, DateTimeRangeField, DateTimeRangePicker, DateTimeRangeTextbox
+from formset.formfields import DateTimeRangeField
+from formset.widgets import DateTimeRangeCalendar, DateTimeRangePicker, DateTimeRangeTextbox
 
 
 class ScheduleBoxForm(forms.Form):

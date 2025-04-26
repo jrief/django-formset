@@ -7,6 +7,10 @@ from formset.widgets.models import (
     CountrySelectize, CountrySelectizeMultiple, DualSelector, DualSortableSelector, Selectize, SelectizeMultiple
 )
 from formset.widgets.phonenumber import PhoneNumberInput
+from formset.widgets.ranges import (
+    DateRangeCalendar, DateRangePicker, DateRangeTextbox,
+    DateTimeRangeCalendar, DateTimeRangePicker, DateTimeRangeTextbox,
+)
 from formset.widgets.richtext import RichTextarea
 from formset.widgets.slug import SlugInput
 from formset.widgets.upload import UploadedFileInput
@@ -14,7 +18,8 @@ from formset.widgets.upload import UploadedFileInput
 
 __all__ = [
     'Button', 'CollectionWidget', 'DateCalendar', 'DateInput', 'DateTextbox', 'DatePicker', 'DateTimeCalendar',
-    'DateTimeInput', 'DateTimePicker', 'DateTimeTextbox', 'CountrySelectize', 'CountrySelectizeMultiple',
-    'DualSelector', 'DualSortableSelector', 'PhoneNumberInput', 'RichTextarea', 'Selectize', 'SelectizeMultiple',
-    'SlugInput', 'UploadedFileInput'
+    'DateTimeInput', 'DateTimePicker', 'DateTimeTextbox', 'DateRangeCalendar', 'DateRangePicker', 'DateRangeTextbox',
+    'DateTimeRangeCalendar', 'DateTimeRangePicker', 'DateTimeRangeTextbox', 'CountrySelectize',
+    'CountrySelectizeMultiple', 'DualSelector', 'DualSortableSelector', 'PhoneNumberInput', 'RichTextarea',
+    'Selectize', 'SelectizeMultiple', 'SlugInput', 'UploadedFileInput'
 ]

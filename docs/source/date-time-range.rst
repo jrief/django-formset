@@ -29,7 +29,8 @@ In a Django form class, the field can be used like this:
 	:caption: form.py
 
 	from django import forms
-	from formset.ranges import DateRangeField, DateRangePicker
+	from formset.formfields import DateRangeField
+	from formset.widgets import DateRangePicker
 
 	class BookingForm(forms.Form):
 	    date_range = DateRangeField(
@@ -78,7 +79,8 @@ subclasses of Django's :class:`django.forms.fields.MultiValueField` and maps two
 	from datetime import timedelta
 	from django import forms
 	from django.utils.timezone import datetime
-	from formset.ranges import DateTimeRangeField, DateTimeRangePicker
+	from formset.formfields import DateTimeRangeField
+	from formset.widgets import DateTimeRangePicker
 
 	class ScheduleForm(forms.Form):
 	    date_range = DateTimeRangeField(
@@ -134,7 +136,8 @@ set the attribute ``disabled`` otherwise.
 
 	from datetime import datetime
 	from formset.calendar import CalendarRenderer, ViewMode
-	from formset.ranges import DateRangeField, DateRangeCalendar
+	from formset.formfields import DateRangeField
+	from formset.widgets import DateRangeCalendar
 
 	class ReservationRenderer(CalendarRenderer):
 	    start_date = datetime.today().date()

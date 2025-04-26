@@ -10,7 +10,8 @@ from django.urls import path
 
 from formset.calendar import CalendarResponseMixin
 from formset.views import FormView
-from formset.ranges import DateRangeField, DateRangeCalendar, DateTimeRangeField, DateTimeRangePicker
+from formset.formfields import DateRangeField, DateTimeRangeField
+from formset.widgets import DateRangeCalendar, DateTimeRangePicker
 
 from .utils import ContextMixin, get_javascript_catalog
 

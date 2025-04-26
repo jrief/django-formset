@@ -2,7 +2,8 @@ from datetime import date
 
 from django import forms
 
-from formset.ranges import DateRangeCalendar, DateRangeField, DateRangePicker, DateRangeTextbox
+from formset.formfields import DateRangeField
+from formset.widgets import DateRangeCalendar, DateRangePicker, DateRangeTextbox
 
 
 class BookingBoxForm(forms.Form):

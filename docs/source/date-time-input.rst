@@ -318,7 +318,8 @@ such as holidays.
 
 	class MoonCalendarRenderer(CalendarRenderer):
 	    # Calculate lunar phase by Sean B. Palmer, inamidst.com
-	    # http://en.wikipedia.org/wiki/Lunar_phase#Lunar_phase_calculation
+	    # https://en.wikipedia.org/wiki/Lunar_phase
+	    # https://gist.github.com/miklb/ed145757971096565723
 	    phases = ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"]
 	
 	    def position(self, then):

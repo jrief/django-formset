@@ -13,6 +13,11 @@
     `formset.modelfields`. The widget class `formset.richtext.widgets.RichTextArea` has been moved
     from `formset.richtext.widgets` to `formset.widgets`. This change was made to create a
     consistent naming convention across all widgets, form- and model fields.
+  * **Breaking Change:** The classes `DateRangeField` and `DateTimeRangeField` have been moved from
+    `formset.ranges` to `formset.formfields`.
+    The classes `DateRangeCalendar`, `DateRangeTextbox`, `DateRangePicker`, `DateTimeRangeCalendar`,
+    `DateTimeRangeTextbox` and `DateTimeRangePicker` have been moved from `formset.ranges` to
+    `formset.widgets`.
   * Add management command `./manage.py cleanup_files` to delete dangling files. This is because the
     `UploadedFileInput` widget accepts files before their form is submitted and hence processed.
 
