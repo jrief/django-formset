@@ -1,7 +1,7 @@
 export namespace StyleHelpers {
 	let pseudoStyleSheet: CSSStyleSheet|null = null;
 	const styleElement = document.createElement('style');
-	const mediaQueryStyles = Array<[Function[], boolean]>();
+	const mediaQueryStyles = Array<Function>();
 	const observer = new MutationObserver(themeHasChanged);
 	observer.observe(document.documentElement, {attributes: true});
 	observer.observe(document.body, {attributes: true});
@@ -48,25 +48,14 @@ export namespace StyleHelpers {
 		};
 	}
 
-	export function pushMediaQueryStyles(styles: Array<[sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, extraCssClass?: string]>, withPseudoStyles: boolean = false) {
-		mediaQueryStyles.push([
-			styles.map(([sheet, selector, properties, element, extraCssClass]) =>
-				mutableStyles(sheet, selector, properties, element, extraCssClass)
-			),
-			withPseudoStyles,
-		]);
+	export function pushMediaQueryStyles(sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, extraCssClass?: string) {
+		mediaQueryStyles.push(
+			mutableStyles(sheet, selector, properties, element, extraCssClass)
+		);
 	}
 
 	function stylesHaveChanged() {
-		mediaQueryStyles.forEach(([styleModifiers, withPseudoStyles]) => {
-			if (withPseudoStyles) {
-				attachPseudoStyles();
-			}
-			styleModifiers.forEach(update => update());
-			if (withPseudoStyles) {
-				detachPseudoStyles();
-			}
-		});
+		mediaQueryStyles.forEach(styleModifiers => styleModifiers());
 	}
 
 	function themeHasChanged(mutationList: MutationRecord[], observer: MutationObserver) {
@@ -107,6 +96,9 @@ export namespace StyleHelpers {
 	}
 
 	export function attachPseudoStyles() {
+		if (document.head.contains(styleElement)) {
+			document.head.removeChild(styleElement);
+		}
 		document.head.appendChild(styleElement);
 		if (pseudoStyleSheet === null) {
 			pseudoStyleSheet = styleElement.sheet as CSSStyleSheet;
@@ -122,10 +114,6 @@ export namespace StyleHelpers {
 				}
 			}
 		}
-	}
-
-	export function detachPseudoStyles() {
-		document.head.removeChild(styleElement);
 	}
 
 	export function stylesAreInstalled(baseSelector: string) : CSSStyleSheet|null {

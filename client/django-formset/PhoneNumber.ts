@@ -400,7 +400,7 @@ class PhoneNumberField {
 
 	public initialize() {
 		// some styles change when switching light/dark mode, so we need to update them
-		StyleHelpers.pushMediaQueryStyles([[
+		StyleHelpers.pushMediaQueryStyles(
 			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"]`,
 			{
@@ -408,7 +408,8 @@ class PhoneNumberField {
 				'--outline': 'outline',
 			},
 			this.inputElement,
-		], [
+		);
+		StyleHelpers.pushMediaQueryStyles(
 			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"].focus`,
 			{
@@ -416,8 +417,9 @@ class PhoneNumberField {
 				'box-shadow': 'box-shadow',
 				'outline': 'outline',
 			},
-		], [
 			this.inputElement, '⁝focus',
+		);
+		StyleHelpers.pushMediaQueryStyles(
 			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"]`,
 			{
@@ -425,7 +427,8 @@ class PhoneNumberField {
 				'--outline': 'outline',
 			},
 			this.inputElement,
-		], [
+		);
+		StyleHelpers.pushMediaQueryStyles(
 			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] input[type="search"]:focus`,
 			{
@@ -434,8 +437,8 @@ class PhoneNumberField {
 				'outline': 'outline',
 				'transition': 'transition',
 			},
-		]], true);
 			this.inputElement, '⁝focus',
+		);
 
 		this.inputElement.hidden = true;  // setting type="hidden" prevents dispatching events
 		this.installEventHandlers();

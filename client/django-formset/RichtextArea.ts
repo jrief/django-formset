@@ -1315,12 +1315,12 @@ class RichtextArea {
 		}
 
 		// border color may change during runtime
-		StyleHelpers.pushMediaQueryStyles([[
+		StyleHelpers.pushMediaQueryStyles(
 			sheet,
 			this.baseSelector,
 			{'--border-color': 'border-color'},
 			this.textAreaElement,
-		]]);
+		);
 
 		if (!loaded)
 			throw new Error(`Could not load styles for ${this.baseSelector}`);

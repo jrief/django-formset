@@ -501,7 +501,7 @@ class DateTimeField extends Widget {
 		}
 
 		// some styles change when switching light/dark mode, so we need to update them
-		StyleHelpers.pushMediaQueryStyles([[
+		StyleHelpers.pushMediaQueryStyles(
 			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"]`,
 			{
@@ -509,7 +509,8 @@ class DateTimeField extends Widget {
 				'--outline': 'outline',
 			},
 			this.inputElement,
-		], [
+		);
+		StyleHelpers.pushMediaQueryStyles(
 			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"].focus`,
 			{
@@ -517,8 +518,8 @@ class DateTimeField extends Widget {
 				'box-shadow': 'box-shadow',
 				'outline': 'outline',
 			},
-		]], true);
 			this.inputElement, '⁝focus',
+		);
 		this.inputElement.hidden = true;  // setting type="hidden" prevents dispatching events
 	}
 

@@ -283,22 +283,24 @@ export class DjangoSelectize extends IncompleteSelect {
 		const tomInput = this.tomSelect.input as HTMLSelectElement;
 
 		// some styles change when switching light/dark mode, so we need to update them
-		StyleHelpers.pushMediaQueryStyles([[
+		StyleHelpers.pushMediaQueryStyles(
 			sheet,
 			this.baseSelector, {
 				'--border-color': 'border-color',
 				'color': 'color',
 			},
 			tomInput
-		], [
+		);
+		StyleHelpers.pushMediaQueryStyles(
 			sheet,
 			`${this.baseSelector}.focus .ts-control`, {
 				'box-shadow': 'box-shadow',
 				'border-color': 'border-color',
 				'outline': 'outline',
 			},
-			tomInput, '-focus-'
-		], [
+			tomInput, '⁝focus'
+		);
+		StyleHelpers.pushMediaQueryStyles(
 			sheet,
 			`${this.baseSelector}.disabled .ts-control`, {
 				'background-color': 'background-color',
@@ -306,8 +308,8 @@ export class DjangoSelectize extends IncompleteSelect {
 				'color': 'color',
 				'outline': 'outline',
 			},
-		]], true);
 			tomInput, '⁝disabled'
+		);
 
 		// the width of the control element must be updated when the window is resized
 		const widthStyles = StyleHelpers.mutableStyles(sheet, `${this.baseSelector} .ts-control`, {

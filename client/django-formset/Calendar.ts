@@ -874,7 +874,7 @@ export class CalendarSheet extends Widget {
 			}
 		}
 		inputElement.style.transition = '';
-		StyleHelpers.pushMediaQueryStyles([[
+		StyleHelpers.pushMediaQueryStyles(
 			sheet,
 			this.baseSelector,
 			{
@@ -882,7 +882,7 @@ export class CalendarSheet extends Widget {
 				'--outline': 'outline',
 			},
 			inputElement,
-		]]);
+		);
 		if (!loaded)
 			throw new Error(`Could not load styles for ${this.baseSelector}`);
 		return sheet;

@@ -29,10 +29,15 @@ style.innerText = mainStyles;
 document.head.appendChild(style);
 
 if (style.sheet instanceof CSSStyleSheet) {
-	StyleHelpers.pushMediaQueryStyles([[style.sheet, 'django-formset', {
-		'--django-formset-background-color': 'background-color',
-		'--django-formset-foreground-color': 'color',
-	}, document.body]]);
+	StyleHelpers.pushMediaQueryStyles(
+		style.sheet,
+		'django-formset',
+		{
+			'--django-formset-background-color': 'background-color',
+			'--django-formset-foreground-color': 'color',
+		},
+		document.body
+	);
 }
 
 
