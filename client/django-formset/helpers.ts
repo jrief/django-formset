@@ -157,17 +157,21 @@ export namespace StyleHelpers {
 		} else if (cssRule instanceof CSSStyleRule) {
 			if (!cssRule.selectorText)
 				return;
+			// `getComputedStyle()` has no support for querying pseudo classes such as :focus, :hover, :disabled, etc.,
+			// so we need to convert them to a real CSS class. In order to handle this the `⁝` character is used as a
+			// prefix to the class name. This is a special character that is very unlikely to conflict with any existing
+			// CSS class name.
 			const newSelectorText = cssRule.selectorText.
-				replaceAll(':focus', '.-focus-').
-				replaceAll(':focus-visible', '.-focus-visible-').
-				replaceAll(':hover', '.-hover-').
-				replaceAll(':disabled', '.-disabled-').
-				replaceAll(':invalid', '.-invalid-').
-				replaceAll(':valid', '.-valid-').
-				replaceAll('::placeholder-shown', '.-placeholder-shown').
-				replaceAll(':placeholder-shown', '.-placeholder-shown').
-				replaceAll('::placeholder', '.-placeholder-').
-				replaceAll(':placeholder', '.-placeholder-');
+				replaceAll(':focus', '.⁝focus').
+				replaceAll(':focus-visible', '.⁝focus-visible').
+				replaceAll(':hover', '.⁝hover').
+				replaceAll(':disabled', '.⁝disabled').
+				replaceAll(':invalid', '.⁝invalid').
+				replaceAll(':valid', '.⁝valid').
+				replaceAll('::placeholder-shown', '.⁝placeholder-shown').
+				replaceAll(':placeholder-shown', '.⁝placeholder-shown').
+				replaceAll('::placeholder', '.⁝placeholder').
+				replaceAll(':placeholder', '.⁝placeholder');
 			if (newSelectorText !== cssRule.selectorText) {
 				extraCSSStyleSheet.insertRule(`${newSelectorText}{${cssRule.style.cssText}}`);
 			}

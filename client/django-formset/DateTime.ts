@@ -517,8 +517,8 @@ class DateTimeField extends Widget {
 				'box-shadow': 'box-shadow',
 				'outline': 'outline',
 			},
-			this.inputElement, '-focus-',
 		]], true);
+			this.inputElement, '⁝focus',
 		this.inputElement.hidden = true;  // setting type="hidden" prevents dispatching events
 	}
 

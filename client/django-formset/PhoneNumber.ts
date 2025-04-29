@@ -373,10 +373,10 @@ class PhoneNumberField {
 						'line-height', 'padding']);
 					break;
 				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] input[type="search"]:focus`:
-					this.inputElement.classList.add('-focus-');
+					this.inputElement.classList.add('⁝focus');
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'border', 'box-shadow', 'outline', 'transition']);
-					this.inputElement.classList.remove('-focus-');
+					this.inputElement.classList.remove('⁝focus');
 					break;
 				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] ul`:
 					extraStyles = `${selector}{height:${Math.floor(window.innerHeight / 3)}px;}`;
@@ -416,8 +416,8 @@ class PhoneNumberField {
 				'box-shadow': 'box-shadow',
 				'outline': 'outline',
 			},
-			this.inputElement, '-focus-',
 		], [
+			this.inputElement, '⁝focus',
 			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"]`,
 			{
@@ -434,8 +434,8 @@ class PhoneNumberField {
 				'outline': 'outline',
 				'transition': 'transition',
 			},
-			this.inputElement, '-focus-',
 		]], true);
+			this.inputElement, '⁝focus',
 
 		this.inputElement.hidden = true;  // setting type="hidden" prevents dispatching events
 		this.installEventHandlers();

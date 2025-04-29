@@ -1279,10 +1279,10 @@ class RichtextArea {
 					break;
 				case `.dj-submitted ${this.baseSelector}.focused.invalid`:
 					this.textAreaElement.style.transition = 'none';
-					this.textAreaElement.classList.add('-focus-', '-invalid-', 'is-invalid');  // is-invalid is a Bootstrap hack
+					this.textAreaElement.classList.add('⁝focus', '⁝invalid', 'is-invalid');  // is-invalid is a Bootstrap hack
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
 						'border', 'box-shadow', 'outline']);
-					this.textAreaElement.classList.remove('-focus-', '-invalid-', 'is-invalid');
+					this.textAreaElement.classList.remove('⁝focus', '⁝invalid', 'is-invalid');
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					this.textAreaElement.style.transition = '';
 					break;

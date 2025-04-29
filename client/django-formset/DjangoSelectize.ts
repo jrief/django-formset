@@ -227,11 +227,11 @@ export class DjangoSelectize extends IncompleteSelect {
 					break;
 				case ':host-context([role="group"].dj-submitted) .ts-wrapper.invalid.focus .ts-control':
 					tomInput.style.transition = 'none';
-					tomInput.classList.add('-focus-', '-invalid-', 'is-invalid');  // is-invalid is a Bootstrap hack
+					tomInput.classList.add('⁝focus', '⁝invalid', 'is-invalid');  // is-invalid is a Bootstrap hack
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'background-color', 'border-color', 'box-shadow', 'color', 'outline', 'transition'
 					]);
-					tomInput.classList.remove('-focus-', '-invalid-', 'is-invalid');
+					tomInput.classList.remove('⁝focus', '⁝invalid', 'is-invalid');
 					tomInput.style.transition = '';
 					break;
 				default:
@@ -306,8 +306,8 @@ export class DjangoSelectize extends IncompleteSelect {
 				'color': 'color',
 				'outline': 'outline',
 			},
-			tomInput, '-disabled-'
 		]], true);
+			tomInput, '⁝disabled'
 
 		// the width of the control element must be updated when the window is resized
 		const widthStyles = StyleHelpers.mutableStyles(sheet, `${this.baseSelector} .ts-control`, {
