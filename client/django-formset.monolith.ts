@@ -16,7 +16,7 @@ import {FormDialogElement} from './django-formset/FormDialog';
 import {StepperCollectionElement} from './django-formset/StepperCollection';
 
 
-window.addEventListener('DOMContentLoaded', (event) => {
+function handleDOMLoaded() {
 	const customElementNames = Array<string>();
 	const promises = Array<Promise<any>>();
 	StyleHelpers.attachPseudoStyles();
@@ -84,8 +84,12 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	promises.push(...customElementNames.map(name => window.customElements.whenDefined(name)));
 	Promise.all(promises).then(() => {
 		window.customElements.define('django-formset', DjangoFormsetElement);
-		window.customElements.whenDefined('django-formset').then(() => {
-			StyleHelpers.detachPseudoStyles();
-		});
 	}).catch(error => console.error(`Failed to initialize django-formset: ${error}`));
-});
+}
+
+
+if (document.readyState === 'loading') {
+	window.addEventListener('DOMContentLoaded', handleDOMLoaded);
+} else {
+	handleDOMLoaded();
+}
