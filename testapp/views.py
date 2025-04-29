@@ -632,7 +632,7 @@ urlpatterns = [
     path('terms_of_use', DemoFormCollectionView.as_view(
         collection_class=AcceptTermsCollection,
         template_name='testapp/form-collection-no-buttons.html',
-    ), name='simplecontact'),
+    ), name='terms_of_use'),
     path('issue', IssueCollectionView.as_view(), name='issue'),
     path('coffe', DemoFormCollectionView.as_view(
         collection_class=CoffeeOrderCollection,
