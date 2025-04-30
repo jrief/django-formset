@@ -1,7 +1,5 @@
-import json
 import pytest
 from playwright.sync_api import expect
-from time import sleep
 
 from django.forms import fields, forms
 from django.urls import path
@@ -159,7 +157,7 @@ urlpatterns = [
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['contact', 'sorted_contact', 'initial_contact', 'sorted_initial_contact'])
-def test_submit_collection(page, mocker, viewname):
+def test_submit_collection(page, viewname):
     form_collection = page.locator('django-formset > django-form-collection')
     expect(form_collection.first.locator('> .collection-siblings')).to_have_count(0)
     expect(form_collection.last.locator('> .collection-siblings')).to_have_count(1)
@@ -167,9 +165,10 @@ def test_submit_collection(page, mocker, viewname):
     page.fill('#id_person\\.email', "john@example.com")
     page.fill('#id_numbers\\.0\\.number\\.phone_number', "+1200300400")
     page.select_option('#id_numbers\\.0\\.number\\.label', 'work')
-    spy = mocker.spy(FormCollectionView, 'post')
-    page.locator('django-formset').evaluate('elem => elem.submit()')
-    request_body = json.loads(spy.call_args.args[1].body)
+    page.locator('django-formset').click(position={'x': 0, 'y': 0})  # blurs all fields
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset').evaluate('elem => elem.submit()')
+    assert response_info.value.ok is True
     expected = {'formset_data': {
         'person': {'full_name': 'John Doe', 'email': 'john@example.com'},
         'numbers': [{'number': {'phone_number': '+1200300400', 'label': 'work'}}],
@@ -181,15 +180,12 @@ def test_submit_collection(page, mocker, viewname):
             {'number': {'phone_number': "+41 91 667914", 'label': 'home'}},
             {'number': {'phone_number': "+49 89 7178864", 'label': 'home'}},
         ])
-    assert request_body == expected
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
+    assert response_info.value.request.post_data_json == expected
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['contact', 'sorted_contact'])
-def test_add_and_remove_collections(page, mocker, viewname):
+def test_add_and_remove_collections(page, viewname):
     form_collection = page.locator('django-formset > django-form-collection')
     expect(form_collection.first.locator('> .collection-siblings')).to_have_count(0)
     expect(form_collection.last.locator('> .collection-siblings')).to_have_count(1)
@@ -210,9 +206,8 @@ def test_add_and_remove_collections(page, mocker, viewname):
     numbers_collection.locator('> django-form-collection[sibling-position="0"] > .remove-collection').click()
     expect(numbers_collection.locator('> django-form-collection')).to_have_count(4)
     expect(numbers_collection.locator('> django-form-collection[sibling-position="0"]')).to_have_class('dj-marked-for-removal')
-    spy = mocker.spy(FormCollectionView, 'post')
-    page.locator('django-formset').evaluate('elem => elem.submit()')
-    request_body = json.loads(spy.call_args.args[1].body)
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset').evaluate('elem => elem.submit()')
     expected = {'formset_data': {
         'person': {'full_name': '', 'email': ''},
         'numbers': [
@@ -220,11 +215,9 @@ def test_add_and_remove_collections(page, mocker, viewname):
             {'number': {'phone_number': '', 'label': 'home'}},
         ],
     }}
-    assert request_body == expected
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 422
-    response = json.loads(spy.spy_return.content)
+    assert response_info.value.request.post_data_json == expected
+    assert response_info.value.status == 422
+    response_data = response_info.value.json()
     is_required = ['This field is required.']
     expected = {
         'person': {'full_name': is_required, 'email': is_required},
@@ -233,12 +226,12 @@ def test_add_and_remove_collections(page, mocker, viewname):
             {'number': {'phone_number': is_required}},
         ],
     }
-    assert response == expected
+    assert response_data == expected
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['initial_contact', 'sorted_initial_contact'])
-def test_remove_and_add_collections(page, mocker, viewname):
+def test_remove_and_add_collections(page, viewname):
     form_collection = page.locator('django-formset > django-form-collection')
     expect(form_collection.first.locator('> .collection-siblings')).to_have_count(0)
     expect(form_collection.last.locator('> .collection-siblings > django-form-collection')).to_have_count(5)
@@ -257,9 +250,10 @@ def test_remove_and_add_collections(page, mocker, viewname):
     add_collection.click()
     page.fill('#id_numbers\\.5\\.number\\.phone_number', "+1200300400")
     page.select_option('#id_numbers\\.5\\.number\\.label', 'work')
-    spy = mocker.spy(FormCollectionView, 'post')
-    page.locator('django-formset').evaluate('elem => elem.submit()')
-    request_body = json.loads(spy.call_args.args[1].body)
+    page.locator('django-formset').click(position={'x': 0, 'y': 0})  # blurs all fields
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset').evaluate('elem => elem.submit()')
+    assert response_info.value.ok is True
     expected = {'formset_data': {
         'person': {'full_name': 'John Doe', 'email': 'john@example.com'},
         'numbers': [
@@ -271,10 +265,7 @@ def test_remove_and_add_collections(page, mocker, viewname):
             {'number': {'phone_number': '+1200300400', 'label': 'work'}},
         ],
     }}
-    assert request_body == expected
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
+    assert response_info.value.request.post_data_json == expected
 
 
 @pytest.mark.urls(__name__)
@@ -329,7 +320,7 @@ def test_reset_initialized_collections(page, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['sorted_initial_contact'])
-def test_submit_sorted_initialized_collections(page, mocker, viewname):
+def test_submit_sorted_initialized_collections(page, viewname):
     form_collection = page.locator('django-formset > django-form-collection')
     expect(form_collection.first.locator('> .collection-siblings')).to_have_count(0)
     expect(form_collection.last.locator('> .collection-siblings')).to_have_count(1)
@@ -342,10 +333,10 @@ def test_submit_sorted_initialized_collections(page, mocker, viewname):
     drag_handle.drag_to(numbers_collection.locator('django-form-collection[sibling-position="0"]'))
     drag_handle = numbers_collection.locator('django-form-collection[sibling-position="1"] > .collection-drag-handle')
     drag_handle.drag_to(numbers_collection.locator('django-form-collection[sibling-position="4"]'))
-    spy = mocker.spy(FormCollectionView, 'post')
-    page.locator('django-formset').evaluate('elem => elem.submit()')
-    request_body = json.loads(spy.call_args.args[1].body)
-    assert request_body == {'formset_data': {
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset').evaluate('elem => elem.submit()')
+    assert response_info.value.ok is True
+    expected = {'formset_data': {
         'person': {'full_name': 'John Doe', 'email': 'john@example.com'},
         'numbers': [
             {'number': {'phone_number': "+49 89 7178864", 'label': 'home'}},
@@ -355,14 +346,12 @@ def test_submit_sorted_initialized_collections(page, mocker, viewname):
             {'number': {'phone_number': "+33 1 43478293", 'label': 'home'}},
         ],
     }}
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
+    assert response_info.value.request.post_data_json == expected
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['sorted_initial_contact'])
-def test_reset_sorted_initialized_collections(page, mocker, viewname):
+def test_reset_sorted_initialized_collections(page, viewname):
     form_collection = page.locator('django-formset > django-form-collection')
     expect(form_collection.first.locator('> .collection-siblings')).to_have_count(0)
     expect(form_collection.last.locator('> .collection-siblings')).to_have_count(1)
@@ -376,10 +365,10 @@ def test_reset_sorted_initialized_collections(page, mocker, viewname):
     drag_handle = numbers_collection.locator('django-form-collection[sibling-position="1"] > .collection-drag-handle')
     drag_handle.drag_to(numbers_collection.locator('django-form-collection[sibling-position="4"]'))
     page.locator('django-formset').evaluate('elem => elem.reset()')
-    spy = mocker.spy(FormCollectionView, 'post')
-    page.locator('django-formset').evaluate('elem => elem.submit()')
-    request_body = json.loads(spy.call_args.args[1].body)
-    assert request_body == {'formset_data': {
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset').evaluate('elem => elem.submit()')
+    assert response_info.value.ok is True
+    expected = {'formset_data': {
         'person': {'full_name': 'John Doe', 'email': 'john@example.com'},
         'numbers': [
             {'number': {'phone_number': "+1 234 567 8900", 'label': 'home'}},
@@ -389,14 +378,12 @@ def test_reset_sorted_initialized_collections(page, mocker, viewname):
             {'number': {'phone_number': "+49 89 7178864", 'label': 'home'}},
         ],
     }}
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
+    assert response_info.value.request.post_data_json == expected
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['bulk_contacts'])
-def test_submit_bulk(page, mocker, viewname):
+def test_submit_bulk(page, viewname):
     collection_siblings = page.locator('django-formset > .collection-siblings')
     expect(collection_siblings.locator('> django-form-collection')).to_have_count(1)
     page.fill('#id_0\\.person\\.full_name', "John Doe")
@@ -412,9 +399,10 @@ def test_submit_bulk(page, mocker, viewname):
     collection_siblings.locator('> django-form-collection[sibling-position="1"] > .collection-siblings > .add-collection').click()
     page.fill('#id_1\\.numbers\\.1\\.number\\.phone_number', "+39 335 327041")
     page.select_option('#id_1\\.numbers\\.1\\.number\\.label', 'work')
-    spy = mocker.spy(FormCollectionView, 'post')
-    page.locator('django-formset').evaluate('elem => elem.submit()')
-    request_body = json.loads(spy.call_args.args[1].body)
+    page.locator('django-formset').click(position={'x': 0, 'y': 0})  # blurs all fields
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset').evaluate('elem => elem.submit()')
+    assert response_info.value.ok is True
     expected = {'formset_data': [{
         'numbers': [{'number': {'phone_number': '+1 200 300 400', 'label': 'work'}}],
         'person': {'full_name': 'John Doe', 'email': 'john@example.com'}
@@ -426,15 +414,12 @@ def test_submit_bulk(page, mocker, viewname):
         }],
         'person': {'full_name': 'Johanna Doe', 'email': 'johanna@example.com'}
     }]}
-    assert request_body == expected
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
+    assert response_info.value.request.post_data_json == expected
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['bulk_initial_contacts'])
-def test_initialized_bulk_remove_all(page, mocker, viewname):
+def test_initialized_bulk_remove_all(page, viewname):
     collection_siblings = page.locator('django-formset > .collection-siblings')
     expect(collection_siblings.locator('> django-form-collection')).to_have_count(3)
     expect(page.locator('#id_0\\.person\\.full_name')).to_have_value("John Doe")
@@ -453,9 +438,9 @@ def test_initialized_bulk_remove_all(page, mocker, viewname):
     collection_siblings.locator('> django-form-collection[sibling-position="2"]').hover()
     collection_siblings.locator('> django-form-collection[sibling-position="2"] > .remove-collection').click()
     expect(collection_siblings.locator('> django-form-collection')).to_have_count(2)
-    spy = mocker.spy(FormCollectionView, 'post')
-    page.locator('django-formset').evaluate('elem => elem.submit()')
-    request_body = json.loads(spy.call_args.args[1].body)
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset').evaluate('elem => elem.submit()')
+    assert response_info.value.ok is True
     expected = {'formset_data': [{
         'person': {
             'full_name': "John Doe",
@@ -478,15 +463,12 @@ def test_initialized_bulk_remove_all(page, mocker, viewname):
             {'number': {'phone_number': "+49 89 7178864", 'label': 'home', MARKED_FOR_REMOVAL: True}},
         ],
     }]}
-    assert request_body == expected
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
+    assert response_info.value.request.post_data_json == expected
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['bulk_initial_contacts'])
-def test_initialized_bulk_remove_partial_outer(page, mocker, viewname):
+def test_initialized_bulk_remove_partial_outer(page, viewname):
     collection_siblings = page.locator('django-formset > .collection-siblings')
     expect(collection_siblings.locator('> django-form-collection')).to_have_count(3)
     expect(page.locator('#id_0\\.person\\.full_name')).to_have_value("John Doe")
@@ -501,9 +483,9 @@ def test_initialized_bulk_remove_partial_outer(page, mocker, viewname):
     collection_siblings.locator('> django-form-collection[sibling-position="0"]').hover()
     collection_siblings.locator('> django-form-collection[sibling-position="0"] > .remove-collection').click()
     expect(collection_siblings.locator('> django-form-collection')).to_have_count(3)
-    spy = mocker.spy(FormCollectionView, 'post')
-    page.locator('django-formset').evaluate('elem => elem.submit()')
-    request_body = json.loads(spy.call_args.args[1].body)
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset').evaluate('elem => elem.submit()')
+    assert response_info.value.ok is True
     expected = {'formset_data': [{
         'person': {
             'full_name': "John Doe",
@@ -525,15 +507,12 @@ def test_initialized_bulk_remove_partial_outer(page, mocker, viewname):
             {'number': {'phone_number': "+49 89 7178864", 'label': 'home'}},
         ],
     }]}
-    assert request_body == expected
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
+    assert response_info.value.request.post_data_json == expected
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['bulk_initial_contacts'])
-def test_initialized_bulk_remove_partial_inner(page, mocker, viewname):
+def test_initialized_bulk_remove_partial_inner(page, viewname):
     collection_siblings = page.locator('django-formset > .collection-siblings')
     expect(collection_siblings.locator('> django-form-collection')).to_have_count(3)
     expect(page.locator('#id_0\\.person\\.full_name')).to_have_value("John Doe")
@@ -554,9 +533,10 @@ def test_initialized_bulk_remove_partial_inner(page, mocker, viewname):
     inner_collection = collection_siblings.locator('> django-form-collection[sibling-position="1"] > .collection-siblings > django-form-collection[sibling-position="2"]')
     inner_collection.hover()
     inner_collection.locator('> .remove-collection').click()
-    spy = mocker.spy(FormCollectionView, 'post')
-    page.locator('django-formset').evaluate('elem => elem.submit()')
-    request_body = json.loads(spy.call_args.args[1].body)
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset').evaluate('elem => elem.submit()')
+    assert response_info.value.ok is True
+    # request_body = json.loads(spy.call_args.args[1].body)
     expected = {'formset_data': [{
         'person': {
             'full_name': "John Doe",
@@ -577,15 +557,12 @@ def test_initialized_bulk_remove_partial_inner(page, mocker, viewname):
             {'number': {'phone_number': "+49 89 7178864", 'label': 'home', MARKED_FOR_REMOVAL: True}},
         ],
     }]}
-    assert request_body == expected
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
+    assert response_info.value.request.post_data_json == expected
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['bulk_initial_contacts'])
-def test_initialized_bulk_remove_all_inner(page, mocker, viewname):
+def test_initialized_bulk_remove_all_inner(page, viewname):
     collection_siblings = page.locator('django-formset > .collection-siblings')
     expect(collection_siblings.locator('> django-form-collection')).to_have_count(3)
     expect(page.locator('#id_0\\.person\\.full_name')).to_have_value("John Doe")
@@ -620,9 +597,8 @@ def test_initialized_bulk_remove_all_inner(page, mocker, viewname):
     inner_collection = collection_siblings.locator('> django-form-collection[sibling-position="1"] > .collection-siblings > django-form-collection[sibling-position="1"]')
     inner_collection.hover()
     expect(inner_collection.locator('> .remove-collection')).to_be_disabled()
-    spy = mocker.spy(FormCollectionView, 'post')
-    page.locator('django-formset').evaluate('elem => elem.submit()')
-    request_body = json.loads(spy.call_args.args[1].body)
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset').evaluate('elem => elem.submit()')
     expected = {'formset_data': [{
         'person': {
             'full_name': "John Doe",
@@ -644,9 +620,7 @@ def test_initialized_bulk_remove_all_inner(page, mocker, viewname):
             {'number': {'phone_number': "+49 89 7178864", 'label': 'home', MARKED_FOR_REMOVAL: True}},
         ],
     }]}
-    assert request_body == expected
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 422
-    response = json.loads(spy.spy_return.content)
-    assert response[0]['numbers'][2]['number']['phone_number'] == ["This field is required."]
+    assert response_info.value.request.post_data_json == expected
+    assert response_info.value.status == 422
+    response_data = response_info.value.json()
+    assert response_data[0]['numbers'][2]['number']['phone_number'] == ["This field is required."]
