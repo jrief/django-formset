@@ -1089,7 +1089,7 @@ class RichtextArea {
 		this.registerControlActions(extensions);
 		await this.registerFormDialogs(extensions);
 		this.registerPlaceholder(extensions);
-		this.registerCharaterCount(extensions);
+		this.registerCharacterCount(extensions);
 		const editor = new Editor({
 			element: wrapperElement,
 			extensions: extensions,
@@ -1148,7 +1148,7 @@ class RichtextArea {
 		extensions.push(Placeholder.configure({placeholder: placeholderText}));
 	}
 
-	private registerCharaterCount(extensions: Array<Extension|Mark|Node>) {
+	private registerCharacterCount(extensions: Array<Extension|Mark|Node>) {
 		const limit = parseInt(this.textAreaElement.getAttribute('maxlength') ?? '');
 		if (limit > 0) {
 			extensions.push(CharacterCount.configure({limit}));
