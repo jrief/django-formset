@@ -229,8 +229,8 @@ class Selectize(IncompleteSelectMixin, Select):
 
 
 class CountrySelectize(Selectize):
-    template_name = 'formset/default/widgets/country_selectize.html'
-    webcomponent = 'django-country-selectize'
+    template_name = 'formset/default/widgets/selectize_country.html'
+    webcomponent = 'django-selectize-country'
 
 
 class SelectizeMultiple(Selectize):
@@ -249,8 +249,8 @@ class SelectizeMultiple(Selectize):
 
 
 class CountrySelectizeMultiple(SelectizeMultiple):
-    template_name = 'formset/default/widgets/country_selectize.html'
-    webcomponent = 'django-country-selectize'
+    template_name = 'formset/default/widgets/selectize_country.html'
+    webcomponent = 'django-selectize-country'
 
 
 class DualSelector(IncompleteSelectMixin, SelectMultiple):

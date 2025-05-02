@@ -2,10 +2,10 @@ import {DjangoSelectize} from './DjangoSelectize';
 import {RecursivePartial, TomOption} from 'tom-select/src/types';
 import {TomSettings} from 'tom-select/src/types/settings';
 import template from 'lodash.template';
-import styles from './CountrySelectize.scss';
+import styles from './DjangoSelectizeCountry.scss';
 
 
-class CountrySelectize extends DjangoSelectize {
+class DjangoSelectizeCountry extends DjangoSelectize {
 	initialize() {
 		super.initialize();
 		const declaredStyles = document.createElement('style');
@@ -32,11 +32,11 @@ class CountrySelectize extends DjangoSelectize {
 const CS = Symbol('CountrySelectize');
 
 export class CountrySelectizeElement extends HTMLSelectElement {
-	private [CS]: CountrySelectize;  // hides internal implementation
+	private [CS]: DjangoSelectizeCountry;  // hides internal implementation
 
 	constructor() {
 		super();
-		this[CS] = new CountrySelectize(this);
+		this[CS] = new DjangoSelectizeCountry(this);
 	}
 
 	connectedCallback() {

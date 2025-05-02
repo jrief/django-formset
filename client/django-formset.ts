@@ -21,10 +21,10 @@ function domLookup(fragmentRoot: Document|DocumentFragment, isTemplate: boolean=
 			}).catch(err => reject(err));
 		}));
 	}
-	if (fragmentRoot.querySelector('select[is="django-country-selectize"]')) {
+	if (fragmentRoot.querySelector('select[is="django-selectize-country"]')) {
 		promises.push(new Promise((resolve, reject) => {
-			import('./django-formset/CountrySelectize').then(({CountrySelectizeElement}) => {
-				defineComponent(resolve, 'django-country-selectize', CountrySelectizeElement, {extends: 'select'});
+			import('./django-formset/DjangoSelectizeCountry').then(({CountrySelectizeElement}) => {
+				defineComponent(resolve, 'django-selectize-country', CountrySelectizeElement, {extends: 'select'});
 			}).catch(err => reject(err));
 		}));
 	}

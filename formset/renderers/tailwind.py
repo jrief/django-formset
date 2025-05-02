@@ -118,7 +118,7 @@ class FormRenderer(DefaultFormRenderer):
         'formset/default/widgets/button.html': _amend_button,
         'formset/default/widgets/datetime.html': _amend_date_input,
         'formset/default/widgets/selectize.html': _amend_select,
-        'formset/default/widgets/country_selectize.html': _amend_select,
+        'formset/default/widgets/selectize_country.html': _amend_select,
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,
         'formset/default/detached_field.html': _amend_detached_field,
         'formset/default/fieldset.html': _amend_fieldset,
