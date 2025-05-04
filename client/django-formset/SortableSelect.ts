@@ -50,8 +50,10 @@ export class SortableSelectElement extends HTMLElement {
 	private elementFocus(event: Event) {
 		if (event.target instanceof HTMLElement && this.contains(event.target)) {
 			this.classList.add('focus');
+			this.dispatchEvent(new Event('focus', {bubbles: false}));
 		} else {
 			this.classList.remove('focus');
+			this.dispatchEvent(new Event('blur', {bubbles: false}));
 		}
 	}
 

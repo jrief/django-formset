@@ -53,6 +53,9 @@ class FormRenderer(DefaultFormRenderer):
             select_classes='form-select',
             lookup_field_classes='form-control form-control-sm',
         )
+        class_list = ClassList(context['widget']['attrs'].get('class'))
+        class_list.add('form-select')
+        context['widget']['attrs']['class'] = class_list
         return context
 
     def _amend_file(self, context):

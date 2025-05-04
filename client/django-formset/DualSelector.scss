@@ -1,0 +1,96 @@
+[is="django-dual-selector"] + .dual-selector-wrapper {
+	display: flex;
+
+	@mixin Column {
+		display: flex;
+		flex-direction: column;
+		border: var(--border-width) var(--border-style) var(--border-color);
+		outline: var(--outline);
+		input {
+			border-top: none;
+			border-left: none;
+			border-right: none;
+		}
+		select {
+			border: none;
+		}
+	}
+	.left-column {
+		@include Column;
+		&:has(input:focus, select:focus) {
+			--dummy-style: none;
+		}
+	}
+	.control-column {
+		display: flex;
+		align-items: center;
+
+		.control-panel {
+			display: flex;
+			flex-direction: column;
+			padding: 0 0.5rem;
+		}
+	}
+	.right-column {
+		@include Column;
+		django-sortable-select {
+			border: none;
+		}
+		&:has(input:focus, select:focus, django-sortable-select.focus) {
+			--dummy-style: none;
+		}
+	}
+
+	:is(select, django-sortable-select) {
+		min-width: 10rem;
+	}
+	:is(input:focus, select:focus){
+		box-shadow: none;
+		outline: none;
+	}
+	input {
+		z-index: 1;  // do not crop shadow of focused input field on scroll bar of select field
+	}
+	button svg {
+		vertical-align: middle;
+		width: 16px;
+		height: 16px;
+	}
+
+}
+
+django-formset {
+	&.dj-feedback-errors [role="group"] {
+		&.dj-touched [is="django-dual-selector"]:invalid + .dual-selector-wrapper:not(.focus) {
+			.left-column, .right-column {
+				border-color: var(--django-formset-color-invalid);
+			}
+		}
+
+		&.dj-submitted [is="django-dual-selector"]:invalid + .dual-selector-wrapper {
+			.left-column, .right-column {
+				border-color: var(--django-formset-color-invalid);
+			}
+			.left-column:has(input:focus, select:focus) {
+				box-shadow: var(--django-formset-box-shadow-invalid);
+			}
+			.right-column:has(input:focus, select:focus, django-sortable-select.focus) {
+				box-shadow: var(--django-formset-box-shadow-invalid);
+			}
+		}
+
+		&.dj-touched:not(.dj-submitted) [is="django-dual-selector"]:invalid + .dual-selector-wrapper.focus ~ [role=alert] {
+			display: none;  // hide error message when field is focused by user
+		}
+	}
+
+	&.dj-feedback-success [role="group"].dj-dirty [is="django-dual-selector"]:valid + .dual-selector-wrapper {
+		.left-column:not(:has(input:focus, select:focus)) {
+			border-color: var(--django-formset-color-valid);
+		}
+
+		.right-column:not(:has(input:focus, select:focus, django-sortable-select.focus)) {
+			border-color: var(--django-formset-color-valid);
+		}
+	}
+}

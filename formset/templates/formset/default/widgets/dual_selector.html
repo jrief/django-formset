@@ -2,7 +2,12 @@
 {% spaceless %}
 {% block "select-extra-styles" %}{% endblock %}
 {% with select_size=widget.attrs.size|default:8 %}
-<div class="{% block "wrapper_classes" %}df-dual-selector{% endblock %}">
+<select is="django-dual-selector" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %}>{% for group_name, group_choices, group_index in widget.optgroups %}{% if group_name %}
+	<optgroup label="{{ group_name }}">{% endif %}{% for option in group_choices %}
+		<option value="{{ option.value|stringformat:'s' }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>{% endfor %}{% if group_name %}
+	</optgroup>{% endif %}{% endfor %}
+</select>
+<div class="{% block "wrapper_classes" %}df-dual-selector dual-selector-wrapper{% endblock %}">
 {% block "left-column" %}
 	<div class="left-column">
 		<input type="text" class="dj-exempt-feedback{% if lookup_field_classes %} {{ lookup_field_classes }}{% endif %}" placeholder="{% translate 'Search …' %}" />
@@ -33,9 +38,4 @@
 {% endblock %}
 </div>
 {% endwith %}
-<select is="django-dual-selector" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %}>{% for group_name, group_choices, group_index in widget.optgroups %}{% if group_name %}
-	<optgroup label="{{ group_name }}">{% endif %}{% for option in group_choices %}
-		<option value="{{ option.value|stringformat:'s' }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>{% endfor %}{% if group_name %}
-	</optgroup>{% endif %}{% endfor %}
-</select>
 {% endspaceless %}
