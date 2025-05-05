@@ -8,7 +8,7 @@
     `formset.forms`. There are two new classes `formset.forms.Form` and `formset.forms.ModelForm`
     which shall be used as base classes for forms and model forms.
   * **Breaking Change:** The form field class `formset.richtext.fields.RichTextField` has been
-    moved from `formset.richtext.fields` to `formset.formfields`. The model field class
+    moved from `formset.richtext.fields` to `formset.formfields.richtext`. The model field class
     `formset.richtext.fields.RichTextField` has been moved from `formset.richtext.models.fields` to
     `formset.modelfields`. The widget class `formset.richtext.widgets.RichTextArea` has been moved
     from `formset.richtext.widgets` to `formset.widgets`. This change was made to create a
@@ -18,6 +18,8 @@
     The classes `DateRangeCalendar`, `DateRangeTextbox`, `DateRangePicker`, `DateTimeRangeCalendar`,
     `DateTimeRangeTextbox` and `DateTimeRangePicker` have been moved from `formset.ranges` to
     `formset.widgets`.
+  * Error messages shown for invalid fields hide as soon as the field is focused. This is to
+    prevent the user from being unsettled by an error message while filling out the form.
   * Add management command `./manage.py cleanup_files` to delete dangling files. This is because the
     `UploadedFileInput` widget accepts files before their form is submitted and hence processed.
 
