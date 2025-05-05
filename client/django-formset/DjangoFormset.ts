@@ -10,15 +10,12 @@ import template from 'lodash.template';
 import Sortable, {SortableEvent} from 'sortablejs';
 import {StyleHelpers} from './helpers';
 import {FileUploadWidget} from './FileUploadWidget';
-import {ErrorKey, FieldErrorMessages} from './Widget';
+import {FieldErrorPlaceholder} from './Widget';
 import {parse} from '../build/tag-attributes';
 import spinnerIcon from '../icons/spinner.svg';
 import okayIcon from '../icons/okay.svg';
 import bummerIcon from '../icons/bummer.svg';
 import mainStyles from './DjangoFormset.scss';
-
-type FieldElement = HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement;
-type FieldValue = string|Array<string|Object>;
 
 const NON_FIELD_ERRORS = '__all__';
 const COLLECTION_ERRORS = '_collection_errors_';
@@ -59,8 +56,7 @@ class FieldGroup {
 	private readonly fieldElements: Array<FieldElement>;
 	private readonly initialDisabled: Array<boolean>;
 	private readonly initialRequired: Array<boolean>;
-	public readonly errorPlaceholder: Element|null;
-	private readonly errorMessages: FieldErrorMessages;
+	public readonly errorPlaceholder: FieldErrorPlaceholder;
 	private readonly fileUploader?: FileUploadWidget;
 	private readonly updateVisibility: Function;
 	private readonly updateDisabled: Function;
@@ -71,8 +67,6 @@ class FieldGroup {
 		this.element = element;
 		let resolveInitialized: Function;
 		this.isInitialized = new Promise(r => resolveInitialized = r);
-		this.errorPlaceholder = element.querySelector('.dj-errorlist > .dj-placeholder');
-		this.errorMessages = new FieldErrorMessages(element);
 		const requiredAny = element.classList.contains('dj-required-any');
 
 		// <div role="group"> can contain one or more <input type="checkbox"> or <input type="radio"> elements
@@ -85,6 +79,7 @@ class FieldGroup {
 					element.addEventListener('input', () => {
 						this.touch();
 						this.inputted();
+						this.clearCustomError();
 					});
 					element.addEventListener('change', () => {
 						requiredAny ? this.validateCheckboxSelectMultiple() : this.validate();
@@ -93,41 +88,48 @@ class FieldGroup {
 				case 'file':
 					// @ts-ignore
 					this.fileUploader = new FileUploadWidget(this, element);
-					element.addEventListener('invalid', () => this.showErrorMessage(element));
+					element.addEventListener('invalid', () => this.showErrorMessage());
 					break;
 				default:
 					element.addEventListener('focus', () => this.touch());
+					element.addEventListener('focusout', () => {
+						this.touch();
+						this.validate();
+					});
 					element.addEventListener('input', () => this.inputted());
 					element.addEventListener('blur', () => this.validate());
-					element.addEventListener('invalid', () => this.showErrorMessage(element));
+					element.addEventListener('invalid', () => this.showErrorMessage());
 					break;
 			}
 		}
-		this.fieldElements = Array<FieldElement>(0).concat(inputElements);
+		this.fieldElements = [...inputElements];
 
 		// <div role="group"> can contain at most one <select> element
 		const allowedSelects = (s: Element) => s instanceof HTMLSelectElement && s.name && s.form === form.element;
 		const selectElement = Array.from(element.getElementsByTagName('SELECT')).filter(allowedSelects).at(0);
 		if (selectElement instanceof HTMLSelectElement) {
-			selectElement.addEventListener('focus', () => this.touch());
+			selectElement.addEventListener('focusin', (event) => this.touch());
+			selectElement.addEventListener('focusout', () => this.validate());
 			selectElement.addEventListener('change', () => {
-				this.setDirty();
 				this.clearCustomError();
-				this.validate();
+				this.setDirty()
 			});
-			selectElement.addEventListener('invalid', () => this.showErrorMessage(selectElement));
-			this.fieldElements.push(selectElement);
+			selectElement.addEventListener('invalid', () => this.showErrorMessage());
+			this.fieldElements = [selectElement];
 		}
 
 		// <div role="group"> can contain at most one <textarea> element
 		const allowedTextAreas = (t: Element) => t instanceof HTMLTextAreaElement && t.name && t.form === form.element;
 		const textAreaElement = Array.from(element.getElementsByTagName('TEXTAREA')).filter(allowedTextAreas).at(0);
 		if (textAreaElement instanceof HTMLTextAreaElement) {
-			textAreaElement.addEventListener('focus', () => this.touch());
+			textAreaElement.addEventListener('focus', () => {
+				this.touch();
+				this.clearCustomError();
+			});
 			textAreaElement.addEventListener('input', () => this.inputted());
 			textAreaElement.addEventListener('blur', () => this.validate());
-			textAreaElement.addEventListener('invalid', () => this.showErrorMessage(textAreaElement));
-			this.fieldElements.push(textAreaElement);
+			textAreaElement.addEventListener('invalid', () => this.showErrorMessage());
+			this.fieldElements = [textAreaElement];
 		}
 		if (textAreaElement && 'isInitialized' in textAreaElement) {
 			// currently only the `<textarea is="django-richtext">` is initialized asynchronously
@@ -136,6 +138,7 @@ class FieldGroup {
 			resolveInitialized!(true);
 		}
 
+		this.errorPlaceholder = new FieldErrorPlaceholder(this.fieldElements[0]);
 		this.name = this.assertUniqueName();
 		this.initialDisabled = this.fieldElements.map(element => element.disabled);
 		this.initialRequired = this.fieldElements.map(element => element.required);
@@ -334,13 +337,7 @@ class FieldGroup {
 
 	private clearCustomError() {
 		this.form.clearCustomErrors();
-		if (this.errorPlaceholder) {
-			this.errorPlaceholder.innerHTML = '';
-		}
-		for (const element of this.fieldElements) {
-			if (element.validity.customError)
-				element.setCustomValidity('');
-		}
+		this.errorPlaceholder.clearError();
 	}
 
 	public resetToInitial() {
@@ -366,9 +363,7 @@ class FieldGroup {
 	public untouch() {
 		this.element.classList.remove('dj-submitted', 'dj-touched');
 		this.element.classList.add('dj-untouched');
-		if (this.errorPlaceholder) {
-			this.errorPlaceholder.innerHTML = '';
-		}
+		this.errorPlaceholder.clearError();
 	}
 
 	private setDirty() {
@@ -393,15 +388,11 @@ class FieldGroup {
 		this.element.classList.add('dj-submitted');
 	}
 
-	private showErrorMessage(element: HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement) {
+	private showErrorMessage() {
 		const submitted = this.element.classList.contains('dj-submitted');
-		if (!(this.isTouched || submitted) || !this.form.formset.showFeedbackMessages || !this.errorPlaceholder)
+		if (!(this.isTouched || submitted) || !this.form.formset.showFeedbackMessages)
 			return;
-		for (const [key, message] of this.errorMessages) {
-			if (element.validity[key as keyof ValidityState]) {
-				this.errorPlaceholder.innerHTML = message;
-			}
-		}
+		this.errorPlaceholder.reportError();
 	}
 
 	public validate() {
@@ -419,7 +410,7 @@ class FieldGroup {
 
 		if (!element.validity.valid) {
 			if (element instanceof HTMLInputElement && element.type === 'file') {
-				this.validateFileInput(element, this.form.formset.showFeedbackMessages);
+				this.validateFileInput(this.form.formset.showFeedbackMessages);
 			}
 		}
 		if (this.form.validate() && !element.validity.valid) {
@@ -436,25 +427,25 @@ class FieldGroup {
 			if ((inputElement as HTMLInputElement).checked) {
 				validity = true;
 			} else {
-				inputElement.setCustomValidity(this.errorMessages.get('customError') ?? '');
+				this.errorPlaceholder.reportError();
 			}
 		}
 		if (validity) {
 			for (const inputElement of this.fieldElements) {
 				inputElement.setCustomValidity('');
 			}
-		} else if (this.pristineValue !== undefined && this.errorPlaceholder && this.form.formset.showFeedbackMessages) {
-			this.errorPlaceholder.innerHTML = this.errorMessages.get('customError') ?? '';
+		} else if (this.pristineValue !== undefined && this.form.formset.showFeedbackMessages) {
+			this.errorPlaceholder.reportError();
 		}
 		this.form.validate();
 		return validity;
 	}
 
-	private validateFileInput(inputElement: HTMLInputElement, showFeedbackMessages: boolean): boolean {
+	private validateFileInput(showFeedbackMessages: boolean): boolean {
 		if (this.fileUploader!.inProgress()) {
 			// seems that file upload is still in progress => field shall not be valid
-			if (this.errorPlaceholder && showFeedbackMessages) {
-				this.errorPlaceholder.innerHTML = this.errorMessages.get('typeMismatch') ?? '';
+			if (showFeedbackMessages) {
+				this.errorPlaceholder.reportError(gettext("File upload in progress"));
 			}
 			return false;
 		}
@@ -469,45 +460,23 @@ class FieldGroup {
 		const inputElement = this.fieldElements[0];
 		if (!inputElement.value)
 			return;
-		if (inputElement.type === 'text') {
-			if (inputElement.minLength > 0 && inputElement.value.length < inputElement.minLength)
-				return inputElement.setCustomValidity(this.errorMessages.get('tooShort') ?? '');
-			if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength)
-				return inputElement.setCustomValidity(this.errorMessages.get('tooLong') ?? '');
-		}
+		this.errorPlaceholder.reportError();
 	}
 
 	public setValidationError(): boolean {
-		let element: FieldElement|null = null;
-		for (element of this.fieldElements) {
-			if (!element.validity.valid)
-				break;
-		}
-		for (const [key, message] of this.errorMessages) {
-			if (element && element.validity[key as ErrorKey]) {
-				if (this.errorPlaceholder) {
-					this.errorPlaceholder.innerHTML = message;
-					element.setCustomValidity(message);
-				}
-				return false;
+		if (this.fieldElements[0] instanceof HTMLInputElement && this.fieldElements[0].type === 'file')
+			return this.validateFileInput(true);
+
+		for (let element of this.fieldElements) {
+			if (!element.validity.valid) {
+				return this.errorPlaceholder.reportError();
 			}
 		}
-		if (element instanceof HTMLInputElement && element.type === 'file')
-			return this.validateFileInput(element, true);
 		return true;
 	}
 
 	public reportCustomError(message: string) {
-		if (this.errorPlaceholder) {
-			this.errorPlaceholder.innerHTML = message;
-		}
-		this.fieldElements[0].setCustomValidity(message);
-	}
-
-	public reportFailedUpload() {
-		if (this.errorPlaceholder) {
-			this.errorPlaceholder.innerHTML = this.errorMessages.get('badInput') ?? "File upload failed";
-		}
+		this.errorPlaceholder.reportError(message);
 	}
 }
 
@@ -1368,7 +1337,7 @@ class DjangoForm {
 		if (this.errorList?.textContent)
 			return this.element;  // report a non-field error
 		for (const fieldGroup of this.fieldGroups) {
-			if (fieldGroup.errorPlaceholder?.textContent)
+			if (fieldGroup.errorPlaceholder.showsError)
 				return fieldGroup.element;
 		}
 		return null;
@@ -1906,7 +1875,8 @@ export class DjangoFormset implements DjangoFormset {
 			} else {
 				const fieldGroupElement = fieldElement.closest('[role="group"]');
 				if (fieldGroupElement && !djangoForm.fieldGroups.find(fg => fg.element === fieldGroupElement)) {
-					djangoForm.fieldGroups.push(new FieldGroup(djangoForm, fieldGroupElement as HTMLElement));
+					const fieldGroup = new FieldGroup(djangoForm, fieldGroupElement as HTMLElement);
+					djangoForm.fieldGroups.push(fieldGroup);
 				}
 			}
 		}

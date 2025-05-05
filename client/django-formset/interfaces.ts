@@ -1,5 +1,7 @@
 type JSONValue = string|number|boolean|null|Array<JSONValue>|{[key: string]: JSONValue};
 type Path = Array<string>;
+type FieldElement = HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement;
+type FieldValue = string|Array<string|Object>;
 
 interface DjangoButton {
 	element: HTMLButtonElement;
@@ -24,9 +26,16 @@ interface DjangoForm {
 	getDataValue(path: Path) : string|null;
 }
 
+interface FieldErrorPlaceholder {
+	showsError: boolean;
+	reportError(message?: string): void;
+	clearError(): void;
+}
+
 interface FieldGroup {
 	form: DjangoForm;
 	element: HTMLElement;
+	errorPlaceholder: FieldErrorPlaceholder;
 	touch(): void;
 	validate(): void;
 	reportFailedUpload(): void;
