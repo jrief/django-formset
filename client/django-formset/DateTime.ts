@@ -38,12 +38,14 @@ class DateTimeField extends Widget {
 	private hasFocus: HTMLElement|null = null;
 	private cleanup?: Function;
 	private isOpen: boolean = false;
+	private static readonly simpleComponents = ['django-datefield', 'django-datepicker', 'django-daterangefield', 'django-daterangepicker']
+	private static readonly rangeComponents = ['django-daterangefield', 'django-daterangepicker', 'django-datetimerangefield', 'django-datetimerangepicker'];
 
 	constructor(inputElement: HTMLInputElement, calendarElement: HTMLElement | null) {
 		super(inputElement);
 		this.inputElement = inputElement;
-		this.dateOnly = ['django-datefield', 'django-datepicker', 'django-daterangefield', 'django-daterangepicker'].includes(inputElement.getAttribute('is') ?? '');
-		this.withRange = ['django-daterangefield', 'django-daterangepicker', 'django-datetimerangefield', 'django-datetimerangepicker'].includes(inputElement.getAttribute('is') ?? '');
+		this.dateOnly = DateTimeField.simpleComponents.includes(inputElement.getAttribute('is') ?? '');
+		this.withRange = DateTimeField.rangeComponents.includes(inputElement.getAttribute('is') ?? '');
 		this.textBox = this.createTextBox();
 		this.setInitialDate();
 		if (calendarElement) {
@@ -229,9 +231,12 @@ class DateTimeField extends Widget {
 	}
 
 	private closeCalendar() {
-		this.isOpen = false;
-		this.textBox.setAttribute('aria-expanded', 'false');
-		this.cleanup?.();
+		if (this.isOpen) {
+			this.textBox.setAttribute('aria-expanded', 'false');
+			this.cleanup?.();
+			this.inputElement.dispatchEvent(new Event('focusout'));
+			this.isOpen = false;
+		}
 	}
 
 	private updateInputFields() {
@@ -538,8 +543,7 @@ class DateTimeField extends Widget {
 	public checkValidity() : boolean {
 		if (this.withRange && this.currentDate && this.extendedDate) {
 			if (this.currentDate > this.extendedDate) {
-				const message = this.errorMessages.get('customError') ?? "Start date must be before end date";
-				this.inputElement.setCustomValidity(message);
+				this.errorPlaceholder.reportError(gettext("Start date must be before end date"));
 				return false;
 			}
 		}
