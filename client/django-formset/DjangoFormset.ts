@@ -458,7 +458,7 @@ class FieldGroup {
 			}
 			return false;
 		}
-		return true;
+		return this.fileUploader!.inputElement.validity.valid;
 	}
 
 	private validateBoundField() {

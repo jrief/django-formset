@@ -3,7 +3,6 @@ import template from 'lodash.template';
 
 export class FileUploadWidget {
 	private readonly fieldGroup: FieldGroup;
-	private readonly inputElement: HTMLInputElement;
 	private readonly dropbox: HTMLElement;
 	private readonly chooseFileButton: HTMLButtonElement;
 	private readonly progressBar: HTMLProgressElement | null = null;
@@ -12,6 +11,7 @@ export class FileUploadWidget {
 	private readonly observer: MutationObserver;
 	private readonly initialData: Array<Object>;
 	private readonly maxUploadSize: number;
+	public readonly inputElement: HTMLInputElement;
 	public uploadedFiles: Array<Object>;
 
 	constructor(fieldGroup: FieldGroup, inputElement: HTMLInputElement) {
@@ -61,7 +61,7 @@ export class FileUploadWidget {
 			this.fieldGroup.inputted();
 			this.fieldGroup.validate();
 		}).catch(() => {
-			this.fieldGroup.reportFailedUpload();
+			this.fieldGroup.errorPlaceholder.reportError(gettext("File upload failed"));
 		}).finally(() => {
 			this.chooseFileButton.blur();
 			this.fieldGroup.touch();
