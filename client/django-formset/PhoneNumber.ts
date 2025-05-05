@@ -271,9 +271,12 @@ class PhoneNumberField {
 	}
 
 	private closeInternationalSelector() {
-		this.isOpen = false;
-		this.textBox.setAttribute('aria-expanded', 'false');
-		this.cleanup();
+		if (this.isOpen) {
+			this.textBox.setAttribute('aria-expanded', 'false');
+			this.cleanup();
+			this.inputElement.dispatchEvent(new Event('focusout'));
+			this.isOpen = false;
+		}
 	}
 
 	private setInternationalCode(countryCode: CountryCode, callingCode: CountryCallingCode) {
