@@ -181,5 +181,6 @@
 
 	&.invalid.focus .ts-control {
 		opacity: 1;
+		box-shadow: var(--django-formset-box-shadow-invalid);
 	}
 }

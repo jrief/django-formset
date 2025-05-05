@@ -1,0 +1,15 @@
+// This stylesheet is added to the wrapper element created by DjangoSelectize.
+// Changes in here do affect HTML elements outside of this realm.
+
+[is^="django-selectize"] + .shadow-wrapper {
+	border-style: none;
+	border-width: 0;
+	border-radius: 0;
+	outline: 0;
+	padding: 0;
+	box-shadow: none;
+
+	&.focus ~ [role=alert] {
+		display: none;
+	}
+}

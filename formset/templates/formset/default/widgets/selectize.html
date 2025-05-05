@@ -7,8 +7,9 @@
 	</optgroup>{% endif %}{% endfor %}
 </select>
 {% endblock %}
-{% if widget.attrs.multiple %}{% with script_id=widget.attrs.id|add:"_initial" %}
+{% with script_id=widget.attrs.id|add:"_initial" %}
+{# if widget is incomplete but filtered, the initial option(s) might be loaded by function `DjangoSelectize.setupFilters()` #}
 {{ widget.value|json_script:script_id }}
-{% endwith %}{% endif %}
+{% endwith %}
 {% block "templates" %}{% endblock %}
 {% endspaceless %}
