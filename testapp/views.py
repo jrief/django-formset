@@ -647,7 +647,12 @@ urlpatterns = [
     ), name='customer'),
     path('contact', DemoFormCollectionView.as_view(
         collection_class=ContactCollection,
-        initial={'person': sample_person_data, 'numbers': [{'number': {'phone_number': "+1 234 567 8900"}}, {'number': {'phone_number': "+43 1 2345678"}}]},
+        initial={
+            'person': sample_person_data,
+            'numbers': [
+                {'number': {'phone_number': "+1 234 567 8900", 'label': 'home'}},
+                {'number': {'phone_number': "+43 1 2345678", 'label': 'mobile'}}
+            ]},
     ), name='contact'),
     path('contactlist', DemoFormCollectionView.as_view(
         collection_class=ContactCollectionList,

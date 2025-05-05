@@ -69,16 +69,16 @@ class PhoneNumberForm(forms.Form):
 class PhoneNumberCollection(FormCollection):
     legend = "List of Phone Numbers"
     add_label = "Add new Phone Number"
-    min_siblings = 3
+    min_siblings = 2
     max_siblings = 5
-    extra_siblings = 2
+    extra_siblings = 0
 
     number = PhoneNumberForm()
 
 
 class ContactCollection(FormCollection):
     """
-    This Form Collection shows how to combine two independend forms into one collection,
+    This Form Collection shows how to combine two independent forms into one collection,
     where the second form is wrapped into a *collection with siblings*.
     """
     legend = "Contact"

@@ -165,14 +165,18 @@ def test_edit_reporter(page, viewname):
     expect(dialog).not_to_be_visible()
     select_reporter = form_collection.locator('select[name="reporter"]')
     expect(select_reporter).to_have_value('')
+    edit_reporter_button = form_collection.nth(1).locator('button[name="edit_reporter"]')
+    expect(edit_reporter_button).to_be_disabled()
     reporter, _ = Reporter.objects.get_or_create(full_name="Sarah Hemingway")
     select_reporter.evaluate(f'el => el.value = {reporter.id}')
     expect(select_reporter).to_have_value(str(reporter.id))
     pseudo_input = form_collection.nth(1).locator(f'.ts-wrapper div.item[data-value=\"{reporter.id}\"]')
     expect(pseudo_input).to_have_text("Sarah Hemingway")
+    pseudo_input.click()
+    page.locator('django-formset').click()  # blurs select reporter
 
     # open the dialog and edit the current reporter
-    form_collection.nth(1).locator('button[name="edit_reporter"]').click()
+    edit_reporter_button.click()
     expect(dialog).to_be_visible()
     full_name_input = dialog.locator('input[name="full_name"]')
     expect(full_name_input).to_have_value("Sarah Hemingway")
@@ -204,6 +208,8 @@ def test_delete_reporter(page, viewname):
     expect(select_reporter).to_have_value(str(reporter.id))
     pseudo_input = form_collection.nth(1).locator(f'.ts-wrapper div.item[data-value=\"{reporter.id}\"]')
     expect(pseudo_input).to_have_text("Sarah Hemingway")
+    pseudo_input.click()
+    page.locator('django-formset').click()  # blurs select reporter
 
     # delete the current reporter remotely
     with page.expect_response(f'{page.url}?pk={reporter.pk}&path=change_reporter'):

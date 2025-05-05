@@ -1,12 +1,14 @@
 from django.forms import fields, forms
+from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 
 from formset.collection import FormCollection
 from formset.formfields import CollectionField
 from formset.forms import ModelForm
 from formset.formfields import RichTextField
-from formset.widgets import UploadedFileInput
+from formset.widgets import UploadedFileInput, Selectize, SelectizeMultiple
 
 from testapp.models.component import Component
+from testapp.models.product import ProductModel
 
 
 class SlideForm(forms.Form):
@@ -21,6 +23,10 @@ class SlideForm(forms.Form):
     caption = RichTextField(
         label="Caption",
         required=False,
+    )
+    product = ModelMultipleChoiceField(
+        ProductModel.objects.all(),
+        widget=SelectizeMultiple(),
     )
 
 

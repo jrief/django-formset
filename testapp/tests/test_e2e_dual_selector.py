@@ -205,11 +205,14 @@ def test_move_selected_right(page, mocker, view, form, viewname):
     right_option_values = set(o.get_attribute('value') for o in select_right.locator('option').all())
     assert option_value in left_option_values
     assert option_value not in right_option_values
-    spy = mocker.spy(view.view_class, 'post')
-    page.locator('django-formset > p button').first.click()
-    sleep(0.2)
-    spy.assert_called()
-    request = json.loads(spy.call_args.args[1].body)
+    # spy = mocker.spy(view.view_class, 'post')
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset > p button').first.click()
+    assert response_info.value.ok is True
+    request = response_info.value.request.post_data_json
+    # sleep(0.2)
+    # spy.assert_called()
+    # request = json.loads(spy.call_args.args[1].body)
     assert set(request['formset_data']['model_choice']) == right_option_values
 
 
@@ -289,30 +292,31 @@ def test_submit_valid_form(page, mocker, view, form, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector1'])
 def test_submit_invalid_form(page, mocker, view, form, viewname):
+    submit_button = page.locator('django-formset button[df-click]').first
     spy = mocker.spy(view.view_class, 'post')
-    submit_button = page.query_selector('django-formset button[df-click]')
     submit_button.click()
-    assert spy.called is False
-    error_ph = page.query_selector('django-formset [role="group"] ul.dj-errorlist > li.dj-placeholder')
-    assert error_ph is not None
-    assert error_ph.text_content() == form.fields['model_choice'].error_messages['required']
+    sleep(0.2)
+    spy.assert_not_called()  # asure the form is marked as invalid before submission
+    required_msg = str(form.fields['model_choice'].error_messages['required'])
+    page.screenshot(path='screenshot.png')
+    error_ph = page.locator('django-formset [role="group"] [role="alert"] ul.dj-errorlist > li.dj-placeholder')
+    expect(error_ph).to_have_text(required_msg)
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectorF'])
-def test_force_submit_invalid_form(page, mocker, view, form, viewname):
-    spy = mocker.spy(view.view_class, 'post')
-    submit_button = page.query_selector('django-formset button[df-click]')
-    submit_button.click()
-    sleep(0.2)
-    assert spy.called is True
-    request = json.loads(spy.call_args.args[1].body)
+def test_force_submit_invalid_form(page, view, form, viewname):
+    submit_button = page.locator('django-formset button[df-click]').first
+    with page.expect_response(page.url) as response_info:
+        submit_button.click()
+    assert response_info.value.status == 422
+    request = response_info.value.request.post_data_json
     assert request['formset_data']['model_choice'] == []
-    response = json.loads(spy.spy_return.content)
-    assert response['model_choice'] == [form.fields['model_choice'].error_messages['required']]
-    error_ph = page.query_selector('django-formset [role="group"] ul.dj-errorlist > li.dj-placeholder')
-    assert error_ph is not None
-    assert error_ph.text_content() == form.fields['model_choice'].error_messages['required']
+    required_msg = str(form.fields['model_choice'].error_messages['required'])
+    assert response_info.value.json() == {'model_choice': [required_msg]}
+    page.screenshot(path='screenshot.png')
+    error_ph = page.locator('django-formset [role="group"] [role="alert"] ul.dj-errorlist > li.dj-placeholder')
+    expect(error_ph).to_have_text(required_msg)
 
 
 @pytest.mark.urls(__name__)
