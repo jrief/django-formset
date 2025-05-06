@@ -74,6 +74,7 @@ export class DjangoSelectize extends IncompleteSelect {
 			onBlur: this.blurred,
 			onType: this.inputted,
 			onChange: this.changed,
+			onItemRemove: this.itemRemoved,
 			render: {
 				no_results: `<div class="no-results">${gettext("No results found for '${input}'")}</div>`,
 			}
@@ -162,6 +163,11 @@ export class DjangoSelectize extends IncompleteSelect {
 
 	private changed = (value: string|string[]) => {
 		this.tomSelect.input.dispatchEvent(new Event('change'));
+	};
+
+	private itemRemoved = (value: string|string[]) => {
+		this.tomSelect.input.dispatchEvent(new Event('focusin'));
+		this.tomSelect.input.dispatchEvent(new Event('focusout'));
 	};
 
 	private wrapInShadowRoot() : ShadowRoot {
