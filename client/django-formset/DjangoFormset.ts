@@ -108,7 +108,7 @@ class FieldGroup {
 		const allowedSelects = (s: Element) => s instanceof HTMLSelectElement && s.name && s.form === form.element;
 		const selectElement = Array.from(element.getElementsByTagName('SELECT')).filter(allowedSelects).at(0);
 		if (selectElement instanceof HTMLSelectElement) {
-			selectElement.addEventListener('focusin', (event) => this.touch());
+			selectElement.addEventListener('focusin', () => this.touch());
 			selectElement.addEventListener('focusout', () => this.validate());
 			selectElement.addEventListener('change', () => {
 				this.clearCustomError();
