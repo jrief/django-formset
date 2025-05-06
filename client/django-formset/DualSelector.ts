@@ -199,7 +199,6 @@ export class DualSelector extends IncompleteSelect {
 			option.selected = !!this.selectRightElement.querySelector(`option[value="${option.value}"]`);
 		});
 		this.setButtonsState();
-		this.selectorElement.dispatchEvent(new Event('change'));
 	}
 
 	private setButtonsState() {
