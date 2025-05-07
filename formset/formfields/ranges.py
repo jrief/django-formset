@@ -56,7 +56,8 @@ class DateRangeField(BaseRangeField):
         if isinstance(values, (list, tuple)) and len(values) == 2:
             if all(isinstance(v, (date, datetime)) for v in values):
                 return ';'.join(map(lambda v: f'{v.isoformat()[:10]}T00:00', values))
-            return ';'.join(map(lambda v: f'{v[:10]}T00:00', values))
+            if all(isinstance(v, str) for v in values):
+                return ';'.join(map(lambda v: f'{v[:10]}T00:00', values))
         return ''
 
 
@@ -71,5 +72,6 @@ class DateTimeRangeField(DateRangeField):
         if isinstance(values, (list, tuple)) and len(values) == 2:
             if all(isinstance(v, (date, datetime)) for v in values):
                 return ';'.join(map(lambda v: v.isoformat()[:16], values))
-            return ';'.join(map(lambda v: v[:16], values))
+            if all(isinstance(v, str) for v in values):
+                return ';'.join(map(lambda v: v[:16], values))
         return ''
