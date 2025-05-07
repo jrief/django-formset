@@ -4,7 +4,7 @@ from django.forms.widgets import RadioSelect
 
 from formset.collection import FormCollection
 from formset.dialog import ApplyButton, CancelButton, DialogForm
-from formset.formfields import Activator
+from formset.formfields.activator import Activator
 
 
 class CoffeeForm(Form):

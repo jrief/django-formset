@@ -3,7 +3,7 @@ from django.utils.safestring import mark_safe
 
 from formset.collection import FormCollection
 from formset.dialog import DialogForm
-from formset.formfields import Activator
+from formset.formfields.activator import Activator
 from formset.renderers import ButtonVariant
 from formset.widgets import Button
 

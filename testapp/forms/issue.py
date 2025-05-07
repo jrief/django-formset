@@ -4,7 +4,7 @@ from django.forms.widgets import HiddenInput
 
 from formset.collection import FormCollection
 from formset.dialog import DialogModelForm
-from formset.formfields import Activator
+from formset.formfields.activator import Activator
 from formset.renderers import ButtonVariant
 from formset.widgets import Button, Selectize
 

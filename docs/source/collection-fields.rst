@@ -20,10 +20,11 @@ when converting the data from their models into forms and vice versa. The disadv
 approach is, that data is kept unstructured and finding information might be difficult.
 
 For this purpose, **django-formset** provides the special form field
-:class:`formset.formfields.CollectionField`. It takes all the `core arguments`_ of the Django form
-``Field`` class, plus an instance of a :ref:`collection`. When rendered, this ``CollectionField``
-then is replaced by the forms and fields of that collection. A ``CollectionField`` therefore does
-not render a label unless explicitly set, because each sub-field provides their own labels anyway.
+:class:`formset.formfields.collection.CollectionField`. It takes all the `core arguments`_ of the
+Django form ``Field`` class, plus an instance of a :ref:`collection`. When rendered, this
+``CollectionField`` then is replaced by the forms and fields of that collection. A
+``CollectionField`` therefore does not render a label unless explicitly set, because each sub-field
+provides their own labels anyway.
 
 .. _core arguments: https://docs.djangoproject.com/en/stable/ref/forms/fields/#core-field-arguments
 
@@ -69,7 +70,8 @@ the collection is used to glue them together.
 
 	from django.forms import fields, forms
 	from formset.collection import FormCollection
-	from formset.formfields import CollectionField, RichTextField
+	from formset.formfields.collection import CollectionField
+	from formset.formfields.richtext import RichTextField
 	from formset.forms import ModelForm
 	from formset.widgets import UploadedFileInput
 	
@@ -166,9 +168,9 @@ stored. We therefore can map the field named ``context`` directly onto the equal
 
 	from django.forms import fields, forms
 	from formset.collection import FormCollection
-	from formset.formfields import CollectionField
+	from formset.formfields.collection import CollectionField
+	from formset.formfields.richtext import RichTextField
 	from formset.forms import ModelForm
-	from formset.formfields import RichTextField
 	
 	from testapp.models.component import Component
 	

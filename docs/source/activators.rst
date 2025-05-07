@@ -42,7 +42,7 @@ This example shows how to use an ``Activator`` field to submit the form:
 
 	from django.forms.fields import CharField
 	from django.forms.forms import Form
-	from formset.formfields import Activator
+	from formset.formfields.activator import Activator
 	from formset.renderers import ButtonVariant
 	from formset.widgets import Button
 

@@ -30,7 +30,7 @@ of our current "Issue" form.
 	from django.forms.fields import IntegerField
 	from django.forms.widgets import HiddenInput
 	from formset.dialog import DialogModelForm
-	from formset.formfields import Activator
+	from formset.formfields.activator import Activator
 	from formset.widgets import Button
 	from testapp.models import Reporter
 
@@ -111,7 +111,7 @@ The parameter "clear" then implies to clear all the fields.
 
 	from django.forms.fields import CharField
 	from django.forms.models import ModelChoiceField, ModelForm
-	from formset.formfields import Activator
+	from formset.formfields.activator import Activator
 	from formset.widgets import Button, Selectize
 	from testapp.models import IssueModel
 

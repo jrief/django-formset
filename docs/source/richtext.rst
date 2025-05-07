@@ -16,7 +16,7 @@ just have to replace the built-in widget against :class:`formset.widgets.RichTex
 .. django-view:: blog_form
 
 	from django.forms import fields, forms
-	from formset.widgets import RichTextarea
+	from formset.widgets.richtext import RichTextarea
 
 	class BlogForm(forms.Form):
 	    text = fields.CharField(widget=RichTextarea)
@@ -45,7 +45,7 @@ the widget class ``RichTextarea`` can be configured using various control elemen
 .. code-block:: python
 
 	from formset.richtext import controls
-	from formset.widgets RichTextarea
+	from formset.widgets.richtext RichTextarea
 
 	richtext_widget = RichTextarea(control_elements=[
 	    controls.Bold(),

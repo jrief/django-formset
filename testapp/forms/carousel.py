@@ -2,10 +2,10 @@ from django.forms import fields, forms
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 
 from formset.collection import FormCollection
-from formset.formfields import CollectionField
+from formset.formfields.collection import CollectionField
+from formset.formfields.richtext import RichTextField
 from formset.forms import ModelForm
-from formset.formfields import RichTextField
-from formset.widgets import UploadedFileInput, Selectize, SelectizeMultiple
+from formset.widgets import UploadedFileInput, SelectizeMultiple
 
 from testapp.models.component import Component
 from testapp.models.product import ProductModel

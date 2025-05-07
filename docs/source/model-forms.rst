@@ -47,7 +47,8 @@ client-side validation of inputted dates. The field ``content`` is overridden by
 	:caption: forms.py
 
 	from django.forms.models import ModelForm
-	from formset.widgets import DateInput, RichTextarea, Selectize, UploadedFileInput
+	from formset.widgets import DateInput, Selectize, UploadedFileInput
+	from formset.widgets.richtext import RichTextarea
 	from testapp.models.article import Article
 
 	class ArticleForm(ModelForm):

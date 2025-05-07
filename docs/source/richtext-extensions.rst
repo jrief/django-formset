@@ -52,8 +52,9 @@ using the :ref:`selectize`.
 
 	from django.forms import fields, forms, models, widgets
 	from formset.richtext import controls
-	from formset.richtext import dialogs 
-	from formset.widgets import RichTextarea, Selectize
+	from formset.richtext import dialogs
+	from formset.widgets import Selectize
+	from formset.widgets.richtext import RichTextarea
 	from testapp.models import PageModel
 
 	class CustomHyperlinkDialogForm(dialogs.RichtextDialogForm):

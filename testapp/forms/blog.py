@@ -1,7 +1,7 @@
 from django.forms import models
 
 from formset.richtext import controls
-from formset.widgets import RichTextarea
+from formset.widgets.richtext import RichTextarea
 
 from testapp.models.blog import BlogModel
 

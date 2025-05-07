@@ -28,7 +28,7 @@ Here as an example of a checkout form, as often found in e-commerce sites:
 	from django.forms.fields import CharField, RegexField
 	from django.forms.forms import Form
 
-	from formset.formfields import Activator
+	from formset.formfields.activator import Activator
 	from formset.stepper import StepperCollection
 	from formset.widgets import Button
 
