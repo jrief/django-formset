@@ -4,6 +4,8 @@ from django import template
 
 
 register = template.Library()
+
+
 @register.tag(name="submit_row")
 def submit_row_tag(parser, token):
     return InclusionAdminNode(

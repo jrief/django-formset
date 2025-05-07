@@ -9,7 +9,7 @@ from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
-from formset.formfields import Activator
+from formset.formfields.activator import Activator
 from formset.renderers import ClassList
 from formset.upload import get_file_info
 from formset.utils import FileFieldMixin

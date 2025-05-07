@@ -24,18 +24,18 @@
 {% endif %}
 
 {% block content %}<div id="content-main">
-{% block object-tools %}
-{% if change and not is_popup %}
-  <ul class="object-tools">
-    {% block object-tools-items %}
-      {% change_form_object_tools %}
-    {% endblock %}
-  </ul>
-{% endif %}
-{% endblock %}
+	{% block object-tools %}
+		{% if change and not is_popup %}
+	<ul class="object-tools">
+			{% block object-tools-items %}
+				{% change_form_object_tools %}
+			{% endblock %}
+	</ul>
+		{% endif %}
+	{% endblock %}
 	<django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}" force-submission>
 		{{ adminform.form }}
-		{% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
+	{% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
 	</django-formset>
 </div>
 {% endblock %}
