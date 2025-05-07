@@ -181,6 +181,10 @@ class BoundField(boundfield.BoundField):
         """
         client_messages = {}
         server_messages = self.field.error_messages
+        for validator in self.field.validators:
+            validator_code = getattr(validator, 'code', None)
+            if validator_code == 'invalid':
+                client_messages['type_mismatch'] = client_messages['pattern_mismatch'] = validator.message
         if self.field.required is True:
             if self.widget_type == 'checkboxselectmultiple':
                 client_messages['custom_error'] = _("At least one checkbox must be selected.")
@@ -192,11 +196,6 @@ class BoundField(boundfield.BoundField):
             client_messages['type_mismatch'] = server_messages['invalid_choice']
         if 'bound_ordering' in server_messages:
             client_messages['custom_error'] = server_messages['bound_ordering']
-        else:
-            for validator in self.field.validators:
-                validator_code = getattr(validator, 'code', None)
-                if validator_code == 'invalid':
-                    client_messages['type_mismatch'] = client_messages['pattern_mismatch'] = validator.message
         if getattr(self.field, 'max_length', None) is not None:
             data = {'max_length': self.field.max_length}
             max_length_message = _("Ensure this value has at most %(max_length)s characters.")
