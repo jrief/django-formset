@@ -11,7 +11,7 @@ export class FieldErrorPlaceholder {
 	constructor(fieldElement: FieldElement) {
 		this.fieldElement = fieldElement;
 		const groupElement = fieldElement.closest('[role="group"]');
-		const alertElement = groupElement?.querySelector(':scope > [role="alert"]');
+		const alertElement = groupElement?.querySelector('[role="alert"]');
 		const metaElement = alertElement?.querySelector('meta[name="error-messages"]');
 		if (metaElement) {
 			for (const attr of metaElement.getAttributeNames()) {

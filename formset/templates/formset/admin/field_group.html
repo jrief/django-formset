@@ -1,18 +1,18 @@
 {% spaceless %}
 <div role="group"{% with css_classes=field.css_classes %} class="form-row{% if css_classes %} {{ css_classes }}{% endif %}"{% endwith %}>
 	<div>
-		{{ field.errors }}
-		{% if field.widget_type == 'checkbox' %}
+	{% if field.widget_type == 'checkbox' %}
 		<div class="flex-container checkbox-row">
 			{{ field }}
 			{% if field.label %}{{ field.label_tag }}{% endif %}
 		</div>
-		{% else %}
+	{% else %}
 		<div class="flex-container">
 			{% if field.label %}{{ field.label_tag }}{% endif %}
 			{{ field }}
 		</div>
-		{% endif %}
+	{% endif %}
+	{{ field.errors }}
 	{% with help_text=field.help_text %}
 	{% if help_text %}{% include "./help_text.html" %}{% endif %}
 	{% endwith %}
