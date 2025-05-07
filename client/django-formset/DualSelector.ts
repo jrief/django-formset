@@ -99,7 +99,7 @@ export class DualSelector extends IncompleteSelect {
 		this.redoButton?.addEventListener('click', evt => this.unOrRedo(+1));
 	}
 
-	public initialize() {
+	public async initialize() {
 		const initialValues: string[] = [];
 		const optionElements = this.selectorElement.querySelectorAll(':scope > option') as NodeListOf<HTMLOptionElement>;
 		optionElements.forEach(option => {
@@ -133,6 +133,9 @@ export class DualSelector extends IncompleteSelect {
 		}
 		this.setButtonsState();
 		this.setupFilters(this.selectorElement);
+		if (this.mustReloadOptions()) {
+			await this.reloadOptions();
+		}
 		this.installEventHandlers();
 	}
 

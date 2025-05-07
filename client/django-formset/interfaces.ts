@@ -28,7 +28,7 @@ interface DjangoForm {
 
 interface FieldErrorPlaceholder {
 	showsError: boolean;
-	reportError(message?: string): void;
+	reportCustomError(message: string): void;
 	clearError(): void;
 }
 

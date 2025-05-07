@@ -12,7 +12,7 @@ export abstract class IncompleteSelect extends Widget {
 		this.isIncomplete = element.hasAttribute('incomplete');
 	}
 
-	protected async setupFilters(element: HTMLSelectElement) {
+	protected setupFilters(element: HTMLSelectElement) {
 		const filters = element.getAttribute('filter-by')?.split(',') ?? [];
 		filters.forEach(filterBy => {
 			const observedElement = element.form?.elements.namedItem(filterBy);
@@ -36,14 +36,15 @@ export abstract class IncompleteSelect extends Widget {
 				});
 			}
 		});
-		if (Array.from(this.filterByValues.values()).some(val => (val as Array<string>).some(s => s))) {
-			await this.reloadOptions();
-		}
 	}
 
 	protected abstract formResetted(event: Event) : void;
 
 	protected abstract formSubmitted(event: Event) : void;
+
+	protected mustReloadOptions() : boolean {
+		return Array.from(this.filterByValues.values()).some(val => (val as Array<string>).some(s => s));
+	}
 
 	protected abstract reloadOptions(silent?: boolean) : Promise<void>;
 

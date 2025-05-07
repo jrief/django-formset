@@ -4,11 +4,12 @@ export type ErrorKey = keyof ValidityState;
 export class FieldErrorPlaceholder {
 	private readonly messages: Map<ErrorKey, string> = new Map();
 	private readonly fieldElement: FieldElement;
+	private groupClassList: DOMTokenList;
 	private readonly placeholder: Element;
+	private readonly showFeedback: boolean;
 
 	constructor(fieldElement: FieldElement) {
 		this.fieldElement = fieldElement;
-		let placeholder: Element|null|undefined = null;
 		const groupElement = fieldElement.closest('[role="group"]');
 		const alertElement = groupElement?.querySelector(':scope > [role="alert"]');
 		const metaElement = alertElement?.querySelector('meta[name="error-messages"]');
@@ -21,48 +22,67 @@ export class FieldErrorPlaceholder {
 				}
 			}
 		}
-		placeholder = alertElement?.querySelector('.dj-errorlist > .dj-placeholder');
+		this.groupClassList = groupElement?.classList ?? new DOMTokenList();
+		const placeholder = alertElement?.querySelector('.dj-errorlist > .dj-placeholder');
 		if (!placeholder)
 			throw new Error(`${fieldElement} requires a sibling element with role="alert" and an error placeholder`);
 		this.placeholder = placeholder;
+		this.showFeedback = fieldElement.closest('django-formset')?.getAttribute('withhold-feedback')?.split(' ').map(m => m.toLowerCase()).includes('messages') ? false : true;
+	}
+
+	private get showMessage() : boolean {
+		return this.showFeedback && (this.groupClassList.contains('dj-submitted') || this.groupClassList.contains('dj-touched'));
 	}
 
 	public get showsError() : boolean {
 		return this.placeholder.innerHTML.length !== 0;
 	}
 
-	public reportError(message?: string): boolean {
-		if (message) {
-			message = this.messages.get('customError') ?? message;
-			this.placeholder.innerHTML = message;
-			this.fieldElement.setCustomValidity(message);
+	public reportValidationError(): boolean {
+		if (!this.fieldElement.validity.valid) {
+			if (this.showMessage) {
+				for (let [key, message] of this.messages.entries()) {
+					if (key === 'tooShort' && (this.fieldElement.type === 'text' || this.fieldElement instanceof HTMLTextAreaElement)) {
+						if (this.fieldElement.minLength > 0 && this.fieldElement.value.length < this.fieldElement.minLength) {
+							this.placeholder.innerHTML = message ?? gettext("Entered text is too short.");
+							break;
+						}
+					} else if (key === 'tooLong' && (this.fieldElement.type === 'text' || this.fieldElement instanceof HTMLTextAreaElement)) {
+						if (this.fieldElement.maxLength > 0 && this.fieldElement.value.length > this.fieldElement.maxLength) {
+							this.placeholder.innerHTML = message ?? gettext("Entered text is too long.");
+							break;
+						}
+					} else if (this.fieldElement.validity[key as keyof ValidityState]) {
+						this.placeholder.innerHTML = message;
+						break;
+					}
+				}
+			} else {
+				this.placeholder.innerHTML = '';
+			}
 			return false;
-		}
-		for (const [key, message] of this.messages.entries()) {
-			if (this.fieldElement.validity[key as keyof ValidityState]) {
-				this.placeholder.innerHTML = message;
-				return false;
-			}
-		}
-		if (this.fieldElement instanceof HTMLInputElement && this.fieldElement.type === 'text' || this.fieldElement instanceof HTMLTextAreaElement) {
-			// browsers do not check for minLength and maxLength on bound fields
-			if (this.fieldElement.minLength > 0 && this.fieldElement.value.length < this.fieldElement.minLength) {
-				this.placeholder.innerHTML = this.messages.get('tooShort') ?? gettext("Entered text is too short");
-				return false;
-			}
-			if (this.fieldElement.maxLength > 0 && this.fieldElement.value.length < this.fieldElement.maxLength) {
-				this.placeholder.innerHTML = this.messages.get('tooLong') ?? gettext("Entered text is too long");
-				return false;
-			}
 		}
 		this.placeholder.innerHTML = '';
 		this.fieldElement.setCustomValidity('');
 		return true;
 	}
 
+	public reportCustomError(message: string) {
+		message = this.messages.get('customError') ?? message;
+		this.fieldElement.setCustomValidity(message);
+		if (this.showMessage) {
+			this.placeholder.innerHTML = message;
+		}
+		return false;
+	}
+
 	public clearError() {
 		this.placeholder.innerHTML = '';
 		this.fieldElement.setCustomValidity('');
+	}
+
+	public getMessage(key: ErrorKey) : string|undefined {
+		return this.messages.get(key);
 	}
 }
 

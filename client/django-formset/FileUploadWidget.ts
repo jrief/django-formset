@@ -61,7 +61,7 @@ export class FileUploadWidget {
 			this.fieldGroup.inputted();
 			this.fieldGroup.validate();
 		}).catch(() => {
-			this.fieldGroup.errorPlaceholder.reportError(gettext("File upload failed"));
+			this.fieldGroup.errorPlaceholder.reportCustomError(gettext("File upload failed."));
 		}).finally(() => {
 			this.chooseFileButton.blur();
 			this.fieldGroup.touch();

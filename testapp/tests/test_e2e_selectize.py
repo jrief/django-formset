@@ -226,7 +226,7 @@ def test_change_multiple(page, form, viewname):
     remove_selected_item_element.click()
     item_elements = formset_element.locator(f'.shadow-wrapper .ts-wrapper .ts-control div.item')
     expect(item_elements).to_have_count(3)
-    expect(field_group_element).to_have_class(regex(r'ds-[0-9a-z]{9,12} dj-untouched dj-dirty'))
+    expect(field_group_element).to_have_class(regex(r'ds-[0-9a-z]{9,12} dj-dirty dj-touched'))
 
 
 @pytest.mark.urls(__name__)
@@ -294,15 +294,18 @@ def test_submit_invalid(page, mocker, view, form, viewname):
     initial_opinion = get_initial_opinion()
     initial_opinion.tenant = 2  # this makes the selected option invalid
     initial_opinion.save(update_fields=['tenant'])
-    spy = mocker.spy(view.view_class, 'post')
-    page.locator('django-formset').evaluate('elem => elem.submit()')
-    sleep(0.2)
-    request = json.loads(spy.call_args.args[1].body)
+    # spy = mocker.spy(view.view_class, 'post')
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset').evaluate('elem => elem.submit()')
+    # sleep(0.2)
+    # request = json.loads(spy.call_args.args[1].body)
+    assert response_info.value.status == 422
+    request = response_info.value.request.post_data_json
     assert request['formset_data']['model_choice'] == str(initial_opinion.id)
-    assert spy.spy_return.status_code == 422
-    response = json.loads(spy.spy_return.content)
+    # assert spy.spy_return.status_code == 422
+    # response = json.loads(spy.spy_return.content)
     error_message = models.ModelChoiceField.default_error_messages['invalid_choice']
-    assert response == {'model_choice': [error_message]}
+    assert response_info.value.json() == {'model_choice': [error_message]}
     placeholder = page.locator('[role="group"] ul.dj-errorlist > li.dj-placeholder')
     expect(placeholder).to_have_text(str(error_message))
     initial_opinion.tenant = 1  # reset to initial tenant

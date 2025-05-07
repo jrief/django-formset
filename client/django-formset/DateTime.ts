@@ -543,7 +543,7 @@ class DateTimeField extends Widget {
 	public checkValidity() : boolean {
 		if (this.withRange && this.currentDate && this.extendedDate) {
 			if (this.currentDate > this.extendedDate) {
-				this.errorPlaceholder.reportError(gettext("Start date must be before end date"));
+				this.errorPlaceholder.reportCustomError(gettext("Start date must be before end date"));
 				return false;
 			}
 		}

@@ -79,7 +79,6 @@ class FieldGroup {
 					element.addEventListener('input', () => {
 						this.touch();
 						this.inputted();
-						this.clearCustomError();
 					});
 					element.addEventListener('change', () => {
 						requiredAny ? this.validateCheckboxSelectMultiple() : this.validate();
@@ -88,17 +87,13 @@ class FieldGroup {
 				case 'file':
 					// @ts-ignore
 					this.fileUploader = new FileUploadWidget(this, element);
-					element.addEventListener('invalid', () => this.showErrorMessage());
+					element.addEventListener('invalid', () => this.errorPlaceholder.reportValidationError());
 					break;
 				default:
 					element.addEventListener('focus', () => this.touch());
-					element.addEventListener('focusout', () => {
-						this.touch();
-						this.validate();
-					});
 					element.addEventListener('input', () => this.inputted());
 					element.addEventListener('blur', () => this.validate());
-					element.addEventListener('invalid', () => this.showErrorMessage());
+					element.addEventListener('invalid', () => this.errorPlaceholder.reportValidationError());
 					break;
 			}
 		}
@@ -114,7 +109,7 @@ class FieldGroup {
 				this.clearCustomError();
 				this.setDirty()
 			});
-			selectElement.addEventListener('invalid', () => this.showErrorMessage());
+			selectElement.addEventListener('invalid', () => this.errorPlaceholder.reportValidationError());
 			this.fieldElements = [selectElement];
 		}
 
@@ -128,7 +123,7 @@ class FieldGroup {
 			});
 			textAreaElement.addEventListener('input', () => this.inputted());
 			textAreaElement.addEventListener('blur', () => this.validate());
-			textAreaElement.addEventListener('invalid', () => this.showErrorMessage());
+			textAreaElement.addEventListener('invalid', () => this.errorPlaceholder.reportValidationError());
 			this.fieldElements = [textAreaElement];
 		}
 		if (textAreaElement && 'isInitialized' in textAreaElement) {
@@ -142,11 +137,7 @@ class FieldGroup {
 		this.name = this.assertUniqueName();
 		this.initialDisabled = this.fieldElements.map(element => element.disabled);
 		this.initialRequired = this.fieldElements.map(element => element.required);
-		if (requiredAny) {
-			this.validateCheckboxSelectMultiple();
-		} else {
-			this.validateBoundField();
-		}
+		requiredAny ? this.validateCheckboxSelectMultiple() : this.validateBoundField();
 		this.pristineValue = new BoundValue(this.aggregateValue());
 		this.updateVisibility = this.evalVisibility('df-show', true) ?? this.evalVisibility('df-hide', false) ?? function() {};
 		this.updateDisabled = this.evalDisable();
@@ -252,6 +243,10 @@ class FieldGroup {
 		this.fieldElements.forEach((fieldElement, index) => fieldElement.required = this.initialRequired[index]);
 	}
 
+	public get isValid(): boolean {
+		return this.fieldElements[0].validity.valid;
+	}
+
 	private assertUniqueName() : string {
 		let name = '__undefined__';
 		for (const element of this.fieldElements) {
@@ -344,7 +339,7 @@ class FieldGroup {
 		this.fileUploader?.resetToInitial();
 		this.untouch();
 		this.setPristine();
-		this.clearCustomError();
+		this.errorPlaceholder.clearError();
 	}
 
 	public disableAllFields() {
@@ -363,7 +358,6 @@ class FieldGroup {
 	public untouch() {
 		this.element.classList.remove('dj-submitted', 'dj-touched');
 		this.element.classList.add('dj-untouched');
-		this.errorPlaceholder.clearError();
 	}
 
 	private setDirty() {
@@ -388,13 +382,6 @@ class FieldGroup {
 		this.element.classList.add('dj-submitted');
 	}
 
-	private showErrorMessage() {
-		const submitted = this.element.classList.contains('dj-submitted');
-		if (!(this.isTouched || submitted) || !this.form.formset.showFeedbackMessages)
-			return;
-		this.errorPlaceholder.reportError();
-	}
-
 	public validate() {
 		let element: FieldElement|null = null;
 		for (element of this.fieldElements) {
@@ -410,7 +397,7 @@ class FieldGroup {
 
 		if (!element.validity.valid) {
 			if (element instanceof HTMLInputElement && element.type === 'file') {
-				this.validateFileInput(this.form.formset.showFeedbackMessages);
+				this.validateFileInput();
 			}
 		}
 		if (this.form.validate() && !element.validity.valid) {
@@ -419,34 +406,29 @@ class FieldGroup {
 		}
 	}
 
-	private validateCheckboxSelectMultiple() {
-		let validity = false;
-		for (const inputElement of this.fieldElements) {
-			if (inputElement.type !== 'checkbox')
-				throw new Error("Expected input element of type 'checkbox'.");
-			if ((inputElement as HTMLInputElement).checked) {
-				validity = true;
-			} else {
-				this.errorPlaceholder.reportError();
+	private validateCheckboxSelectMultiple(): boolean {
+		// CheckboxSelectMultiple can be set to be required, which means that at least one checkbox
+		// must be checked, just as a normal SelectMultiple field would behave.
+		// If `<meta name="error-messages" custom_error="…" >` is set, we assume that at least one
+		// checkbox of this field group is required.
+		const message = this.errorPlaceholder.getMessage('customError');
+		if (message && this.fieldElements.every(
+			inputElement => {
+				if (!(inputElement instanceof HTMLInputElement && inputElement.type === 'checkbox'))
+					throw new Error("Expected input element of type 'checkbox'.");
+				return !inputElement.checked;
 			}
+		)) {
+			this.errorPlaceholder.reportCustomError(message);
+			return false;
 		}
-		if (validity) {
-			for (const inputElement of this.fieldElements) {
-				inputElement.setCustomValidity('');
-			}
-		} else if (this.pristineValue !== undefined && this.form.formset.showFeedbackMessages) {
-			this.errorPlaceholder.reportError();
-		}
-		this.form.validate();
-		return validity;
+		return true;
 	}
 
-	private validateFileInput(showFeedbackMessages: boolean): boolean {
+	private validateFileInput(): boolean {
 		if (this.fileUploader!.inProgress()) {
 			// seems that file upload is still in progress => field shall not be valid
-			if (showFeedbackMessages) {
-				this.errorPlaceholder.reportError(gettext("File upload in progress"));
-			}
+			this.errorPlaceholder.reportCustomError(gettext("File upload in progress."));
 			return false;
 		}
 		return this.fileUploader!.inputElement.validity.valid;
@@ -455,28 +437,31 @@ class FieldGroup {
 	private validateBoundField() {
 		// By default, HTML input fields do not validate their bound value regarding their min-
 		// and max-length. Therefore, this validation must be performed separately.
-		if (this.fieldElements.length !== 1 || !(this.fieldElements[0] instanceof HTMLInputElement))
+		if (this.fieldElements.length !== 1)
 			return;
 		const inputElement = this.fieldElements[0];
 		if (!inputElement.value)
 			return;
-		this.errorPlaceholder.reportError();
+		if (inputElement.type === 'text' || inputElement instanceof HTMLTextAreaElement) {
+			if (inputElement.minLength > 0 && inputElement.value.length < inputElement.minLength) {
+				inputElement.setCustomValidity(gettext("Entered text is too short."));
+			}
+			if (inputElement.maxLength > 0 && inputElement.value.length > inputElement.maxLength) {
+				inputElement.setCustomValidity(gettext("Entered text is too long."));
+			}
+		}
 	}
 
 	public setValidationError(): boolean {
 		if (this.fieldElements[0] instanceof HTMLInputElement && this.fieldElements[0].type === 'file')
-			return this.validateFileInput(true);
+			return this.validateFileInput();
 
 		for (let element of this.fieldElements) {
 			if (!element.validity.valid) {
-				return this.errorPlaceholder.reportError();
+				return this.errorPlaceholder.reportValidationError();
 			}
 		}
 		return true;
-	}
-
-	public reportCustomError(message: string) {
-		this.errorPlaceholder.reportError(message);
 	}
 }
 
@@ -1328,7 +1313,7 @@ class DjangoForm {
 		for (const fieldGroup of this.fieldGroups) {
 			const fieldErrors = errors.get(fieldGroup.name);
 			if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
-				fieldGroup.reportCustomError(fieldErrors[0]);
+				fieldGroup.errorPlaceholder.reportCustomError(fieldErrors[0]);
 			}
 		}
 	}
@@ -1336,11 +1321,7 @@ class DjangoForm {
 	public findFirstErrorReport() : Element|null {
 		if (this.errorList?.textContent)
 			return this.element;  // report a non-field error
-		for (const fieldGroup of this.fieldGroups) {
-			if (fieldGroup.errorPlaceholder.showsError)
-				return fieldGroup.element;
-		}
-		return null;
+		return this.fieldGroups.find(group => !group.isValid)?.element ?? null;
 	}
 
 	public untouch() {
@@ -1780,14 +1761,13 @@ export class DjangoFormset implements DjangoFormset {
 	private errorPlaceholder: HTMLLIElement|null = null;
 	public readonly collectionErrorsList = new Map<string, HTMLUListElement>();
 	public formCollectionTemplate?: DjangoFormCollectionTemplate;
-	public readonly showFeedbackMessages: boolean;
 	private readonly abortController = new AbortController;
 	private readonly emptyCollectionPrefixes = Array<string>(0);
 	private data?: object;
 
 	constructor(formset: DjangoFormsetElement) {
 		this.element = formset;
-		this.showFeedbackMessages = this.parseWithholdFeedback();
+		this.parseWithholdFeedback();
 		this.CSRFToken = this.element.getAttribute('csrf-token');
 	}
 
@@ -1814,14 +1794,12 @@ export class DjangoFormset implements DjangoFormset {
 		return this.element.hasAttribute('force-submission');
 	}
 
-	private parseWithholdFeedback(): boolean {
-		let showFeedbackMessages = true;
+	private parseWithholdFeedback() {
 		const withholdFeedback = this.element.getAttribute('withhold-feedback')?.split(' ') ?? [];
 		const feedbackClasses = new Set(['dj-feedback-errors', 'dj-feedback-warnings', 'dj-feedback-success']);
 		for (const wf of withholdFeedback) {
 			switch (wf.toLowerCase()) {
 				case 'messages':
-					showFeedbackMessages = false;
 					break;
 				case 'errors':
 					feedbackClasses.delete('dj-feedback-errors');
@@ -1837,7 +1815,6 @@ export class DjangoFormset implements DjangoFormset {
 			}
 		}
 		feedbackClasses.forEach(feedbackClass => this.element.classList.add(feedbackClass));
-		return showFeedbackMessages;
 	}
 
 	public pushTemplatePrefix(prefix: string) {

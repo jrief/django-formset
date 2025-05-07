@@ -288,7 +288,7 @@ export class DjangoSelectize extends IncompleteSelect {
 		this.shadowRoot.adoptedStyleSheets.push(individualSheet);
 	}
 
-	public initialize() {
+	public async initialize() {
 		// this function is called whenever an instance of <django-selectize> is added to the DOM
 		const sheet = this.shadowRoot.adoptedStyleSheets[0];
 		if (!DjangoSelectize.styleSheet)
@@ -331,6 +331,12 @@ export class DjangoSelectize extends IncompleteSelect {
 			tomInput, '⁝disabled'
 		);
 		this.setupFilters(tomInput);
+		if (this.mustReloadOptions()) {
+			await this.reloadOptions();
+		} else {
+			this.tomSelect.setValue(this.initialValues, true);
+		}
+
 		this.getValue = () => this.currentValue;
 
 		// The built-in HTML select element can receive focus, but does not open the dropdown.

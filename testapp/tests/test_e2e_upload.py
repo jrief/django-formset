@@ -163,15 +163,15 @@ def test_upload_in_progress(page, viewname):
     sleep(0.2)
     page.locator('django-formset').evaluate('elem => elem.submit()')
     error_placeholder = field_group.locator('.dj-errorlist .dj-placeholder')
-    expect(error_placeholder).to_have_text("File upload still in progress.")
+    expect(error_placeholder).to_have_text("File upload in progress.")
 
 
 @pytest.mark.xfail(reason="Playwright does not abort route since version 1.31")
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_interrupt_upload(page, viewname):
-    page.route('/upload', lambda route: route.abort())
+    page.route(page.url, lambda route: route.abort())
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
-    sleep(1)
+    sleep(0.2)
     error_placeholder = page.locator('django-formset [role="group"] .dj-errorlist .dj-placeholder')
     expect(error_placeholder).to_have_text("File upload failed.")
