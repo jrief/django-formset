@@ -26,67 +26,73 @@ input[type^="date"] {
 	color: var(--body-fg);
 	background-color: var(--body-bg);
 }
-.form-row:has([role="dialog"], [is="django-selectize"]) {
-	overflow: visible;
-}
-.form-row [is="django-selectize"] {
-	width: calc(100% - 170px);
-}
-.df-dual-selector {
-	input {
-		border-bottom-left-radius: 0;
-		border-bottom-right-radius: 0;
+.form-row {
+	&:has([role="dialog"], [is="django-selectize"]) {
+		overflow: visible;
 	}
-
-	:is(select, django-sortable-select) {
-		border-top-left-radius: 0;
-		border-top-right-radius: 0;
-		margin-top: -1px;
+	[is="django-selectize"] + .shadow-wrapper{
+		width: calc(100% - 170px);
 	}
-
-	&.selector {
-		margin-bottom: 5px;
-
-		.selector-available, .selector-chosen {
-			input {
-				margin-left: unset;
-			}
-			:is(select, django-sortable-select) {
-				overflow-x: hidden;
-				margin-bottom: 0;
-				padding-top: 2px;
-			}
+	select[is="django-selectize"].dj-concealed, select[is="django-dual-selector"].dj-concealed {
+		width: 1px !important;
+	}
+	.df-dual-selector {
+		input {
+			border-bottom-left-radius: 0;
+			border-bottom-right-radius: 0;
 		}
 
-		.selector-chooser {
-			margin: 6rem 0 0;
-			padding: 0.125rem 0;
+		:is(select, django-sortable-select) {
+			border-top-left-radius: 0;
+			border-top-right-radius: 0;
+			margin-top: -1px;
+		}
 
-			button {
-				border: unset;
-				padding: 0;
-				display: block;
-				overflow: hidden;
-				cursor: pointer;
-				border-radius: 50%;
-				background-color: var(--close-button-bg);
-				color: var(--primary-fg);
-				opacity: 0.8;
-				width: 16px;
-				height: 16px;
+		&.selector {
+			margin-bottom: 5px;
 
-				&:hover {
-					opacity: 1;
+			.selector-available, .selector-chosen {
+				input {
+					margin-left: unset;
 				}
 
-				svg {
-					width: 75%;
-					height: 75%;
+				:is(select, django-sortable-select) {
+					overflow-x: hidden;
+					margin-bottom: 0;
+					padding-top: 2px;
+				}
+			}
+
+			.selector-chooser {
+				margin: 6rem 0 0;
+				padding: 0.125rem 0;
+				width: auto;
+
+				button {
+					border: unset;
+					padding: 0;
+					display: block;
+					overflow: hidden;
+					cursor: pointer;
+					border-radius: 50%;
+					background-color: var(--close-button-bg);
+					color: var(--primary-fg);
+					opacity: 0.8;
+					width: 16px;
+					height: 16px;
+
+					&:hover {
+						opacity: 1;
+					}
+
+					svg {
+						width: 75%;
+						height: 75%;
+					}
 				}
 			}
 		}
 	}
-
 	//	padding: 1rem 1rem 0 !important;
 	//
 	//	button:is(.df-move-all-right, .df-move-selected-right, .df-move-all-left, .df-move-selected-left, .df-undo-assignment, .df-redo-assignment) {
