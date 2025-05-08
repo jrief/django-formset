@@ -27,6 +27,7 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin):
         BooleanField: {'label_suffix': ''},
         FileField: {'widget': UploadedFileInput},
     }
+    form_renderer_class = FormRenderer
 
     def get_form(self, request, obj=None, change=False, **kwargs):
         def init(self, *args, **kwargs):
@@ -43,7 +44,7 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin):
             if isinstance(field.widget, RelatedFieldWidgetWrapper)
         ] + list(self.raw_id_fields)
         if issubclass(form, ModelFormMixin):
-            form.default_renderer = FormRenderer(field_css_classes=field_css_classes)
+            form.default_renderer = self.form_renderer_class(field_css_classes=field_css_classes)
         else:
             form = types.new_class(
                 form.__name__,
@@ -51,7 +52,7 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin):
                 kwds={'metaclass': FormsetModelFormMetaclass},
                 exec_body=lambda ns: ns.update({
                     '__init__': init,
-                    'default_renderer': FormRenderer(field_css_classes=field_css_classes),
+                    'default_renderer': self.form_renderer_class(field_css_classes=field_css_classes),
                 }),
             )
         return form

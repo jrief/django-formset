@@ -15,6 +15,11 @@ class FormRenderer(DefaultFormRenderer):
         'formset/default/widgets/dual_selector.html': 'formset/admin/widgets/dual_selector.html',
     })
 
+    def _amend_form(self, context):
+        super()._amend_form(context)
+        context['field_group_template'] = 'formset/admin/field_group.html'
+        return context
+
     def _amend_label(self, context):
         super()._amend_label(context, hide_checkbox_label=False)
         class_list = ClassList(context['attrs'].get('class'))
@@ -30,14 +35,9 @@ class FormRenderer(DefaultFormRenderer):
         context['widget']['attrs']['class'].add('vTextField')
         return context
 
-    def _amend_dual_selector(self, context):
-        breakpoint('amend_dual_selector')
-        return context
-
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
-        'django/forms/div.html': DefaultFormRenderer._amend_form,
+        'django/forms/div.html': _amend_form,
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_input,
         'formset/default/widgets/datetime.html': _amend_input,
-        #'formset/default/widgets/dual_selector.html': _amend_dual_selector,
     })
