@@ -4,13 +4,12 @@ This library handles single forms and collections of forms with a way better use
 the internal Django implementation for
 [formsets](https://docs.djangoproject.com/en/stable/topics/forms/formsets/) offers.
 
+[![Interactive Documentation](https://img.shields.io/badge/Interactive-Documentation-532BEA)](https://django-formset.fly.dev/)
 [![Build Status](https://github.com/jrief/django-formset/actions/workflows/tests.yml/badge.svg)](https://github.com/jrief/django-formset/actions)
 [![PyPI version](https://img.shields.io/pypi/v/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
 [![Django versions](https://img.shields.io/pypi/djversions/django-formset)](https://pypi.python.org/pypi/django-formset)
 [![Python versions](https://img.shields.io/pypi/pyversions/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
 [![Software license](https://img.shields.io/pypi/l/django-formset.svg)](https://github.com/jrief/django-formset/blob/master/LICENSE)
-
-[Interactive documentation](https://django-formset.fly.dev/)
 
 Let's explain it using a short example. Say, we have a Django form with three fields:
 

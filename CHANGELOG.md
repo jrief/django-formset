@@ -23,7 +23,13 @@
   * Add management command `./manage.py cleanup_files` to delete dangling files. This is because the
     `UploadedFileInput` widget accepts files before their form is submitted and hence processed.
 
-- 1.7.5
+1.7.7
+  * Add support for Django-5.2.
+
+1.7.6
+  * Fix #209: Induce button now also work for fresh form collections.
+
+1.7.5
   * Fix #208: Closed form dialogs are always considered as valid.
   * Fix in web component ``date-picker`` and ``date-time-picker``: On submission the timezone offset
     now is removed, this sometimes caused the submission of incorrect date/time stamps.
