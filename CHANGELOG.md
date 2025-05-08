@@ -1,5 +1,8 @@
 ## Changes
 
+1.7.7
+  * Add support for Django-5.2.
+
 1.7.6
   * Fix #209: Induce button now also work for fresh form collections.
 
