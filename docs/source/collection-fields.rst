@@ -43,12 +43,14 @@ directly in a JSONField_ provided by the used model.
 Using ``fields_map``
 --------------------
 
-Say, we want to store the configuration for an HTML component to represent a carousel using Django
+Say, we want to store the configuration for an HTML component to represent a carousel_ using Django
 models. For this we would require at least two models: one to represent the carousel itself and
 one to represent the slides of the carousel. But since carousel slides typically are not that
-interesting by themselves, we can forgo a foreign relationship and instead store everything using a
-JSON. This representation then contains a dictionary with the configuration of the carousel and a
-list of dictionaries containing the configuration for each of the slides.
+interesting by themselves, we can forgo a foreign relationship and instead store everything inside a
+``JSONField``. This representation then contains a dictionary with the configuration of the carousel
+and a list of dictionaries containing the configuration for each of the slides.
+
+.. _carousel: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_overflow/CSS_carousels
 
 .. code-block:: python
    :caption: models.py
@@ -158,10 +160,12 @@ Otherwise, if the collection would not have siblings, this would just be a sub-d
 Store content from a ``CollectionField`` into a ``JSONField``
 -------------------------------------------------------------
 
-In this example, we want to represent an accordion element as our HTML component. There we do not
+In this example, we want to represent an accordion_ element as our HTML component. There we do not
 need to keep any configuration for the accordion itself, only the configuration of its items must be
 stored. We therefore can map the field named ``context`` directly onto the equally named
 ``JSONField`` in our model ``Component``.
+
+.. _accordion: https://en.wikipedia.org/wiki/Accordion_(GUI)
 
 .. django-view:: accordion_form
 	:caption: forms.py
