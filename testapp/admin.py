@@ -3,11 +3,12 @@ from django.forms.models import ModelForm
 from django.forms.widgets import RadioSelect
 
 from formset.admin import ModelAdmin
-# from formset.forms import ModelForm
 from formset.widgets import DatePicker, Selectize, SelectizeMultiple, UploadedFileInput
 
 from .forms.person import ModelPersonForm
+from .forms.product import ProductForm
 from .models.person import PersonModel
+from .models.product import ProductModel
 
 
 class PersonModelForm(ModelForm):
@@ -30,3 +31,9 @@ class PersonAdmin(ModelAdmin):
     save_as = True
     form = ModelPersonForm
     # form = PersonModelForm
+
+
+@admin.register(ProductModel)
+class ProductAdmin(ModelAdmin):
+    save_as = True
+    form = ProductForm
