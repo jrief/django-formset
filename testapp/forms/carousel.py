@@ -1,5 +1,5 @@
 from django.forms import fields, forms
-from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
+from django.forms.models import ModelChoiceField
 
 from formset.collection import FormCollection
 from formset.formfields.collection import CollectionField
@@ -24,7 +24,7 @@ class SlideForm(forms.Form):
         label="Caption",
         required=False,
     )
-    product = ModelMultipleChoiceField(
+    product = ModelChoiceField(
         ProductModel.objects.all(),
         widget=SelectizeMultiple(),
     )

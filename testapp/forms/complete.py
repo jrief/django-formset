@@ -3,8 +3,6 @@ from django.core.exceptions import ValidationError
 from django.forms import fields, forms, widgets
 from django.utils.timezone import datetime
 
-from formset.widgets import DateInput
-
 
 def validate_password(value):
     pwhasher = PBKDF2PasswordHasher()

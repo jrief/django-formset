@@ -8,7 +8,7 @@ from django.forms import fields, forms
 
 from formset.collection import FormCollection
 from formset.dialog import ApplyButton, CancelButton, DialogForm
-from formset.formfields import Activator
+from formset.formfields.activator import Activator
 from formset.views import FormCollectionView
 
 from .utils import ContextMixin, get_javascript_catalog

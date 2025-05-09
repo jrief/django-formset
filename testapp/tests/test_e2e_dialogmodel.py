@@ -9,7 +9,7 @@ from django.http import JsonResponse, HttpResponseBadRequest
 
 from formset.collection import FormCollection
 from formset.dialog import DialogModelForm
-from formset.formfields import Activator
+from formset.formfields.activator import Activator
 from formset.views import EditCollectionView
 from formset.widgets import Button, Selectize
 

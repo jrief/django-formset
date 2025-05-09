@@ -7,7 +7,7 @@ from django.forms import fields, forms
 from django.urls import path
 
 from formset.richtext import controls, dialogs
-from formset.widgets import RichTextarea
+from formset.widgets.richtext import RichTextarea
 from formset.views import FormView
 
 from .utils import ContextMixin, get_javascript_catalog
