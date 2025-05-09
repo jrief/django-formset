@@ -27,3 +27,10 @@ class ProductModel(models.Model):
         max_length=40,
         db_index=True,
     )
+
+    class Meta:
+        verbose_name = "Product"
+        verbose_name_plural = "Products"
+
+    def __str__(self):
+        return self.title

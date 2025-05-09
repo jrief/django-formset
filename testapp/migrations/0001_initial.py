@@ -314,6 +314,7 @@ class Migration(migrations.Migration):
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
                 ('last_modified_at', models.DateTimeField(auto_now=True)),
             ],
+            options={'verbose_name': 'Product', 'verbose_name_plural': 'Products'},
         ),
         migrations.RunPython(initialize_opinions, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(initialize_counties, reverse_code=migrations.RunPython.noop),
