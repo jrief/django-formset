@@ -340,6 +340,7 @@ class ComponentFormView(DemoModelFormView):
         form.instance.type = self.filtered_type
         return super().form_valid(form)
 
+
 class GalleryCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
     model = Gallery
     collection_class = GalleryCollection

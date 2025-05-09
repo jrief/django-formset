@@ -146,7 +146,7 @@ def test_partial_fill_collection(page, mocker, viewname):
     page.fill('#id_company\\.name', "Pepsi")
     page.fill('#id_departments\\.0\\.department\\.name', "Marketing")
     if viewname == 'company_2':
-        page.hover('#id_departments\\.0\\.teams\\.0\\.team ~ .dj-form')
+        page.hover('#id_departments\\.0\\.teams\\.0\\.team ~ [role="form"]')
         page.click('#id_departments\\.0\\.teams\\.0\\.team ~ .remove-collection')
     page.locator('#id_company\\.name').evaluate('elem => elem.focus()')
     spy = mocker.spy(FormCollectionView, 'post')

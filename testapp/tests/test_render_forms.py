@@ -49,7 +49,7 @@ def test_person_form_get(rf):
     response = view(rf.get('/'))
     response.render()
     soup = BeautifulSoup(response.content, 'html.parser')
-    form_wrapper = soup.find('div', class_='dj-form')
+    form_wrapper = soup.find('div', role='form')
     assert form_wrapper is not None
     assert 'row' in form_wrapper.attrs['class']
     field_group_elems = form_wrapper.find_all('div', role='group')
@@ -99,7 +99,7 @@ def test_simple_collection_get(initial, rf):
     assert form_elem is not None
     assert form_elem.attrs['name'] == 'person'
     assert form_elem.attrs['id'] == 'id_person'
-    form_wrapper = collection_elems[0].find('div', class_='dj-form')
+    form_wrapper = collection_elems[0].find('div', role='form')
     field_group_elems = form_wrapper.find_all('div', role='group')
     assert len(field_group_elems) == 2
     input_elems = form_wrapper.find_all('input')
@@ -116,7 +116,7 @@ def test_simple_collection_get(initial, rf):
     form_elem = collection_elems[1].find('form')
     assert form_elem.attrs['name'] == 'profession'
     assert form_elem.attrs['id'] == 'id_profession'
-    form_wrapper = collection_elems[1].find('div', class_='dj-form')
+    form_wrapper = collection_elems[1].find('div', role='form')
     field_group_elems = form_wrapper.find_all('div', role='group')
     assert len(field_group_elems) == 2
     input_elems = form_wrapper.find_all('input')

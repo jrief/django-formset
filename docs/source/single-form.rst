@@ -89,7 +89,7 @@ our form. When rendered, the above form will roughly turn into HTML such as:
 
 	<django-formset endpoint="/path/to/form-view" csrf-token="MGxnpC…OF57pW">
 	  <form id="id_personform"></form>
-	  <div class="rounded-xl dj-form">
+	  <div role="form" class="rounded-xl">
 	    <div class="dj-form-errors"><ul class="dj-errorlist"></ul></div>
 	    <div role="group" class="mb-5 dj-required">
 	      <label class="formset-label">First name:</label>
@@ -105,10 +105,11 @@ our form. When rendered, the above form will roughly turn into HTML such as:
 	</django-formset>
 
 Compared to the way the native Django form renderer works, we see a few differences here: The most
-obvious one is that input fields are not wrapped into their ``<form>``-element. Instead they refer
-to the form they belong to by ID using the attribute ``form="id_personform"``. This is so
-that forms can logically be nested into each other. Remember that it is invalid HTML to nest one
-``<form>``-element into another one, but using this trick we can mimic that behavior.
+obvious one is that input fields are wrapped into a ``<div role="form">``-element rather than into a
+``<form>``, as we usually do. Instead they refer to the form they belong to by ID using the
+attribute ``form="id_personform"``. This is so that forms can logically be nested into each other.
+Remember that it is invalid HTML to nest one ``<form>``-element into another one, but using this
+trick we can mimic that behavior.
 
 Also note that each input field is wrapped into a ``<div role="group">``-element. Even though this
 tag may look like another web component, it is just a non-visual HTML element. Its purpose is to

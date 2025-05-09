@@ -18,6 +18,8 @@
     The classes `DateRangeCalendar`, `DateRangeTextbox`, `DateRangePicker`, `DateTimeRangeCalendar`,
     `DateTimeRangeTextbox` and `DateTimeRangePicker` have been moved from `formset.ranges` to
     `formset.widgets`.
+  * Semantically improve HTML: The `<div class="dj-form">`-element to wrap forms now is rendered as 
+    `<div role="form">`. 
   * Error messages shown for invalid fields hide as soon as the field is focused. This is to
     prevent the user from being unsettled by an error message while filling out the form.
   * Add management command `./manage.py cleanup_files` to delete dangling files. This is because the

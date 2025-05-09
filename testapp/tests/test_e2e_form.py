@@ -72,5 +72,5 @@ def test_form_submission_error(page, viewname):
     submit_button = page.locator('button[df-click]').first
     submit_button.click()
     sleep(0.2)
-    error_placeholder = page.locator('#id_fullnameform + .dj-form .dj-form-errors > .dj-errorlist > .dj-placeholder')
+    error_placeholder = page.locator('#id_fullnameform + [role="form"] .dj-form-errors > .dj-errorlist > .dj-placeholder')
     expect(error_placeholder).to_have_text("Names have invalid capitalization.")

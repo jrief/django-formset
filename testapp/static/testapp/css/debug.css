@@ -3,15 +3,15 @@ body {
 	color: light-dark(black, white);
 	}
 /* use this stylesheet to see nesting levels on collections and their form validation status */
-.dj-form {
+[role="form"] {
 	padding: 0.5rem;
 	border: 1px dotted grey;
 	min-height: 1em;
 	}
-form:valid + :is(.dj-form, fieldset) {
+form:valid + :is([role="form"], fieldset) {
 	border-color: rgba(0%, 100%, 0%, 0.5);
 	}
-form:invalid + :is(.dj-form, fieldset) {
+form:invalid + :is([role="form"], fieldset) {
 	border-color: rgba(100%, 0%, 0%, 0.5);
 	}
 

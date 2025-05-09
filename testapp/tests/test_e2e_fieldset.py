@@ -28,7 +28,7 @@ urlpatterns = [
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['customer'])
 def test_submit_fieldsets(page, mocker, viewname):
-    fieldset = page.locator('django-formset > .dj-form > fieldset')
+    fieldset = page.locator('django-formset > [role="form"] > fieldset')
     expect(fieldset).to_have_count(2)
     expect(fieldset.nth(0)).to_be_visible()
     expect(fieldset.nth(0)).to_have_attribute('name', 'billing')
@@ -71,7 +71,7 @@ def test_submit_hidden_fieldset(page, mocker, viewname):
     page.fill('#id_billing\\.recipient', "John Doe")
     page.fill('#id_billing\\.address\\.postal_code', "12345")
     page.fill('#id_billing\\.address\\.city', "Springfield")
-    fieldset = page.locator('django-formset > .dj-form fieldset[name="shipping"]')
+    fieldset = page.locator('django-formset > [role="form"] fieldset[name="shipping"]')
     expect(fieldset).to_be_visible()
     expect(fieldset).to_have_attribute('df-hide', 'use_billing_address')
     page.click('#id_use_billing_address')

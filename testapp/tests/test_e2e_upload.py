@@ -28,9 +28,9 @@ urlpatterns.append(get_javascript_catalog())
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_image(page, mocker, settings, viewname):
-    choose_file_button = page.locator('django-formset .dj-form button[aria-controls="id_avatar"]')
+    choose_file_button = page.locator('django-formset [role="form"] button[aria-controls="id_avatar"]')
     expect(choose_file_button).to_be_visible()  # that button would open the file selector
-    dropbox = page.locator('django-formset .dj-form figure.dj-dropbox')
+    dropbox = page.locator('django-formset [role="form"] figure.dj-dropbox')
     expect(dropbox.locator('div.dj-empty-item')).to_have_text("Drag file here")
     expect(dropbox.locator('img')).not_to_be_visible()
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
@@ -75,7 +75,7 @@ def test_upload_image(page, mocker, settings, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_pdf(page, viewname):
-    dropbox = page.locator('django-formset .dj-form [role="group"] figure.dj-dropbox')
+    dropbox = page.locator('django-formset [role="form"] [role="group"] figure.dj-dropbox')
     expect(dropbox).to_be_visible()
     page.set_input_files('#id_avatar', 'testapp/assets/dummy.pdf')
     expect(dropbox.locator('img')).to_have_attribute('src', '/static/formset/icons/file-pdf.svg')
@@ -85,7 +85,7 @@ def test_upload_pdf(page, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_upload_broken_image(page, viewname):
-    dropbox = page.locator('django-formset .dj-form [role="group"] figure.dj-dropbox')
+    dropbox = page.locator('django-formset [role="form"] [role="group"] figure.dj-dropbox')
     expect(dropbox).to_be_visible()
     expect(dropbox.locator('figcaption')).not_to_be_visible()
     page.set_input_files('#id_avatar', 'testapp/assets/broken-image.jpg')
@@ -106,7 +106,7 @@ def test_upload_required(page, viewname):
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_delete_uploaded_file(page, viewname):
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
-    dropbox = page.locator('django-formset .dj-form [role="group"] figure.dj-dropbox')
+    dropbox = page.locator('django-formset [role="form"] [role="group"] figure.dj-dropbox')
     expect(dropbox.locator('img')).to_be_visible()
     delete_button = dropbox.locator('figcaption a.dj-delete-file')
     delete_button.click()
