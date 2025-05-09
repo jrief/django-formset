@@ -27,13 +27,13 @@ input[type^="date"] {
 	background-color: var(--body-bg);
 }
 .form-row {
-	&:has([role="dialog"], [is="django-selectize"]) {
+	&:has([role="dialog"], [is^="django-selectize"]) {
 		overflow: visible;
 	}
-	[is="django-selectize"] + .shadow-wrapper{
+	[is^="django-selectize"] + .shadow-wrapper{
 		width: calc(100% - 170px);
 	}
-	select[is="django-selectize"].dj-concealed, select[is="django-dual-selector"].dj-concealed {
+	:is(select[is^="django-selectize"], select[is="django-dual-selector"]).dj-concealed {
 		width: 1px !important;
 	}
 	.df-dual-selector {
