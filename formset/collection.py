@@ -162,14 +162,12 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             yield holder
 
     def iter_many(self):
-        if self.initial:
-            if not isinstance(self.initial, list):
-                errmsg = "{class_name} is declared to have siblings, but provided argument `{argument}` is not a list"
-                raise FormCollectionError(errmsg.format(class_name=self.__class__.__name__, argument='initial'))
+        if isinstance(self.initial, list):
             num_siblings = max(self.min_siblings, len(self.initial) + self.extra_siblings)
             if self.max_siblings is not None:
                 num_siblings = min(self.max_siblings, num_siblings)
         else:
+            self.initial = []
             num_siblings = max(self.min_siblings, self.extra_siblings)
 
         first, last = 0, len(self.declared_holders.items()) - 1
@@ -177,9 +175,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         for position in range(num_siblings):
             for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
                 prefix = f'{self.prefix}.{position}.{name}' if self.prefix else f'{position}.{name}'
-                initial = None
-                if self.initial and position < len(self.initial):
-                    initial = self.initial[position].get(name)
+                initial = self.initial[position].get(name) if position < len(self.initial) else None
                 if initial is None:
                     initial = declared_holder.initial
                 holder = declared_holder.replicate(
@@ -302,7 +298,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 if not isinstance(declared_holder, (BaseForm, BaseFormCollection)):
                     # TODO: Button can have a value and could be validated since it is a field
                     continue
-                if name in self.data:
+                if isinstance(self.data, dict) and name in self.data:
                     instance = self.retrieve_instance(self.data[name])
                     holder = declared_holder.replicate(
                         data=self.data[name],

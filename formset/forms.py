@@ -56,6 +56,14 @@ class FormMixin(FormDecoratorMixin, HolderMixin):
     def get_field(self, field_name):
         return self.fields[field_name]
 
+    def add_error(self, field_name, error):
+        field = self.get_field(field_name) if field_name in self.fields else None
+        if isinstance(field, CollectionFieldMixin):
+            # Django's `BaseForm.add_error()` method does not support nested fields
+            self._errors[field_name] = error.error_list if field.collection.has_many else error.error_dict
+        else:
+            super().add_error(field_name, error)
+
 
 class FormsetMetaclassMixin(type):
     def __new__(mcs, name, bases, attrs):
@@ -154,11 +162,15 @@ class ModelFormMixin(FormMixin):
                     cleaned_data[af] = CollectionFieldMixin.pre_serialize(self.instance, af, self.cleaned_data[af])
             self.cleaned_data = cleaned_data
         for field_name, field in self.base_fields.items():
-            if isinstance(field, CollectionFieldMixin) and field_name in model_field_names:
+            if (
+                isinstance(field, CollectionFieldMixin)
+                and field_name in model_field_names
+                and field_name in self.cleaned_data
+            ):
                 self.cleaned_data[field_name] = CollectionFieldMixin.pre_serialize(
                     self.instance,
                     field_name,
-                    self.cleaned_data[field_name]
+                    self.cleaned_data[field_name],
                 )
 
 

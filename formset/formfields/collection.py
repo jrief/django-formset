@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.forms.fields import Field
 
 from formset.collection import BaseFormCollection
@@ -23,5 +24,15 @@ class CollectionField(CollectionFieldMixin, Field):
 
     def clean(self, value):
         collection = self.collection.replicate(data=value)
-        collection.full_clean()
+        if not collection.is_valid():
+            # Django's `ValidationError()` constructor does not support nested fields
+            if isinstance(collection._errors, dict):
+                validation_error = ValidationError({})
+                validation_error.error_dict.update(collection._errors)
+            elif isinstance(collection._errors, (dict, list)):
+                validation_error = ValidationError([])
+                validation_error.error_list.extend(collection._errors)
+            else:
+                validation_error = ValidationError(collection._errors)
+            raise validation_error
         return collection.cleaned_data
