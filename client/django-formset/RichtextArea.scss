@@ -257,15 +257,12 @@
 		opacity: 1;
 	}
 
-	.dj-submitted &.focused.invalid {
-		opacity: 1;
-	}
 
-	&:not(.focused).invalid {
+	.dj-dirty &:not(.focused).invalid {
 		border-color: var(--django-formset-color-invalid);
 	}
 
-	&:not(.focused).valid {
+	.dj-dirty &:not(.focused).valid {
 		border-color: var(--django-formset-color-valid);
 	}
 }
