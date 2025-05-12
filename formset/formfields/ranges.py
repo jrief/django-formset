@@ -1,5 +1,6 @@
 from datetime import date, datetime
 
+from django.core.exceptions import ValidationError
 from django.forms import fields
 from django.utils.translation import gettext_lazy as _
 
@@ -35,7 +36,7 @@ class BaseRangeField(fields.MultiValueField):
     def validate(self, values):
         lower, upper = values
         if lower is not None and upper is not None and lower > upper:
-            raise fields.ValidationError(
+            raise ValidationError(
                 self.error_messages['bound_ordering'],
                 code='bound_ordering',
             )
