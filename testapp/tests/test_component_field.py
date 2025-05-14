@@ -418,9 +418,6 @@ def test_edit_jumbotron_invalid(rf, view_class):
     request = rf.post('/', form_data, content_type='application/json')
     response = view_func(request, pk=component.pk)
     assert response.status_code == 422
-    expected = {
-        'context': {'item': {'__all__': ["Form data is missing."]}},
-    }
     assert json.loads(response.getvalue()) == expected
 
 
@@ -445,3 +442,110 @@ def test_edit_jumbotron_valid(rf, view_class):
     assert json.loads(response.getvalue())['success_url'] == '/success/'
     component.refresh_from_db()
     assert component.context == {'item': {'heading': "Jumbotron"}}
+
+
+class JumbomapForm(JumbotronForm):
+    jumbotron = CollectionField(JumbotronCollection)
+
+    class Meta:
+        model = Component
+        fields = ['context']
+        fields_map = {'context': ['jumbotron']}
+
+
+@pytest.mark.django_db
+def test_render_prefilled_jumbomap(rf, view_class):
+    component = Component.objects.create(
+        type='jumbomap',
+        created_by='test_jumbomap',
+        context={'jumbotron': {'item': {'heading': "Jumbomap"}}},
+    )
+    request = rf.get('/')
+    response = view_class.as_view(
+        form_class=JumbomapForm,
+        queryset=Component.objects.filter(type='jumbomap'),
+    )(request, pk=component.pk)
+    response.render()
+    soup = BeautifulSoup(response.content, 'html.parser')
+    formset = soup.find('django-formset')
+    form = formset.find(role='form')
+    input_fields = form.find_all('input')
+    assert len(input_fields) == 1
+    attrs = {'type': 'text', 'name': 'heading', 'required': '', 'pattern': '^[A-Z][a-zA-Z0-9 ]+$'}
+    expected = soup.new_tag(
+        name='input',
+        attrs=dict(attrs, id='id_jumbotron.item.heading', form='id_jumbotron.item', value="Jumbomap"),
+    )
+    assert input_fields[0] == expected
+
+
+@pytest.mark.django_db
+def test_edit_jumbomap_invalid(rf, view_class):
+    component = Component.objects.create(
+        type='jumbomap',
+        created_by='test_jumbomap',
+    )
+    assert component.context == {}
+    view_func = view_class.as_view(
+        form_class=JumbomapForm,
+        queryset=Component.objects.filter(type='jumbomap'),
+    )
+    form_data = {
+        'formset_data': {
+            'jumbotron': {'item': {'heading': "jumbotron"}},
+        }
+    }
+    request = rf.post('/', form_data, content_type='application/json')
+    response = view_func(request, pk=component.pk)
+    assert response.status_code == 422
+    expected = {
+        'jumbotron': {'item': {'heading': ["Enter a valid value."]}},
+    }
+    assert json.loads(response.getvalue()) == expected
+
+    form_data['formset_data']['jumbotron']['item'].pop('heading')
+    request = rf.post('/', form_data, content_type='application/json')
+    response = view_func(request, pk=component.pk)
+    assert response.status_code == 422
+    expected = {
+        'jumbotron': {'item': {'heading': ["This field is required."]}},
+    }
+    assert json.loads(response.getvalue()) == expected
+
+    form_data['formset_data']['jumbotron'].pop('item')
+    request = rf.post('/', form_data, content_type='application/json')
+    response = view_func(request, pk=component.pk)
+    assert response.status_code == 422
+    expected = {
+        'jumbotron': {'item': {'__all__': ["Form data is missing."]}},
+    }
+    assert json.loads(response.getvalue()) == expected
+
+    form_data['formset_data'].pop('jumbotron')
+    request = rf.post('/', form_data, content_type='application/json')
+    response = view_func(request, pk=component.pk)
+    assert response.status_code == 422
+    assert json.loads(response.getvalue()) == expected
+
+
+@pytest.mark.django_db
+def test_edit_jumbomap_valid(rf, view_class):
+    component = Component.objects.create(
+        type='jumbomap',
+        created_by='test_jumbomap',
+    )
+    assert component.context == {}
+    form_data = {
+        'formset_data': {
+            'jumbotron': {'item': {'heading': "Jumbotron"}},
+        }
+    }
+    request = rf.post('/', form_data, content_type='application/json')
+    response = view_class.as_view(
+        form_class=JumbomapForm,
+        queryset=Component.objects.filter(type='jumbomap'),
+    )(request, pk=component.pk)
+    assert response.status_code == 200
+    assert json.loads(response.getvalue())['success_url'] == '/success/'
+    component.refresh_from_db()
+    assert component.context == {'jumbotron': {'item': {'heading': "Jumbotron"}}}
