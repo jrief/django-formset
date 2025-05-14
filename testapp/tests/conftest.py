@@ -49,7 +49,7 @@ def print_args(msg):
         print(arg.json_value())
 
 
-@pytest.fixture()
+@pytest.fixture
 def page(connector, viewname, locale, language):
     context = connector.browser.new_context(locale=locale)
     context.add_cookies([{'name': 'django_language', 'value': language, 'domain': 'localhost', 'path': '/'}])
