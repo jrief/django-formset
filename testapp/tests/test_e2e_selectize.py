@@ -236,20 +236,28 @@ def test_change_multiple(page, form, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
-def test_lookup_value(page, mocker, form, viewname):
+def test_lookup_value(page, form, viewname):
     input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control input[type="text"]')
     expect(input_element).to_be_visible()
     input_element.click()
-    spy = mocker.spy(FormView, 'get')
-    page.keyboard.press('1')
-    page.keyboard.press('5')
-    page.keyboard.press('9')
-    sleep(1)  # because TomSelect delays the lookup
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    content = json.loads(spy.spy_return.content)
-    assert content['count'] == 1
-    assert content['options'][0]['label'] == "Opinion 0159"
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
+        page.keyboard.press('1')
+        sleep(0.05)
+        page.keyboard.press('5')
+        sleep(0.05)
+        page.keyboard.press('9')
+        sleep(0.9)  # because TomSelect delays the lookup
+    assert response_info.value.status == 200
+    opinion = OpinionModel.objects.get(label="Opinion 0159")
+    expected = {
+        'total_count': 999,
+        'search': '159',
+        'count': 1,
+        'incomplete': None,
+        'options': [{'id': opinion.id, 'label': opinion.label}],
+    }
+    assert response_info.value.json() == expected
+
     dropdown_element = page.locator('django-formset .shadow-wrapper .ts-dropdown.single')
     pseudo_option = dropdown_element.locator('div[data-selectable]').nth(0)
     expect(pseudo_option).to_be_visible()
