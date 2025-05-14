@@ -65,11 +65,12 @@ TIME_ZONE = 'UTC'
 MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'testapp.middleware.AutoLoginMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
 ]
+if os.getenv('DJANGO_AUTO_LOGIN', '').lower() in ['true', '1', 'yes']:
+    MIDDLEWARE.insert(2, 'testapp.middleware.AutoLoginMiddleware')
 
 USE_I18N = True
 
