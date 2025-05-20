@@ -1644,8 +1644,10 @@ class DjangoFormCollectionTemplate {
 		this.renderEmptyCollection = template(element.innerHTML);
 		if (element.nextElementSibling?.matches('button.add-collection')) {
 			this.addButton = element.nextElementSibling as HTMLButtonElement;
-			this.addButton.addEventListener('click', this.appendFormCollectionSibling);
+		} else {
+			this.addButton = element.nextElementSibling?.querySelector('button.add-collection') ?? undefined;
 		}
+		this.addButton?.addEventListener('click', this.appendFormCollectionSibling);
 		const innerCollection = this.element.content.querySelector('django-form-collection');
 		const maxSiblings = innerCollection?.getAttribute('max-siblings');
 		if (maxSiblings) {

@@ -4,7 +4,7 @@
 {% if show_save %}<button type="button" class="button default" df-click="submit({name: '_save'}) -> proceed !~ scrollToError">{% translate 'Save' %}</button>{% endif %}
 {% if show_save_as_new %}<button type="button" class="button" df-click="submit({name: '_saveasnew'}) -> proceed !~ scrollToError">{% translate 'Save as new' %}</button>{% endif %}
 {% if show_save_and_add_another %}<button type="button" class="button" df-click="submit({name: '_addanother'}) -> proceed !~ scrollToError">{% translate 'Save and add another' %}</button>{% endif %}
-{% if show_save_and_continue %}<button type="button" class="button" df-click="submit({name: '_continue'}) -> reload !~ scrollToError">{% if can_change %}{% translate 'Save and continue editing' %}{% else %}{% translate 'Save and view' %}{% endif %}</button>{% endif %}
+{% if show_save_and_continue %}<button type="button" class="button" df-click="submit({name: '_continue'}) -> proceed !~ scrollToError">{% if can_change %}{% translate 'Save and continue editing' %}{% else %}{% translate 'Save and view' %}{% endif %}</button>{% endif %}
 {% if show_close %}
     {% url opts|admin_urlname:'changelist' as changelist_url %}
     <a href="{% add_preserved_filters changelist_url %}" class="closelink">{% translate 'Close' %}</a>

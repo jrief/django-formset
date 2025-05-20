@@ -68,6 +68,9 @@ class FormMixin(FormDecoratorMixin, HolderMixin):
 class FormsetMetaclassMixin(type):
     def __new__(mcs, name, bases, attrs):
         attrs_list, declared_fieldsets = [], {}
+        for base in reversed(bases):
+            for b in reversed(base.__mro__):
+                declared_fieldsets.update(getattr(b, 'declared_fieldsets', {}))
         for key, value in list(attrs.items()):
             if isinstance(value, Fieldset):
                 declared_fieldsets[key] = value

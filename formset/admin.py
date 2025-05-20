@@ -1,15 +1,15 @@
 import json
 import types
+import warnings
 
 from django.contrib import admin as django_admin
 from django.contrib.admin import helpers
-from django.contrib.admin.options import IS_POPUP_VAR, TO_FIELD_VAR
-from django.contrib.admin.utils import flatten_fieldsets, unquote
-from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
-from django.core.exceptions import PermissionDenied
+from django.contrib.admin.options import IS_POPUP_VAR, TO_FIELD_VAR, get_content_type_for_model
+from django.db import transaction
 from django.db.models.fields import BooleanField
 from django.db.models.fields.files import FileField
 from django.http import HttpResponseBadRequest, JsonResponse
+from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import gettext
 
@@ -17,11 +17,11 @@ from formset.forms import ModelFormMixin, FormsetModelFormMetaclass
 from formset.renderers.admin import FormRenderer
 from formset.upload import receive_uploaded_file
 from formset.calendar import CalendarResponseMixin
-from formset.views import IncompleteSelectResponseMixin
+from formset.views import FormCollectionViewMixin, IncompleteSelectResponseMixin
 from formset.widgets import UploadedFileInput
 
 
-class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin):
+class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, FormCollectionViewMixin):
     change_form_template = 'admin/formset/change_form.html'
     formfield_overrides = {
         BooleanField: {'label_suffix': ''},
@@ -29,37 +29,72 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin):
     }
     form_renderer_class = FormRenderer
 
-    def get_form(self, request, obj=None, change=False, **kwargs):
+    def __init__(self, model, admin_site):
+        if self.fields is not None:
+            warnings.warn(
+                f"Adding `field` to {self.__class__.__name__} has no effect. "
+                "Use `form` referring to a class inheriting from `formset.forms.ModelForm` instead.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+        if self.fieldsets is not None:
+            warnings.warn(
+                f"Adding `fieldsets` to {self.__class__.__name__} has no effect. "
+                "Use `formset.fieldset.Fieldset` instead.",
+                RuntimeWarning,
+            )
+        if len(self.inlines) > 0:
+            warnings.warn(
+                f"Adding `inlines` to {self.__class__.__name__} has no effect. "
+                "Use a class inheriting from `formset.collection.FormCollection` instead of a form.",
+                RuntimeWarning,
+            )
+        if len(self.raw_id_fields) > 0:
+            warnings.warn(
+                f"Adding `raw_id_fields` to {self.__class__.__name__} has no effect. "
+                "Use `formset.widgets.Selectize` in your form class instead.",
+                RuntimeWarning,
+            )
+        if len(self.readonly_fields) > 0:
+            warnings.warn(
+                f"Adding `readonly_fields` to {self.__class__.__name__} has no effect. "
+                "Use disabled fields in your form instead.",
+                RuntimeWarning,
+            )
+        super().__init__(model, admin_site)
+
+    def get_model_form(self):
         def init(self, *args, **kwargs):
             # change signature of constructor to keep compatible with Django's ModelAdmin forms
             super(self.__class__, self).__init__(*args, **kwargs)
 
-        form = super().get_form(request, obj, change, **kwargs)
-        field_css_classes = {key: f'field-{key}' for key in form.base_fields.keys()}
-        # we have to add fields using our own widgets (`Selectize`, `SelectizeMultiple` and `DualSelector`) to
-        # `raw_id_fields` in order to prevent Django from rendering them inside a `RelatedFieldWidgetWrapper`.
-        # See ticket https://code.djangoproject.com/ticket/36250 for details.
-        self.raw_id_fields = [
-            name for name, field in form.base_fields.items()
-            if isinstance(field.widget, RelatedFieldWidgetWrapper)
-        ] + list(self.raw_id_fields)
-        if issubclass(form, ModelFormMixin):
-            form.default_renderer = self.form_renderer_class(field_css_classes=field_css_classes)
+        field_css_classes = {key: f'field-{key}' for key in self.form.base_fields.keys()}
+        default_renderer = self.form_renderer_class(field_css_classes=field_css_classes)
+        if issubclass(self.form, ModelFormMixin):
+            return type(self.form.__name__, (self.form,), {'default_renderer': default_renderer})
         else:
-            form = types.new_class(
-                form.__name__,
-                bases=(ModelFormMixin, form),
+            return types.new_class(
+                self.form.__name__,
+                bases=(ModelFormMixin, self.form),
                 kwds={'metaclass': FormsetModelFormMetaclass},
                 exec_body=lambda ns: ns.update({
                     '__init__': init,
-                    'default_renderer': self.form_renderer_class(field_css_classes=field_css_classes),
+                    'default_renderer': default_renderer,
                 }),
             )
-        return form
 
     def get_field(self, field_path):
+        if self.collection_class:
+            return self.collection_class().get_field(field_path)
         field_name = field_path.split('.')[-1]
-        return self.form_class.base_fields[field_name]
+        return self.form().base_fields[field_name]
+
+    def get_collection_kwargs(self):
+        kwargs = super().get_collection_kwargs()
+        kwargs.update({
+            'renderer': self.form_renderer_class(),
+        })
+        return kwargs
 
     def _changeform_view(self, request, object_id, form_url, extra_context):
         to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
@@ -68,145 +103,146 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin):
                 "The field %s cannot be referenced." % to_field
             )
 
-        if request.method == "POST" and "_saveasnew" in request.POST:
-            object_id = None
+        if request.method == 'GET' and ('calendar' in request.GET or 'field' in request.GET):
+            # intercept calendar requests
+            return super().get(request)
 
-        add = object_id is None
+        if request.method == 'POST' and request.content_type == 'multipart/form-data' and 'temp_file' in request.FILES:
+            # intercept file uploads
+            try:
+                return JsonResponse(
+                    receive_uploaded_file(request.FILES['temp_file'], request.POST['image_height'])
+                )
+            except Exception as e:
+                return HttpResponseBadRequest(str(e))
 
+        if object_id:
+            add = False
+            self.object = self.get_object(request, object_id)
+        else:
+            add = True
+            self.object = self.model()
+        self.request = request
+        kwargs = {}
+        if collection_class := self.get_collection_class():
+            initial = collection_class().model_to_dict(self.object)
+            kwargs.update(self.get_collection_kwargs())
+        else:
+            initial = self.get_changeform_initial_data(request)
+        kwargs.update(initial=initial, instance=self.object)
+
+        if self.request.method in ('PATCH', 'POST', 'PUT') and self.request.content_type == 'application/json':
+            return self._update_collection_view(kwargs)
+
+        # render the form or collection to HTML
         if add:
-            if not self.has_add_permission(request):
-                raise PermissionDenied
-            obj = None
-
+            title = gettext("Add {title}")
+        elif self.has_change_permission(request, self.object):
+            title = gettext("Change {title}")
         else:
-            obj = self.get_object(request, unquote(object_id), to_field)
+            title = gettext("View {title}")
 
-            if request.method == "POST":
-                if not self.has_change_permission(request, obj):
-                    raise PermissionDenied
-            else:
-                if not self.has_view_or_change_permission(request, obj):
-                    raise PermissionDenied
-
-            if obj is None:
-                return self._get_obj_does_not_exist_redirect(
-                    request, self.opts, object_id
-                )
-
-        fieldsets = self.get_fieldsets(request, obj)
-        ModelForm = self.get_form(
-            request, obj, change=not add, fields=flatten_fieldsets(fieldsets)
-        )
-        if request.method == "POST":
-            if request.content_type == 'application/json':
-                request_body = json.loads(request.body)
-                formset_data = request_body.get('formset_data')
-                request_target = request_body.get('_extra', {}).get('name')
-            elif request.content_type == 'multipart/form-data' and 'temp_file' in request.FILES and 'image_height' in request.POST:
-                try:
-                    return JsonResponse(
-                        receive_uploaded_file(request.FILES['temp_file'], request.POST['image_height'])
-                    )
-                except Exception as e:
-                    return HttpResponseBadRequest(str(e))
-
-            if request_target == '_saveasnew':
-                form = ModelForm(data=formset_data)
-            else:
-                form = ModelForm(data=formset_data, instance=obj)
-            # formsets, inline_instances = self._create_formsets(
-            #     request,
-            #     form.instance,
-            #     change=not add,
-            # )
-            if form.is_valid():
-                new_object = form.save()
-                if request_target == '_save' or request_target == '_saveasnew' and not self.save_as_continue:
-                    success_url = reverse(
-                        f'admin:{self.opts.app_label}_{self.opts.model_name}_changelist',
-                        current_app=self.admin_site.name,
-                    )
-                elif request_target == '_addanother':
-                    success_url = reverse(
-                        f'admin:{self.opts.app_label}_{self.opts.model_name}_add',
-                        current_app=self.admin_site.name,
-                    )
-                else:
-                    assert request_target == '_continue' or request_target == '_saveasnew' and self.save_as_continue
-                    success_url = reverse(
-                        f'admin:{self.opts.app_label}_{self.opts.model_name}_change',
-                        args=(new_object.pk,),
-                        current_app=self.admin_site.name,
-                    )
-                return JsonResponse({'success_url': success_url})
-            else:
-                return JsonResponse(form.errors, status=422, safe=False)
+        if collection_class := self.get_collection_class():
+            form_or_collection = collection_class(**kwargs)
         else:
-            if 'calendar' in request.GET or 'field' in request.GET:
-                self.form_class = ModelForm
-                return self.get(request)
-
-            if add:
-                initial = self.get_changeform_initial_data(request)
-                form = ModelForm(initial=initial)
-                formsets, inline_instances = self._create_formsets(
-                    request, form.instance, change=False
-                )
-            else:
-                form = ModelForm(instance=obj)
-                formsets, inline_instances = self._create_formsets(
-                    request, obj, change=True
-                )
-
-        if not add and not self.has_change_permission(request, obj):
-            readonly_fields = flatten_fieldsets(fieldsets)
-        else:
-            readonly_fields = self.get_readonly_fields(request, obj)
+            form_or_collection = self.get_model_form()(**kwargs)
         admin_form = helpers.AdminForm(
-            form,
-            list(fieldsets),
-            # Clear prepopulated fields on a view-only form to avoid a crash.
-            (
-                self.get_prepopulated_fields(request, obj)
-                if add or self.has_change_permission(request, obj)
-                else {}
-            ),
-            readonly_fields,
+            form_or_collection,
+            [],
+            {},
+            [],
             model_admin=self,
         )
         media = self.media + admin_form.media
 
-        inline_formsets = self.get_inline_formsets(
-            request, formsets, inline_instances, obj
-        )
-        for inline_formset in inline_formsets:
-            media += inline_formset.media
-
-        if add:
-            title = gettext("Add %s")
-        elif self.has_change_permission(request, obj):
-            title = gettext("Change %s")
-        else:
-            title = gettext("View %s")
         context = {
             **self.admin_site.each_context(request),
-            "title": title % self.opts.verbose_name,
-            "subtitle": str(obj) if obj else None,
-            "adminform": admin_form,
-            "object_id": object_id,
-            "original": obj,
+            "title": title.format(title=self.opts.verbose_name),
+            "subtitle": str(self.object) if self.object.pk and hasattr(self.object, '__str__') else None,
+            "form": form_or_collection,
+            "object_id": self.object.pk if self.object else None,
             "is_popup": IS_POPUP_VAR in request.POST or IS_POPUP_VAR in request.GET,
-            "to_field": to_field,
             "media": media,
-            "inline_admin_formsets": inline_formsets,
-            "errors": django_admin.helpers.AdminErrorList(form, formsets),
             "preserved_filters": self.get_preserved_filters(request),
         }
         context.update(extra_context or {})
-
         return self.render_change_form(
-            request, context, add=add, change=not add, obj=obj, form_url=form_url
+            request, context, add=add, change=not add, obj=self.object, form_url=form_url
         )
+
+    def _update_collection_view(self, view_kwargs):
+        if self.get_extra_data().get('name') == '_saveasnew':
+            self.object = self.model()
+        body = json.loads(self.request.body)
+        view_kwargs.update(data=body.get('formset_data'))
+        if collection_class := self.get_collection_class():
+            form_collection = collection_class(**view_kwargs)
+            if form_collection.is_valid():
+                with transaction.atomic():
+                    form_collection.construct_instance(self.object)
+                # integrity errors may occur during construction, hence revalidate collection
+                if form_collection.is_valid():
+                    return super().form_collection_valid(form_collection)
+                else:
+                    return self.form_collection_invalid(form_collection)
+            else:
+                return self.form_collection_invalid(form_collection)
+        else:
+            model_form = self.get_model_form()(**view_kwargs)
+            if model_form.is_valid():
+                self.object = model_form.save()
+                return JsonResponse({'success_url': self.get_success_url()})
+            else:
+                return JsonResponse(model_form.errors, status=422, safe=False)
+
+    def render_change_form(
+        self, request, context, add=False, change=False, form_url="", obj=None
+    ):
+        app_label = self.opts.app_label
+        view_on_site_url = self.get_view_on_site_url(obj)
+        context.update({
+            "add": add,
+            "change": change,
+            "has_view_permission": self.has_view_permission(request, obj),
+            "has_add_permission": self.has_add_permission(request),
+            "has_change_permission": self.has_change_permission(request, obj),
+            "has_delete_permission": self.has_delete_permission(request, obj),
+            "has_editable_inline_admin_formsets": False,
+            "has_absolute_url": view_on_site_url is not None,
+            "absolute_url": view_on_site_url,
+            "opts": self.opts,
+            "content_type_id": get_content_type_for_model(self.model).pk,
+            "save_as": self.save_as,
+            "save_on_top": self.save_on_top,
+            "to_field_var": TO_FIELD_VAR,
+            "is_popup_var": IS_POPUP_VAR,
+            "app_label": app_label,
+        })
+        if add and self.add_form_template is not None:
+            form_template = self.add_form_template
+        else:
+            form_template = self.change_form_template
+
+        request.current_app = self.admin_site.name
+
+        return TemplateResponse(
+            request,
+            form_template
+            or [
+                "admin/{0}/{1}/change_form.html".format(app_label, self.opts.model_name),
+                "admin/{0}/change_form.html".format(app_label),
+                "admin/formset/change_form.html",
+            ],
+            context,
+        )
+
+    def get_success_url(self):
+        name = self.get_extra_data().get('name')
+        if name == '_save':
+            return reverse(f'admin:{self.opts.app_label}_{self.opts.model_name}_changelist')
+        elif name == '_addanother':
+            return reverse(f'admin:{self.opts.app_label}_{self.opts.model_name}_add')
+        return reverse(f'admin:{self.opts.app_label}_{self.opts.model_name}_change', args=(self.object.pk,))
 
 
 class ModelAdmin(ModelAdminMixin, django_admin.ModelAdmin):

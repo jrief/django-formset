@@ -1,0 +1,8 @@
+{% load translate from i18n %}
+{% load static %}
+<div class="add-row">
+	<button title="{% translate 'Add' %}" class="add-collection">
+		<img src="{% static 'admin/img/icon-addlink.svg' %}">
+		{% if collection.add_label %}{{ collection.add_label }}{% else %}{% translate 'Add' %}{% endif %}
+	</button>
+</div>

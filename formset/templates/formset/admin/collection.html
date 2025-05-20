@@ -1,0 +1,35 @@
+{% spaceless %}
+{% if collection.legend %}<legend>{{ collection.legend }}</legend>{% endif %}
+{% if collection.has_many %}
+<div role="alert" class="dj-collection-errors"{% if collection.prefix %} prefix="{{ collection.prefix }}"{% endif %}><ul class="dj-errorlist"></ul></div>
+<div class="collection-siblings">
+{% endif %}
+{% for holder in collection %}
+	{% if holder.is_single %}
+	<django-form-collection{% if css_classes %} class="{{ css_classes }}"{% endif %}>
+	{% elif holder.is_first %}
+		{% if holder.is_template %}
+	<template{% if collection.is_sortable %} sortable="true"{% endif %} prefix="{{ collection.prefix|default_if_none:0 }}" class="empty-collection">
+		{% endif %}
+	<django-form-collection sibling-position="{{ holder.position }}" min-siblings="{{ collection.min_siblings }}"{% if collection.max_siblings %} max-siblings="{{ collection.max_siblings }}"{% endif %}{% if css_classes %} class="{{ css_classes }}"{% endif %}{% if holder.fresh_and_empty %} fresh-and-empty{% endif %}>
+		{% if collection.is_sortable %}
+	<div class="collection-drag-handle"></div>
+		{% endif %}
+	{% endif %}
+	{{ holder }}
+	{% if holder.is_single %}
+	</django-form-collection>
+	{% elif holder.is_last %}
+		{% include remove_collection_button|default:"formset/default/buttons/remove_collection.html" %}
+	</django-form-collection>
+		{% if holder.is_template %}
+	</template>
+			{% include add_collection_button|default:"formset/admin/buttons/add_collection.html" %}
+		{% endif %}
+	{% endif %}
+{% endfor %}
+{% if collection.help_text %}{% include help_text_template|default:"formset/default/help_text.html" with help_text=collection.help_text %}{% endif %}
+{% if collection.has_many %}
+</div>
+{% endif %}
+{% endspaceless %}

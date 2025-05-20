@@ -1,11 +1,13 @@
 {% spaceless %}
 <form{% include "formset/form_attrs.html" %}></form>
-<fieldset class="{% if form_css_classes %}{{ form_css_classes }}{% endif %}">
+<div role="form"{% if form_css_classes %} class="{{ form_css_classes }}"{% endif %}>
 {% include "formset/non_field_errors.html" %}
+	<fieldset>
 {% block fields %}
 	{% for field in form %}
 		{% if field.is_hidden or field.as_fieldset %}{{ field }}{% else %}{% include field_group_template %}{% endif %}
 	{% endfor %}
 {% endblock %}
-</fieldset>
+	</fieldset>
+</div>
 {% endspaceless %}
