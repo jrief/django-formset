@@ -37,6 +37,9 @@ class FormRenderer(DjangoTemplates):
             self.max_options_per_line = max_options_per_line
         if exempt_feedback is not None:
             self.exempt_feedback = exempt_feedback
+        # temporary storage to keep track of which fields have already been rendered by a Fieldset.
+        # This is necessary to prevent double rendering of fields inside the same form.
+        self._rendered_fields = {}
         super().__init__()
 
     def get_template(self, template_name):
@@ -48,9 +51,7 @@ class FormRenderer(DjangoTemplates):
             control_css_classes=self.control_css_classes,
             form_css_classes=self.form_css_classes,
         )
-        # temporary storage to keep track of which fields have already been rendered by a Fieldset.
-        # This is necessary to prevent double rendering of fields inside the same form.
-        self._rendered_fields = {}
+        self._rendered_fields.clear()
         return context
 
     def _amend_label(self, context, hide_checkbox_label=False):
