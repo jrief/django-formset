@@ -14,7 +14,7 @@
 		box-sizing: border-box;
 		display: flex;
 		flex-wrap: wrap;
-		align-content: center;
+		align-items: center;
 
 		background-image: var(--django-formset-dropdown-caret);
 		background-position: right 0.25rem center;
@@ -27,8 +27,9 @@
 			user-select: auto;
 			box-shadow: none;
 			border: none;
+			color: $semimuted-item-color;
 			background-color: transparent;
-			padding: 3px 0 0 3px;
+			padding: 0 3px;
 			font-size: inherit;
 			font-weight: inherit;
 			font-style: inherit;
@@ -108,8 +109,8 @@
 		}
 	}
 
-	&:not(.multi).dirty.focus .ts-control .item {
-		display: none;
+	&.focus .ts-control input {
+		font-style: italic;
 	}
 
 	.ts-dropdown {
