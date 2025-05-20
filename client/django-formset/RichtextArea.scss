@@ -257,6 +257,9 @@
 		opacity: 1;
 	}
 
+	.dj-submitted &.focused.invalid {
+		box-shadow: var(--django-formset-box-shadow-invalid);
+	}
 
 	.dj-dirty &:not(.focused).invalid {
 		border-color: var(--django-formset-color-invalid);
