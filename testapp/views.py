@@ -44,6 +44,7 @@ from testapp.forms.contact import (
 )
 from testapp.forms.birthdate import BirthdateBoxForm, BirthdateCalendarForm, BirthdateInputForm, BirthdatePickerForm
 from testapp.forms.booking import BookingBoxForm, BookingCalendarForm, BookingPickerForm
+from testapp.forms.button import ButtonActionsForm
 from testapp.forms.cafeteria import CafeteriaCollection, CoffeeOrderCollection
 from testapp.forms.carousel import CarouselForm
 from testapp.forms.checkout import CheckoutCollection
@@ -57,7 +58,7 @@ from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputF
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import (
-    ButtonActionsForm, sample_person_data, BootstrapRenderedPersonForm, ModelPersonForm, PersonForm,
+    sample_person_data, BootstrapRenderedPersonForm, ModelPersonForm, PersonForm,
 )
 from testapp.forms.phone import PhoneForm
 from testapp.forms.product import ProductForm
