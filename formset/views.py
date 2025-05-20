@@ -11,7 +11,6 @@ except ImportError:  # Django<5.0
     from django.forms.fields import CallableChoiceIterator
 
 from django.utils.encoding import force_str
-from django.utils.functional import cached_property
 from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormView as GenericFormView
@@ -102,10 +101,12 @@ class IncompleteSelectResponseMixin:
 
 
 class FormsetResponseMixin:
-    @cached_property
+    @property
     def _request_body(self):
         if self.request.content_type == 'application/json':
-            return json.loads(self.request.body)
+            if not isinstance(getattr(self.request, '_parsed_body', None), dict):
+                self.request._parsed_body = json.loads(self.request.body)
+            return self.request._parsed_body
 
     def get_extra_data(self):
         """
