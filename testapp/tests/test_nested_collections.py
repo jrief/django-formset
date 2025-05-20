@@ -28,6 +28,7 @@ def single_collection_view():
     return CompanyCollectionView.as_view()
 
 
+@pytest.mark.django_db
 def test_render(single_collection_view, rf):
     request = rf.get('/')
     response = single_collection_view(request)
