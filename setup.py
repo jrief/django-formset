@@ -32,7 +32,7 @@ setup(
     author='Jacob Rief',
     author_email='jacob.rief@gmail.com',
     url='https://django-formset.fly.dev/',
-    packages=find_namespace_packages(include=['formset', 'formset.*']),
+    packages=find_namespace_packages(include=['formset']),
     install_requires=[
         'django>=4.2',
     ],
