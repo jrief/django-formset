@@ -1,4 +1,4 @@
-.. _collections:
+.. _form-collections:
 
 ================
 Form Collections

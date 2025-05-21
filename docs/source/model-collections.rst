@@ -147,6 +147,8 @@ this view shall contain HTML with a structure similar to this:
 	</django-formset>
 
 
+.. _model-collections-one-to-many:
+
 One-to-Many Relations
 =====================
 

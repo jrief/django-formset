@@ -13,7 +13,7 @@ display progress through a sequence by breaking it up into multiple logical and 
 
 For this purpose, **django-formset** offers the special stepper collection class
 :class:`formset.stepper.StepperCollection`. It can be used as a direct replacement for
-:ref:`collections` with a slightly different behaviour.
+:ref:`form-collections` with a slightly different behaviour.
 
 Just as with Form Collections, the Stepper Collection is a collection of forms or other collections.
 However, only one of those forms is displayed at a time. Typically, a user can navigate through

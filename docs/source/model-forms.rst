@@ -1,4 +1,4 @@
-.. _model_forms:
+.. _model-forms:
 
 ==========================
 Creating Forms from Models
@@ -61,6 +61,23 @@ client-side validation of inputted dates. The field ``content`` is overridden by
 	            'reporter': Selectize(search_lookup='full_name__icontains'),
 	            'teaser': UploadedFileInput,
 	        }
+
+
+.. _model-forms-meta:
+
+Extra ``Meta`` options
+======================
+
+Django's ``ModelForm`` class offers a few options to customize the form's behavior. The Meta_
+option class is used for anything that's not part of the fields themselves and can be used to
+override some of the field's behavior. In addition to the options provided by Django itself,
+**django-formset** adds two more options to the ``Meta``-class of a :class:`formset.form.ModelForm`,
+namely ``disabled_fields`` and ``fields_map``. The latter is explained in detail in section
+:ref:`fields-mapping`. The option ``disabled_fields`` is an optional list of field names, which
+can be used to disable the named model fields. Those fields then are mapped to form fields,
+containing the HTML property ``disabled`` so that they are visible but not editable by the user.
+
+.. _Meta: https://docs.djangoproject.com/en/stable/topics/forms/modelforms/#modelforms-overriding-default-fields
 
 
 Detail View for ``ModelForm``

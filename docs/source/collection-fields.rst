@@ -21,7 +21,7 @@ approach is, that data is kept unstructured and finding information might be dif
 
 For this purpose, **django-formset** provides the special form field
 :class:`formset.formfields.collection.CollectionField`. It takes all the `core arguments`_ of the
-Django form ``Field`` class, plus an instance of a :ref:`collection`. When rendered, this
+Django form ``Field`` class, plus an instance of any :ref:`form-collections`. When rendered, this
 ``CollectionField`` then is replaced by the forms and fields of that collection. A
 ``CollectionField`` therefore does not render a label unless explicitly set, because each sub-field
 provides their own labels anyway.
