@@ -238,7 +238,7 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
 
     def get_success_url(self):
         name = self.get_extra_data().get('name')
-        if name == '_save':
+        if name == '_save' or name == '_saveasnew' and self.save_as_continue:
             return reverse(f'admin:{self.opts.app_label}_{self.opts.model_name}_changelist')
         elif name == '_addanother':
             return reverse(f'admin:{self.opts.app_label}_{self.opts.model_name}_add')
