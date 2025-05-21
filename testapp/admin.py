@@ -1,9 +1,6 @@
 from django.contrib import admin
-from django.forms.models import ModelForm
-from django.forms.widgets import RadioSelect
 
 from formset.admin import ModelAdmin
-from formset.widgets import DatePicker, Selectize, SelectizeMultiple, UploadedFileInput
 
 from .forms.company import CompanyCollection
 from .forms.person import ModelPersonForm
@@ -21,7 +18,6 @@ class CompanyAdmin(ModelAdmin):
 
 @admin.register(PersonModel)
 class PersonAdmin(ModelAdmin):
-    save_as = True
     form = ModelPersonForm
 
 
