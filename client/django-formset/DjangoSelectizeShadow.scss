@@ -166,7 +166,7 @@
 }
 
 :host-context([role="group"].dj-touched.ds-unique-identifier) .ts-wrapper {
-	&.has-items:not(.input-active) .ts-control {
+	&:not(.invalid).has-items:not(.input-active) .ts-control {
 		border-color: var(--django-formset-color-valid);
 	}
 
