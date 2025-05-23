@@ -11,7 +11,7 @@ manipulating formsets and to offer widgets with a way better usability than the 
 fields. During the development, the Django-Admin_ was an inspiration for many features of this
 library. Developers may recognize the similarities between the StackedInline_- of the Django-Admin
 and the :ref:`form-collections` of **django-formset**. The :ref:`dual-selector` is another such
-example, which the Django-Admin is referring as `filter horizontal`_. 
+example, which the Django-Admin is referring to as `filter horizontal`_. 
 
 .. _Django-Admin: https://docs.djangoproject.com/en/stable/ref/contrib/admin/
 .. _StackedInline: https://docs.djangoproject.com/en/stable/ref/contrib/admin/#inlinemodeladmin-objects
@@ -40,7 +40,7 @@ subclass of :class:`formset.collection.CollectionForm`. The attributes ``collect
 
 The other attributes offered by Django's ``ModelAdmin``, have no effect if used with the
 implementation of **django-formset**. Instead of using various configuration directives, a
-declarative approach is used. This means, that developers must create the structure of their forms
+declarative approach is used. This means that developers must create the structure of their forms
 using the components provided by **django-formset**. The big advantage of this approach is that
 such form-, fieldset- or collection declarations can also be used in normal Django views.
 
@@ -95,7 +95,7 @@ more :ref:`form-collections`. Since ``FormCollection``-s can be nested deeply, t
 using a surrounding border each, so that for the user it is clear which subform and field belongs to
 which collection.
 
-.. rubric:: `ModelAdmin.list_display <https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.list_display>`_
+.. rubric:: list_display_ and other related attributes
 
 The ``list_display`` attribute of the Django-Admin is used by the list-view of a model. Its
 behaviour remains unchanged in **django-formset**. The same applies to the attributes
@@ -103,6 +103,7 @@ list_display_links_, list_editable_, list_filter_, list_max_show_all_, list_per_
 list_select_related_, ordering_, paginator_ and preserve_filters_, search_fields_,
 search_help_text_, show_full_result_count_, sortable_by_ and view_on_site_.
 
+.. _list_display: https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.list_display
 .. _list_display_links: https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.list_display_links
 .. _list_editable: https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.list_editable
 .. _list_filter: https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.list_filter
@@ -161,7 +162,7 @@ section :ref:`model-forms-meta`.
 .. rubric:: `ModelAdmin.save_as <https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.save_as>`_
 
 The ``save_as`` attribute of the Django-Admin is used to display a button to save the current object
-as a new one. This behaviour remains the unchanged in **django-formset**.
+as a new one. This behaviour remains unchanged in **django-formset**.
 
 .. rubric:: `ModelAdmin.save_as_continue <https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.save_as_continue>`_
 
@@ -254,8 +255,8 @@ The editor rendered from this class will look like this:
 
 Some additional CSS has been added to this Django Admin to add borders around the given collections.
 This is to make the form collection more consistent with the logical structure of the model.
-Otherwise, the form collections would be rendered as a flat structure and this would it make hard to
-find out which teams belongs to which department.
+Otherwise, the form collections would be rendered as a flat structure and this would make it hard to
+find out which teams belong to which department.
 
 .. note:: The demo used to render these Django-Admin views is available when this testapp is started
 	supporting the admin.
