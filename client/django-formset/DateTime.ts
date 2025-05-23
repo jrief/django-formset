@@ -328,9 +328,10 @@ class DateTimeField extends Widget {
 			return;
 		const zIndex = this.textBox.style.zIndex ? parseInt(this.textBox.style.zIndex) : 0;
 		computePosition(this.textBox, this.calendar.element, {
+			placement: 'bottom-start',
 			middleware: [flip(), shift()],
-		}).then(({y}) => Object.assign(
-			this.calendar!.element.style, {top: `${y}px`, zIndex: `${zIndex + 2}`}
+		}).then(({x, y}) => Object.assign(
+			this.calendar!.element.style, {left: `${x}px`, top: `${y}px`, zIndex: `${zIndex + 2}`}
 		));
 	};
 

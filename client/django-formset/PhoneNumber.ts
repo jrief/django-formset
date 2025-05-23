@@ -1,4 +1,4 @@
-import {autoPlacement, autoUpdate, computePosition} from '@floating-ui/dom';
+import {autoUpdate, computePosition, flip, shift} from '@floating-ui/dom';
 import {AsYouType, CountryCode, CountryCallingCode, getCountries, getCountryCallingCode} from 'libphonenumber-js/max';
 import {StyleHelpers} from './helpers';
 import {countries} from './countries';
@@ -230,9 +230,10 @@ class PhoneNumberField {
 	private updatePosition = () => {
 		const zIndex = this.textBox.style.zIndex ? parseInt(this.textBox.style.zIndex) : 0;
 		computePosition(this.textBox, this.internationalSelector, {
-			middleware: [autoPlacement()],
-		}).then(() => Object.assign(
-			this.internationalSelector.style, {zIndex: `${zIndex + 2}`}
+			placement: 'bottom-start',
+			middleware: [flip(), shift()],
+		}).then(({x, y}) => Object.assign(
+			this.internationalSelector.style, {left: `${x}px`, top: `${y}px`, zIndex: `${zIndex + 2}`}
 		));
 	};
 

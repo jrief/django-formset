@@ -5,7 +5,7 @@ from formset.forms import FormMixin, ModelForm
 from formset.formfields import DateRangeField
 from formset.formfields.richtext import RichTextField
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
-from formset.widgets import DatePicker, DateTimePicker, DualSelector, Selectize, UploadedFileInput
+from formset.widgets import DatePicker, DateTimePicker, DualSelector, PhoneNumberInput, Selectize, UploadedFileInput
 
 from testapp.models import PersonModel
 from .customer import AddressFieldset
@@ -59,7 +59,7 @@ sample_person_data = {
 
 
 class ModelPersonForm(ModelForm):
-    field_order = ['full_name', 'avatar', 'validity', 'activity_days', 'activity_datetime', 'about']
+    field_order = ['full_name', 'avatar', 'validity', 'activity_days', 'activity_datetime', 'about', 'phone_number']
     activity_datetime = fields.DateTimeField(
         label="Activity timestamp",
         widget=DateTimePicker,
@@ -77,12 +77,17 @@ class ModelPersonForm(ModelForm):
         label="About",
         required=False,
     )
+    phone_number = fields.CharField(
+        label="Phone number",
+        required=False,
+        widget=PhoneNumberInput,
+    )
 
     class Meta:
         model = PersonModel
         fields = '__all__'
         fields_map = {'extra_data': [
-            'about', 'activity_datetime', 'activity_days', 'address.postal_code', 'address.city', 'validity'
+            'about', 'activity_datetime', 'activity_days', 'phone_number', 'address.postal_code', 'address.city', 'validity'
         ]}
         widgets = {
             'avatar': UploadedFileInput,
