@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+	@apply bg-white;
+}
 .formset-label {
 	@apply text-sm text-gray-600;
 }
