@@ -15,6 +15,7 @@ pyee==13.0.0
 pytest==8.3.5
 pytest-django==4.11.1
 pytest-mock==3.14.0
+pytest-subtests==0.14.1
 soupsieve==2.7
 sqlparse==0.5.3
 typing_extensions==4.13.2
