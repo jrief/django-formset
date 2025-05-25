@@ -213,8 +213,8 @@ class Migration(migrations.Migration):
                 ('weight', models.IntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(42, message='You are too lightweight.'), django.core.validators.MaxValueValidator(95, message='You are too obese.')], verbose_name='Weight in kg')),
                 ('height', models.FloatField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(1.45, message='You are too short.'), django.core.validators.MaxValueValidator(1.95, message='You are too tall.')], verbose_name='Height in meters')),
                 ('annotation', models.TextField(blank=True, null=True, verbose_name='Annotation')),
-                ('opinion', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='persons', to='testapp.opinionmodel', verbose_name='Opinion')),
-                ('opinions', models.ManyToManyField(related_name='person_groups', to='testapp.opinionmodel', verbose_name='Opinions')),
+                ('opinion', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='persons', to='testapp.opinionmodel', verbose_name='Opinion', blank=True, null=True)),
+                ('opinions', models.ManyToManyField(related_name='person_groups', to='testapp.opinionmodel', verbose_name='Opinions', blank=True)),
                 ('extra_data', models.JSONField(default=dict, blank=True)),
             ],
             options={

@@ -38,8 +38,7 @@ class IncompleteSelectResponseMixin:
             field = self.get_field(field_path)
         except (KeyError, ValueError):
             return HttpResponseBadRequest(f"No such field: {field_path}")
-        assert (
-            isinstance(field.widget, IncompleteSelectMixin),
+        assert isinstance(field.widget, IncompleteSelectMixin), (
             f"Field {field_path} must use a widget inheriting from `IncompleteSelectMixin`."
         )
         widget = field.widget

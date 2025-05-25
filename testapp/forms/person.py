@@ -63,6 +63,7 @@ class ModelPersonForm(ModelForm):
     activity_datetime = fields.DateTimeField(
         label="Activity timestamp",
         widget=DateTimePicker,
+        required=False,
     )
     address = AddressFieldset()
     activity_days = fields.IntegerField(

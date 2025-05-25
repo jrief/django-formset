@@ -46,11 +46,14 @@ class PersonModel(models.Model):
         verbose_name="Opinion",
         on_delete=models.CASCADE,
         related_name='persons',
+        blank=True,
+        null=True,
     )
     opinions = models.ManyToManyField(
         OpinionModel,
         verbose_name="Opinions",
         related_name='person_groups',
+        blank=True,
     )
     continent = models.IntegerField(
         verbose_name="Continent",

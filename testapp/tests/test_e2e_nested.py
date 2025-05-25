@@ -103,6 +103,7 @@ urlpatterns = [
     get_javascript_catalog(),
 ]
 
+
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['company_1', 'company_2'])
 def test_fill_collection(page, mocker, viewname):
