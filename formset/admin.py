@@ -29,7 +29,7 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
     }
     form_renderer_class = FormRenderer
 
-    def __init__(self, model, admin_site):
+    def __init__(self, *args, **kwargs):
         if self.fields is not None:
             warnings.warn(
                 f"Adding `field` to {self.__class__.__name__} has no effect. "
@@ -61,7 +61,7 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
                 "Use disabled fields in your form instead.",
                 RuntimeWarning,
             )
-        super().__init__(model, admin_site)
+        super().__init__(*args, **kwargs)
 
     def get_model_form(self):
         def init(self, *args, **kwargs):
@@ -191,7 +191,7 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
             model_form = self.get_model_form()(**view_kwargs)
             if model_form.is_valid():
                 self.object = model_form.save()
-                return JsonResponse({'success_url': self.get_success_url()})
+                return self.render_success_response()
             else:
                 return JsonResponse(model_form.errors, status=422, safe=False)
 
@@ -236,13 +236,15 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
             context,
         )
 
-    def get_success_url(self):
+    def render_success_response(self):
         name = self.get_extra_data().get('name')
         if name == '_save' or name == '_saveasnew' and self.save_as_continue:
-            return reverse(f'admin:{self.opts.app_label}_{self.opts.model_name}_changelist')
+            success_url = reverse(f'admin:{self.opts.app_label}_{self.opts.model_name}_changelist')
         elif name == '_addanother':
-            return reverse(f'admin:{self.opts.app_label}_{self.opts.model_name}_add')
-        return reverse(f'admin:{self.opts.app_label}_{self.opts.model_name}_change', args=(self.object.pk,))
+            success_url = reverse(f'admin:{self.opts.app_label}_{self.opts.model_name}_add')
+        else:
+            success_url = reverse(f'admin:{self.opts.app_label}_{self.opts.model_name}_change', args=(self.object.pk,))
+        return JsonResponse({'success_url': success_url})
 
 
 class ModelAdmin(ModelAdminMixin, django_admin.ModelAdmin):
