@@ -1,6 +1,15 @@
 ## Changes
 
 - 2.0
+  * **Main feature of this release:** It now is possible to use a **django-formset** aware
+    `ModelForm` or `FormCollection` inside the Django-Admin. Check the documentation on how to
+    use this feature.
+  * A **django-formset** aware `ModelForm` can use the attribute `fields_map` in its `Meta` class.
+    This allows to map fields from a `Fieldset` to any arbitrary model field. It also allows to
+    map and form field to a `JSONField` offered by the model. 
+  * A **django-formset** aware `ModelForm` can use the new `CollectionField` in combination with the
+    just mentioned `fields_map`. This allows to store the complete content of a form collection
+    inside JSON.
   * **Breaking Change:** The `Fieldset` class is a standalone entity to group multiple input fields
     into a ``<fieldset>``-element. It is not a subclass of Django's `Form` class anymore. Read the
     [documentation](https://django-formset.fly.dev/fieldsets/) on how to use it.
@@ -24,6 +33,11 @@
     prevent the user from being unsettled by an error message while filling out the form.
   * Add management command `./manage.py cleanup_files` to delete dangling files. This is because the
     `UploadedFileInput` widget accepts files before their form is submitted and hence processed.
+  * Fix: Border of Richtext Area and Selectize widgets now has the same (green) feedback border as
+    other input fields on blur after entering a valid value.
+  * Fix: Calendar widget inside a form collection was not rendered properly.
+  * Fix: Selectize widget had alignment problems with its lookup field. 
+  * Fix: Placement of dialog for phone number and date picker now also considers left offset.
 
 1.7.7
   * Add support for Django-5.2.
