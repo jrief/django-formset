@@ -27,6 +27,7 @@
     The classes `DateRangeCalendar`, `DateRangeTextbox`, `DateRangePicker`, `DateTimeRangeCalendar`,
     `DateTimeRangeTextbox` and `DateTimeRangePicker` have been moved from `formset.ranges` to
     `formset.widgets`.
+  * **Drop support for Django-4.2**.
   * Semantically improve HTML: The `<div class="dj-form">`-element to wrap forms now is rendered as 
     `<div role="form">`. 
   * Error messages shown for invalid fields hide as soon as the field is focused. This is to
