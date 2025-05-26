@@ -13,12 +13,11 @@ from django.utils.datastructures import MultiValueDict
 from django.utils.text import get_text_list
 from django.utils.translation import gettext_lazy
 
-from formset.exceptions import FormCollectionError
 from formset.formfields.activator import Activator
-from formset.forms import DeclarativeFieldsetMetaclass, FormsetModelFormMetaclass, FormMixin
+from formset.forms import DeclarativeFieldsetMetaclass, FormMixin, FormsetModelFormMetaclass
 from formset.renderers.default import FormRenderer
 from formset.utils import (
-    MARKED_FOR_REMOVAL, CollectionFieldMixin, FormsetErrorList, HolderMixin, RenderableDetachedFieldMixin
+    MARKED_FOR_REMOVAL, CollectionFieldMixin, FormsetErrorList, HolderMixin, RenderableDetachedFieldMixin,
 )
 
 COLLECTION_ERRORS = '_collection_errors_'

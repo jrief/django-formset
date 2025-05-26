@@ -1,7 +1,6 @@
+from django import template
 from django.contrib.admin.templatetags.admin_modify import submit_row
 from django.contrib.admin.templatetags.base import InclusionAdminNode
-from django import template
-
 
 register = template.Library()
 
