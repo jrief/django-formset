@@ -50,7 +50,7 @@ def test_admin_edit_person(live_server, page, viewname, nth_save, subtests):
         page.locator('#id_full_name').fill("Jane Doe")
         page.locator('#id_activity_days').fill("321")
         page.locator('#id_gender_0').check()
-        with page.expect_response(page.url) as response_info:
+        with page.expect_response(f'{live_server.url}{list_view_url}') as response_info:
             page.locator('.submit-row > button[type="button"]').nth(nth_save).click()
         assert response_info.value.ok is True
         person.refresh_from_db()
@@ -92,10 +92,10 @@ def test_admin_edit_company(live_server, page, viewname, nth_save, subtests):
         page.locator('#id_departments\\.0\\.teams\\.1\\.team\\.name').fill("Web Services")
         page.locator('#id_departments\\.1\\.department\\.name').fill("Finance")
         page.locator('#id_departments\\.1\\.teams\\.0\\.team\\.name').fill("Controlling")
-        with page.expect_response(page.url) as response_info:
+        with page.expect_response(f'{live_server.url}{list_view_url}') as response_info:
             page.locator('.submit-row > button[type="button"]').nth(nth_save).click()
         assert response_info.value.ok is True
         company.refresh_from_db()
-        assert company.departments.first().teams.last().name == "Web Services"
-        assert company.departments.last().name == "Finance"
-        assert company.departments.last().teams.first().name == "Controlling"
+        assert company.departments.order_by('id').first().teams.order_by('id').last().name == "Web Services"
+        assert company.departments.order_by('id').last().name == "Finance"
+        assert company.departments.order_by('id').last().teams.first().name == "Controlling"
