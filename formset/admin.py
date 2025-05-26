@@ -182,11 +182,11 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
                     form_collection.construct_instance(self.object)
                 # integrity errors may occur during construction, hence revalidate collection
                 if form_collection.is_valid():
-                    return super().form_collection_valid(form_collection)
+                    return self.render_success_response()
                 else:
-                    return self.form_collection_invalid(form_collection)
+                    return JsonResponse(form_collection._errors, status=422, safe=False)
             else:
-                return self.form_collection_invalid(form_collection)
+                return JsonResponse(form_collection._errors, status=422, safe=False)
         else:
             model_form = self.get_model_form()(**view_kwargs)
             if model_form.is_valid():
