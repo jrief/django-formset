@@ -16,8 +16,8 @@ from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormView as GenericFormView
 
 from formset.upload import FileUploadMixin
-from formset.widgets.models import IncompleteSelectMixin
 from formset.utils import CollectionFieldMixin
+from formset.widgets.models import IncompleteSelectMixin
 
 
 class IncompleteSelectResponseMixin:
