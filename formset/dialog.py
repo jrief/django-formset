@@ -1,7 +1,7 @@
 from django.forms.forms import BaseForm
 from django.forms.models import BaseModelForm
 
-from formset.forms import FormMixin, DeclarativeFieldsetMetaclass, FormsetModelFormMetaclass
+from formset.forms import DeclarativeFieldsetMetaclass, FormMixin, FormsetModelFormMetaclass
 from formset.renderers import ButtonVariant
 from formset.widgets import Button
 
