@@ -370,9 +370,10 @@ def test_render_alternative_template():
     assert html == '<article><p>This is <strong>bold</strong><em>and italic</em> text.</p></article>'
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='module')
 def django_db_setup(django_db_blocker):
     with django_db_blocker.unblock():
+        call_command('loaddata', settings.BASE_DIR / 'testapp/fixtures/reporters.json', verbosity=0)
         call_command('loaddata', settings.BASE_DIR / 'testapp/fixtures/pages.json', verbosity=0)
 
 

@@ -33,6 +33,24 @@ class PersonForm(ModelForm):
         }
 
 
+@pytest.fixture(scope='module')
+def django_db_setup(django_db_blocker):
+    with django_db_blocker.unblock():
+        OpinionModel.objects.all().delete()
+        for counter in range(1, 3000):
+            label = f"Opinion {counter:04}"
+            OpinionModel.objects.create(tenant=1, label=label)
+        for counter in range(1, 500):
+            label = f"Übung {counter:04}"
+            OpinionModel.objects.create(tenant=1, label=label)
+        for counter in range(1, 500):
+            label = f"Оптион {counter:04}"
+            OpinionModel.objects.create(tenant=1, label=label)
+        for counter in range(1, 500):
+            label = f"επιλογή {counter:04}"
+            OpinionModel.objects.create(tenant=1, label=label)
+
+
 @pytest.fixture(params=[None, 'bootstrap', 'bulma', 'foundation', 'tailwind', 'uikit'])
 def framework(request):
     return request.param
