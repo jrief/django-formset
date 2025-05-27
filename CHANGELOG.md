@@ -6,7 +6,7 @@
     use this feature.
   * A **django-formset** aware `ModelForm` can use the attribute `fields_map` in its `Meta` class.
     This allows to map fields from a `Fieldset` to any arbitrary model field. It also allows to
-    map and form field to a `JSONField` offered by the model. 
+    map multiple form fields into a `JSONField` offered by the model. 
   * A **django-formset** aware `ModelForm` can use the new `CollectionField` in combination with the
     just mentioned `fields_map`. This allows to store the complete content of a form collection
     inside JSON.

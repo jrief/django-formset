@@ -11,6 +11,8 @@ the internal Django implementation for
 [![Python versions](https://img.shields.io/pypi/pyversions/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
 [![Software license](https://img.shields.io/pypi/l/django-formset.svg)](https://github.com/jrief/django-formset/blob/master/LICENSE)
 
+**Before upgrading to version 2.0, please read the [Changelog](CHANGELOG.md).**
+
 Let's explain it using a short example. Say, we have a Django form with three fields:
 
 ```python
@@ -173,7 +175,18 @@ Modern browsers provide a built-in date picker, which now can be used instead of
 which adopt themselves to the chosen CSS framework. This allows to render the date picker in the
 same style as the rest of the form.
 
+## Mapping of Form Fields to a `JSONField`
 
+For unstructured data, it is possible to map multiple form fields and even collections into a
+[`JSONField`](https://docs.djangoproject.com/en/stable/ref/models/fields/#jsonfield) in the model.
+
+## Admin Integration
+
+Forms and collections suitable for **django-formset** views can be used in the Django admin as well.
+This allows developers to adopt the same form design and user experience as in the frontend of their
+application.
+
+![Admin Integration](docs/source/_static/admin-person-model.png)
 
 
 ## How does this all work?
@@ -269,6 +282,9 @@ possible to the way Django handles forms, models and views.**
 * Such a form-collection can be declared to have a list siblings, which can be changed in length
   using one "Add" and multiple "Remove" buttons.
 * Form fields or fieldsets can be hidden or disabled using a Boolean expression as condition.
+* Special widgets for date and datetime fields, they can also be used for ranges.
+* Special widget for phone numbers and countries displaying their flags.
+* Special widget for editing Richtext.
 
 [^1]: Tailwind is special here, since it doesn't include purpose-built form control classes out of
       the box. Instead, **django-formset** offers an opinionated set of CSS classes suitable for
