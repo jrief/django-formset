@@ -35,22 +35,23 @@ def test_admin_edit_person(live_server, page, viewname, nth_save, subtests):
     assert person.birth_date == date(year=1975, month=5, day=25)
     assert person.get_continent_display() == "Europe"
     if nth_save == 0:
-        list_view_url = reverse('admin:testapp_personmodel_changelist')
+        next_view_url = reverse('admin:testapp_personmodel_changelist')
     elif nth_save == 1:
-        list_view_url = reverse('admin:testapp_personmodel_add')
+        next_view_url = reverse('admin:testapp_personmodel_add')
     elif nth_save == 2:
-        list_view_url = reverse('admin:testapp_personmodel_change', kwargs={'object_id': person.id})
+        next_view_url = reverse('admin:testapp_personmodel_change', kwargs={'object_id': person.id})
     else:
         raise ValueError(f"Invalid nth_save value: {nth_save}")
-    expect(page).to_have_url(f'{live_server.url}{list_view_url}')
+    expect(page).to_have_url(f'{live_server.url}{next_view_url}')
     if nth_save != 2:
         return
 
     with subtests.test("edit the person again"):
+        page.wait_for_load_state('domcontentloaded')
         page.locator('#id_full_name').fill("Jane Doe")
         page.locator('#id_activity_days').fill("321")
         page.locator('#id_gender_0').check()
-        with page.expect_response(f'{live_server.url}{list_view_url}') as response_info:
+        with page.expect_response(f'{live_server.url}{next_view_url}') as response_info:
             page.locator('.submit-row > button[type="button"]').nth(nth_save).click()
         assert response_info.value.ok is True
         person.refresh_from_db()
@@ -77,22 +78,23 @@ def test_admin_edit_company(live_server, page, viewname, nth_save, subtests):
     assert company.departments.first().teams.count() == 1
     assert company.departments.first().teams.first().name == "Action Sports"
     if nth_save == 0:
-        list_view_url = reverse('admin:testapp_company_changelist')
+        next_view_url = reverse('admin:testapp_company_changelist')
     elif nth_save == 1:
-        list_view_url = reverse('admin:testapp_company_add')
+        next_view_url = reverse('admin:testapp_company_add')
     elif nth_save == 2:
-        list_view_url = reverse('admin:testapp_company_change', kwargs={'object_id': company.id})
+        next_view_url = reverse('admin:testapp_company_change', kwargs={'object_id': company.id})
     else:
         raise ValueError(f"Invalid nth_save value: {nth_save}")
-    expect(page).to_have_url(f'{live_server.url}{list_view_url}')
+    expect(page).to_have_url(f'{live_server.url}{next_view_url}')
     if nth_save != 2:
         return
 
     with subtests.test("edit the company again"):
+        page.wait_for_load_state('domcontentloaded')
         page.locator('#id_departments\\.0\\.teams\\.1\\.team\\.name').fill("Web Services")
         page.locator('#id_departments\\.1\\.department\\.name').fill("Finance")
         page.locator('#id_departments\\.1\\.teams\\.0\\.team\\.name').fill("Controlling")
-        with page.expect_response(f'{live_server.url}{list_view_url}') as response_info:
+        with page.expect_response(f'{live_server.url}{next_view_url}') as response_info:
             page.locator('.submit-row > button[type="button"]').nth(nth_save).click()
         assert response_info.value.ok is True
         company.refresh_from_db()
