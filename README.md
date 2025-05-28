@@ -1,9 +1,18 @@
 # django-formset
-### Better User Experience for Django Forms 
+## Better User Experience for Django Forms 
 
 This library handles single forms and collections of forms with a way better user experience than
 the internal Django implementation for
 [formsets](https://docs.djangoproject.com/en/stable/topics/forms/formsets/) offers.
+
+
+### News:
+
+Want to give the upcoming version 2.0 a try? It can installed via `pip install --pre django-formset==2.0rc1`.
+
+Starting with version 2, developers can use `ModelForm`s and `FormCollection`s in the django-admin.
+In version 2 it also is possible to store the content of multiple form fields or even an entire form collection inside a `JSONField`.
+Make sure to read the [Changelog](https://github.com/jrief/django-formset/blob/releases/2.0/CHANGELOG.md) for version 2 before proceeding.
 
 [![Interactive Documentation](https://img.shields.io/badge/Interactive-Documentation-532BEA)](https://django-formset.fly.dev/)
 [![Build Status](https://github.com/jrief/django-formset/actions/workflows/tests.yml/badge.svg)](https://github.com/jrief/django-formset/actions)
