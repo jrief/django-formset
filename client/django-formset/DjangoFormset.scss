@@ -81,6 +81,7 @@ django-formset {
 	&.dj-feedback-success [role="group"].dj-dirty {
 		@mixin valid-blurred {
 			border-color: var(--django-formset-color-valid);
+			background-image: var(--django-formset-icon-valid) !important;
 		}
 		@each $field in $feedback-fields {
 			$selector: "#{$field}#{$has-feedback}:valid:not([is]):not(:focus)";
@@ -88,18 +89,8 @@ django-formset {
 				@include valid-blurred;
 			}
 		}
-		@mixin valid-any {
-			background-image: var(--django-formset-icon-valid) !important;
-		}
-		@each $field in $feedback-input-fields {
-			$selector: "#{$field}#{$has-feedback}:valid";
-			>#{$selector}, :not([role="group"])>#{$selector} {
-				@include valid-any;
-			}
-		}
 		input[is^=django]:valid+[role=textbox]:not(.focus) {
 			@include valid-blurred;
-			@include valid-any;
 		}
 	}
 
