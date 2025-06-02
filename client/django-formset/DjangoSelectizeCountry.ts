@@ -6,7 +6,7 @@ import styles from './DjangoSelectizeCountry.scss';
 
 
 class DjangoSelectizeCountry extends DjangoSelectize {
-	initialize() {
+	public async initialize() {
 		super.initialize();
 		const declaredStyles = document.createElement('style');
 		declaredStyles.innerText = styles;
