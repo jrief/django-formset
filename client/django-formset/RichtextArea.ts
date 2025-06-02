@@ -33,7 +33,7 @@ import {TextColor} from '../tiptap-extensions/color';
 import {ClassBasedMark, ClassBasedNode} from '../tiptap-extensions/classbased';
 import {StyleHelpers} from './helpers';
 import {FormDialogBase} from './FormDialog';
-import {parse} from '../build/function-code';
+import {parse} from '../build/no-comments';
 import styles from './RichtextArea.scss';
 
 
@@ -860,7 +860,7 @@ class RichtextFormDialog extends FormDialogBase {
 		try {
 			const plugin = scriptElement.getAttribute('tiptap-plugin');
 			const response = await fetch(scriptElement.src);
-			const extensionScript = parse(await response.text(), {startRule: 'FunctionCode'});
+			const extensionScript = parse(await response.text(), {startRule: 'JavaScript'});
 			const parsedScript = new Function('mergeAttributes', 'markPasteRule', `return ${extensionScript}`);
 			const executedScript = parsedScript(mergeAttributes, markPasteRule);
 			executedScript.addProseMirrorPlugins = this.addProseMirrorPlugins();
