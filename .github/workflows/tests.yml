@@ -56,7 +56,7 @@ jobs:
     - name: Build Parsers
       run: |
         npm run tag-attributes
-        npm run function-code
+        npm run no-comments
     - name: Build Client
       run: |
         npm run esbuild.modular

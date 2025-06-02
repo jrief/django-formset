@@ -32,6 +32,8 @@
     `<div role="form">`. 
   * Error messages shown for invalid fields hide as soon as the field is focused. This is to
     prevent the user from being unsettled by an error message while filling out the form.
+  * In input fields, show the success tick for validated fields after blurring and not while typing,
+    for the same reason as above.
   * Add management command `./manage.py cleanup_files` to delete dangling files. This is because the
     `UploadedFileInput` widget accepts files before their form is submitted and hence processed.
   * Fix: Border of Richtext Area and Selectize widgets now has the same (green) feedback border as
