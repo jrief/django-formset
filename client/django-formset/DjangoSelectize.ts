@@ -277,7 +277,7 @@ export class DjangoSelectize extends IncompleteSelect {
 			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
 			const selectorText = cssRule.selectorText.trim();
 			switch (selectorText) {
-				case ':host-context([role="group"].dj-touched.ds-unique-identifier) .ts-wrapper.has-items:not(.input-active) .ts-control':
+				case ':host-context([role="group"].dj-touched.ds-unique-identifier) .ts-wrapper:not(.invalid).has-items:not(.input-active) .ts-control':
 				case ':host-context([role="group"].dj-touched.ds-unique-identifier) .ts-wrapper.invalid:not(.input-active) .ts-control':
 					individualSheet.insertRule(cssRule.cssText.replace('.ds-unique-identifier', `.${this.uniqueIdentifier}`));
 					break;

@@ -2,14 +2,14 @@
 // Changes in here do affect HTML elements outside of this realm.
 
 [is^="django-selectize"] + .shadow-wrapper {
-	border-style: none;
-	border-width: 0;
-	border-radius: 0;
-	outline: 0;
-	padding: 0;
-	box-shadow: none;
+	border-style: none !important;
+	border-width: 0 !important;
+	border-radius: 0 !important;
+	outline: 0 !important;
+	padding: 0 !important;
+	box-shadow: none !important;
 
 	&.focus ~ [role=alert] {
-		display: none;
+		display: none !important;
 	}
 }

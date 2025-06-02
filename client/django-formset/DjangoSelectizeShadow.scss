@@ -165,6 +165,7 @@
 	}
 }
 
+// .ds-unique-identifier is replaced against a unique identifier for each shadow root.
 :host-context([role="group"].dj-touched.ds-unique-identifier) .ts-wrapper {
 	&:not(.invalid).has-items:not(.input-active) .ts-control {
 		border-color: var(--django-formset-color-valid);
