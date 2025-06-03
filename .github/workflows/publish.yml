@@ -34,7 +34,7 @@ jobs:
     - name: Build Parsers
       run: |
         npm run tag-attributes
-        npm run function-code
+        npm run no-comments
     - name: Build CSS files
       run: |
         npm run compilescss
