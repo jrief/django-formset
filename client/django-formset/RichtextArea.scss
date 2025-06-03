@@ -261,7 +261,7 @@
 		box-shadow: var(--django-formset-box-shadow-invalid);
 	}
 
-	.dj-dirty &:not(.focused).invalid {
+	.dj-touched &:not(.focused).invalid {
 		border-color: var(--django-formset-color-invalid);
 	}
 

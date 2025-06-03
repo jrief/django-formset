@@ -1175,12 +1175,18 @@ class RichtextArea {
 	}
 
 	private validate() {
-		if (this.textAreaElement.required && this.editor.getText().length === 0) {
-			this.wrapperElement.classList.remove('valid');
-			this.wrapperElement.classList.add('invalid');
+		if (this.editor.getText().length === 0) {
+			// an empty editor would set innerHTML to `<p></p>` which fails validation for required fields
+			this.textAreaElement.innerHTML = '';
 		} else {
+			this.textAreaElement.innerHTML = this.editor.getHTML();
+		}
+		if (this.textAreaElement.checkValidity()) {
 			this.wrapperElement.classList.add('valid');
 			this.wrapperElement.classList.remove('invalid');
+		} else {
+			this.wrapperElement.classList.remove('valid');
+			this.wrapperElement.classList.add('invalid');
 		}
 	}
 
