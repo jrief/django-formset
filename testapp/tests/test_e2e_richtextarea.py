@@ -395,7 +395,7 @@ def test_tiptap_invalid_simple_link(page, viewname, richtext_wrapper, menubar, c
     expect(link_input).to_have_value("")
     link_input.type("www.example.org")
     dialog.click(position={'x': 1, 'y': 1})
-    placeholder = dialog.locator('input[name="url"] + .dj-field-errors .dj-placeholder')
+    placeholder = dialog.locator('input[name="url"] + [role="alert"] .dj-placeholder')
     expect(placeholder).to_have_text("Enter a valid URL.")
     dialog.locator('button[name="apply"]').click()
     expect(dialog).to_be_visible()
