@@ -84,9 +84,6 @@ initial_json = {
                                                 "text": ", tertiam."
                                             }
                                         ]
-                                    },
-                                    {
-                                        "type": "paragraph"
                                     }
                                 ]
                             },
