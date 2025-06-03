@@ -35,8 +35,12 @@ possible to enter dates in different formats. For instance, in the Anglo Saxon a
 formatted as ``mm/dd/yyyy``, whereas in Europe they are formatted as ``dd.mm.yyyy``. Japan uses
 ``yyyy月mm日dd`` as date format, but in web applications ``yyyy/mm/dd`` is commonly used. This
 means that the conversion from a string in potentially different formats, must be handled by the
-server which usually does not know where the user is located. This input field furthermore offers a
-date picker.
+server which usually does not know where the user is located.
+
+Since 2011, browsers from the Chrome family support the HTML field ``type="date"`` which renders a
+date picker. The latest browser to support this field type is the Safari browser, starting in 2021.
+Since this field does not suffer from date formatting issues, it should become the preferred way to
+accept dates in web applications. However, Django does not implement this field type yet.
 
 For this reason **django-formset** offers the widgets :class:`formset.widgets.DateInput`. This
 widget renders a date field as
