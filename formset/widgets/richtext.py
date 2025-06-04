@@ -29,8 +29,6 @@ class RichTextarea(Textarea):
         return value or ''
 
     def value_from_datadict(self, data, files, name):
-        # TODO[link]: convert internal links to reverse lookups
-        # TODO[img]: extract images and move them to the upload area
         return data.get(name, {})
 
     def get_context(self, name, value, attrs):

@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from formset.dialog import ApplyButton, CancelButton, DialogForm, RevertButton
 from formset.formfields.activator import Activator
 from formset.richtext import controls
+from formset.richtext.upload import persit_uploaded_file
 from formset.widgets import UploadedFileInput
 from formset.widgets.richtext import RichTextarea
 
@@ -40,6 +41,17 @@ class RichtextDialogForm(DialogForm):
         context = super().get_context()
         context['extension_script'] = self.extension_script
         return context
+
+    def clean_content(self, richtext_field, content):
+        file_upload_fields = [
+            name for name, field in self.fields.items() if isinstance(field.widget, UploadedFileInput)
+        ]
+        for entry in content:
+            if 'content' in entry:
+                self.clean_content(richtext_field, entry['content'])
+            if 'attrs' in entry and entry.get('type', '_') == self.extension:
+                for field_name in file_upload_fields:
+                    persit_uploaded_file(richtext_field, field_name, self.fields[field_name].widget, entry['attrs'])
 
 
 class SimpleLinkDialogForm(RichtextDialogForm):

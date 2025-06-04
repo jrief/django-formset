@@ -32,6 +32,11 @@ class ControlElement:
             'icon': self.button_icon,
         }
 
+    def clean_content(self, richtext_field, content):
+        """
+        Hook to clean the content returned by the Richtext editor element.
+        """
+
     def render(self, renderer, context=None):
         template = self.get_template(renderer)
         if context is None:
@@ -306,6 +311,9 @@ class DialogControl(ControlElement):
             'label': self.dialog_form.title,
             'icon': self.button_icon,
         }
+
+    def clean_content(self, richtext_field, content):
+        self.dialog_form.clean_content(richtext_field, content)
 
 
 class Separator(ControlElement):
