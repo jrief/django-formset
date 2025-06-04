@@ -5,14 +5,15 @@ export class FileUploadWidget {
 	private readonly fieldGroup: FieldGroup;
 	private readonly dropbox: HTMLElement;
 	private readonly chooseFileButton: HTMLButtonElement;
-	private readonly progressBar: HTMLProgressElement | null = null;
+	private readonly progressBar: HTMLProgressElement|null = null;
 	private readonly dropboxItemTemplate: Function;
 	private readonly emptyDropboxItem: HTMLDivElement;
 	private readonly observer: MutationObserver;
-	private readonly initialData: Array<Object>;
+	private readonly initialData: Object[];
+	private readonly initialRequired: boolean;
 	private readonly maxUploadSize: number;
 	public readonly inputElement: HTMLInputElement;
-	public uploadedFiles: Array<Object>;
+	public uploadedFiles: Object[];
 
 	constructor(fieldGroup: FieldGroup, inputElement: HTMLInputElement) {
 		this.fieldGroup = fieldGroup;
@@ -51,6 +52,7 @@ export class FileUploadWidget {
 		} else {
 			this.uploadedFiles = this.initialData = [];
 		}
+		this.initialRequired = this.inputElement.required;
 		this.dropbox.addEventListener('dragenter', this.swallowEvent);
 		this.dropbox.addEventListener('dragover', this.swallowEvent);
 		this.dropbox.addEventListener('drop', this.fileDrop);
@@ -101,6 +103,7 @@ export class FileUploadWidget {
 
 	private fileRemove = () => {
 		this.inputElement.value = '';  // used to clear readonly `this.inputElement.files`
+		this.inputElement.required = this.initialRequired;
 		this.uploadedFiles = this.initialData.length > 0 ? [{}] : [];
 		while (this.dropbox.firstChild) {
 			this.dropbox.removeChild(this.dropbox.firstChild);
@@ -212,6 +215,9 @@ export class FileUploadWidget {
 						if (button) {
 							button.addEventListener('click', this.fileRemove, {once: true});
 						}
+						this.inputElement.required = false;
+					} else {
+						this.inputElement.required = this.initialRequired;
 					}
 				}
 			}
