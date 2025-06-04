@@ -336,7 +336,7 @@ The form is named ``SimpleLinkDialogForm`` because it only allows to enter a URL
 rich text field might however want to edit hyperlinks with the ``ref`` and ``target`` attributes,
 and might also want to set links on Django models providing the method `get_absolute_url`_, but
 referring to the primary key of the provided object. Since there can't be any one-size-fits-all
-solution, it is the implementor responsibility to provide a custom dialog form for this purpose.
+solution, it is the implementor's responsibility to provide a custom dialog form for this purpose.
 Section :ref:`richtext-extensions` explains in detail how to do this.
 
 .. _get_absolute_url: https://docs.djangoproject.com/en/stable/ref/models/instances/#get-absolute-url
@@ -362,8 +362,14 @@ the upload field. It will be uploaded to the server and only a reference to this
 stored inside the text. The form is named ``SimpleImageDialogForm`` because it only allows to upload
 an image. The users of this rich text field might however want to edit the image size, the alt text,
 the caption, the alignment and other custom fields. Since there can't be any one-size-fits-all
-solution, it is the implementor responsibility to provide a custom dialog form for this purpose.
+solution, it is the implementor's responsibility to provide a custom dialog form for this purpose.
 Therefore this dialog form can be used as a starting point for a custom image uploading dialog form.
+More on this can be found in section :ref:`richtext-extensions`.
+
+.. versionchanged:: 2.0
+	After submission, the uploaded image is copied from the temporary upload folder into its final
+	destination, which can be configured using the attribute ``upload_to`` of the form field
+	:class:`formset.formfields.richtext.RichTextField`.
 
 
 .. rubric:: Placeholder
