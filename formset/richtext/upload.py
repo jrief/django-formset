@@ -1,4 +1,4 @@
-from django.db.models.fields.files import FileField as FileModelField, FieldFile
+from django.db.models.fields.files import FieldFile, FileField as FileModelField
 from django.db.models.utils import AltersData
 from django.utils.datastructures import MultiValueDict
 
