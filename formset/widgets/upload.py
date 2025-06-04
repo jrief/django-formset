@@ -54,10 +54,13 @@ class UploadedFileInput(FileInput):
             # check if the uploaded file has been signed by the server
             signer = get_cookie_signer(salt='formset')
             upload_temp_name = signer.unsign(handle['upload_temp_name'])
+
+            # use file handle from temporary upload directory to create UploadedFile
             file = default_storage.open(upload_temp_name, 'rb')
             file.seek(0, os.SEEK_END)
             size = file.tell()
             file.seek(0)
+
             # create pseudo unique prefix to avoid file name collisions
             epoch = datetime(2022, 1, 1, tzinfo=timezone.utc)
             prefix = b16encode(struct.pack('f', (now() - epoch).total_seconds())).decode('utf-8')

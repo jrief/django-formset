@@ -88,7 +88,8 @@ class ModelPersonForm(ModelForm):
         model = PersonModel
         fields = '__all__'
         fields_map = {'extra_data': [
-            'about', 'activity_datetime', 'activity_days', 'phone_number', 'address.postal_code', 'address.city', 'validity'
+            'about', 'activity_datetime', 'activity_days', 'phone_number', 'address.postal_code', 'address.city',
+            'validity',
         ]}
         widgets = {
             'avatar': UploadedFileInput,

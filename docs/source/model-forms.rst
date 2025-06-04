@@ -145,6 +145,7 @@ with the form's payload and can be used to distinguish between create, update an
 As an example let's use a simpler model, offering just one editable field:
 
 .. code-block:: python
+	:caption: models.py
 
 	class Annotation(models.Model):
 	    content = models.CharField(max_length=200)
@@ -152,6 +153,7 @@ As an example let's use a simpler model, offering just one editable field:
 The form and view classes required to edit this model then may look something like this:
 
 .. django-view:: annotation
+	:caption: views.py
 	:view-function: type('AnnotationEditView', (SessionModelFormViewMixin, model_forms.AnnotationEditView), {}).as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'annotation-result'}, form_kwargs={'auto_id': 'ano_id_%s'})
 	:hide-view:
 

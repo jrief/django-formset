@@ -92,7 +92,7 @@ def receive_uploaded_file(file_obj, image_height=None):
     Accept an uploaded file and return a handle to it.
     """
     if not file_obj:
-        raise UploadFileException(f"File upload failed.")
+        raise UploadFileException("File upload failed.")
     signer = get_cookie_signer(salt='formset')
 
     temp_path = default_storage.save(UPLOAD_TEMP_DIR / file_obj.name, file_obj)

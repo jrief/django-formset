@@ -17,11 +17,12 @@ class CompleteForm(forms.Form):
 
     CONTINENT_CHOICES = [
         ('', "––– please select –––"), ('am', "America"), ('eu', "Europe"), ('as', "Asia"),
-        ('af', "Africa"), ('au', "Australia"), ('oc', "Oceania"), ('an', 'Antartica'),
+        ('af', "Africa"), ('au', "Australia"), ('oc', "Oceania"), ('an', "Antarctica"),
     ]
     TRANSPORTATION_CHOICES = [
         ("Private Transport", [('foot', "Foot"), ('bike', "Bike"), ('mc', "Motorcycle"), ('car', "Car")]),
-        ("Public Transport", [('taxi', "Taxi"), ('bus', "Bus"), ('train', "Train"), ('ship', "Ship"), ('air', "Airplane")]),
+        ("Public Transport",
+        [('taxi', "Taxi"), ('bus', "Bus"), ('train', "Train"), ('ship', "Ship"), ('air', "Airplane")]),
     ]
     NOTIFY_BY = [
         ('postal', "Letter"), ('email', "EMail"), ('phone', "Phone"), ('sms', "SMS"),
