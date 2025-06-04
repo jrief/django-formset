@@ -1,8 +1,8 @@
-from django.forms.fields import CharField, RegexField, ChoiceField
+from django.forms.fields import CharField, RegexField, ChoiceField, ImageField
 from django.forms.widgets import RadioSelect, TextInput
 from formset.fieldset import Fieldset
 from formset.forms import ModelForm
-from formset.widgets import CountrySelectize
+from formset.widgets import CountrySelectize, UploadedFileInput
 from django_countries import countries
 
 from testapp.models import ProductModel
@@ -23,6 +23,12 @@ class ProductFormUnmapped(ModelForm):
         regex=r'^#[a-zA-Z0-9]{6}$',
         label="Color",
         widget=TextInput(attrs={'type': 'color'}),
+    )
+    image = ImageField(
+        label="Image",
+        required=False,
+        widget=UploadedFileInput(),
+        help_text="Upload an image for the product.",
     )
 
     class Meta:
@@ -55,6 +61,6 @@ class ProductForm(ProductFormUnmapped):
         fields = ['title', 'price', 'properties', 'supplier_name']
         # exclude = ['extra_data']
         fields_map = {
-            'properties': ['size', 'color', 'supplier.origin'],
+            'properties': ['size', 'color', 'supplier.origin', 'image'],
             'supplier_name': 'supplier.name',
         }
