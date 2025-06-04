@@ -203,23 +203,27 @@ export class FileUploadWidget {
 
 	private attributesChanged(mutationsList: Array<MutationRecord>) {
 		for (const mutation of mutationsList) {
-			if (mutation.type === 'attributes') {
-				if (mutation.attributeName === 'disabled' && this.chooseFileButton.disabled != this.inputElement.disabled) {
-					this.chooseFileButton.disabled = this.inputElement.disabled;
-				}
-				if (mutation.attributeName === 'data-fileupload') {
-					const fileUpload = this.inputElement.dataset.fileupload;
-					if (fileUpload) {
-						this.dropbox.innerHTML = this.dropboxItemTemplate(JSON.parse(fileUpload));
-						const button = this.dropbox.querySelector('.dj-delete-file');
-						if (button) {
-							button.addEventListener('click', this.fileRemove, {once: true});
-						}
-						this.inputElement.required = false;
-					} else {
-						this.inputElement.required = this.initialRequired;
+			if (mutation.type !== 'attributes') {
+				continue;
+			}
+			if (mutation.attributeName === 'disabled' && this.chooseFileButton.disabled != this.inputElement.disabled) {
+				this.chooseFileButton.disabled = this.inputElement.disabled;
+			}
+			if (mutation.attributeName === 'data-fileupload') {
+				const fileUpload = this.inputElement.dataset.fileupload;
+				if (fileUpload) {
+					this.dropbox.innerHTML = this.dropboxItemTemplate(JSON.parse(fileUpload));
+					const button = this.dropbox.querySelector('.dj-delete-file');
+					if (button) {
+						button.addEventListener('click', this.fileRemove, {once: true});
 					}
+					this.inputElement.required = false;
+				} else {
+					this.inputElement.required = this.initialRequired;
 				}
+			}
+			if (mutation.attributeName === 'required' && this.inputElement.dataset.fileupload) {
+				this.inputElement.required = false;
 			}
 		}
 	}
