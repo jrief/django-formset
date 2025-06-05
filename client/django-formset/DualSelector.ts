@@ -476,8 +476,6 @@ export class DualSelector extends IncompleteSelect {
 		return sheet;
 	}
 
-	protected getValue = () => this.historicValues[this.historicValues.length - 1];
-
 	protected async formResetted(event: Event) {
 		this.historicValues.splice(1);
 		this.setHistoryCursor(0);
@@ -524,13 +522,14 @@ export class DualSelector extends IncompleteSelect {
 		}
 	}
 
+	public getValue = () => this.historicValues[this.historicValues.length - 1];
+
 	public setValues(values: FieldValue[]) {
 		const emitChangeEvent = () => this.selectorElement.dispatchEvent(new Event('focusout'));
 		const stringValues = values.filter(v => isString(v));
 		if (values.length !== stringValues.length) {
 			const finiteValues = values.filter(v => isFinite(v)).map(v => v.toString());
 			this.loadOptions(this.buildFetchQuery(0, {pk: finiteValues.join(',')}), (options: Array<OptionData>) => {
-				const currentValues = this.getValue();
 				options.forEach(option => {
 					const optionElement = this.selectorElement.querySelector(`option[value="${option.id}"]`);
 					if (optionElement) {
@@ -562,6 +561,10 @@ export class DualSelectorElement extends HTMLSelectElement {
 
 	connectedCallback() {
 		this[DS].initialize();
+	}
+
+	get value(): any {
+		return this[DS].getValue().join(',');
 	}
 
 	set value(val: any) {
