@@ -1,6 +1,5 @@
-import json
 import pytest
-from time import sleep
+from re import compile as regex
 
 from playwright.sync_api import expect
 
@@ -106,21 +105,17 @@ urlpatterns = [
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['single_form'])
-def test_one_preselection(page, mocker, viewname):
+def test_one_preselection(page, viewname):
     state_field = page.locator('django-formset select[name="state"]')
     county_field = page.locator('django-formset select[name="county"]')
     expect(county_field.locator('option')).to_have_count(251)
     assert county_field.evaluate('elem => elem.value') == ''
-    spy = mocker.spy(NativeFormView, 'get')
-    state_field.select_option(label="Georgia")
-    sleep(0.25)
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
+        state_field.select_option(label="Georgia")
+    assert response_info.value.ok is True
     expect(county_field.locator('option')).to_have_count(0)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    content = json.loads(spy.spy_return.content)
-    spy.reset_mock()
     georgia_counties = County.objects.filter(state__name="Georgia")
-    assert content['count'] == georgia_counties.count()
+    assert response_info.value.json()['count'] == georgia_counties.count()
     page.locator('django-formset .ts-control').click()
     dropdown_element = page.locator('django-formset .shadow-wrapper .ts-dropdown')
     first_option = dropdown_element.locator(f'div[data-selectable][data-value="{georgia_counties.first().id}"]')
@@ -131,21 +126,19 @@ def test_one_preselection(page, mocker, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['multi_form'])
-def test_multi_preselections(page, mocker, viewname):
+def test_multi_preselections(page, viewname):
     states_field = page.locator('django-formset select[name="states"]')
     counties_field = page.locator('django-formset select[name="counties"]')
     expect(counties_field.locator('option')).to_have_count(251)
     assert counties_field.evaluate('elem => elem.value') == ''
-    spy = mocker.spy(NativeFormView, 'get')
-    states_field.select_option(label=["Texas", "New York", "Kansas"])
-    sleep(0.5)
+    selected_states = ["Texas", "New York", "Kansas"]
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
+        states_field.select_option(label=selected_states)
+    assert response_info.value.ok is True
+    assert response_info.value.json()['count'] == SelectizeMultiple.max_prefetch_choices
     expect(counties_field.locator('option')).to_have_count(0)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    content = json.loads(spy.spy_return.content)
-    spy.reset_mock()
-    queryset = County.objects.filter(state__name__in=["Texas", "New York", "Kansas"])
-    assert content['count'] == SelectizeMultiple.max_prefetch_choices
+    queryset = County.objects.filter(state__name__in=selected_states)
+    assert response_info.value.json()['count'] == SelectizeMultiple.max_prefetch_choices
     page.locator('django-formset .ts-control').click()
     dropdown_element = page.locator('django-formset .shadow-wrapper .ts-dropdown')
     first_option = dropdown_element.locator(f'div[data-selectable][data-value="{queryset.first().id}"]')
@@ -156,33 +149,31 @@ def test_multi_preselections(page, mocker, viewname):
     zapata_county = County.objects.get(name="Zapata")
     zapata_option = dropdown_element.locator(f'div[data-selectable][data-value="{zapata_county.id}"]')
     expect(zapata_option).to_have_count(0)
-    page.locator('django-formset .ts-control input').type("zap")
-    sleep(0.75)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    content = json.loads(spy.spy_return.content)
-    spy.reset_mock()
-    assert content['count'] == 1
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
+        page.locator('django-formset .ts-control input').type("zap")
+    assert response_info.value.ok is True
+    assert response_info.value.json()['count'] == 1
     expect(zapata_option).to_have_count(1)
     expect(zapata_option).to_have_text("Zapata (TX)")
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['many_form'])
-def test_many_preselections(page, mocker, viewname):
+def test_many_preselections(page, viewname):
     states_field = page.locator('django-formset select[name="states"]')
     counties_field = page.locator('django-formset select[name="counties"]')
     expect(counties_field.locator('option')).to_have_count(SelectizeMultiple.max_prefetch_choices)
     assert counties_field.evaluate('elem => elem.value') == ''
-    spy = mocker.spy(NativeFormView, 'get')
-    states_field.select_option(label=["Oregon", "Minnesota", "North Carolina", "Nebraska"])
-    sleep(0.3)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    content = json.loads(spy.spy_return.content)
-    spy.reset_mock()
-    assert content['count'] == SelectizeMultiple.max_prefetch_choices
-    page.locator('django-formset .df-dual-selector .left-column input').type("linc", delay=100)
+    selected_states = ["Oregon", "Minnesota", "North Carolina", "Nebraska"]
+    look_for = "linc"
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
+        states_field.select_option(label=selected_states)
+    assert response_info.value.ok is True
+    assert response_info.value.json()['count'] == SelectizeMultiple.max_prefetch_choices
+    page.locator('django-formset .df-dual-selector .left-column input').type(look_for, delay=100)
     page.locator('django-formset .df-dual-selector button[aria-label="move all right"]').click()
     right_select = page.locator('django-formset .df-dual-selector .right-column select')
-    expect(right_select.locator('option')).to_have_count(4)
+    state_ids = State.objects.filter(name__in=selected_states).values_list('id', flat=True)
+    county_ids = County.objects.filter(state__id__in=state_ids, name__icontains=look_for).values_list('id', flat=True)
+    expect(right_select.locator('option')).to_have_count(county_ids.count())
+    assert set(counties_field.evaluate('elem => elem.value').split(',')) == set(map(str, county_ids))
