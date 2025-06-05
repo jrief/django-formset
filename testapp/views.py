@@ -53,7 +53,7 @@ from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerForm
 from testapp.forms.gallerycollection import GalleryCollection
 from testapp.forms.galleryform import GalleryImageForm
-from testapp.forms.issue import EditIssueCollection
+from testapp.forms.issue import EditIssueCollection, EditIssueManyCollection
 from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputForm, MomentPickerForm
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
 from testapp.forms.opinion import OpinionForm
@@ -636,6 +636,7 @@ urlpatterns = [
         template_name='testapp/form-collection-no-buttons.html',
     ), name='terms_of_use'),
     path('issue', IssueCollectionView.as_view(), name='issue'),
+    path('issue-many', IssueCollectionView.as_view(collection_class=EditIssueManyCollection), name='issue-many'),
     path('coffe', DemoFormCollectionView.as_view(
         collection_class=CoffeeOrderCollection,
     ), name='coffe'),

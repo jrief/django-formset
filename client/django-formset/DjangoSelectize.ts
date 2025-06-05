@@ -362,9 +362,12 @@ export class DjangoSelectize extends IncompleteSelect {
 		}
 	};
 
-	public setValue(value: string|number) {
-		const emitChangeEvent = () => this.tomSelect.input.dispatchEvent(new Event('change', {bubbles: true}));
+	private	emitChangeEvent() {
+		this.tomSelect.input.dispatchEvent(new Event('change', {bubbles: true}));
+		this.tomSelect.input.dispatchEvent(new Event('focusout'));
+	}
 
+	public setValue(value: string|number) {
 		if (isFinite(value)) {
 			// if the value is a number, enforce re-fetching object from the server
 			this.loadOptions(this.buildFetchQuery(0, {pk: value.toString()}), (options: Array<OptionData>) => {
@@ -377,16 +380,37 @@ export class DjangoSelectize extends IncompleteSelect {
 				}
 			}).then(() => {
 				this.tomSelect.setValue(value.toString(), true);
-				emitChangeEvent();
+				this.emitChangeEvent();
 			});
 		} else if (isString(value)) {
 			this.tomSelect.setValue(value, true);
-			emitChangeEvent();
+			this.emitChangeEvent();
 		}
 	}
 
-	public setValues(values: string[]) {
-		this.tomSelect.setValue(values, true);
+	public setValues(values: FieldValue[]) {
+		const stringValues = values.filter(v => isString(v));
+		if (values.length !== stringValues.length) {
+			const finiteValues = values.filter(v => isFinite(v)).map(v => v.toString());
+			this.loadOptions(this.buildFetchQuery(0, {pk: finiteValues.join(',')}), (options: Array<OptionData>) => {
+				const currentValues = this.tomSelect.getValue() as string[];
+				options.forEach(option => {
+					if (currentValues.includes(option.id)) {
+						// object already loaded by tom-select
+						this.tomSelect.updateOption(option.id, option);
+					} else {
+						// object must be added to tom-select
+						this.tomSelect.addOption(option);
+					}
+				});
+			}).then(() => {
+				this.tomSelect.setValue([...stringValues, ...finiteValues], true);
+				this.emitChangeEvent();
+			});
+		} else {
+			this.tomSelect.setValue(stringValues, true);
+			this.emitChangeEvent();
+		}
 	}
 }
 

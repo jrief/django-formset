@@ -13,6 +13,13 @@ class IssueModel(models.Model):
         on_delete=models.CASCADE,
         verbose_name="Reporter",
         related_name='issues',
+        blank=True,
+        null=True,
+    )
+    reporters = models.ManyToManyField(
+        Reporter,
+        verbose_name="Reporters",
+        blank=True,
     )
     created_by = models.CharField(
         editable=False,

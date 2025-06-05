@@ -1,12 +1,12 @@
 from django.forms.fields import CharField, IntegerField
-from django.forms.models import ModelChoiceField, ModelForm, construct_instance
+from django.forms.models import ModelChoiceField, ModelForm, ModelMultipleChoiceField, construct_instance
 from django.forms.widgets import HiddenInput
 
 from formset.collection import FormCollection
 from formset.dialog import DialogModelForm
 from formset.formfields.activator import Activator
 from formset.renderers import ButtonVariant
-from formset.widgets import Button, Selectize
+from formset.widgets import Button, DualSelector, Selectize, SelectizeMultiple
 
 from testapp.models import Reporter, IssueModel
 
@@ -64,7 +64,7 @@ class CreateReporterDialogForm(ChangeReporterDialogForm):
         fields = ['full_name']
 
 
-class IssueForm(ModelForm):
+class IssueSingleForm(ModelForm):
     title = CharField(
         label="Title",
         max_length=100,
@@ -98,13 +98,61 @@ class IssueForm(ModelForm):
         fields = ['title', 'reporter']
 
 
+class CreateReporterManyDialogForm(CreateReporterDialogForm):
+    create = Activator(
+        label="Create Reporter",
+        widget=Button(
+            action='submitPartial -> setFieldValue(issue.reporters, ^reporter_id) -> activate("clear")',
+            button_variant=ButtonVariant.PRIMARY,
+        ),
+    )
+
+
+class IssueManyForm(ModelForm):
+    title = CharField(
+        label="Title",
+        max_length=100,
+    )
+    reporters = ModelMultipleChoiceField(
+        queryset=Reporter.objects.all(),
+        label="Reporters",
+        widget=SelectizeMultiple(
+            search_lookup='full_name__icontains',
+        ),
+        required=True,
+    )
+    add_reporter = Activator(
+        label="Add Reporter",
+        widget=Button(
+            action='activate',
+            button_variant=ButtonVariant.PRIMARY,
+        ),
+    )
+
+    class Meta:
+        model = IssueModel
+        fields = ['title', 'reporters']
+
+
 class EditIssueCollection(FormCollection):
     create_reporter = CreateReporterDialogForm()
     edit_reporter = EditReporterDialogForm()
-    issue = IssueForm()
+    issue = IssueSingleForm()
 
     def construct_instance(self, main_object):
         assert not self.partial
-        instance = construct_instance(self.valid_holders['issue'], main_object)
+        instance = construct_instance(self.valid_holders['issue'], main_object, fields=['title', 'reporter'])
         instance.save()
+        return instance
+
+
+class EditIssueManyCollection(FormCollection):
+    create_reporter = CreateReporterManyDialogForm()
+    issue = IssueManyForm()
+
+    def construct_instance(self, main_object):
+        assert not self.partial
+        instance = construct_instance(self.valid_holders['issue'], main_object, fields=['title'])
+        self.valid_holders['issue'].instance = instance
+        self.valid_holders['issue'].save()  # this also saves field `reporters` (many-to-many)
         return instance

@@ -1,3 +1,4 @@
+import isFinite from 'lodash.isfinite';
 import isString from 'lodash.isstring';
 import template from 'lodash.template';
 import {IncompleteSelect} from './IncompleteSelect';
@@ -522,6 +523,31 @@ export class DualSelector extends IncompleteSelect {
 			this.selectorChanged();
 		}
 	}
+
+	public setValues(values: FieldValue[]) {
+		const emitChangeEvent = () => this.selectorElement.dispatchEvent(new Event('focusout'));
+		const stringValues = values.filter(v => isString(v));
+		if (values.length !== stringValues.length) {
+			const finiteValues = values.filter(v => isFinite(v)).map(v => v.toString());
+			this.loadOptions(this.buildFetchQuery(0, {pk: finiteValues.join(',')}), (options: Array<OptionData>) => {
+				const currentValues = this.getValue();
+				options.forEach(option => {
+					const optionElement = this.selectorElement.querySelector(`option[value="${option.id}"]`);
+					if (optionElement) {
+						this.moveOptionToSelectElement(optionElement as HTMLOptionElement, this.selectRightElement);
+					} else {
+						const optionElement = this.addOptionToSelectElement(option, this.selectRightElement).cloneNode(false) as HTMLOptionElement;
+						this.selectorElement.add(optionElement);
+					}
+					this.selectorChanged();
+				});
+			}).then(() => {
+				emitChangeEvent();
+			});
+		} else {
+			emitChangeEvent();
+		}
+	}
 }
 
 const DS = Symbol('DualSelectorElement');
@@ -536,6 +562,14 @@ export class DualSelectorElement extends HTMLSelectElement {
 
 	connectedCallback() {
 		this[DS].initialize();
+	}
+
+	set value(val: any) {
+		if (isString(val)) {
+			this[DS].setValues(val.split(','));
+		} else if (Array.isArray(val)) {
+			this[DS].setValues(val);
+		}
 	}
 }
 

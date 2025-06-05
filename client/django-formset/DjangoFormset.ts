@@ -205,11 +205,9 @@ class FieldGroup {
 			if (element.type === 'checkbox') {
 				(element as HTMLInputElement).checked = value === element.value;
 			} else if (element.type === 'select-multiple') {
-				const select = element as HTMLSelectElement;
-				const selectedOptions = Array.from(select.options).filter(o => (value as Array<string>).includes(o.value));
-				for (const option of selectedOptions) {
-					option.selected = true;
-				}
+				const newValues: Array<FieldValue> = Array.from((element as HTMLSelectElement).selectedOptions).map(o => o.value);
+				newValues.push(value);
+				element.value = newValues as any;
 			} else if (element.type !== 'file') {
 				element.value = value as string;
 			}
