@@ -19,7 +19,7 @@ function infiniteScroll(options: TomOption) {
 		const dropdown_content = tom_select.dropdown_content;
 
 		async function handleScroll(event: Event) {
-			const tresholdBottom = dropdown_content.offsetHeight + (tom_select.activeOption?.offsetHeight ?? 30);
+			const tresholdBottom = dropdown_content.offsetHeight + (tom_select.activeOption?.offsetHeight ?? 20);
 			if (dropdown_content.scrollHeight - dropdown_content.scrollTop <= tresholdBottom) {
 				// triggers whenever the last <option>-element becomes visible inside its parent <select>
 				dropdown_content.removeEventListener('scroll', handleScroll);

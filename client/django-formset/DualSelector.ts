@@ -171,7 +171,7 @@ export class DualSelector extends IncompleteSelect {
 		if (!this.isIncomplete)
 			return;
 		const selectLeftScroll = this.selectLeftElement.scrollHeight - this.selectLeftElement.scrollTop;
-		if (selectLeftScroll <= this.selectLeftElement.offsetHeight) {
+		if (selectLeftScroll <= this.selectLeftElement.offsetHeight + 20) {
 			// triggers whenever the last <option>-element becomes visible inside its parent <select>
 			await this.remoteLookup();
 		}
