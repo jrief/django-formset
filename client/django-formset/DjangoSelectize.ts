@@ -1,11 +1,42 @@
 import isFinite from 'lodash.isfinite';
 import isString from 'lodash.isstring';
 import TomSelect from 'tom-select';
-import {RecursivePartial, TomSettings} from 'tom-select/src/types';
+import {RecursivePartial, TomOption, TomSettings} from 'tom-select/src/types';
 import {IncompleteSelect} from './IncompleteSelect';
 import {StyleHelpers} from './helpers';
 import wrapperStyles from './DjangoSelectizeWrapper.scss';
 import shadowStyles from './DjangoSelectizeShadow.scss';
+
+
+TomSelect.define('infinite_scroll', infiniteScroll);
+
+function infiniteScroll(options: TomOption) {
+	// @ts-ignore
+	const tom_select = this as TomSelect;
+
+	// add scroll listener and default templates
+	tom_select.on('initialize', () => {
+		const dropdown_content = tom_select.dropdown_content;
+
+		async function handleScroll(event: Event) {
+			const tresholdBottom = dropdown_content.offsetHeight + (tom_select.activeOption?.offsetHeight ?? 30);
+			if (dropdown_content.scrollHeight - dropdown_content.scrollTop <= tresholdBottom) {
+				// triggers whenever the last <option>-element becomes visible inside its parent <select>
+				dropdown_content.removeEventListener('scroll', handleScroll);
+				tom_select.loadedSearches = {};
+				options.loadMore().then((isIncomplete: boolean) => {
+					if (isIncomplete) {
+						// re-attach scroll listener only if new options were loaded
+						dropdown_content.addEventListener('scroll', handleScroll);
+					}
+				});
+			}
+		}
+
+		// watch dropdown content scroll position
+		dropdown_content.addEventListener('scroll', handleScroll);
+	});
+}
 
 
 export class DjangoSelectize extends IncompleteSelect {
@@ -20,6 +51,7 @@ export class DjangoSelectize extends IncompleteSelect {
 	private readonly wrapperSelector = '[is="django-selectize"] + .shadow-wrapper';
 	private readonly shadowWrapper: HTMLElement;
 	private readonly uniqueIdentifier: string;
+	private offset: number;
 
 	constructor(tomInput: HTMLSelectElement) {
 		super(tomInput);
@@ -39,6 +71,7 @@ export class DjangoSelectize extends IncompleteSelect {
 		this.initialValues = this.getInitialValues(tomInput);
 		this.tomSelect = new TomSelect(tomInput, this.getSettings(tomInput));
 		this.tomSelect.wrapper.classList.remove(...nativeClasses);
+		this.offset = Object.keys(this.tomSelect.options).length;
 		this.observer = new MutationObserver(this.attributesChanged);
 		this.observer.observe(tomInput, {attributes: true});
 		this.uniqueIdentifier = `ds-${Math.random().toString(36).substring(2, 15)}`;
@@ -77,10 +110,11 @@ export class DjangoSelectize extends IncompleteSelect {
 			onItemRemove: this.itemRemoved,
 			render: {
 				no_results: `<div class="no-results">${gettext("No results found for '${input}'")}</div>`,
-			}
+			},
 		};
 		if (this.isIncomplete) {
 			settings.load = this.load;
+			settings.plugins = {...settings.plugins, 'infinite_scroll': {loadMore: this.loadMore.bind(this)}};
 		}
 		if (tomInput.hasAttribute('multiple')) {
 			settings.maxItems = parseInt(tomInput.getAttribute('max_items') ?? '3');
@@ -119,6 +153,7 @@ export class DjangoSelectize extends IncompleteSelect {
 			this.tomSelect.input.replaceChildren();
 			await this.loadOptions(this.buildFetchQuery(0), (options: Array<OptionData>) => {
 				this.tomSelect.addOptions(options);
+				this.offset = options.length;
 			});
 		}
 		this.tomSelect.setValue(currentValue, silent);
@@ -141,10 +176,56 @@ export class DjangoSelectize extends IncompleteSelect {
 	}
 
 	private load = (search: string, callback: Function) => {
+		this.tomSelect.clearOptions();
+		this.tomSelect.clearOptionGroups();
 		this.loadOptions(this.buildFetchQuery(0, {search}), (options: Array<OptionData>) => {
 			callback(options, this.extractOptGroups(options));
+			this.offset = options.length;
 		});
 	};
+
+	private loadMore(): Promise<boolean> {
+		return new Promise<boolean>(resolve => {
+			const scrollTop = this.tomSelect.dropdown_content.scrollTop;
+			const optgroupmap = new Map<string, number>();
+			for (const optgroup of Object.values(this.tomSelect.optgroups)) {
+				optgroupmap.set(optgroup.label, optgroup.value);
+			}
+			const optgroupnames = Array.from(optgroupmap.keys());
+			let maxOptGroups = optgroupnames.length;
+			let maxOrder = Math.max(...Object.values(this.tomSelect.options).map(option => option.$order as number));
+			this.loadOptions(this.buildFetchQuery(this.offset, {search: this.tomSelect.lastQuery}), (options: Array<OptionData>) => {
+				options.forEach(o => {
+					maxOrder++;
+					if (isString(o.optgroup) && !optgroupnames.includes(o.optgroup)) {
+						maxOptGroups++;
+						this.tomSelect.addOptionGroup(maxOptGroups as unknown as string, {
+							label: o.optgroup,
+							disabled: false,
+							$order: maxOrder,
+						});
+						optgroupmap.set(o.optgroup, maxOptGroups);
+						optgroupnames.push(o.optgroup);
+					}
+					const option = {
+						label: o.label,
+						id: String(o.id),
+						disabled: false,
+						$order: maxOrder,
+					};
+					if (isString(o.optgroup)) {
+						this.tomSelect.addOption({...option, optgroup: optgroupmap.get(o.optgroup)});
+					} else {
+						this.tomSelect.addOption(option);
+					}
+				});
+				this.offset += options.length;
+				this.tomSelect.refreshOptions();
+				this.tomSelect.dropdown_content.scrollTo({top: scrollTop, behavior: 'instant'});
+				resolve(this.isIncomplete);
+			});
+		});
+	}
 
 	private focused = () => {
 		this.shadowWrapper.classList.add('focus');

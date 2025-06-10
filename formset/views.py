@@ -60,24 +60,20 @@ class IncompleteSelectResponseMixin:
 
         queryset = widget.choices.queryset
         data = {'total_count': queryset.count()}
-        incomplete = queryset.count() - offset > widget.max_prefetch_choices
 
         if widget.filter_by and any(k.startswith('filter-') for k in request.GET.keys()):
             filtervalues = {key: request.GET.getlist(f'filter-{key}') for key in widget.filter_by.keys()}
             queryset = queryset.filter(widget.build_filter_query(filtervalues))
-            incomplete = None  # incomplete state unknown
         elif widget.use_filter_set:
             queryset = widget.use_filter_set(request=request, queryset=queryset).qs
-            incomplete = None  # incomplete state unknown
 
         if pks := request.GET.getlist('pk'):
             queryset = queryset.filter(pk__in=pks)
-            incomplete = None  # incomplete state unknown
         elif search := request.GET.get('search'):
             data['search'] = search
             queryset = queryset.filter(widget.build_search_query(search))
-            incomplete = None  # incomplete state unknown
 
+        incomplete = queryset.count() - offset > widget.max_prefetch_choices
         limited_qs = queryset[offset:offset + widget.max_prefetch_choices]
         to_field_name = field.to_field_name if field.to_field_name else 'pk'
         if widget.group_field_name:
