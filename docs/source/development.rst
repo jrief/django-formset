@@ -10,14 +10,16 @@ The last two applications are required for the client part and make up about one
 base.
 
 The code can be found on GitHub_. Please use the issue tracker **only** to report bugs. For
-questions and new ideas, please use the discussion board.
+questions and new ideas, please use the `discussion board`_. **Do not ask questions using my
+private email address.**
 
 .. _TypeScript: https://www.typescriptlang.org/
 .. _PEG: https://peggyjs.org/documentation.html
 .. _GitHub: https://github.com/jrief/django-formset
+.. _discussion board: https://github.com/jrief/django-formset/discussions
 
-When building this library locally, it therefore is strongly recommended that you install the whole
-tool-chain required to build the test application:
+When building this library locally, it is strongly recommended that you install the whole tool-chain
+required to build the test application:
 
 .. code-block:: shell
 
