@@ -30,11 +30,15 @@
   * **Drop support for Django-4.2**.
   * Semantically improve HTML: The `<div class="dj-form">`-element to wrap forms now is rendered as 
     `<div role="form">`. 
+  * The `Selectize` widget now uses a search box inside the dropdown instead of a search box inside
+    the selection area.
+  * The `Selectize` widget now scrolls infinite, i.e., it loads more options from the server when
+    scolling to the end of the list.
   * Error messages shown for invalid fields hide as soon as the field is focused. This is to
-    prevent the user from being unsettled by an error message while filling out the form.
+  prevent the user from being unsettled by an error message while filling out the form.
   * In input fields, show the success tick for validated fields after blurring and not while typing,
     for the same reason as above.
-  * After submitting a form containing the field ``RichTextField``, the uploaded image is copied
+  * After submitting a form containing the field `RichTextField`, the uploaded image is copied
     from the temporary upload folder into its final destination.
   * Add management command `./manage.py cleanup_files` to delete dangling files. This is because the
     `UploadedFileInput` widget accepts files before their form is submitted and hence processed.
