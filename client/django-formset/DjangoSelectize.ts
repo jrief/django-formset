@@ -102,7 +102,7 @@ export class DjangoSelectize extends IncompleteSelect {
 			sortField: [{field: '$order'}, {field: '$score'}],
 			lockOptgroupOrder: true,
 			searchField: ['label'],
-			plugins: {},
+			plugins: {'dropdown_input': {}},
 			onFocus: this.focused,
 			onBlur: this.blurred,
 			onType: this.inputted,
@@ -315,6 +315,16 @@ export class DjangoSelectize extends IncompleteSelect {
 					break;
 				case `${this.baseSelector} .ts-dropdown`:
 					extraStyles = parseFloat(lineHeight) > 0 ? `line-height: calc(${lineHeight} * 1.2);` : 'line-height: 1.4em;';
+					break;
+				case `${this.baseSelector} .ts-dropdown .dropdown-input-wrap > input`:
+					extraStyles = StyleHelpers.extractStyles(tomInput, ['padding']);
+					break;
+				case `${this.baseSelector} .ts-dropdown .dropdown-input-wrap > input:focus-visible`:
+					tomInput.style.transition = 'none';
+					tomInput.classList.add('⁝focus');
+					extraStyles = StyleHelpers.extractStyles(tomInput, ['border-color', 'outline', 'transition']);
+					tomInput.classList.remove('⁝focus');
+					tomInput.style.transition = '';
 					break;
 				case `${this.baseSelector} .ts-dropdown .ts-dropdown-content`:
 					if (parseFloat(lineHeight) > 0) {

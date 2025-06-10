@@ -147,6 +147,23 @@
 			}
 		}
 
+		.dropdown-input-wrap {
+			box-sizing: border-box;
+			width: 100%;
+			padding: 0.25rem;
+
+			> input {
+				width: 100%;
+				box-sizing: border-box;
+				border: var(--border-width) var(--border-style) var(--border-color);
+				border-radius: var(--border-radius);
+
+				&:focus-visible {
+					--dummy: none;  // required by DjangoSelectize.initialize()
+				}
+			}
+		}
+
 		.ts-dropdown-content {
 			overflow-y: auto;
 			overflow-x: hidden;
