@@ -253,7 +253,7 @@ def test_lookup_value(page, form, viewname):
         'total_count': 999,
         'search': '159',
         'count': 1,
-        'incomplete': None,
+        'incomplete': False,
         'options': [{'id': opinion.id, 'label': opinion.label}],
     }
     assert response_info.value.json() == expected
