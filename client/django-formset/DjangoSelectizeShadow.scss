@@ -81,13 +81,10 @@
 		&.full .ts-control > input {
 			visibility: hidden;
 		}
-		&.has-items:not(.dirty) {
-			.ts-control > input {
-				&::placeholder {
-					opacity: 0;
-				}
-			}
-		}
+	}
+
+	&.has-items .ts-control > input::placeholder {
+		opacity: 0;
 	}
 
 	&.focus .ts-control {
