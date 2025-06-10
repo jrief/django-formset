@@ -33,7 +33,7 @@ COPY .deployment/entrypoint.sh /web/entrypoint.sh
 
 # compile assets
 RUN npm run tag-attributes
-RUN npm run function-code
+RUN npm run no-comments
 RUN npm run compilescss
 RUN npm run tailwindcss
 RUN npm run esbuild.modular -- --debug
