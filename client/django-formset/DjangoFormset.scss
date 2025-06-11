@@ -34,14 +34,16 @@ django-formset {
 	}
 
 	&.dj-feedback-errors [role="group"].dj-touched:not(.dj-submitted) {
-		@mixin invalid-blurred {
+		@mixin invalid-blurred($with-image) {
 			border-color: var(--django-formset-color-invalid);
-			background-image: var(--django-formset-icon-invalid);
+			@if($with-image) {
+				background-image: var(--django-formset-icon-invalid) !important;
+			}
 		}
 		@each $field in $feedback-fields {
 			$selector: "#{$field}#{$has-feedback}:invalid:not([is]):not(:focus)";
 			> #{$selector}, :not([role="group"]) > #{$selector} {
-				@include invalid-blurred;
+				@include invalid-blurred(list.index($feedback-input-fields, $field));
 			}
 			$alertor: "#{$field}#{$has-feedback}:invalid:focus ~ [role=alert]";
 			#{$alertor} {
@@ -50,7 +52,7 @@ django-formset {
 		}
 
 		input[is^=django]:invalid + [role=textbox]:not(.focus) {
-			@include invalid-blurred;
+			@include invalid-blurred(true);
 		}
 	}
 
@@ -59,7 +61,7 @@ django-formset {
 			background-image: var(--django-formset-icon-warning);
 		}
 		[role="group"].dj-dirty:not(.dj-submitted) {
-			@each $field in $feedback-fields {
+			@each $field in $feedback-input-fields {
 				$selector: "#{$field}#{$has-feedback}:invalid:not([is]):focus";
 				>#{$selector}, :not([role="group"])>#{$selector} {
 					@include warning-focused;
@@ -68,7 +70,7 @@ django-formset {
 		}
 		&:not(.dj-feedback-errors) {
 			[role="group"].dj-dirty:not(.dj-submitted) {
-				@each $field in $feedback-fields {
+				@each $field in $feedback-input-fields {
 					$selector: "#{$field}#{$has-feedback}:invalid:not([is])";
 					>#{$selector}, :not([role="group"])>#{$selector} {
 						@include warning-focused;
@@ -79,18 +81,20 @@ django-formset {
 	}
 
 	&.dj-feedback-success [role="group"].dj-dirty {
-		@mixin valid-blurred {
+		@mixin valid-blurred($with-image) {
 			border-color: var(--django-formset-color-valid);
-			background-image: var(--django-formset-icon-valid) !important;
+			@if($with-image) {
+				background-image: var(--django-formset-icon-valid) !important;
+			}
 		}
 		@each $field in $feedback-fields {
 			$selector: "#{$field}#{$has-feedback}:valid:not([is]):not(:focus)";
 			>#{$selector}, :not([role="group"])>#{$selector} {
-				@include valid-blurred;
+				@include valid-blurred(list.index($feedback-input-fields, $field));
 			}
 		}
-		input[is^=django]:valid+[role=textbox]:not(.focus) {
-			@include valid-blurred;
+		input[is^=django]:valid + [role=textbox]:not(.focus) {
+			@include valid-blurred(true);
 		}
 	}
 
