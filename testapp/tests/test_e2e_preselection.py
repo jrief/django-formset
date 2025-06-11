@@ -149,8 +149,10 @@ def test_multi_preselections(page, viewname):
     zapata_county = County.objects.get(name="Zapata")
     zapata_option = dropdown_element.locator(f'div[data-selectable][data-value="{zapata_county.id}"]')
     expect(zapata_option).to_have_count(0)
+    input_field = page.locator('django-formset .ts-dropdown .dropdown-input-wrap input[type="text"]')
+    expect(input_field).to_be_visible()
     with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
-        page.locator('django-formset .ts-control input').type("zap")
+        input_field.type("zap")
     assert response_info.value.ok is True
     assert response_info.value.json()['count'] == 1
     expect(zapata_option).to_have_count(1)

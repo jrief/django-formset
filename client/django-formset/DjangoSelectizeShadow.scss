@@ -119,7 +119,7 @@
 
 		background-color: color-mix(in srgb, var(--django-formset-background-color), transparent 25%);
 		backdrop-filter: blur(1rem);
-		margin: 0.25rem 0 0 0;
+		margin: 0;
 		border-top: none;
 		border-right: var(--border-width) var(--border-style) var(--border-color);
 		border-bottom: var(--border-width) var(--border-style) var(--border-color);

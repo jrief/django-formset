@@ -14,7 +14,6 @@ function infiniteScroll(options: TomOption) {
 	// @ts-ignore
 	const tom_select = this as TomSelect;
 
-	// add scroll listener and default templates
 	tom_select.on('initialize', () => {
 		const dropdown_content = tom_select.dropdown_content;
 
