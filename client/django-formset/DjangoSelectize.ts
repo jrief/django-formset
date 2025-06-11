@@ -101,7 +101,7 @@ export class DjangoSelectize extends IncompleteSelect {
 			sortField: [{field: '$order'}, {field: '$score'}],
 			lockOptgroupOrder: true,
 			searchField: ['label'],
-			plugins: {'dropdown_input': {}},
+			plugins: {},
 			onFocus: this.focused,
 			onBlur: this.blurred,
 			onType: this.inputted,
@@ -113,7 +113,16 @@ export class DjangoSelectize extends IncompleteSelect {
 		};
 		if (this.isIncomplete) {
 			settings.load = this.load;
-			settings.plugins = {...settings.plugins, 'infinite_scroll': {loadMore: this.loadMore.bind(this)}};
+			settings.plugins = {
+				...settings.plugins,
+				'dropdown_input': {},
+				'infinite_scroll': {loadMore: this.loadMore.bind(this),}
+			};
+		} else if (tomInput.options.length > 24) {
+			settings.plugins = {
+				...settings.plugins,
+				'dropdown_input': {},
+			};
 		}
 		if (tomInput.hasAttribute('multiple')) {
 			settings.maxItems = parseInt(tomInput.getAttribute('max_items') ?? '3');
