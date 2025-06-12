@@ -68,7 +68,7 @@ is not what we want! Instead, we can map the fields of our form to the keys of t
 	
 	    class Meta:
 	        model = ProductModel
-	        fields = ['title', 'price', 'color', 'size']
+	        fields = ['title', 'price', 'color', 'size', 'properties']
 	        fields_map = {'properties': ['color', 'size']}
 
 Additionally, we add a special dictionary named ``fields_map`` to the ``Meta``-class of that form.
