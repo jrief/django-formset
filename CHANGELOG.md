@@ -2,8 +2,9 @@
 
 - 2.0
   * **Main feature of this release:** It now is possible to use a **django-formset** aware
-    `ModelForm` or `FormCollection` inside the Django-Admin. Check the documentation on how to
-    use this feature.
+    `ModelForm` or `FormCollection` inside the Django-Admin.
+    Read the [documentation](https://django-formset.fly.dev/admin-integration/) on how to use this
+    feature.
   * A **django-formset** aware `ModelForm` can use the attribute `fields_map` in its `Meta` class.
     This allows to map fields from a `Fieldset` to any arbitrary model field. It also allows to
     map multiple form fields into a `JSONField` offered by the model. 
@@ -32,10 +33,10 @@
     `<div role="form">`. 
   * The `Selectize` widget now uses a search box inside the dropdown instead of a search box inside
     the selection area.
-  * The `Selectize` widget now scrolls infinite, i.e., it loads more options from the server when
-    scolling to the end of the list.
+  * The `Selectize` widget now scrolls infinite, i.e., it loads the remaining options from the
+    server when scolling to the end of the listbox.
   * Error messages shown for invalid fields hide as soon as the field is focused. This is to
-  prevent the user from being unsettled by an error message while filling out the form.
+    prevent the user from being unsettled by an error message while filling out the form.
   * In input fields, show the success tick for validated fields after blurring and not while typing,
     for the same reason as above.
   * After submitting a form containing the field `RichTextField`, the uploaded image is copied
