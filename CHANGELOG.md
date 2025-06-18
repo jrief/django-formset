@@ -1,5 +1,11 @@
 ## Changes
 
+- 2.0.1
+  * Fix regression introduced in 2.0: Attribute `filter_by` in widgets `Selectize`,
+    `SelectizeMultiple` and `DualSelector` did not trigger a reload if observer field changed.
+  * Prevent double loading of options in widgets `Selectize`, `SelectizeMultiple` and
+    `DualSelector`.
+
 - 2.0
   * **Main feature of this release:** It now is possible to use a **django-formset** aware
     `ModelForm` or `FormCollection` inside the Django-Admin.
