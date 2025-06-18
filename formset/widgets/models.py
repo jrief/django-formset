@@ -121,6 +121,14 @@ class IncompleteSelectMixin:
         context = super().get_context(name, value, attrs)
         return context
 
+    def _get_option_data(self, value, label_data, selected=None):
+        if not isinstance(label_data, dict):
+            label_data = {'label': str(label_data)}
+        option_data = dict(value=str(value), **label_data)
+        if selected is not None:
+            option_data['selected'] = selected
+        return option_data
+
     def _optgroups_static_choice(self, name, values, attrs=None):
         optgroups = super().optgroups(name, values, attrs)
         return optgroups
@@ -128,7 +136,7 @@ class IncompleteSelectMixin:
     def _options_model_choice(self, name, values, attrs=None):
         values_list = [str(val) for val in values]
         optgroups, counter = [], 0
-        for val, label in self.choices:
+        for val, label_data in self.choices:
             if counter == self.max_prefetch_choices:
                 break
             if not isinstance(val, ModelChoiceIteratorValue):
@@ -136,15 +144,16 @@ class IncompleteSelectMixin:
             val = str(val)
             if selected := val in values_list:
                 values_list.remove(val)
-            optgroups.append((None, [{'value': val, 'label': label, 'selected': selected}], counter))
+            option_data = self._get_option_data(val, label_data, selected)
+            optgroups.append((None, [option_data], counter))
             counter += 1
         for val in values_list:
             try:
                 obj = self.choices.queryset.get(pk=val)
             except ObjectDoesNotExist:
                 continue
-            label = self.choices.field.label_from_instance(obj)
-            optgroups.append((None, [{'value': str(val), 'label': label, 'selected': True}], counter))
+            option_data = self._get_option_data(val, self.choices.field.label_from_instance(obj), selected=True)
+            optgroups.append((None, [option_data], counter))
             counter += 1
         return optgroups
 
@@ -158,28 +167,28 @@ class IncompleteSelectMixin:
                 obj = self.choices.queryset.get(pk=val)
             except ObjectDoesNotExist:
                 continue
-            label = self.choices.field.label_from_instance(obj)
+            option_data = self._get_option_data(val, self.choices.field.label_from_instance(obj), selected=True)
             group_name = getattr(obj, self.group_field_name) if self.group_field_name else None
             optgroup = list(filter(lambda item: item[0] == group_name, optgroups))
             if optgroup:
-                optgroup[-1][1].append({'value': str(val), 'label': label, 'selected': True})
+                optgroup[-1][1].append(option_data)
             else:
-                subgroup = [{'value': str(val), 'label': label, 'selected': True}]
+                subgroup = [option_data]
                 optgroups.append((group_name, subgroup, counter))
 
         # afterwards handle the remaining values
-        for counter, (val, label, group_name) in enumerate(self.choices, counter):
+        for counter, (val, label_data, group_name) in enumerate(self.choices, counter):
             if counter == self.max_prefetch_choices:
                 break
             if not isinstance(val, ModelChoiceIteratorValue):
                 continue
-            val = str(val)
+            option_data = self._get_option_data(val, label_data)
             if prev_group_name != group_name:
                 prev_group_name = group_name
-                subgroup = [{'value': val, 'label': label}]
+                subgroup = [option_data]
                 optgroups.append((group_name, subgroup, counter))
             else:
-                subgroup.append({'value': val, 'label': label})
+                subgroup.append(option_data)
         return optgroups
 
 
@@ -278,11 +287,12 @@ class DualSortableSelector(DualSelector):
                 obj = self.choices.queryset.get(pk=val)
             except ObjectDoesNotExist:
                 continue
-            label = self.choices.field.label_from_instance(obj)
-            optgroups.append((None, [{'value': str(val), 'label': label, 'selected': True}], counter))
+            option_data = self._get_option_data(val, self.choices.field.label_from_instance(obj), selected=True)
+            optgroups.append((None, [option_data], counter))
             counter += 1
+
         # then add remaining options up to max_prefetch_choices
-        for val, label in self.choices:
+        for val, label_data in self.choices:
             if counter >= self.max_prefetch_choices:
                 break
             if not isinstance(val, ModelChoiceIteratorValue):
@@ -290,7 +300,8 @@ class DualSortableSelector(DualSelector):
             val = str(val)
             if val in values_list:
                 continue
-            optgroups.append((None, [{'value': val, 'label': label, 'selected': False}], counter))
+            option_data = self._get_option_data(val, label_data, selected=False)
+            optgroups.append((None, [option_data], counter))
             counter += 1
         return optgroups
 
