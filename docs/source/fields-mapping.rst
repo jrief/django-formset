@@ -115,6 +115,37 @@ field, meaning that we have **no database constraints**. If a target object is d
 key points to nowhere. Therefore always keep in mind, that we don't have any
 `referential integrity`_ and hence must write our code in a defensive manner.
 
+Multiple foreign keys are stored as ``"fieldname": {"model": "appname.modelname", "p_keys": [12, 34, 56, ...]}``
+in our JSON field, again without any **database constraints**.
+
+**django-formset** provides this utility function to retrieve the instance of a single foreign key
+stored inside a JSON field:
+
+.. code-block:: python
+
+	from formset.fieldsmapping import get_related_object
+
+	related_object = get_related_object(
+	    json_field_value,  # the value of the JSON field
+	    'fieldname',       # the name of the field in the JSON object
+	)
+
+
+**django-formset** provides this utility function to retrieve a queryset of instances for a list of
+foreign keys stored inside a JSON field:
+
+.. code-block:: python
+
+	from formset.fieldsmapping import get_related_queryset
+
+	related_queryset = get_related_queryset(
+	    json_field_value,  # the value of the JSON field
+	    'fieldname',       # the name of the field in the JSON object
+	)
+
+Both functiond return ``None`` if the given field name is not present in the JSON object, or if it
+doesn't exist on the model, or if the foreign key points to a non-existing object.
+
 .. _referential integrity: https://en.wikipedia.org/wiki/Referential_integrity
 
 
