@@ -60,6 +60,7 @@ from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import (
     sample_person_data, BootstrapRenderedPersonForm, ModelPersonForm, PersonForm,
 )
+from testapp.forms.price import PriceForm
 from testapp.forms.phone import PhoneForm
 from testapp.forms.product import ProductForm
 from testapp.forms.poll import ModelPollForm, PollCollection
@@ -615,6 +616,9 @@ urlpatterns = [
     path('opinion', DemoFormView.as_view(
         form_class=OpinionForm,
     ), name='opinion'),
+    path('price', DemoFormView.as_view(
+        form_class=PriceForm,
+    ), name='price'),
     path('phone', DemoFormView.as_view(
         form_class=PhoneForm,
     ), name='phone'),

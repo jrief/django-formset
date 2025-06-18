@@ -7,6 +7,7 @@ import {DjangoSelectizeElement} from './django-formset/DjangoSelectize';
 import {CountrySelectizeElement} from './django-formset/DjangoSelectizeCountry';
 import {SortableSelectElement} from './django-formset/SortableSelect';
 import {DualSelectorElement} from './django-formset/DualSelector';
+import {DecimalUnitElement} from './django-formset/DecimalUnit';
 import {PhoneNumberElement} from './django-formset/PhoneNumber';
 import {RichTextAreaElement} from './django-formset/RichtextArea';
 import {DjangoSlugElement} from './django-formset/DjangoSlug';
@@ -29,6 +30,8 @@ function handleDOMLoaded() {
 	customElementNames.push('django-sortable-select');
 	window.customElements.define('django-dual-selector', DualSelectorElement, {extends: 'select'});
 	customElementNames.push('django-dual-selector');
+	window.customElements.define('django-decimal-unit', DecimalUnitElement, {extends: 'input'});
+	customElementNames.push('django-decimal-unit');
 	window.customElements.define('django-phone-number', PhoneNumberElement, {extends: 'input'});
 	customElementNames.push('django-phone-number');
 	window.customElements.define('django-richtext', RichTextAreaElement, {extends: 'textarea'});

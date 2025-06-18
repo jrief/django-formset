@@ -1,0 +1,35 @@
+[is^="django-decimal-unit"] {
+	--dummy-style: none; // required by DecimalUnitField.transferStyles()
+
+	// editable content decimal unit input fields
+	+ [role="textbox"] {
+		display: flex !important;
+		align-items: center;
+		flex-wrap: nowrap;
+		justify-content: flex-start;
+		border: var(--border-width) var(--border-style) var(--border-color);
+		border-radius: var(--border-radius);
+
+		&.focus {
+			--dummy-style: none;
+		}
+
+		.decimal-unit-edit {
+			display: flex;
+			flex-wrap: nowrap;
+			width: calc(100% - 2.5em);  // 2em for the alert/ok symbol
+
+			span {
+				cursor: text;
+				overflow-x: hidden;
+				text-wrap: nowrap;
+				min-width: 2em;
+				max-width: calc(100% - 2em);
+
+				&:focus-visible {
+					outline: none;
+				}
+			}
+		}
+	}
+}

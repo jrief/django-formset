@@ -44,6 +44,13 @@ function domLookup(fragmentRoot: Document|DocumentFragment, isTemplate: boolean=
 			}).catch(err => reject(err));
 		}));
 	}
+	if (fragmentRoot.querySelector('input[is="django-decimal-unit"]')) {
+		promises.push(new Promise((resolve, reject) => {
+			import('./django-formset/DecimalUnit').then(({DecimalUnitElement}) => {
+				defineComponent(resolve, 'django-decimal-unit', DecimalUnitElement, {extends: 'input'});
+			}).catch(err => reject(err));
+		}));
+	}
 	if (fragmentRoot.querySelector('input[is="django-phone-number"]')) {
 		promises.push(new Promise((resolve, reject) => {
 			import('./django-formset/PhoneNumber').then(({PhoneNumberElement}) => {
