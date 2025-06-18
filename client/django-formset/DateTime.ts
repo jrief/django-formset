@@ -352,7 +352,7 @@ class DateTimeField extends Widget {
 	};
 
 	private handleBlur = () => {
-		setTimeout(() => {
+		requestIdleCallback(() => {
 			if (!this.hasFocus) {
 				this.textBox.classList.remove('focus');
 				this.parseInputFields();
@@ -360,7 +360,7 @@ class DateTimeField extends Widget {
 				this.calendar?.updateDate(this.currentDate, this.extendedDate);
 				this.inputElement.dispatchEvent(new Event('blur'));
 			}
-		}, 0);
+		});
 		this.hasFocus = null;
 		this.inputElement.dispatchEvent(new Event('input'));
 	};
