@@ -107,6 +107,7 @@ class FieldGroup {
 			selectElement.addEventListener('focusout', () => this.validate());
 			selectElement.addEventListener('change', () => {
 				this.clearCustomError();
+				this.form.formset.aggregateValues();
 				this.setDirty()
 			});
 			selectElement.addEventListener('invalid', () => this.errorPlaceholder.reportValidationError());
@@ -1943,7 +1944,7 @@ export class DjangoFormset implements DjangoFormset {
 		formCollections.forEach(collection => collection.removeFreshAndEmpty());
 	}
 
-	private aggregateValues() {
+	public aggregateValues() {
 		this.data = {};
 		for (const form of this.forms) {
 			setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
