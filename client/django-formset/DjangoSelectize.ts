@@ -126,7 +126,28 @@ export class DjangoSelectize extends IncompleteSelect {
 		}
 		if (tomInput.hasAttribute('multiple')) {
 			settings.maxItems = parseInt(tomInput.getAttribute('max_items') ?? '3');
-			settings.plugins = {...settings.plugins, remove_button: {title: gettext("Remove item")}};
+			settings.plugins = {
+				...settings.plugins,
+				remove_button: {title: gettext("Remove item")},
+			};
+		}
+		if (Array.from(tomInput.options).some(o => o.hasAttribute('sublabel'))) {
+			settings.render = {
+				...settings.render,
+				option: (data: any, escape: Function) => {
+					const sublabel = data.sublabel ?? data.$option?.getAttribute('sublabel') ?? "";
+					return `<div>${escape(data.label)}<span class="sublabel">${escape(sublabel)}</span></div>`;
+				},
+			};
+		}
+		if (Array.from(tomInput.options).some(o => o.hasAttribute('itemlabel'))) {
+			settings.render = {
+				...settings.render,
+				item: (data: any, escape: Function) => {
+					const itemlabel = data.itemlabel ?? data.$option?.getAttribute('itemlabel') ?? "";
+					return `<div>${escape(itemlabel)}</div>`;
+				},
+			};
 		}
 		return settings;
 	}

@@ -121,7 +121,8 @@ class IncompleteSelectMixin:
         context = super().get_context(name, value, attrs)
         return context
 
-    def _get_option_data(self, value, label_data, selected=None):
+    @classmethod
+    def _get_option_data(cls, value, label_data, selected=None):
         if not isinstance(label_data, dict):
             label_data = {'label': str(label_data)}
         option_data = dict(value=str(value), **label_data)

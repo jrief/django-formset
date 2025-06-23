@@ -6,13 +6,11 @@ class CountyUnnormalized(models.Model):
         verbose_name="State code",
         max_length=2,
     )
-
     state_name = models.CharField(
         verbose_name="State name",
         max_length=20,
         db_index=True,
     )
-
     county_name = models.CharField(
         verbose_name="County name",
         max_length=30,
@@ -31,7 +29,6 @@ class State(models.Model):
         verbose_name="Code",
         max_length=2,
     )
-
     name = models.CharField(
         verbose_name="Name",
         max_length=20,

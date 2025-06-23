@@ -91,7 +91,7 @@ stored in a database table.
 
 	class CountyForm(forms.Form):
 	    county = models.ModelChoiceField(
-	        queryset=County.objects.all(),
+	        queryset=County.objects.select_related('state'),
 	        widget=Selectize(
 	            search_lookup='name__icontains',
 	            placeholder="Select a county",
@@ -135,7 +135,7 @@ and so we can group all counties by state by rewriting our form as:
 	class GroupedCountyForm(forms.Form):
 	    county = models.ModelChoiceField(
 	        label="County",
-	        queryset=County.objects.all(),
+	        queryset=County.objects.select_related('state'),
 	        widget=Selectize(
 	            search_lookup='name__icontains',
 	            group_field_name='state',
@@ -189,7 +189,7 @@ that state. Therefore let's create a form with adjacent fields for preselecting 
 	    )
 	    county = models.ModelChoiceField(
 	        label="County",
-	        queryset=County.objects.all(),
+	        queryset=County.objects.select_related('state'),
 	        widget=Selectize(
 	            search_lookup=['name__icontains'],
 	            filter_by={'state': 'state__id'},
@@ -258,7 +258,7 @@ implement the above example inheriting from a ``DjangoFilterSet``:
 	    )
 	    county = models.ModelChoiceField(
 	        label="County",
-	        queryset=County.objects.all(),
+	        queryset=County.objects.select_related('state'),
 	        widget=Selectize(
 	            search_lookup=['name__icontains'],
 	            use_filter_set=StateFilterSet,
@@ -308,7 +308,7 @@ This example rewrites the grouped options with a ``SelectizeMultiple`` widget:
 	class GroupedCountiesForm(forms.Form):
 	    county = models.ModelMultipleChoiceField(
 	        label="County",
-	        queryset=County.objects.all(),
+	        queryset=County.objects.select_related('state'),
 	        widget=SelectizeMultiple(
 	            search_lookup='name__icontains',
 	            group_field_name='state',
@@ -330,8 +330,76 @@ say 15 items, otherwise the input field might become unmanageable. If you need a
 field able to accept hundreds of items, consider using the :ref:`dual-selector` widget.
 
 
-Handling ForeignKey and ManyToManyField
-=======================================  
+Options with Sublabels
+======================
+
+.. versionadded:: 2.1
+
+Sometimes one label is not enough to describe an option. For instance, when selecting a county, it
+might be useful to show the state's name below the county name. The ``Selectize`` widget allows us
+to render the options by specifying a sublabel. For this purpose, Django offers the method
+label_from_instance_. By default, this method should return a string which is used as the label for
+all its options. If we also want to render sublabels, we can return a dictionary. The value of
+the ``label`` keys then is used as their main labels, whereas the value of the ``sublabel`` keys is
+used for showing their sublabel.
+
+.. _label_from_instance: https://docs.djangoproject.com/en/stable/ref/forms/fields/#django.forms.ModelChoiceField.iterator
+
+In this example we create a special form field and override the method ``label_from_instance`` using
+a special field class.
+
+.. django-view:: county_sublabeled_form
+
+	from django.forms import fields, forms, models, widgets
+	from formset.widgets import Selectize
+	from testapp.models import County
+
+	class CountyChoiceField(models.ModelChoiceField):
+	    def label_from_instance(self, obj):
+	        return {'label': obj.name, 'sublabel': obj.state.name}
+
+	class CountySublabeledForm(forms.Form):
+	    county = CountyChoiceField(
+	        queryset=County.objects.select_related('state'),
+	        widget=Selectize(
+	            search_lookup='name__icontains',
+	            placeholder="Select a county",
+	        ),
+	    )
+
+.. django-view:: county_sublabeled_view
+	:view-function: CountySublabeledView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'county-sublabeled-result'}, form_kwargs={'auto_id': 'csl_id_%s'})
+	:hide-code:
+
+	class CountySublabeledView(SelectizeView):
+	    form_class = CountySublabeledForm
+
+
+Alternative labels for chosen items
+-----------------------------------
+
+When opening the dropdown, the county names are used as the default label, whereas their state names
+are used as sublabels.
+
+In the previous examples, the chosen county showed the state name in brackets. If we want to render
+the label of the selected options differently, we can return a key ``itemlabel`` in the dictionary
+returned by the method ``label_from_instance``. By rewriting the above field class to:
+
+.. code-block:: python
+
+	class CountyChoiceField(models.ModelChoiceField):
+	    def label_from_instance(self, obj):
+	        return {
+	            'label': obj.name,
+	            'sublabel': obj.state.name,
+	            'itemlabel': f"{obj.name} ({obj.state.name})",
+	        }
+
+the chosen county will for example again be rendered as "Monterey (CA)" instead of just "Monterey".
+
+
+Handling ``ForeignKey`` and ``ManyToManyField``
+===============================================
 
 If we create a form out of a Django model, we explicitly have to tell it to either use the
 ``Selectize`` or the ``SelectizeMultiple`` widget. Otherwise Django will use the default HTML
@@ -340,6 +408,7 @@ If we create a form out of a Django model, we explicitly have to tell it to eith
 Say that we have an address model using  a foreign key to existing cities:
 
 .. code-block:: python
+	:caption: models.py
 
 	from django.db import models
 
@@ -356,6 +425,7 @@ then when creating the corresponding Django form, we must replace the default wi
 against our special widget ``Selectize``:
 
 .. code-block:: python
+	:caption: forms.py
 
 	from django.forms import models
 	from formset.widgets import Selectize
@@ -376,6 +446,7 @@ against a ``ManyToManyField`` – and conveniently rename "city" to "cities". Th
 example, we'd have to replace the ``Selectize`` widget against ``SelectizeMultiple``:
 
 .. code-block:: python
+	:caption: forms.py
 
 	from django.forms import models
 	from formset.widgets import SelectizeMultiple

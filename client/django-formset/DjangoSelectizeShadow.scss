@@ -176,6 +176,14 @@
 				margin-left: 1em;
 			}
 		}
+
+		.option .sublabel {
+			display: block;
+			font-size: smaller;
+			line-height: 1;
+			padding-bottom: 0.25rem;
+			color: $semimuted-item-color;
+		}
 	}
 }
 
