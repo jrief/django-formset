@@ -3,7 +3,7 @@
 {% block "selectize-select-widget" %}
 <select name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %} size="1" options="10">{% for group_name, group_choices, group_index in widget.optgroups %}{% if group_name %}
 	<optgroup label="{{ group_name }}">{% endif %}{% for option in group_choices %}
-		<option value="{{ option.value|stringformat:'s' }}"{% if option.selected %} selected{% endif %}{% if option.sublabel %} sublabel="{{ option.sublabel }}"{% endif %}{% if option.itemlabel %} itemlabel="{{ option.itemlabel }}"{% endif %}>{{ option.label }}</option>{% endfor %}{% if group_name %}
+		<option value="{{ option.value|stringformat:'s' }}"{% if option.selected %} selected{% endif %}{% if 'sublabel' in option %} sublabel="{{ option.sublabel }}"{% endif %}{% if 'itemlabel' in option %} itemlabel="{{ option.itemlabel }}"{% endif %}>{{ option.label }}</option>{% endfor %}{% if group_name %}
 	</optgroup>{% endif %}{% endfor %}
 </select>
 {% endblock %}
