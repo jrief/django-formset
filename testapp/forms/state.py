@@ -5,6 +5,11 @@ from formset.widgets import DualSelector, Selectize, SelectizeMultiple
 from testapp.models import County, State
 
 
+class CountyChoiceField(models.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return {'label': obj.name, 'sublabel': obj.state.name, 'itemlabel': f"{obj.name} ({obj.state.code})"}
+
+
 class StateForm(forms.Form):
     """
     Using adjacent fields for preselecting options
@@ -18,25 +23,25 @@ class StateForm(forms.Form):
         ),
         initial=23,
     )
-    county = models.ModelChoiceField(
+    county = CountyChoiceField(
         label="County",
-        queryset=County.objects.all(),
+        queryset=County.objects.select_related('state'),
         widget=Selectize(
             search_lookup=['name__icontains'],
-            filter_by={'state': 'state__id'},
+            filter_by={'state': 'state_id'},
         ),
         initial=1293,
     )
     counties = models.ModelMultipleChoiceField(
         label="Counties",
-        queryset=County.objects.all(),
+        queryset=County.objects.select_related('state'),
         # widget=DualSelector(
         #     search_lookup=['name__icontains'],
         #     filter_by={'state': 'state__id'},
         # ),
         widget=SelectizeMultiple(
             search_lookup=['name__icontains'],
-            filter_by={'state': 'state__id'},
+            filter_by={'state': 'state_id'},
         ),
         initial=[1247, 1288],
     )

@@ -1,5 +1,11 @@
 ## Changes
 
+- 2.1
+  * Options in the `Selectize` and `SelectizeMultiple` widgets can now render sublabels below their
+    main labels. This is useful to display additional information about the option.
+  * Add utility functions `get_related_object` and `get_related_queryset` to deserialize foreign
+    key and many-to-many relationships from `JSONField`s.
+
 - 2.0.1
   * Fix regression introduced in 2.0: Attribute `filter_by` in widgets `Selectize`,
     `SelectizeMultiple` and `DualSelector` did not trigger a reload if observer field changed.

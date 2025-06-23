@@ -29,6 +29,11 @@ def django_db_setup(django_db_blocker):
             OpinionModel.objects.update_or_create(tenant=1, label=label)
 
 
+class SublabeledChoiceField(models.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return {'label': obj.label, 'sublabel': f"Tenant: {obj.tenant}"}
+
+
 def get_initial_opinion():
     return OpinionModel.objects.filter(tenant=1)[8]
 
@@ -75,6 +80,11 @@ test_fields = dict(
         widget=SelectizeMultiple(search_lookup='label__icontains', placeholder="Select any"),
         required=False,
         initial=get_initial_opinions,
+    ),
+    selection_sublabeled=SublabeledChoiceField(
+        queryset=OpinionModel.objects.filter(tenant=1),
+        widget=Selectize(search_lookup='label__icontains'),
+        required=False,
     ),
 )
 
@@ -369,3 +379,15 @@ def test_touch_selectize(page, form, viewname):
     page.locator('django-formset').evaluate('elem => elem.reset()')
     expect(field_group).to_contain_class('dj-pristine dj-untouched')
     expect(field_group).to_have_class(regex(r'ds-[0-9a-z]{9,13}'))
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['selectize7'])
+def test_render_sublabel(page, form, viewname):
+    dropdown_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-dropdown')
+    expect(dropdown_element).not_to_be_visible()
+    page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control').click()
+    expect(dropdown_element).to_be_visible()
+    pseudo_option = dropdown_element.locator('div[data-selectable]').nth(8)
+    expect(pseudo_option).to_have_text("Opinion 0009Tenant: 1")
+    expect(pseudo_option.locator('.sublabel')).to_have_text("Tenant: 1")

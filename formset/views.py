@@ -76,17 +76,17 @@ class IncompleteSelectResponseMixin:
         incomplete = queryset.count() - offset > widget.max_prefetch_choices
         limited_qs = queryset[offset:offset + widget.max_prefetch_choices]
         to_field_name = field.to_field_name if field.to_field_name else 'pk'
-        if widget.group_field_name:
-            options = [{
-                'id': getattr(item, to_field_name),
-                'label': str(item),
-                'optgroup': force_str(getattr(item, widget.group_field_name)),
-            } for item in limited_qs]
-        else:
-            options = [{
-                'id': getattr(item, to_field_name),
-                'label': str(item),
-            } for item in limited_qs]
+        options = []
+        for item in limited_qs:
+            option_data = {'id': getattr(item, to_field_name)}
+            if widget.group_field_name:
+                option_data['optgroup'] = force_str(getattr(item, widget.group_field_name))
+            label_data = field.label_from_instance(item)
+            if isinstance(label_data, dict):
+                option_data.update(label_data)
+            else:
+                option_data['label'] = str(label_data)
+            options.append(option_data)
         data.update(
             count=len(options),
             incomplete=incomplete,
