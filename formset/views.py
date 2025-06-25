@@ -82,10 +82,9 @@ class IncompleteSelectResponseMixin:
             if widget.group_field_name:
                 option_data['optgroup'] = force_str(getattr(item, widget.group_field_name))
             label_data = field.label_from_instance(item)
-            if isinstance(label_data, dict):
-                option_data.update(label_data)
-            else:
-                option_data['label'] = str(label_data)
+            if not isinstance(label_data, dict):
+                label_data = {'label': force_str(label_data)}
+            option_data.update(label_data)
             options.append(option_data)
         data.update(
             count=len(options),
