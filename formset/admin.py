@@ -63,19 +63,26 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
             )
         super().__init__(*args, **kwargs)
 
-    def get_model_form(self):
+    def get_model_form(self, form_class=None):
+        """
+        Returns a ModelForm class that is compatible with django-formset's ModelAdmin.
+        By specifying a ``form_class``, you can override the default form class.
+        """
+
         def init(self, *args, **kwargs):
             # change signature of constructor to keep compatible with Django's ModelAdmin forms
             super(self.__class__, self).__init__(*args, **kwargs)
 
-        field_css_classes = {key: f'field-{key}' for key in self.form.base_fields.keys()}
+        if form_class is None:
+            form_class = self.form
+        field_css_classes = {key: f'field-{key}' for key in form_class.base_fields.keys()}
         default_renderer = self.form_renderer_class(field_css_classes=field_css_classes)
-        if issubclass(self.form, ModelFormMixin):
-            return type(self.form.__name__, (self.form,), {'default_renderer': default_renderer})
+        if issubclass(form_class, ModelFormMixin):
+            return type(form_class.__name__, (form_class,), {'default_renderer': default_renderer})
         else:
             return types.new_class(
-                self.form.__name__,
-                bases=(ModelFormMixin, self.form),
+                form_class.__name__,
+                bases=(ModelFormMixin, form_class),
                 kwds={'metaclass': FormsetModelFormMetaclass},
                 exec_body=lambda ns: ns.update({
                     '__init__': init,
