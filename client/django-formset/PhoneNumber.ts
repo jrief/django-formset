@@ -287,9 +287,7 @@ class PhoneNumberField {
 		this.inputElement.dispatchEvent(new Event('input'));
 		this.isPristine = false;
 		this.editField.focus();
-		window.setTimeout(() => {
-			this.setCaretToEnd();
-		}, 0);
+		requestIdleCallback(() => this.setCaretToEnd());
 	}
 
 	private placeInputField(phoneNumber: string) {
