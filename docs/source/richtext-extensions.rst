@@ -132,6 +132,9 @@ therefore we use a functional snippet to map the document state's value to the d
 If the ``href`` attribute of the anchor element is set, the value of this choice field is set to
 "external", otherwise to "internal".
 
+.. note:: In this example ``value`` refers to the attribute of the ``<select>`` field for choosing
+	the link type. If instead you want to use a ``RadioSelect`` widget, you have to map this to
+	their ``checked`` attributes.
 
 .. rubric:: The ``url`` field
 

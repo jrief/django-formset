@@ -207,7 +207,7 @@ adjacent fields for preselecting options:
 	        queryset=County.objects.all(),
 	        widget=DualSelector(
 	            search_lookup=['name__icontains'],
-	            filter_by={'state': 'state__id'},
+	            filter_by={'state': 'state_id'},
 	        ),
 	        required=True,
 	    )
@@ -218,7 +218,7 @@ one or more states. When the state is changed, the other field ``county`` gets f
 counties belonging to one of the selected states.
 
 To enable this feature, the widget ``DualSelector`` accepts the optional argument ``filter_by``
-which contains a dictionary such as ``{'state': 'state__id'}`` defining the lookup expression on the
+which contains a dictionary such as ``{'state': 'state_id'}`` defining the lookup expression on the
 given queryset. Here each key maps to an adjacent field and its value contains a lookup expression.
 
 .. django-view:: filtered_county_view

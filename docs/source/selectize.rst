@@ -192,7 +192,7 @@ that state. Therefore let's create a form with adjacent fields for preselecting 
 	        queryset=County.objects.select_related('state'),
 	        widget=Selectize(
 	            search_lookup=['name__icontains'],
-	            filter_by={'state': 'state__id'},
+	            filter_by={'state': 'state_id'},
 	            placeholder="Then, select a county"
 	        ),
 	        required=True,
@@ -204,7 +204,7 @@ the state. When the state is changed, the other field **county** gets filled wit
 belonging to that selected state.
 
 To enable this feature, the widget ``Selectize`` accepts the optional argument ``filter_by`` which
-contains a dictionary such as ``{'state': 'state__id'}`` defining the lookup expression on the given
+contains a dictionary such as ``{'state': 'state_id'}`` defining the lookup expression on the given
 queryset. Here each key maps to an adjacent field and its value contains a lookup expression.
 
 .. django-view:: filtered_county_view
