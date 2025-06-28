@@ -902,7 +902,7 @@ class RichtextFormDialog extends FormDialogBase {
 			this.textSelectionField.value = doc.textBetween(selection.from, selection.to, '');
 		}
 		this.inputElements.forEach(inputElement => {
-			const mapping = inputElement.getAttribute('richtext-map-from');
+			const mapping = inputElement.getAttribute('richtext-map-from')?.trim();
 			if (typeof mapping === 'string' && mapping.startsWith('{') && mapping.endsWith('}')) {
 				const mapFunction = new Function('attributes', `return ${mapping}`);
 				Object.entries(mapFunction(attributes)).forEach(([key0, value]) => {
@@ -955,7 +955,7 @@ class RichtextFormDialog extends FormDialogBase {
 			let attributes = {};
 			this.inputElements.forEach(inputElement => {
 				let mapFunction: Function;
-				const mapping = inputElement.getAttribute('richtext-map-to')  ?? '';
+				const mapping = inputElement.getAttribute('richtext-map-to')?.trim()  ?? '';
 				if (mapping.startsWith('{') && mapping.endsWith('}')) {
 					mapFunction = new Function('elements', `return ${mapping}`);
 				} else if (mapping) {
