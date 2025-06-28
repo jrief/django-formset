@@ -10,12 +10,19 @@ class DecimalUnitField extends Widget {
 	private readonly baseSelector = '[is^="django-decimal-unit"]';
 	private readonly styleSheet: CSSStyleSheet;
 	private hasFocus: boolean = false;
+	private readonly step: number|null;
+	private readonly precision: number;
+	private readonly blockLength: number;
+	private readonly separator = ' ';
 
 	constructor(inputElement: HTMLInputElement, calendarElement: HTMLElement | null) {
 		super(inputElement);
 		this.inputElement = inputElement;
 		this.textBox = this.createTextBox();
 		this.editField = this.textBox.querySelector('span[contenteditable="true"]') as HTMLElement;
+		this.step = inputElement.step ? parseFloat(inputElement.step) : null;
+		this.precision = Number(inputElement.getAttribute('precision')) || 0;
+		this.blockLength = Number(inputElement.getAttribute('block-length')) || 3;
 		this.styleSheet = StyleHelpers.stylesAreInstalled(this.baseSelector) ?? this.transferStyles();
 	}
 
@@ -29,16 +36,6 @@ class DecimalUnitField extends Widget {
 		];
 		this.inputElement.insertAdjacentHTML('afterend', htmlTags.join(''));
 		return this.inputElement.nextElementSibling as HTMLElement;
-	}
-
-	private setCaretPosition() {
-		const range = document.createRange();
-		const selection = window.getSelection();
-		range.selectNodeContents(this.editField);
-		// range.setStart(this.editField, position); to be used for setting caret at a specific position
-		range.collapse(false);
-		selection?.removeAllRanges();
-		selection?.addRange(range);
 	}
 
 	private handleMousedown = (event: Event) => {
@@ -56,7 +53,7 @@ class DecimalUnitField extends Widget {
 					const hasFocus = this.hasFocus;
 					this.hasFocus = false;  // ignores handleFocus
 					this.editField.focus();
-					this.setCaretPosition();
+					this.setCaretPosition(Number.MAX_VALUE);
 					this.hasFocus = true;
 					if (!hasFocus) {
 						console.log("dispatch focus");
@@ -99,15 +96,34 @@ class DecimalUnitField extends Widget {
 			switch (event.key) {
 				case 'ArrowRight':
 				case 'ArrowLeft':
+					requestIdleCallback(() => console.log(this.getCaretPosition()));
 					break;
 				case 'ArrowUp':
 				case 'ArrowDown':
+					if (this.step !== null) {
+					}
 					preventDefault = true;
 					break;
 				case 'Backspace': case 'Delete':
+					requestIdleCallback(() => {
+						this.updateInputValue(true);
+					});
 					break;
-				case '-': case '+': case '.': case ',':
+				case '-': case '+':
+					const selection = window.getSelection();
+					if (selection && selection.rangeCount > 0) {
+						// allow sign only at the beginning
+						const range = selection.getRangeAt(0);
+						const firstChar = this.editField.innerText.charAt(0);
+						preventDefault = range.startOffset !== 0 || ['-', '+'].includes(firstChar);
+					}
+					break;
+				case '.': case ',':
+					break;
 				case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+					requestIdleCallback(() => {
+						this.updateInputValue();
+					});
 					break;
 				default:
 					preventDefault = true;
@@ -118,6 +134,49 @@ class DecimalUnitField extends Widget {
 			event.preventDefault();
 		}
 	};
+
+	private getCaretPosition() {
+		const selection = window.getSelection();
+		if (selection && selection.rangeCount === 1) {
+			const range = selection.getRangeAt(0);
+			return range.startOffset;
+		}
+		return 0;
+	}
+
+	private setCaretPosition(position: number) {
+		const range = document.createRange();
+		const selection = window.getSelection();
+		if (!this.editField.childNodes.length || !selection)
+			return;
+		const textNode = this.editField.childNodes[0] as Text;
+		position = Math.max(0, Math.min(position, textNode.length));
+		range.setStart(textNode, position);
+		// range.collapse(true);  range is already collapsed
+		selection.removeAllRanges();
+		selection.addRange(range);
+	}
+
+	private updateInputValue(del=false) {
+		let caretPosition = this.getCaretPosition();
+		const [integerPart, fraction] = this.editField.innerText.replaceAll(this.separator, '').replace(',', '.').split('.');
+		const parts = Array<string>();
+		for (let k = integerPart.length; k >= 0; k -= this.blockLength) {
+			const part = integerPart.slice(Math.max(0, k - this.blockLength), k);
+			if (part.length > 0) {
+				parts.unshift(part);
+			}
+		}
+		this.editField.innerText = `${parts.join(this.separator)}`; // ${fraction ? `.${fraction}` : ''}`;
+		console.log(integerPart.length, caretPosition, parts[0].length);
+		if (caretPosition > this.blockLength && parts[0].length === 1) {
+			// caret is after newly created first block, so we need to adjust it
+			caretPosition++;
+		}
+		this.setCaretPosition(caretPosition);
+		this.inputElement.value = `${integerPart}${fraction ? `.${fraction}` : ''}`;
+		this.inputElement.dispatchEvent(new Event('input'));
+	}
 
 	private transferStyles() : CSSStyleSheet {
 		const declaredStyles = document.createElement('style');
@@ -198,7 +257,7 @@ class DecimalUnitField extends Widget {
 	}
 
 	public checkValidity(): boolean {
-		return true;
+		return true;  // TODO: implement validation logic
 	}
 }
 
