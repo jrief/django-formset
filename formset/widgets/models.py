@@ -49,7 +49,15 @@ class IncompleteSelectMixin:
     filter_by = None
     use_filter_set = None
 
-    def __init__(self, attrs=None, choices=(), search_lookup=None, group_field_name=None, filter_by=None, use_filter_set=None):
+    def __init__(
+        self,
+        attrs=None,
+        choices=(),
+        search_lookup=None,
+        group_field_name=None,
+        filter_by=None,
+        use_filter_set=None,
+    ):
         if search_lookup:
             self.search_lookup = search_lookup
         if isinstance(self.search_lookup, str):
@@ -98,7 +106,7 @@ class IncompleteSelectMixin:
     def build_attrs(self, base_attrs, extra_attrs):
         attrs = super().build_attrs(base_attrs, extra_attrs)
         if isinstance(self.choices, SimpleModelChoiceIterator):
-            if self.choices.queryset.count() > self.max_prefetch_choices:
+            if self.choices.queryset.count() > self.max_prefetch_choices or self.filter_by or self.use_filter_set:
                 attrs['incomplete'] = True
             if self.filter_by:
                 attrs['filter-by'] = ','.join(self.filter_by.keys())

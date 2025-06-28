@@ -50,6 +50,7 @@ export class DjangoSelectize extends IncompleteSelect {
 	private readonly wrapperSelector = '[is="django-selectize"] + .shadow-wrapper';
 	private readonly shadowWrapper: HTMLElement;
 	private readonly uniqueIdentifier: string;
+	private readonly minNumForDropdownInput: number = 25;
 	private offset: number;
 
 	constructor(tomInput: HTMLSelectElement) {
@@ -118,7 +119,7 @@ export class DjangoSelectize extends IncompleteSelect {
 				'dropdown_input': {},
 				'infinite_scroll': {loadMore: this.loadMore.bind(this),}
 			};
-		} else if (tomInput.options.length > 24) {
+		} else if (tomInput.options.length >= this.minNumForDropdownInput) {
 			settings.plugins = {
 				...settings.plugins,
 				'dropdown_input': {},
@@ -178,11 +179,15 @@ export class DjangoSelectize extends IncompleteSelect {
 			errorPlaceholder.innerHTML = '';
 		}
 		if (this.isIncomplete) {
+			const dropdownInputWrap = this.tomSelect.dropdown.querySelector('.dropdown-input-wrap');
 			this.tomSelect.clearOptions();
 			this.tomSelect.input.replaceChildren();
 			await this.loadOptions(this.buildFetchQuery(0), (options: Array<OptionData>) => {
 				this.tomSelect.addOptions(options);
 				this.offset = options.length;
+				if (dropdownInputWrap) {
+					dropdownInputWrap.hidden = options.length < this.minNumForDropdownInput;
+				}
 			});
 		}
 		this.tomSelect.setValue(currentValue, silent);

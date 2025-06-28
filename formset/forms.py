@@ -257,17 +257,17 @@ class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):
 
     @classmethod
     def _create_fields_option(mcs, form_fields, fields_map):
-        fields = []
+        fields = set()
         for field_name, form_field in form_fields.items():
-            fields.append(field_name)
+            fields.add(field_name)
             if field_name in fields_map:
                 if isinstance(form_field, JSONField):
                     assert isinstance(fields_map[field_name], list)
-                    fields.extend(fields_map[field_name])
+                    fields.union(fields_map[field_name])
                 else:
                     assert isinstance(fields_map[field_name], str)
-                    fields.append(fields_map[field_name])
-        return fields
+                    fields.add(fields_map[field_name])
+        return list(fields)
 
 
 class ModelForm(ModelFormMixin, BaseModelForm, metaclass=FormsetModelFormMetaclass):
