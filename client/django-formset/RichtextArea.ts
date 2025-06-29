@@ -916,9 +916,12 @@ class RichtextFormDialog extends FormDialogBase {
 						}
 					}
 				});
+				// use a MutationObserver to detect these attribute changes in the inputElement
 			} else if (mapping) {
 				inputElement.value = getDataValue(attributes, mapping);
+				inputElement.dispatchEvent(new Event('change', {bubbles: true}));
 			} else {
+				// only reached if richtext-map-to is set, but richtext-map-from is unset
 				inputElement.value = getDataValue(attributes, inputElement.name);
 			}
 		});
