@@ -1,6 +1,8 @@
 import template from 'lodash.template';
 import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
+import isFunction from 'lodash.isfunction';
+import isPlainObject from 'lodash.isplainobject';
 import isString from 'lodash.isstring';
 import getDataValue from 'lodash.get';
 import {arrow, computePosition} from '@floating-ui/dom';
@@ -894,21 +896,27 @@ class RichtextFormDialog extends FormDialogBase {
 	}
 
 	private openPrefilledDialog(attributes: Object) {
+		const editor = this.richtext.editor;
 		this.revertButton?.removeAttribute('hidden');
 		if (this.textSelectionField) {
-			const {selection, doc} = this.richtext.editor.view.state;
+			const {selection, doc} = editor.view.state;
 			if (selection.empty)
 				return;  // nothing selected
 			this.textSelectionField.value = doc.textBetween(selection.from, selection.to, '');
 		}
+		const extensionConfig = editor.extensionManager.extensions.find(ext => ext.name === this.extension)?.config;
 		this.inputElements.forEach(inputElement => {
 			const mapping = inputElement.getAttribute('richtext-map-from')?.trim();
-			if (typeof mapping === 'string' && mapping.startsWith('{') && mapping.endsWith('}')) {
+			if (!mapping)
+				return;
+			if (extensionConfig && mapping.endsWith('()') && isFunction(extensionConfig[mapping.slice(0, -2)])) {
+				extensionConfig[mapping.slice(0, -2)](inputElement, attributes);
+			} else if (mapping.startsWith('{') && mapping.endsWith('}')) {
 				const mapFunction = new Function('attributes', `return ${mapping}`);
 				Object.entries(mapFunction(attributes)).forEach(([key0, value]) => {
 					if (value !== undefined) {
-						if ((inputElement as any)[key0] instanceof Object && value instanceof Object) {
-							Object.entries(value).forEach(([key1, value]) => {
+						if (isPlainObject(inputElement[key0]) && isPlainObject(value)) {
+							Object.entries(value as Object).forEach(([key1, value]) => {
 								(inputElement as any)[key0][key1] = value;
 							});
 						} else {
@@ -917,12 +925,9 @@ class RichtextFormDialog extends FormDialogBase {
 					}
 				});
 				// use a MutationObserver to detect these attribute changes in the inputElement
-			} else if (mapping) {
-				inputElement.value = getDataValue(attributes, mapping);
-				inputElement.dispatchEvent(new Event('change', {bubbles: true}));
 			} else {
-				// only reached if richtext-map-to is set, but richtext-map-from is unset
-				inputElement.value = getDataValue(attributes, inputElement.name);
+				inputElement.value = mapping === 'true' ? getDataValue(attributes, inputElement.name) : getDataValue(attributes, mapping);
+				inputElement.dispatchEvent(new Event('change', {bubbles: true}));
 			}
 		});
 		super.openDialog();
@@ -956,15 +961,20 @@ class RichtextFormDialog extends FormDialogBase {
 				return;
 			}
 			let attributes = {};
+			const extensionConfig = editor.extensionManager.extensions.find(ext => ext.name === this.extension)?.config;
 			this.inputElements.forEach(inputElement => {
 				let mapFunction: Function;
-				const mapping = inputElement.getAttribute('richtext-map-to')?.trim()  ?? '';
-				if (mapping.startsWith('{') && mapping.endsWith('}')) {
+				const mapping = inputElement.getAttribute('richtext-map-to')?.trim();
+				if (!mapping)
+					return;
+				if (extensionConfig && mapping.endsWith('()') && isFunction(extensionConfig[mapping.slice(0, -2)])) {
+					mapFunction = extensionConfig[mapping.slice(0, -2)];
+				} else if (mapping.startsWith('{') && mapping.endsWith('}')) {
 					mapFunction = new Function('elements', `return ${mapping}`);
-				} else if (mapping) {
-					mapFunction = (elements: HTMLFormControlsCollection) => ({[mapping]: inputElement.value});
-				} else {
+				} else if (mapping === 'true') {
 					mapFunction = (elements: HTMLFormControlsCollection) => ({[inputElement.name]: inputElement.value});
+				} else {
+					mapFunction = (elements: HTMLFormControlsCollection) => ({[mapping]: inputElement.value});
 				}
 				attributes = {...attributes, ...mapFunction(this.formElement.elements)};
 			});

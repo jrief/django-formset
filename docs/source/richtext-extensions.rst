@@ -302,15 +302,14 @@ data with the Richtext editor. This is done by adding the extra attributes ``ric
 
 This extra attribute is used to map the value of the form field's value to the editor's document
 state. It is applied whenever the user clicks on the "Apply" button of the dialog form. This
-attribute can take three types of values:
+attribute can take four types of values:
 
 * ``True``, which means that the field's value is mapped to the editor's document state using the
-  field's name as the key. If set, it also is applied in the other direction, ``richtext-map-from``
-  therefore is not required anymore.
-* **A key value**. This is used to map the field's value to the editor's document state using the
+  field's name as its key.
+* **A key value**: This is used to map the field's value to the editor's document state using the
   given key to map it onto another key. If a key value is used, one must also provide a
   ``richtext-map-from`` attribute. Read below for details.
-* **A functional expression.** This is used to map the field's value to the editor's document state
+* **A functional expression**: This is used to map the field's value to the editor's document state
   using a JavaScript lambda function. This snippet has access to all elements of the dialog form and
   can return a value to be mapped onto the editor's document state. Accessing the values of the
   elements can only be achieved using ``elements.…`` inside the snippet. This is the most flexible
@@ -320,16 +319,24 @@ attribute can take three types of values:
   Example: ``{src: JSON.parse(elements.image.dataset.fileupload).download_url}`` maps the download
   URL of an uploaded image of an input element named ``image`` to the attribute ``src`` of the
   editor's document state implementing the mark extension ``<img src="…" />``.
+* **The name of a function followed by empty brackets**: This function must be added to the
+  extension script, as explained in the previous section. It takes a HTMLFormControlsCollection_ as
+  its only argument and must return a plain JavaScript object which then is mapped onto the editor's
+  document state.
+
+.. _HTMLFormControlsCollection: https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormControlsCollection
 
 .. rubric:: ``richtext-map-from``
 
 This extra attribute is used to map the editor's document state back to the dialog form field's
 value. It is applied whenever the user opens the dialog form for an existing mark or node element in
-the editor. This attribute can take two types of values:
+the editor. This attribute can take four types of values:
 
-* **A key value**. This is used to map the editor's document state using a key and map it to the
+* ``True``, which means that the editor's document state using the name of the field's name is
+  mapped back to the field's value.
+* **A key value**: This is used to map the editor's document state using a key and map it to the
   field of the dialog form with the given name.
-* **A functional expression**. This is used to map the editor's document state using a JavaScript
+* **A functional expression**: This is used to map the editor's document state using a JavaScript
   lambda function. This snippet has access to all attributes of the editor's document state and must
   return a value to be mapped onto the given field of the dialog form. Accessing the values of the
   attributes can only be achieved using ``attributes.…`` inside the snippet.
@@ -337,6 +344,12 @@ the editor. This attribute can take two types of values:
   Example: ``{dataset: {fileupload: JSON.stringify(attributes.dataset)}}`` maps the value of the
   attribute ``dataset`` of the editor's document state to the ``dataset`` attribute of the
   associated input field in the form dialog. 
+**The name of a function followed by empty brackets**: This function must be added to the
+  extension script, as explained in the previous section. As its arguments it takes the
+  HTMLInputElement_ to be modified and a plain JavaScript object containing the editor's
+  document state. The function then must set the value or other properties of the given input field.
+
+.. _HTMLInputElement: https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement
 
 .. hint:: **In order to better understand these mappings, try the Richtext editor above:**
 
