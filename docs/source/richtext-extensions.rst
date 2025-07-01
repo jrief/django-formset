@@ -132,9 +132,6 @@ therefore we use a functional snippet to map the document state's value to the d
 If the ``href`` attribute of the anchor element is set, the value of this choice field is set to
 "external", otherwise to "internal".
 
-.. note:: In this example ``value`` refers to the attribute of the ``<select>`` field for choosing
-	the link type. If instead you want to use a ``RadioSelect`` widget, you have to map this to
-	their ``checked`` attributes.
 
 .. rubric:: The ``url`` field
 
@@ -319,10 +316,11 @@ attribute can take four types of values:
   Example: ``{src: JSON.parse(elements.image.dataset.fileupload).download_url}`` maps the download
   URL of an uploaded image of an input element named ``image`` to the attribute ``src`` of the
   editor's document state implementing the mark extension ``<img src="…" />``.
-* **The name of a function followed by empty brackets**: This function must be added to the
-  extension script, as explained in the previous section. It takes a HTMLFormControlsCollection_ as
-  its only argument and must return a plain JavaScript object which then is mapped onto the editor's
-  document state.
+* **The name of a function followed by empty brackets**, ie. ``()``: This function must be an
+  attribute of the object declared inside the extension script as explained in the previous section.
+  It takes an HTMLFormControlsCollection_ as its only argument. This collection contains all the
+  fields of the given dialog form. The function must return a plain JavaScript object which then is
+  merged into the editor's document state.
 
 .. _HTMLFormControlsCollection: https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormControlsCollection
 
@@ -344,12 +342,20 @@ the editor. This attribute can take four types of values:
   Example: ``{dataset: {fileupload: JSON.stringify(attributes.dataset)}}`` maps the value of the
   attribute ``dataset`` of the editor's document state to the ``dataset`` attribute of the
   associated input field in the form dialog. 
-**The name of a function followed by empty brackets**: This function must be added to the
-  extension script, as explained in the previous section. As its arguments it takes the
-  HTMLInputElement_ to be modified and a plain JavaScript object containing the editor's
-  document state. The function then must set the value or other properties of the given input field.
+* **The name of a function followed by empty brackets**, ie. ``()``: This function must be an
+  attribute of the object declared inside the extension script as explained in the previous section.
+  As its first argument it takes the field of the dialog form, which usually is an
+  HTMLInputElement_ or HTMLSelectElement_. As its second argument it receives the editor's document
+  state as a plain JavaScript object. This function then shall modify the given input element's
+  ``value``, ``checked`` property or any other attribute.
 
 .. _HTMLInputElement: https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement
+.. _HTMLSelectElement: https://developer.mozilla.org/en-US/docs/Web/API/HTMLSelectElement
+
+.. note:: Dialog forms usually contain multiple fields, therefore the rule defined in the
+	``richtext-map-from`` attribute is applied for each field of that form. Keep this in mind,
+	especially when	using a ``RadioSelect`` or ``CheckboxSelectMultiple`` widget, because there
+	you must modify the ``checked`` instead of the ``value`` property of the given input fields.
 
 .. hint:: **In order to better understand these mappings, try the Richtext editor above:**
 
