@@ -52,6 +52,7 @@ test_fields = dict(
         queryset=OpinionModel.objects.filter(tenant=1),
         widget=Selectize(search_lookup='label__icontains'),
         required=True,
+        empty_label="Your Opinion",
     ),
     selection_initialized=models.ModelChoiceField(
         queryset=OpinionModel.objects.filter(tenant=1),
@@ -263,9 +264,9 @@ def test_lookup_value(page, form, viewname):
     expected = {
         'total_count': 999,
         'search': '159',
-        'count': 1,
+        'count': 2,
         'incomplete': False,
-        'options': [{'id': opinion.id, 'label': opinion.label}],
+        'options': [{'id': '', 'label': "Your Opinion"}, {'id': opinion.id, 'label': opinion.label}],
     }
     assert response_info.value.json() == expected
 

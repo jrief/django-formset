@@ -54,7 +54,8 @@ def test_render_unmapped_form():
 
 def test_render_mapped_form():
     form = ProductFormMapped()
-    assert form._meta.fields == ['title', 'price', 'properties', 'size', 'extra_data', 'color', 'supplier_name']
+    expected = ['title', 'price', 'properties', 'size', 'extra_data', 'color', 'supplier_name']
+    assert form._meta.fields == expected
     assert form._meta.exclude is None
     assert form._meta.fields_map == {'properties': ['size'], 'extra_data': ['color']}
     html = _formsetify(form).render(template_name='formset/default/form.html')
@@ -114,7 +115,8 @@ def test_render_factorized_form():
 def test_render_factorized_properties_form():
     ProductForm = modelform_factory(ProductModel, form=PropertiesForm, fields='__all__')
     form = ProductForm()
-    assert form._meta.fields == ['title', 'price', 'properties', 'size', 'color', 'extra_data', 'fit', 'supplier_name']
+    expected = ['title', 'price', 'properties', 'size', 'color', 'extra_data', 'fit', 'supplier_name']
+    assert form._meta.fields == expected
     assert form._meta.exclude is None
     assert form._meta.fields_map == {'properties': ['size', 'color'], 'extra_data': ['fit']}
     html = _formsetify(form).render(template_name='formset/default/form.html')

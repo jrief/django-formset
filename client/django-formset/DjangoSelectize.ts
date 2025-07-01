@@ -185,7 +185,7 @@ export class DjangoSelectize extends IncompleteSelect {
 			await this.loadOptions(this.buildFetchQuery(0), (options: Array<OptionData>) => {
 				this.tomSelect.addOptions(options);
 				this.offset = options.length;
-				if (dropdownInputWrap) {
+				if (dropdownInputWrap instanceof HTMLElement) {
 					dropdownInputWrap.hidden = options.length < this.minNumForDropdownInput;
 				}
 			});
@@ -498,7 +498,12 @@ export class DjangoSelectize extends IncompleteSelect {
 			this.loadOptions(this.buildFetchQuery(0, {pk: value.toString()}), (options: Array<OptionData>) => {
 				if (this.tomSelect.getValue() === value.toString()) {
 					// object already loaded by tom-select
-					this.tomSelect.updateOption(value.toString(), options[0]);
+					const option = options.find(o => o.id === value);
+					if (option) {
+						this.tomSelect.updateOption(value.toString(), option);
+					} else {
+						console.warn("Could not update missing option with id: ", value);
+					}
 				} else {
 					// object must be added to tom-select
 					this.tomSelect.addOptions(options);
