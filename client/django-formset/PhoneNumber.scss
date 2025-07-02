@@ -84,8 +84,9 @@
 							background-color: $selected-item-background-color;
 							border: 1px solid $selected-item-border-color;
 						}
-						span {
+						.flag-icon {
 							margin-right: 0.5rem;
+							vertical-align: text-bottom;
 						}
 					}
 				}
@@ -101,10 +102,3 @@
 		}
 	}
 }
-
-$flag-icons-path: "/static/node_modules/flag-icons/flags" !default;
-$flag-icons-rect-path: "/4x3" !default;
-$flag-icons-square-path: "/1x1" !default;
-$flag-icons-use-square: true !default;
-@import "node_modules/flag-icons/sass/flag-icons-base";
-@import "node_modules/flag-icons/sass/flag-icons-list";

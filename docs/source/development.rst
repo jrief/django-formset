@@ -10,8 +10,9 @@ The last two applications are required for the client part and make up about one
 base.
 
 The code can be found on GitHub_. Please use the issue tracker **only** to report bugs. For
-questions and new ideas, please use the `discussion board`_. **Do not ask questions using my
-private email address.**
+questions and new ideas, please use the `discussion board`_.
+
+**Do not ask questions using my private email address!**
 
 .. _TypeScript: https://www.typescriptlang.org/
 .. _PEG: https://peggyjs.org/documentation.html
@@ -35,6 +36,7 @@ required to build the test application:
 	npm run tag-attributes
 	npm run no-comments
 	npm run tailwindcss
+	npm run sprite-flags
 	npm run esbuild.modular
 	npm run compilescss
 	npm run docscss
@@ -73,7 +75,7 @@ Then run the testsuite
 Building the Parsers
 ====================
 
-The content of the button attribute ``df-click``, and the input field and fieldset attributes
+The content of the button attribute ``df-click``, the input field and fieldset attributes
 ``df-show``, ``df-hide`` and ``df-disable`` are parsed before being evaluated by the code
 implementing the web component. This parser is generated using PEG_ and compiles to a pure
 TypeScript module through ``npm run tag-attributes``. The grammar describing this proprietary syntax
@@ -85,6 +87,14 @@ Another parser is built to remove comments from Tiptap extensions, so that they 
 dynamically. This parser is generated using ``npm run no-comments`` and written to
 ``client/build/no-comments``. It then is imported by the code implementing the web component
 ``client/django-formset/RichtextArea.ts``.
+
+
+Building the Sprite
+===================
+
+The SVG icons to represent the country flags in the :ref:`country-selectize` and the
+:ref:`phone-number-field` widgets must be bundled into a sprite. This is done using the
+``npm run sprite-flags`` command.
 
 
 Building the Client

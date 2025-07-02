@@ -2,10 +2,16 @@ import {DjangoSelectize} from './DjangoSelectize';
 import {RecursivePartial, TomOption} from 'tom-select/src/types';
 import {TomSettings} from 'tom-select/src/types/settings';
 import template from 'lodash.template';
+import {StyleHelpers} from './helpers';
 import styles from './DjangoSelectizeCountry.scss';
 
 
 class DjangoSelectizeCountry extends DjangoSelectize {
+	constructor(element: HTMLSelectElement) {
+		super(element);
+		StyleHelpers.addSpriteFlags(this.shadowRoot);
+	}
+
 	public async initialize() {
 		super.initialize();
 		const declaredStyles = document.createElement('style');

@@ -39,6 +39,7 @@ jobs:
       run: |
         npm run compilescss
         npm run tailwindcss
+        npm run sprite-flags
     - name: Build Client
       run: |
         npm run esbuild.modular

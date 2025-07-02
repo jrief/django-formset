@@ -36,6 +36,7 @@ RUN npm run tag-attributes
 RUN npm run no-comments
 RUN npm run compilescss
 RUN npm run tailwindcss
+RUN npm run sprite-flags
 RUN npm run esbuild.modular -- --debug
 
 # create documentation

@@ -165,6 +165,21 @@ export namespace StyleHelpers {
 			}
 		} // else handle other CSSRule types
 	}
+
+	export function addSpriteFlags(rootNode: HTMLHeadElement|ShadowRoot) {
+		const currentURL = new URL(import.meta.url);
+		const parts = currentURL.pathname.split('/');
+		currentURL.pathname = `${parts.slice(0, -2).join('/')}/css/sprite-flags.css`;
+		const href = currentURL.toString();
+		if (!rootNode.querySelector(`link[href="${href}"]`)) {
+			const link = document.createElement('link');
+			link.rel = 'stylesheet';
+			link.href = href;
+			link.type = 'text/css';
+			link.media = 'screen';
+			rootNode.insertBefore(link, rootNode.firstChild);
+		}
+	}
 }
 
 export function assert(condition: any, message?: string) {

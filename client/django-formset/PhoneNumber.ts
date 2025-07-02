@@ -12,7 +12,7 @@ class PhoneNumberField {
 	private readonly baseSelector = '[is="django-phone-number"]';
 	private readonly styleSheet: CSSStyleSheet;
 	private hasFocus = false;
-	private readonly defaultCountryCode: CountryCode | undefined;
+	private readonly defaultCountryCode?: CountryCode;
 	private readonly mobileOnly: boolean;
 	private readonly asYouType: AsYouType;
 	private readonly internationalOpener: HTMLElement;
@@ -39,6 +39,7 @@ class PhoneNumberField {
 		this.internationalOpener = this.textBox.querySelector('.international-picker') as HTMLElement;
 		this.internationalSelector = this.textBox.nextElementSibling as HTMLElement;
 		this.countryLookupField = this.internationalSelector.querySelector('input[type="search"]') as HTMLInputElement;
+		StyleHelpers.addSpriteFlags(document.head);
 		this.styleSheet = StyleHelpers.stylesAreInstalled(this.baseSelector) ?? this.transferStyles();
 		this.transferClasses();
 	}
@@ -72,7 +73,7 @@ class PhoneNumberField {
 		];
 		for (let [countryName, callingCode, countryCode] of this.codeCountryMap) {
 			htmlTags.push(`<li data-country="${countryCode}" data-calling-code="${callingCode}">`);
-			htmlTags.push(`<span class="fi fi-${countryCode.toLowerCase()} fib"></span>${countryName} <strong>+${callingCode}</strong>`);
+			htmlTags.push(`<span class="flag-${countryCode.toLowerCase()} flag-icon"></span>${countryName} <strong>+${callingCode}</strong>`);
 			htmlTags.push('</li>');
 		}
 		htmlTags.push('</div>');
@@ -327,7 +328,7 @@ class PhoneNumberField {
 
 	private decorateInputField(countryCode?: CountryCode) {
 		if (countryCode) {
-			this.internationalOpener.innerHTML = `<span class="fi fi-${countryCode.toLowerCase()} fib"></span>`;
+			this.internationalOpener.innerHTML = `<span class="flag-${countryCode.toLowerCase()} flag-icon"></span>`;
 		} else {
 			this.internationalOpener.innerHTML = '';
 		}
