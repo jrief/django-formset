@@ -915,7 +915,7 @@ class RichtextFormDialog extends FormDialogBase {
 				const mapFunction = new Function('attributes', `return ${mapping}`);
 				Object.entries(mapFunction(attributes)).forEach(([key0, value]) => {
 					if (value !== undefined) {
-						if (isPlainObject(inputElement[key0]) && isPlainObject(value)) {
+						if (isPlainObject((inputElement as any)[key0]) && isPlainObject(value)) {
 							Object.entries(value as Object).forEach(([key1, value]) => {
 								(inputElement as any)[key0][key1] = value;
 							});
