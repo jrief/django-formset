@@ -297,21 +297,19 @@ data with the Richtext editor. This is done by adding the extra attributes ``ric
 
 .. rubric:: ``richtext-map-to``
 
-This extra attribute is used to map the value of the form field's value to the editor's document
-state. It is applied whenever the user clicks on the "Apply" button of the dialog form. This
-attribute can take four types of values:
+This extra attribute is used to map the value of one or more form field's values to the editor's
+document state. This operation is performed whenever the user clicks on the "Apply" button of the
+dialog form. This attribute can take three types of values:
 
-* ``True``, which means that the field's value is mapped to the editor's document state using the
-  field's name as its key.
-* **A key value**: This is used to map the field's value to the editor's document state using the
-  given key to map it onto another key. If a key value is used, one must also provide a
-  ``richtext-map-from`` attribute. Read below for details.
-* **A functional expression**: This is used to map the field's value to the editor's document state
-  using a JavaScript lambda function. This snippet has access to all elements of the dialog form and
-  can return a value to be mapped onto the editor's document state. Accessing the values of the
-  elements can only be achieved using ``elements.…`` inside the snippet. This is the most flexible
-  way, because it can take the values of other fields into account, transform them or perform extra
-  logic.
+* **A key value**: This is used to map the value of the given field onto to the editor's document
+  state with that key. This is the most basic way to map a field's value and can only be used to map
+  a single value.
+* **A functional expression**: This is used to map multiple field values to the editor's document
+  state using a JavaScript lambda function. This snippet has access to all elements of the dialog
+  form and must return a value to be mapped onto the editor's document state. Accessing the values
+  of the elements can only be achieved using ``elements.…`` inside this snippet. This is a more
+  flexible way, because it can take the values of other fields into account, transform them or
+  perform extra logic.
   
   Example: ``{src: JSON.parse(elements.image.dataset.fileupload).download_url}`` maps the download
   URL of an uploaded image of an input element named ``image`` to the attribute ``src`` of the
@@ -320,7 +318,8 @@ attribute can take four types of values:
   attribute of the object declared inside the extension script as explained in the previous section.
   It takes an HTMLFormControlsCollection_ as its only argument. This collection contains all the
   fields of the given dialog form. The function must return a plain JavaScript object which then is
-  merged into the editor's document state.
+  merged into the editor's document state. This is the most flexible way, because it can be
+  programmed in JavaScript.
 
 .. _HTMLFormControlsCollection: https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormControlsCollection
 
@@ -328,29 +327,70 @@ attribute can take four types of values:
 
 This extra attribute is used to map the editor's document state back to the dialog form field's
 value. It is applied whenever the user opens the dialog form for an existing mark or node element in
-the editor. This attribute can take four types of values:
+the editor. This attribute can take three types of values:
 
-* ``True``, which means that the editor's document state using the name of the field's name is
-  mapped back to the field's value.
 * **A key value**: This is used to map the editor's document state using a key and map it to the
-  field of the dialog form with the given name.
+  given field' value of the dialog form.
 * **A functional expression**: This is used to map the editor's document state using a JavaScript
-  lambda function. This snippet has access to all attributes of the editor's document state and must
-  return a value to be mapped onto the given field of the dialog form. Accessing the values of the
-  attributes can only be achieved using ``attributes.…`` inside the snippet.
+  lambda function. This snippet has access to all attributes of the editor's document state and
+  must return one or more `properties or attributes`_ of the dialog form's field. If the field is an
+  HTMLInputElement_ or HTMLSelectElement_, then this lamda function usually returns an object
+  containing ``{value: …}``. The editor's document state can be accessed using ``attributes.…``
+  inside this snippet.
 
   Example: ``{dataset: {fileupload: JSON.stringify(attributes.dataset)}}`` maps the value of the
   attribute ``dataset`` of the editor's document state to the ``dataset`` attribute of the
   associated input field in the form dialog. 
 * **The name of a function followed by empty brackets**, ie. ``()``: This function must be an
   attribute of the object declared inside the extension script as explained in the previous section.
-  As its first argument it takes the field of the dialog form, which usually is an
-  HTMLInputElement_ or HTMLSelectElement_. As its second argument it receives the editor's document
-  state as a plain JavaScript object. This function then shall modify the given input element's
-  ``value``, ``checked`` property or any other attribute.
+  As its first argument it takes the field of the dialog form, usually an HTMLInputElement_ or
+  HTMLSelectElement_. As its second argument it receives the editor's document state for the given
+  mark or node as a plain JavaScript object. This function then shall modify the given input
+  element's ``value`` or ``checked`` property, or any of its attributes.
+
+  Example: Say, that in our ``CustomHyperlinkDialogForm`` we perfer a ``RadioSelect`` widget to
+  select the link type. Now the problem is, that we have one radio input element for each choice.
+  Inside our extension script we can therefore implement this mapping function:
+
+  .. code-block:: javascript
+	:caption: myapp/tiptap-extensions/custom_hyperlink.js
+
+	{
+	    ...
+	
+	    change_link_type(inputElement, attributes) {
+	        if (attributes.page && inputElement.value === "internal") {
+	           inputElement.checked = true;
+	        } else if (attributes.href && inputElement.value === "external") {
+	           inputElement.checked = true;
+	        } else {
+	           inputElement.checked = false;
+	        }
+	    },
+	
+	    ...
+	}
+
+  When opening the dialog, this function is called for each input element of its form. Since we
+  don't have a single field we can map our editor's document state value to, we must lookup the
+  named radio input element (actually we use ``value`` for this) and set its ``checked`` property
+  accordingly. This way we can ensure that the correct radio input element is selected when opening
+  the dialog form.
+
+  The widget for our choice field ``link_type`` then must be rewritten to:
+  
+  .. code-block:: python
+
+	class CustomHyperlinkDialogForm(dialogs.RichtextDialogForm):
+	    ...
+	    link_type = fields.ChoiceField(
+	        ...
+	        widget=RadioSelect(attrs={'richtext-map-from': 'change_link_type()'}),
+	    )
 
 .. _HTMLInputElement: https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement
 .. _HTMLSelectElement: https://developer.mozilla.org/en-US/docs/Web/API/HTMLSelectElement
+.. _properties or attributes: https://arunrajeevan.medium.com/difference-between-attribute-and-property-in-html-world-70de9b7fb25c
 
 .. note:: Dialog forms usually contain multiple fields, therefore the rule defined in the
 	``richtext-map-from`` attribute is applied for each field of that form. Keep this in mind,

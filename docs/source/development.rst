@@ -106,7 +106,7 @@ is esbuild_, which currently is the fastest compiler of its kind.
 
 .. _esbuild: https://esbuild.github.io/
 
-The client can be built in three ways:
+The client can be built in different ways:
 
 .. rubric:: ``npm run esbuild.modular``
 
