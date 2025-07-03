@@ -215,7 +215,9 @@ django-formset {
 		// Using display: none causes: "An invalid form control with name='…' is not focusable." -error.
 		display: block !important;
 		width: 0 !important;
+		min-width: 0 !important;
 		height: 0 !important;
+		min-height: 0 !important;
 		padding: 0 !important;
 		margin: 0 !important;
 		border: none !important;
