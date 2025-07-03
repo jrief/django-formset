@@ -304,10 +304,10 @@ class FieldGroup {
 		if (!isString(attrValue))
 			return () => {};
 		try {
-			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'OperabilityExpression'}));
+			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})}`);
 			return () => {
 				const require = evalExpression.call(this);
-				this.fieldElements.forEach((elem, index) => elem.required = require && this.initialRequired[index]);
+				this.fieldElements.forEach((elem, index) => elem.required = require);
 				this.form.checkValidity();
 			}
 		} catch (error) {

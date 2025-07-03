@@ -42,7 +42,7 @@ django-formset {
 		}
 		@each $field in $feedback-fields {
 			$selector: "#{$field}#{$has-feedback}:invalid:not([is]):not(:focus)";
-			> #{$selector}, :not([role="group"]) > #{$selector} {
+			>#{$selector}, :not([role="group"]) >#{$selector} {
 				@include invalid-blurred(list.index($feedback-input-fields, $field));
 			}
 			$alertor: "#{$field}#{$has-feedback}:invalid:focus ~ [role=alert]";
@@ -51,7 +51,8 @@ django-formset {
 			};
 		}
 
-		input[is^=django]:invalid + [role=textbox]:not(.focus) {
+		$selector: "input[is^=django]:invalid + [role=textbox]:not(.focus)";
+		>#{$selector}, :not([role="group"]) >#{$selector} {
 			@include invalid-blurred(true);
 		}
 	}
@@ -93,7 +94,8 @@ django-formset {
 				@include valid-blurred(list.index($feedback-input-fields, $field));
 			}
 		}
-		input[is^=django]:valid + [role=textbox]:not(.focus) {
+		$selector: "input[is^=django]:valid + [role=textbox]:not(.focus)";
+		>#{$selector}, :not([role="group"])>#{$selector} {
 			@include valid-blurred(true);
 		}
 	}
@@ -215,7 +217,9 @@ django-formset {
 		// Using display: none causes: "An invalid form control with name='…' is not focusable." -error.
 		display: block !important;
 		width: 0 !important;
+		min-width: 0 !important;
 		height: 0 !important;
+		min-height: 0 !important;
 		padding: 0 !important;
 		margin: 0 !important;
 		border: none !important;

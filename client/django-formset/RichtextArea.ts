@@ -926,7 +926,7 @@ class RichtextFormDialog extends FormDialogBase {
 				});
 				// use a MutationObserver to detect these attribute changes in the inputElement
 			} else {
-				inputElement.value = mapping === 'true' ? getDataValue(attributes, inputElement.name) : getDataValue(attributes, mapping);
+				inputElement.value = getDataValue(attributes, mapping) ?? '';
 				inputElement.dispatchEvent(new Event('change', {bubbles: true}));
 			}
 		});
@@ -971,8 +971,6 @@ class RichtextFormDialog extends FormDialogBase {
 					mapFunction = extensionConfig[mapping.slice(0, -2)];
 				} else if (mapping.startsWith('{') && mapping.endsWith('}')) {
 					mapFunction = new Function('elements', `return ${mapping}`);
-				} else if (mapping === 'true') {
-					mapFunction = (elements: HTMLFormControlsCollection) => ({[inputElement.name]: inputElement.value});
 				} else {
 					mapFunction = (elements: HTMLFormControlsCollection) => ({[mapping]: inputElement.value});
 				}
