@@ -179,17 +179,20 @@ class BoundField(boundfield.BoundField):
         """
         Extract server validation error messages to be rendered by the client side.
         """
+        widget = self.field.widget
         client_messages = {}
         server_messages = self.field.error_messages
         for validator in self.field.validators:
             validator_code = getattr(validator, 'code', None)
             if validator_code == 'invalid':
                 client_messages['type_mismatch'] = client_messages['pattern_mismatch'] = validator.message
-        if self.field.required is True:
+        if self.field.required is True or isinstance(widget.attrs, dict) and 'df-require' in widget.attrs:
             if self.widget_type == 'checkboxselectmultiple':
                 client_messages['custom_error'] = _("At least one checkbox must be selected.")
             elif 'required' in server_messages:
                 client_messages['value_missing'] = server_messages['required']
+            else:
+                client_messages['value_missing'] = _("This field is required.")
         if 'invalid' in server_messages:
             client_messages['type_mismatch'] = client_messages['pattern_mismatch'] = server_messages['invalid']
         elif 'invalid_choice' in server_messages:
