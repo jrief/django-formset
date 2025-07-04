@@ -29,7 +29,7 @@ UserInterfaceState.xcuserstate
 coverage/
 client/build/
 formset/static/formset/css/
-formset/static/formset/icons/sprite-flags.svg
+formset/static/formset/icons/sprite-flags.*
 formset/static/formset/js/
 formset/locale/**/*.mo
 build/

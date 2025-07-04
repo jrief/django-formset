@@ -13,13 +13,14 @@
     "tailwindcss": "tailwindcss --input assets/tailwind-styles.css --config assets/tailwind.config.js --output formset/static/formset/css/tailwind.css",
     "docscss": "postcss docs/source/_templates/css/nested-styles.text --config assets/postcss.config.js --output docs/build/json/_static/styles/nested-styles.css",
     "testclient": "jest",
-    "sprite-flags": "node assets/sprite-flags.js"
+    "sprite-flags": "node assets/sprite-flags.mjs"
   },
   "devDependencies": {
     "@babel/cli": "^7.25.9",
     "@babel/core": "^7.26.0",
     "@babel/preset-typescript": "^7.26.0",
     "@floating-ui/dom": "^1.7.2",
+    "@resvg/resvg-js": "^2.6.2",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^25.0.8",
     "@rollup/plugin-node-resolve": "^15.3.0",

@@ -1,8 +1,7 @@
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
-const SVGSpriter = require('svg-sprite');
+import fs from 'fs';
+import path from 'path';
+import SVGSpriter from 'svg-sprite';
+import {Resvg} from '@resvg/resvg-js';
 
 // 1. Create and configure a spriter instance
 // ====================================================================
@@ -24,8 +23,8 @@ const spriter = new SVGSpriter({
   },
   'shape': {
     'dimension': {
-      'maxWidth': 24,
-      'maxHeight': 18
+      'maxWidth': 48,
+      'maxHeight': 36
     }
   }
 });
@@ -45,7 +44,16 @@ fs.readdirSync(svgDir).forEach(file => {
 spriter.compile((error, result, data) => {
   for (const file of Object.values(result.css)) {
     if (file.path.endsWith('.svg')) {
-      fs.writeFileSync('formset/static/formset/icons/sprite-flags.svg', file.contents);
+      // fs.writeFileSync('formset/static/formset/icons/sprite-flags.svg', file.contents);
+      // instead, prefer to render as PNG since it's about 1/10 of the size
+      const resvg = new Resvg(file.contents, {
+        background: 'rgba(255, 255, 255, 0)',
+        fitTo: {
+          mode: 'width',
+          value: 720
+        }
+      });
+      fs.writeFileSync('formset/static/formset/icons/sprite-flags.png', resvg.render().asPng());
     } else {
       fs.mkdirSync(path.dirname(file.path), {recursive: true});
       fs.writeFileSync(file.path, file.contents);
