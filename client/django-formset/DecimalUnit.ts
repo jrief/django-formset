@@ -21,20 +21,19 @@ class DecimalUnitField extends Widget {
 		this.textBox = this.createTextBox();
 		this.editField = this.textBox.querySelector('span[contenteditable="true"]') as HTMLElement;
 		this.step = inputElement.step ? parseFloat(inputElement.step) : null;
-		this.precision = Number(inputElement.getAttribute('precision')) || 0;
-		this.blockLength = Number(inputElement.getAttribute('block-length')) || 3;
+		this.precision = parseInt(inputElement.getAttribute('precision') ?? '0');
+		this.blockLength = parseInt(inputElement.getAttribute('block-length') ?? '3');
 		this.styleSheet = StyleHelpers.stylesAreInstalled(this.baseSelector) ?? this.transferStyles();
 	}
 
 	private createTextBox(): HTMLElement {
-		const htmlTags: Array<string> = [
-			'<div role="textbox">',
-			'<div class="decimal-unit-edit">',
-			'<span contenteditable="true"></span>',
-			'</div>',
-			'</div>',
-		];
-		this.inputElement.insertAdjacentHTML('afterend', htmlTags.join(''));
+		const htmlTag = `
+			<div role="textbox">
+			<div class="decimal-unit-edit">
+			<span contenteditable="true"></span>
+			</div>
+			</div>`;
+		this.inputElement.insertAdjacentHTML('afterend', htmlTag);
 		return this.inputElement.nextElementSibling as HTMLElement;
 	}
 
@@ -90,44 +89,59 @@ class DecimalUnitField extends Widget {
 		this.inputElement.dispatchEvent(new Event('input'));
 	};
 
+	private handleCopy = (event: ClipboardEvent) => {
+		event.clipboardData?.setData('text/plain', this.inputElement.value);
+		event.preventDefault();
+	};
+
+	private handleCut = (event: ClipboardEvent) => {
+		event.clipboardData?.setData('text/plain', this.inputElement.value);
+		// clear the input value on cut
+		this.inputElement.value = this.editField.innerText = '';
+		this.inputElement.dispatchEvent(new Event('input'));
+		event.preventDefault();
+	};
+
+	private handlePaste = (event: ClipboardEvent) => {
+		console.log(event);
+		requestIdleCallback(() => {
+			this.updateInputValue(true);
+			this.setCaretPosition(Number.MAX_VALUE);
+		});
+	};
+
 	private handleKeypress = (event: KeyboardEvent) => {
 		let preventDefault = false;
 		if (this.hasFocus) {
-			switch (event.key) {
-				case 'ArrowRight':
-				case 'ArrowLeft':
-					requestIdleCallback(() => console.log(this.getCaretPosition()));
-					break;
-				case 'ArrowUp':
-				case 'ArrowDown':
-					if (this.step !== null) {
-					}
+			const caretPosition = this.getCaretPosition();
+			const reversePosition = this.editField.innerText.length - caretPosition;
+			if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
+				preventDefault = true;
+			} else if (event.key === 'ArrowRight') {
+				if (!event.shiftKey && reversePosition % (this.blockLength + 1) === 1) {
+					this.setCaretPosition(caretPosition + 1);
+				}
+			} else if (event.key === 'ArrowLeft') {
+				if (!event.shiftKey && reversePosition % (this.blockLength + 1) === this.blockLength) {
+					this.setCaretPosition(caretPosition - 1);
+				}
+			} else if (event.key === 'Backspace') {
+				if (reversePosition % (this.blockLength + 1) === this.blockLength) {
+					this.setCaretPosition(caretPosition - 1);
+				}
+				requestIdleCallback(() => this.updateInputValue(false));
+			} else if (event.key === 'Delete') {
+				requestIdleCallback(() => this.updateInputValue(false));
+			} else if (event.key >= '0' && event.key <= '9') {
+				requestIdleCallback(() => this.updateInputValue(true));
+			} else if (['c', 'v', 'x'].includes(event.key)) {
+				// allow copy/cut/paste
+				if (!event.ctrlKey && !event.metaKey && !event.shiftKey) {
 					preventDefault = true;
-					break;
-				case 'Backspace': case 'Delete':
-					requestIdleCallback(() => {
-						this.updateInputValue(true);
-					});
-					break;
-				case '-': case '+':
-					const selection = window.getSelection();
-					if (selection && selection.rangeCount > 0) {
-						// allow sign only at the beginning
-						const range = selection.getRangeAt(0);
-						const firstChar = this.editField.innerText.charAt(0);
-						preventDefault = range.startOffset !== 0 || ['-', '+'].includes(firstChar);
-					}
-					break;
-				case '.': case ',':
-					break;
-				case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
-					requestIdleCallback(() => {
-						this.updateInputValue();
-					});
-					break;
-				default:
-					preventDefault = true;
-					break;
+				}
+			} else {
+				console.log(event.key);
+				preventDefault = true;
 			}
 		}
 		if (preventDefault) {
@@ -157,9 +171,10 @@ class DecimalUnitField extends Widget {
 		selection.addRange(range);
 	}
 
-	private updateInputValue(del=false) {
+	private updateInputValue(insertDigit: boolean) {
 		let caretPosition = this.getCaretPosition();
-		const [integerPart, fraction] = this.editField.innerText.replaceAll(this.separator, '').replace(',', '.').split('.');
+		const numberRegex = new RegExp('[^0-9.-]', 'g');
+		const [integerPart, fraction] = this.editField.innerText.replace(',', '.').replaceAll(numberRegex, '').split('.');
 		const parts = Array<string>();
 		for (let k = integerPart.length; k >= 0; k -= this.blockLength) {
 			const part = integerPart.slice(Math.max(0, k - this.blockLength), k);
@@ -168,9 +183,18 @@ class DecimalUnitField extends Widget {
 			}
 		}
 		this.editField.innerText = `${parts.join(this.separator)}`; // ${fraction ? `.${fraction}` : ''}`;
-		console.log(integerPart.length, caretPosition, parts[0].length);
-		if (caretPosition > this.blockLength && parts[0].length === 1) {
-			// caret is after newly created first block, so we need to adjust it
+		// console.log(integerPart.length, caretPosition, parts[0].length);
+		if (insertDigit === true && caretPosition > this.blockLength && parts[0].length === 1) {
+			// caret is after newly created first block, so we need to adjust the caret position
+			caretPosition++;
+		} else if (insertDigit === false && parts[0].length === 3) {
+			// first block collapsed after deletion, so we need to adjust the caret position
+			caretPosition--;
+		}
+		// const reversePosition = this.editField.innerText.length - caretPosition;
+		// console.log(reversePosition, parts[0].length, reversePosition % (this.blockLength + 1));
+		if ((this.editField.innerText.length - caretPosition) % (this.blockLength + 1) === 0) {
+			// moves caret on the right part of the separator
 			caretPosition++;
 		}
 		this.setCaretPosition(caretPosition);
@@ -245,6 +269,9 @@ class DecimalUnitField extends Widget {
 		this.inputElement.hidden = true;  // setting type="hidden" prevents dispatching events
 		this.editField.addEventListener('focus', this.handleFocus);
 		this.editField.addEventListener('blur', this.handleBlur);
+		this.editField.addEventListener('copy', this.handleCopy);
+		this.editField.addEventListener('cut', this.handleCut);
+		this.editField.addEventListener('paste', this.handlePaste);
 		document.addEventListener('mousedown', this.handleMousedown);
 		document.addEventListener('keydown', this.handleKeypress);
 	}
@@ -252,6 +279,9 @@ class DecimalUnitField extends Widget {
 	public disconnect() {
 		this.editField.removeEventListener('focus', this.handleFocus);
 		this.editField.removeEventListener('blur', this.handleBlur);
+		this.editField.removeEventListener('copy', this.handleCopy);
+		this.editField.removeEventListener('cut', this.handleCut);
+		this.editField.removeEventListener('paste', this.handlePaste);
 		document.removeEventListener('mousedown', this.handleMousedown);
 		document.removeEventListener('keydown', this.handleKeypress);
 	}
