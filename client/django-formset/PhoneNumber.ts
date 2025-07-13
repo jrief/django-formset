@@ -372,8 +372,7 @@ class PhoneNumberField {
 					);
 					break;
 				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] input[type="search"]`:
-					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
-						'line-height', 'padding']);
+					extraStyles = StyleHelpers.extractStyles(this.inputElement, ['padding']);
 					break;
 				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] input[type="search"]:focus`:
 					this.inputElement.classList.add('⁝focus');
