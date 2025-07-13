@@ -84,6 +84,7 @@ using the :ref:`selectize`.
 	    )
 	    url = fields.URLField(
 	        label="External URL",
+	        required=False,
 	        widget=widgets.URLInput(attrs={
 	            'size': 50,
 	            'richtext-map-to': '{href: elements.link_type.value == "external" ? elements.url.value : ""}',
@@ -96,6 +97,7 @@ using the :ref:`selectize`.
 	    page = models.ModelChoiceField(
 	        queryset=PageModel.objects.all(),
 	        label="Internal Page",
+	        required=False,
 	        widget=Selectize(attrs={
 	            'richtext-map-to': '{page_id: elements.link_type.value == "internal" ? elements.page.value : ""}',
 	            'richtext-map-from': 'page_id',
@@ -183,7 +185,7 @@ The attribute ``'df-require': '.link_type == "internal"'`` tells the editor to m
 optional if the link type is not set to "internal". Otherwise, with link type set to "external", the
 form validation would fail, since then this field is hidden.
 
-Finally we can attach this dialog form to our ``RichTextarea`` widget by adding it to the list of
+Finally we attach this dialog form to our ``RichTextarea`` widget by adding it to the list of
 control elements:
 
 .. django-view:: pages_form
@@ -289,7 +291,7 @@ This attribute is another unique identifier. It is used to set a name for the di
 Behind the scenes
 -----------------
 
-The most tricky part of the implementation is the mapping of the form fields to the editor's
+The most tricky part of the implementation is the mapping of the dialog form fields to the editor's
 document state and vice versa. Dialog forms therefore need a way to bidirectionally exchange their
 data with the Richtext editor. This is done by adding the extra attributes ``richtext-map-to`` and
 ``richtext-map-from`` to the form field widgets.
