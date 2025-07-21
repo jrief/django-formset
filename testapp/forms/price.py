@@ -1,3 +1,5 @@
+import decimal
+
 from django.forms import fields, forms
 
 from formset.widgets import DecimalUnitInput
@@ -9,5 +11,10 @@ class PriceForm(forms.Form):
     """
     price = fields.DecimalField(
         label="Price",
-        widget=DecimalUnitInput(2, prefix='€', attrs={'step': '0.1'}),
+        widget=DecimalUnitInput(prefix='€'),
+        initial=1234560,
+        min_value=-1000,
+        decimal_places=2,
+        #max_digits=10,
+        step_size=10,
     )

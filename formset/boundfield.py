@@ -4,7 +4,7 @@ from django.core import validators
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.fields.files import FieldFile
 from django.forms import boundfield
-from django.forms.fields import FileField, JSONField
+from django.forms.fields import DecimalField, FileField, JSONField
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -102,6 +102,11 @@ class BoundField(boundfield.BoundField):
             attrs['pattern'] = self.field.regex.pattern
         if isinstance(self.field, JSONField):
             attrs['use_json'] = True
+        if isinstance(self.field, DecimalField):
+            if isinstance(self.field.decimal_places, int):
+                attrs['decimal-places'] = self.field.decimal_places
+            if isinstance(self.field.max_digits, int):
+                attrs['max-digits'] = self.field.max_digits
         if isinstance(self.field, Activator) or self.widget_type == 'dualselector':
             label = self.name.replace('_', ' ').title() if self.field.label is None else self.field.label
             attrs['label'] = label  # remember label for ButtonWidget.get_context()

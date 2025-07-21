@@ -1,3 +1,5 @@
+@import "colors";
+
 [is^="django-decimal-unit"] {
 	--dummy-style: none; // required by DecimalUnitField.transferStyles()
 
@@ -19,16 +21,26 @@
 			flex-wrap: nowrap;
 			width: calc(100% - 2.5em);  // 2em for the alert/ok symbol
 
-			span {
+			[contenteditable="true"] {
 				cursor: text;
 				overflow-x: hidden;
 				text-wrap: nowrap;
 				min-width: 2em;
-				max-width: calc(100% - 2em);
+				flex-grow: 1;
 
 				&:focus-visible {
 					outline: none;
 				}
+			}
+
+			.prefix {
+				color: $semimuted-item-color;
+				margin-right: 0.5rem;
+			}
+
+			.suffix {
+				color: $semimuted-item-color;
+				margin-left: 0.5rem;
 			}
 		}
 	}
