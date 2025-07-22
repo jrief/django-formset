@@ -4,7 +4,7 @@ from django.core import validators
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.fields.files import FieldFile
 from django.forms import boundfield
-from django.forms.fields import DecimalField, FileField, JSONField
+from django.forms.fields import DecimalField, FileField, FloatField, JSONField
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -107,6 +107,8 @@ class BoundField(boundfield.BoundField):
                 attrs['decimal-places'] = self.field.decimal_places
             if isinstance(self.field.max_digits, int):
                 attrs['max-digits'] = self.field.max_digits
+        if isinstance(self.field, FloatField):
+            attrs['decimal-places'] = 12  # default precision for float fields
         if isinstance(self.field, Activator) or self.widget_type == 'dualselector':
             label = self.name.replace('_', ' ').title() if self.field.label is None else self.field.label
             attrs['label'] = label  # remember label for ButtonWidget.get_context()
