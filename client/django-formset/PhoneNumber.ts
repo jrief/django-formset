@@ -476,11 +476,9 @@ export class PhoneNumberElement extends HTMLInputElement {
 	set value(value: string) {
 		super.value = value;
 		this[PN].setValue(value);
-		console.log(super.value);
 	}
 
 	checkValidity() {
-		console.log(this.validity);
 		if (!super.checkValidity()) {
 			return false;
 		}

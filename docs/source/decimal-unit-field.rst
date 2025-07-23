@@ -7,11 +7,11 @@ Decimal Unit Field
 Django offers three built-in form fields to enter numbers, namely DecimalField_, FloatField_ and
 IntegerField_ . When rendered as HTML, their element usually boils down to something like
 
-.. code-block:: html
+.. code-block:: raw
 
 	<input type="number" name="…" value="…" …>
 
-This `HTML element`_ is a good choice for entering numbers, but it has some limitations:
+This `HTML input element`_ is a good choice for entering numbers, but it has some limitations:
 
 * Locale-specific number formatting is not enforced; the decimal separator can be ``.`` or ``,``.
 * It allows non-numeric input via copy-paste or browser autofill in some browsers.
@@ -31,7 +31,11 @@ NumberInput_ and shall be used with one of the mentioned Django form fields.
 .. _FloatField:  https://docs.djangoproject.com/en/stable/ref/forms/fields/#floatfield
 .. _IntegerField: https://docs.djangoproject.com/en/stable/ref/forms/fields/#integerfield
 .. _NumberInput: https://docs.djangoproject.com/en/stable/ref/forms/widgets/#numberinput
-.. _HTML element: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/number
+.. _HTML input element: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/number
+
+
+Example
+=======
 
 
 Example
