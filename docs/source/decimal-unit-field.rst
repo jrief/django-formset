@@ -4,8 +4,8 @@
 Decimal Unit Field
 ==================
 
-Django offers three built-in form fields to enter numbers, namely DecimalField_, FloatField_ and
-IntegerField_ . When rendered as HTML, their element usually boils down to something like
+Django offers three built-in form fields to enter numeric values, namely DecimalField_, FloatField_
+and IntegerField_ . When rendered as HTML, their element usually boils down to something like
 
 .. code-block:: raw
 
