@@ -804,9 +804,13 @@ class RichtextFormDialog extends FormDialogBase {
 		if (!this.formElement)
 			throw new Error(`${this} requires a <form method="dialog">`);
 		Array.from(this.formElement.elements).forEach(innerElement => {
+			if (innerElement.hasAttribute('richtext-bidirectional') && (innerElement.hasAttribute('richtext-map-to') || innerElement.hasAttribute('richtext-map-from')))
+				throw new Error("Attribute 'richtext-bidirectional' can not be used together with either 'richtext-map-to' or 'richtext-map-from'.");
+
 			if (innerElement instanceof HTMLInputElement && innerElement.hasAttribute('richtext-selection')) {
 				this.textSelectionField = innerElement;
-			} else if (innerElement.hasAttribute('richtext-map-to') || innerElement.hasAttribute('richtext-map-from')) {
+			}
+			if (innerElement.hasAttribute('richtext-bidirectional') || innerElement.hasAttribute('richtext-map-to') || innerElement.hasAttribute('richtext-map-from')) {
 				this.inputElements.push(innerElement as HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement);
 			} else if (innerElement instanceof HTMLButtonElement) {
 				const action = innerElement.getAttribute('df-click');
@@ -840,7 +844,7 @@ class RichtextFormDialog extends FormDialogBase {
 						const attributes = getAttributes(view.state, self.extension);
 						if (isEmpty(attributes))
 							return false;
-						const viewDesc = event.target.pmViewDesc;
+						const viewDesc = (event.target as any)['pmViewDesc'];
 						if (viewDesc) {
 							self.richtext.editor.chain().focus()
 								.setTextSelection({from: viewDesc.posAtStart, to: viewDesc.posAtEnd})
@@ -906,28 +910,33 @@ class RichtextFormDialog extends FormDialogBase {
 		}
 		const extensionConfig = editor.extensionManager.extensions.find(ext => ext.name === this.extension)?.config;
 		this.inputElements.forEach(inputElement => {
-			const mapping = inputElement.getAttribute('richtext-map-from')?.trim();
-			if (!mapping)
-				return;
-			if (extensionConfig && mapping.endsWith('()') && isFunction(extensionConfig[mapping.slice(0, -2)])) {
-				extensionConfig[mapping.slice(0, -2)](inputElement, attributes);
-			} else if (mapping.startsWith('{') && mapping.endsWith('}')) {
-				const mapFunction = new Function('attributes', `return ${mapping}`);
-				Object.entries(mapFunction(attributes)).forEach(([key0, value]) => {
-					if (value !== undefined) {
-						if (isPlainObject((inputElement as any)[key0]) && isPlainObject(value)) {
-							Object.entries(value as Object).forEach(([key1, value]) => {
-								(inputElement as any)[key0][key1] = value;
+			if (inputElement.hasAttribute('richtext-bidirectional')) {
+				inputElement.value = getDataValue(attributes, inputElement.name) ?? '';
+				inputElement.dispatchEvent(new Event('change', {bubbles: true}));
+			} else {
+				const mapping = inputElement.getAttribute('richtext-map-from')?.trim();
+				if (!mapping)
+					return;
+				if (extensionConfig && mapping.endsWith('()') && isFunction(extensionConfig[mapping.slice(0, -2)])) {
+					extensionConfig[mapping.slice(0, -2)](inputElement, attributes);
+				} else if (mapping.startsWith('{') && mapping.endsWith('}')) {
+					const mapFunction = new Function('attributes', `return ${mapping}`);
+					Object.entries(mapFunction(attributes)).forEach(([key0, value]) => {
+						if (value === undefined)
+							return;
+						if ((inputElement as any)[key0] instanceof DOMStringMap && isPlainObject(value)) {
+							Object.entries(value as Object).forEach(([key1, val1]) => {
+								(inputElement as any)[key0][key1] = val1;
 							});
 						} else {
 							(inputElement as any)[key0] = value;
 						}
-					}
-				});
-				// use a MutationObserver to detect these attribute changes in the inputElement
-			} else {
-				inputElement.value = getDataValue(attributes, mapping) ?? '';
-				inputElement.dispatchEvent(new Event('change', {bubbles: true}));
+					});
+					// use a MutationObserver to detect these attribute changes in the inputElement
+				} else {
+					inputElement.value = getDataValue(attributes, mapping) ?? '';
+					inputElement.dispatchEvent(new Event('change', {bubbles: true}));
+				}
 			}
 		});
 		super.openDialog();
@@ -964,15 +973,19 @@ class RichtextFormDialog extends FormDialogBase {
 			const extensionConfig = editor.extensionManager.extensions.find(ext => ext.name === this.extension)?.config;
 			this.inputElements.forEach(inputElement => {
 				let mapFunction: Function;
-				const mapping = inputElement.getAttribute('richtext-map-to')?.trim();
-				if (!mapping)
-					return;
-				if (extensionConfig && mapping.endsWith('()') && isFunction(extensionConfig[mapping.slice(0, -2)])) {
-					mapFunction = extensionConfig[mapping.slice(0, -2)];
-				} else if (mapping.startsWith('{') && mapping.endsWith('}')) {
-					mapFunction = new Function('elements', `return ${mapping}`);
+				if (inputElement.hasAttribute('richtext-bidirectional')) {
+					mapFunction = (elements: HTMLFormControlsCollection) => ({[inputElement.name]: inputElement.value});
 				} else {
-					mapFunction = (elements: HTMLFormControlsCollection) => ({[mapping]: inputElement.value});
+					const mapping = inputElement.getAttribute('richtext-map-to')?.trim();
+					if (!mapping)
+						return;
+					if (extensionConfig && mapping.endsWith('()') && isFunction(extensionConfig[mapping.slice(0, -2)])) {
+						mapFunction = extensionConfig[mapping.slice(0, -2)];
+					} else if (mapping.startsWith('{') && mapping.endsWith('}')) {
+						mapFunction = new Function('elements', `return ${mapping}`);
+					} else {
+						mapFunction = (elements: HTMLFormControlsCollection) => ({[mapping]: inputElement.value});
+					}
 				}
 				attributes = {...attributes, ...mapFunction(this.formElement.elements)};
 			});

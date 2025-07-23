@@ -23,6 +23,32 @@ initial_json = {
                 "content": [
                     {
                         "type": "text",
+                        "text": "Dear "
+                    },
+                    {
+                        "type": "text",
+                        "marks": [
+                            {
+                                "type": "procurator",
+                                "attrs": {
+                                    "variable_name": "first_name",
+                                    "role": "placeholder"
+                                }
+                            }
+                        ],
+                        "text": "John"
+                    },
+                    {
+                        "type": "text",
+                        "text": ","
+                    }
+                ]
+            },
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
                         "text": "Morbi odio eros, volutpat ut pharetra vitae, lobortis sed nibh. Prima luce, cum quibus mons aliud consensu ab eo. Unam incolunt Belgae, aliam "
                     },
                     {

@@ -106,7 +106,7 @@ class PlaceholderDialogForm(RichtextDialogForm):
         regex=variable_pattern,
         label=_("Variable Name"),
         widget=widgets.TextInput(attrs={
-            'richtext-map-to': True,
+            'richtext-bidirectional': True,
             'size': 50,
             'pattern': variable_pattern,
         }),

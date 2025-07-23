@@ -7,9 +7,6 @@
 			variable_name: {
 				default: null,
 			},
-			sample_value: {
-				default: null,
-			},
 			role: {
 				default: 'placeholder',
 			},

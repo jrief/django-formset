@@ -115,7 +115,7 @@ Let's go through the fields one by one:
 .. rubric:: The ``text`` field
 
 This field is the text to display inside the anchor element of the link. Since the selected text in
-the editor is used as the link text, we have added the ``'richtext-selection': True`` attribute to
+the editor is used as the link text, we have added the attribute ``'richtext-selection': True`` to
 the input field. This attribute is used by the editor to set the selected text as the initial value
 of the field and vice versa.
 
@@ -294,7 +294,7 @@ Behind the scenes
 The most tricky part of the implementation is the mapping of the dialog form fields to the editor's
 document state and vice versa. Dialog forms therefore need a way to bidirectionally exchange their
 data with the Richtext editor. This is done by adding the extra attributes ``richtext-map-to`` and
-``richtext-map-from`` to the form field widgets.
+``richtext-map-from`` or ``richtext-bidirectional`` to the form field widgets.
 
 
 .. rubric:: ``richtext-map-to``
@@ -398,6 +398,28 @@ the editor. This attribute can take three types of values:
 	``richtext-map-from`` attribute is applied for each field of that form. Keep this in mind,
 	especially when	using a ``RadioSelect`` or ``CheckboxSelectMultiple`` widget, because there
 	you must modify the ``checked`` instead of the ``value`` property of the given input fields.
+
+
+.. rubric:: ``richtext-bidirectional``
+
+A common use-case is to map the value of a dialog form field to the editor's document state and vice
+versa. This can be done by using the attributes ``richtext-map-to="fieldname"`` and
+``richtext-map-from="fieldname"``, where *fieldname* is the name of the given dialog field. A
+shortcut for avoiding this verbose syntax is to use the attribute ``richtext-bidirectional=True``.
+This then maps the value of the dialog form field to the editor's state using the field's name as
+the key. It also maps the value of the editor's document state back to the dialog form field using
+the same key. Using this attribute is only allowed if neither ``richtext-map-to`` nor
+``richtext-map-from`` are set on the dialog's field.
+
+
+.. rubric:: ``richtext-selection``
+
+This extra attribute is used to map the editor's selected text to the dialog form field's value. It
+is applied whenever the user selects some text and wants to convert it into a mark or node element.
+A ggod example is the hyperlink editor, where the user selects some text and clicks on the link
+button. This attribute is used to set the initial value of the dialog form field to the selected
+text.
+
 
 .. hint:: **In order to better understand these mappings, try the Richtext editor above:**
 
