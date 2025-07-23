@@ -1,5 +1,3 @@
-import decimal
-
 from django.forms import fields, forms
 
 from formset.widgets import DecimalUnitInput

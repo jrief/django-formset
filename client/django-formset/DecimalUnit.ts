@@ -39,15 +39,20 @@ class DecimalUnitField extends Widget {
 	private createTextBox(): HTMLElement {
 		const prefix = this.inputElement.getAttribute('prefix');
 		const suffix = this.inputElement.getAttribute('suffix');
-		const htmlTag = `
-			<div role="textbox">
-			<div class="decimal-unit-edit">
-			${prefix ? `<span class="prefix">${prefix}</span>` : ''}
-			<span contenteditable="true"></span>
-			${suffix ? `<span class="suffix">${suffix}</span>` : ''}
-			</div>
-			</div>`;
-		this.inputElement.insertAdjacentHTML('afterend', htmlTag);
+		const htmlTags = [
+			'<div role="textbox">',
+			'<div class="decimal-unit-edit">',
+		];
+		if (prefix) {
+			htmlTags.push(`<span class="prefix">${prefix}</span>`);
+		}
+		htmlTags.push('<span contenteditable="true"></span>');
+		if (suffix) {
+			htmlTags.push(`<span class="suffix">${suffix}</span>`);
+		}
+		htmlTags.push('</div>');
+		htmlTags.push('</div>');
+		this.inputElement.insertAdjacentHTML('afterend', htmlTags.join(''));
 		return this.inputElement.nextElementSibling as HTMLElement;
 	}
 

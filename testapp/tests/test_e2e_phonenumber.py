@@ -1,5 +1,3 @@
-from time import sleep
-import json
 import pytest
 from playwright.sync_api import expect
 
@@ -59,19 +57,17 @@ def test_phone_number_invalid(page, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['landline'])
-def test_phone_number_valid(page, mocker, viewname):
+def test_phone_number_valid(page, viewname):
     input_field = page.locator('django-formset input[is="django-phone-number"]')
     edit_field = input_field.locator('+ [role="textbox"] .phone-number-edit')
     edit_field.fill('+1 212 234 5678')
     edit_field.evaluate('elem => elem.blur()')
     error_list = input_field.locator('~ [role="alert"] .dj-errorlist')
     expect(error_list).to_have_count(1)
-    spy = mocker.spy(DemoFormView, 'post')
-    page.locator('django-formset').evaluate('elem => elem.submit()')
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    request = json.loads(spy.call_args.args[1].body)
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset').evaluate('elem => elem.submit()')
+    assert response_info.value.ok is True
+    request = response_info.value.request.post_data_json
     assert request['formset_data']['phone_number'] == "+12122345678"
 
 

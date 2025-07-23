@@ -182,7 +182,7 @@ def test_move_all_right(page, mocker, view, form, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0', 'selector3'])
-def test_move_selected_right(page, mocker, view, form, viewname):
+def test_move_selected_right(page, view, form, viewname):
     select_left = page.locator('django-formset .df-dual-selector .left-column select')
     left_option_values = set()
     for index in range(30, 39):
