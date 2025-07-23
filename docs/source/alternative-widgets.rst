@@ -130,3 +130,14 @@ date- and datetime-pickers. Since those calendar sheets are rendered by Django, 
 full control over the rendering of those widgets and can even use their own context to add
 additional information. Please read the section :ref:`date-time-input` on details about how to use
 these two alternative widgets.
+
+
+Widget for ``DecimalField``, ``FloatField`` and ``IntegerField``
+================================================================
+
+Django by default uses the HTML element ``<input type="number" …>`` to accept numeric values as
+input. By replacing the default widget against :class:`formset.widgets.DecimalUnitInput`, we get an
+input field which offers autoformatting thousand separators and allows to prefix and/or suffix the
+input value with a unit symbol or text.
+
+Please read the section :ref:`decimal-unit-field` on how to use this alternative widget.
