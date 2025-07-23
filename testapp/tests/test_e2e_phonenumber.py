@@ -73,3 +73,17 @@ def test_phone_number_valid(page, mocker, viewname):
     assert spy.spy_return.status_code == 200
     request = json.loads(spy.call_args.args[1].body)
     assert request['formset_data']['phone_number'] == "+12122345678"
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['landline'])
+def test_phone_number_setter(page, viewname):
+    input_field = page.locator('django-formset input[is="django-phone-number"]')
+    edit_field = input_field.locator('+ [role="textbox"] .phone-number-edit')
+    expect(edit_field).to_have_text("")
+    input_field.evaluate('elem => elem.value = "+12122345678"')
+    expect(input_field).to_have_value("+12122345678")
+    expect(edit_field).to_have_text("+1 212 234 5678")
+    input_field.evaluate('elem => elem.value = "nonsense"')
+    expect(input_field).to_have_value("nonsense")
+    expect(edit_field).to_have_text("")

@@ -20,7 +20,6 @@ class PhoneNumberField {
 	private readonly countryLookupField: HTMLInputElement;
 	private readonly codeCountryMap: [string, CountryCallingCode, CountryCode][];
 	private isOpen = false;
-	private isPristine = true;
 	private cleanup = () => {};
 
 	constructor(element: HTMLInputElement) {
@@ -42,18 +41,6 @@ class PhoneNumberField {
 		StyleHelpers.addSpriteFlags(document.head);
 		this.styleSheet = StyleHelpers.stylesAreInstalled(this.baseSelector) ?? this.transferStyles();
 		this.transferClasses();
-	}
-
-	private initializeValue(value: string) {
-		if (value) {
-			//this.editField.innerText = this.asYouType.input(value);
-			this.inputElement.value = this.asYouType.getNumberValue() ?? '';  // enforce E.164 format
-			this.decorateInputField(this.asYouType.getCountry());
-		} else {
-			//this.editField.innerText = '';
-			this.inputElement.value = '';
-			this.decorateInputField();
-		}
 	}
 
 	private createCountriesMap() : [string, CountryCallingCode, CountryCode][] {
@@ -82,21 +69,7 @@ class PhoneNumberField {
 		return this.inputElement.nextElementSibling as HTMLElement;
 	}
 
-	private installEventHandlers() {
-		this.editField.addEventListener('focus', this.handleFocus);
-		this.editField.addEventListener('input', this.handleInput);
-		this.editField.addEventListener('blur', this.handleBlur);
-		this.countryLookupField.addEventListener('input', this.handleSearch);
-		document.addEventListener('click', this.handleClick);
-		document.addEventListener('keydown', this.handleKeypress);
-		if (this.inputElement.form) {
-			this.inputElement.form.addEventListener('reset', this.formResetted);
-		}
-	}
-
 	private formResetted = (event: Event) => {
-		//this.asYouType.reset();
-		//this.initializeValue(this.inputElement.defaultValue);
 		this.inputElement.value = this.inputElement.defaultValue;
 	};
 
@@ -124,25 +97,19 @@ class PhoneNumberField {
 
 	private handleInput = (event: Event) => {
 		if (event.target instanceof HTMLElement && this.editField === event.target) {
-			// if (this.editField.innerText.length === 0) {
-			// 	this.isPristine = true;
-			// } else if (this.isPristine) {
-			// 	this.placeInputField(this.editField.innerText);
-			// } else {
-				this.updateInputField(this.editField.innerText);
-			// }
+			this.updateInputField(this.editField.innerText);
 		}
 	};
 
 	private handleBlur = () => {
-		setTimeout(() => {
+		requestIdleCallback(() => {
 			if (this.hasFocus) {
 				this.editField.ariaBusy = 'false';
 				this.textBox.classList.remove('focus');
 				this.hasFocus = false;
 				this.inputElement.dispatchEvent(new Event('blur'));
 			}
-		}, 0);
+		});
 	};
 
 	private handleClick = (event: Event) => {
@@ -259,7 +226,6 @@ class PhoneNumberField {
 		const selectorRect = this.internationalSelector.getBoundingClientRect();
 		this.internationalSelector.style.width = `${Math.round(selectorRect.width)}px`;  // prevent resizing while searching
 		this.isOpen = true;
-		this.isPristine = true;
 		this.countryLookupField.value = '';
 		this.deselectAll();
 		this.clearSearch();
@@ -284,12 +250,9 @@ class PhoneNumberField {
 	}
 
 	private setInternationalCode(countryCode: CountryCode, callingCode: CountryCallingCode) {
-		//this.decorateInputField(countryCode);
 		const nationalNumber = this.asYouType.getNumber()?.nationalNumber ?? '';
-		//this.editField.innerText = `+${callingCode}${nationalNumber}`;
 		this.inputElement.value = `+${callingCode}${nationalNumber}`;
 		this.inputElement.dispatchEvent(new Event('input'));
-		this.isPristine = false;
 		this.editField.focus();
 		requestIdleCallback(() => this.setCaretToEnd());
 	}
@@ -315,41 +278,16 @@ class PhoneNumberField {
 		selection.addRange(range);
 	}
 
-	private placeInputField(phoneNumber: string) {
-		this.asYouType.reset();
-		if (phoneNumber.startsWith('+')) {
-			this.updateInputField(phoneNumber);
-			this.setCaretToEnd();
-		} else if (this.defaultCountryCode) {
-			this.asYouType.input(phoneNumber);
-			this.updateInputField(this.asYouType.getNumberValue() as string);
-			this.setCaretToEnd();
-		} else {
-			this.editField.innerText = '';
-			this.openInternationalSelector();
-		}
-	}
-
 	private updateInputField(phoneNumber: string) {
-		// const selection = window.getSelection()!;
 		let caretPosition = this.getCaretPosition();
 		if (this.editField.innerText.length === caretPosition) {
 			++caretPosition;
 		}
-		// this.editField.innerText =
 		this.asYouType.reset();
 		this.asYouType.input(phoneNumber);
 		this.inputElement.value = this.asYouType.getChars() === '+' ? '+' : this.asYouType.getNumberValue() ?? '';
-		// this.decorateInputField(this.asYouType.getCountry());
-		// const textNode = this.editField.childNodes[0] as Text;
-		// const range = document.createRange();
-		// range.setStart(textNode, Math.min(caretPosition, textNode.length));
-		// range.collapse(true);
-		// selection.removeAllRanges();
-		// selection.addRange(range);
 		this.setCaretPosition(caretPosition);
 		this.inputElement.dispatchEvent(new Event('input'));
-		this.isPristine = false;
 	}
 
 	private decorateInputField(countryCode?: CountryCode) {
@@ -422,7 +360,7 @@ class PhoneNumberField {
 		this.inputElement.style.transition = '';
 	}
 
-	public initialize() {
+	private initialize() {
 		// some styles change when switching light/dark mode, so we need to update them
 		StyleHelpers.pushMediaQueryStyles(
 			this.styleSheet,
@@ -463,11 +401,33 @@ class PhoneNumberField {
 			},
 			this.inputElement, '⁝focus',
 		);
+	}
 
+	public connect() {
+		this.initialize();
+		this.editField.addEventListener('focus', this.handleFocus);
+		this.editField.addEventListener('input', this.handleInput);
+		this.editField.addEventListener('blur', this.handleBlur);
+		this.countryLookupField.addEventListener('input', this.handleSearch);
+		document.addEventListener('click', this.handleClick);
+		document.addEventListener('keydown', this.handleKeypress);
+		if (this.inputElement.form) {
+			this.inputElement.form.addEventListener('reset', this.formResetted);
+		}
 		this.inputElement.hidden = true;  // setting type="hidden" prevents dispatching events
-		this.installEventHandlers();
-		//this.initializeValue(this.inputElement.defaultValue);
 		this.inputElement.value = this.inputElement.defaultValue;
+	}
+
+	public disconnect() {
+		this.editField.removeEventListener('focus', this.handleFocus);
+		this.editField.removeEventListener('input', this.handleInput);
+		this.editField.removeEventListener('blur', this.handleBlur);
+		this.countryLookupField.removeEventListener('input', this.handleSearch);
+		document.removeEventListener('click', this.handleClick);
+		document.removeEventListener('keydown', this.handleKeypress);
+		if (this.inputElement.form) {
+			this.inputElement.form.removeEventListener('reset', this.formResetted);
+		}
 	}
 
 	public setValue(value: string) {
@@ -502,7 +462,11 @@ export class PhoneNumberElement extends HTMLInputElement {
 	}
 
 	connectedCallback() {
-		this[PN].initialize();
+		this[PN].connect();
+	}
+
+	disconnectedCallback() {
+		this[PN].disconnect();
 	}
 
 	get value() : string {
@@ -512,11 +476,9 @@ export class PhoneNumberElement extends HTMLInputElement {
 	set value(value: string) {
 		super.value = value;
 		this[PN].setValue(value);
-		console.log(super.value);
 	}
 
 	checkValidity() {
-		console.log(this.validity);
 		if (!super.checkValidity()) {
 			return false;
 		}
