@@ -1,4 +1,5 @@
-# django-formset – Better User Experience for Django Forms 
+# django-formset
+### Better User Experience for Django Forms 
 
 This library handles single forms and collections of forms with a way better user experience than
 the internal Django implementation for
