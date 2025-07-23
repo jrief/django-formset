@@ -23,22 +23,13 @@ number ``+49 30 1234567`` is saved as ``+49301234567``.
 Installation
 ============
 
-We need to install a package providing the flag icons. This can be found in NodeJS:
+.. versionchanged:: 2.1
 
-.. code-block:: bash
-
-	npm install flag-icons
-
-Since we want to serve the flag icons directly from the ``node_modules`` directory, we need to
-configure our Django ``setting.py`` as follows:
-
-.. code-block:: python
-
-	STATICFILES_DIRS = [
-	    ...
-	    ('node_modules', BASE_DIR / 'node_modules'),
-	    ...
-	]
+	We do not need to install the package providing the flag icons anymore, so you may safely remove
+	``npm install flag-icons`` from your build step. There also is no need to configure the static
+	files app to serve the flag icons, so you may safely remove
+	``('node_modules', BASE_DIR / 'node_modules')`` from ``STATICFILES_DIRS`` in your
+	``settings.py`` file.
 
 Since we want to render the country names in the user's language, we need to set up
 `the JavaScriptCatalog view`_ by configuring ``USE_I18N = True`` in the project's ``settings.py``.

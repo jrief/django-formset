@@ -45,6 +45,7 @@ Django's counterparts.
 	slug-input
 	date-time-input
 	date-time-range
+	decimal-unit-field
 	country-selectize
 	phone-number-field
 	admin-integration

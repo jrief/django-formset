@@ -16,7 +16,8 @@ class DecimalUnitField extends Widget {
 	private readonly maxDigits: number;
 	private readonly decimalPlaces: number;
 	private readonly blockLength: number;
-	private readonly separator = ' ';
+	// alternative: private readonly separator = ' ';  // Unicode character "Medium Mathematical Space", U+205F
+	private readonly separator = ' ';  // Unicode character "Thin Space", U+2009
 	private readonly decSep: string;
 
 	constructor(inputElement: HTMLInputElement, calendarElement: HTMLElement | null) {
