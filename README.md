@@ -175,6 +175,16 @@ Modern browsers provide a built-in date picker, which now can be used instead of
 which adopt themselves to the chosen CSS framework. This allows to render the date picker in the
 same style as the rest of the form.
 
+## Editing Richtext
+
+**django-formset** integrates an extendable richtext editor, based on [TipTap](https://tiptap.dev/docs).
+
+![Richtext Editor](readmeimg/richtext-editor.png)
+
+Compared to most stand-alone solutions, this editor allows to integrate custom dialog forms and
+formsets into the editor itself.
+
+
 ## Mapping of Form Fields to a `JSONField`
 
 For unstructured data, it is possible to map multiple form fields and even collections into a
