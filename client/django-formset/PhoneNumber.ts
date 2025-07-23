@@ -46,11 +46,12 @@ class PhoneNumberField {
 
 	private initializeValue(value: string) {
 		if (value) {
-			this.editField.innerText = this.asYouType.input(value);
-			this.inputElement.value = this.asYouType.getNumberValue() ?? value;  // enforce E.164 format
+			//this.editField.innerText = this.asYouType.input(value);
+			this.inputElement.value = this.asYouType.getNumberValue() ?? '';  // enforce E.164 format
 			this.decorateInputField(this.asYouType.getCountry());
 		} else {
-			this.editField.innerText = this.inputElement.value = '';
+			//this.editField.innerText = '';
+			this.inputElement.value = '';
 			this.decorateInputField();
 		}
 	}
@@ -94,8 +95,9 @@ class PhoneNumberField {
 	}
 
 	private formResetted = (event: Event) => {
-		this.asYouType.reset();
-		this.initializeValue(this.inputElement.defaultValue);
+		//this.asYouType.reset();
+		//this.initializeValue(this.inputElement.defaultValue);
+		this.inputElement.value = this.inputElement.defaultValue;
 	};
 
 	private handleFocus = (event: Event) => {
@@ -122,13 +124,13 @@ class PhoneNumberField {
 
 	private handleInput = (event: Event) => {
 		if (event.target instanceof HTMLElement && this.editField === event.target) {
-			if (this.editField.innerText.length === 0) {
-				this.isPristine = true;
-			} else if (this.isPristine) {
-				this.placeInputField(event.target.innerText);
-			} else {
-				this.updateInputField(event.target.innerText);
-			}
+			// if (this.editField.innerText.length === 0) {
+			// 	this.isPristine = true;
+			// } else if (this.isPristine) {
+			// 	this.placeInputField(this.editField.innerText);
+			// } else {
+				this.updateInputField(this.editField.innerText);
+			// }
 		}
 	};
 
@@ -282,13 +284,35 @@ class PhoneNumberField {
 	}
 
 	private setInternationalCode(countryCode: CountryCode, callingCode: CountryCallingCode) {
-		this.decorateInputField(countryCode);
+		//this.decorateInputField(countryCode);
 		const nationalNumber = this.asYouType.getNumber()?.nationalNumber ?? '';
-		this.inputElement.value = this.editField.innerText = `+${callingCode}${nationalNumber}`;
+		//this.editField.innerText = `+${callingCode}${nationalNumber}`;
+		this.inputElement.value = `+${callingCode}${nationalNumber}`;
 		this.inputElement.dispatchEvent(new Event('input'));
 		this.isPristine = false;
 		this.editField.focus();
 		requestIdleCallback(() => this.setCaretToEnd());
+	}
+
+	private getCaretPosition() {
+		const selection = window.getSelection();
+		if (selection && selection.rangeCount === 1) {
+			const range = selection.getRangeAt(0);
+			return range.startOffset;
+		}
+		return 0;
+	}
+
+	private setCaretPosition(position: number) {
+		const range = document.createRange();
+		const selection = window.getSelection();
+		if (!this.editField.childNodes.length || !selection)
+			return;
+		const textNode = this.editField.childNodes[0] as Text;
+		position = Math.max(0, Math.min(position, textNode.length));
+		range.setStart(textNode, position);
+		selection.removeAllRanges();
+		selection.addRange(range);
 	}
 
 	private placeInputField(phoneNumber: string) {
@@ -307,21 +331,23 @@ class PhoneNumberField {
 	}
 
 	private updateInputField(phoneNumber: string) {
-		this.asYouType.reset();
-		const selection = window.getSelection()!;
-		let caretPosition = selection.rangeCount ? selection.getRangeAt(0).startOffset : 0;
+		// const selection = window.getSelection()!;
+		let caretPosition = this.getCaretPosition();
 		if (this.editField.innerText.length === caretPosition) {
 			++caretPosition;
 		}
-		this.editField.innerText = this.asYouType.input(phoneNumber);
-		const textNode = this.editField.childNodes[0] as Text;
-		const range = document.createRange();
-		range.setStart(textNode, Math.min(caretPosition, textNode.length));
-		range.collapse(true);
-		selection.removeAllRanges();
-		selection.addRange(range);
-		this.inputElement.value = this.asYouType.getNumberValue() ?? '';
-		this.decorateInputField(this.asYouType.getCountry());
+		// this.editField.innerText =
+		this.asYouType.reset();
+		this.asYouType.input(phoneNumber);
+		this.inputElement.value = this.asYouType.getChars() === '+' ? '+' : this.asYouType.getNumberValue() ?? '';
+		// this.decorateInputField(this.asYouType.getCountry());
+		// const textNode = this.editField.childNodes[0] as Text;
+		// const range = document.createRange();
+		// range.setStart(textNode, Math.min(caretPosition, textNode.length));
+		// range.collapse(true);
+		// selection.removeAllRanges();
+		// selection.addRange(range);
+		this.setCaretPosition(caretPosition);
 		this.inputElement.dispatchEvent(new Event('input'));
 		this.isPristine = false;
 	}
@@ -349,10 +375,6 @@ class PhoneNumberField {
 					loaded = true;
 					break;
 				case `${this.baseSelector} + [role="textbox"]`:
-					// extraStyles = StyleHelpers.extractStyles(this.inputElement, [
-					// 	'background-color', 'border', 'border-radius', 'color', 'outline', 'height', 'line-height',
-					// 	'padding',
-					// ]);
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
 						'line-height', 'padding',
 					]).concat(StyleHelpers.extractStyles(this.inputElement, {
@@ -444,7 +466,14 @@ class PhoneNumberField {
 
 		this.inputElement.hidden = true;  // setting type="hidden" prevents dispatching events
 		this.installEventHandlers();
-		this.initializeValue(this.inputElement.defaultValue);
+		//this.initializeValue(this.inputElement.defaultValue);
+		this.inputElement.value = this.inputElement.defaultValue;
+	}
+
+	public setValue(value: string) {
+		this.asYouType.reset();
+		this.editField.innerText = this.asYouType.input(value);
+		this.decorateInputField(this.asYouType.getCountry());
 	}
 
 	public checkValidity() : boolean {
@@ -476,9 +505,21 @@ export class PhoneNumberElement extends HTMLInputElement {
 		this[PN].initialize();
 	}
 
+	get value() : string {
+		return super.value;
+	}
+
+	set value(value: string) {
+		super.value = value;
+		this[PN].setValue(value);
+		console.log(super.value);
+	}
+
 	checkValidity() {
-		if (!super.checkValidity())
+		console.log(this.validity);
+		if (!super.checkValidity()) {
 			return false;
+		}
 		return this[PN].checkValidity();
 	}
 }
