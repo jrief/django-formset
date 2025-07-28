@@ -10,15 +10,16 @@ class DecimalUnitField extends Widget {
 	private readonly baseSelector = '[is^="django-decimal-unit"]';
 	private readonly styleSheet: CSSStyleSheet;
 	private hasFocus: boolean = false;
-	private readonly step: number|null;
+	private readonly canStep: boolean;
 	private readonly minValue: number;
 	private readonly maxValue: number;
 	private readonly maxDigits: number;
 	private readonly decimalPlaces: number;
+	private readonly fixedDecimalPlaces: boolean;
 	private readonly blockLength: number;
-	// alternative: private readonly separator = ' ';  // Unicode character "Medium Mathematical Space", U+205F
-	private readonly separator = ' ';  // Unicode character "Thin Space", U+2009
+	private readonly separator = ' ';  // Unicode character "Medium Mathematical Space", U+205F
 	private readonly decSep: string;
+	private static numberRegex = new RegExp('[^0-9]', 'g');
 
 	constructor(inputElement: HTMLInputElement, calendarElement: HTMLElement | null) {
 		super(inputElement);
@@ -27,9 +28,10 @@ class DecimalUnitField extends Widget {
 		this.editField = this.textBox.querySelector('span[contenteditable="true"]') as HTMLElement;
 		this.maxDigits = parseInt(inputElement.getAttribute('max-digits') ?? '');
 		this.decimalPlaces = parseInt(inputElement.getAttribute('decimal-places') ?? '0');
-		this.step = inputElement.step ? parseFloat(inputElement.step) : null;
+		this.canStep = parseFloat(inputElement.step) > 0;
 		this.minValue = inputElement.min ? parseFloat(inputElement.min) : Number.MIN_SAFE_INTEGER;
 		this.maxValue = inputElement.max ? parseFloat(inputElement.max) : Number.MAX_SAFE_INTEGER;
+		this.fixedDecimalPlaces = inputElement.hasAttribute('fixed-decimal-places');
 		this.blockLength = parseInt(inputElement.getAttribute('block-length') ?? '3');
 		this.styleSheet = StyleHelpers.stylesAreInstalled(this.baseSelector) ?? this.transferStyles();
 		const formatter = new Intl.NumberFormat(navigator.language);
@@ -94,6 +96,7 @@ class DecimalUnitField extends Widget {
 	private handleBlur = (event: Event) => {
 		if (this.hasFocus)
 			return;
+		this.padDecimalPart();
 		this.textBox.classList.remove('focus');
 		requestIdleCallback(() => {
 			this.inputElement.dispatchEvent(new Event('blur'));
@@ -128,11 +131,12 @@ class DecimalUnitField extends Widget {
 			const caretPosition = this.getCaretPosition();
 			const reversePosition = this.getReversePosition();
 			if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
-				if (this.inputElement.value.length && typeof this.step === 'number' && this.step > 0) {
-					const stepValue = event.key === 'ArrowUp' ? this.step : -this.step;
+				if (this.inputElement.value.length && this.canStep) {
 					const caretAtEnd = caretPosition === this.editField.innerText.length;
-					const value = parseFloat(this.inputElement.value) + stepValue;
+					event.key === 'ArrowUp' ? this.inputElement.stepUp() : this.inputElement.stepDown();
+					const value = parseFloat(this.inputElement.value);
 					this.editField.innerText = String(Math.min(Math.max(value, this.minValue), this.maxValue));
+					this.padDecimalPart();
 					this.updateInputValue();
 					this.setCaretPosition(caretAtEnd ? Number.MAX_SAFE_INTEGER : caretPosition);
 					this.inputted();
@@ -214,11 +218,18 @@ class DecimalUnitField extends Widget {
 		selection.addRange(range);
 	}
 
+	private padDecimalPart() {
+		if (!this.fixedDecimalPlaces)
+			return;
+		const [leftPart, rightPart] = this.editField.innerText.replace(',', '.').split('.');
+		const fraction = rightPart ? rightPart.slice(0, this.decimalPlaces).padEnd(this.decimalPlaces, '0') : '0'.repeat(this.decimalPlaces);
+		this.editField.innerText = `${leftPart}${this.decSep}${fraction}`;
+	}
+
 	private updateInputValue(insertDigit?: boolean) {
 		let caretPosition = this.getCaretPosition();
-		const numberRegex = new RegExp('[^0-9]', 'g');
 		const sign = this.editField.innerText.startsWith('-') ? '-' : '';
-		const [leftPart, rightPart] = this.editField.innerText.replace(',', '.').split('.').map(part => part.replace(numberRegex, ''));
+		const [leftPart, rightPart] = this.editField.innerText.replace(',', '.').split('.').map(part => part.replace(DecimalUnitField.numberRegex, ''));
 		const integerLength = isFinite(this.maxDigits) ? Math.min(this.maxDigits - this.decimalPlaces, leftPart.length) : leftPart.length;
 		const parts = Array<string>();
 		for (let k = integerLength; k >= 0; k -= this.blockLength) {
@@ -233,6 +244,8 @@ class DecimalUnitField extends Widget {
 				return null;
 			if (rightPart.length === 0)
 				return '';
+			if (this.fixedDecimalPlaces && rightPart.length > this.decimalPlaces)
+				return rightPart.slice(0, this.decimalPlaces);
 			const endCaret = Math.min(this.decimalPlaces, rightPart.length);
 			return parseFloat(`.${rightPart}`).toFixed(this.decimalPlaces).slice(2, 2 + endCaret);
 		})();
@@ -257,7 +270,7 @@ class DecimalUnitField extends Widget {
 		if (this.hasFocus) {
 			this.setCaretPosition(caretPosition);
 		}
-		this.inputElement.value = `${sign}${leftPart}${fraction !== null ? `.${fraction}` : ''}`;
+		this.inputElement.value = `${sign}${leftPart}${fraction ? `.${fraction}` : ''}`;
 	}
 
 	private inputted() {
@@ -303,6 +316,7 @@ class DecimalUnitField extends Widget {
 	protected formResetted(event: Event) {
 		this.inputElement.value = this.inputElement.defaultValue;
 		this.editField.innerText = this.inputElement.value;
+		this.padDecimalPart();
 		this.updateInputValue();
 	}
 
@@ -340,6 +354,7 @@ class DecimalUnitField extends Widget {
 		document.addEventListener('mousedown', this.handleMousedown);
 		document.addEventListener('keydown', this.handleKeypress);
 		this.editField.innerText = this.inputElement.value;
+		this.padDecimalPart();
 		this.updateInputValue();
 	}
 
