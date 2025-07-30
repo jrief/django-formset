@@ -50,7 +50,7 @@ unit. The form field is defined as follows:
 	class PriceForm(forms.Form):
 	    price = fields.DecimalField(
 	        label="Price",
-	        widget=DecimalUnitInput(prefix="€"),
+	        widget=DecimalUnitInput(prefix="€", fixed_decimal_places=True),
 	        min_value=0,
 	        decimal_places=2,
 	        max_digits=10,
@@ -73,10 +73,13 @@ default widget against the custom widget :class:`formset.widgets.DecimalUnitInpu
 the user experience significantly. This widget will then render a replacement (using
 ``contenteditable="true"``) for the input field.
 
-The widget ``DecimalUnitInput`` accepts two optional parameters, ``prefix`` and ``suffix``.
-The ``prefix`` is a string that will be prepended to the input field, while the ``suffix`` is a
-string that will be appended to the input field. In this example, we use the Euro sign "``€``" as a
-prefix to indicate that the price is in Euro.
+The widget ``DecimalUnitInput`` accepts three optional parameters, ``prefix``, ``suffix`` and
+``fixed_decimal_places``. The ``prefix`` is a string that will be prepended to the input field,
+while the ``suffix`` is a string that will be appended to the input field. In this example, we use
+the Euro sign "``€``" as a prefix to indicate that the price is in Euro. The parameter
+``fixed_decimal_places`` is a Boolean value and used to pad the decimal fraction with ``0``-s. If
+unset or ``False``, the widget will not enforce a fixed number of decimal places, and just allow the
+maximum as specified by ``decimal_places`` in the form field.
 
 This widget adopts all the constraints from the underlying form field, such as minimum and maximum
 values, number of decimal places, and step size. The widget will automatically format the number, so

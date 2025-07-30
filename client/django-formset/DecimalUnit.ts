@@ -154,8 +154,9 @@ class DecimalUnitField extends Widget {
 				if (reversePosition % (this.blockLength + 1) === this.blockLength) {
 					this.setCaretPosition(caretPosition - 1);
 				}
+				const endsWithDecmalSeparator = this.editField.innerText.replace(',', '.').endsWith('.');
 				requestIdleCallback(() => {
-					this.updateInputValue(false);
+					this.updateInputValue(endsWithDecmalSeparator ? undefined : true);
 					this.inputted();
 				});
 			} else if (event.key === 'Delete') {
@@ -219,7 +220,7 @@ class DecimalUnitField extends Widget {
 	}
 
 	private padDecimalPart() {
-		if (!this.fixedDecimalPlaces)
+		if (!this.fixedDecimalPlaces || this.editField.innerText.length === 0)
 			return;
 		const [leftPart, rightPart] = this.editField.innerText.replace(',', '.').split('.');
 		const fraction = rightPart ? rightPart.slice(0, this.decimalPlaces).padEnd(this.decimalPlaces, '0') : '0'.repeat(this.decimalPlaces);

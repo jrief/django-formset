@@ -107,8 +107,6 @@ class BoundField(boundfield.BoundField):
                 attrs['decimal-places'] = self.field.decimal_places
             if isinstance(self.field.max_digits, int):
                 attrs['max-digits'] = self.field.max_digits
-        if isinstance(self.field, FloatField):
-            attrs['decimal-places'] = 12  # default precision for float fields
         if isinstance(self.field, Activator) or self.widget_type == 'dualselector':
             label = self.name.replace('_', ' ').title() if self.field.label is None else self.field.label
             attrs['label'] = label  # remember label for ButtonWidget.get_context()
