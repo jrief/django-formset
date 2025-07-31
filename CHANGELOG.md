@@ -1,10 +1,25 @@
 ## Changes
 
 - 2.1
+  * Add special widget `DecimalUnitInput`. It can be used for decimal values with a unit, such
+    as money, length, etc.
   * Options in the `Selectize` and `SelectizeMultiple` widgets can now render sublabels below their
     main labels. This is useful to display additional information about the option.
   * Add utility functions `get_related_object` and `get_related_queryset` to deserialize foreign
     key and many-to-many relationships from `JSONField`s.
+  * Flags in `PhoneNumberInput`, `CountrySelectize` and `CountrySelectizeMultiple` are now loaded
+    as a PNG-sprite rather than through individual SVG-files. Therefore there is no need to
+    `npm install flag-icons` anymore.
+  * Fix: Setting the value of the HTML field used for `PhoneNumberInput`, now works as exected.
+  * Widget `RichtextArea` accepts the extra option `richtext-bidirectional` for mapping between
+    dialog forms and editor state. The behaviour of `richtext-map-to` and `richtext-map-from`
+    changed slightly. Read the documentation on how to use it.
+  * Fix: Handle widget attribute `df-require` as intended.
+  * Fix: Regressions by allowing empty label in `Selectize` widget.
+  * Fix: Fields using a filter are always considered as incomplete.
+  * Fix: django-formset's `ModelAdmin.get_model()` allows to override the model form.
+  * In `Selectize` and `SelectizeMultiple`, hide search input field, if number of options is <25.
+
 
 - 2.0.1
   * Fix regression introduced in 2.0: Attribute `filter_by` in widgets `Selectize`,

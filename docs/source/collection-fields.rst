@@ -16,8 +16,8 @@ their values as structured data in a single JSONField_.
 .. _JSONField: https://docs.djangoproject.com/en/stable/ref/models/fields/#jsonfield
 
 The advantage of keeping form data as JSON is, that developers don't have to unroll collections,
-when converting the data from their models into forms and vice versa. The disadvantage of this
-approach is, that data is kept unstructured and finding information might be difficult.
+when converting the data from their models into forms and vice versa. The downside of this
+approach is that the data remains unstructured, making it difficult to find information.
 
 For this purpose, **django-formset** provides the special form field
 :class:`formset.formfields.collection.CollectionField`. It takes all the `core arguments`_ of the
