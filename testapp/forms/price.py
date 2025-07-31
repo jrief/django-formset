@@ -9,7 +9,7 @@ class PriceForm(forms.Form):
     """
     price = fields.DecimalField(
         label="Price",
-        widget=DecimalUnitInput(prefix='€', fixed_decimal_places=False),
+        widget=DecimalUnitInput(prefix='€', fixed_decimal_places=True),
         initial=12345.60,
         min_value=-1000,
         decimal_places=2,

@@ -1,7 +1,11 @@
 @import "colors";
 
 [is^="django-decimal-unit"] {
-	--dummy-style: none; // required by DecimalUnitField.transferStyles()
+	--dummy-style: none;
+
+	&::-webkit-outer-spin-button,	&::-webkit-inner-spin-button {
+		-webkit-appearance: none;
+	}
 
 	// editable content decimal unit input fields
 	+ [role="textbox"] {
