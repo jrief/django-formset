@@ -78,7 +78,6 @@ ROOT_URLCONF = 'testapp.urls'
 SILENCED_SYSTEM_CHECKS = ['admin.E408']  # required for AutoLoginMiddleware
 
 STATICFILES_DIRS = [
-    ('node_modules', BASE_DIR / 'node_modules'),
     ('sphinx-view', BASE_DIR / 'docs/build/json'),
 ]
 
