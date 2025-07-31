@@ -50,6 +50,7 @@ ENV DJANGO_MEDIA_ROOT=/web/workdir/media
 ENV DJANGO_SECRET_KEY=dummy_secret_key
 ENV PYTHONPATH=/web
 RUN mkdir -p $DJANGO_STATIC_ROOT
+RUN rm -rf /web/node_modules/svg-sprite
 RUN DJANGO_DEPLOYED=1 ./testapp/manage.py collectstatic --noinput
 
 # handle permissions
