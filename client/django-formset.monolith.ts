@@ -1,5 +1,5 @@
 import '@ungap/custom-elements';
-import './polyfills';
+import 'requestidlecallback';
 import {DjangoFormsetElement} from './django-formset/DjangoFormset';
 import {StyleHelpers} from './django-formset/helpers';
 
