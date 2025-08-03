@@ -124,7 +124,7 @@ button.
 
 ## Immediate Form Validation
 
-Each field is validated as soon as it looses focus. This gives immediate feedback and signalizes if
+Each field is validated as soon as it loses focus. This gives immediate feedback and signalizes if
 some user input will not be accepted, when submitting the form. The browser side validation
 constraints are excatly the same, as those defined for each Django field in Python.
 
