@@ -46,6 +46,8 @@ interface OptionData {
 	id: string,
 	label: string,
 	optgroup?: string,
+	sublabel?: string,
+	itemlabel?: string,
 }
 
 interface Inducible {

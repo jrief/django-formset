@@ -245,6 +245,8 @@ export class DjangoSelectize extends IncompleteSelect {
 						label: o.label,
 						id: String(o.id),
 						disabled: false,
+						sublabel: o.sublabel,
+						itemlabel: o.itemlabel,
 						$order: maxOrder,
 					};
 					if (isString(o.optgroup)) {
