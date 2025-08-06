@@ -3,6 +3,7 @@
 - 2.1.1
   * Fix #232: In `SelectizeWidget`, when scrolling beyond `max_prefetch_choices`, although options
     with sublabel and itemlabel are added, the options are not rendered properly.
+  * Fix #224: Conditional attributes in widgets referring to fields in a `Fieldset` did not work.
 
 - 2.1
   * Add special widget `DecimalUnitInput`. It can be used for decimal values with a unit, such

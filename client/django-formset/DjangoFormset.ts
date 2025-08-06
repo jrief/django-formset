@@ -2272,8 +2272,21 @@ export class DjangoFormset implements DjangoFormset {
 	}
 
 	public getDataValue(path: Path) : string|undefined {
-		const absPath = ['formset_data', ...path];
-		return getDataValue(this.data, absPath);
+		let j = 1, k = 1;
+		const slicedPath = ['formset_data', path[0]];
+		while (k <= path.length) {
+			const dataValue = getDataValue(this.data, slicedPath);
+			if (dataValue === undefined) {
+				slicedPath[j] += `.${path[k]}`;
+				++k;
+				continue;
+			}
+			if (k === path.length) {
+				return dataValue;
+			}
+			slicedPath.push(path[k]);
+			++j; ++k;
+		}
 	}
 
 	public setFieldValue(path: Path, value: FieldValue) {
