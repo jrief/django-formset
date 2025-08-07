@@ -4,6 +4,9 @@
   * Fix #232: In `SelectizeWidget`, when scrolling beyond `max_prefetch_choices`, although options
     with sublabel and itemlabel are added, the options are not rendered properly.
   * Fix #224: Conditional attributes in widgets referring to fields in a `Fieldset` did not work.
+  * When using the `df-show`, `df-hide`, `df-disable` or `df-require` attributes with a relative
+    path to another field, this path now is evaluated using the current field's `name`. This should
+    fix some problems when using a relative path.
 
 - 2.1
   * Add special widget `DecimalUnitInput`. It can be used for decimal values with a unit, such
