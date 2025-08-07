@@ -316,7 +316,7 @@ class FieldGroup {
 	}
 
 	private getDataValue(path: Path) {
-		return this.form.getDataValue(path);
+		return this.form.getDataValue(path, this.name);
 	}
 
 	public inputted() {
@@ -1131,7 +1131,7 @@ class DjangoFieldset {
 	}
 
 	private getDataValue(path: Path) : string|undefined {
-		return this.form.getDataValue(path);
+		return this.form.getDataValue(path, `${this.element.name}.`);
 	}
 
 	public updateOperability(...args: any[]) {
@@ -1199,15 +1199,15 @@ class DjangoForm {
 		return ['formset_data', ...this.path];
 	}
 
-	public getDataValue(path: Path) {
+	public getDataValue(path: Path, source: string) : any {
 		if (path[0] !== '')
 			return this.formset.getDataValue(path);
 
-		// path is relative, so concatenate it to the form's path
-		const absPath = [...this.path];
+		// path is relative, so use the source path to  it to the form's path
+		const absPath = source.split('.');
 		const relPath = path.filter(part => part !== '');
-		const delta = path.length - relPath.length;
-		absPath.splice(absPath.length - delta + 1);
+		const delta = path.length - relPath.length + (absPath.at(-1) ? 0 : 1);
+		absPath.splice(absPath.length - delta);
 		absPath.push(...relPath);
 		return this.formset.getDataValue(absPath);
 	}
