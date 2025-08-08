@@ -1203,11 +1203,13 @@ class DjangoForm {
 		if (path[0] !== '')
 			return this.formset.getDataValue(path);
 
-		// path is relative, so use the source path to  it to the form's path
-		const absPath = source.includes('.') ? source.split('.') : [];
+		// path is relative, so use the source path to the form's path
+		const absPath = source.includes('.') ? source.split('.') : [...this.path];
 		const relPath = path.filter(part => part !== '');
-		const delta = path.length - relPath.length + (absPath.at(-1) ? 0 : 1);
-		absPath.splice(absPath.length - delta);
+		if (source.includes('.')) {
+			const delta = path.length - relPath.length + Number(source.endsWith('.'));
+			absPath.splice(absPath.length - delta);
+		}
 		absPath.push(...relPath);
 		return this.formset.getDataValue(absPath);
 	}
