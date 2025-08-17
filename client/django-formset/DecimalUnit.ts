@@ -21,7 +21,7 @@ class DecimalUnitField extends Widget {
 	private readonly decSep: string;
 	private static numberRegex = new RegExp('[^0-9]', 'g');
 
-	constructor(inputElement: HTMLInputElement, calendarElement: HTMLElement | null) {
+	constructor(inputElement: HTMLInputElement) {
 		super(inputElement);
 		this.inputElement = inputElement;
 		this.textBox = this.createTextBox();
@@ -97,6 +97,8 @@ class DecimalUnitField extends Widget {
 		if (this.hasFocus)
 			return;
 		this.padDecimalPart();
+		this.updateInputValue();
+		this.inputElement.checkValidity();
 		this.textBox.classList.remove('focus');
 		requestIdleCallback(() => {
 			this.inputElement.dispatchEvent(new Event('blur'));
@@ -381,8 +383,7 @@ export class DecimalUnitElement extends HTMLInputElement {
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
-		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[DU] = new DecimalUnitField(this, calendarElement as HTMLElement);
+		this[DU] = new DecimalUnitField(this);
 	}
 
 	connectedCallback() {
