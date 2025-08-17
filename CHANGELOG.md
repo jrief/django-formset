@@ -7,6 +7,7 @@
   * When using the `df-show`, `df-hide`, `df-disable` or `df-require` attributes with a relative
     path to another field, this path now is evaluated using the current field's `name`. This should
     fix some problems when using a relative path.
+  * `DecimalUnitInput` now also works on Chrome for Android.
 
 - 2.1
   * Add special widget `DecimalUnitInput`. It can be used for decimal values with a unit, such
