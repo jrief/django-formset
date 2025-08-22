@@ -139,7 +139,7 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
         kwargs.update(initial=initial, instance=self.object)
 
         if self.request.method in ('PATCH', 'POST', 'PUT') and self.request.content_type == 'application/json':
-            return self._update_collection_view(kwargs)
+            return self._update_collection_view(kwargs, add=add)
 
         # render the form or collection to HTML
         if add:
@@ -177,7 +177,7 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
             request, context, add=add, change=not add, obj=self.object, form_url=form_url
         )
 
-    def _update_collection_view(self, view_kwargs):
+    def _update_collection_view(self, view_kwargs, add=False):
         if self.get_extra_data().get('name') == '_saveasnew':
             self.object = self.model()
         body = json.loads(self.request.body)
@@ -197,7 +197,7 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
         else:
             model_form = self.get_model_form()(**view_kwargs)
             if model_form.is_valid():
-                self.object = model_form.save()
+                self.save_model(self.request, self.object, model_form, not add)
                 return self.render_success_response()
             else:
                 return JsonResponse(model_form.errors, status=422, safe=False)
