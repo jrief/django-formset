@@ -88,8 +88,10 @@ class SimpleImageDialogForm(RichtextDialogForm):
     image = fields.ImageField(
         label=_("Uploaded Image"),
         widget=UploadedFileInput(attrs={
-            'richtext-map-to': '{src: JSON.parse(elements.image.dataset.fileupload).download_url, dataset: JSON.parse(elements.image.dataset.fileupload)}',
-            'richtext-map-from': '{dataset: {fileupload: JSON.stringify(attributes.dataset)}}',
+            # 'richtext-map-to': '{src: JSON.parse(elements.image.dataset.fileupload).download_url, dataset: JSON.parse(elements.image.dataset.fileupload)}',
+            'richtext-map-to': 'image_to_document()',  # equivalent to the above commented line using simple_image.js
+            # 'richtext-map-from': '{dataset: {fileupload: JSON.stringify(attributes.dataset)}}',
+            'richtext-map-from': 'document_to_image()',  # equivalent to the above commented line using simple_image.js
         }),
     )
 
