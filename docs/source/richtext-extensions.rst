@@ -316,12 +316,12 @@ dialog form. This attribute can take three types of values:
   Example: ``{src: JSON.parse(elements.image.dataset.fileupload).download_url}`` maps the download
   URL of an uploaded image of an input element named ``image`` to the attribute ``src`` of the
   editor's document state implementing the mark extension ``<img src="…" />``.
-* **The name of a function followed by empty brackets**, ie. ``image_to_document()``: This function
-  must be an attribute of the object declared inside the extension script as explained in the
-  previous section. It takes an HTMLFormControlsCollection_ as its only argument. This collection
-  contains all the fields of the given dialog form. The function must return a plain JavaScript
-  object which then is merged into the editor's document state. This is the most flexible way,
-  because it can be programmed in JavaScript.
+* **The name of a function followed by empty brackets**, for instance ``image_to_document()``. This
+  function must be an attribute of the object declared inside the extension script as explained in
+  the previous section. It takes an HTMLFormControlsCollection_ as its only argument. This
+  collection contains all the fields of the given dialog form. The function must return a plain
+  JavaScript object which then is merged into the editor's document state. This is the most flexible
+  way, because it can be programmed in JavaScript.
 
 .. _HTMLFormControlsCollection: https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormControlsCollection
 
@@ -362,12 +362,12 @@ the editor. This attribute can take three types of values:
   Example: ``{dataset: {fileupload: JSON.stringify(attributes.dataset)}}`` maps the value of the
   attribute ``dataset`` of the editor's document state to the ``dataset`` attribute of the
   associated input field in the form dialog. 
-* **The name of a function followed by brackets**, ie. ``change_link_type()``: This function must be
-  an attribute of the object declared inside the extension script as explained in the previous
-  section. As its first argument it takes the field of the dialog form, usually an HTMLInputElement_
-  or HTMLSelectElement_. As its second argument it receives the editor's document state for the
-  given mark or node as a plain JavaScript object. This function then shall modify the given input
-  element's ``value`` or ``checked`` property, or any of its attributes.
+* **The name of a function followed by brackets**, for instance ``change_link_type()``. This
+  function must be an attribute of the object declared inside the extension script as explained in
+  the previous section. As its first argument it takes the field of the dialog form, usually an
+  HTMLInputElement_ or HTMLSelectElement_. As its second argument it receives the editor's document
+  state for the given mark or node as a plain JavaScript object. This function then shall modify the
+  given input element's ``value`` or ``checked`` property, or any of its attributes.
 
   Example: Say, that in our ``CustomHyperlinkDialogForm`` we perfer a ``RadioSelect`` widget to
   select the link type. Now the problem is, that we have one radio input element for each choice.
