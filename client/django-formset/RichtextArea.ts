@@ -785,6 +785,7 @@ class RichtextFormDialog extends FormDialogBase {
 	private revertAttributes: Function = () => {};
 	private readonly induceButton: HTMLButtonElement;
 	private readonly closeButtons = new Array<HTMLButtonElement>();
+	private readonly functionRegex = new RegExp('^(\\w+)\\s*\\([^)]*\\)$');
 	private applyButton: HTMLButtonElement|null = null;
 	private revertButton: HTMLButtonElement|null = null;
 	public readonly extension: string;
@@ -917,7 +918,8 @@ class RichtextFormDialog extends FormDialogBase {
 				const mapping = inputElement.getAttribute('richtext-map-from')?.trim();
 				if (!mapping)
 					return;
-				if (extensionConfig && mapping.endsWith('()') && isFunction(extensionConfig[mapping.slice(0, -2)])) {
+				const match = mapping.match(this.functionRegex);
+				if (extensionConfig && match && isFunction(extensionConfig[match[1]])) {
 					extensionConfig[mapping.slice(0, -2)](inputElement, attributes);
 				} else if (mapping.startsWith('{') && mapping.endsWith('}')) {
 					const mapFunction = new Function('attributes', `return ${mapping}`);
@@ -979,7 +981,8 @@ class RichtextFormDialog extends FormDialogBase {
 					const mapping = inputElement.getAttribute('richtext-map-to')?.trim();
 					if (!mapping)
 						return;
-					if (extensionConfig && mapping.endsWith('()') && isFunction(extensionConfig[mapping.slice(0, -2)])) {
+					const match = mapping.match(this.functionRegex);
+					if (extensionConfig && match && isFunction(extensionConfig[match[1]])) {
 						mapFunction = extensionConfig[mapping.slice(0, -2)];
 					} else if (mapping.startsWith('{') && mapping.endsWith('}')) {
 						mapFunction = new Function('elements', `return ${mapping}`);

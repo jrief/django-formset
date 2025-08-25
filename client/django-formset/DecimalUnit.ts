@@ -185,6 +185,9 @@ class DecimalUnitField extends Widget {
 				if (!event.ctrlKey && !event.metaKey && !event.shiftKey) {
 					preventDefault = true;
 				}
+			} else if (event.key === 'Unidentified') {
+				requestIdleCallback(() => this.inputted());  // Chrome on Android always sends "Undefined"
+				preventDefault = true;
 			} else {
 				preventDefault = true;
 			}
