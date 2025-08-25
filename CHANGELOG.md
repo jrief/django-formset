@@ -1,5 +1,9 @@
 ## Changes
 
+- 2.1.2
+  * In `ModelAdminMixin`, after validating a form, method `save_model` is called to save the
+    object. This maintains compatibility with the default `ModelAdmin` implementation.
+
 - 2.1.1
   * Fix #232: In `SelectizeWidget`, when scrolling beyond `max_prefetch_choices`, although options
     with sublabel and itemlabel are added, the options are not rendered properly.
