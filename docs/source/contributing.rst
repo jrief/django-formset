@@ -115,3 +115,34 @@ A ``ChoiceField`` must provide a list of choices. Attribute ``choices`` must be 
 it is eligible for extension. Its inner items however must be tuples, because they can exlusively
 containin the choice value and a human readable label. Here we also intermix single with double
 quotes to distinguish strings intended to be read by the machine versus a human.
+
+
+Indentation
+===========
+
+Please use spaces instead of tabs for indentation of Python code. The number of spaces is four.
+For HTML, CSS and JavaScript files, please use one tab for indentation. This allows developers to
+adopt the indentation level to their personal preferences.
+
+When indenting HTML code, please use two separate independent indentation levels, one for the HTML
+code and one for the Django template control structures, such as ``{% for … %}`` or ``{% if … %}``.
+
+.. code-block:: html
+
+	<div class="container">
+	  <div class="row">
+	{% for col in columns %}
+	    <div class="col">
+	  {% if col.header %}
+	      <h2>{{ col.header }}</h2>
+	  {% else %}
+	      <p>{{ col.content }}</p>
+	  {% endif %}
+	    </div>
+	{% endfor %}
+	  </div>
+	</div>
+
+This assures that the rendered HTML code is always indented correctly. It also makes it easier to
+review, because the indentation level of the control structures does not depend on the DOM
+structure.

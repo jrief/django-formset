@@ -16,14 +16,14 @@ target_ attribute, or they want to link onto phone numbers, email addresses or t
 files. Moreover, if the Richtext editor shall be used in a content management system or an
 e-commerce site, one might want to set a link to an internal CMS page or a product, in order to keep
 its referential integrity. In such a dialog form, the user then can select the page or the product
-out of a list of available options, instead of entering the URL that that page manually. This
+out of a list of available options, instead of entering the URL to that page manually. This
 requires a ModelChoiceField_, something usually not available from an off the shelf implementation.
 
 As another example consider adding an image element to the Richtext editor. A typical ready made
 solution such as TinyMCE_ would offer a file upload area and a few additional fields to set the
 image's width, height and alt tags. The image's payload then often is encoded as a base64 string in
 the editor's document state. So what if instead the implementer wants to store the image as a file
-in its media directory and the meta-data in a separate database table? Here is where
+in its own media library and the meta-data in a separate database table? Here is where
 **django-formset** offers a flexible way to create custom dialog forms and to extend the Richtext
 editor with your own needs.
 
@@ -33,10 +33,23 @@ combine any fields and widgets to create a dialog form which fits his exact need
 then can be attached to the Richtext editor as a control element, which can be used to set the
 properties of a certain node or mark element.
 
+ProseMirror_, the underlying editor framework of Tiptap, stores the document's content (state) as
+a nested structure of plain JavaScript objects and arrays. Tiptap then adds its own abstractions on
+top of ProseMirror and can export and import this document state as JSON. The document state
+consists of nodes and marks, each of them having their own plugin type with one or more attributes.
+When extending the editor, we usually create a dialog form for such a plugin type, where we can edit
+the required attributes. These attributes then are stored inside the editor's document state. When
+rendering the content of the editor, we can use these attributes to render the desired HTML output.
+
+**django-formset** offers different ways to map the field values of the special dialog editors to
+the document's state and vice versa. This is explained in detail in section :ref:`behind-the-scenes`
+below.
+
 .. _rel: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#rel
 .. _target: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#target
 .. _ModelChoiceField: https://docs.djangoproject.com/en/stable/ref/forms/fields/#django.forms.ModelChoiceField
 .. _TinyMCE: https://www.tiny.cloud/docs/tinymce/latest/full-featured-open-source-demo/
+.. _ProseMirror: https://prosemirror.net/
 
 
 Creating a custom hyperlink editor
@@ -287,6 +300,8 @@ refer to the Tiptap documentation on marks_ and nodes_.
 
 This attribute is another unique identifier. It is used to set a name for the dialog form.
 
+
+.. _behind-the-scenes:
 
 Behind the scenes
 -----------------

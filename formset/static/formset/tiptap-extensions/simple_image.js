@@ -43,7 +43,7 @@
 		// richtext-map-from: SimpleImageDialogForm.image
 		console.log('document_to_image', attributes, inputElement);
 		return {
-			dataset: {fileupload: JSON.stringify(attributes.dataset)}
+			dataset: {fileupload: JSON.stringify(attributes.dataset)},
 		};
 	},
 
