@@ -900,7 +900,7 @@ class RichtextFormDialog extends FormDialogBase {
 		return closeButton === document.activeElement;
 	}
 
-	private openPrefilledDialog(attributes: Object) {
+	private async openPrefilledDialog(attributes: Object) {
 		const editor = this.richtext.editor;
 		this.revertButton?.removeAttribute('hidden');
 		if (this.textSelectionField) {
@@ -910,7 +910,7 @@ class RichtextFormDialog extends FormDialogBase {
 			this.textSelectionField.value = doc.textBetween(selection.from, selection.to, '');
 		}
 		const extensionConfig = editor.extensionManager.extensions.find(ext => ext.name === this.extension)?.config;
-		this.inputElements.forEach(inputElement => {
+		for (let inputElement of this.inputElements) {
 			if (inputElement.hasAttribute('richtext-bidirectional')) {
 				inputElement.value = getDataValue(attributes, inputElement.name) ?? '';
 				inputElement.dispatchEvent(new Event('change', {bubbles: true}));
@@ -920,7 +920,8 @@ class RichtextFormDialog extends FormDialogBase {
 					return;
 				const match = mapping.match(this.functionRegex);
 				if (extensionConfig && match && isFunction(extensionConfig[match[1]])) {
-					extensionConfig[mapping.slice(0, -2)](inputElement, attributes);
+					const mapFunction = extensionConfig[match[1]];
+					await mapFunction(inputElement, attributes);
 				} else if (mapping.startsWith('{') && mapping.endsWith('}')) {
 					const mapFunction = new Function('attributes', `return ${mapping}`);
 					Object.entries(mapFunction(attributes)).forEach(([key0, value]) => {
@@ -940,7 +941,7 @@ class RichtextFormDialog extends FormDialogBase {
 					inputElement.dispatchEvent(new Event('change', {bubbles: true}));
 				}
 			}
-		});
+		}
 		super.openDialog();
 		this.richtext.textAreaElement.dispatchEvent(new Event('blur', {bubbles: true}));
 	}
@@ -961,7 +962,7 @@ class RichtextFormDialog extends FormDialogBase {
 		this.richtext.textAreaElement.dispatchEvent(new Event('blur', {bubbles: true}));
 	}
 
-	protected closeDialog(...args: any[]) {
+	protected async closeDialog(...args: any[]) {
 		if (!isString(args[1]))
 			return;
 		const editor = this.richtext.editor;
@@ -973,7 +974,7 @@ class RichtextFormDialog extends FormDialogBase {
 			}
 			let attributes = {};
 			const extensionConfig = editor.extensionManager.extensions.find(ext => ext.name === this.extension)?.config;
-			this.inputElements.forEach(inputElement => {
+			for (let inputElement of this.inputElements) {
 				let mapFunction: Function;
 				if (inputElement.hasAttribute('richtext-bidirectional')) {
 					mapFunction = (elements: HTMLFormControlsCollection) => ({[inputElement.name]: inputElement.value});
@@ -990,8 +991,8 @@ class RichtextFormDialog extends FormDialogBase {
 						mapFunction = (elements: HTMLFormControlsCollection) => ({[mapping]: inputElement.value});
 					}
 				}
-				attributes = {...attributes, ...mapFunction(this.formElement.elements)};
-			});
+				attributes = {...attributes, ...await mapFunction(this.formElement.elements)};
+			}
 			this.applyAttributes(editor, attributes);
 		} else if (args[1] === 'revert') {
 			this.revertAttributes(editor);
