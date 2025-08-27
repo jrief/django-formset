@@ -884,7 +884,7 @@ class RichtextFormDialog extends FormDialogBase {
 					throw new Error(`tiptap-plugin="${plugin}" <script type="text/plain"…> must be either "mark", "node" or "extension".`);
 			}
 		} catch (error) {
-			throw new Error(`Error while parsing <script type="text/plain" tiptap-plugin="${this.extension}"></script>: ${error}.`);
+			throw new Error(`Error while parsing <script type="text/plain" tiptap-plugin="${this.extension}"></script>: "${error}" at line ${error.location?.start?.line}:${error.location?.start?.column}.`);
 		}
 	}
 
