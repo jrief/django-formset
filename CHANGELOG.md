@@ -1,5 +1,9 @@
 ## Changes
 
+1.7.8
+  * Fix #236: `maxLength` in slug field has been ignored. If set, `DjangoSlugElement` now truncates
+    this string.
+
 1.7.7
   * Add support for Django-5.2.
 
