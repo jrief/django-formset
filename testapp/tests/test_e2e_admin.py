@@ -2,7 +2,6 @@ import pytest
 from datetime import date
 from playwright.sync_api import expect
 
-
 from django.forms import fields, Form
 from django.urls import reverse
 

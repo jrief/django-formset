@@ -1,7 +1,10 @@
 import json
 
+from django.core.exceptions import ValidationError
+from django.core.validators import EMPTY_VALUES
 from django.forms.widgets import Textarea
-from django.utils.html import format_html_join
+from django.utils.html import format_html_join, strip_tags
+from django.utils.translation import gettext
 
 from formset.richtext import controls
 
@@ -29,7 +32,26 @@ class RichTextarea(Textarea):
         return value or ''
 
     def value_from_datadict(self, data, files, name):
-        return data.get(name, {})
+        value = data.get(name)
+        if use_json := self.attrs.get('use_json'):
+            if value in EMPTY_VALUES:
+                value = {'type': 'doc', 'content': []}
+            if not isinstance(value, dict):
+                raise ValidationError(gettext("The submitted data is not a valid JSON structure."))
+        else:
+            if not isinstance(value, str):
+                raise ValidationError(gettext("The submitted data is not a valid text string."))
+        if max_length := self.attrs.get('maxlength'):
+            msg = gettext("The submitted text is too long ({text_length} characters, max. {max_length})")
+            if use_json:
+                text_length = self._compute_text_length(value.get('content', []))
+                if text_length > max_length:
+                    raise ValidationError(msg.format(text_length=text_length, max_length=max_length))
+            else:
+                text_length = len(strip_tags(value))
+                if text_length > max_length:
+                    raise ValidationError(msg.format(text_length=text_length, max_length=max_length))
+        return value
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
@@ -71,3 +93,15 @@ class RichTextarea(Textarea):
             dialog_forms=dialog_forms,
         )
         return self._render(self.template_name, context, renderer)
+
+    @classmethod
+    def _compute_text_length(cls, contents):
+        accumulated_length = 0
+        for content in contents:
+            if content.get('type') == 'text':
+                accumulated_length += len(content.get('text', ''))
+            else:
+                child_contents = content.get('content')
+                if isinstance(child_contents, list):
+                    accumulated_length += cls._compute_text_length(child_contents)
+        return accumulated_length

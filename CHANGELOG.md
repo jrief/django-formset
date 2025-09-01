@@ -3,7 +3,9 @@
 - 2.1.2
   * In `ModelAdminMixin`, after validating a form, method `save_model` is called to save the
     object. This maintains compatibility with the default `ModelAdmin` implementation.
-  * Backport fix from version 1.7.8: `maxLength` in slug field has been ignored.
+  * Fix #236: `maxLength` in slug field is not ignored when typing into the observed field.
+  * Fix: Server side code of widget `RichtextArea` now properly re-validates the length of the
+    submitted rich text.
 
 - 2.1.1
   * Fix #232: In `SelectizeWidget`, when scrolling beyond `max_prefetch_choices`, although options
