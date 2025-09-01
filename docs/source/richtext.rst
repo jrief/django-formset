@@ -390,6 +390,13 @@ By adding ``maxlength`` to the widget's attributes, we can limit the number of c
 entered into this text field. In the bottom right corner, this will show how many characters can
 still be entered.
 
+.. warning:: The attribute ``maxlength`` limits the number of text characters on the client side.
+	Since we never can trust client side field validation, the widget ``RichTextarea`` computes the
+	length of the entered text and raises a validation error if it exceeds the given limit. This
+	length computation only counts the given text characters and ignores extra meta data such as
+	HTML tags. This means that the actual length of the stored richtext will almost certainly exceed
+	the given ``maxlength`` value. You therefore should not limit this value on the model field
+	since this is a hard limit enforced by the database.
 
 .. rubric:: use_json
 

@@ -1,5 +1,9 @@
 ## Changes
 
+1.8.1
+  * Fix: Server side code of widget `RichtextArea` now properly re-validates the length of the
+    submitted rich text.
+
 1.8
   * Fix: In `StepperCollection` only immediate children are considered as `StepperSteps`. This
     caused problems when nesting collections.
