@@ -3,6 +3,9 @@
 - 2.1.2
   * In `ModelAdminMixin`, after validating a form, method `save_model` is called to save the
     object. This maintains compatibility with the default `ModelAdmin` implementation.
+  * Fix #236: `maxLength` in slug field is not ignored when typing into the observed field.
+  * Fix: Server side code of widget `RichtextArea` now properly re-validates the length of the
+    submitted rich text.
 
 - 2.1.1
   * Fix #232: In `SelectizeWidget`, when scrolling beyond `max_prefetch_choices`, although options
@@ -88,6 +91,10 @@
   * Fix: Calendar widget inside a form collection was not rendered properly.
   * Fix: Selectize widget had alignment problems with its lookup field. 
   * Fix: Placement of dialog for phone number and date picker now also considers left offset.
+
+- 1.7.8
+  * Fix #236: `maxLength` in slug field has been ignored. If set, `DjangoSlugElement` now truncates
+    this string.
 
 - 1.7.7
   * Add support for Django-5.2.
