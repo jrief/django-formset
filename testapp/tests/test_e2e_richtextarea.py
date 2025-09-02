@@ -289,25 +289,28 @@ def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
     family_menu_button.click()
     for item in submenu_items.all():
         expect(item).not_to_have_class('active')
+    contenteditable.click(position={'x': 5, 'y': 5})  # closes the submenu
+    expect(family_menu_button.locator('+ ul[role="menu"]')).not_to_be_visible()
 
     # add another class to overlapping selection
     select_text(contenteditable.locator('p'), 11, 21)
-    size_menu_button = menubar.locator('[richtext-click="classBasedMark:fontSize"]')
-    size_menu_button.click()
-    submenu_items = size_menu_button.locator('+ ul[role="menu"] > li')
+    fontsize_menu_button = menubar.locator('[richtext-click="classBasedMark:fontSize"]')
+    expect(fontsize_menu_button).not_to_have_class('active')
+    fontsize_menu_button.click()
+    submenu_items = fontsize_menu_button.locator('+ ul[role="menu"] > li')
     expect(submenu_items).to_have_count(4)
     submenu_items.nth(2).click()
     assert contenteditable.inner_html() == '<p>Lorem <span class="font-family-b">ipsum<span class="font-size-medium"> dolor</span></span><span class="font-size-medium"> sit</span> amet.</p>'
     set_caret(page, contenteditable, 8)
     expect(family_menu_button).to_have_class('active')
-    expect(size_menu_button).not_to_have_class('active')
+    expect(fontsize_menu_button).not_to_have_class('active')
     set_caret(page, contenteditable, 18)
     expect(family_menu_button).not_to_have_class('active')
-    expect(size_menu_button).to_have_class('active')
+    expect(fontsize_menu_button).to_have_class('active')
     set_caret(page, contenteditable, 3)
     expect(family_menu_button).not_to_have_class('active')
-    expect(size_menu_button).not_to_have_class('active')
-    size_menu_button.click()
+    expect(fontsize_menu_button).not_to_have_class('active')
+    fontsize_menu_button.click()
     for item in submenu_items.all():
         expect(item).not_to_have_class('active')
 
