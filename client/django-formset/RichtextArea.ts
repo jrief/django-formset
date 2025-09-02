@@ -917,7 +917,7 @@ class RichtextFormDialog extends FormDialogBase {
 			} else {
 				const mapping = inputElement.getAttribute('richtext-map-from')?.trim();
 				if (!mapping)
-					return;
+					continue;
 				const match = mapping.match(this.functionRegex);
 				if (extensionConfig && match && isFunction(extensionConfig[match[1]])) {
 					const mapFunction = extensionConfig[match[1]];
@@ -981,10 +981,10 @@ class RichtextFormDialog extends FormDialogBase {
 				} else {
 					const mapping = inputElement.getAttribute('richtext-map-to')?.trim();
 					if (!mapping)
-						return;
+						continue;
 					const match = mapping.match(this.functionRegex);
 					if (extensionConfig && match && isFunction(extensionConfig[match[1]])) {
-						mapFunction = extensionConfig[mapping.slice(0, -2)];
+						mapFunction = extensionConfig[match[1]];
 					} else if (mapping.startsWith('{') && mapping.endsWith('}')) {
 						mapFunction = new Function('elements', `return ${mapping}`);
 					} else {
