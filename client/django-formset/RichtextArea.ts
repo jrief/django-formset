@@ -5,7 +5,7 @@ import isFunction from 'lodash.isfunction';
 import isPlainObject from 'lodash.isplainobject';
 import isString from 'lodash.isstring';
 import getDataValue from 'lodash.get';
-import {arrow, computePosition} from '@floating-ui/dom';
+import {arrow, autoPlacement, computePosition} from '@floating-ui/dom';
 import {Editor, EditorEvents, Extension, Mark, Node, markPasteRule, mergeAttributes, getAttributes, JSONContent} from '@tiptap/core';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
 import Blockquote from '@tiptap/extension-blockquote';
@@ -50,14 +50,19 @@ function appearTooltip(event: MouseEvent) {
 	arrowElement.classList.add('arrow');
 	tooltipElement.appendChild(arrowElement);
 	button.insertAdjacentElement('beforebegin', tooltipElement);
-	computePosition(button, tooltipElement, {placement: 'top', strategy: 'fixed', middleware: [arrow({element: arrowElement})]}).then(
-		({x, y}) => Object.assign(tooltipElement!.style, {
+	computePosition(button, tooltipElement, {
+		placement: 'top',
+		strategy: 'fixed',
+		middleware: [arrow({element: arrowElement}), autoPlacement()],
+	}).then(({x, y, placement}) => {
+		Object.assign(tooltipElement!.style, {
 			left: `${x}px`,
 			top: `${y}px`,
 			opacity: '0.75',
 			transition: 'opacity 0.5s 1.2s',
-		})
-	);
+		});
+		arrowElement.classList.add(`arrow-${placement}`);
+	});
 	button.addEventListener('mouseleave', () => tooltipElement.remove(), {once: true});
 }
 
