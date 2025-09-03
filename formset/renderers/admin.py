@@ -1,4 +1,5 @@
 from formset.boundfield import ClassList
+from formset.renderers import ButtonVariant
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
 
 
@@ -37,9 +38,23 @@ class FormRenderer(DefaultFormRenderer):
         context['widget']['attrs']['class'].add('vTextField')
         return context
 
+    def _amend_button(self, context):
+        class_list = ClassList(context['widget']['attrs'].get('class'))
+        if context['widget']['variant'] == ButtonVariant.DANGER:
+            class_list.add('danger')
+        elif context['widget']['variant'] == ButtonVariant.WARNING:
+            class_list.add('warning')
+        elif context['widget']['variant'] == ButtonVariant.SECONDARY:
+            class_list.add('secondary')
+        elif context['widget']['variant'] == ButtonVariant.PRIMARY:
+            class_list.add('primary')
+        context['widget']['attrs']['class'] = class_list
+        return context
+
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
         'django/forms/div.html': _amend_form,
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_input,
+        'formset/default/widgets/button.html': _amend_button,
         'formset/default/widgets/datetime.html': _amend_input,
     })
