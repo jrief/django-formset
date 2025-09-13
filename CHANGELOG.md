@@ -6,6 +6,8 @@
   * Fix #236: `maxLength` in slug field is not ignored when typing into the observed field.
   * Fix: Server side code of widget `RichtextArea` now properly re-validates the length of the
     submitted rich text.
+  * Fix #239: `DateRangePicker` and `DateTimeRangePicker` did not correct the local timezone
+    offset during string generation.
 
 - 2.1.1
   * Fix #232: In `SelectizeWidget`, when scrolling beyond `max_prefetch_choices`, although options
