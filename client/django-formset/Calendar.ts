@@ -1019,8 +1019,8 @@ export class DateRangeCalendarElement extends HTMLInputElement {
 			pure: true,
 			updateDate: (lowerDate: Date, upperDate?: Date) => {
 				const dateStrings = [
-					`${lowerDate.toISOString().slice(0, 10)}T00:00`,
-					upperDate ? `${upperDate.toISOString().slice(0, 10)}T00:00` : '',
+					`${asUTCDate(lowerDate).toISOString().slice(0, 10)}T00:00`,
+					upperDate ? `${asUTCDate(upperDate).toISOString().slice(0, 10)}T00:00` : '',
 				];
 				this.value = dateStrings.join(';');
 				this.dispatchEvent(new Event('input'));
@@ -1060,8 +1060,8 @@ export class DateTimeRangeCalendarElement extends HTMLInputElement {
 			pure: true,
 			updateDate: (lowerDate: Date, upperDate?: Date) => {
 				const dateStrings = [
-					lowerDate.toISOString().slice(0, 16),
-					upperDate?.toISOString().slice(0, 16) ?? '',
+					asUTCDate(lowerDate).toISOString().slice(0, 16),
+					upperDate ? asUTCDate(upperDate).toISOString().slice(0, 16) : '',
 				];
 				this.value = dateStrings.join(';');
 				this.dispatchEvent(new Event('input'));
