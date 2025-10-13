@@ -1,4 +1,4 @@
-import {StyleHelpers} from './helpers';
+import {StyleHelpers, asUTCDate} from './helpers';
 import {Widget} from './Widget';
 import styles from './Calendar.scss';
 
@@ -80,12 +80,8 @@ export class CalendarSheet extends Widget {
 	}
 
 	private get todayDateString() : string {
-		const isoString = this.asUTCDate(new Date()).toISOString();
+		const isoString = asUTCDate(new Date()).toISOString();
 		return this.settings.dateOnly ? `${isoString.slice(0, 10)}T00:00` : isoString.slice(0, 16);
-	}
-
-	private asUTCDate(date: Date) : Date {
-		return new Date(date.getTime() - date.getTimezoneOffset() * 60000);
 	}
 
 	private getViewMode() : ViewMode {
@@ -214,8 +210,8 @@ export class CalendarSheet extends Widget {
 			}
 		});
 
-		const lowerHourString = this.dateRange[0] ? this.asUTCDate(this.dateRange[0]).toISOString().slice(0, 13) : '';
-		const upperDateString = this.settings.withRange && this.dateRange[1] ? this.asUTCDate(this.dateRange[1]).toISOString().slice(0, 16) : '';
+		const lowerHourString = this.dateRange[0] ? asUTCDate(this.dateRange[0]).toISOString().slice(0, 13) : '';
+		const upperDateString = this.settings.withRange && this.dateRange[1] ? asUTCDate(this.dateRange[1]).toISOString().slice(0, 16) : '';
 		const upperHourString = upperDateString.slice(0, 13);
 		const todayHourString = this.todayDateString.slice(0, 13).concat(':00');
 		this.element.querySelectorAll('li[aria-label]').forEach(elem => {
@@ -337,11 +333,11 @@ export class CalendarSheet extends Widget {
 				break;
 			case 'Enter':
 				if (this.preselectedDate) {
-					const dateString = this.asUTCDate(this.preselectedDate).toISOString().slice(0, 16);
+					const dateString = asUTCDate(this.preselectedDate).toISOString().slice(0, 16);
 					element = this.element.querySelector(`.sheet-body li[data-date="${dateString}"]`);
 				} else {
 					const date = this.upperRange ? this.dateRange[1] : this.dateRange[0];
-					const dateString = date ? this.asUTCDate(date).toISOString().slice(0, 16) : '';
+					const dateString = date ? asUTCDate(date).toISOString().slice(0, 16) : '';
 					element = this.element.querySelector(`.sheet-body li[data-date="${dateString}"]`);
 				}
 				if (element) {
@@ -475,7 +471,7 @@ export class CalendarSheet extends Widget {
 	};
 
 	private getDateSelector(date: Date) : string {
-		const utcDateString = this.asUTCDate(date).toISOString();
+		const utcDateString = asUTCDate(date).toISOString();
 		let dateString;
 		switch (this.viewMode) {
 			case ViewMode.hours:
@@ -607,7 +603,7 @@ export class CalendarSheet extends Widget {
 			if (this.viewMode === ViewMode.hours) {
 				const label = this.element.querySelector('.sheet-body ul.hours:last-child > li')?.getAttribute('data-date');
 				this.element.querySelector('.sheet-body ul.hours:last-child')?.toggleAttribute('hidden',
-					this.dateRange[1] ? this.asUTCDate(this.dateRange[1]).toISOString().slice(0, 16) !== label : !this.upperRange
+					this.dateRange[1] ? asUTCDate(this.dateRange[1]).toISOString().slice(0, 16) !== label : !this.upperRange
 				);
 			}
 		} else if (this.dateRange[0]) {
@@ -775,7 +771,7 @@ export class CalendarSheet extends Widget {
 		}
 		const nextDate = this.getDelta(direction, selectedDate);
 		this.preselectedDate = this.settings.withRange ? nextDate : null;
-		const dataDateString = this.asUTCDate(nextDate).toISOString().slice(0, 16);
+		const dataDateString = asUTCDate(nextDate).toISOString().slice(0, 16);
 		let nextItem: Element|null = null;
 		if (this.viewMode !== ViewMode.weeks || selectedDate.getMonth() === nextDate.getMonth()) {
 			nextItem = this.element.querySelector(`.sheet-body li[data-date="${dataDateString}"]`);
@@ -800,7 +796,7 @@ export class CalendarSheet extends Widget {
 
 	private async fetchCalendar(atDate: Date, viewMode: ViewMode) {
 		const query = new URLSearchParams('calendar');
-		query.set('date', this.asUTCDate(atDate).toISOString().slice(0, 10));
+		query.set('date', asUTCDate(atDate).toISOString().slice(0, 10));
 		query.set('mode', viewMode);
 		if (this.settings.hour12) {
 			query.set('hour12', '');

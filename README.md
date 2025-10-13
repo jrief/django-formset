@@ -6,6 +6,12 @@ the internal Django implementation for
 [formsets](https://docs.djangoproject.com/en/stable/topics/forms/formsets/) offers.
 
 
+### News:
+
+Starting with version 2, developers can use `ModelForm`s and `FormCollection`s in the django-admin.
+In version 2 it also is possible to store the content of multiple form fields or even an entire form collection inside a `JSONField`.
+Make sure to read the [Changelog](https://github.com/jrief/django-formset/blob/releases/2.0/CHANGELOG.md) for version 2 before proceeding.
+
 [![Interactive Documentation](https://img.shields.io/badge/Interactive-Documentation-532BEA)](https://django-formset.fly.dev/)
 [![Build Status](https://github.com/jrief/django-formset/actions/workflows/tests.yml/badge.svg)](https://github.com/jrief/django-formset/actions)
 [![PyPI version](https://img.shields.io/pypi/v/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
@@ -14,12 +20,6 @@ the internal Django implementation for
 [![Software license](https://img.shields.io/pypi/l/django-formset.svg)](https://github.com/jrief/django-formset/blob/master/LICENSE)
 
 **Before upgrading to version 2.0, please read the [Changelog](CHANGELOG.md).**
-
-Starting with version 2, developers can use `ModelForm`s and `FormCollection`s in the django-admin.
-In version 2 it also is possible to store the content of multiple form fields or even an entire form
-collection inside a `JSONField`.
-Make sure to read the [Changelog](https://github.com/jrief/django-formset/blob/releases/2.0/CHANGELOG.md) for version 2 before proceeding.
-
 
 Let's explain it using a short example. Say, we have a Django form with three fields:
 
