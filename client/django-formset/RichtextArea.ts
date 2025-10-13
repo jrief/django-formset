@@ -926,8 +926,7 @@ class RichtextFormDialog extends FormDialogBase {
 					continue;
 				const match = mapping.match(this.functionRegex);
 				if (extensionConfig && match && isFunction(extensionConfig[match[1]])) {
-					const mapFunction = extensionConfig[match[1]];
-					await mapFunction(inputElement, attributes);
+					await extensionConfig[match[1]](inputElement, attributes);
 				} else if (mapping.startsWith('{') && mapping.endsWith('}')) {
 					const mapFunction = new Function('attributes', `return ${mapping}`);
 					Object.entries(mapFunction(attributes)).forEach(([key0, value]) => {
