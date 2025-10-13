@@ -31,8 +31,8 @@ class ReservationForm(forms.Form):
             'step': timedelta(minutes=15),
         }),
         initial=(
-            datetime(2025, 8, 8, 9, 15),
-            datetime(2025, 10, 10, 16, 45),
+            datetime(2025, 7, 9, 9, 15),
+            datetime(2025, 9, 7, 16, 45),
         ),
     )
 
@@ -114,7 +114,6 @@ def test_daterange_set(page, viewname):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['reservation'])
 def test_datetimerange_initial(page, viewname):
-    print(page.locator('django-formset').inner_html())
     calendar = page.locator('django-formset input[name="schedule"] ~ .dj-calendar')
     expect(calendar).not_to_be_visible()
     calendar_picker = page.locator('django-formset input[name="schedule"] ~ [role="textbox"] > .calendar-picker-indicator')
@@ -122,19 +121,17 @@ def test_datetimerange_initial(page, viewname):
         calendar_picker.click()
     assert response_info.value.ok is True
     expect(calendar).to_be_visible()
-    expect(calendar.locator('li[data-date="2025-08-08T00:00"]')).to_have_class('selected')
-    background_color = calendar.locator('li[data-date="2025-08-09T00:00"]').evaluate('elem => window.getComputedStyle(elem).getPropertyValue("background-color")')
+    expect(calendar.locator('li[data-date="2025-07-09T00:00"]')).to_have_class('selected')
+    background_color = calendar.locator('li[data-date="2025-07-08T00:00"]').evaluate('elem => window.getComputedStyle(elem).getPropertyValue("background-color")')
+    assert background_color == 'rgba(0, 0, 0, 0)'
+    background_color = calendar.locator('li[data-date="2025-07-10T00:00"]').evaluate('elem => window.getComputedStyle(elem).getPropertyValue("background-color")')
     assert background_color == 'color(srgb 0.6472 0.80272 0.9928)'
-    background_color = calendar.locator('li[data-date="2023-08-10T00:00"]').evaluate('elem => window.getComputedStyle(elem).getPropertyValue("background-color")')
-    assert background_color == 'color(srgb 0.6472 0.80272 0.9928)'
-    # expect(calendar.locator('.aside-left > time')).to_be_empty()
-    # expect(calendar.locator('.aside-right > time')).to_have_text('Tue Oct 10 2025')
     with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
-        calendar.locator('button.next').click()
+        calendar.locator('button.prev').click()
     assert response_info.value.ok is True
-
-    # expect(calendar.locator('.aside-right > time')).to_have_text('Tue Aug 08 2025')
-    # expect(calendar.locator('ul.monthdays li.selected')).to_have_count(0)
-    expect(calendar.locator('.extend > time')).to_have_text('July 2025')
+    expect(calendar.locator('.extend > time')).to_have_text('June 2025')
     calendar.locator('button.extend').click()
-    expect(calendar.locator('ul.months li.selected')).to_have_count(2)
+    expect(calendar.locator('ul.months li[data-date="2025-07-01T00:00"]')).to_have_class('selected')
+    background_color = calendar.locator('li[data-date="2025-08-01T00:00"]').evaluate('elem => window.getComputedStyle(elem).getPropertyValue("background-color")')
+    assert background_color == 'color(srgb 0.6472 0.80272 0.9928)'
+    expect(calendar.locator('ul.months li[data-date="2025-09-01T00:00"]')).to_have_class('selected')
