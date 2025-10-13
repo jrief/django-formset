@@ -997,7 +997,11 @@ class RichtextFormDialog extends FormDialogBase {
 						mapFunction = (elements: HTMLFormControlsCollection) => ({[mapping]: inputElement.value});
 					}
 				}
-				attributes = {...attributes, ...await mapFunction(this.formElement.elements)};
+				try {
+					attributes = {...attributes, ...await mapFunction(this.formElement.elements)};
+				} catch (exception) {
+					break;
+				}
 			}
 			this.applyAttributes(editor, attributes);
 		} else if (args[1] === 'revert') {
