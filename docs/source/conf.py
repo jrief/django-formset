@@ -87,3 +87,5 @@ html_static_path = ['_static']
 templates_path = ['_templates']
 
 assets_dir = os.path.abspath(os.path.join(os.pardir, os.pardir))
+
+source_encoding = 'utf-8-sig'
