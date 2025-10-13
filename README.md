@@ -9,8 +9,10 @@ the internal Django implementation for
 ### News:
 
 Starting with version 2, developers can use `ModelForm`s and `FormCollection`s in the django-admin.
-In version 2 it also is possible to store the content of multiple form fields or even an entire form collection inside a `JSONField`.
-Make sure to read the [Changelog](https://github.com/jrief/django-formset/blob/releases/2.0/CHANGELOG.md) for version 2 before proceeding.
+In version 2 it also is possible to store the content of multiple form fields or even an entire form
+collection inside a `JSONField`. Make sure to read the
+[Changelog](https://github.com/jrief/django-formset/blob/releases/2.0/CHANGELOG.md) for version 2
+before proceeding.
 
 [![Interactive Documentation](https://img.shields.io/badge/Interactive-Documentation-532BEA)](https://django-formset.fly.dev/)
 [![Build Status](https://github.com/jrief/django-formset/actions/workflows/tests.yml/badge.svg)](https://github.com/jrief/django-formset/actions)
