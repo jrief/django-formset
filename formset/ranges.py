@@ -1,10 +1,23 @@
+from datetime import date
+
 from django.forms import fields
+from django.utils.timezone import get_current_timezone, is_naive, make_aware, timezone
 from django.utils.translation import gettext_lazy as _
 
 from formset.widgets import DateCalendar, DatePicker, DateTextbox, DateTimeCalendar, DateTimePicker, DateTimeTextbox
 
 
-class DateRangeCalendar(DateCalendar):
+class DateTimeRangeMixin:
+    def format_value(self, values):
+        if isinstance(values, (list, tuple)) and len(values) == 2 and all(isinstance(v, date) for v in values):
+            if any(is_naive(v) for v in values):
+                values = map(lambda v: make_aware(v, timezone.utc), values)
+            tz = get_current_timezone()
+            return ';'.join(v.astimezone(tz).strftime('%Y-%m-%dT%H:%M') for v in values)
+        return ''
+
+
+class DateRangeCalendar(DateTimeRangeMixin, DateCalendar):
     template_name = 'formset/default/widgets/calendar.html'
 
     def __init__(self, attrs=None, calendar_renderer=None):
@@ -18,7 +31,7 @@ class DateRangeCalendar(DateCalendar):
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
 
 
-class DateRangePicker(DatePicker):
+class DateRangePicker(DateTimeRangeMixin, DatePicker):
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
@@ -30,7 +43,7 @@ class DateRangePicker(DatePicker):
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
 
 
-class DateRangeTextbox(DateTextbox):
+class DateRangeTextbox(DateTimeRangeMixin, DateTextbox):
     def __init__(self, attrs=None):
         default_attrs = {
             'type': 'regex',
@@ -42,7 +55,7 @@ class DateRangeTextbox(DateTextbox):
         super().__init__(attrs=default_attrs)
 
 
-class DateTimeRangeCalendar(DateTimeCalendar):
+class DateTimeRangeCalendar(DateTimeRangeMixin, DateTimeCalendar):
     template_name = 'formset/default/widgets/calendar.html'
 
     def __init__(self, attrs=None, calendar_renderer=None):
@@ -56,7 +69,7 @@ class DateTimeRangeCalendar(DateTimeCalendar):
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
 
 
-class DateTimeRangePicker(DateTimePicker):
+class DateTimeRangePicker(DateTimeRangeMixin, DateTimePicker):
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
@@ -68,7 +81,7 @@ class DateTimeRangePicker(DateTimePicker):
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
 
 
-class DateTimeRangeTextbox(DateTimeTextbox):
+class DateTimeRangeTextbox(DateTimeRangeMixin, DateTimeTextbox):
     def __init__(self, attrs=None):
         default_attrs = {
             'type': 'regex',
