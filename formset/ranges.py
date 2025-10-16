@@ -1,10 +1,25 @@
+from datetime import date
+
 from django.forms import fields
+from django.utils.timezone import datetime
 from django.utils.translation import gettext_lazy as _
 
 from formset.widgets import DateCalendar, DatePicker, DateTextbox, DateTimeCalendar, DateTimePicker, DateTimeTextbox
 
 
-class DateRangeCalendar(DateCalendar):
+class DateRangeMixin:
+    def format_value(self, values):
+        if values is None:
+            return ''
+        if isinstance(values, (list, tuple)) and len(values) == 2:
+            if all(v is None for v in values):
+                return ''
+            if all(isinstance(v, date) for v in values):
+                return ';'.join(v.strftime('%Y-%m-%dT00:00') for v in values)
+        return values
+
+
+class DateRangeCalendar(DateRangeMixin, DateCalendar):
     template_name = 'formset/default/widgets/calendar.html'
 
     def __init__(self, attrs=None, calendar_renderer=None):
@@ -18,7 +33,7 @@ class DateRangeCalendar(DateCalendar):
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
 
 
-class DateRangePicker(DatePicker):
+class DateRangePicker(DateRangeMixin, DatePicker):
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
@@ -30,7 +45,7 @@ class DateRangePicker(DatePicker):
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
 
 
-class DateRangeTextbox(DateTextbox):
+class DateRangeTextbox(DateRangeMixin, DateTextbox):
     def __init__(self, attrs=None):
         default_attrs = {
             'type': 'regex',
@@ -42,7 +57,19 @@ class DateRangeTextbox(DateTextbox):
         super().__init__(attrs=default_attrs)
 
 
-class DateTimeRangeCalendar(DateTimeCalendar):
+class DateTimeRangeMixin:
+    def format_value(self, values):
+        if values is None:
+            return ''
+        if isinstance(values, (list, tuple)) and len(values) == 2:
+            if all(v is None for v in values):
+                return ''
+            if all(isinstance(v, datetime) for v in values):
+                return ';'.join(v.strftime('%Y-%m-%dT%H:%M') for v in values)
+        return values
+
+
+class DateTimeRangeCalendar(DateTimeRangeMixin, DateTimeCalendar):
     template_name = 'formset/default/widgets/calendar.html'
 
     def __init__(self, attrs=None, calendar_renderer=None):
@@ -56,7 +83,7 @@ class DateTimeRangeCalendar(DateTimeCalendar):
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
 
 
-class DateTimeRangePicker(DateTimePicker):
+class DateTimeRangePicker(DateTimeRangeMixin, DateTimePicker):
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
@@ -68,7 +95,7 @@ class DateTimeRangePicker(DateTimePicker):
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
 
 
-class DateTimeRangeTextbox(DateTimeTextbox):
+class DateTimeRangeTextbox(DateTimeRangeMixin, DateTimeTextbox):
     def __init__(self, attrs=None):
         default_attrs = {
             'type': 'regex',
@@ -98,9 +125,6 @@ class BaseRangeField(fields.MultiValueField):
             self.range_kwargs = {'bounds': default_bounds}
         super().__init__(widget=widget, **kwargs)
 
-    def prepare_value(self, values):
-        raise NotImplementedError("Subclasses must implement this method.")
-
     def compress(self, values):
         if not values:
             return None, None
@@ -126,11 +150,6 @@ class DateRangeField(BaseRangeField):
         kwargs.setdefault('widget', DateRangePicker())
         super().__init__(**kwargs)
 
-    def prepare_value(self, values):
-        if isinstance(values, (list, tuple)) and len(values) == 2:
-            return ';'.join(map(lambda v: f'{v.isoformat()[:10]}T00:00', values))
-        return ''
-
 
 class DateTimeRangeField(DateRangeField):
     base_field = fields.DateTimeField
@@ -138,8 +157,3 @@ class DateTimeRangeField(DateRangeField):
     def __init__(self, **kwargs):
         kwargs.setdefault('widget', DateTimeRangePicker())
         super().__init__(**kwargs)
-
-    def prepare_value(self, values):
-        if isinstance(values, (list, tuple)) and len(values) == 2:
-            return ';'.join(map(lambda v: v.isoformat()[:16], values))
-        return ''
