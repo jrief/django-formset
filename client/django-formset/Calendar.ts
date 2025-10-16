@@ -894,7 +894,7 @@ export class CalendarSheet extends Widget {
 			for (let k = 0; k < sheet.cssRules.length; ++k) {
 				const cssRule = sheet.cssRules[k];
 				if (cssRule instanceof CSSStyleRule && cssRule.selectorText === `${this.baseSelector} .sheet-body ul:not(*)`) {
-					const selectorText = `#${this.settings.inputElement.id} ~ ${this.baseSelector} .sheet-body ul:not(*)`;
+					const selectorText = `#${CSS.escape(this.settings.inputElement.id)} ~ ${this.baseSelector} .sheet-body ul:not(*)`;
 					const index = sheet.insertRule(`${selectorText}{${cssRule.style.cssText}}`, sheet.cssRules.length);
 					return sheet.cssRules[index] as CSSStyleRule;
 				}
