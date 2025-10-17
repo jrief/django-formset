@@ -145,16 +145,20 @@ export class CalendarSheet extends Widget {
 	private registerCalendar() {
 		this.viewMode = this.getViewMode();
 		this.prevSheetDate = this.getDate('button.prev');
+		const prevButton = this.element.querySelector('button.prev');
 		const narrowButton = this.element.querySelector('button.narrow');
 		this.narrowSheetDate = narrowButton ? this.getDate(narrowButton) : undefined;
 		this.nextSheetDate = this.getDate('button.next');
+		const nextButton = this.element.querySelector('button.next');
 		const extendButton = this.element.querySelector('button.extend');
 		this.extendSheetDate = extendButton ? this.getDate(extendButton) : undefined;
-		this.element.querySelector('button.prev')?.addEventListener('click', this.turnPrev, {once: true});
-		this.element.querySelector('button.narrow')?.addEventListener('click', this.turnNarrow, {once: true});
-		this.element.querySelector('button.extend')?.addEventListener('click', this.turnExtend, {once: true});
+		prevButton?.addEventListener('mouseenter', this.hoverPrevButton);
+		prevButton?.addEventListener('click', this.turnPrev, {once: true});
+		narrowButton?.addEventListener('click', this.turnNarrow, {once: true});
+		extendButton?.addEventListener('click', this.turnExtend, {once: true});
 		this.element.querySelector('button.today')?.addEventListener('click', this.turnToday, {once: true});
-		this.element.querySelector('button.next')?.addEventListener('click', this.turnNext, {once: true});
+		nextButton?.addEventListener('mouseenter', this.hoverNextButton);
+		nextButton?.addEventListener('click', this.turnNext, {once: true});
 		this.calendarItems = this.element.querySelectorAll('li[data-date]');
 		switch (this.viewMode) {
 			case ViewMode.hours:
@@ -205,7 +209,7 @@ export class CalendarSheet extends Widget {
 					}
 				}, {once: true});
 				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.handleOver);
+					elem.addEventListener('mouseenter', this.hoverDateItem);
 				}
 			}
 		});
@@ -233,7 +237,7 @@ export class CalendarSheet extends Widget {
 					}
 				});
 				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.handleOver);
+					elem.addEventListener('mouseenter', this.hoverDateItem);
 				}
 			}
 		});
@@ -253,7 +257,7 @@ export class CalendarSheet extends Widget {
 			if (!elem.hasAttribute('disabled')) {
 				elem.addEventListener('click', this.selectDay);
 				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.handleOver);
+					elem.addEventListener('mouseenter', this.hoverDateItem);
 				}
 			}
 		});
@@ -270,7 +274,7 @@ export class CalendarSheet extends Widget {
 			if (!elem.hasAttribute('disabled')) {
 				elem.addEventListener('click', this.selectMonth);
 				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.handleOver);
+					elem.addEventListener('mouseenter', this.hoverDateItem);
 				}
 			}
 		});
@@ -287,7 +291,7 @@ export class CalendarSheet extends Widget {
 			if (!elem.hasAttribute('disabled')) {
 				elem.addEventListener('click', this.selectYear);
 				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.handleOver);
+					elem.addEventListener('mouseenter', this.hoverDateItem);
 				}
 			}
 		});
@@ -496,15 +500,27 @@ export class CalendarSheet extends Widget {
 		return Array.from(this.calendarItems).indexOf(selectedElement as HTMLLIElement);
 	}
 
-	private handleOver = (event: Event) => {
-		if (!(event.target instanceof HTMLLIElement))
-			return;
+	private hoverPrevButton = (event: Event) => {
+		this.extendRangeToListItem(this.calendarItems.item(0));
+	};
+
+	private hoverNextButton = (event: Event) => {
+		this.extendRangeToListItem(this.calendarItems.item(this.calendarItems.length - 1));
+	};
+
+	private hoverDateItem = (event: Event) => {
+		if (event.target instanceof HTMLLIElement) {
+			this.extendRangeToListItem(event.target);
+		}
+	};
+
+	private extendRangeToListItem(listItem: HTMLLIElement) {
 		if (this.dateRange[0] && !this.dateRange[1]) {
-			const hoverDateString = event.target.getAttribute('data-date') ?? event.target.getAttribute('aria-label') ?? '';
+			const hoverDateString = listItem.getAttribute('data-date') ?? listItem.getAttribute('aria-label') ?? '';
 			const hoverDate = new Date(hoverDateString);
 			this.markDateRange(this.dateRange[0], hoverDate, true);
 		}
-	};
+	}
 
 	private markDateRange(dateFixed: Date, dateCursor: Date, openRange= false) {
 		const lowerDate = dateFixed < dateCursor ? dateFixed : dateCursor;
