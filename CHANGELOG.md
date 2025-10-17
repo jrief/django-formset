@@ -1,5 +1,9 @@
 ## Changes
 
+- 2.1.3
+  * The `Selectize` widget never renders the `empty_label` provided by the field. Instead, the user
+    can remove the selected option, unless the field is marked as required.
+
 - 2.1.2
   * In `ModelAdminMixin`, after validating a form, method `save_model` is called to save the
     object. This maintains compatibility with the default `ModelAdmin` implementation.
