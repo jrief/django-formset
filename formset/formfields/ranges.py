@@ -1,5 +1,3 @@
-from datetime import date, datetime
-
 from django.core.exceptions import ValidationError
 from django.forms import fields
 from django.utils.translation import gettext_lazy as _
@@ -24,9 +22,6 @@ class BaseRangeField(fields.MultiValueField):
         if default_bounds := kwargs.pop('default_bounds', None):
             self.range_kwargs = {'bounds': default_bounds}
         super().__init__(widget=widget, **kwargs)
-
-    def prepare_value(self, values):
-        raise NotImplementedError("Subclasses must implement this method.")
 
     def compress(self, values):
         if not values:
@@ -53,14 +48,6 @@ class DateRangeField(BaseRangeField):
         kwargs.setdefault('widget', DateRangePicker())
         super().__init__(**kwargs)
 
-    def prepare_value(self, values):
-        if isinstance(values, (list, tuple)) and len(values) == 2:
-            if all(isinstance(v, (date, datetime)) for v in values):
-                return ';'.join(map(lambda v: f'{v.isoformat()[:10]}T00:00', values))
-            if all(isinstance(v, str) for v in values):
-                return ';'.join(map(lambda v: f'{v[:10]}T00:00', values))
-        return ''
-
 
 class DateTimeRangeField(DateRangeField):
     base_field = fields.DateTimeField
@@ -68,11 +55,3 @@ class DateTimeRangeField(DateRangeField):
     def __init__(self, **kwargs):
         kwargs.setdefault('widget', DateTimeRangePicker())
         super().__init__(**kwargs)
-
-    def prepare_value(self, values):
-        if isinstance(values, (list, tuple)) and len(values) == 2:
-            if all(isinstance(v, (date, datetime)) for v in values):
-                return ';'.join(map(lambda v: v.isoformat()[:16], values))
-            if all(isinstance(v, str) for v in values):
-                return ';'.join(map(lambda v: v[:16], values))
-        return ''

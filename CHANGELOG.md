@@ -3,6 +3,9 @@
 - 2.1.3
   * The `Selectize` widget never renders the `empty_label` provided by the field. Instead, the user
     can remove the selected option, unless the field is marked as required.
+  * Refactor conversion of initial value into string from fields `DateRangeField`,
+    `DateTimeRangeField` to widgets `DateRangePicker`, `DateRangeTextbox`, `DateRangeCalendar`,
+    `DateTimeRangePicker`, `DateTimeRangeTextbox` and `DateTimeRangeCalendar`.
 
 - 2.1.2
   * In `ModelAdminMixin`, after validating a form, method `save_model` is called to save the
