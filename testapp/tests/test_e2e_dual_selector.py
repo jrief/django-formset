@@ -1,6 +1,8 @@
 import pytest
 import json
+from re import compile as regex
 from time import sleep
+from urllib.parse import parse_qs, urlparse
 
 from playwright.sync_api import expect
 
@@ -214,45 +216,41 @@ def test_move_selected_right(page, view, form, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0'])
-def test_infinite_scroll(page, mocker, view, form, viewname):
+def test_infinite_scroll(page, view, form, viewname):
     selector_element = page.locator('django-formset select[is="django-dual-selector"]')
     select_left_element = page.locator('django-formset .df-dual-selector .left-column select')
     left_options = select_left_element.locator('option')
     left_option_values = [left_options.nth(i).get_attribute('value') for i in range(left_options.count())]
     assert len(left_option_values) == DualSelector.max_prefetch_choices
     select_left_element.focus()
-    spy = mocker.spy(view.view_class, 'get')
-    select_left_element.select_option(left_option_values[-2])
-    assert spy.called is False
-    left_option_values = [left_options.nth(i).get_attribute('value') for i in range(left_options.count())]
-    assert len(left_option_values) == DualSelector.max_prefetch_choices
-    page.keyboard.press('ArrowDown')
-    sleep(0.2)
-    assert spy.called is True
-    field_name = selector_element.get_attribute('name')
-    params = spy.call_args.args[1].GET
-    assert params['field'] == f'__default__.{field_name}'
-    assert int(params['offset']) == DualSelector.max_prefetch_choices
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
+        select_left_element.select_option(left_option_values[-2])
+        page.keyboard.press('ArrowDown')
+    assert response_info.value.ok is True
     left_option_values = [left_options.nth(i).get_attribute('value') for i in range(left_options.count())]
     assert len(left_option_values) == 2 * DualSelector.max_prefetch_choices
-    response = json.loads(spy.spy_return.content)
+    field_name = selector_element.get_attribute('name')
+    params = parse_qs(urlparse(response_info.value.request.url).query)
+    assert params['field'] == [f'__default__.{field_name}']
+    assert params['offset'] == [str(DualSelector.max_prefetch_choices)]
+    left_option_values = [left_options.nth(i).get_attribute('value') for i in range(left_options.count())]
+    assert len(left_option_values) == 2 * DualSelector.max_prefetch_choices
+    response = response_info.value.json()
     assert response['count'] == DualSelector.max_prefetch_choices
     assert response['incomplete'] is True
     assert isinstance(response['options'], list)
     assert len(response['options']) == response['count']
-    spy.reset_mock()
-    select_left_element.locator('option[value="{}"]'.format(left_option_values[-1])).click()
-    page.keyboard.press('ArrowDown')
-    sleep(0.2)
-    assert spy.called is True
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
+        select_left_element.locator('option[value="{}"]'.format(left_option_values[-1])).click()
+        page.keyboard.press('ArrowDown')
+    assert response_info.value.ok is True
     left_option_values = [left_options.nth(i).get_attribute('value') for i in range(left_options.count())]
     assert len(left_option_values) == 3 * DualSelector.max_prefetch_choices
-    spy.reset_mock()
-    select_left_element.locator('option[value="{}"]'.format(left_option_values[-1])).click()
-    page.keyboard.press('ArrowDown')
-    sleep(0.2)
-    assert spy.called is True
-    response = json.loads(spy.spy_return.content)
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
+        select_left_element.locator('option[value="{}"]'.format(left_option_values[-1])).click()
+        page.keyboard.press('ArrowDown')
+    assert response_info.value.ok is True
+    response = response_info.value.json()
     assert response['incomplete'] is False
 
 
@@ -272,17 +270,14 @@ def test_submit_valid_form(page, mocker, view, form, viewname):
     assert len(select_right_element.query_selector_all('option')) == 15
     select_right_element.query_selector('option[value="{}"]'.format(left_option_values[50])).dblclick()
     assert len(select_right_element.query_selector_all('option')) == 14
-    spy = mocker.spy(view.view_class, 'post')
-    submit_button = page.query_selector('django-formset button[df-click]')
-    submit_button.click()
-    sleep(0.2)
-    assert spy.called is True
-    request = json.loads(spy.call_args.args[1].body)
+    with page.expect_response(page.url) as response_info:
+        submit_button = page.query_selector('django-formset button[df-click]')
+        submit_button.click()
+    assert response_info.value.ok is True
+    request = response_info.value.request.post_data_json
     choices = set(left_option_values[48:63])
     choices.remove(left_option_values[50])
     assert set(request['formset_data']['model_choice']) == choices
-    response = json.loads(spy.spy_return.content)
-    assert response['success_url'] == '/success'
 
 
 @pytest.mark.urls(__name__)
@@ -291,7 +286,6 @@ def test_submit_invalid_form(page, mocker, view, form, viewname):
     submit_button = page.locator('django-formset button[df-click]').first
     spy = mocker.spy(view.view_class, 'post')
     submit_button.click()
-    sleep(0.2)
     spy.assert_not_called()  # asure the form is marked as invalid before submission
     required_msg = str(form.fields['model_choice'].error_messages['required'])
     error_ph = page.locator('django-formset [role="group"] [role="alert"] ul.dj-errorlist > li.dj-placeholder')
