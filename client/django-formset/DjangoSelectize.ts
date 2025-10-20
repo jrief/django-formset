@@ -348,13 +348,12 @@ export class DjangoSelectize extends IncompleteSelect {
 					break;
 				case `${this.baseSelector} .ts-control`:
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'padding', 'transition'
+						'padding-left', 'padding-right', 'transition'
 					]).concat(
 						`min-height: ${this.nativeStyles['height']};`,
 					);
 					break;
-				case `${this.baseSelector} .ts-control .items-placeholder`:
-				case `${this.baseSelector} .ts-control .items`:
+				case `${this.baseSelector} .ts-control .items-placeholder, ${this.baseSelector} .ts-control input[role="combobox"]`:
 					if (optionElement) {
 						extraStyles = StyleHelpers.extractStyles(optionElement, ['padding-left', 'padding-right']);
 					}

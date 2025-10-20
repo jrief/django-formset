@@ -21,7 +21,7 @@
 		background-repeat: no-repeat;
 		background-size: 1rem;
 
-		.items-placeholder {
+		.items-placeholder, input[role="combobox"] {
 			flex: 1 1 auto;
 			box-sizing: border-box;
 			user-select: auto;
@@ -62,7 +62,8 @@
 
 	&.multi {
 		.ts-control {
-			padding: 0 6px 3px 6px;
+			padding-top: 0;
+			padding-bottom: 3px;
 
 			.item {
 				border: 1px solid color-mix(in srgb, var(--border-color), currentcolor 15%);
