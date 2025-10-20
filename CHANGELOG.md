@@ -6,6 +6,8 @@
   * Refactor conversion of initial value into string from fields `DateRangeField`,
     `DateTimeRangeField` to widgets `DateRangePicker`, `DateRangeTextbox`, `DateRangeCalendar`,
     `DateTimeRangePicker`, `DateTimeRangeTextbox` and `DateTimeRangeCalendar`.
+  * Consistently align placeholder in `SelectizeMultiple` widget with that of the `Selectize`
+    widget.
 
 - 2.1.2
   * In `ModelAdminMixin`, after validating a form, method `save_model` is called to save the
