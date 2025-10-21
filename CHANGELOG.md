@@ -10,6 +10,8 @@
     widget.
   * In `DjangoFormset.ts`, use `location.assign()` instead of assigning value directly to
     `location.href`.
+  * Fix #214: `list_filter` in `ModelAdmin` now keeps querystring when switching from detail view to
+    list view.
 
 - 2.1.2
   * In `ModelAdminMixin`, after validating a form, method `save_model` is called to save the
