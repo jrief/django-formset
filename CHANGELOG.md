@@ -8,6 +8,8 @@
     `DateTimeRangePicker`, `DateTimeRangeTextbox` and `DateTimeRangeCalendar`.
   * Consistently align placeholder in `SelectizeMultiple` widget with that of the `Selectize`
     widget.
+  * In `DjangoFormset.ts`, use `location.assign()` instead of assigning value directly to
+    `location.href`.
 
 - 2.1.2
   * In `ModelAdminMixin`, after validating a form, method `save_model` is called to save the

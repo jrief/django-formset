@@ -683,11 +683,11 @@ class DjangoButton {
 	private proceed(proceedUrl?: string) {
 		return async (response: Response) => {
 			if (isString(proceedUrl) && proceedUrl.length > 0) {
-				location.href = proceedUrl;
+				location.assign(proceedUrl);
 			} else if (response instanceof Response && response.status === 200) {
 				const body = await response.clone().json();
 				if (body.success_url) {
-					location.href = body.success_url;
+					location.assign(body.success_url);
 				} else {
 					console.warn("Neither a success-, nor a proceed-URL are given.");
 				}
