@@ -3,8 +3,9 @@ from bs4 import BeautifulSoup, element
 from django.forms.fields import ChoiceField
 from django.forms.models import modelform_factory
 from formset.templatetags.formsetify import _formsetify
+
 from testapp.forms.product import ProductFormUnmapped
-from testapp.models import ProductModel
+from testapp.models import ProductModel, Reporter
 
 
 class ProductFormMapped(ProductFormUnmapped):
@@ -27,7 +28,7 @@ class PropertiesForm(ProductFormUnmapped):
         fields_map = {'properties': ['size', 'color'], 'extra_data': ['fit']}
 
 
-
+@pytest.mark.django_db
 def test_render_unmapped_form():
     form = ProductFormUnmapped()
     assert form._meta.fields is None
@@ -52,9 +53,10 @@ def test_render_unmapped_form():
     assert isinstance(color_field, element.Tag)
 
 
+@pytest.mark.django_db
 def test_render_mapped_form():
     form = ProductFormMapped()
-    expected = ['title', 'price', 'properties', 'size', 'extra_data', 'color', 'supplier_name']
+    expected = ['title', 'price', 'reporter', 'properties', 'size', 'extra_data', 'color', 'supplier_name']
     assert form._meta.fields == expected
     assert form._meta.exclude is None
     assert form._meta.fields_map == {'properties': ['size'], 'extra_data': ['color']}
@@ -76,11 +78,13 @@ def test_render_mapped_form():
 
 @pytest.mark.django_db
 def test_submit_mapped_form():
+    someone, _ = Reporter.objects.get_or_create(full_name="Jacob Rief")
     request_data = {
-        'title': 'Test Product',
-        'price': '100.00',
-        'size': 'XL',
-        'color': '#ff0000',
+        'title': "Test Product",
+        'price': "100.00",
+        'reporter': someone.id,
+        'size': "XL",
+        'color': "#ff0000",
     }
     form = ProductFormMapped(data=request_data)
     assert form.is_valid() is True
@@ -112,10 +116,11 @@ def test_render_factorized_form():
     assert isinstance(color_field, element.Tag)
 
 
+@pytest.mark.django_db
 def test_render_factorized_properties_form():
     ProductForm = modelform_factory(ProductModel, form=PropertiesForm, fields='__all__')
     form = ProductForm()
-    expected = ['title', 'price', 'properties', 'size', 'color', 'extra_data', 'fit', 'supplier_name']
+    expected = ['title', 'price', 'reporter', 'properties', 'size', 'color', 'extra_data', 'fit', 'supplier_name']
     assert form._meta.fields == expected
     assert form._meta.exclude is None
     assert form._meta.fields_map == {'properties': ['size', 'color'], 'extra_data': ['fit']}

@@ -25,3 +25,4 @@ class PersonAdmin(ModelAdmin):
 class ProductAdmin(ModelAdmin):
     save_as = True
     form = ProductForm
+    list_filter = ['reporter']

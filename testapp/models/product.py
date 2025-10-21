@@ -1,5 +1,7 @@
 from django.db import models
 
+from testapp.models.reporter import Reporter
+
 
 class ProductModel(models.Model):
     title = models.CharField(
@@ -7,9 +9,15 @@ class ProductModel(models.Model):
         max_length=50,
     )
     price = models.DecimalField(
-        verbose_name='Price',
+        verbose_name="Price",
         decimal_places=2,
         max_digits=10,
+    )
+    reporter = models.ForeignKey(
+        Reporter,
+        on_delete=models.SET_DEFAULT,
+        null=True,
+        default=None,
     )
     properties = models.JSONField(default=dict)
     extra_data = models.JSONField(default=dict)
