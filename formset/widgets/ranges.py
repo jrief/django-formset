@@ -5,8 +5,6 @@ from django.utils.timezone import datetime
 from formset.widgets import DateCalendar, DatePicker, DateTextbox, DateTimeCalendar, DateTimePicker, DateTimeTextbox
 
 
-
-
 class DateRangeMixin:
     def format_value(self, values):
         if values is None:
