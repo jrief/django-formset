@@ -1,10 +1,21 @@
 from datetime import date
 
+from django.forms.widgets import NumberInput
 from django.utils.timezone import datetime
 
 from formset.widgets import DateCalendar, DatePicker, DateTextbox, DateTimeCalendar, DateTimePicker, DateTimeTextbox
 
 
+class NumberRangeInput(NumberInput):
+    def __init__(self, attrs=None):
+        default_attrs = {
+            'type': 'regex',
+            'pattern': r'-?\d+(\.\d+)?;-?\d+(\.\d+)?',
+            'is': 'django-numberrangefield',
+        }
+        if attrs:
+            default_attrs.update(**attrs)
+        super().__init__(attrs=default_attrs)
 
 
 class DateRangeMixin:
