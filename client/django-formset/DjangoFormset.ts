@@ -126,7 +126,14 @@ class FieldGroup {
 		}
 		if (textAreaElement && 'isInitialized' in textAreaElement) {
 			// currently only the `<textarea is="django-richtext">` is initialized asynchronously
-			textAreaElement.addEventListener('initialized', () => resolveInitialized(textAreaElement.isInitialized));
+			if (textAreaElement.isInitialized) {
+				resolveInitialized!(true);
+			} else {
+				// wait until the richtext editor is fully initialized
+				textAreaElement.addEventListener('initialized', () => {
+					resolveInitialized(textAreaElement.isInitialized)
+				}, {once: true});
+			}
 		} else {
 			resolveInitialized!(true);
 		}
