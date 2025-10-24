@@ -182,7 +182,7 @@ class DateTimeField extends Widget {
 			});
 		}
 		if (this.withRange) {
-			htmlTags.push('<span role="separator" class="datetime-delimiter wide" aria-hidden="true">–</span>');
+			htmlTags.push('<span role="separator" class="datetime-delimiter extrawide" aria-hidden="true">—</span>');
 			htmlTags.push(...htmlTags.slice(2, -1));
 			this.inputFieldsOrder.push(...this.inputFieldsOrder.map(i => i + 5));
 		}
