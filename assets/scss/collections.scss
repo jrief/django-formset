@@ -1,5 +1,6 @@
 django-form-collection {
 	position: relative;
+	background-color: var(--django-formset-background-color);
 
 	&.dj-marked-for-removal {
 		color: gray;
