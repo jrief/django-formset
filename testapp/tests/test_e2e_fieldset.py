@@ -51,15 +51,18 @@ def test_submit_fieldsets(page, mocker, viewname):
     spy = mocker.spy(DemoFormView, 'post')
     page.locator('django-formset button').first.click()
     sleep(0.25)
-    expected = {'formset_data': {
-        'billing.recipient': "John Doe",
-        'billing.address.postal_code': "12345",
-        'billing.address.city': "Springfield",
-        'shipping.recipient': "Jane Doe",
-        'shipping.address.postal_code': "54321",
-        'shipping.address.city': "Shelbyville",
-        'use_billing_address': "",
-    }}
+    expected = {
+        'extra_data': {},
+        'formset_data': {
+            'billing.recipient': "John Doe",
+            'billing.address.postal_code': "12345",
+            'billing.address.city': "Springfield",
+            'shipping.recipient': "Jane Doe",
+            'shipping.address.postal_code': "54321",
+            'shipping.address.city': "Shelbyville",
+            'use_billing_address': "",
+        },
+    }
     spy.assert_called()
     response = json.loads(spy.call_args.args[1].body)
     assert response == expected
@@ -79,15 +82,18 @@ def test_submit_hidden_fieldset(page, mocker, viewname):
     spy = mocker.spy(DemoFormView, 'post')
     page.locator('django-formset button').first.click()
     sleep(0.25)
-    expected = {'formset_data': {
-        'billing.recipient': "John Doe",
-        'billing.address.postal_code': "12345",
-        'billing.address.city': "Springfield",
-        'shipping.recipient': "",
-        'shipping.address.postal_code': "",
-        'shipping.address.city': "",
-        'use_billing_address': "on",
-    }}
+    expected = {
+        'extra_data': {},
+        'formset_data': {
+            'billing.recipient': "John Doe",
+            'billing.address.postal_code': "12345",
+            'billing.address.city': "Springfield",
+            'shipping.recipient': "",
+            'shipping.address.postal_code': "",
+            'shipping.address.city': "",
+            'use_billing_address': "on",
+        },
+    }
     spy.assert_called()
     response = json.loads(spy.call_args.args[1].body)
     assert response == expected

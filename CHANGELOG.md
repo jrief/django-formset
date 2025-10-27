@@ -4,12 +4,13 @@
   * Improve: Handle detached buttons separately when rendering form collections. This allows to use
     detached buttons inside collections with siblings.
 
+  * Fix: Detached buttons use prefixed path for name attributes.
+
 
 
   * Each time a formset is submitted, an `extra_data` object is added to the request payload. This
     can be used to pass arbitrary data to the submission. If partial submissions are used, the new
     button action `addExtraData` can be used to add response data to this object.
-  * Fix: Detached buttons use prefixed path for name attributes.
   * Feat: Add attribute `reverse_accessor` on FormCollection. This allows to specify the reverse
     accessor name of a `ForeignKey` relation used in collections.
   * New action for submission buttons: Can add arbitrary extra data to the submission payload.

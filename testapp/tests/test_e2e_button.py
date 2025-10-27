@@ -270,5 +270,5 @@ def test_button_submit_with_data(page, mocker, viewname):
     sleep(0.25)
     assert spy.called is True
     request = json.loads(spy.call_args.args[1].body)
-    assert request['_extra']['foo'] == "bar"
+    assert request['extra_data']['foo'] == "bar"
     assert request['formset_data']['enter'] == "BAR"

@@ -169,10 +169,13 @@ def test_submit_collection(page, viewname):
     with page.expect_response(page.url) as response_info:
         page.locator('django-formset').evaluate('elem => elem.submit()')
     assert response_info.value.ok is True
-    expected = {'formset_data': {
-        'person': {'full_name': 'John Doe', 'email': 'john@example.com'},
-        'numbers': [{'number': {'phone_number': '+1200300400', 'label': 'work'}}],
-    }}
+    expected = {
+        'extra_data': {},
+        'formset_data': {
+            'person': {'full_name': 'John Doe', 'email': 'john@example.com'},
+            'numbers': [{'number': {'phone_number': '+1200300400', 'label': 'work'}}],
+        },
+    }
     if viewname in ['initial_contact', 'sorted_initial_contact']:
         expected['formset_data']['numbers'].extend([
             {'number': {'phone_number': "+33 1 43478293", 'label': 'home'}},
@@ -208,13 +211,16 @@ def test_add_and_remove_collections(page, viewname):
     expect(numbers_collection.locator('> django-form-collection[sibling-position="0"]')).to_have_class('dj-marked-for-removal')
     with page.expect_response(page.url) as response_info:
         page.locator('django-formset').evaluate('elem => elem.submit()')
-    expected = {'formset_data': {
-        'person': {'full_name': '', 'email': ''},
-        'numbers': [
-            {'number': {'phone_number': '', 'label': 'home', MARKED_FOR_REMOVAL: True}},
-            {'number': {'phone_number': '', 'label': 'home'}},
-        ],
-    }}
+    expected = {
+        'extra_data': {},
+        'formset_data': {
+            'person': {'full_name': '', 'email': ''},
+            'numbers': [
+                {'number': {'phone_number': '', 'label': 'home', MARKED_FOR_REMOVAL: True}},
+                {'number': {'phone_number': '', 'label': 'home'}},
+            ],
+        },
+    }
     assert response_info.value.request.post_data_json == expected
     assert response_info.value.status == 422
     response_data = response_info.value.json()
@@ -254,17 +260,20 @@ def test_remove_and_add_collections(page, viewname):
     with page.expect_response(page.url) as response_info:
         page.locator('django-formset').evaluate('elem => elem.submit()')
     assert response_info.value.ok is True
-    expected = {'formset_data': {
-        'person': {'full_name': 'John Doe', 'email': 'john@example.com'},
-        'numbers': [
-            {'number': {'phone_number': '+1 234 567 8900', 'label': 'home', MARKED_FOR_REMOVAL: True}},
-            {'number': {'phone_number': '+33 1 43478293', 'label': 'home', MARKED_FOR_REMOVAL: True}},
-            {'number': {'phone_number': '+39 335 327041', 'label': 'home', MARKED_FOR_REMOVAL: True}},
-            {'number': {'phone_number': '+41 91 667914', 'label': 'home', MARKED_FOR_REMOVAL: True}},
-            {'number': {'phone_number': '+49 89 7178864', 'label': 'home'}},
-            {'number': {'phone_number': '+1200300400', 'label': 'work'}},
-        ],
-    }}
+    expected = {
+        'extra_data': {},
+        'formset_data': {
+            'person': {'full_name': 'John Doe', 'email': 'john@example.com'},
+            'numbers': [
+                {'number': {'phone_number': '+1 234 567 8900', 'label': 'home', MARKED_FOR_REMOVAL: True}},
+                {'number': {'phone_number': '+33 1 43478293', 'label': 'home', MARKED_FOR_REMOVAL: True}},
+                {'number': {'phone_number': '+39 335 327041', 'label': 'home', MARKED_FOR_REMOVAL: True}},
+                {'number': {'phone_number': '+41 91 667914', 'label': 'home', MARKED_FOR_REMOVAL: True}},
+                {'number': {'phone_number': '+49 89 7178864', 'label': 'home'}},
+                {'number': {'phone_number': '+1200300400', 'label': 'work'}},
+            ],
+        },
+    }
     assert response_info.value.request.post_data_json == expected
 
 
@@ -336,16 +345,19 @@ def test_submit_sorted_initialized_collections(page, viewname):
     with page.expect_response(page.url) as response_info:
         page.locator('django-formset').evaluate('elem => elem.submit()')
     assert response_info.value.ok is True
-    expected = {'formset_data': {
-        'person': {'full_name': 'John Doe', 'email': 'john@example.com'},
-        'numbers': [
-            {'number': {'phone_number': "+49 89 7178864", 'label': 'home'}},
-            {'number': {'phone_number': "+39 335 327041", 'label': 'home'}},
-            {'number': {'phone_number': "+1 234 567 8900", 'label': 'home'}},
-            {'number': {'phone_number': "+41 91 667914", 'label': 'home'}},
-            {'number': {'phone_number': "+33 1 43478293", 'label': 'home'}},
-        ],
-    }}
+    expected = {
+        'extra_data': {},
+        'formset_data': {
+            'person': {'full_name': 'John Doe', 'email': 'john@example.com'},
+            'numbers': [
+                {'number': {'phone_number': "+49 89 7178864", 'label': 'home'}},
+                {'number': {'phone_number': "+39 335 327041", 'label': 'home'}},
+                {'number': {'phone_number': "+1 234 567 8900", 'label': 'home'}},
+                {'number': {'phone_number': "+41 91 667914", 'label': 'home'}},
+                {'number': {'phone_number': "+33 1 43478293", 'label': 'home'}},
+            ],
+        },
+    }
     assert response_info.value.request.post_data_json == expected
 
 
@@ -368,16 +380,19 @@ def test_reset_sorted_initialized_collections(page, viewname):
     with page.expect_response(page.url) as response_info:
         page.locator('django-formset').evaluate('elem => elem.submit()')
     assert response_info.value.ok is True
-    expected = {'formset_data': {
-        'person': {'full_name': 'John Doe', 'email': 'john@example.com'},
-        'numbers': [
-            {'number': {'phone_number': "+1 234 567 8900", 'label': 'home'}},
-            {'number': {'phone_number': "+33 1 43478293", 'label': 'home'}},
-            {'number': {'phone_number': "+39 335 327041", 'label': 'home'}},
-            {'number': {'phone_number': "+41 91 667914", 'label': 'home'}},
-            {'number': {'phone_number': "+49 89 7178864", 'label': 'home'}},
-        ],
-    }}
+    expected = {
+        'extra_data': {},
+        'formset_data': {
+            'person': {'full_name': 'John Doe', 'email': 'john@example.com'},
+            'numbers': [
+                {'number': {'phone_number': "+1 234 567 8900", 'label': 'home'}},
+                {'number': {'phone_number': "+33 1 43478293", 'label': 'home'}},
+                {'number': {'phone_number': "+39 335 327041", 'label': 'home'}},
+                {'number': {'phone_number': "+41 91 667914", 'label': 'home'}},
+                {'number': {'phone_number': "+49 89 7178864", 'label': 'home'}},
+            ],
+        },
+    }
     assert response_info.value.request.post_data_json == expected
 
 
@@ -403,17 +418,20 @@ def test_submit_bulk(page, viewname):
     with page.expect_response(page.url) as response_info:
         page.locator('django-formset').evaluate('elem => elem.submit()')
     assert response_info.value.ok is True
-    expected = {'formset_data': [{
-        'numbers': [{'number': {'phone_number': '+1 200 300 400', 'label': 'work'}}],
-        'person': {'full_name': 'John Doe', 'email': 'john@example.com'}
-    }, {
-        'numbers': [{
-            'number': {'phone_number': '+33 1 43478293', 'label': 'work'},
+    expected = {
+        'extra_data': {},
+        'formset_data': [{
+            'numbers': [{'number': {'phone_number': '+1 200 300 400', 'label': 'work'}}],
+            'person': {'full_name': 'John Doe', 'email': 'john@example.com'}
         }, {
-            'number': {'phone_number': '+39 335 327041', 'label': 'work'},
+            'numbers': [{
+                'number': {'phone_number': '+33 1 43478293', 'label': 'work'},
+            }, {
+                'number': {'phone_number': '+39 335 327041', 'label': 'work'},
+            }],
+            'person': {'full_name': 'Johanna Doe', 'email': 'johanna@example.com'}
         }],
-        'person': {'full_name': 'Johanna Doe', 'email': 'johanna@example.com'}
-    }]}
+    }
     assert response_info.value.request.post_data_json == expected
 
 
@@ -441,28 +459,31 @@ def test_initialized_bulk_remove_all(page, viewname):
     with page.expect_response(page.url) as response_info:
         page.locator('django-formset').evaluate('elem => elem.submit()')
     assert response_info.value.ok is True
-    expected = {'formset_data': [{
-        'person': {
-            'full_name': "John Doe",
-            'email': "john@example.com",
-            MARKED_FOR_REMOVAL: True,
-        },
-        'numbers': [
-            {'number': {'phone_number': "+1 234 567 8900", 'label': 'home', MARKED_FOR_REMOVAL: True}},
-            {'number': {'phone_number': "+33 1 43478293", 'label': 'home', MARKED_FOR_REMOVAL: True}},
-        ],
-    }, {
-        'person': {
-            'full_name': "Johanna Doe",
-            'email': "johanna@example.com",
-            MARKED_FOR_REMOVAL: True,
-        },
-        'numbers': [
-            {'number': {'phone_number': "+39 335 327041", 'label': 'home', MARKED_FOR_REMOVAL: True}},
-            {'number': {'phone_number': "+41 91 667914", 'label': 'home', MARKED_FOR_REMOVAL: True}},
-            {'number': {'phone_number': "+49 89 7178864", 'label': 'home', MARKED_FOR_REMOVAL: True}},
-        ],
-    }]}
+    expected = {
+        'extra_data': {},
+        'formset_data': [{
+            'person': {
+                'full_name': "John Doe",
+                'email': "john@example.com",
+                MARKED_FOR_REMOVAL: True,
+            },
+            'numbers': [
+                {'number': {'phone_number': "+1 234 567 8900", 'label': 'home', MARKED_FOR_REMOVAL: True}},
+                {'number': {'phone_number': "+33 1 43478293", 'label': 'home', MARKED_FOR_REMOVAL: True}},
+            ],
+        }, {
+            'person': {
+                'full_name': "Johanna Doe",
+                'email': "johanna@example.com",
+                MARKED_FOR_REMOVAL: True,
+            },
+            'numbers': [
+                {'number': {'phone_number': "+39 335 327041", 'label': 'home', MARKED_FOR_REMOVAL: True}},
+                {'number': {'phone_number': "+41 91 667914", 'label': 'home', MARKED_FOR_REMOVAL: True}},
+                {'number': {'phone_number': "+49 89 7178864", 'label': 'home', MARKED_FOR_REMOVAL: True}},
+            ],
+        }]
+    }
     assert response_info.value.request.post_data_json == expected
 
 
@@ -486,27 +507,30 @@ def test_initialized_bulk_remove_partial_outer(page, viewname):
     with page.expect_response(page.url) as response_info:
         page.locator('django-formset').evaluate('elem => elem.submit()')
     assert response_info.value.ok is True
-    expected = {'formset_data': [{
-        'person': {
-            'full_name': "John Doe",
-            'email': "john@example.com",
-            MARKED_FOR_REMOVAL: True,
-        },
-        'numbers': [
-            {'number': {'phone_number': "+1 234 567 8900", 'label': 'home', MARKED_FOR_REMOVAL: True}},
-            {'number': {'phone_number': "+33 1 43478293", 'label': 'home', MARKED_FOR_REMOVAL: True}},
-        ],
-    }, {
-        'person': {
-            'full_name': "Johanna Doe",
-            'email': "johanna@example.com",
-        },
-        'numbers': [
-            {'number': {'phone_number': "+39 335 327041", 'label': 'home'}},
-            {'number': {'phone_number': "+41 91 667914", 'label': 'home'}},
-            {'number': {'phone_number': "+49 89 7178864", 'label': 'home'}},
-        ],
-    }]}
+    expected = {
+        'extra_data': {},
+        'formset_data': [{
+            'person': {
+                'full_name': "John Doe",
+                'email': "john@example.com",
+                MARKED_FOR_REMOVAL: True,
+            },
+            'numbers': [
+                {'number': {'phone_number': "+1 234 567 8900", 'label': 'home', MARKED_FOR_REMOVAL: True}},
+                {'number': {'phone_number': "+33 1 43478293", 'label': 'home', MARKED_FOR_REMOVAL: True}},
+            ],
+        }, {
+            'person': {
+                'full_name': "Johanna Doe",
+                'email': "johanna@example.com",
+            },
+            'numbers': [
+                {'number': {'phone_number': "+39 335 327041", 'label': 'home'}},
+                {'number': {'phone_number': "+41 91 667914", 'label': 'home'}},
+                {'number': {'phone_number': "+49 89 7178864", 'label': 'home'}},
+            ],
+        }]
+    }
     assert response_info.value.request.post_data_json == expected
 
 
@@ -537,26 +561,29 @@ def test_initialized_bulk_remove_partial_inner(page, viewname):
         page.locator('django-formset').evaluate('elem => elem.submit()')
     assert response_info.value.ok is True
     # request_body = json.loads(spy.call_args.args[1].body)
-    expected = {'formset_data': [{
-        'person': {
-            'full_name': "John Doe",
-            'email': "john@example.com",
-        },
-        'numbers': [
-            {'number': {'phone_number': "+1 234 567 8900", 'label': 'home'}},
-            {'number': {'phone_number': "+33 1 43478293", 'label': 'home', MARKED_FOR_REMOVAL: True}},
-        ],
-    }, {
-        'person': {
-            'full_name': "Johanna Doe",
-            'email': "johanna@example.com",
-        },
-        'numbers': [
-            {'number': {'phone_number': "+39 335 327041", 'label': 'home', MARKED_FOR_REMOVAL: True}},
-            {'number': {'phone_number': "+41 91 667914", 'label': 'home'}},
-            {'number': {'phone_number': "+49 89 7178864", 'label': 'home', MARKED_FOR_REMOVAL: True}},
-        ],
-    }]}
+    expected = {
+        'extra_data': {},
+        'formset_data': [{
+            'person': {
+                'full_name': "John Doe",
+                'email': "john@example.com",
+            },
+            'numbers': [
+                {'number': {'phone_number': "+1 234 567 8900", 'label': 'home'}},
+                {'number': {'phone_number': "+33 1 43478293", 'label': 'home', MARKED_FOR_REMOVAL: True}},
+            ],
+        }, {
+            'person': {
+                'full_name': "Johanna Doe",
+                'email': "johanna@example.com",
+            },
+            'numbers': [
+                {'number': {'phone_number': "+39 335 327041", 'label': 'home', MARKED_FOR_REMOVAL: True}},
+                {'number': {'phone_number': "+41 91 667914", 'label': 'home'}},
+                {'number': {'phone_number': "+49 89 7178864", 'label': 'home', MARKED_FOR_REMOVAL: True}},
+            ],
+        }],
+    }
     assert response_info.value.request.post_data_json == expected
 
 
@@ -599,27 +626,30 @@ def test_initialized_bulk_remove_all_inner(page, viewname):
     expect(inner_collection.locator('> .remove-collection')).to_be_disabled()
     with page.expect_response(page.url) as response_info:
         page.locator('django-formset').evaluate('elem => elem.submit()')
-    expected = {'formset_data': [{
-        'person': {
-            'full_name': "John Doe",
-            'email': "john@example.com",
-        },
-        'numbers': [
-            {'number': {'phone_number': "+1 234 567 8900", 'label': 'home', MARKED_FOR_REMOVAL: True}},
-            {'number': {'phone_number': "+33 1 43478293", 'label': 'home', MARKED_FOR_REMOVAL: True}},
-            {'number': {'phone_number': '', 'label': 'home'}},
-        ],
-    }, {
-        'person': {
-            'full_name': "Johanna Doe",
-            'email': "johanna@example.com",
-        },
-        'numbers': [
-            {'number': {'phone_number': "+39 335 327041", 'label': 'home', MARKED_FOR_REMOVAL: True}},
-            {'number': {'phone_number': "+41 91 667914", 'label': 'home'}},
-            {'number': {'phone_number': "+49 89 7178864", 'label': 'home', MARKED_FOR_REMOVAL: True}},
-        ],
-    }]}
+    expected = {
+        'extra_data': {},
+        'formset_data': [{
+            'person': {
+                'full_name': "John Doe",
+                'email': "john@example.com",
+            },
+            'numbers': [
+                {'number': {'phone_number': "+1 234 567 8900", 'label': 'home', MARKED_FOR_REMOVAL: True}},
+                {'number': {'phone_number': "+33 1 43478293", 'label': 'home', MARKED_FOR_REMOVAL: True}},
+                {'number': {'phone_number': '', 'label': 'home'}},
+            ],
+        }, {
+            'person': {
+                'full_name': "Johanna Doe",
+                'email': "johanna@example.com",
+            },
+            'numbers': [
+                {'number': {'phone_number': "+39 335 327041", 'label': 'home', MARKED_FOR_REMOVAL: True}},
+                {'number': {'phone_number': "+41 91 667914", 'label': 'home'}},
+                {'number': {'phone_number': "+49 89 7178864", 'label': 'home', MARKED_FOR_REMOVAL: True}},
+            ],
+        }],
+    }
     assert response_info.value.request.post_data_json == expected
     assert response_info.value.status == 422
     response_data = response_info.value.json()

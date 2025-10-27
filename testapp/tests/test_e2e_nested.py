@@ -123,15 +123,18 @@ def test_fill_collection(page, mocker, viewname):
     sleep(0.2)
     spy.assert_called()
     assert spy.spy_return.status_code == 200
-    assert body == {'formset_data': {
-        'departments': [{
-            'teams': [
-                {'team': {'name': 'Canada'}}
-            ],
-            'department': {'name': 'Marketing'}
-        }],
-        'company': {'name': 'Pepsi'},
-    }}
+    assert body == {
+        'extra_data': {},
+        'formset_data': {
+            'departments': [{
+                'teams': [
+                    {'team': {'name': 'Canada'}}
+                ],
+                'department': {'name': 'Marketing'}
+            }],
+            'company': {'name': 'Pepsi'},
+        },
+    }
 
 
 @pytest.mark.urls(__name__)
@@ -165,13 +168,16 @@ def test_partial_fill_collection(page, mocker, viewname):
     sleep(0.2)
     spy.assert_called()
     assert spy.spy_return.status_code == 200
-    expected = {'formset_data': {
-        'departments': [{
-            'teams': [],
-            'department': {'name': 'Marketing'}
-        }],
-        'company': {'name': 'Pepsi'},
-    }}
+    expected = {
+        'extra_data': {},
+        'formset_data': {
+            'departments': [{
+                'teams': [],
+                'department': {'name': 'Marketing'}
+            }],
+            'company': {'name': 'Pepsi'},
+        },
+    }
     if viewname == 'company_2':
         expected['formset_data']['departments'][0]['teams'].append(
             {'team': {'name': 'Atlanta', MARKED_FOR_REMOVAL: True}}
@@ -195,16 +201,19 @@ def test_fill_collection_add_inner(page, mocker, viewname):
     formset.evaluate('elem => elem.submit()')
     body = json.loads(spy.call_args.args[1].body)
     sleep(0.2)
-    assert body == {'formset_data': {
-        'departments': [{
-            'teams': [
-                {'team': {'name': 'Canada'}},
-                {'team': {'name': 'Argentina'}}
-            ],
-            'department': {'name': 'Marketing'}
-        }],
-        'company': {'name': 'Pepsi'},
-    }}
+    assert body == {
+        'extra_data': {},
+        'formset_data': {
+            'departments': [{
+                'teams': [
+                    {'team': {'name': 'Canada'}},
+                    {'team': {'name': 'Argentina'}}
+                ],
+                'department': {'name': 'Marketing'}
+            }],
+            'company': {'name': 'Pepsi'},
+        },
+    }
     spy.assert_called()
     assert spy.spy_return.status_code == 200
 
@@ -235,20 +244,23 @@ def test_fill_collection_add_outer(page, mocker, viewname):
     formset.evaluate('elem => elem.submit()')
     body = json.loads(spy.call_args.args[1].body)
     assert spy.spy_return.status_code == 200
-    assert body == {'formset_data': {
-        'departments': [{
-            'teams': [
-                {'team': {'name': 'Canada'}},
-            ],
-            'department': {'name': 'Marketing'}
-        }, {
-            'teams': [
-                {'team': {'name': 'Controlling'}},
-            ],
-            'department': {'name': 'Finance'}
-        }],
-        'company': {'name': 'Pepsi'},
-    }}
+    assert body == {
+        'extra_data': {},
+        'formset_data': {
+            'departments': [{
+                'teams': [
+                    {'team': {'name': 'Canada'}},
+                ],
+                'department': {'name': 'Marketing'}
+            }, {
+                'teams': [
+                    {'team': {'name': 'Controlling'}},
+                ],
+                'department': {'name': 'Finance'}
+            }],
+            'company': {'name': 'Pepsi'},
+        },
+    }
     sleep(0.2)
     spy.assert_called()
 
@@ -268,15 +280,18 @@ def test_submit_half_empty_collection(page, mocker, viewname):
     spy = mocker.spy(FormCollectionView, 'post')
     formset.evaluate('elem => elem.submit()')
     body = json.loads(spy.call_args.args[1].body)
-    assert body == {'formset_data': {
-        'departments': [{
-            'teams': [
-                {'team': {'name': ''}},
-            ],
-            'department': {'name': 'Marketing'}
-        }],
-        'company': {'name': 'Pepsi'},
-    }}
+    assert body == {
+        'extra_data': {},
+        'formset_data': {
+            'departments': [{
+                'teams': [
+                    {'team': {'name': ''}},
+                ],
+                'department': {'name': 'Marketing'}
+            }],
+            'company': {'name': 'Pepsi'},
+        },
+    }
     sleep(0.2)
     spy.assert_called()
     assert spy.spy_return.status_code == 422

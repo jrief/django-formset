@@ -108,7 +108,7 @@ class FormsetResponseMixin:
         Use this method to access that extra data.
         """
         if self._request_body:
-            return self._request_body.get('_extra')
+            return self._request_body.get('extra_data', {})
 
 
 class FormViewMixin(FormsetResponseMixin):
