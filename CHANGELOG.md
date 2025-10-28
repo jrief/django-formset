@@ -1,5 +1,26 @@
 ## Changes
 
+1.8
+  * Fix: In `StepperCollection` only immediate children are considered as `StepperSteps`. This
+    caused problems when nesting collections.
+  * Fix race condition during initialization of `RichtextArea` widget: This web component might
+    already have been initialized, before `FieldGroup` was constructed.
+  * Improve readablility: Use emdash in Date(Time)Range widget to separate from – until datetimes.
+  * Apply an extra data object to the request payload each time a formset is submitted.
+  * Fix rare problem when dragging a sortable collection.
+  * Improve UX: Set background-color for smoother dragging of a `FormCollection`.
+  * Fix: Accept Date(Time)Range objects delivered by Postgres in associated widgets.
+  * Fix: Detached buttons use prefixed path for name attributes.
+  * Feat: Add attribute `reverse_accessor` on FormCollection. This allows to specify the reverse
+    accessor name of a `ForeignKey` relation used in collections.
+  * Improve UX: When sorting form collections, the trash symbol now is hidden to prevent confusion.
+  * Fix: add extra check to see if instance marked for removal has already been deleted.
+  * Improve: Handle detached buttons separately when rendering form collections. This allows to use
+    detached buttons inside collections with siblings.
+  * New action for submission buttons: Can add arbitrary extra data to the submission payload.
+  * Improve UX: Make disabled `Selectize` widgets better distinguishable by applying opacity to 
+    the whole widget.
+
 1.7.9
   * Fix #239: `DateRangePicker`, `DateRangeCalendar`, `DateRangeTextbox`, `DateTimeRangePicker`,
     `DateTimeRangeCalendar` and `DateTimeRangeTextbox` now offset by current timezone.
