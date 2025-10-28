@@ -417,7 +417,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         object_data = {}
         for name, holder in self.declared_holders.items():
             if getattr(holder, 'has_many', False):
-                if related_manager := getattr(instance, holder._name, None):
+                reverse_accessor = getattr(holder, 'reverse_accessor', holder._name)
+                if related_manager := getattr(instance, reverse_accessor, None):
                     try:
                         queryset = related_manager.all()
                     except ValueError:
