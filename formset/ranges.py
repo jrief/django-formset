@@ -22,9 +22,7 @@ class DateRangeMixin:
             if any(v is None for v in values):
                 return ''
             if all(isinstance(v, date) for v in values):
-                if any(is_naive(v) for v in values):
-                    return ';'.join(v.strftime('%Y-%m-%dT00:00') for v in values)
-                return ';'.join(to_current_timezone(v).strftime('%Y-%m-%dT00:00') for v in values)
+                return ';'.join(v.strftime('%Y-%m-%dT00:00') for v in values)
         return values
 
 

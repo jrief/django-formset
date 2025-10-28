@@ -1,7 +1,7 @@
 import os
 import struct
 from base64 import b16encode
-from datetime import date, timedelta
+from datetime import date, timedelta, timezone
 from functools import reduce
 from inspect import isclass
 from operator import and_, or_
@@ -19,7 +19,7 @@ from django.forms.widgets import (
 from django.template.loader import get_template
 from django.utils.encoding import uri_to_iri
 from django.utils.functional import cached_property
-from django.utils.timezone import get_current_timezone, is_naive, make_aware, now, timezone
+from django.utils.timezone import datetime, now
 from django.utils.translation import gettext_lazy as _
 
 from formset.calendar import CalendarRenderer
@@ -527,11 +527,8 @@ class DateCalendar(CalendarRendererMixin, DateTimeBaseInput):
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
 
     def format_value(self, value):
-        if isinstance(value, date):
-            if is_naive(value):
-                value = make_aware(value, timezone.utc)
-            tz = get_current_timezone()
-            return value.astimezone(tz).strftime('%Y-%m-%d')
+        if isinstance(value, (date, datetime)):
+            return value.strftime('%Y-%m-%d')
         return value
 
 
