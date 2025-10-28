@@ -1,6 +1,7 @@
 from datetime import date
 
-from django.utils.timezone import datetime
+from django.forms.utils import to_current_timezone
+from django.utils.timezone import datetime, is_naive
 
 from formset.widgets import DateCalendar, DatePicker, DateTextbox, DateTimeCalendar, DateTimePicker, DateTimeTextbox
 
@@ -9,8 +10,14 @@ class DateRangeMixin:
     def format_value(self, values):
         if values is None:
             return ''
+        try:
+            from django.db.backends.postgresql.psycopg_any import DateRange
+            if isinstance(values, DateRange):
+                values = values.lower, values.upper
+        except ImportError:
+            pass
         if isinstance(values, (list, tuple)) and len(values) == 2:
-            if all(v is None for v in values):
+            if any(v is None for v in values):
                 return ''
             if all(isinstance(v, date) for v in values):
                 return ';'.join(v.strftime('%Y-%m-%dT00:00') for v in values)
@@ -59,11 +66,19 @@ class DateTimeRangeMixin:
     def format_value(self, values):
         if values is None:
             return ''
+        try:
+            from django.db.backends.postgresql.psycopg_any import DateTimeTZRange
+            if isinstance(values, DateTimeTZRange):
+                values = values.lower, values.upper
+        except ImportError:
+            pass
         if isinstance(values, (list, tuple)) and len(values) == 2:
-            if all(v is None for v in values):
+            if any(v is None for v in values):
                 return ''
             if all(isinstance(v, datetime) for v in values):
-                return ';'.join(v.strftime('%Y-%m-%dT%H:%M') for v in values)
+                if any(is_naive(v) for v in values):
+                    return ';'.join(v.strftime('%Y-%m-%dT%H:%M') for v in values)
+                return ';'.join(to_current_timezone(v).strftime('%Y-%m-%dT%H:%M') for v in values)
         return values
 
 
