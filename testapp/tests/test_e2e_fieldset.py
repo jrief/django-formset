@@ -43,10 +43,13 @@ def test_submit_customer(page, mocker, viewname):
     sleep(0.25)
     spy.assert_called()
     response = json.loads(spy.call_args.args[1].body)
-    assert response == {'formset_data': {
-        'customer': {'name': "John Doe", 'address': "123, Lye Street", 'phone_number': ""},
-        'register': {'no_customer': ""}
-    }}
+    assert response == {
+        '_extra': {},
+        'formset_data': {
+            'customer': {'name': "John Doe", 'address': "123, Lye Street", 'phone_number': ""},
+            'register': {'no_customer': ""}
+        },
+    }
 
 
 @pytest.mark.urls(__name__)
@@ -61,7 +64,10 @@ def test_submit_no_customer(page, mocker, viewname):
     sleep(0.25)
     spy.assert_called()
     response = json.loads(spy.call_args.args[1].body)
-    assert response == {'formset_data': {
-        'customer': {'name': "", 'address': "", 'phone_number': ""},
-        'register': {'no_customer': "on"}
-    }}
+    assert response == {
+        '_extra': {},
+        'formset_data': {
+            'customer': {'name': "", 'address': "", 'phone_number': ""},
+            'register': {'no_customer': "on"}
+        },
+    }

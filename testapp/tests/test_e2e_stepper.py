@@ -164,11 +164,14 @@ def test_steps_become_active(page, mocker, viewname):
     spy.assert_called()
     assert spy.spy_return.status_code == 200
     request_body = json.loads(spy.call_args.args[1].body)
-    expected = {'formset_data': {
-        'contact': {'first_name': "John", 'last_name': "Doe"},
-        'shipping': {'street': "123 Main St", 'postal_code': "12345", 'city': "Springfield"},
-        'payment': {'card_owner': "John Doe", 'card_number': "1234 5678 9012 3456"},
-    }}
+    expected = {
+        '_extra': {},
+        'formset_data': {
+            'contact': {'first_name': "John", 'last_name': "Doe"},
+            'shipping': {'street': "123 Main St", 'postal_code': "12345", 'city': "Springfield"},
+            'payment': {'card_owner': "John Doe", 'card_number': "1234 5678 9012 3456"},
+        },
+    }
     assert request_body == expected
 
 
