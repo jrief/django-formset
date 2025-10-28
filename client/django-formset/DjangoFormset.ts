@@ -904,6 +904,17 @@ class DjangoButton {
 		}
 	}
 
+	/**
+	 * Transfer value from one element to another one.
+ 	 */
+	//@allowedAction
+	private setExtraData(target: Path, source: FieldValue) {
+		return (response: Response) => {
+			this.formset.setExtraData(target, source);
+			return Promise.resolve(response);
+		}
+	}
+
 	//@allowedAction
 	private deletePartial(target: Path, source: FieldValue) {
 		return (response: Response) => {
@@ -2310,6 +2321,10 @@ export class DjangoFormset implements DjangoFormset {
 		if (destForm && path.length > 0) {
 			destForm.setFieldValue(path.slice(-1)[0], value);
 		}
+	}
+
+	public setExtraData(path: Path, value: any) {
+		setDataValue(this.extraData, path, value);
 	}
 
 	public findFirstErrorReport() : Element|null {

@@ -112,6 +112,9 @@ Function
   = 'setFieldValue' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
     return {_funcName: 'setFieldValue', _funcArgs: [target.split('.'), source]};
   }
+  / 'setExtraData' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
+    return {_funcName: 'setExtraData', _funcArgs: [target.split('.'), source]};
+  }
   / 'deletePartial' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
     return {_funcName: 'deletePartial', _funcArgs: [target.split('.'), source]};
   }
