@@ -26,7 +26,7 @@ class FormCollectionMeta(MediaDefiningClass):
     """
     def __new__(cls, name, bases, attrs):
         # Collect forms and sub-collections from current class and remove them from attrs.
-        attrs['declared_holders'] = {}
+        attrs['declared_holders'], attrs['detached_holders'] = {}, {}
         for key, value in list(attrs.items()):
             if isinstance(value, (BaseForm, BaseFormCollection, Activator)):
                 attrs.pop(key)
@@ -37,14 +37,16 @@ class FormCollectionMeta(MediaDefiningClass):
                         (RenderableDetachedFieldMixin, value.__class__),
                         {}
                     )
-                if isinstance(value, BaseForm) and not isinstance(value, FormMixin):
-                    value.__class__ = type(
-                        value.__class__.__name__,
-                        (FormMixin, value.__class__),
-                        {}
-                    )
-                    value.error_class = FormsetErrorList
-                attrs['declared_holders'][key] = value
+                    attrs['detached_holders'][key] = value
+                else:
+                    if isinstance(value, BaseForm) and not isinstance(value, FormMixin):
+                        value.__class__ = type(
+                            value.__class__.__name__,
+                            (FormMixin, value.__class__),
+                            {}
+                        )
+                        value.error_class = FormsetErrorList
+                    attrs['declared_holders'][key] = value
 
         new_class = super().__new__(cls, name, bases, attrs)
 
@@ -217,6 +219,17 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             yield from self.iter_many()
         else:
             yield from self.iter_single()
+
+    def detached(self):
+        # yield detached activators, i.e. fields bound to a collection outside its forms
+        for name, detached_holder in self.detached_holders.items():
+            holder = detached_holder.replicate(
+                auto_id=self.auto_id,
+                prefix=self.prefix,
+                renderer=self.renderer,
+                ignore_marked_for_removal=self.ignore_marked_for_removal,
+            )
+            yield holder
 
     def get_context(self):
         return {
