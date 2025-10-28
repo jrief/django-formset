@@ -7,6 +7,7 @@ from formset.widgets import Button
 class Activator(HolderMixin, Field):
     default_renderer = None
     widget = Button(action='activate')
+    prefix = None
 
     def __init__(self, renderer=None, **kwargs):
         self.renderer = renderer or self.default_renderer

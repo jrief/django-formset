@@ -29,33 +29,35 @@ class FormCollectionMeta(MediaDefiningClass):
     """
     def __new__(cls, name, bases, attrs):
         # Collect forms and sub-collections from current class and remove them from attrs.
-        attrs['declared_holders'] = {}
+        attrs['declared_holders'], attrs['detached_holders'] = {}, {}
         for key, value in list(attrs.items()):
             if isinstance(value, (BaseForm, BaseFormCollection, Activator)):
                 attrs.pop(key)
                 setattr(value, '_name', key)
-                if isinstance(value, Activator) and not isinstance(value, RenderableDetachedFieldMixin):
-                    value.__class__ = type(
-                        value.__class__.__name__,
-                        (RenderableDetachedFieldMixin, value.__class__),
-                        {}
-                    )
-                elif not isinstance(value, FormMixin):
-                    if isinstance(value, BaseModelForm):
+                if isinstance(value, Activator):
+                    if not isinstance(value, RenderableDetachedFieldMixin):
+                        value.__class__ = type(
+                            value.__class__.__name__,
+                            (RenderableDetachedFieldMixin, value.__class__),
+                            {}
+                        )
+                    attrs['detached_holders'][key] = value
+                else:
+                    if not isinstance(value, FormMixin) and isinstance(value, BaseModelForm):
                         value.__class__ = types.new_class(
                             value.__class__.__name__,
                             bases=(FormMixin, value.__class__),
                             kwds={'metaclass': FormsetModelFormMetaclass},
                         )
                         value.error_class = FormsetErrorList
-                    elif isinstance(value, BaseForm):
+                    elif not isinstance(value, FormMixin) and isinstance(value, BaseForm):
                         value.__class__ = types.new_class(
                             value.__class__.__name__,
                             bases=(FormMixin, value.__class__),
                             kwds={'metaclass': DeclarativeFieldsetMetaclass},
                         )
                         value.error_class = FormsetErrorList
-                attrs['declared_holders'][key] = value
+                    attrs['declared_holders'][key] = value
             elif isinstance(value, CollectionFieldMixin):
                 pass
 
@@ -227,6 +229,17 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             yield from self.iter_many()
         else:
             yield from self.iter_single()
+
+    def detached(self):
+        # yield detached activators, i.e. fields bound to a collection outside its forms
+        for name, detached_holder in self.detached_holders.items():
+            holder = detached_holder.replicate(
+                auto_id=self.auto_id,
+                prefix=self.prefix,
+                renderer=self.renderer,
+                ignore_marked_for_removal=self.ignore_marked_for_removal,
+            )
+            yield holder
 
     def get_context(self):
         return {

@@ -113,7 +113,7 @@ def test_close_dialog(page, viewname):
     form_collection = page.locator('django-formset > django-form-collection')
     dialog = form_collection.nth(1).locator('> dialog')
     expect(dialog).not_to_be_visible()
-    form_collection.nth(2).locator('button[name="click_outside"]').click()
+    page.locator('django-formset > button[name="click_outside"]').click()
     expect(dialog).to_be_visible()
     dialog.locator('input[name="name"]').blur()
     dialog.locator('button[name="cancel"]').click()

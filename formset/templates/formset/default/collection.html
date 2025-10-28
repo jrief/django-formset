@@ -32,4 +32,7 @@
 {% if collection.has_many %}
 </div>
 {% endif %}
+{% for holder in collection.detached %}
+	{{ holder }}
+{% endfor %}
 {% endspaceless %}
