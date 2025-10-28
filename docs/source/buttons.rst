@@ -100,6 +100,10 @@ as queued actions for buttons in **django-formset**:
   the latter case that value is transferred to the target field.
   By prefixing the source value with a ``^`` caret, the value is taken from a response object
   fetched by a previous request.
+* ``setExtraData(path.to.target, source_value)`` sets a value to be submitted as extra data along
+  with the form data. The target path specifies where to store that value inside the extra data
+  object. The source value can be a string, number or a boolean.  By prefixing the source value with
+  a ``^`` caret, the value is taken from a response object fetched by a previous request.
 * ``emit("event name")`` emit a named event to the DOM.
 * ``clearErrors`` clears all error annotations from a previously failed form validation.
 * ``activate`` activates the button to be intercepted by another component, for instance in
