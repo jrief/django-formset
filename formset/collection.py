@@ -482,7 +482,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     if not isinstance(holder, BaseModelForm):
                         continue
                     if holder.marked_for_removal:
-                        holder.instance.delete()
+                        if holder.instance and holder.instance.pk:
+                            holder.instance.delete()
                         continue
                     construct_instance(holder, holder.instance)
                     if getattr(self, 'related_field', None):
