@@ -198,19 +198,17 @@ class RenderableDetachedFieldMixin(RenderableMixin):
         attrs = attrs or {}
         if self.disabled:
             attrs['disabled'] = True
-        if '%s' in str(self.auto_id):
-            auto_id = self.auto_id % self._name
-        elif self.auto_id:
-            auto_id = self.auto_id
-        else:
-            auto_id = ''
+        name = f'{self.prefix}.{self._name}' if self.prefix else self._name
+        auto_id = getattr(self, 'auto_id', '')
+        if '%s' in str(auto_id):
+            auto_id = auto_id % name
         if auto_id:
             attrs['id'] = auto_id
             if self.help_text:
                 attrs['aria-describedby'] = f'{auto_id}_help_text'
         attrs['label'] = self._name.replace('_', ' ').title() if self.label is None else self.label
         return widget.render(
-            name=self._name,
+            name=name,
             value=None,
             attrs=attrs,
             renderer=self.renderer,

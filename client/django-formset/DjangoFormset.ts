@@ -1967,7 +1967,7 @@ export class DjangoFormset implements DjangoFormset {
 			if (element.hasAttribute('df-click')) {
 				const buttonElement = element as HTMLButtonElement;
 				if (!this.buttons.find(button => button.element === buttonElement)) {
-					const path = buttonElement.name ? [buttonElement.name] : [];
+					const path = buttonElement.name ? buttonElement.name.split('.') : [];
 					this.buttons.push(new DjangoButton(this, buttonElement, path));
 				}
 			}
