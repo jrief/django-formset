@@ -58,8 +58,8 @@ django-form-collection {
 		}
 	}
 
-	&[sortable] > django-form-collection[sibling-position] > .collection-drag-handle:active::after {
-		cursor: grabbing;
+	.collection-siblings:has(> .sortable-chosen) > [sibling-position] >.remove-collection {
+		visibility: hidden;
 	}
 
 	.dj-ghost-collection {
