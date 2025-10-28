@@ -152,10 +152,10 @@ this view shall contain HTML with a structure similar to this:
 One-to-Many Relations
 =====================
 
-One of the most prominent use-cases is to edit a model object together with child objects referring
-to itself. By children we mean objects which point onto the main object using a Django
-`ForeignKey`_. Let's again explain this using an example. Say, we want to create models for the
-organization chart of a company. There is a model for a company, which may consist of different
+The most prominent use-case for form collections is to edit a model object together with child
+objects referring to itself. By children we mean objects which point onto the main object using a
+Django `ForeignKey`_. Let's again explain this using an example. Say, we want to create models for
+the organization chart of a company. There is a model for a company, which may consist of different
 departments, which themselves can have different teams. In relational models this usually is done
 using a foreign key. For demonstration purposes the remaining part of the models is very lean and
 only stores their names.
@@ -279,14 +279,9 @@ field named ``id`` comes into play. It is a hidden ``IntegerField`` and represen
 of the model instances for the ``Department`` or ``Team``. Since newly created instances haven't any
 primary key yet, they are marked with ``required=False`` to make them optional.
 
-.. note:: Take care when naming related collections on a parent ``FormCollection``. The name **must 
-	match** the reverse accessor of the related field. In this example, the ``ForeinKey`` pointing
-	from model ``Team`` to ``Department`` has its ``related_name`` set to ``'teams'``, therefore we
-	**must specify** ``teams = TeamCollection()`` in our ``DepartmentCollection``. The same pattern
-	applies	for the relationship between our ``CompanyCollection`` and ``DepartmentCollection``.
-	Conversely, if no ``related_name`` would have been set on the ``ForeignKey`` pointing from model
-	``Department`` to ``Company``, then in ``CompanyCollection`` we instead would have to specify 
-	``department_set = DepartmentCollection()``. 
+.. note:: Take care when naming related collections on a parent ``FormCollection``. The name must 
+	either match the reverse accessor of the related field or must be explicitly set in the
+	``FormCollection`` using the attribute ``reverse_accessor`` – read section below for details. 
 
 Finally, our ``CompanyCollection`` must be made editable and served by a Django view class. Here we
 can use the the view class :class:`formset.views.EditCollectionView` as in the previous example.
@@ -318,6 +313,16 @@ In this example we have to implement the attribute ``related_field`` in our main
 ``CompanyCollection``. This is because **django-formset** otherwise does not know how the
 ``DepartmentCollection`` is related to model ``Company``, and how the ``TeamCollection`` is related
 to model ``Department``. 
+
+.. rubric:: ``reverse_accessor``
+
+This is the reverse relation from the main instance back to the child objects and required during
+the construction of the collection. It usually is the string used in ``related_name`` when declaring
+a foreign key for any given relation. In this example, these values are ``departments`` for the
+relation from ``Company`` to ``Department``, and ``teams`` for the relation from ``Department`` to
+``Team``. However, since we already used these names in the declaration of our collections, we
+ommitted them here. They are only required, if the attribute name of the collection differs from the
+``related_name`` of the foreign key.
 
 .. rubric:: ``retrieve_instance(data)``
 
