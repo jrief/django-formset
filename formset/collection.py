@@ -26,7 +26,7 @@ class FormCollectionMeta(MediaDefiningClass):
     """
     def __new__(cls, name, bases, attrs):
         # Collect forms and sub-collections from current class and remove them from attrs.
-        attrs['declared_holders'] = {}
+        attrs['declared_holders'], attrs['detached_holders'] = {}, {}
         for key, value in list(attrs.items()):
             if isinstance(value, (BaseForm, BaseFormCollection, Activator)):
                 attrs.pop(key)
@@ -37,14 +37,16 @@ class FormCollectionMeta(MediaDefiningClass):
                         (RenderableDetachedFieldMixin, value.__class__),
                         {}
                     )
-                if isinstance(value, BaseForm) and not isinstance(value, FormMixin):
-                    value.__class__ = type(
-                        value.__class__.__name__,
-                        (FormMixin, value.__class__),
-                        {}
-                    )
-                    value.error_class = FormsetErrorList
-                attrs['declared_holders'][key] = value
+                    attrs['detached_holders'][key] = value
+                else:
+                    if isinstance(value, BaseForm) and not isinstance(value, FormMixin):
+                        value.__class__ = type(
+                            value.__class__.__name__,
+                            (FormMixin, value.__class__),
+                            {}
+                        )
+                        value.error_class = FormsetErrorList
+                    attrs['declared_holders'][key] = value
 
         new_class = super().__new__(cls, name, bases, attrs)
 
@@ -158,7 +160,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             num_siblings = max(self.min_siblings, self.extra_siblings)
 
         first, last = 0, len(self.declared_holders.items()) - 1
-        # add initialized collections/forms
+
+        # yield initialized collections and forms
         for position in range(num_siblings):
             for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
                 prefix = f'{self.prefix}.{position}.{name}' if self.prefix else f'{position}.{name}'
@@ -182,7 +185,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 if initial in self.empty_values and (position >= self.min_siblings or self.fresh_and_empty):
                     holder.fresh_and_empty = True
                 yield holder
-        # add empty placeholder as template for extra collections
+
+        # yield empty placeholder as template for extra collections
         for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
             if self.prefix:
                 count = self.prefix.count('${siblingId')
@@ -215,6 +219,17 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             yield from self.iter_many()
         else:
             yield from self.iter_single()
+
+    def detached(self):
+        # yield detached activators, i.e. fields bound to a collection outside its forms
+        for name, detached_holder in self.detached_holders.items():
+            holder = detached_holder.replicate(
+                auto_id=self.auto_id,
+                prefix=self.prefix,
+                renderer=self.renderer,
+                ignore_marked_for_removal=self.ignore_marked_for_removal,
+            )
+            yield holder
 
     def get_context(self):
         return {
@@ -415,7 +430,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         object_data = {}
         for name, holder in self.declared_holders.items():
             if getattr(holder, 'has_many', False):
-                if related_manager := getattr(instance, holder._name, None):
+                reverse_accessor = getattr(holder, 'reverse_accessor', holder._name)
+                if related_manager := getattr(instance, reverse_accessor, None):
                     try:
                         queryset = related_manager.all()
                     except ValueError:
@@ -463,7 +479,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     if not isinstance(holder, BaseModelForm):
                         continue
                     if holder.marked_for_removal:
-                        holder.instance.delete()
+                        if holder.instance and holder.instance.pk:
+                            holder.instance.delete()
                         continue
                     construct_instance(holder, holder.instance)
                     if getattr(self, 'related_field', None):

@@ -1,5 +1,10 @@
 ## Changes
 
+1.7.9
+  * Fix #239: `DateRangePicker`, `DateRangeCalendar`, `DateRangeTextbox`, `DateTimeRangePicker`,
+    `DateTimeRangeCalendar` and `DateTimeRangeTextbox` now offset by current timezone.
+  * Refactor datetime range conversion from field to widget.
+
 1.7.8
   * Fix #236: `maxLength` in slug field has been ignored. If set, `DjangoSlugElement` now truncates
     this string.

@@ -126,7 +126,14 @@ class FieldGroup {
 		}
 		if (textAreaElement && 'isInitialized' in textAreaElement) {
 			// currently only the `<textarea is="django-richtext">` is initialized asynchronously
-			textAreaElement.addEventListener('initialized', () => resolveInitialized(textAreaElement.isInitialized));
+			if (textAreaElement.isInitialized) {
+				resolveInitialized!(true);
+			} else {
+				// wait until the richtext editor is fully initialized
+				textAreaElement.addEventListener('initialized', () => {
+					resolveInitialized(textAreaElement.isInitialized)
+				}, {once: true});
+			}
 		} else {
 			resolveInitialized!(true);
 		}
@@ -935,6 +942,17 @@ class DjangoButton {
 	private setFieldValue(target: Path, source: FieldValue) {
 		return (response: Response) => {
 			this.formset.setFieldValue(target, source);
+			return Promise.resolve(response);
+		}
+	}
+
+	/**
+	 * Transfer value from one element to another one.
+ 	 */
+	//@allowedAction
+	private setExtraData(target: Path, source: FieldValue) {
+		return (response: Response) => {
+			this.formset.setExtraData(target, source);
 			return Promise.resolve(response);
 		}
 	}
@@ -1804,6 +1822,7 @@ export class DjangoFormset implements DjangoFormset {
 	private readonly abortController = new AbortController;
 	private readonly emptyCollectionPrefixes = Array<string>(0);
 	private data?: object;
+	private readonly extraData: object = {};
 
 	constructor(formset: DjangoFormsetElement) {
 		this.element = formset;
@@ -1959,7 +1978,7 @@ export class DjangoFormset implements DjangoFormset {
 			if (element.hasAttribute('df-click')) {
 				const buttonElement = element as HTMLButtonElement;
 				if (!this.buttons.find(button => button.element === buttonElement)) {
-					const path = buttonElement.name ? [buttonElement.name] : [];
+					const path = buttonElement.name ? buttonElement.name.split('.') : [];
 					this.buttons.push(new DjangoButton(this, buttonElement, path));
 				}
 			}
@@ -2013,7 +2032,7 @@ export class DjangoFormset implements DjangoFormset {
 		return isValid;
 	}
 
-	public buildBody(extraData?: Object) : Object {
+	public buildBody() : Object {
 		let dataValue: any;
 		// Build `body`-Object recursively.
 		// Deliberately ignore type-checking, because `body` must be built as POJO to be JSON serializable.
@@ -2068,8 +2087,7 @@ export class DjangoFormset implements DjangoFormset {
 		for (const form of this.forms) {
 			if (!form.name) {
 				// it's a single form, which doesn't have a name
-				const formsetData = Object.fromEntries(form.aggregateValues());
-				return Object.assign({}, {'formset_data': formsetData}, {_extra: extraData});
+				return {'formset_data': Object.fromEntries(form.aggregateValues())};
 			}
 			if (form.isTransient)
 				continue;
@@ -2082,7 +2100,7 @@ export class DjangoFormset implements DjangoFormset {
 		}
 
 		// 3. extend data structure with extra data, for instance from buttons
-		return Object.assign({}, body, {_extra: extraData});
+		return body;
 	}
 
 	async submit(extraData?: Object) : Promise<Response|undefined> {
@@ -2099,7 +2117,8 @@ export class DjangoFormset implements DjangoFormset {
 			if (!this.endpoint)
 				throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
 			this.removeFreshCollections();
-			const body = this.buildBody(extraData);
+			const extraBody = {_extra: Object.assign({}, this.extraData, extraData)};
+			const body = Object.assign(extraBody, this.buildBody());
 			try {
 				const headers = new Headers();
 				headers.append('Accept', 'application/json');
@@ -2184,7 +2203,8 @@ export class DjangoFormset implements DjangoFormset {
 			throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
 		this.forms.find(form => isEqual(form.path, path))?.setSubmitted();
 		const fullPath = ['formset_data', ...path];
-		const body = setDataValue({}, fullPath, getDataValue(this.buildBody(extraData), fullPath));
+		const extraBody = {_extra: Object.assign({}, this.extraData, extraData)};
+		const body = setDataValue(extraBody, fullPath, getDataValue(this.buildBody(), fullPath));
 		try {
 			const headers = new Headers();
 			headers.append('Accept', 'application/json');
@@ -2316,6 +2336,10 @@ export class DjangoFormset implements DjangoFormset {
 		if (destForm && path.length > 0) {
 			destForm.setFieldValue(path.slice(-1)[0], value);
 		}
+	}
+
+	public setExtraData(path: Path, value: any) {
+		setDataValue(this.extraData, path, value);
 	}
 
 	public findFirstErrorReport() : Element|null {

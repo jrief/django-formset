@@ -1,23 +1,34 @@
 from datetime import date
 
 from django.forms import fields
-from django.utils.timezone import get_current_timezone, is_naive, make_aware, timezone
+from django.forms.utils import to_current_timezone
+from django.utils.timezone import datetime, is_naive
 from django.utils.translation import gettext_lazy as _
 
 from formset.widgets import DateCalendar, DatePicker, DateTextbox, DateTimeCalendar, DateTimePicker, DateTimeTextbox
 
 
-class DateTimeRangeMixin:
+class DateRangeMixin:
     def format_value(self, values):
-        if isinstance(values, (list, tuple)) and len(values) == 2 and all(isinstance(v, date) for v in values):
-            if any(is_naive(v) for v in values):
-                values = map(lambda v: make_aware(v, timezone.utc), values)
-            tz = get_current_timezone()
-            return ';'.join(v.astimezone(tz).strftime('%Y-%m-%dT%H:%M') for v in values)
-        return ''
+        if values is None:
+            return ''
+        try:
+            from django.db.backends.postgresql.psycopg_any import DateRange
+            if isinstance(values, DateRange):
+                values = values.lower, values.upper
+        except ImportError:
+            pass
+        if isinstance(values, (list, tuple)) and len(values) == 2:
+            if any(v is None for v in values):
+                return ''
+            if all(isinstance(v, date) for v in values):
+                if any(is_naive(v) for v in values):
+                    return ';'.join(v.strftime('%Y-%m-%dT00:00') for v in values)
+                return ';'.join(to_current_timezone(v).strftime('%Y-%m-%dT00:00') for v in values)
+        return values
 
 
-class DateRangeCalendar(DateTimeRangeMixin, DateCalendar):
+class DateRangeCalendar(DateRangeMixin, DateCalendar):
     template_name = 'formset/default/widgets/calendar.html'
 
     def __init__(self, attrs=None, calendar_renderer=None):
@@ -31,7 +42,7 @@ class DateRangeCalendar(DateTimeRangeMixin, DateCalendar):
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
 
 
-class DateRangePicker(DateTimeRangeMixin, DatePicker):
+class DateRangePicker(DateRangeMixin, DatePicker):
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
@@ -43,7 +54,7 @@ class DateRangePicker(DateTimeRangeMixin, DatePicker):
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
 
 
-class DateRangeTextbox(DateTimeRangeMixin, DateTextbox):
+class DateRangeTextbox(DateRangeMixin, DateTextbox):
     def __init__(self, attrs=None):
         default_attrs = {
             'type': 'regex',
@@ -53,6 +64,26 @@ class DateRangeTextbox(DateTimeRangeMixin, DateTextbox):
         if attrs:
             default_attrs.update(**attrs)
         super().__init__(attrs=default_attrs)
+
+
+class DateTimeRangeMixin:
+    def format_value(self, values):
+        if values is None:
+            return ''
+        try:
+            from django.db.backends.postgresql.psycopg_any import DateTimeTZRange
+            if isinstance(values, DateTimeTZRange):
+                values = values.lower, values.upper
+        except ImportError:
+            pass
+        if isinstance(values, (list, tuple)) and len(values) == 2:
+            if any(v is None for v in values):
+                return ''
+            if all(isinstance(v, datetime) for v in values):
+                if any(is_naive(v) for v in values):
+                    return ';'.join(v.strftime('%Y-%m-%dT%H:%M') for v in values)
+                return ';'.join(to_current_timezone(v).strftime('%Y-%m-%dT%H:%M') for v in values)
+        return values
 
 
 class DateTimeRangeCalendar(DateTimeRangeMixin, DateTimeCalendar):
@@ -111,9 +142,6 @@ class BaseRangeField(fields.MultiValueField):
             self.range_kwargs = {'bounds': default_bounds}
         super().__init__(widget=widget, **kwargs)
 
-    def prepare_value(self, values):
-        raise NotImplementedError("Subclasses must implement this method.")
-
     def compress(self, values):
         if not values:
             return None, None
@@ -139,11 +167,6 @@ class DateRangeField(BaseRangeField):
         kwargs.setdefault('widget', DateRangePicker())
         super().__init__(**kwargs)
 
-    def prepare_value(self, values):
-        if isinstance(values, (list, tuple)) and len(values) == 2:
-            return ';'.join(map(lambda v: f'{v.isoformat()[:10]}T00:00', values))
-        return ''
-
 
 class DateTimeRangeField(DateRangeField):
     base_field = fields.DateTimeField
@@ -151,8 +174,3 @@ class DateTimeRangeField(DateRangeField):
     def __init__(self, **kwargs):
         kwargs.setdefault('widget', DateTimeRangePicker())
         super().__init__(**kwargs)
-
-    def prepare_value(self, values):
-        if isinstance(values, (list, tuple)) and len(values) == 2:
-            return ';'.join(map(lambda v: v.isoformat()[:16], values))
-        return ''
