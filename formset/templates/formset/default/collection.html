@@ -31,8 +31,8 @@
 {% if collection.help_text %}{% include help_text_template with help_text=collection.help_text %}{% endif %}
 {% if collection.has_many %}
 </div>
-	{% for holder in collection.detached %}
-		{{ holder }}
-	{% endfor %}
 {% endif %}
+{% for holder in collection.detached %}
+	{{ holder }}
+{% endfor %}
 {% endspaceless %}

@@ -31,12 +31,13 @@ class FormCollectionMeta(MediaDefiningClass):
             if isinstance(value, (BaseForm, BaseFormCollection, Activator)):
                 attrs.pop(key)
                 setattr(value, '_name', key)
-                if isinstance(value, Activator) and not isinstance(value, RenderableDetachedFieldMixin):
-                    value.__class__ = type(
-                        value.__class__.__name__,
-                        (RenderableDetachedFieldMixin, value.__class__),
-                        {}
-                    )
+                if isinstance(value, Activator):
+                    if not isinstance(value, RenderableDetachedFieldMixin):
+                        value.__class__ = type(
+                            value.__class__.__name__,
+                            (RenderableDetachedFieldMixin, value.__class__),
+                            {}
+                        )
                     attrs['detached_holders'][key] = value
                 else:
                     if isinstance(value, BaseForm) and not isinstance(value, FormMixin):
