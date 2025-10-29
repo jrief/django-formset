@@ -114,7 +114,7 @@
 	}
 
 	&.disabled .ts-control {
-		--dummy-style: none;  // required by DjangoSelectize.transferStyles()
+		opacity: 0.5;
 	}
 
 	// Hide input, while retaining its focus, and maintain layout so users can still click on the

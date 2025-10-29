@@ -4,8 +4,6 @@
 Dialog Model Forms
 ==================
 
-.. versionadded:: 1.5
-
 Together with :ref:`dialog-forms`, **django-formset** also offers dialog *model* forms. These forms
 are, as one might expect, bound to a Django model. They are very useful for a common use case:
 

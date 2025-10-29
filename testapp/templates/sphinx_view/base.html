@@ -3,7 +3,7 @@
 <html dir="ltr" lang="en">
 
 <head>
-	<title>{% block title %}{{ doc.title|striptags }}django-formset{% endblock title %}</title>
+	<title>{% block title %}{{ doc.title|striptags }}{% endblock title %}</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width,initial-scale=1">
 	<meta name="color-scheme" content="light dark">
@@ -80,6 +80,11 @@
 					<a class="sidebar-brand" href="{% url 'sphinx-view:root' %}">
 						<span class="sidebar-brand-text"><strong>{{ doc.config.project }}</strong> <small>{{ doc.config.release }}</small></span>
 					</a>
+				{% if doc.config.logo_url %}
+					<div class="sidebar-logo-container">
+						<img class="sidebar-logo" src="{% static 'sphinx-view/'|add:doc.config.logo_url %}" alt="Logo"/>
+					</div>
+				{% endif %}
 					<form class="sidebar-search-container" method="get" action="{% url 'sphinx-view:search' %}" role="search">
 						<input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
 						<input type="hidden" name="check_keywords" value="yes">
