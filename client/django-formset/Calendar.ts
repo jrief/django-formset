@@ -152,12 +152,16 @@ export class CalendarSheet extends Widget {
 		const nextButton = this.element.querySelector('button.next');
 		const extendButton = this.element.querySelector('button.extend');
 		this.extendSheetDate = extendButton ? this.getDate(extendButton) : undefined;
-		prevButton?.addEventListener('mouseenter', this.hoverPrevButton);
+		if (this.settings.withRange) {
+			prevButton?.addEventListener('mouseenter', this.hoverPrevButton);
+		}
 		prevButton?.addEventListener('click', this.turnPrev, {once: true});
 		narrowButton?.addEventListener('click', this.turnNarrow, {once: true});
 		extendButton?.addEventListener('click', this.turnExtend, {once: true});
 		this.element.querySelector('button.today')?.addEventListener('click', this.turnToday, {once: true});
-		nextButton?.addEventListener('mouseenter', this.hoverNextButton);
+		if (this.settings.withRange) {
+			nextButton?.addEventListener('mouseenter', this.hoverNextButton);
+		}
 		nextButton?.addEventListener('click', this.turnNext, {once: true});
 		this.calendarItems = this.element.querySelectorAll('li[data-date]');
 		switch (this.viewMode) {
