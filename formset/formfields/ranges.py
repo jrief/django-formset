@@ -37,18 +37,6 @@ class BaseRangeField(fields.MultiValueField):
             )
 
 
-class IntegerRangeField(BaseRangeField):
-    default_error_messages = {
-        'invalid': _("Enter two valid integers."),
-        'bound_ordering': _("The start of the range must not exceed the end of the range."),
-    }
-    base_field = fields.IntegerField
-
-    def __init__(self, **kwargs):
-        kwargs.setdefault('widget', NumberRangeInput())
-        super().__init__(**kwargs)
-
-
 class DateRangeField(BaseRangeField):
     default_error_messages = {
         'invalid': _("Enter two valid dates."),
