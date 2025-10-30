@@ -165,6 +165,14 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='UserExtension',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('phone_number', models.CharField(blank=True, max_length=25, null=True, verbose_name='Phone Number')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_extensions', to='testapp.user')),
+            ],
+        ),
+        migrations.CreateModel(
             name='Gallery',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),

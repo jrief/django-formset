@@ -281,13 +281,8 @@ class DemoFormCollectionView(DemoFormCollectionViewMixin, FormCollectionView):
     pass
 
 
-class UserCollectionView(DemoFormCollectionViewMixin, EditCollectionView):
-    model = User
-    template_name = 'testapp/form-collection.html'
-
-    def get_object(self, queryset=None):
-        user, _ = self.model.objects.get_or_create(username='demo')
-        return user
+class DemoModelCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
+    pass
 
 
 class CompanyCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
@@ -726,9 +721,10 @@ urlpatterns = [
     ), name='poll'),
     path('company', CompanyCollectionView.as_view(), name='company'),
     path('companies', CompaniesCollectionView.as_view(), name='company'),
-    path('user', UserCollectionView.as_view(
-        collection_class=UserCollection
-    ), name='user'),
+    path('user-collection', DemoModelCollectionView.as_view(
+        collection_class=UserCollection,
+        model=User,
+    ), name='user-collection'),
     # path('userlist', UserCollectionView.as_view(
     #     collection_class=UserListCollection
     # ), name='userlist'),

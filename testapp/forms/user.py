@@ -11,7 +11,7 @@ from testapp.models import User, ExtendUser, UserContact
 class UserForm(ModelForm):
     class Meta:
         model = User
-        exclude = ['username', 'password', 'last_login', 'date_joined']
+        exclude = ['password', 'last_login', 'date_joined']
         widgets = {
             'password': PasswordInput,
             'groups': SelectizeMultiple,

@@ -53,3 +53,17 @@ class ExtendUser(models.Model):
         blank=True,
         null=True,
     )
+
+
+class UserExtension(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='user_extensions',
+    )
+    phone_number = models.CharField(
+        verbose_name="Phone Number",
+        max_length=25,
+        blank=True,
+        null=True,
+    )
