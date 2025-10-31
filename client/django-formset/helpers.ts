@@ -186,6 +186,18 @@ export function asUTCDate(date: Date) : Date {
 	return new Date(date.getTime() - date.getTimezoneOffset() * 60000);
 }
 
+export function toAbsPath(basePath: Path, path: Array<string>) : Path {
+	if (path[0] !== '')
+		return path;
+	// path is relative, so concatenate it to the form's path
+	const absPath = [...basePath];
+	const relPath = path.filter(part => part !== '');
+	const delta = path.length - relPath.length;
+	absPath.splice(absPath.length - delta + 1);
+	absPath.push(...relPath);
+	return absPath;
+}
+
 export function assert(condition: any, message?: string) {
 	if (!condition) {
 		message = message ? `Assertion failed: ${message}` : "Assertion failed";

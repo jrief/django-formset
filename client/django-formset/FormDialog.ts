@@ -2,6 +2,7 @@ import isString from 'lodash.isstring';
 import {parse} from '../build/tag-attributes';
 import isEqual from 'lodash.isequal';
 import isFunction from 'lodash.isfunction';
+import {toAbsPath} from './helpers';
 
 
 export abstract class FormDialogBase {
@@ -203,15 +204,7 @@ class FormDialog extends FormDialogBase implements Inducible {
 	}
 
 	protected isButtonActive(path: Path, action: string): boolean {
-		const absPath = path[0] !== '' ? path : (() => {
-			// path is relative, so concatenate it to the form's path
-			const absPath = [...this.form!.path];
-			const relPath = path.filter(part => part !== '');
-			const delta = path.length - relPath.length;
-			absPath.splice(absPath.length - delta + 1);
-			absPath.push(...relPath);
-			return absPath;
-		})();
+		const absPath = toAbsPath(this.form!.path, path);
 		const button = this.form!.formset.buttons.find(button => isEqual(button.path, absPath));
 		return action === 'active' && button === this.form!.formset.currentActiveButton;
 	}

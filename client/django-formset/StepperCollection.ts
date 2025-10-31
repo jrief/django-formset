@@ -1,6 +1,6 @@
 import isEqual from 'lodash.isequal';
 import isString from 'lodash.isstring';
-import {StyleHelpers} from './helpers';
+import {StyleHelpers, toAbsPath} from './helpers';
 import styles from './StepperCollection.scss';
 import {parse} from '../build/tag-attributes';
 
@@ -40,15 +40,7 @@ class StepperStep {
 	}
 
 	private isButtonActive(path: Array<string>, action: string): boolean {
-		const absPath = path[0] !== '' ? path : (() => {
-			// path is relative, so concatenate it to the form's path
-			const absPath = [...this.path];
-			const relPath = path.filter(part => part !== '');
-			const delta = path.length - relPath.length;
-			absPath.splice(absPath.length - delta + 1);
-			absPath.push(...relPath);
-			return absPath;
-		})();
+		const absPath = toAbsPath(this.path, path);
 		const formset = this.collection!.formset!;
 		const button = formset.buttons.find(button => isEqual(button.path, absPath));
 		return action === 'active' && button === formset.currentActiveButton;

@@ -8,7 +8,7 @@ import isString from 'lodash.isstring';
 import setDataValue from 'lodash.set';
 import template from 'lodash.template';
 import Sortable, {SortableEvent} from 'sortablejs';
-import {StyleHelpers} from './helpers';
+import {StyleHelpers, toAbsPath} from './helpers';
 import {FileUploadWidget} from './FileUploadWidget';
 import {FieldErrorPlaceholder} from './Widget';
 import {parse} from '../build/tag-attributes';
