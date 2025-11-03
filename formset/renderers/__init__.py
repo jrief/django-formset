@@ -63,3 +63,8 @@ class ButtonVariant(StrEnum):
     DANGER = auto()
     WARNING = auto()
     INFO = auto()
+
+
+class ButtonSize(StrEnum):
+    SMALL = auto()
+    LARGE = auto()

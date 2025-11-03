@@ -1,4 +1,5 @@
 from formset.boundfield import ClassList
+from formset.renderers import ButtonSize, ButtonVariant, ClassList
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
 
 
@@ -86,7 +87,20 @@ class FormRenderer(DefaultFormRenderer):
         return self._amend_multiple_input(context, 'formset-radio-select')
 
     def _amend_button(self, context):
-        context['widget']['attrs']['class'] = ClassList('formset-button-default')
+        class_list = ClassList(context['widget']['attrs'].get('class'))
+        variant = context['widget']['variant']
+        if not isinstance(variant, ButtonVariant):
+            variant = 'default'
+        class_list.add(f'formset-button-{variant}')
+        size = context['widget']['size']
+        if size is ButtonSize.SMALL:
+            class_list.add('formset-button-small')
+        elif size is ButtonSize.LARGE:
+            class_list.add('formset-button-large')
+        else:
+            class_list.add('formset-button-base')
+        context['widget']['attrs']['class'] = class_list
+        context['icon_class'] = ' me-1' if context['icon_left'] else ' ms-1'
         return context
 
     def _amend_fieldset(self, context):

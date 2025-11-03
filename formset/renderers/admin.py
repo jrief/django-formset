@@ -49,6 +49,7 @@ class FormRenderer(DefaultFormRenderer):
         elif context['widget']['variant'] == ButtonVariant.PRIMARY:
             class_list.add('primary')
         context['widget']['attrs']['class'] = class_list
+        context['icon_class'] = ' me-1' if context['icon_left'] else ' ms-1'
         return context
 
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
