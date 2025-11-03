@@ -2,10 +2,10 @@ from django.forms.fields import IntegerField
 from django.forms.models import ModelForm, construct_instance, model_to_dict
 from django.forms.widgets import HiddenInput, PasswordInput
 
-from formset.collection import FormCollection
+from formset.collection import AddSiblingActivator, FormCollection
 from formset.widgets import DualSelector, SelectizeMultiple
 
-from testapp.models import User, ExtendUser, UserContact
+from testapp.models.user import User, ExtendUser, UserExtension
 
 
 class UserForm(ModelForm):
@@ -56,31 +56,34 @@ class UserCollection(FormCollection):
     contact = UserContactForm()
 
 
-class ContactsCollection(FormCollection):
-    min_siblings = 0
-    contact = UserContactForm()
-    add_label = "Add phone number"
+class UserExtensionForm(ModelForm):
+    id = IntegerField(required=False, widget=HiddenInput)
 
-    def model_to_dict(self, user):
-        opts = self.declared_holders['contact']._meta
-        return [{'contact': model_to_dict(contact, fields=opts.fields)} for contact in user.contacts.all()]
-
-    def construct_instance(self, user):
-        for data in self.cleaned_data:
-            try:
-                contact_object = user.contacts.get(id=data['contact']['id'])
-            except (KeyError, UserContact.DoesNotExist):
-                contact_object = UserContact(user=user)
-            form_class = self.valid_holders['contact'].__class__
-            form = form_class(data=data['contact'], instance=contact_object)
-            if form.is_valid():
-                if form.marked_for_removal:
-                    contact_object.delete()
-                else:
-                    construct_instance(form, contact_object)
-                    form.save()
+    class Meta:
+        model = UserExtension
+        fields = ['id', 'phone_number']
 
 
 class UserListCollection(FormCollection):
+    min_siblings = 0
+    max_siblings = 4
+    extra_siblings = 1
+    induce_add_sibling = '.add_extension:active'
+    extension = UserExtensionForm()
+    add_label = "Add phone number"
+    related_field = 'user'
+    reverse_accessor = 'user_extensions'
+
+    add_extension = AddSiblingActivator("Add phone number")
+
+    def retrieve_instance(self, data):
+        if data := data.get('extension'):
+            try:
+                return self.instance.user_extensions.get(id=data.get('id') or 0)
+            except UserExtension.DoesNotExist:
+                return UserExtension(phone_number=data.get('phone_number'))
+
+
+class UserExtensionCollection(FormCollection):
     user = UserForm()
-    contacts = ContactsCollection()
+    extensions = UserListCollection()
