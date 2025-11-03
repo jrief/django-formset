@@ -215,7 +215,8 @@ with siblings.
 	:view-function: ApparatusTimestampView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'atc-result'}, collection_kwargs={'auto_id': 'atc_id_%s', 'initial': {'logs': [{'log': {'timestamp': '2023-03-31T16:55'}}]}, 'renderer': FormRenderer(field_css_classes='mb-3')})
 
 	from django.utils.timezone import now
-	from formset.widgets import DateTimeInput
+	from formset.formfields.activator import Activator
+	from formset.widgets import Button, DateTimeInput
 
 	class LogForm(forms.Form):
 	    timestamp = fields.DateTimeField(
@@ -225,9 +226,19 @@ with siblings.
 	    )
 
 	class LogCollection(FormCollection):
+	    induce_add_sibling = '.add_log:active'
 	    min_siblings = 1
-	    add_label = "Add new Timestamp"
 	    log = LogForm()
+
+	    add_log = Activator(
+	        label="Add new Timestamp",
+	        widget=Button(
+	            action='activate("apply")',
+	            icon_path='formset/icons/add-fill.svg',
+	            icon_left=True,
+	            attrs={'omit-restore': True, 'class': 'btn-sm'},
+	        )
+	    )
 
 	class ApparatusTimestampCollection(FormCollection):
 	    substance = ChemistryForm()
