@@ -11,9 +11,20 @@ class User(models.Model):
         max_length=150,
         help_text="Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
     )
-    first_name = models.CharField("First name", max_length=150, blank=True)
-    last_name = models.CharField("Last name", max_length=150, blank=True)
-    email = models.EmailField("Email address", blank=True)
+    first_name = models.CharField(
+        "First name",
+        max_length=150,
+        blank=True,
+    )
+    last_name = models.CharField(
+        "Last name",
+        max_length=150,
+        blank=True,
+    )
+    email = models.EmailField(
+        "Email address",
+        blank=True,
+    )
     is_staff = models.BooleanField(
         "Staff status",
         default=False,
@@ -24,7 +35,10 @@ class User(models.Model):
         default=True,
         help_text="Designates whether this user should be treated as active."
     )
-    date_joined = models.DateTimeField("date joined", default=timezone.now)
+    date_joined = models.DateTimeField(
+        "date joined",
+        default=timezone.now,
+    )
     is_superuser = models.BooleanField(
         "superuser status",
         default=False,

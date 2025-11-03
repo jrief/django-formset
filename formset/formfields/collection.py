@@ -9,7 +9,7 @@ from formset.widgets import CollectionWidget
 class CollectionField(CollectionFieldMixin, Field):
     widget = CollectionWidget
 
-    def __init__(self, collection, label=None, required=None, *args, **kwargs):
+    def __init__(self, collection, label=None, *args, **kwargs):
         if isinstance(collection, type):
             collection = collection()
         if not isinstance(collection, BaseFormCollection):
