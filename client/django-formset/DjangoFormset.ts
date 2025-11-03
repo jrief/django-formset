@@ -37,6 +37,16 @@ if (style.sheet instanceof CSSStyleSheet) {
 	);
 }
 
+function isTruthy(expression: any) : boolean {
+	// since empty arrays evaluate to true, implement separately to examine for existance
+	// when using the file upload widget. Check https://262.ecma-international.org/5.1/#sec-11.9.3
+	// for details.
+	if (Array.isArray(expression))
+		return expression.length !== 0 && expression.every(v => isTruthy(v));
+	if (isPlainObject(expression))
+		return !isEmpty(expression);
+	return Boolean(expression);
+}
 
 class BoundValue {
 	public readonly value: FieldValue;
@@ -268,13 +278,6 @@ class FieldGroup {
 	}
 
 	private evalVisibility(attribute: string, visible: boolean): Function|null {
-		function isTruthy(expression: any) : boolean {
-			// since empty arrays evaluate to true, implement separately to examine for existance
-			// when using the file upload widget. Check https://262.ecma-international.org/5.1/#sec-11.9.3
-			// for details.
-			return Array.isArray(expression) ? expression.length !== 0 : Boolean(expression);
-		}
-
 		const attrValue = this.fieldElements[0]?.getAttribute(attribute);
 		if (!isString(attrValue))
 			return null;
@@ -299,7 +302,7 @@ class FieldGroup {
 		try {
 			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'OperabilityExpression'}));
 			return () => {
-				const disable = evalExpression.call(this);
+				const disable = isTruthy(evalExpression.call(this));
 				this.fieldElements.forEach((elem, index) => elem.disabled = disable || this.initialDisabled[index]);
 			}
 		} catch (error) {
@@ -314,8 +317,8 @@ class FieldGroup {
 		try {
 			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})}`);
 			return () => {
-				const require = evalExpression.call(this);
-				this.fieldElements.forEach((elem, index) => elem.required = require);
+				const require = isTruthy(evalExpression.call(this));
+				this.fieldElements.forEach((elem) => elem.required = require);
 				this.form.checkValidity();
 			}
 		} catch (error) {
