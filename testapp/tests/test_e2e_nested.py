@@ -6,9 +6,11 @@ from playwright.sync_api import expect
 from django.forms import fields, forms
 from django.urls import path
 
-from formset.utils import MARKED_FOR_REMOVAL
 from formset.collection import FormCollection
+from formset.formfields.activator import Activator
+from formset.utils import MARKED_FOR_REMOVAL
 from formset.views import FormCollectionView
+from formset.widgets import Button
 
 from .utils import ContextMixin, get_javascript_catalog
 
@@ -18,11 +20,19 @@ class TeamForm(forms.Form):
 
 
 class TeamCollection(FormCollection):
+    induce_add_sibling = '.add_team:active'
     min_siblings = 0
     extra_siblings = 1
     team = TeamForm()
     legend = "Teams"
-    add_label = "Add Team"
+
+    add_team = Activator(
+        label="Add Team",
+        widget=Button(
+            action='activate("apply")',
+            attrs={'omit-restore': True},
+        )
+    )
 
 
 class DepartmentForm(forms.Form):
@@ -30,22 +40,27 @@ class DepartmentForm(forms.Form):
 
 
 class DepartmentCollection(FormCollection):
+    legend = "Departments"
+    induce_add_sibling = '.add_department:active'
     min_siblings = 0
     extra_siblings = 1
     department = DepartmentForm()
     teams = TeamCollection()
-    legend = "Departments"
-    add_label = "Add Department"
+
+    add_department = Activator(
+        label="Add Department",
+        widget=Button(
+            action='activate("apply")',
+            attrs={'omit-restore': True},
+        )
+    )
 
 
-class DepartmentCollectionMax(FormCollection):
+class DepartmentCollectionMax(DepartmentCollection):
     min_siblings = 1
     max_siblings = 3
     extra_siblings = 1
-    department = DepartmentForm()
     teams = TeamCollection(min_siblings=1, max_siblings=3)
-    legend = "Departments"
-    add_label = "Add Department"
 
 
 class CompanyForm(forms.Form):
@@ -187,21 +202,22 @@ def test_partial_fill_collection(page, mocker, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['company_1'])
-def test_fill_collection_add_inner(page, mocker, viewname):
+def test_fill_collection_add_inner(page, viewname):
     formset = page.locator('django-formset')
     expect(formset.locator('django-form-collection')).to_have_count(4)
     page.fill('#id_company\\.name', "Pepsi")
     page.fill('#id_departments\\.0\\.department\\.name', "Marketing")
     page.fill('#id_departments\\.0\\.teams\\.0\\.team\\.name', "Canada")
-    page.click('#id_departments\\.0\\.department ~ .collection-siblings > button.add-collection')
+    add_team = formset.locator('#id_departments\\.0\\.department ~ button[name="departments.0.teams.add_team"]')
+    expect(add_team).to_have_text("Add Team")
+    add_team.click()
     expect(formset.locator('django-form-collection')).to_have_count(5)
     page.fill('#id_departments\\.0\\.teams\\.1\\.team\\.name', "Argentina")
     page.locator('#id_company\\.name').evaluate('elem => elem.focus()')
-    spy = mocker.spy(FormCollectionView, 'post')
-    formset.evaluate('elem => elem.submit()')
-    body = json.loads(spy.call_args.args[1].body)
-    sleep(0.2)
-    assert body == {
+    with page.expect_response(page.url) as response_info:
+        formset.evaluate('elem => elem.submit()')
+    assert response_info.value.ok is True
+    expected = {
         'extra_data': {},
         'formset_data': {
             'departments': [{
@@ -214,13 +230,12 @@ def test_fill_collection_add_inner(page, mocker, viewname):
             'company': {'name': 'Pepsi'},
         },
     }
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
+    assert response_info.value.request.post_data_json == expected
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['company_1', 'company_2'])
-def test_fill_collection_add_outer(page, mocker, viewname):
+def test_fill_collection_add_outer(page, viewname):
     formset = page.locator('django-formset')
     if viewname == 'company_1':
         expect(formset.locator('django-form-collection')).to_have_count(4)
@@ -230,7 +245,8 @@ def test_fill_collection_add_outer(page, mocker, viewname):
     page.fill('#id_departments\\.0\\.department\\.name', "Marketing")
     page.fill('#id_departments\\.0\\.teams\\.0\\.team\\.name', "Canada")
     departments_collection = formset.locator('> django-form-collection').last
-    add_department = departments_collection.locator('> .collection-siblings').last.locator('> .add-collection')
+    add_department = departments_collection.locator('> button[name="departments.add_department"]')
+    expect(add_department).to_have_text("Add Department")
     add_department.click()
     if viewname == 'company_1':
         expect(departments_collection.locator('django-form-collection')).to_have_count(4)
@@ -240,11 +256,10 @@ def test_fill_collection_add_outer(page, mocker, viewname):
     page.fill('#id_departments\\.1\\.department\\.name', "Finance")
     page.fill('#id_departments\\.1\\.teams\\.0\\.team\\.name', "Controlling")
     page.locator('#id_company\\.name').evaluate('elem => elem.focus()')
-    spy = mocker.spy(FormCollectionView, 'post')
-    formset.evaluate('elem => elem.submit()')
-    body = json.loads(spy.call_args.args[1].body)
-    assert spy.spy_return.status_code == 200
-    assert body == {
+    with page.expect_response(page.url) as response_info:
+        formset.evaluate('elem => elem.submit()')
+    assert response_info.value.ok is True
+    expected = {
         'extra_data': {},
         'formset_data': {
             'departments': [{
@@ -261,13 +276,12 @@ def test_fill_collection_add_outer(page, mocker, viewname):
             'company': {'name': 'Pepsi'},
         },
     }
-    sleep(0.2)
-    spy.assert_called()
+    assert response_info.value.request.post_data_json == expected
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['company_3', 'company_4'])
-def test_submit_half_empty_collection(page, mocker, viewname):
+def test_submit_half_empty_collection(page, viewname):
     formset = page.locator('django-formset')
     if viewname == 'company_3':
         expect(formset.locator('django-form-collection')).to_have_count(4)
@@ -277,10 +291,10 @@ def test_submit_half_empty_collection(page, mocker, viewname):
     page.fill('#id_departments\\.0\\.department\\.name', "Marketing")
     page.fill('#id_departments\\.0\\.teams\\.0\\.team\\.name', "")
     page.locator('#id_company\\.name').evaluate('elem => elem.focus()')
-    spy = mocker.spy(FormCollectionView, 'post')
-    formset.evaluate('elem => elem.submit()')
-    body = json.loads(spy.call_args.args[1].body)
-    assert body == {
+    with page.expect_response(page.url) as response_info:
+        formset.evaluate('elem => elem.submit()')
+    assert response_info.value.ok is False
+    expected = {
         'extra_data': {},
         'formset_data': {
             'departments': [{
@@ -292,11 +306,8 @@ def test_submit_half_empty_collection(page, mocker, viewname):
             'company': {'name': 'Pepsi'},
         },
     }
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 422
-    response = json.loads(spy.spy_return.content)
-    assert response == {
+    assert response_info.value.request.post_data_json == expected
+    assert response_info.value.json() == {
         'company': {},
         'departments': [{
             'department': {},

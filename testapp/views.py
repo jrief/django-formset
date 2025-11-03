@@ -69,7 +69,7 @@ from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.schedule import ScheduleBoxForm, ScheduleCalendarForm, SchedulePickerForm
 from testapp.forms.state import StateFilteredForm, StateForm, StatesForm
 from testapp.forms.terms_of_use import AcceptTermsCollection
-from testapp.forms.user import UserCollection
+from testapp.forms.user import UserCollection, UserExtensionCollection
 from testapp.forms.upload import UploadForm
 from testapp.models import BlogModel, Company, IssueModel, PersonModel, PollModel, ProductModel, Reporter, User
 from testapp.models.gallery import Gallery
@@ -332,6 +332,14 @@ class ComponentFormView(DemoModelFormView):
     def get_queryset(self):
         queryset = super().get_queryset()
         return queryset.filter(type=self.filtered_type)
+
+    def get_form_kwargs(self):
+        form_kwargs = super().get_form_kwargs()
+        attrs = self.get_css_classes()
+        attrs.pop('button_css_classes', None)
+        renderer_class = import_string(f'formset.renderers.{self.framework}.FormRenderer')
+        form_kwargs['renderer'] = renderer_class(**attrs)
+        return form_kwargs
 
     def form_valid(self, form):
         form.instance.type = self.filtered_type
@@ -725,9 +733,10 @@ urlpatterns = [
         collection_class=UserCollection,
         model=User,
     ), name='user-collection'),
-    # path('userlist', UserCollectionView.as_view(
-    #     collection_class=UserListCollection
-    # ), name='userlist'),
+    path('user-extensions', DemoModelCollectionView.as_view(
+        collection_class=UserExtensionCollection,
+        model=User,
+    ), name='user-extensions'),
     path('profile', DemoFormCollectionView.as_view(
         collection_class=ProfileCollection
     ), name='profile'),

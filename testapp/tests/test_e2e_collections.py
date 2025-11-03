@@ -5,8 +5,10 @@ from django.forms import fields, forms
 from django.urls import path
 
 from formset.collection import FormCollection
+from formset.formfields.activator import Activator
 from formset.utils import MARKED_FOR_REMOVAL
 from formset.views import FormCollectionView
+from formset.widgets import Button
 
 from .utils import ContextMixin, get_javascript_catalog
 
@@ -42,12 +44,20 @@ class PhoneNumberForm(forms.Form):
 
 
 class PhoneNumberCollection(FormCollection):
+    induce_add_sibling = '.add_number:active'
     legend = "List of Phone Numbers"
-    add_label = "Add new Phone Number"
     min_siblings = 1
     max_siblings = 5
     extra_siblings = 1
     number = PhoneNumberForm()
+
+    add_number = Activator(
+        label="Add phone number",
+        widget=Button(
+            action='activate("apply")',
+            attrs={'omit-restore': True},
+        )
+    )
 
 
 class ContactCollection(FormCollection):
@@ -62,17 +72,23 @@ class SortedContactCollection(ContactCollection):
 
 
 class BulkContactCollections(FormCollection):
+    induce_add_sibling = 'add_contact:active'
     min_siblings = 0
     max_siblings = 3
     extra_siblings = 1
-    add_label = "Add new Contact"
 
     person = PersonForm()
-
     numbers = PhoneNumberCollection(
         min_siblings=1,
         max_siblings=5,
         extra_siblings=1,
+    )
+    add_contact = Activator(
+        label="Add new Contact",
+        widget=Button(
+            action='activate("apply")',
+            attrs={'omit-restore': True},
+        )
     )
 
 
@@ -193,17 +209,17 @@ def test_add_and_remove_collections(page, viewname):
     expect(form_collection.first.locator('> .collection-siblings')).to_have_count(0)
     expect(form_collection.last.locator('> .collection-siblings')).to_have_count(1)
     numbers_collection = form_collection.last.locator('> .collection-siblings')
-    add_collection = numbers_collection.locator('> .add-collection')
+    add_sibling = numbers_collection.locator(':scope + button[name="numbers.add_number"]')
     for _ in range(4):
-        expect(add_collection).not_to_be_disabled()
-        add_collection.click()
-    expect(add_collection).to_be_disabled()
+        expect(add_sibling).not_to_be_disabled()
+        add_sibling.click()
+    expect(add_sibling).to_be_disabled()
     expect(numbers_collection.locator('> django-form-collection')).to_have_count(5)
     for pos in range(5):
         expect(numbers_collection.locator(f'> django-form-collection[sibling-position="{pos}"] > .remove-collection')).not_to_be_disabled()
     numbers_collection.locator('> django-form-collection[sibling-position="4"]').hover()
     numbers_collection.locator('> django-form-collection[sibling-position="4"] > .remove-collection').click()
-    expect(add_collection).not_to_be_disabled()
+    expect(add_sibling).not_to_be_disabled()
     expect(numbers_collection.locator('> django-form-collection')).to_have_count(4)
     numbers_collection.locator('> django-form-collection[sibling-position="0"]').hover()
     numbers_collection.locator('> django-form-collection[sibling-position="0"] > .remove-collection').click()
@@ -242,8 +258,8 @@ def test_remove_and_add_collections(page, viewname):
     expect(form_collection.first.locator('> .collection-siblings')).to_have_count(0)
     expect(form_collection.last.locator('> .collection-siblings > django-form-collection')).to_have_count(5)
     numbers_collection = form_collection.last.locator('> .collection-siblings')
-    add_collection = numbers_collection.locator('> .add-collection')
-    expect(add_collection).to_be_disabled()
+    add_sibling = numbers_collection.locator(':scope + button[name="numbers.add_number"]')
+    expect(add_sibling).to_be_disabled()
     for position in range(4):
         collection_sibling = numbers_collection.locator(f'django-form-collection[sibling-position="{position}"]')
         collection_sibling.hover()
@@ -252,8 +268,8 @@ def test_remove_and_add_collections(page, viewname):
     collection_sibling = numbers_collection.locator('django-form-collection[sibling-position="4"]')
     collection_sibling.hover()
     expect(collection_sibling.locator('> .remove-collection')).to_be_disabled()
-    expect(add_collection).not_to_be_disabled()
-    add_collection.click()
+    expect(add_sibling).not_to_be_disabled()
+    add_sibling.click()
     page.fill('#id_numbers\\.5\\.number\\.phone_number', "+1200300400")
     page.select_option('#id_numbers\\.5\\.number\\.label', 'work')
     page.locator('django-formset').click(position={'x': 0, 'y': 0})  # blurs all fields
@@ -284,14 +300,14 @@ def test_reset_and_submit_collections(page, viewname):
     expect(form_collection.first.locator('> .collection-siblings')).to_have_count(0)
     expect(form_collection.last.locator('> .collection-siblings')).to_have_count(1)
     numbers_collection = form_collection.last.locator('> .collection-siblings')
-    add_collection = numbers_collection.locator('> .add-collection')
+    add_sibling = numbers_collection.locator(':scope + button[name="numbers.add_number"]')
     page.fill('#id_person\\.full_name', "Mona Lisa")
     page.fill('#id_person\\.email', "mona@example.com")
     for position in range(5):
         page.fill(f'#id_numbers\\.{position}\\.number\\.phone_number', "+1200300400")
         page.select_option(f'#id_numbers\\.{position}\\.number\\.label', 'work')
         if position < 4:
-            add_collection.click()
+            add_sibling.click()
     page.locator('django-formset').evaluate('elem => elem.reset()')
     expect(page.locator('#id_person\\.full_name')).to_be_empty()
     expect(page.locator('#id_person\\.email')).to_be_empty()
@@ -405,13 +421,13 @@ def test_submit_bulk(page, viewname):
     page.fill('#id_0\\.person\\.email', "john@example.com")
     page.fill('#id_0\\.numbers\\.0\\.number\\.phone_number', "+1 200 300 400")
     page.select_option('#id_0\\.numbers\\.0\\.number\\.label', 'work')
-    collection_siblings.locator('> .add-collection').click()
+    collection_siblings.locator(':scope + button[name="add_contact"]').click()
     expect(collection_siblings.locator('> django-form-collection')).to_have_count(2)
     page.fill('#id_1\\.person\\.full_name', "Johanna Doe")
     page.fill('#id_1\\.person\\.email', "johanna@example.com")
     page.fill('#id_1\\.numbers\\.0\\.number\\.phone_number', "+33 1 43478293")
     page.select_option('#id_1\\.numbers\\.0\\.number\\.label', 'work')
-    collection_siblings.locator('> django-form-collection[sibling-position="1"] > .collection-siblings > .add-collection').click()
+    collection_siblings.locator('> django-form-collection[sibling-position="1"] > button[name="1.numbers.add_number"]').click()
     page.fill('#id_1\\.numbers\\.1\\.number\\.phone_number', "+39 335 327041")
     page.select_option('#id_1\\.numbers\\.1\\.number\\.label', 'work')
     page.locator('django-formset').click(position={'x': 0, 'y': 0})  # blurs all fields

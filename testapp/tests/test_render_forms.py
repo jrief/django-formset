@@ -183,7 +183,8 @@ def test_collection_get(rf):
     assert form_elem.attrs['name'] == 'person'
     assert collection_elems[0].find('django-form-collection') is None
 
-    collection_sibling_elems = collection_elems[1].find('div', class_='collection-siblings').find_all('django-form-collection', recursive=False)
+    collection_sibling_div = collection_elems[1].find('div', class_='collection-siblings')
+    collection_sibling_elems = collection_sibling_div.find_all('django-form-collection', recursive=False)
     assert len(collection_sibling_elems) == 2
     for counter, collection_sibling_elem in enumerate(collection_sibling_elems):
         assert collection_sibling_elem.attrs['sibling-position'] == str(counter)
@@ -209,7 +210,7 @@ def test_collection_get(rf):
     assert input_elem.attrs['name'] == 'phone_number'
     assert input_elem.attrs['form'] == 'id_numbers.${siblingId}.number'
     assert input_elem.attrs['id'] == 'id_numbers.${siblingId}.number.phone_number'
-    button_elem = template_elem.find_next_sibling('button', class_='add-collection')
+    button_elem = collection_sibling_div.find_next_sibling('button', attrs={'name': 'numbers.add_number'})
     assert button_elem is not None
 
 

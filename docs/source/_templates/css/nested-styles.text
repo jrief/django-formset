@@ -30,7 +30,7 @@ django-formset.bootstrap {
 	}
 	.collection-siblings {
 		border-bottom: 1px solid rgb(206, 212, 218);
-		margin-bottom: -9px;
+		margin-bottom: 1rem;
 	}
 	.df-dual-selector {
 		input {

@@ -22,7 +22,7 @@ django-form-collection[sibling-position] > .collection-drag-handle ~ .remove-col
 }
 .collection-siblings {
 	border-bottom: 1px solid light-dark(var(--bs-gray-400), var(--bs-gray-700));
-	margin-bottom: -9px;
+	margin-bottom: 0.5rem;
 }
 .add-collection {
 	margin-top: 0.75rem;

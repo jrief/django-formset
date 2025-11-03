@@ -63,8 +63,10 @@ django-formset {
 				border-top: none;
 			}
 
-			&:last-of-type > [role=form] > fieldset > [role=group]:last-of-type {
-				border-bottom: none;
+			&:last-of-type > [role=form] > fieldset {
+				> [role=group]:last-of-type {
+					border-bottom: none;
+				}
 			}
 			&.dj-marked-for-removal > [role=form] {
 				opacity: 0.5;
@@ -98,19 +100,20 @@ django-formset {
 			margin: 0;
 		}
 
-		.add-row {
+		.detached-row {
 			color: var(--body-quiet-color);
 			background: var(--darkened-bg);
 			padding: 8px 10px;
 			margin: -1px -10px -10px;
 
-			.add-collection {
+			button {
 				font-size: 0.75rem;
 				background-color: transparent;
 				border: none;
 				color: var(--link-fg);
 				text-decoration: none;
 				transition: color 0.15s, background 0.15s;
+				cursor: pointer;
 
 				&:hover {
 					color: var(--link-hover-color);
@@ -133,6 +136,18 @@ django-formset {
 			&:hover {
 				background-color: var(--delete-button-hover-bg);
 				color: var(--button-fg);
+			}
+		}
+
+		.dj-button-decorator {
+			color: #5fa225;
+			font-weight: bold;
+			font-size: larger;
+			&.me-1 {
+				margin-right: 0.25rem;
+			}
+			&.ms-1 {
+				margin-left: 0.25rem;
 			}
 		}
 	}
