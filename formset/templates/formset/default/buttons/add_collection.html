@@ -1,5 +1,0 @@
-{% load translate from i18n %}
-<button title="{% translate 'Add' %}" class="add-collection{% block "button-classes" %}{% endblock %}">{% block "button-content" %}
-	{% include "formset/icons/add-fill.svg" %}
-	{% if collection.add_label %}<span class="{% block "label-classes" %}{% endblock %}">{{ collection.add_label }}</span>{% endif %}
-{% endblock %}</button>

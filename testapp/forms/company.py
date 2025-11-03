@@ -1,7 +1,7 @@
 from django.forms import fields, widgets
 from django.forms.models import ModelForm
 
-from formset.collection import FormCollection
+from formset.collection import AddSiblingActivator, FormCollection
 
 from testapp.models.company import Company, Department, Team
 
@@ -18,12 +18,14 @@ class TeamForm(ModelForm):
 
 
 class TeamCollection(FormCollection):
+    induce_add_sibling = '.add_team:active'
     min_siblings = 0
     extra_siblings = 1
     team = TeamForm()
     legend = "Teams"
-    add_label = "Add Team"
     related_field = 'department'
+
+    add_team = AddSiblingActivator("Add Team")
 
     def retrieve_instance(self, data):
         if data := data.get('team'):
@@ -45,13 +47,15 @@ class DepartmentForm(ModelForm):
 
 
 class DepartmentCollection(FormCollection):
+    induce_add_sibling = '.add_department:active'
     min_siblings = 0
     extra_siblings = 1
     department = DepartmentForm()
     teams = TeamCollection()
     legend = "Departments"
-    add_label = "Add Department"
     related_field = 'company'
+
+    add_department = AddSiblingActivator("Add Department")
 
     def retrieve_instance(self, data):
         if data := data.get('department'):

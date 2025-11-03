@@ -108,6 +108,7 @@ class FieldGroup {
 			selectElement.addEventListener('change', () => {
 				this.clearCustomError();
 				this.form.formset.aggregateValues();
+				this.updateOperability();
 				this.setDirty()
 			});
 			selectElement.addEventListener('invalid', () => this.errorPlaceholder.reportValidationError());
@@ -527,6 +528,7 @@ class DjangoButton {
 	public readonly element: HTMLButtonElement;
 	private readonly initialClass: string;
 	private readonly isAutoDisabled: boolean;
+	private readonly omitRestore: boolean;
 	private clickHandler: Function = () => {};
 	private readonly decoratorElement: HTMLElement|null;
 	private readonly spinnerElement: HTMLElement;
@@ -543,6 +545,7 @@ class DjangoButton {
 		this.element = element;
 		this.initialClass = element.getAttribute('class') ?? '';
 		this.isAutoDisabled = element.hasAttribute('auto-disable');
+		this.omitRestore = element.hasAttribute('omit-restore');
 		this.decoratorElement = element.querySelector('.dj-button-decorator');
 		this.originalDecorator = this.decoratorElement?.cloneNode(true);
 		this.spinnerElement = document.createElement('i');
@@ -1074,10 +1077,14 @@ class DjangoButton {
 	}
 
 	public restoreToInitial() {
-		this.element.disabled = false;
-		this.element.setAttribute('class', this.initialClass);
-		if (this.originalDecorator) {
-			this.decoratorElement?.replaceChildren(...this.originalDecorator.cloneNode(true).childNodes);
+		if (!this.omitRestore) {
+			if (!this.isAutoDisabled) {
+				this.element.disabled = false;
+			}
+			this.element.setAttribute('class', this.initialClass);
+			if (this.originalDecorator) {
+				this.decoratorElement?.replaceChildren(...this.originalDecorator.cloneNode(true).childNodes);
+			}
 		}
 		this.formset.currentActiveButton = null;
 	}
@@ -1433,7 +1440,6 @@ class DjangoFormCollection {
 		}
 		if (this.formCollectionTemplate) {
 			this.formCollectionTemplate.markedForRemoval = remove;
-			this.formCollectionTemplate.updateAddButtonAttrs();
 		}
 		this.element.classList.toggle('dj-marked-for-removal', this.markedForRemoval);
 	}
@@ -1445,7 +1451,6 @@ class DjangoFormCollection {
 			const prefix = this.formCollectionTemplate.prefix;
 			const pathIndex = prefix === '0' ? 0 : prefix.split('.').length;
 			this.children.forEach((sibling, position) => sibling.repositionForms(pathIndex, position));
-			this.formCollectionTemplate.updateAddButtonAttrs();
 		}
 		return false;
 	}
@@ -1573,7 +1578,7 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 		}
 		siblings.forEach(sibling => sibling.updateRemoveButtonAttrs());
 		const formCollectionTemplate = this.parent?.formCollectionTemplate ?? this.formset.formCollectionTemplate;
-		formCollectionTemplate!.updateAddButtonAttrs();
+		formCollectionTemplate!.updateOperability();
 	};
 
 	protected disconnect() {
@@ -1636,12 +1641,13 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 }
 
 
-class DjangoFormCollectionTemplate {
+class DjangoFormCollectionTemplate implements Inducible {
 	private readonly formset: DjangoFormset;
 	private readonly element: HTMLTemplateElement;
 	private readonly parent?: DjangoFormCollection;
 	private readonly renderEmptyCollection: Function;
-	private readonly addButton?: HTMLButtonElement;
+	private readonly addSiblingButtonPath: Path;
+	private readonly induceAddSibling: Function;
 	private readonly maxSiblings: number|null = null;
 	private readonly baseContext = new Map<string, string>();
 	public readonly prefix: string;
@@ -1661,12 +1667,10 @@ class DjangoFormCollectionTemplate {
 		this.prefix = prefix;
 		formset.pushTemplatePrefix(this.prefix);
 		this.renderEmptyCollection = template(element.innerHTML);
-		if (element.nextElementSibling?.matches('button.add-collection')) {
-			this.addButton = element.nextElementSibling as HTMLButtonElement;
-		} else {
-			this.addButton = element.nextElementSibling?.querySelector('button.add-collection') ?? undefined;
-		}
-		this.addButton?.addEventListener('click', this.appendFormCollectionSibling);
+		const path= this.element.getAttribute('df-induce-add-sibling')?.split(':')[0].split('.') ?? [];
+		this.addSiblingButtonPath = toAbsPath(prefix.split('.'), path);
+		this.induceAddSibling = this.evalInducer(element, (...args: any[]) => this.appendCollectionSibling());
+		formset.registerInducer(this, this.updateOperability);
 		const innerCollection = this.element.content.querySelector('django-form-collection');
 		const maxSiblings = innerCollection?.getAttribute('max-siblings');
 		if (maxSiblings) {
@@ -1682,6 +1686,28 @@ class DjangoFormCollectionTemplate {
 				onEnd: this.resortSiblings,
 			});
 		}
+	}
+
+	private evalInducer(element: HTMLElement, inducer: Function) : Function {
+		const attrValue = element.getAttribute('df-induce-add-sibling');
+		if (!isString(attrValue))
+			return () => {};
+		try {
+			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'InduceExpression'})}`);
+			return (...args: any[]) => {
+				if (evalExpression.call(this)) {
+					inducer(...args);
+				}
+			};
+		} catch (error) {
+			throw new Error(`Error while parsing <django-form-collection df-induce-activate="${attrValue}">: ${error}.`);
+		}
+	}
+
+	private isButtonActive(path: Array<string>, action: string): boolean {
+		const absPath = toAbsPath(this.prefix.split('.'), path);
+		const button = this.formset.buttons.find(button => isEqual(button.path, absPath));
+		return button === this.formset.currentActiveButton && action === 'active';
 	}
 
 	private resortSiblings = (event: SortableEvent) => {
@@ -1700,7 +1726,7 @@ class DjangoFormCollectionTemplate {
 		}
 	};
 
-	private appendFormCollectionSibling = () => {
+	private appendCollectionSibling() {
 		const context = Object.fromEntries(this.baseContext);
 		const [position, siblingId] = this.getNextPositionAndSiblingId();
 		context['position'] = position.toString();
@@ -1724,12 +1750,12 @@ class DjangoFormCollectionTemplate {
 		this.formset.findForms(newCollectionElement);
 		this.formset.assignFieldsToForms(newCollectionElement);
 		this.formset.assignFormsToCollections();
+		this.formset.findDetachedButtons(newCollectionElement);
 		this.formset.findCollectionErrorsList();
 		newCollectionSibling.markAsFreshAndEmpty(true);
 		this.formset.validate();
 		siblings.forEach(sibling => sibling.updateRemoveButtonAttrs());
-		this.updateAddButtonAttrs();
-	};
+	}
 
 	private getNextPositionAndSiblingId() {
 		// look for the highest position number inside interconnected DjangoFormCollectionSiblings
@@ -1744,26 +1770,33 @@ class DjangoFormCollectionTemplate {
 
 	public disconnect() {
 		this.formset.popTemplatePrefix(this.prefix);
-		this.addButton?.removeEventListener('click', this.appendFormCollectionSibling);
 	}
 
-	public updateAddButtonAttrs() {
-		if (!this.addButton)
-			return;
+	private updateAddButtonAttrs(addSiblingButton: DjangoButton) {
 		if (this.markedForRemoval) {
-			this.addButton.disabled = true;
+			addSiblingButton.element.disabled = true;
 			return;
 		}
 		const siblings = this.parent?.children ?? this.formset.formCollections;
 		const numActiveSiblings = siblings.filter(s => !s.markedForRemoval).length;
-		this.addButton.disabled = this.maxSiblings === null ? false : numActiveSiblings >= this.maxSiblings;
+		addSiblingButton.element.disabled = this.maxSiblings === null ? false : numActiveSiblings >= this.maxSiblings;
+	}
+
+	public updateOperability(...args: any[]) {
+		const addSiblingButton = this.formset.buttons.find(button => isEqual(button.path, this.addSiblingButtonPath));
+		if (addSiblingButton) {
+			if (args.length === 2 && args[0] === addSiblingButton && args[1] === 'apply') {
+				this.induceAddSibling(...args);
+			} else {
+				this.updateAddButtonAttrs(addSiblingButton);
+			}
+		}
 	}
 
 	static findFormCollectionTemplate(formset: DjangoFormset, element: Element, formCollection?: DjangoFormCollection) : DjangoFormCollectionTemplate|undefined {
 		const templateElement = element.querySelector(':scope > .collection-siblings > template.empty-collection') as HTMLTemplateElement;
 		if (templateElement) {
 			const formCollectionTemplate = new DjangoFormCollectionTemplate(formset, templateElement as HTMLTemplateElement, formCollection);
-			formCollectionTemplate.updateAddButtonAttrs();
 			return formCollectionTemplate;
 		}
 	}
@@ -1940,8 +1973,9 @@ export class DjangoFormset implements DjangoFormset {
 		}
 	}
 
-	private findDetachedButtons() {
-		for (const element of this.element.getElementsByTagName('BUTTON')) {
+	public findDetachedButtons(parentElement?: Element) {
+		parentElement = parentElement ?? this.element;
+		for (const element of parentElement.getElementsByTagName('BUTTON')) {
 			if (element.hasAttribute('df-click')) {
 				const buttonElement = element as HTMLButtonElement;
 				if (!this.buttons.find(button => button.element === buttonElement)) {
@@ -1970,7 +2004,6 @@ export class DjangoFormset implements DjangoFormset {
 		for (const form of this.forms) {
 			setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
 		}
-		this.updateOperability();
 	}
 
 	public updateOperability(...args: any[]) {
@@ -1996,6 +2029,7 @@ export class DjangoFormset implements DjangoFormset {
 			button.autoDisable(isValid);
 		}
 		this.aggregateValues();
+		this.updateOperability();
 		return isValid;
 	}
 
@@ -2276,7 +2310,6 @@ export class DjangoFormset implements DjangoFormset {
 
 	public resetToInitial() {
 		DjangoFormCollection.resetCollectionsToInitial(this.formCollections);
-		this.formCollectionTemplate?.updateAddButtonAttrs();
 		this.forms.forEach(form => form.resetToInitial());
 		this.validate();
 	}

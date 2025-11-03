@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.forms import fields, forms
 
-from formset.collection import FormCollection
+from formset.collection import AddSiblingActivator, FormCollection
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
 from formset.widgets import Selectize
 
@@ -68,12 +68,14 @@ class PhoneNumberForm(forms.Form):
 
 class PhoneNumberCollection(FormCollection):
     legend = "List of Phone Numbers"
-    add_label = "Add new Phone Number"
+    induce_add_sibling = '.add_team:active'
     min_siblings = 2
     max_siblings = 5
     extra_siblings = 0
 
     number = PhoneNumberForm()
+
+    add_number = AddSiblingActivator("Add new Phone Number")
 
 
 class ContactCollection(FormCollection):

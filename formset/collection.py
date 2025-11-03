@@ -1,5 +1,6 @@
 import operator
 import types
+import warnings
 from functools import reduce
 
 from django.core import validators
@@ -15,12 +16,31 @@ from django.utils.translation import gettext_lazy
 
 from formset.formfields.activator import Activator
 from formset.forms import DeclarativeFieldsetMetaclass, FormMixin, FormsetModelFormMetaclass
+from formset.renderers import ButtonSize
 from formset.renderers.default import FormRenderer
 from formset.utils import (
     MARKED_FOR_REMOVAL, CollectionFieldMixin, FormsetErrorList, HolderMixin, RenderableDetachedFieldMixin,
 )
+from formset.widgets.button import Button
 
 COLLECTION_ERRORS = '_collection_errors_'
+
+
+class AddSiblingActivator(Activator):
+    """
+    A untility class to be used as Activator for adding a siblings to a FormCollection.
+    """
+    def __init__(self, add_label, *args, **kwargs):
+        kwargs.update(label=add_label)
+        kwargs.setdefault('widget', Button(
+            action='activate("apply")',
+            icon_char='＋',
+            icon_left=True,
+            omit_restore=True,
+            button_size=ButtonSize.SMALL,
+        ))
+        super().__init__(*args, **kwargs)
+        self.widget.template_name
 
 
 class FormCollectionMeta(MediaDefiningClass):
@@ -28,6 +48,15 @@ class FormCollectionMeta(MediaDefiningClass):
     Collect Forms declared on the base classes.
     """
     def __new__(cls, name, bases, attrs):
+        if add_label := attrs.pop('add_label', None):
+            warnings.warn(
+                "'add_label' is deprected in {module}.{name}. Use 'induce_add_sibling' and a "
+                "detached Activator instead.".format(module=attrs.get('__module__'), name=name),
+                DeprecationWarning,
+            )
+            attrs.setdefault('induce_add_sibling', '.add_sibling:active')
+            attrs.setdefault('add_sibling', AddSiblingActivator(add_label))
+
         # Collect forms and sub-collections from current class and remove them from attrs.
         attrs['declared_holders'], attrs['detached_holders'] = {}, {}
         for key, value in list(attrs.items()):
