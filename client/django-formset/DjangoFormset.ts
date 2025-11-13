@@ -1820,7 +1820,7 @@ export class DjangoFormset implements DjangoFormset {
 	private readonly abortController = new AbortController;
 	private readonly emptyCollectionPrefixes = Array<string>(0);
 	private data?: object;
-	private readonly extraData: object = {};
+	private extraData: object = {};
 
 	constructor(formset: DjangoFormsetElement) {
 		this.element = formset;
@@ -1837,6 +1837,7 @@ export class DjangoFormset implements DjangoFormset {
 		this.assignFormsToCollections();
 		this.findDetachedButtons();
 		this.formCollections.forEach(collection => collection.markAsFreshAndEmpty());
+		this.extraData = JSON.parse(this.element.dataset.extra as string ?? '{}');
 		Promise.all(this.forms.map(form => form.isConnected)).then(() => {
 			this.validate();
 			this.element.dispatchEvent(new CustomEvent('django-formset-connected', {detail: {formset: this}}));
