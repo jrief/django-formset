@@ -179,6 +179,15 @@ export function asUTCDate(date: Date) : Date {
 	return new Date(date.getTime() - date.getTimezoneOffset() * 60000);
 }
 
+export function compareArrays(needle: Array<string>, haystack: Array<string>): boolean {
+	for (let k = 0; k < needle.length; k++) {
+		if (haystack.length <= k || needle[k] !== haystack[k]) {
+			return false;
+		}
+	}
+	return true;
+}
+
 export function assert(condition: any, message?: string) {
 	if (!condition) {
 		message = message ? `Assertion failed: ${message}` : "Assertion failed";

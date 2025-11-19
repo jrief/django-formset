@@ -8,7 +8,7 @@ import isString from 'lodash.isstring';
 import setDataValue from 'lodash.set';
 import template from 'lodash.template';
 import Sortable, {SortableEvent} from 'sortablejs';
-import {StyleHelpers} from './helpers';
+import {StyleHelpers, compareArrays} from './helpers';
 import {FileUploadWidget} from './FileUploadWidget';
 import {ErrorKey, FieldErrorMessages} from './Widget';
 import {parse} from '../build/tag-attributes';
@@ -2214,7 +2214,19 @@ export class DjangoFormset implements DjangoFormset {
 	async submitPartial(path: Path, extraData?: Object) : Promise<Response|undefined> {
 		if (!this.endpoint)
 			throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
-		this.forms.find(form => isEqual(form.path, path))?.setSubmitted();
+		if (!this.forceSubmission) {
+			const invalidForms = this.forms.filter(form => {
+				if (compareArrays(path, form.path)) {
+					form.setSubmitted();
+					return !form.isValid();
+				}
+			});
+			if (invalidForms.length > 0) {
+				this.clearErrors();
+				invalidForms.forEach(form => form.reportValidity());
+				return;
+			}
+		}
 		const fullPath = ['formset_data', ...path];
 		const extraBody = {_extra: Object.assign({}, this.extraData, extraData)};
 		const body = setDataValue(extraBody, fullPath, getDataValue(this.buildBody(), fullPath));
