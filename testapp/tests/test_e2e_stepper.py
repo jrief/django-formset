@@ -20,6 +20,9 @@ class StepperCollectionView(ContextMixin, FormCollectionView):
 
 urlpatterns = [
     path('empty_stepper', StepperCollectionView.as_view(), name='empty_stepper'),
+    path('empty_stepper_forced', StepperCollectionView.as_view(
+        extra_context={'force_submission': True},
+    ), name='empty_stepper_forced'),
     path('prefilled_stepper', StepperCollectionView.as_view(
         initial={'contact': {'first_name': "John", 'last_name': "Doe"}}
     ), name='prefilled_stepper'),
@@ -28,7 +31,7 @@ urlpatterns = [
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['empty_stepper'])
+@pytest.mark.parametrize('viewname', ['empty_stepper', 'empty_stepper_forced'])
 def test_steps_remain_inactive(page, mocker, viewname):
     stepper_collection = page.locator('django-stepper-collection')
     expect(stepper_collection).to_be_visible()
@@ -65,8 +68,12 @@ def test_steps_remain_inactive(page, mocker, viewname):
     spy = mocker.spy(FormCollectionView, 'patch')
     collections[0].locator('button[name="next"]').click()
     sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 422
+    if viewname == 'empty_stepper_forced':
+        # in forced submission mode, the form is submitted even if invalid
+        spy.assert_called()
+        assert spy.spy_return.status_code == 422
+    else:
+        spy.assert_not_called()
     expect(collections[0].locator('.dj-form-errors .dj-errorlist')).to_be_empty()
     expect(fields_error_list[0]).to_contain_text('This field is required.')
     expect(fields_error_list[1]).to_contain_text('This field is required.')
