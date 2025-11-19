@@ -1289,7 +1289,13 @@ class DjangoForm {
 	reportValidity() {
 		if (this.element.noValidate || this.isTransient)
 			return;
-		const rect = this.element.getBoundingClientRect();
+		// check if the form is actually visible, otherwise the browser complains with:
+		// "An invalid form control with name='...' is not focusable."
+		let rect = this.element.getBoundingClientRect();
+		if (rect.width === 0 && rect.height === 0 && !this.isValid()) {
+			this.formset.forceVisibility(this);
+			rect = this.element.getBoundingClientRect();
+		}
 		if (rect.width !== 0 || rect.height !== 0) {
 			this.element.reportValidity();
 		}
@@ -2020,6 +2026,10 @@ export class DjangoFormset implements DjangoFormset {
 		}
 		this.buttons.forEach(button => button.updateOperability(...args));
 		this.inducers.forEach(inducer => inducer.updateOperability(...args));
+	}
+
+	public forceVisibility(form: DjangoForm) {
+		this.inducers.forEach(inducer => inducer.forceVisibility(form.element));
 	}
 
 	public registerInducer(inducer: Inducible) {
