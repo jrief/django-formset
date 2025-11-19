@@ -41,4 +41,5 @@ interface OptionData {
 
 interface Inducible {
 	updateOperability(...args: any[]): void;
+	forceVisibility(formElement: HTMLFormElement): void;  // used to make a compontent visible, in case of validation errors
 }

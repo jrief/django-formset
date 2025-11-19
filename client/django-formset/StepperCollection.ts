@@ -133,6 +133,14 @@ class StepperCollection implements Inducible {
 		}
 	}
 
+	forceVisibility(formElement: HTMLFormElement) {
+		for (const step of this.steps) {
+			if (step.formCollection.contains(formElement)) {
+				step.activateStep();
+			}
+		}
+	}
+
 	private appendStyles() : CSSStyleSheet {
 		const declaredStyles = document.createElement('style');
 		declaredStyles.innerText = styles;

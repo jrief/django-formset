@@ -129,6 +129,13 @@ export abstract class FormDialogBase {
 		this.induceOpen(...args);
 		this.induceClose(...args);
 	}
+
+	// force to open this dialog, if it contains the given formElement.
+	forceVisibility(formElement: HTMLFormElement) {
+		if (this.formElement === formElement) {
+			this.openDialog();
+		}
+	}
 }
 
 
