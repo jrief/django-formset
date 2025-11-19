@@ -3,6 +3,10 @@
 1.8.1
   * Fix: Server side code of widget `RichtextArea` now properly re-validates the length of the
     submitted rich text.
+  * If any of the forms to be submitted partially does not validate, then report that form and do
+    not send any data to the server. This action can be bypassed by setting `force-submission`.
+  * Add a hook, so that dialogs and stepper-steps are forced to become visible when reporting
+    the validity and their forms contain invalid fields.
 
 1.8
   * Fix: In `StepperCollection` only immediate children are considered as `StepperSteps`. This
