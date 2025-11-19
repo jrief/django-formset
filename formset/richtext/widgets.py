@@ -42,15 +42,13 @@ class RichTextarea(Textarea):
             if not isinstance(value, str):
                 raise ValidationError(gettext("The submitted data is not a valid text string."))
         if max_length := self.attrs.get('maxlength'):
-            msg = gettext("The submitted text is too long ({text_length} characters, max. {max_length})")
             if use_json:
                 text_length = self._compute_text_length(value.get('content', []))
-                if text_length > max_length:
-                    raise ValidationError(msg.format(text_length=text_length, max_length=max_length))
             else:
                 text_length = len(strip_tags(value))
-                if text_length > max_length:
-                    raise ValidationError(msg.format(text_length=text_length, max_length=max_length))
+            if text_length > int(max_length):
+                msg = gettext("The submitted text is too long ({text_length} characters, max. {max_length})")
+                raise ValidationError(msg.format(text_length=text_length, max_length=max_length))
         return value
 
     def get_context(self, name, value, attrs):
