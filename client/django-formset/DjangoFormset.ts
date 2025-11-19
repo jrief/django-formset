@@ -8,7 +8,7 @@ import isString from 'lodash.isstring';
 import setDataValue from 'lodash.set';
 import template from 'lodash.template';
 import Sortable, {SortableEvent} from 'sortablejs';
-import {StyleHelpers, toAbsPath} from './helpers';
+import {StyleHelpers, compareArrays, toAbsPath} from './helpers';
 import {FileUploadWidget} from './FileUploadWidget';
 import {FieldErrorPlaceholder} from './Widget';
 import {parse} from '../build/tag-attributes';
@@ -1681,7 +1681,7 @@ class DjangoFormCollectionTemplate implements Inducible {
 		const path= this.element.getAttribute('df-induce-add-sibling')?.split(':')[0].split('.') ?? [];
 		this.addSiblingButtonPath = toAbsPath(prefix.split('.'), path);
 		this.induceAddSibling = this.evalInducer(element, (...args: any[]) => this.appendCollectionSibling());
-		formset.registerInducer(this, this.updateOperability);
+		formset.registerInducer(this);
 		const innerCollection = this.element.content.querySelector('django-form-collection');
 		const maxSiblings = innerCollection?.getAttribute('max-siblings');
 		if (maxSiblings) {
@@ -1793,7 +1793,7 @@ class DjangoFormCollectionTemplate implements Inducible {
 		addSiblingButton.element.disabled = this.maxSiblings === null ? false : numActiveSiblings >= this.maxSiblings;
 	}
 
-	public updateOperability(...args: any[]) {
+	updateOperability(...args: any[]) {
 		const addSiblingButton = this.formset.buttons.find(button => isEqual(button.path, this.addSiblingButtonPath));
 		if (addSiblingButton) {
 			if (args.length === 2 && args[0] === addSiblingButton && args[1] === 'apply') {
@@ -1803,6 +1803,8 @@ class DjangoFormCollectionTemplate implements Inducible {
 			}
 		}
 	}
+
+	forceVisibility(formElement: HTMLFormElement) {}
 
 	static findFormCollectionTemplate(formset: DjangoFormset, element: Element, formCollection?: DjangoFormCollection) : DjangoFormCollectionTemplate|undefined {
 		const templateElement = element.querySelector(':scope > .collection-siblings > template.empty-collection') as HTMLTemplateElement;
@@ -2221,7 +2223,19 @@ export class DjangoFormset implements DjangoFormset {
 	async submitPartial(path: Path, extraData?: Object) : Promise<Response|undefined> {
 		if (!this.endpoint)
 			throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
-		this.forms.find(form => isEqual(form.path, path))?.setSubmitted();
+		if (!this.forceSubmission) {
+			const invalidForms = this.forms.filter(form => {
+				if (compareArrays(path, form.path)) {
+					form.setSubmitted();
+					return !form.isValid();
+				}
+			});
+			if (invalidForms.length > 0) {
+				this.clearErrors();
+				invalidForms.forEach(form => form.reportValidity());
+				return;
+			}
+		}
 		const fullPath = ['formset_data', ...path];
 		const body = setDataValue(
 			{extra_data: Object.assign({}, this.extraData, extraData)},

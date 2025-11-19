@@ -9,8 +9,11 @@
   * Feat: Add attribute `reverse_accessor` on FormCollection. This allows to specify the reverse
     accessor name of a `ForeignKey` relation used in collections.
   * Fix: Detached buttons use prefixed path for name attributes.
+  * If any of the forms to be submitted partially does not validate, then report that form and do
+    not send any data to the server. This action can be bypassed by setting `force-submission`.
+  * Add a hook, so that dialogs and stepper-steps are forced to become visible when reporting
+    the validity and their forms contain invalid fields.
 
-- 
 - 2.1.4
   * Fix: In `StepperCollection` only immediate children are considered as `StepperSteps`. This
     caused problems when nesting collections.
