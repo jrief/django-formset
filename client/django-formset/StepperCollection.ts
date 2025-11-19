@@ -116,7 +116,7 @@ class StepperCollection implements Inducible {
 		if (!(event instanceof CustomEvent))
 			return;
 		this.formset = event.detail.formset as DjangoFormset;
-		this.formset.registerInducer(this, this.updateOperability);
+		this.formset.registerInducer(this);
 
 		let previousStep: StepperStep|null = null;
 		for (const step of this.steps) {

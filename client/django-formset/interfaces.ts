@@ -11,7 +11,7 @@ interface DjangoFormset {
 	CSRFToken: string | undefined;
 	buttons: Array<DjangoButton>;
 	currentActiveButton: DjangoButton | null;
-	registerInducer(inducer: Inducible, func: Function): void;
+	registerInducer(inducer: Inducible): void;
 }
 
 interface DjangoForm {
