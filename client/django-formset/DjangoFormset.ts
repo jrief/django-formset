@@ -1813,7 +1813,7 @@ export class DjangoFormset implements DjangoFormset {
 	public readonly buttons = Array<DjangoButton>(0);
 	public currentActiveButton: DjangoButton|null = null;
 	public readonly forms = Array<DjangoForm>(0);
-	private readonly inducers = Array<[Inducible, Function]>(0);
+	private readonly inducers = Array<Inducible>(0);
 	private readonly CSRFToken: string|null;
 	public readonly formCollections = Array<DjangoFormCollection>(0);
 	private errorList: HTMLUListElement|null = null;
@@ -2019,11 +2019,11 @@ export class DjangoFormset implements DjangoFormset {
 			form.updateOperability(...args);
 		}
 		this.buttons.forEach(button => button.updateOperability(...args));
-		this.inducers.forEach(([inducer, func]) => func.bind(inducer)(...args));
+		this.inducers.forEach(inducer => inducer.updateOperability(...args));
 	}
 
-	public registerInducer(inducer: Inducible, func: Function) {
-		this.inducers.push([inducer, func]);
+	public registerInducer(inducer: Inducible) {
+		this.inducers.push(inducer);
 	}
 
 	public validate() : boolean {

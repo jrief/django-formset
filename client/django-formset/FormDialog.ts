@@ -126,7 +126,7 @@ export abstract class FormDialogBase {
 		return this.element.open;
 	}
 
-	public updateOperability(...args: any[]) {
+	updateOperability(...args: any[]) {
 		this.induceOpen(...args);
 		this.induceClose(...args);
 	}
@@ -151,7 +151,7 @@ class FormDialog extends FormDialogBase implements Inducible {
 		this.form = event.detail.form as DjangoForm;
 		this.formIsValid = this.form.isValid;
 		this.form.isValid = this.isDialogValid.bind(this);  // override DjangoForm's isValid() method
-		this.form.formset.registerInducer(this, this.updateOperability);
+		this.form.formset.registerInducer(this);
 	};
 
 	private isDialogValid() {
