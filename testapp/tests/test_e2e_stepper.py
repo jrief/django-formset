@@ -1,7 +1,5 @@
-import json
 import pytest
 from playwright.sync_api import expect
-from time import sleep
 
 from django.urls import path
 
@@ -32,7 +30,7 @@ urlpatterns = [
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['empty_stepper', 'empty_stepper_forced'])
-def test_steps_remain_inactive(page, mocker, viewname):
+def test_steps_remain_inactive(page, viewname):
     stepper_collection = page.locator('django-stepper-collection')
     expect(stepper_collection).to_be_visible()
 
@@ -65,15 +63,14 @@ def test_steps_remain_inactive(page, mocker, viewname):
     assert len(fields_error_list) == 2
     expect(fields_error_list[0]).to_be_empty()
     expect(fields_error_list[1]).to_be_empty()
-    spy = mocker.spy(FormCollectionView, 'patch')
-    collections[0].locator('button[name="next"]').click()
-    sleep(0.2)
     if viewname == 'empty_stepper_forced':
         # in forced submission mode, the form is submitted even if invalid
-        spy.assert_called()
-        assert spy.spy_return.status_code == 422
+        with page.expect_response(page.url) as response_info:
+            collections[0].locator('button[name="next"]').click()
+        assert response_info.value.ok is False
+        assert response_info.value.status == 422
     else:
-        spy.assert_not_called()
+        collections[0].locator('button[name="next"]').click()
     expect(collections[0].locator('.dj-form-errors .dj-errorlist')).to_be_empty()
     expect(fields_error_list[0]).to_contain_text('This field is required.')
     expect(fields_error_list[1]).to_contain_text('This field is required.')
@@ -81,18 +78,16 @@ def test_steps_remain_inactive(page, mocker, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['empty_stepper'])
-def test_steps_become_active(page, mocker, viewname):
+def test_steps_become_active(page, viewname):
     stepper_collection = page.locator('django-stepper-collection')
     step_items = stepper_collection.locator('ul.stepper-horizontal > li.stepper-step').all()
     collections = stepper_collection.locator('django-form-collection').all()
 
     collections[0].locator('input[name="first_name"]').fill("John")
     collections[0].locator('input[name="last_name"]').fill("Doe")
-    spy = mocker.spy(FormCollectionView, 'patch')
-    collections[0].locator('button[name="next"]').click()
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
+    with page.expect_response(page.url) as response_info:
+        collections[0].locator('button[name="next"]').click()
+    assert response_info.value.ok is True
 
     expect(step_items[0]).not_to_have_attribute('aria-current', r'.*')
     expect(step_items[0]).to_have_class('stepper-step visited')
@@ -164,13 +159,11 @@ def test_steps_become_active(page, mocker, viewname):
     collections[2].locator('input[name="card_owner"]').fill("John Doe")
     collections[2].locator('input[name="card_number"]').fill("1234 5678 9012 3456")
 
-    # submit the three form
-    spy = mocker.spy(FormCollectionView, 'post')
-    collections[2].locator('button[name="activate_submit"]').click()
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    request_body = json.loads(spy.call_args.args[1].body)
+    # submit all three forms
+    with page.expect_response(page.url) as response_info:
+        collections[2].locator('button[name="activate_submit"]').click()
+    assert response_info.value.ok is True
+    request_body = response_info.value.request.post_data_json
     expected = {
         'extra_data': {},
         'formset_data': {
