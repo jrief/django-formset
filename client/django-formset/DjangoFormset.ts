@@ -1337,9 +1337,9 @@ class DjangoForm {
 		}
 	}
 
-	reportCustomErrors(errors: Map<string, Array<string>>) {
+	reportCustomErrors(errors: Record<string, Array<string>>) {
 		this.clearCustomErrors();
-		const nonFieldErrors = errors.get(NON_FIELD_ERRORS);
+		const nonFieldErrors = errors[NON_FIELD_ERRORS];
 		if (this.errorList && Array.isArray(nonFieldErrors) && this.errorPlaceholder) {
 			for (const message of nonFieldErrors) {
 				const item = this.errorPlaceholder.cloneNode() as Element;
@@ -1348,7 +1348,7 @@ class DjangoForm {
 			}
 		}
 		for (const fieldGroup of this.fieldGroups) {
-			const fieldErrors = errors.get(fieldGroup.name);
+			const fieldErrors = errors[fieldGroup.name];
 			if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
 				fieldGroup.errorPlaceholder.reportCustomError(fieldErrors[0]);
 			}
@@ -1848,7 +1848,7 @@ export class DjangoFormset implements DjangoFormset {
 		this.assignFormsToCollections();
 		this.findDetachedButtons();
 		this.formCollections.forEach(collection => collection.markAsFreshAndEmpty());
-		this.extraData = JSON.parse(this.element.dataset.extra as string ?? '{}');
+		this.extraData = JSON.parse(this.element.dataset.extra ? this.element.dataset.extra : '{}');
 		Promise.all(this.forms.map(form => form.isConnected)).then(() => {
 			this.validate();
 			this.element.dispatchEvent(new CustomEvent('django-formset-connected', {detail: {formset: this}}));
@@ -2311,7 +2311,7 @@ export class DjangoFormset implements DjangoFormset {
 		for (const form of this.forms) {
 			const errors = form.name ? getDataValue(body, form.name.split('.'), null) : body;
 			if (!isEmpty(errors)) {
-				form.reportCustomErrors(new Map(Object.entries(errors)));
+				form.reportCustomErrors(errors);
 				form.reportValidity();
 			} else {
 				form.clearCustomErrors();
