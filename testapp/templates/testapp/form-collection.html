@@ -1,7 +1,7 @@
 {% extends framework|default:"testapp"|add:"/base.html" %}
 
 {% block main-content %}
-<django-formset endpoint="{{ request.path }}" data-extra="{{ extra_data }}" {% if force_submission %} force-submission{% endif %}{% if withhold_feedback %} withhold-feedback="{{ withhold_feedback }}"{% endif %} csrf-token="{{ csrf_token }}">
+<django-formset endpoint="{{ request.path }}"{% if extra_data %} data-extra="{{ extra_data }}"{% endif %}{% if force_submission %} force-submission{% endif %}{% if withhold_feedback %} withhold-feedback="{{ withhold_feedback }}"{% endif %} csrf-token="{{ csrf_token }}">
 	{% include "formset/non_field_errors.html" %}
 	{{ form_collection }}
 	{% include framework|default:"testapp"|add:"/buttons.html" %}
