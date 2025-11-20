@@ -2223,18 +2223,16 @@ export class DjangoFormset implements DjangoFormset {
 	async submitPartial(path: Path, extraData?: Object) : Promise<Response|undefined> {
 		if (!this.endpoint)
 			throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
-		if (!this.forceSubmission) {
-			const invalidForms = this.forms.filter(form => {
-				if (compareArrays(path, form.path)) {
-					form.setSubmitted();
-					return !form.isValid();
-				}
-			});
-			if (invalidForms.length > 0) {
-				this.clearErrors();
-				invalidForms.forEach(form => form.reportValidity());
-				return;
+		const invalidForms = this.forms.filter(form => {
+			if (compareArrays(path, form.path)) {
+				form.setSubmitted();
+				return !form.isValid();
 			}
+		});
+		if (!this.forceSubmission && invalidForms.length > 0) {
+			this.clearErrors();
+			invalidForms.forEach(form => form.reportValidity());
+			return;
 		}
 		const fullPath = ['formset_data', ...path];
 		const body = setDataValue(
