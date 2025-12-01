@@ -6,7 +6,8 @@
 // and the ternary operator in <button df-click="condition ? ... : ...">.
 
 OperabilityExpression
-  = _ head:OperabilityFactor _ tail:(_ Operator _ OperabilityExpression)* _ {
+  = _ head:OperabilityFactor _ tail:(_ Operator _ OperabilityExpression)* _
+  {
       return tail.reduce((result, element) => result + element[1] + element[3], head);
   }
   / _ { return 'false'; }
@@ -39,7 +40,8 @@ OperabilityFactor
   / getDataValue
 
 getDataValue
-  = path:PATH {
+  = path:PATH
+  {
       const parts = path.split('.').map(part => `'${part}'`);
       return `this.getDataValue([${parts.join(',')}])`;
   }
@@ -49,7 +51,8 @@ getDataValue
 // The starting rule for `<ANY df-induce="..."` …>`.
 
 InduceExpression
-  = _ head:InduceFactor _ tail:(_ Operator _ InduceExpression)* _ {
+  = _ head:InduceFactor _ tail:(_ Operator _ InduceExpression)* _
+  {
       return tail.reduce((result, element) => result + element[1] + element[3], head);
   }
   / _ { return 'false'; }
@@ -61,7 +64,8 @@ InduceFactor
   / getDataValue
 
 isButtonActive
-  = path:PATH ":" action:VARIABLE {
+  = path:PATH ":" action:VARIABLE    // TODO: extend to allow params to be any VARIABLE
+  {
       const parts = path.split('.').map(part => `'${part}'`);
       return `this.isButtonActive([${parts.join(',')}],'${action}')`;
   }
@@ -71,18 +75,22 @@ isButtonActive
 // The starting rule for <button `df-click="..."` …>.
 
 Ternary
-  = _ condition:TernaryCondition _ "?" _ fulfilled:Ternary _ ":" _ otherwise:Ternary _ {
+  = _ condition:TernaryCondition _ "?" _ fulfilled:Ternary _ ":" _ otherwise:Ternary _
+  {
     return { condition: condition, fulfilled: fulfilled, otherwise: otherwise };
   }
-  / fulfilled:Actions {
+  / fulfilled:Actions
+  {
     return { condition: true, fulfilled: fulfilled, otherwise: null };
   }
 
 Actions
-  = successChain:Chain _ '!~' _ rejectChain:Chain _ {
+  = successChain:Chain _ '!~' _ rejectChain:Chain _
+  {
     return { successChain: successChain, rejectChain: rejectChain };
   }
-  / successChain:Chain {
+  / successChain:Chain
+  {
     return { successChain: successChain, rejectChain: [] };
   }
 
@@ -91,7 +99,8 @@ Chain
   / func:MainFunction { return [func] }
 
 TernaryCondition
-  = _ head:TernaryFactor _ tail:(_ Operator _ OperabilityExpression)* _ {
+  = _ head:TernaryFactor _ tail:(_ Operator _ OperabilityExpression)* _
+  {
       return tail.reduce((result, element) => result + element[1] + element[3], head);
   }
   / _ { return 'false'; }
@@ -103,25 +112,31 @@ TernaryFactor
 
 MainFunction
   = Function
-  // allow exception: MainFunction also accepts function name without braches
-  / funcname:$keystring {
+  // allow exception: MainFunction also accepts function name without brackets
+  / funcname:$keystring
+  {
     return {_funcName: funcname, _funcArgs: []};
   }
 
 Function
-  = 'setFieldValue' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
+  = 'setFieldValue' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')'
+  {
     return {_funcName: 'setFieldValue', _funcArgs: [target.split('.'), source]};
   }
-  / 'setExtraData' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
+  / 'setExtraData' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')'
+  {
     return {_funcName: 'setExtraData', _funcArgs: [target.split('.'), source]};
   }
-  / 'deletePartial' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')' {
+  / 'deletePartial' _ '(' _ target:PATH _ ',' _ source:SOURCEARG _ ')'
+  {
     return {_funcName: 'deletePartial', _funcArgs: [target.split('.'), source]};
   }
-  / _ funcname:$keystring _ '(' args:arglist ')' _ {
+  / _ funcname:$keystring _ '(' args:arglist ')' _
+  {
     return {_funcName: funcname, _funcArgs: args};
   }
-  / funcname:$keystring '(' _ ')' {
+  / funcname:$keystring '(' _ ')'
+  {
     return {_funcName: funcname, _funcArgs: []};
   }
 
@@ -129,10 +144,12 @@ SOURCEARG
   = number
   / boolean
   / string
-  / '^' _ path:PATH {
+  / '^' _ path:PATH
+  {
     return {_funcName: 'getResponseValue', _funcArgs: [path.split('.')]};
   }
-  / path:PATH {
+  / path:PATH
+  {
     return {_funcName: 'getDataValue', _funcArgs: [path.split('.')]};
   }
 
@@ -152,7 +169,8 @@ argument
   / object
   / array
   / Function
-  / path:PATH {
+  / path:PATH
+  {
     return {_funcName: 'getDataValue', _funcArgs: [path.split('.')]};
   }
 
