@@ -2177,9 +2177,7 @@ export class DjangoFormset implements DjangoFormset {
 			}
 		} else {
 			this.clearErrors();
-			for (const form of this.forms) {
-				form.reportValidity();
-			}
+			this.forms.forEach(form => form.reportValidity());
 		}
 	}
 
