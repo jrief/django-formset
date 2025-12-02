@@ -898,7 +898,7 @@ class DjangoButton {
 	}
 
 	/**
-	 * Confirm a user response. If it is accepted proceed, otherwise reject.
+	 * Confirm a user response. If it is accepted, proceed, otherwise reject.
  	 */
 	//@allowedAction
 	private confirm(message: string) {
@@ -950,7 +950,7 @@ class DjangoButton {
 	}
 
 	/**
-	 * Transfer value from one element to another one.
+	 * Set value in extra data to be summitted with formset_data.
  	 */
 	//@allowedAction
 	private setExtraData(target: Path, source: FieldValue) {
