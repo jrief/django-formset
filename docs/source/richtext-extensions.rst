@@ -336,9 +336,12 @@ dialog form. This attribute can take three types of values:
   the previous section. It takes an HTMLFormControlsCollection_ as its only argument. This
   collection contains all the fields of the given dialog form. The function must return a plain
   JavaScript object which then is merged into the editor's document state. This is the most flexible
-  way, because it can be programmed in JavaScript.
+  way, because it can be programmed in JavaScript. Optionally, this function can also return a
+  Promise_ which must resolve to said JavaScript object. This way we can perform asynchronous
+  operations inside this function.
 
 .. _HTMLFormControlsCollection: https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormControlsCollection
+.. _Promise: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
 
   .. code-block:: javascript
 	:caption: myapp/tiptap-extensions/simple_image.js
@@ -384,7 +387,7 @@ the editor. This attribute can take three types of values:
   state for the given mark or node as a plain JavaScript object. This function then shall modify the
   given input element's ``value`` or ``checked`` property, or any of its attributes.
 
-  Example: Say, that in our ``CustomHyperlinkDialogForm`` we perfer a ``RadioSelect`` widget to
+  Example: Say, that in our ``CustomHyperlinkDialogForm`` we prefer a ``RadioSelect`` widget to
   select the link type. Now the problem is, that we have one radio input element for each choice.
   Inside our extension script we can therefore implement this mapping function:
 
@@ -412,6 +415,10 @@ the editor. This attribute can take three types of values:
   named radio input element (actually we use ``value`` for this) and set its ``checked`` property
   accordingly. This way we can ensure that the correct radio input element is selected when opening
   the dialog form.
+
+  The return value of this function is ignored unless it's a Promise_, which suspends execution of
+  the caller until it resolved. This way we can perform asynchronous operations inside this
+  function.
 
   The widget for our choice field ``link_type`` then must be rewritten to:
   

@@ -182,6 +182,10 @@ export namespace StyleHelpers {
 	}
 }
 
+export function asUTCDate(date: Date) : Date {
+	return new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+}
+
 export function assert(condition: any, message?: string) {
 	if (!condition) {
 		message = message ? `Assertion failed: ${message}` : "Assertion failed";

@@ -98,7 +98,7 @@ class StepperCollection implements Inducible {
 	constructor(element: StepperCollectionElement) {
 		this.element = element;
 		const listItems = element.querySelectorAll('li.stepper-step');
-		element.querySelectorAll('django-form-collection').forEach((formCollection: Element, index: number) => {
+		element.querySelectorAll(':scope > django-form-collection').forEach((formCollection: Element, index: number) => {
 			this.steps.push(new StepperStep(this, listItems.item(index) as HTMLLIElement, formCollection as HTMLElement));
 		});
 		const formset = this.element.closest('django-formset');

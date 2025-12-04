@@ -1,4 +1,4 @@
-import {StyleHelpers} from './helpers';
+import {StyleHelpers, asUTCDate} from './helpers';
 import {Widget} from './Widget';
 import styles from './Calendar.scss';
 
@@ -80,12 +80,8 @@ export class CalendarSheet extends Widget {
 	}
 
 	private get todayDateString() : string {
-		const isoString = this.asUTCDate(new Date()).toISOString();
+		const isoString = asUTCDate(new Date()).toISOString();
 		return this.settings.dateOnly ? `${isoString.slice(0, 10)}T00:00` : isoString.slice(0, 16);
-	}
-
-	private asUTCDate(date: Date) : Date {
-		return new Date(date.getTime() - date.getTimezoneOffset() * 60000);
 	}
 
 	private getViewMode() : ViewMode {
@@ -149,16 +145,24 @@ export class CalendarSheet extends Widget {
 	private registerCalendar() {
 		this.viewMode = this.getViewMode();
 		this.prevSheetDate = this.getDate('button.prev');
+		const prevButton = this.element.querySelector('button.prev');
 		const narrowButton = this.element.querySelector('button.narrow');
 		this.narrowSheetDate = narrowButton ? this.getDate(narrowButton) : undefined;
 		this.nextSheetDate = this.getDate('button.next');
+		const nextButton = this.element.querySelector('button.next');
 		const extendButton = this.element.querySelector('button.extend');
 		this.extendSheetDate = extendButton ? this.getDate(extendButton) : undefined;
-		this.element.querySelector('button.prev')?.addEventListener('click', this.turnPrev, {once: true});
-		this.element.querySelector('button.narrow')?.addEventListener('click', this.turnNarrow, {once: true});
-		this.element.querySelector('button.extend')?.addEventListener('click', this.turnExtend, {once: true});
+		if (this.settings.withRange) {
+			prevButton?.addEventListener('mouseenter', this.hoverPrevButton);
+		}
+		prevButton?.addEventListener('click', this.turnPrev, {once: true});
+		narrowButton?.addEventListener('click', this.turnNarrow, {once: true});
+		extendButton?.addEventListener('click', this.turnExtend, {once: true});
 		this.element.querySelector('button.today')?.addEventListener('click', this.turnToday, {once: true});
-		this.element.querySelector('button.next')?.addEventListener('click', this.turnNext, {once: true});
+		if (this.settings.withRange) {
+			nextButton?.addEventListener('mouseenter', this.hoverNextButton);
+		}
+		nextButton?.addEventListener('click', this.turnNext, {once: true});
 		this.calendarItems = this.element.querySelectorAll('li[data-date]');
 		switch (this.viewMode) {
 			case ViewMode.hours:
@@ -209,13 +213,13 @@ export class CalendarSheet extends Widget {
 					}
 				}, {once: true});
 				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.handleOver);
+					elem.addEventListener('mouseenter', this.hoverDateItem);
 				}
 			}
 		});
 
-		const lowerHourString = this.dateRange[0] ? this.asUTCDate(this.dateRange[0]).toISOString().slice(0, 13) : '';
-		const upperDateString = this.settings.withRange && this.dateRange[1] ? this.asUTCDate(this.dateRange[1]).toISOString().slice(0, 16) : '';
+		const lowerHourString = this.dateRange[0] ? asUTCDate(this.dateRange[0]).toISOString().slice(0, 13) : '';
+		const upperDateString = this.settings.withRange && this.dateRange[1] ? asUTCDate(this.dateRange[1]).toISOString().slice(0, 16) : '';
 		const upperHourString = upperDateString.slice(0, 13);
 		const todayHourString = this.todayDateString.slice(0, 13).concat(':00');
 		this.element.querySelectorAll('li[aria-label]').forEach(elem => {
@@ -237,7 +241,7 @@ export class CalendarSheet extends Widget {
 					}
 				});
 				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.handleOver);
+					elem.addEventListener('mouseenter', this.hoverDateItem);
 				}
 			}
 		});
@@ -257,7 +261,7 @@ export class CalendarSheet extends Widget {
 			if (!elem.hasAttribute('disabled')) {
 				elem.addEventListener('click', this.selectDay);
 				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.handleOver);
+					elem.addEventListener('mouseenter', this.hoverDateItem);
 				}
 			}
 		});
@@ -274,7 +278,7 @@ export class CalendarSheet extends Widget {
 			if (!elem.hasAttribute('disabled')) {
 				elem.addEventListener('click', this.selectMonth);
 				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.handleOver);
+					elem.addEventListener('mouseenter', this.hoverDateItem);
 				}
 			}
 		});
@@ -291,7 +295,7 @@ export class CalendarSheet extends Widget {
 			if (!elem.hasAttribute('disabled')) {
 				elem.addEventListener('click', this.selectYear);
 				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.handleOver);
+					elem.addEventListener('mouseenter', this.hoverDateItem);
 				}
 			}
 		});
@@ -337,11 +341,11 @@ export class CalendarSheet extends Widget {
 				break;
 			case 'Enter':
 				if (this.preselectedDate) {
-					const dateString = this.asUTCDate(this.preselectedDate).toISOString().slice(0, 16);
+					const dateString = asUTCDate(this.preselectedDate).toISOString().slice(0, 16);
 					element = this.element.querySelector(`.sheet-body li[data-date="${dateString}"]`);
 				} else {
 					const date = this.upperRange ? this.dateRange[1] : this.dateRange[0];
-					const dateString = date ? this.asUTCDate(date).toISOString().slice(0, 16) : '';
+					const dateString = date ? asUTCDate(date).toISOString().slice(0, 16) : '';
 					element = this.element.querySelector(`.sheet-body li[data-date="${dateString}"]`);
 				}
 				if (element) {
@@ -475,7 +479,7 @@ export class CalendarSheet extends Widget {
 	};
 
 	private getDateSelector(date: Date) : string {
-		const utcDateString = this.asUTCDate(date).toISOString();
+		const utcDateString = asUTCDate(date).toISOString();
 		let dateString;
 		switch (this.viewMode) {
 			case ViewMode.hours:
@@ -500,15 +504,27 @@ export class CalendarSheet extends Widget {
 		return Array.from(this.calendarItems).indexOf(selectedElement as HTMLLIElement);
 	}
 
-	private handleOver = (event: Event) => {
-		if (!(event.target instanceof HTMLLIElement))
-			return;
+	private hoverPrevButton = (event: Event) => {
+		this.extendRangeToListItem(this.calendarItems.item(0));
+	};
+
+	private hoverNextButton = (event: Event) => {
+		this.extendRangeToListItem(this.calendarItems.item(this.calendarItems.length - 1));
+	};
+
+	private hoverDateItem = (event: Event) => {
+		if (event.target instanceof HTMLLIElement) {
+			this.extendRangeToListItem(event.target);
+		}
+	};
+
+	private extendRangeToListItem(listItem: HTMLLIElement) {
 		if (this.dateRange[0] && !this.dateRange[1]) {
-			const hoverDateString = event.target.getAttribute('data-date') ?? event.target.getAttribute('aria-label') ?? '';
+			const hoverDateString = listItem.getAttribute('data-date') ?? listItem.getAttribute('aria-label') ?? '';
 			const hoverDate = new Date(hoverDateString);
 			this.markDateRange(this.dateRange[0], hoverDate, true);
 		}
-	};
+	}
 
 	private markDateRange(dateFixed: Date, dateCursor: Date, openRange= false) {
 		const lowerDate = dateFixed < dateCursor ? dateFixed : dateCursor;
@@ -607,7 +623,7 @@ export class CalendarSheet extends Widget {
 			if (this.viewMode === ViewMode.hours) {
 				const label = this.element.querySelector('.sheet-body ul.hours:last-child > li')?.getAttribute('data-date');
 				this.element.querySelector('.sheet-body ul.hours:last-child')?.toggleAttribute('hidden',
-					this.dateRange[1] ? this.asUTCDate(this.dateRange[1]).toISOString().slice(0, 16) !== label : !this.upperRange
+					this.dateRange[1] ? asUTCDate(this.dateRange[1]).toISOString().slice(0, 16) !== label : !this.upperRange
 				);
 			}
 		} else if (this.dateRange[0]) {
@@ -775,7 +791,7 @@ export class CalendarSheet extends Widget {
 		}
 		const nextDate = this.getDelta(direction, selectedDate);
 		this.preselectedDate = this.settings.withRange ? nextDate : null;
-		const dataDateString = this.asUTCDate(nextDate).toISOString().slice(0, 16);
+		const dataDateString = asUTCDate(nextDate).toISOString().slice(0, 16);
 		let nextItem: Element|null = null;
 		if (this.viewMode !== ViewMode.weeks || selectedDate.getMonth() === nextDate.getMonth()) {
 			nextItem = this.element.querySelector(`.sheet-body li[data-date="${dataDateString}"]`);
@@ -800,7 +816,7 @@ export class CalendarSheet extends Widget {
 
 	private async fetchCalendar(atDate: Date, viewMode: ViewMode) {
 		const query = new URLSearchParams('calendar');
-		query.set('date', this.asUTCDate(atDate).toISOString().slice(0, 10));
+		query.set('date', asUTCDate(atDate).toISOString().slice(0, 10));
 		query.set('mode', viewMode);
 		if (this.settings.hour12) {
 			query.set('hour12', '');
@@ -895,8 +911,7 @@ export class CalendarSheet extends Widget {
 			for (let k = 0; k < sheet.cssRules.length; ++k) {
 				const cssRule = sheet.cssRules[k];
 				if (cssRule instanceof CSSStyleRule && cssRule.selectorText === `${this.baseSelector} .sheet-body ul:not(*)`) {
-					const elementId = this.settings.inputElement.id.replaceAll('.', '\\.');
-					const selectorText = `#${elementId} ~ ${this.baseSelector} .sheet-body ul:not(*)`;
+					const selectorText = `#${CSS.escape(this.settings.inputElement.id)} ~ ${this.baseSelector} .sheet-body ul:not(*)`;
 					const index = sheet.insertRule(`${selectorText}{${cssRule.style.cssText}}`, sheet.cssRules.length);
 					return sheet.cssRules[index] as CSSStyleRule;
 				}
@@ -1023,8 +1038,8 @@ export class DateRangeCalendarElement extends HTMLInputElement {
 			pure: true,
 			updateDate: (lowerDate: Date, upperDate?: Date) => {
 				const dateStrings = [
-					`${lowerDate.toISOString().slice(0, 10)}T00:00`,
-					upperDate ? `${upperDate.toISOString().slice(0, 10)}T00:00` : '',
+					`${asUTCDate(lowerDate).toISOString().slice(0, 10)}T00:00`,
+					upperDate ? `${asUTCDate(upperDate).toISOString().slice(0, 10)}T00:00` : '',
 				];
 				this.value = dateStrings.join(';');
 				this.dispatchEvent(new Event('input'));
@@ -1064,8 +1079,8 @@ export class DateTimeRangeCalendarElement extends HTMLInputElement {
 			pure: true,
 			updateDate: (lowerDate: Date, upperDate?: Date) => {
 				const dateStrings = [
-					lowerDate.toISOString().slice(0, 16),
-					upperDate?.toISOString().slice(0, 16) ?? '',
+					asUTCDate(lowerDate).toISOString().slice(0, 16),
+					upperDate ? asUTCDate(upperDate).toISOString().slice(0, 16) : '',
 				];
 				this.value = dateStrings.join(';');
 				this.dispatchEvent(new Event('input'));

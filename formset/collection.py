@@ -170,7 +170,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             num_siblings = max(self.min_siblings, self.extra_siblings)
 
         first, last = 0, len(self.declared_holders.items()) - 1
-        # add initialized collections/forms
+
+        # yield initialized collections and forms
         for position in range(num_siblings):
             for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
                 prefix = f'{self.prefix}.{position}.{name}' if self.prefix else f'{position}.{name}'
@@ -192,7 +193,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                 if initial in self.empty_values and (position >= self.min_siblings or self.fresh_and_empty):
                     holder.fresh_and_empty = True
                 yield holder
-        # add empty placeholder as template for extra collections
+
+        # yield empty placeholder as template for extra collections
         for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
             if self.prefix:
                 count = self.prefix.count('${siblingId')
@@ -480,7 +482,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     if not isinstance(holder, BaseModelForm):
                         continue
                     if holder.marked_for_removal:
-                        holder.instance.delete()
+                        if holder.instance and holder.instance.pk:
+                            holder.instance.delete()
                         continue
                     construct_instance(holder, holder.instance)
                     if getattr(self, 'related_field', None):

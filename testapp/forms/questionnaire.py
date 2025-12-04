@@ -14,14 +14,12 @@ class QuestionnaireForm(forms.Form):
         error_messages={'invalid': "A name consist of a first and last name."},
         help_text="Please enter a first- and a last name, starting in upper case.",
     )
-
     gender = fields.ChoiceField(
         label="Gender",
         choices=[('m', "Male"), ('f', "Female"), ('x', "Inapplicable")],
         widget=widgets.RadioSelect,
         error_messages={'invalid_choice': "Please select your gender."},
     )
-
     pregnant = fields.BooleanField(
         label="Are you pregnant?",
         required=False,

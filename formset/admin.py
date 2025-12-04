@@ -11,6 +11,7 @@ from django.db.models.fields.files import FileField
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.template.response import TemplateResponse
 from django.urls import reverse
+from django.utils.encoding import iri_to_uri
 from django.utils.translation import gettext
 
 from formset.calendar import CalendarResponseMixin
@@ -179,7 +180,8 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
 
     def _update_collection_view(self, view_kwargs, add=False):
         if self.get_extra_data().get('name') == '_saveasnew':
-            self.object = self.model()
+            view_kwargs['instance'] = self.object = self.model()
+            add = True
         body = json.loads(self.request.body)
         view_kwargs.update(data=body.get('formset_data'))
         if collection_class := self.get_collection_class():
@@ -251,6 +253,8 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
             success_url = reverse(f'admin:{self.opts.app_label}_{self.opts.model_name}_add')
         else:
             success_url = reverse(f'admin:{self.opts.app_label}_{self.opts.model_name}_change', args=(self.object.pk,))
+        if querystring := iri_to_uri(self.request.META.get('QUERY_STRING', '')):
+            success_url += f'?{querystring}'
         return JsonResponse({'success_url': success_url})
 
 

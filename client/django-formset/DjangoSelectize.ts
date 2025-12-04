@@ -114,15 +114,16 @@ export class DjangoSelectize extends IncompleteSelect {
 		};
 		if (this.isIncomplete) {
 			settings.load = this.load;
+			settings.shouldLoad = (query: string) => true;  // always load from server, even if query is empty
 			settings.plugins = {
 				...settings.plugins,
-				'dropdown_input': {},
-				'infinite_scroll': {loadMore: this.loadMore.bind(this),}
+				dropdown_input: {},
+				infinite_scroll: {loadMore: this.loadMore.bind(this)},
 			};
 		} else if (tomInput.options.length >= this.minNumForDropdownInput) {
 			settings.plugins = {
 				...settings.plugins,
-				'dropdown_input': {},
+				dropdown_input: {},
 			};
 		}
 		if (tomInput.hasAttribute('multiple')) {
@@ -130,6 +131,15 @@ export class DjangoSelectize extends IncompleteSelect {
 			settings.plugins = {
 				...settings.plugins,
 				remove_button: {title: gettext("Remove item")},
+			};
+		} else if (!tomInput.required) {
+			settings.plugins = {
+				...settings.plugins,
+				clear_button: {
+					html: (data: any) => {
+						return `<span class="${data.className}" title="${gettext("Clear selection")}">×</span>`;
+					},
+				},
 			};
 		}
 		if (Array.from(tomInput.options).some(o => o.hasAttribute('sublabel'))) {
@@ -338,13 +348,12 @@ export class DjangoSelectize extends IncompleteSelect {
 					break;
 				case `${this.baseSelector} .ts-control`:
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'padding', 'transition'
+						'padding-left', 'padding-right', 'transition'
 					]).concat(
 						`min-height: ${this.nativeStyles['height']};`,
 					);
 					break;
-				case `${this.baseSelector} .ts-control > input`:
-				case `${this.baseSelector} .ts-control > div`:
+				case `${this.baseSelector} .ts-control .items-placeholder, ${this.baseSelector} .ts-control input[role="combobox"]`:
 					if (optionElement) {
 						extraStyles = StyleHelpers.extractStyles(optionElement, ['padding-left', 'padding-right']);
 					}
@@ -352,10 +361,10 @@ export class DjangoSelectize extends IncompleteSelect {
 				case `${this.baseSelector} .ts-dropdown`:
 					extraStyles = parseFloat(lineHeight) > 0 ? `line-height: calc(${lineHeight} * 1.2);` : 'line-height: 1.4em;';
 					break;
-				case `${this.baseSelector} .ts-dropdown .dropdown-input-wrap > input`:
+				case `${this.baseSelector} .ts-dropdown .dropdown-input-wrap .dropdown-input`:
 					extraStyles = StyleHelpers.extractStyles(tomInput, ['padding']);
 					break;
-				case `${this.baseSelector} .ts-dropdown .dropdown-input-wrap > input:focus-visible`:
+				case `${this.baseSelector} .ts-dropdown .dropdown-input-wrap .dropdown-input:focus-visible`:
 					tomInput.style.transition = 'none';
 					tomInput.classList.add('⁝focus');
 					extraStyles = StyleHelpers.extractStyles(tomInput, ['border-color', 'outline', 'transition']);

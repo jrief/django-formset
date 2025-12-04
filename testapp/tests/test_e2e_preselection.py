@@ -113,9 +113,9 @@ def test_one_preselection(page, viewname):
     with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
         state_field.select_option(label="Georgia")
     assert response_info.value.ok is True
-    expect(county_field.locator('option')).to_have_count(1)
+    expect(county_field.locator('option')).to_have_count(0)
     georgia_counties = County.objects.filter(state__name="Georgia")
-    assert response_info.value.json()['count'] == georgia_counties.count() + 1
+    assert response_info.value.json()['count'] == georgia_counties.count()
     page.locator('django-formset .ts-control').click()
     dropdown_element = page.locator('django-formset .shadow-wrapper .ts-dropdown')
     first_option = dropdown_element.locator(f'div[data-selectable][data-value="{georgia_counties.first().id}"]')

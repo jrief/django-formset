@@ -264,9 +264,9 @@ def test_lookup_value(page, form, viewname):
     expected = {
         'total_count': 999,
         'search': '159',
-        'count': 2,
+        'count': 1,
         'incomplete': False,
-        'options': [{'id': '', 'label': "Your Opinion"}, {'id': opinion.id, 'label': opinion.label}],
+        'options': [{'id': opinion.id, 'label': opinion.label}],
     }
     assert response_info.value.json() == expected
 

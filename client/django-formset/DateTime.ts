@@ -1,7 +1,7 @@
 import {autoUpdate, computePosition, flip, shift} from '@floating-ui/dom';
 import {CalendarSheet, CalendarSettings} from './Calendar';
 import {Widget} from './Widget';
-import {StyleHelpers} from './helpers';
+import {StyleHelpers, asUTCDate} from './helpers';
 import styles from './DateTime.scss';
 import calendarIcon from '../icons/calendar.svg';
 
@@ -184,7 +184,7 @@ class DateTimeField extends Widget {
 			});
 		}
 		if (this.withRange) {
-			htmlTags.push('<span role="separator" class="datetime-delimiter wide" aria-hidden="true">–</span>');
+			htmlTags.push('<span role="separator" class="datetime-delimiter extrawide" aria-hidden="true">—</span>');
 			htmlTags.push(...htmlTags.slice(2, -1));
 			this.inputFieldsOrder.push(...this.inputFieldsOrder.map(i => i + 5));
 		}
@@ -251,12 +251,12 @@ class DateTimeField extends Widget {
 		};
 		if (this.currentDate) {
 			setDateParts(this.currentDate, FieldPart.year, FieldPart.month, FieldPart.day, FieldPart.hour, FieldPart.minute);
-			const isoString = this.currentDate.toISOString();
+			const isoString = asUTCDate(this.currentDate).toISOString();
 			if (this.withRange) {
 				this.inputElement.value = this.dateOnly ? `${isoString.slice(0, 10)}T00:00` : isoString.slice(0, 16);
 				if (this.extendedDate) {
 					setDateParts(this.extendedDate, FieldPart.yearExt, FieldPart.monthExt, FieldPart.dayExt, FieldPart.hourExt, FieldPart.minuteExt);
-					const isoString = this.extendedDate.toISOString();
+					const isoString = asUTCDate(this.extendedDate).toISOString();
 					this.inputElement.value = [
 						this.inputElement.value,
 						this.dateOnly ? `${isoString.slice(0, 10)}T00:00` : isoString.slice(0, 16),

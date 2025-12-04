@@ -2,7 +2,7 @@ from django.forms.fields import CharField, RegexField, ChoiceField, ImageField
 from django.forms.widgets import RadioSelect, TextInput
 from formset.fieldset import Fieldset
 from formset.forms import ModelForm
-from formset.widgets import CountrySelectize, UploadedFileInput
+from formset.widgets import CountrySelectize, Selectize, UploadedFileInput
 from django_countries import countries
 
 from testapp.models import ProductModel
@@ -58,9 +58,11 @@ class ProductForm(ProductFormUnmapped):
     supplier = Supplier()
 
     class Meta(ProductFormUnmapped.Meta):
-        fields = ['title', 'price', 'properties', 'supplier_name']
-        # exclude = ['extra_data']
+        fields = ['title', 'price', 'reporter', 'properties', 'supplier_name']
         fields_map = {
             'properties': ['size', 'color', 'supplier.origin', 'image'],
             'supplier_name': 'supplier.name',
+        }
+        widgets = {
+            'reporter': Selectize(search_lookup='full_name__icontains'),
         }

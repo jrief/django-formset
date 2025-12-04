@@ -83,7 +83,11 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+html_logo = "_static/branding-logo.svg"
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
 assets_dir = os.path.abspath(os.path.join(os.pardir, os.pardir))
+
+source_encoding = 'utf-8-sig'

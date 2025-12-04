@@ -309,6 +309,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=50, verbose_name='Title')),
                 ('price', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Price')),
+                ('reporter', models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.SET_DEFAULT, to='testapp.reporter')),
                 ('properties', models.JSONField(default=dict)),
                 ('extra_data', models.JSONField(default=dict)),
                 ('supplier_name', models.CharField(blank=True, max_length=100, null=True, verbose_name='Supplier Name')),

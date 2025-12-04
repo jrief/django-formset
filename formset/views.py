@@ -77,8 +77,6 @@ class IncompleteSelectResponseMixin:
         limited_qs = queryset[offset:offset + widget.max_prefetch_choices]
         to_field_name = field.to_field_name if field.to_field_name else 'pk'
         options = []
-        if offset == 0 and field.empty_label is not None:
-            options.append({'id': '', 'label': field.empty_label})
         for item in limited_qs:
             option_data = {'id': getattr(item, to_field_name)}
             if widget.group_field_name:
