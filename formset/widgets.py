@@ -157,7 +157,7 @@ class IncompleteSelectMixin:
     def build_attrs(self, base_attrs, extra_attrs):
         attrs = super().build_attrs(base_attrs, extra_attrs)
         if isinstance(self.choices, SimpleModelChoiceIterator):
-            if self.choices.queryset.count() > self.max_prefetch_choices:
+            if self.choices.queryset.count() > self.max_prefetch_choices or self.filter_by or self.use_filter_set:
                 attrs['incomplete'] = True
             if self.filter_by:
                 attrs['filter-by'] = ','.join(self.filter_by.keys())
