@@ -999,6 +999,7 @@ class RichtextFormDialog extends FormDialogBase {
 				try {
 					attributes = {...attributes, ...await mapFunction(this.formElement.elements)};
 				} catch (exception) {
+					// console.warn("Error in mapFunction:", exception);
 					break;
 				}
 			}

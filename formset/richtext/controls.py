@@ -1,6 +1,6 @@
 import re
 
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.template.loader import get_template, select_template
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
@@ -313,7 +313,20 @@ class DialogControl(ControlElement):
         }
 
     def clean_content(self, richtext_field, content):
-        self.dialog_form.clean_content(richtext_field, content)
+        """
+        Pick the parts relevant to this Tiptap extension and hand them over to the dialog form's
+        `clean_content()` method for validation and possible modification.
+        """
+        def traverse(contents):
+            if not isinstance(contents, list):
+                raise ValidationError("Unexpected data RichtextArea field")
+            for content in contents:
+                if content.get('type') == self.dialog_form.extension:
+                    self.dialog_form.clean_content(richtext_field, content.get('attrs', {}))
+                elif 'content' in content:
+                    traverse(content['content'])
+
+        traverse(content)
 
 
 class Separator(ControlElement):
