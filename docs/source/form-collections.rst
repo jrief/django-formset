@@ -183,10 +183,34 @@ specified as attribute ``help_text = "…"`` inside classes inheriting from
 :class:`formset.collection.FormCollection`, or as a parameter when initializing the collection.
 
 
+.. deprecated:: since 2.2
+
 .. rubric:: Label for "Add" button
 
 The parameter ``add_label`` shall contain a human readable string, telling the user what kind of
 collection to add as a sibling. If unset, the "Add" button just contains the **+** symbol.
+
+
+.. versionadded:: 2.2
+
+.. rubric:: Add a child to a collections with siblings
+
+The parameter ``induce_add_sibling`` shall contain the activation condition, which when triggered,
+adds a collection as a sibling. The activation condition consists of an activator path followed by
+colon followed by an expression. The activator path shall point to an ``Activator`` field, which
+usually is a member of the given form collection. To make the form collection reusable, it is a good
+idea to make this path relative, ie. starting with a dot followed by the named activator field.
+
+The part right to the colon is the activation condition. If it contains the string "active", the
+activator always triggers. Otherwise, if it's different string, it is compared against the string
+passed to the ``Activator`` and triggers if they match. It also is possible to specify an arrow
+function for complex evaluations.
+
+Adding a child to a collections with siblings is a very common use case which requires an induce
+condition and an activator. Whe it's possible to use the standard
+:class:`formset.formfields.activator.Activator` it is highly reccommended to use the special
+activator :class:`formset.collection.AddSiblingActivator` which presets many defaults. It for
+instance disables itself, whenever the maximum number of siblings in a collection is reached.
 
 
 .. rubric:: Minimum Number of Siblings
@@ -309,13 +333,14 @@ database.
 
 	class PhoneNumberCollection(FormCollection):
 	    legend = "List of Phone Numbers"
-	    add_label = "Add new Phone Number"
+	    induce_add_sibling = 'add_phone_number:active'
 	    min_siblings = 1
 	    max_siblings = 5
 	    extra_siblings = 1
 	    is_sortable = True
 	
 	    number = PhoneNumberForm()
+	    add_phone_number = AddSiblingActivator("Add new Phone Number")
 
 	class ContactCollection(FormCollection):
 	    legend = "Contact"

@@ -227,11 +227,13 @@ forms and collection to edit the company, its departments and their teams such a
 	
 	class TeamCollection(FormCollection):
 	    legend = "Teams"
-	    add_label = "Add Team"
+	    induce_add_sibling = 'add_team:active'
 	    related_field = 'department'
 	    team = TeamForm()
 	    min_siblings = 0
 	
+	    add_team = AddSiblingActivator("Add Team")
+
 	    def retrieve_instance(self, data):
 	        if data := data.get('team'):
 	            try:
@@ -251,11 +253,13 @@ forms and collection to edit the company, its departments and their teams such a
 	
 	class DepartmentCollection(FormCollection):
 	    legend = "Departments"
-	    add_label = "Add Department"
+	    induce_add_sibling = 'add_department:active'
 	    related_field = 'company'
 	    department = DepartmentForm()
 	    teams = TeamCollection()  # attribute name MUST match related_name (see note below)
 	    min_siblings = 0
+
+	    add_department = AddSiblingActivator("Add Department")
 	
 	    def retrieve_instance(self, data):
 	        if data := data.get('department'):
@@ -312,7 +316,9 @@ Collection Attributes Usage
 In this example we have to implement the attribute ``related_field`` in our main collection class
 ``CompanyCollection``. This is because **django-formset** otherwise does not know how the
 ``DepartmentCollection`` is related to model ``Company``, and how the ``TeamCollection`` is related
-to model ``Department``. 
+to model ``Department``. Here, ``related_field`` refers to the name of the foreign key attribute in
+model ``Department`` pointing to model ``Company``, and to the foreign key attribute in model
+``Team`` pointing to model ``Department`` respectively.
 
 .. rubric:: ``reverse_accessor``
 
