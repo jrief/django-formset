@@ -2,7 +2,7 @@ from django.forms.fields import CharField, ChoiceField
 from django.forms.forms import Form
 from django.forms.widgets import RadioSelect
 
-from formset.collection import FormCollection
+from formset.collection import AddSiblingActivator, FormCollection
 from formset.dialog import ApplyButton, CancelButton, DialogForm
 from formset.formfields.activator import Activator
 
@@ -50,11 +50,13 @@ class CoffeeOrderCollection(FormCollection):
 
 class MultipleCoffeeOrderCollection(FormCollection):
     legend = "Order your coffee"
-    add_label = "Add Coffee Order"
+    induce_add_sibling = '.add_coffee_order:active'
     min_siblings = 2
     extra_siblings = 1
     coffee = CoffeeForm()
     flavor = FlavorForm()
+
+    add_coffee_order = AddSiblingActivator("Add Coffee Order")
 
 
 class CafeteriaCollection(FormCollection):

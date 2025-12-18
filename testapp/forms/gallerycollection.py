@@ -1,7 +1,7 @@
 from django.forms import fields, widgets
 from django.forms.models import ModelForm
 
-from formset.collection import FormCollection
+from formset.collection import AddSiblingActivator, FormCollection
 from formset.widgets import UploadedFileInput
 
 from testapp.models.gallery import Image, Gallery
@@ -26,8 +26,10 @@ class ImageCollection(FormCollection):
     extra_siblings = 1
     image = ImageForm()
     legend = "Gallery Images"
-    add_label = "Add Image"
+    induce_add_sibling = '.add_image:active'
     related_field = 'gallery'
+
+    add_image = AddSiblingActivator("Add Image")
 
     def get_or_create_instance(self, data):
         if data := data.get('image'):

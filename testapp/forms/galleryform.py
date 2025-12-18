@@ -1,7 +1,7 @@
 from django.forms import fields, forms
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 
-from formset.collection import FormCollection
+from formset.collection import AddSiblingActivator, FormCollection
 from formset.fieldset import Fieldset
 from formset.formfields.collection import CollectionField
 from formset.formfields.richtext import RichTextField
@@ -50,8 +50,10 @@ class ImageCollection(FormCollection):
     extra_siblings = 1
     image_form = ImageForm()
     legend = "Gallery Images"
-    add_label = "Add other Gallery"
+    induce_add_sibling = '.add_gallery:active'
     ignore_marked_for_removal = True
+
+    add_gallery = AddSiblingActivator("Add other Gallery")
 
 
 class Supplement(Fieldset):

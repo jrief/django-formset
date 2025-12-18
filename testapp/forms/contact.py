@@ -68,7 +68,7 @@ class PhoneNumberForm(forms.Form):
 
 class PhoneNumberCollection(FormCollection):
     legend = "List of Phone Numbers"
-    induce_add_sibling = '.add_team:active'
+    induce_add_sibling = '.add_number:active'
     min_siblings = 2
     max_siblings = 5
     extra_siblings = 0
@@ -97,18 +97,18 @@ class ContactCollectionList(FormCollection):
     be used to create an editable list view of one or more forms.
     """
     legend = "List of Contacts"
-    add_label = "Add new Contact"
+    induce_add_sibling = '.add_contact:active'
     min_siblings = 0
     extra_siblings = 1
 
     person = PersonForm()
-
     numbers = PhoneNumberCollection(
         min_siblings=0,
         max_siblings=3,
         extra_siblings=0,
         is_sortable=True,
     )
+    add_contact = AddSiblingActivator("Add new Contact")
 
 
 class SortableContactCollection(FormCollection):
@@ -158,10 +158,12 @@ class IntermediateContactCollectionList(FormCollection):
     """
     legend = "List of Contacts"
     help_text = "Contacts can not be sorted, only their phone numbers."
-    add_label = "Add new Contact"
+    induce_add_sibling = '.add_contact:active'
     min_siblings = 0
     extra_siblings = 1
 
     person = PersonForm()
 
     intermediate = IntermediateCollection()
+
+    add_contact = AddSiblingActivator("Add new Contact")

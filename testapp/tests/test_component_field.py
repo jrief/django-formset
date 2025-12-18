@@ -8,7 +8,7 @@ from django.forms import fields, forms
 from django.forms.models import ModelChoiceField
 from django.views.generic.edit import UpdateView
 
-from formset.collection import FormCollection
+from formset.collection import AddSiblingActivator, FormCollection
 from formset.formfields.collection import CollectionField
 from formset.forms import ModelForm
 from formset.views import FormViewMixin
@@ -27,8 +27,10 @@ class SlidesCollection(FormCollection):
     extra_siblings = 1
     slide_form = SlideForm()
     legend = "Slides"
-    add_label = "Add Slide"
+    induce_add_sibling = '.add_slide:active'
     ignore_marked_for_removal = True
+
+    add_slide = AddSiblingActivator("Add Slide")
 
 
 class CarouselForm(ModelForm):
@@ -219,8 +221,10 @@ class AccordionCollection(FormCollection):
     extra_siblings = 0
     accordion_item = AccordionItem()
     legend = "Accordion"
-    add_label = "Add Accordion Item"
+    induce_add_sibling = '.add_item:active'
     ignore_marked_for_removal = True
+
+    add_item = AddSiblingActivator("Add Accordion Item")
 
 
 class AccordionForm(ModelForm):

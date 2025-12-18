@@ -1,6 +1,6 @@
 from django.forms import fields, forms
 
-from formset.collection import FormCollection
+from formset.collection import AddSiblingActivator, FormCollection
 from formset.formfields.collection import CollectionField
 from formset.formfields.richtext import RichTextField
 from formset.forms import ModelForm
@@ -24,8 +24,10 @@ class AccordionCollection(FormCollection):
     extra_siblings = 0
     accordion_item = AccordionItem()
     legend = "Accordion"
-    add_label = "Add Accordion Item"
+    induce_add_sibling = '.add_item:active'
     ignore_marked_for_removal = True
+
+    add_item = AddSiblingActivator("Add Accordion Item")
 
 
 class AccordionForm(ModelForm):

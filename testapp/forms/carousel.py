@@ -1,6 +1,6 @@
 from django.forms import fields, forms
 
-from formset.collection import FormCollection
+from formset.collection import AddSiblingActivator, FormCollection
 from formset.formfields.collection import CollectionField
 from formset.formfields.richtext import RichTextField
 from formset.forms import ModelForm
@@ -29,8 +29,10 @@ class SlidesCollection(FormCollection):
     extra_siblings = 1
     slide_form = SlideForm()
     legend = "Carousel Slides"
-    add_label = "Add Carousel Slide"
+    induce_add_sibling = '.add_slide:active'
     ignore_marked_for_removal = True
+
+    add_slide = AddSiblingActivator("Add Carousel Slide")
 
 
 class CarouselForm(ModelForm):

@@ -96,11 +96,13 @@ class MultipleCompanyForm(CompanyForm):
 
 
 class CompaniesCollection(FormCollection):
+    induce_add_sibling = 'add_company:active'
     company = MultipleCompanyForm()
     departments = DepartmentCollection()
     min_siblings = 1
     legend = "Company"
-    add_label = "Add Company"
+
+    add_company = AddSiblingActivator("Add Company")
 
     def get_or_create_instance(self, data):
         if data := data.get('company'):

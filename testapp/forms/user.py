@@ -70,7 +70,6 @@ class UserListCollection(FormCollection):
     extra_siblings = 1
     induce_add_sibling = '.add_extension:active'
     extension = UserExtensionForm()
-    add_label = "Add phone number"
     related_field = 'user'
     reverse_accessor = 'user_extensions'
 
