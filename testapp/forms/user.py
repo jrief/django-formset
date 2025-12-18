@@ -76,12 +76,15 @@ class UserListCollection(FormCollection):
 
     add_extension = AddSiblingActivator("Add phone number")
 
-    def retrieve_instance(self, data):
+    def get_or_create_instance(self, data):
         if data := data.get('extension'):
             try:
-                return self.instance.user_extensions.get(id=data.get('id') or 0)
+                return self.instance.user_extensions.get(id=data.get('id') or 0), False
             except UserExtension.DoesNotExist:
-                return UserExtension(phone_number=data.get('phone_number'))
+                form = UserExtensionForm(data=data)
+                if form.is_valid():
+                    return UserExtension(phone_number=form.cleaned_data['phone_number'], user=self.instance), False
+        return None, False
 
 
 class UserExtensionCollection(FormCollection):

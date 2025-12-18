@@ -28,12 +28,15 @@ class TeamCollection(FormCollection):
 
     add_team = AddSiblingActivator("Add Team")
 
-    def retrieve_instance(self, data):
+    def get_or_create_instance(self, data):
         if data := data.get('team'):
             try:
-                return self.instance.teams.get(id=data.get('id') or 0)
+                return self.instance.teams.get(id=data.get('id') or 0), False
             except (AttributeError, Team.DoesNotExist, ValueError):
-                return Team(name=data.get('name'), department=self.instance)
+                form = TeamForm(data=data)
+                if form.is_valid():
+                    return Team(name=form.cleaned_data['name'], department=self.instance), False
+        return None, False
 
 
 class DepartmentForm(ModelForm):
@@ -58,13 +61,15 @@ class DepartmentCollection(FormCollection):
 
     add_department = AddSiblingActivator("Add Department")
 
-    def retrieve_instance(self, data):
+    def get_or_create_instance(self, data):
         if data := data.get('department'):
             try:
-                return self.instance.departments.get(id=data.get('id') or 0)
+                return self.instance.departments.get(id=data.get('id') or 0), False
             except (AttributeError, Department.DoesNotExist, ValueError):
-                return Department(name=data.get('name'), company=self.instance)
-
+                form = DepartmentForm(data=data)
+                if form.is_valid():
+                    return Department(name=form.cleaned_data['name'], company=self.instance), False
+        return None, False
 
 class CompanyForm(ModelForm):
     class Meta:
@@ -97,9 +102,12 @@ class CompaniesCollection(FormCollection):
     legend = "Company"
     add_label = "Add Company"
 
-    def retrieve_instance(self, data):
+    def get_or_create_instance(self, data):
         if data := data.get('company'):
             try:
-                return Company.objects.get(id=data.get('id') or 0)
+                return Company.objects.get(id=data.get('id') or 0), False
             except Company.DoesNotExist:
-                return Company(name=data.get('name'))
+                form = MultipleCompanyForm(data=data)
+                if form.is_valid():
+                    return Company(name=form.cleaned_data['name']), False
+        return None, False

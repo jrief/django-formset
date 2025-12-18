@@ -75,13 +75,23 @@ class HolderMixin:
     ignore_marked_for_removal = getattr(settings, 'FORMSET_IGNORE_MARKED_FOR_REMOVAL', False)
     marked_for_removal = False
     partial = None
+    created = False
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def replicate(self, data=None, initial=None, auto_id=None, prefix=None, instance=None, partial=None, renderer=None,
-                  ignore_marked_for_removal=None):
-
+    def replicate(
+        self,
+        data=None,
+        initial=None,
+        auto_id=None,
+        prefix=None,
+        instance=None,
+        created=None,
+        partial=None,
+        renderer=None,
+        ignore_marked_for_removal=None,
+    ):
         replica = copy.copy(self)
         if hasattr(self, 'declared_holders'):
             replica.declared_holders = {
@@ -108,6 +118,8 @@ class HolderMixin:
             replica.prefix = prefix
         if instance:
             replica.instance = instance
+        if created is not None:
+            replica.created = created
         if partial is not None:
             replica.partial = partial
         if ignore_marked_for_removal is not None:

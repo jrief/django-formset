@@ -138,9 +138,22 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     ignore_marked_for_removal = None
     empty_values = list(validators.EMPTY_VALUES)
 
-    def __init__(self, data=None, initial=None, renderer=None, auto_id=None, prefix=None, instance=None, partial=None,
-                 min_siblings=None, max_siblings=None, extra_siblings=None, is_sortable=None, legend=None,
-                 help_text=None):
+    def __init__(self,
+        data=None,
+        initial=None,
+        renderer=None,
+        auto_id=None,
+        prefix=None,
+        instance=None,
+        created=None,
+        partial=None,
+        min_siblings=None,
+        max_siblings=None,
+        extra_siblings=None,
+        is_sortable=None,
+        legend=None,
+        help_text=None
+    ):
         self.data = MultiValueDict() if data is None else data
         self.initial = initial
         if auto_id is not None:
@@ -150,6 +163,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         self._errors = None  # Stores the errors after `clean()` has been called.
         if instance:
             self.instance = instance
+        if created is not None:
+            self.created = created
         if partial is not None:
             self.partial = partial
         if min_siblings is not None:
@@ -315,7 +330,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     # JavaScript allows arrays with holes
                     continue
                 initial = self.initial[index] if self.initial and index < len(self.initial) else None
-                instance = self.retrieve_instance(data)
+                instance, created = self.get_or_create_instance(data)
                 valid_holders = {}
                 errors = ErrorDict()
                 for name, declared_holder in self.declared_holders.items():
@@ -324,6 +339,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                             data=data[name],
                             initial=initial.get(name, declared_holder.initial) if initial else None,
                             instance=instance,
+                            created=created,
                             ignore_marked_for_removal=self.ignore_marked_for_removal,
                         )
                         if MARKED_FOR_REMOVAL in holder.data:
@@ -351,11 +367,12 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     # TODO: Button can have a value and could be validated since it is a field
                     continue
                 if isinstance(self.data, dict) and name in self.data:
-                    instance = self.retrieve_instance(self.data[name])
+                    instance, created = self.get_or_create_instance(self.data[name])
                     holder = declared_holder.replicate(
                         data=self.data[name],
                         initial=self.initial.get(name, declared_holder.initial) if self.initial else None,
                         instance=instance,
+                        created=created,
                         partial=self.partial,
                         ignore_marked_for_removal=self.ignore_marked_for_removal,
                     )
@@ -440,7 +457,19 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         """
         Hook to retrieve the main object for a multi object collection.
         """
-        return self.instance
+        warnings.warn(
+            "'retrieve_instance' is deprected. Use 'get_or_create_instance(data)' instead.",
+            DeprecationWarning,
+        )
+        return self.get_or_create_instance(data)[0]
+
+    def get_or_create_instance(self, data):
+        """
+        Hook to retrieve or create the main object for a multi object collection.
+        Returns a tuple of (instance, created), where 'created' is a boolean specifying
+        whether a new instance was created.
+        """
+        return self.instance, False
 
     def clean(self):
         return self.cleaned_data

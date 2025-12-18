@@ -29,12 +29,15 @@ class ImageCollection(FormCollection):
     add_label = "Add Image"
     related_field = 'gallery'
 
-    def retrieve_instance(self, data):
+    def get_or_create_instance(self, data):
         if data := data.get('image'):
             try:
-                return self.instance.images.get(id=data.get('id') or 0)
+                return self.instance.images.get(id=data.get('id') or 0), False
             except (AttributeError, Image.DoesNotExist, ValueError):
-                return Image(image=data.get('image'), gallery=self.instance)
+                form = ImageForm(data=data)
+                if form.is_valid():
+                    return Image(image=form.cleaned_data['image'], gallery=self.instance), False
+        return None, False
 
 
 class GalleryForm(ModelForm):
