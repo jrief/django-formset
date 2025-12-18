@@ -80,6 +80,17 @@ export class DjangoSelectize extends IncompleteSelect {
 			throw new Error('<select is="django-selectize" requires a sibling to wrap the shadow root');
 		this.shadowWrapper = tomInput.nextElementSibling;
 		this.shadowWrapper.classList.add(...nativeClasses);
+		if (this.nativeStyles.height === 'auto') {
+			const params = [
+				this.nativeStyles.lineHeight,
+				this.nativeStyles.paddingTop,
+				this.nativeStyles.paddingBottom,
+			];
+			if (this.nativeStyles.boxSizing === 'border-box') {
+				params.push(this.nativeStyles.borderTopWidth, this.nativeStyles.borderBottomWidth);
+			}
+			this.nativeStyles.height = `calc(${params.join(' + ')})`;
+		}
 		if (nativeClasses.length === 0) {
 			// Bulma and Unstyled do not set a CSS class. At least set the min-width of the select element.
 			this.shadowWrapper.style.setProperty('min-width', this.nativeStyles.width);
@@ -326,7 +337,7 @@ export class DjangoSelectize extends IncompleteSelect {
 		wrapperStyle.setProperty('display', this.nativeStyles.display);
 		sheet.replaceSync(shadowStyles);
 		const tomInput = this.tomSelect.input;
-		const lineHeight = window.getComputedStyle(tomInput).getPropertyValue('line-height');
+		const lineHeight = this.nativeStyles.lineHeight;
 		const optionElement = tomInput.querySelector('option');
 		const displayNumOptions = Math.min(Math.max(this.numOptions, 8), 25);
 		let loaded = false;
@@ -350,7 +361,7 @@ export class DjangoSelectize extends IncompleteSelect {
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'padding-left', 'padding-right', 'transition'
 					]).concat(
-						`min-height: ${this.nativeStyles['height']};`,
+						`min-height: ${this.nativeStyles.height};`,
 					);
 					break;
 				case `${this.baseSelector} .ts-control .items-placeholder, ${this.baseSelector} .ts-control input[role="combobox"]`:
