@@ -1,9 +1,10 @@
 from .article import Article, Reporter
 from .annotation import Annotation
+from .blog import BlogModel
 from .company import Company, Department, Team
 from .component import Component
 from .county import County, CountyUnnormalized, State
-from .blog import BlogModel
+from .event import EventSeriesModel, EventOccurrenceModel
 from .issue import IssueModel
 from .page import PageModel
 from .person import PersonModel, UserContact

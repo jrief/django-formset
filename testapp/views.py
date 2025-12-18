@@ -51,6 +51,7 @@ from testapp.forms.checkout import CheckoutCollection
 from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerForm
+from testapp.forms.event import EventOccurrenceCollection, EventSeriesCollection
 from testapp.forms.gallerycollection import GalleryCollection
 from testapp.forms.galleryform import GalleryImageForm
 from testapp.forms.issue import EditIssueCollection, EditIssueManyCollection
@@ -71,7 +72,8 @@ from testapp.forms.state import StateFilteredForm, StateForm, StatesForm
 from testapp.forms.terms_of_use import AcceptTermsCollection
 from testapp.forms.user import UserCollection, UserExtensionCollection
 from testapp.forms.upload import UploadForm
-from testapp.models import BlogModel, Company, IssueModel, PersonModel, PollModel, ProductModel, Reporter, User
+from testapp.models import (BlogModel, Company, EventSeriesModel, IssueModel, PersonModel, PollModel, ProductModel,
+    Reporter, User)
 from testapp.models.gallery import Gallery
 
 
@@ -144,6 +146,7 @@ class DemoViewMixin:
         context_data.update(
             leaf_name=holder_class.__name__,
             valid_formset_data=self.request.session.get('valid_formset_data'),
+            extra_data=json.dumps({'foo': 'bar'}, cls=JSONEncoder),
             **self.get_css_classes(),
         )
         self.request.session.pop('valid_formset_data', None)
@@ -233,7 +236,7 @@ class DemoModelFormView(DemoFormViewMixin, UpdateView):
         return response
 
 
-class DemoFormCollectionViewMixin(DemoViewMixin):
+class DemoFormCollectionViewMixin(DemoViewMixin, CalendarResponseMixin, IncompleteSelectResponseMixin, FileUploadMixin):
     template_name = 'testapp/form-collection.html'
     extra_doc = None
     extra_context = {
@@ -283,6 +286,28 @@ class DemoFormCollectionView(DemoFormCollectionViewMixin, FormCollectionView):
 
 class DemoModelCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
     pass
+
+
+class EventSeriesCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
+    collection_class = EventSeriesCollection
+    model = EventSeriesModel
+    template_name = 'testapp/form-collection-no-buttons.html'
+
+    def form_collection_valid(self, form_collection):
+        if (
+            form_collection.partial and
+            isinstance(form_collection.valid_holders.get('occurrences'), EventOccurrenceCollection)
+        ):
+            occurrences = {
+                index: {'event_occurrence': {'id': entry['event_occurrence'].instance.id}}
+                for index, entry in enumerate(form_collection.valid_holders['occurrences'].valid_holders)
+                if entry['event_occurrence'].created
+            }
+            return JsonResponse({'occurrences': occurrences})
+        return super().form_collection_valid(form_collection)
+
+    def get_success_url(self):
+        return super().get_success_url()
 
 
 class CompanyCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
@@ -634,6 +659,7 @@ urlpatterns = [
         initial={'person': {'first_name': "Jack", 'last_name': "Lee"}, 'profession': {'company': "Awesto"}},
         extra_context={'click_actions': 'disable -> submit -> setFieldValue(profession.company, ^success_url) !~ scrollToError'},
     ), name='simplecontact'),
+    path('event', EventSeriesCollectionView.as_view(), name='event'),
     path('checkout', DemoFormCollectionView.as_view(
         collection_class=CheckoutCollection,
         template_name='testapp/form-collection-no-buttons.html',
