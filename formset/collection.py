@@ -60,7 +60,7 @@ class FormCollectionMeta(MediaDefiningClass):
         if add_label := attrs.pop('add_label', None):
             warnings.warn(
                 "'add_label' is deprected in {module}.{name}. Use 'induce_add_sibling' and a "
-                "detached Activator instead.".format(module=attrs.get('__module__'), name=name),
+                "detached 'AddSiblingActivator' instead.".format(module=attrs.get('__module__'), name=name),
                 DeprecationWarning,
             )
             attrs.setdefault('induce_add_sibling', '.add_sibling:active')
@@ -249,7 +249,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     holder.fresh_and_empty = True
                 yield holder
 
-        # yield empty placeholder as template for extra collections
+        # yield empty placeholder as an HTML template for extra collections
         for item_num, (name, declared_holder) in enumerate(self.declared_holders.items()):
             if self.prefix:
                 count = self.prefix.count('${siblingId')

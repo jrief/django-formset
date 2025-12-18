@@ -1688,7 +1688,7 @@ class DjangoFormCollectionTemplate implements Inducible {
 		this.prefix = prefix;
 		formset.pushTemplatePrefix(this.prefix);
 		this.renderEmptyCollection = template(element.innerHTML);
-		const path= this.element.getAttribute('df-induce-add-sibling')?.split(':')[0].split('.') ?? [];
+		const path = this.element.getAttribute('df-induce-add-sibling')?.split(':')[0].split('.') ?? [];
 		this.addSiblingButtonPath = toAbsPath(prefix.split('.'), path);
 		this.induceAddSibling = this.evalInducer(element, (...args: any[]) => this.appendCollectionSibling());
 		formset.registerInducer(this);
@@ -1728,7 +1728,8 @@ class DjangoFormCollectionTemplate implements Inducible {
 	}
 
 	private isButtonActive(path: string[], activator: Function, button?: DjangoButton, ...args: any[]): boolean {
-		return button instanceof DjangoButton && isEqual(toAbsPath(this.prefix.split('.'), path), button.path) && activator(...args);
+		const basePath = this.prefix === '-' ? [] : this.prefix.split('.');
+		return button instanceof DjangoButton && isEqual(toAbsPath(basePath, path), button.path) && activator(...args);
 	}
 
 	private resortSiblings = (event: SortableEvent) => {
