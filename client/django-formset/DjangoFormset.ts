@@ -2374,11 +2374,35 @@ export class DjangoFormset implements DjangoFormset {
 		}
 	}
 
+	private * unroll(value: Record<string, any>) : Generator<[string[], string|undefined, any]> {
+		for (const [key1, val1] of Object.entries(value)) {
+			if (isPlainObject(val1)) {
+				for (const [path, key2, val2] of this.unroll(val1 as Record<string, any>)) {
+					yield [[key1, ...path], key2, val2];
+				}
+			} else if (isString(val1) || isFinite(val1)) {
+				yield [[], key1, val1];
+			} else {
+				yield [[], undefined, undefined];
+			}
+		}
+	}
+
 	public setFieldValue(path: Path, value: FieldValue) {
-		const formPath = path.slice(0, -1);
-		const destForm = this.forms.find(form => isEqual(form.path, formPath));
-		if (destForm && path.length > 0) {
-			destForm.setFieldValue(path.slice(-1)[0], value);
+		if (isString(value) || isFinite(value)) {
+			const formPath = path.slice(0, -1);
+			const fieldName = path.at(-1);
+			const destForm = this.forms.find(form => isEqual(form.path, formPath));
+			if (fieldName && destForm) {
+				destForm.setFieldValue(fieldName, value);
+			}
+		} else {
+			for (const [valuePath, fieldName, fieldValue] of this.unroll(value as Record<string, any>)) {
+				const destForm = this.forms.find(form => isEqual(form.path, [...path, ...valuePath]));
+				if (fieldName && destForm) {
+					destForm.setFieldValue(fieldName, fieldValue);
+				}
+			}
 		}
 	}
 
