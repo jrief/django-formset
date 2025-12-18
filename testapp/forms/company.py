@@ -18,8 +18,9 @@ class TeamForm(ModelForm):
 
 
 class TeamCollection(FormCollection):
-    induce_add_sibling = '.add_team:active'
+    induce_add_sibling = '.add_team:add_sibling'
     min_siblings = 0
+    max_siblings = 3
     extra_siblings = 1
     team = TeamForm()
     legend = "Teams"
@@ -47,7 +48,7 @@ class DepartmentForm(ModelForm):
 
 
 class DepartmentCollection(FormCollection):
-    induce_add_sibling = '.add_department:active'
+    induce_add_sibling = '.add_department:add_sibling'
     min_siblings = 0
     extra_siblings = 1
     department = DepartmentForm()

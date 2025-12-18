@@ -4,11 +4,9 @@ from playwright.sync_api import expect
 from django.forms import fields, forms
 from django.urls import path
 
-from formset.collection import FormCollection
-from formset.formfields.activator import Activator
+from formset.collection import AddSiblingActivator, FormCollection
 from formset.utils import MARKED_FOR_REMOVAL
 from formset.views import FormCollectionView
-from formset.widgets import Button
 
 from .utils import ContextMixin, get_javascript_catalog
 
@@ -51,13 +49,7 @@ class PhoneNumberCollection(FormCollection):
     extra_siblings = 1
     number = PhoneNumberForm()
 
-    add_number = Activator(
-        label="Add phone number",
-        widget=Button(
-            action='activate("apply")',
-            attrs={'omit-restore': True},
-        )
-    )
+    add_number = AddSiblingActivator("Add phone number")
 
 
 class ContactCollection(FormCollection):
@@ -83,13 +75,7 @@ class BulkContactCollections(FormCollection):
         max_siblings=5,
         extra_siblings=1,
     )
-    add_contact = Activator(
-        label="Add new Contact",
-        widget=Button(
-            action='activate("apply")',
-            attrs={'omit-restore': True},
-        )
-    )
+    add_contact = AddSiblingActivator("Add new Contact")
 
 
 initial_sample_data = {

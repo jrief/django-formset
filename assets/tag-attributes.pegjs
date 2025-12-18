@@ -35,9 +35,16 @@ UnaryOperator
 
 OperabilityFactor
   = UnaryOperator _ expr:OperabilityExpression { return `!(${expr})`; }
+  / maxNumSiblingsReached
   / "(" _ expr:OperabilityExpression _ ")" { return `(${expr})`; }
   / scalar
   / getDataValue
+
+maxNumSiblingsReached
+  = "maxNumSiblingsReached" _ "(" _ ")"
+  {
+      return 'this.maxNumSiblingsReached()';
+  }
 
 getDataValue
   = path:PATH

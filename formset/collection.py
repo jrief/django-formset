@@ -26,19 +26,28 @@ from formset.widgets.button import Button
 COLLECTION_ERRORS = '_collection_errors_'
 
 
+class AddSiblingButton(Button):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('action', 'activate("add_sibling")')
+        kwargs.setdefault('icon_char', '＋')
+        kwargs.setdefault('icon_left', True)
+        kwargs.setdefault('omit_restore', True)
+        kwargs.setdefault('button_size', ButtonSize.SMALL)
+        super().__init__(*args, **kwargs)
+
+    def build_attrs(self, base_attrs, extra_attrs=None):
+        attrs = super().build_attrs(base_attrs, extra_attrs)
+        attrs['df-disable'] = 'maxNumSiblingsReached()'
+        return attrs
+
+
 class AddSiblingActivator(Activator):
     """
-    A untility class to be used as Activator for adding a siblings to a FormCollection.
+    A utility class to be used as Activator for adding a sibling to a FormCollection.
     """
     def __init__(self, add_label, *args, **kwargs):
         kwargs.update(label=add_label)
-        kwargs.setdefault('widget', Button(
-            action='activate("apply")',
-            icon_char='＋',
-            icon_left=True,
-            omit_restore=True,
-            button_size=ButtonSize.SMALL,
-        ))
+        kwargs.setdefault('widget', AddSiblingButton())
         super().__init__(*args, **kwargs)
         self.widget.template_name
 

@@ -1092,6 +1092,12 @@ class DjangoButton {
 
 	// to be called by code generated from the parser
 	@allowedAction
+	private maxNumSiblingsReached() : boolean|null {
+		return this.formset.maxNumSiblingsReached(this);
+	}
+
+	// to be called by code generated from the parser
+	@allowedAction
 	private getDataValue(path: Path) {
 		return this.formset.getDataValue(path);
 	}
@@ -1503,6 +1509,11 @@ class DjangoFormCollection {
 		children.forEach(child => child.removeFreshAndEmpty());
 	}
 
+	public maxNumSiblingsReached(button: DjangoButton): boolean|null {
+		const reached = this.formCollectionTemplate?.maxNumSiblingsReached(button) ?? null;
+		return reached === null ? this.children.some(child => child.maxNumSiblingsReached(button)) : reached;
+	}
+
 	static getChildCollections(element: Element) : NodeListOf<HTMLElement>|[] {
 		// traverse tree to find first occurrence of a <django-form-collection> and if so, return it with its siblings
 		const wrapper = element.querySelector('django-form-collection')?.parentElement;
@@ -1619,6 +1630,7 @@ class DjangoFormCollectionSibling extends DjangoFormCollection {
 		} else {
 			this.removeButton.disabled = numActiveSiblings <= this.minSiblings;
 		}
+		this.formset.updateOperability();
 	}
 
 	public markAsFreshAndEmpty(justAdded?: boolean) {
@@ -1781,9 +1793,16 @@ class DjangoFormCollectionTemplate implements Inducible {
 		this.formset.popTemplatePrefix(this.prefix);
 	}
 
+	public maxNumSiblingsReached(button: DjangoButton): boolean|null {
+		if (!isEqual(this.addSiblingButtonPath, button.path))
+			return null;
+
+		if (this.markedForRemoval || this.maxSiblings === null)
+			return false;
+
 		const siblings = this.parent?.children ?? this.formset.formCollections;
 		const numActiveSiblings = siblings.filter(s => !s.markedForRemoval).length;
-		addSiblingButton.element.disabled = this.maxSiblings === null ? false : numActiveSiblings >= this.maxSiblings;
+		return numActiveSiblings >= this.maxSiblings;
 	}
 
 	updateOperability(button?: DjangoButton, ...args: any[]) {
@@ -2404,6 +2423,11 @@ export class DjangoFormset implements DjangoFormset {
 				return errorReportElement;
 		}
 		return null;
+	}
+
+	public maxNumSiblingsReached(button: DjangoButton): boolean|null {
+		const reached = this.formCollectionTemplate?.maxNumSiblingsReached(button) ?? null;
+		return reached === null ? this.formCollections.some(collection => collection.maxNumSiblingsReached(button)) : reached;
 	}
 
 	clearErrors() {
