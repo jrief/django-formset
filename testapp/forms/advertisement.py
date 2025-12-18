@@ -146,7 +146,6 @@ class CustomHyperlinkDialogForm(dialogs.RichtextDialogForm):
     extension = 'custom_hyperlink'
     extension_script = 'testapp/tiptap-extensions/custom_hyperlink.js'
     plugin_type = 'mark'
-    prefix = 'custom_hyperlink_dialog'
 
     text = fields.CharField(
         label="Link Text",
@@ -232,6 +231,7 @@ class MarginBottom(controls.ClassBaseControlElement):
 
 class AdvertisementForm(forms.Form):
     ad_text = fields.CharField(
+        label="Advertisement Text",
         widget=RichTextarea(control_elements=[
             controls.Group([
                 controls.Heading([1,2,3]),
@@ -277,4 +277,24 @@ class AdvertisementForm(forms.Form):
         ],
         attrs={'placeholder': "Start typing …", 'use_json': True, 'maxlength': 2000}),
         initial=initial_json['ad_text'],
+    )
+    extra_text = fields.CharField(
+        label="Extra Text",
+        widget=RichTextarea(
+            control_elements=[
+                controls.Bold(),
+                controls.Italic(),
+                controls.BulletList(),
+                controls.OrderedList(),
+                controls.DialogControl(
+                    CustomHyperlinkDialogForm(),
+                    icon='formset/icons/link.svg',
+                ),
+                controls.Separator(),
+                controls.ClearFormat(),
+                controls.Undo(),
+                controls.Redo(),
+            ],
+            attrs={'maxlength': 500},
+        )
     )
