@@ -357,8 +357,8 @@ def test_tiptap_valid_simple_link(page, viewname, richtext_wrapper, menubar, con
     contenteditable.type(clickme)
     assert contenteditable.inner_html() == f"<p>{clickme}</p>"
     select_text(contenteditable.locator('p'), 6, 10)
-    menu_button = menubar.locator('button[name="dialog_simple_link"]')
-    dialog = richtext_wrapper.locator('dialog[df-induce-open="dialog_simple_link:active"]').first
+    menu_button = menubar.locator('button[name="text.dialog_simple_link"]')
+    dialog = richtext_wrapper.locator('dialog[df-induce-open=".dialog_simple_link:active"]').first
     expect(dialog).not_to_be_visible()
     menu_button.click()
     expect(dialog).to_be_visible()
@@ -387,8 +387,8 @@ def test_tiptap_invalid_simple_link(page, viewname, richtext_wrapper, menubar, c
     contenteditable.type(clickme)
     assert contenteditable.inner_html() == f"<p>{clickme}</p>"
     select_text(contenteditable.locator('p'), 6, 10)
-    menu_button = menubar.locator('button[name="dialog_simple_link"]')
-    dialog = richtext_wrapper.locator('dialog[df-induce-open="dialog_simple_link:active"]').first
+    menu_button = menubar.locator('button[name="text.dialog_simple_link"]')
+    dialog = richtext_wrapper.locator('dialog[df-induce-open=".dialog_simple_link:active"]').first
     expect(dialog).not_to_be_visible()
     menu_button.click()
     expect(dialog).to_be_visible()
@@ -402,6 +402,7 @@ def test_tiptap_invalid_simple_link(page, viewname, richtext_wrapper, menubar, c
     expect(placeholder).to_have_text("Enter a valid URL.")
     dialog.locator('button[name="apply"]').click()
     expect(dialog).to_be_visible()
+    dialog.click(position={'x': 1, 'y': 1})
     dialog.locator('button[name="cancel"]').click()
     expect(dialog).not_to_be_visible()
 
@@ -410,7 +411,7 @@ def test_tiptap_invalid_simple_link(page, viewname, richtext_wrapper, menubar, c
 @pytest.mark.parametrize('viewname', ['plain_richtext_initialized'])
 def test_tiptap_remove_simple_link(page, viewname, menubar, contenteditable):
     assert contenteditable.inner_html() == '<p>Click <a href="https://example.org/">here</a></p>'
-    dialog = page.locator('dialog[df-induce-open="dialog_simple_link:active"]').first
+    dialog = page.locator('dialog[df-induce-open=".dialog_simple_link:active"]').first
     expect(dialog).not_to_be_visible()
     link_element = contenteditable.locator('p > a[href]')
     expect(link_element).to_have_text("here")

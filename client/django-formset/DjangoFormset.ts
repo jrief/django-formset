@@ -118,7 +118,7 @@ class FieldGroup {
 			selectElement.addEventListener('change', () => {
 				this.clearCustomError();
 				this.form.formset.aggregateValues();
-				this.updateOperability();
+				this.form.formset.updateOperability();
 				this.setDirty()
 			});
 			selectElement.addEventListener('invalid', () => this.errorPlaceholder.reportValidationError());
@@ -300,7 +300,7 @@ class FieldGroup {
 		if (!isString(attrValue))
 			return () => {};
 		try {
-			const evalExpression = new Function('return ' + parse(attrValue, {startRule: 'OperabilityExpression'}));
+			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'OperabilityExpression'})}`);
 			return () => {
 				const disable = isTruthy(evalExpression.call(this));
 				this.fieldElements.forEach((elem, index) => elem.disabled = disable || this.initialDisabled[index]);
@@ -601,7 +601,6 @@ class DjangoButton {
 	 */
 	private clicked = (event: Event) => {
 		if (event.currentTarget === this.element) {
-			this.formset.currentActiveButton = this;
 			this.clickHandler();
 		}
 	};
@@ -1089,7 +1088,6 @@ class DjangoButton {
 				this.decoratorElement?.replaceChildren(...this.originalDecorator.cloneNode(true).childNodes);
 			}
 		}
-		this.formset.currentActiveButton = null;
 	}
 
 	// to be called by code generated from the parser
@@ -1271,7 +1269,7 @@ class DjangoForm {
 	}
 
 	isValid = () : boolean => {
-		if (this.element.noValidate)
+		if (this.element.noValidate || this.isTransient)
 			return true;
 		let isValid = true;
 		for (const fieldGroup of this.fieldGroups) {
@@ -1704,21 +1702,21 @@ class DjangoFormCollectionTemplate implements Inducible {
 		if (!isString(attrValue))
 			return () => {};
 		try {
-			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'InduceExpression'})}`);
+			const evalExpression = new Function('...args', `return ${parse(attrValue, {startRule: 'InduceExpression'})}`);
 			return (...args: any[]) => {
-				if (evalExpression.call(this)) {
+				const evaluated: boolean = evalExpression.call(this, ...args);
+				if (evaluated) {
 					inducer(...args);
 				}
+				return evaluated;
 			};
 		} catch (error) {
 			throw new Error(`Error while parsing <django-form-collection df-induce-activate="${attrValue}">: ${error}.`);
 		}
 	}
 
-	private isButtonActive(path: Array<string>, action: string): boolean {
-		const absPath = toAbsPath(this.prefix.split('.'), path);
-		const button = this.formset.buttons.find(button => isEqual(button.path, absPath));
-		return button === this.formset.currentActiveButton && action === 'active';
+	private isButtonActive(path: string[], activator: Function, button?: DjangoButton, ...args: any[]): boolean {
+		return button instanceof DjangoButton && isEqual(toAbsPath(this.prefix.split('.'), path), button.path) && activator(...args);
 	}
 
 	private resortSiblings = (event: SortableEvent) => {
@@ -1783,24 +1781,14 @@ class DjangoFormCollectionTemplate implements Inducible {
 		this.formset.popTemplatePrefix(this.prefix);
 	}
 
-	private updateAddButtonAttrs(addSiblingButton: DjangoButton) {
-		if (this.markedForRemoval) {
-			addSiblingButton.element.disabled = true;
-			return;
-		}
 		const siblings = this.parent?.children ?? this.formset.formCollections;
 		const numActiveSiblings = siblings.filter(s => !s.markedForRemoval).length;
 		addSiblingButton.element.disabled = this.maxSiblings === null ? false : numActiveSiblings >= this.maxSiblings;
 	}
 
-	updateOperability(...args: any[]) {
-		const addSiblingButton = this.formset.buttons.find(button => isEqual(button.path, this.addSiblingButtonPath));
-		if (addSiblingButton) {
-			if (args.length === 2 && args[0] === addSiblingButton && args[1] === 'apply') {
-				this.induceAddSibling(...args);
-			} else {
-				this.updateAddButtonAttrs(addSiblingButton);
-			}
+	updateOperability(button?: DjangoButton, ...args: any[]) {
+		if (button instanceof DjangoButton) {
+			this.induceAddSibling(button, ...args);
 		}
 	}
 
@@ -1819,7 +1807,6 @@ class DjangoFormCollectionTemplate implements Inducible {
 export class DjangoFormset implements DjangoFormset {
 	private readonly element: DjangoFormsetElement;
 	public readonly buttons = Array<DjangoButton>(0);
-	public currentActiveButton: DjangoButton|null = null;
 	public readonly forms = Array<DjangoForm>(0);
 	private readonly inducers = Array<Inducible>(0);
 	private readonly CSRFToken: string|null;

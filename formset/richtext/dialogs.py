@@ -13,9 +13,9 @@ class RichtextDialogForm(DialogForm):
     extension = None
     plugin_type = None
     is_transient = True
-    induce_close = 'cancel:active || revert:active || apply:active'
     template_name = 'formset/richtext/form_dialog.html'
     extension_script = None
+    _prefix = '.dialog_'
 
     def __init__(self, extension_script=None, **kwargs):
         if extension_script:
@@ -36,6 +36,23 @@ class RichtextDialogForm(DialogForm):
         label=_("Apply"),
         widget=ApplyButton,
     )
+
+    @property
+    def prefix(self):
+        return f'{self._prefix}{self.extension}'
+
+    @prefix.setter
+    def prefix(self, value):
+        if self._prefix.startswith('.'):
+            self._prefix = f'{value}{self._prefix}'
+
+    @property
+    def induce_open(self):
+        return f'.dialog_{self.extension}:active'
+
+    @property
+    def induce_close(self):
+        return f'.dialog_{self.extension}.cancel:active || .dialog_{self.extension}.revert:active || .dialog_{self.extension}.apply:active'
 
     def get_context(self):
         context = super().get_context()
@@ -59,7 +76,6 @@ class SimpleLinkDialogForm(RichtextDialogForm):
     extension = 'simple_link'
     plugin_type = 'mark'
     icon = 'formset/icons/link.svg'
-    prefix = 'simple_link_dialog'
 
     text = fields.CharField(
         label=_("Link Text"),
@@ -83,7 +99,6 @@ class SimpleImageDialogForm(RichtextDialogForm):
     extension = 'simple_image'
     plugin_type = 'node'
     icon = 'formset/icons/image.svg'
-    prefix = 'image_dialog'
 
     image = fields.ImageField(
         label=_("Uploaded Image"),
@@ -101,7 +116,6 @@ class PlaceholderDialogForm(RichtextDialogForm):
     extension = 'procurator'  # The named extension 'placeholder' is already declared by TipTap
     plugin_type = 'mark'
     icon = 'formset/icons/placeholder.svg'
-    prefix = 'placeholder_dialog'
     variable_pattern = r'^[A-Za-z_][0-9A-Za-z_\.]{0,254}$'
 
     variable_name = fields.RegexField(
@@ -127,7 +141,6 @@ class FootnoteDialogForm(RichtextDialogForm):
     extension = 'footnote'
     plugin_type = 'node'
     icon = 'formset/icons/footnote.svg'
-    prefix = 'footnote_dialog'
 
     content = fields.CharField(
         label=_("Footnote Content"),

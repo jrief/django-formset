@@ -33,7 +33,7 @@ import {TextIndent, TextIndentOptions } from '../tiptap-extensions/indent';
 import {TextMargin, TextMarginOptions } from '../tiptap-extensions/margin';
 import {TextColor} from '../tiptap-extensions/color';
 import {ClassBasedMark, ClassBasedNode} from '../tiptap-extensions/classbased';
-import {StyleHelpers} from './helpers';
+import {StyleHelpers, toAbsPath} from './helpers';
 import {FormDialogBase} from './FormDialog';
 import {parse} from '../build/no-comments';
 import styles from './RichtextArea.scss';
@@ -789,15 +789,16 @@ class RichtextFormDialog extends FormDialogBase {
 	private applyAttributes: Function = () => {};
 	private revertAttributes: Function = () => {};
 	private readonly induceButton: HTMLButtonElement;
-	private readonly closeButtons = new Array<HTMLButtonElement>();
+	private readonly applyButton: HTMLButtonElement|null = null;
+	private readonly revertButton: HTMLButtonElement|null = null;
 	private readonly functionRegex = new RegExp('^(\\w+)\\s*\\([^)]*\\)$');
-	private applyButton: HTMLButtonElement|null = null;
-	private revertButton: HTMLButtonElement|null = null;
 	public readonly extension: string;
 
 	constructor(element: HTMLDialogElement, button: HTMLButtonElement, richtext: RichtextArea) {
 		super(element);
 		this.induceButton = button;
+		this.applyButton = Array.from(this.formElement.elements).find(elm => elm instanceof HTMLButtonElement && elm.value === 'apply') as HTMLButtonElement;
+		this.revertButton = Array.from(this.formElement.elements).find(elm => elm instanceof HTMLButtonElement && elm.value === 'revert') as HTMLButtonElement;
 		this.richtext = richtext;
 		const extension = this.formElement.getAttribute('richtext-extension');
 		if (!extension)
@@ -818,20 +819,13 @@ class RichtextFormDialog extends FormDialogBase {
 			}
 			if (innerElement.hasAttribute('richtext-bidirectional') || innerElement.hasAttribute('richtext-map-to') || innerElement.hasAttribute('richtext-map-from')) {
 				this.inputElements.push(innerElement as HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement);
-			} else if (innerElement instanceof HTMLButtonElement) {
-				const action = innerElement.getAttribute('df-click');
-				if (action?.startsWith('activate')) {
-					this.closeButtons.push(innerElement);
-				}
-				if (action === 'activate("apply")') {
-					this.applyButton = innerElement;
-				}
-				if (action === 'activate("revert")') {
-					this.revertButton = innerElement;
-				}
 			}
 		});
 		this.induceButton.addEventListener('mouseenter', appearTooltip);
+	}
+
+	public get path(): Path {
+		return toAbsPath(this.richtext.path, this.formElement.getAttribute('name')!.split('.'));
 	}
 
 	activate(editor: Editor) {
@@ -894,16 +888,8 @@ class RichtextFormDialog extends FormDialogBase {
 		}
 	}
 
-	protected isButtonActive(path: Array<string>, action: string): boolean {
-		if (action !== 'active')
-			return false;
-		const openButton = this.richtext.formDialogs.find(
-			dialog => dialog.induceButton.name === path[0]
-		)?.induceButton;
-		if (openButton instanceof HTMLButtonElement)
-			return openButton === document.activeElement;
-		const closeButton = this.closeButtons.find(button => isEqual(button.name, path[0]));
-		return closeButton === document.activeElement;
+	protected isButtonActive(path: string[], activator: Function, button?: DjangoButton, ...args: any[]): boolean {
+		return button && isEqual(toAbsPath(this.richtext.path, path), button.path) && activator(...args);
 	}
 
 	private async openPrefilledDialog(attributes: Object) {
@@ -948,13 +934,13 @@ class RichtextFormDialog extends FormDialogBase {
 			}
 		}
 		super.openDialog();
-		this.richtext.textAreaElement.dispatchEvent(new Event('blur', {bubbles: true}));
 	}
 
-	protected openDialog() {
+	protected openDialog(button?: DjangoButton) {
 		if (this.element.open)
 			return;
-		this?.revertButton?.setAttribute('hidden', 'hidden');
+		this.formElement.reset();  // reset form to be pristine for the next usage
+		this.revertButton?.setAttribute('hidden', 'hidden');
 		const editor = this.richtext.editor;
 		if (this.textSelectionField) {
 			const {selection, doc} = editor.view.state;
@@ -967,19 +953,19 @@ class RichtextFormDialog extends FormDialogBase {
 		this.richtext.textAreaElement.dispatchEvent(new Event('blur', {bubbles: true}));
 	}
 
-	protected async closeDialog(...args: any[]) {
-		if (!isString(args[1]))
+	protected async closeDialog(button?: DjangoButton, returnValue?: string) {
+		if (!(button?.element instanceof HTMLButtonElement) || !isString(returnValue))
 			return;
 		const editor = this.richtext.editor;
-		if (args[1] === 'apply') {
+		if (returnValue === 'apply') {
 			this.formElement.dispatchEvent(new Event('submit', {bubbles: true}));
-			if (!this.formElement.checkValidity()) {
-				// checkValidity() triggers the invalid event for each invalid input field
+			if (!this.formElement.reportValidity()) {
+				// reportValidity() triggers the invalid event for each invalid input field
 				return;
 			}
 			let attributes = {};
 			const extensionConfig = editor.extensionManager.extensions.find(ext => ext.name === this.extension)?.config;
-			for (let inputElement of this.inputElements) {
+			for (const inputElement of this.inputElements) {
 				let mapFunction: Function;
 				if (inputElement.hasAttribute('richtext-bidirectional')) {
 					mapFunction = (elements: HTMLFormControlsCollection) => ({[inputElement.name]: inputElement.value});
@@ -1003,12 +989,10 @@ class RichtextFormDialog extends FormDialogBase {
 				}
 			}
 			this.applyAttributes(editor, attributes);
-		} else if (args[1] === 'revert') {
+		} else if (returnValue === 'revert') {
 			this.revertAttributes(editor);
 		}
-		// reset form to be pristine for the next invocation
-		this.formElement.reset();
-		super.closeDialog();
+		super.closeDialog(button, returnValue);
 	}
 
 	private applyMarkAttributes(editor: Editor, attributes: Object) {
@@ -1103,6 +1087,12 @@ class RichtextArea {
 		});
 	}
 
+	public get path(): Path {
+		const path = this.textAreaElement.form?.getAttribute('name')?.split('.') ?? [];
+		path.push(this.textAreaElement.name);
+		return path;
+	}
+
 	private adjustMenubarLayout() {
 		// add class 'has-sibling' to all groups that have a sibling group on their right of the same row
 		this.menubarElement?.querySelectorAll(':scope > [role="group"]').forEach(element => {
@@ -1159,17 +1149,20 @@ class RichtextArea {
 	private async registerFormDialogs(extensions: Array<Extension|Mark|Node>) {
 		return new Promise<void>(resolve => {
 			const promises = new Array<Promise<Mark|Node>>();
-			this.menubarElement?.querySelectorAll('button[df-click]').forEach(button => {
-				if (!(button instanceof HTMLButtonElement))
+			this.wrapperElement.querySelectorAll(':scope > dialog[df-induce-open]').forEach(dialogElement => {
+				const extension = dialogElement?.querySelector('form[method="dialog"][richtext-extension]')?.getAttribute('richtext-extension');
+				if (!extension || !(dialogElement instanceof HTMLDialogElement))
 					return;
-				const dialogElement = this.wrapperElement?.querySelector(`:scope > dialog[df-induce-open="${button.name}:active"]`);
-				if (dialogElement instanceof HTMLDialogElement) {
-					const formDialog = new RichtextFormDialog(dialogElement, button, this);
-					if (this.formDialogs.find(dialog => dialog.extension === formDialog.extension))
-						throw new Error(`Duplicate dialog for extension ${formDialog.extension}`);
-					this.formDialogs.push(formDialog);
-					promises.push(formDialog.createPlugin());
-				}
+				const buttonElement = this.menubarElement?.querySelector(`button[name$="${extension}"]`);
+				if (!(buttonElement instanceof HTMLButtonElement))
+					return;
+				const formDialog = new RichtextFormDialog(dialogElement, buttonElement, this);
+				if (this.formDialogs.find(dialog => dialog.extension === formDialog.extension))
+					throw new Error(`Duplicate dialog for extension ${formDialog.extension}`);
+				this.formDialogs.push(formDialog);
+				const buttonPath = buttonElement.getAttribute('name')!.split('.');
+				buttonElement.name = toAbsPath(this.path, buttonPath).join('.');
+				promises.push(formDialog.createPlugin());
 			});
 			Promise.all(promises).then(plugins => {
 				plugins.forEach(plugin => extensions.push(plugin));
@@ -1201,6 +1194,12 @@ class RichtextArea {
 		this.editor.on('update', this.updated);
 		this.editor.on('blur', this.blurred);
 		this.editor.on('selectionUpdate', this.selectionUpdate);
+		this.textAreaElement.addEventListener('focusin', () => {
+			// prevent event flooding, since focus event can bubble up from child editors
+			if (!this.editor.view.hasFocus()) {
+				this.editor.view.focus();
+			}
+		});
 		const form = this.textAreaElement.form;
 		form!.addEventListener('reset', this.formResetted);
 		form!.addEventListener('submitted', this.formSubmitted);

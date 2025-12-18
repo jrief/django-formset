@@ -196,7 +196,7 @@ export function compareArrays(needle: Array<string>, haystack: Array<string>): b
 }
 
 export function toAbsPath(basePath: Path, path: Array<string>) : Path {
-	if (path[0] !== '')
+	if (path.at(0) !== '')
 		return path;
 	// path is relative, so concatenate it to the form's path
 	const absPath = [...basePath];

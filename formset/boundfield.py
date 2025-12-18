@@ -4,7 +4,7 @@ from django.core import validators
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.fields.files import FieldFile
 from django.forms import boundfield
-from django.forms.fields import DecimalField, FileField, FloatField, JSONField
+from django.forms.fields import DecimalField, FileField, JSONField
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -13,7 +13,7 @@ from formset.formfields.activator import Activator
 from formset.renderers import ClassList
 from formset.upload import get_file_info
 from formset.utils import FileFieldMixin
-from formset.widgets import UploadedFileInput
+from formset.widgets.upload import UploadedFileInput
 
 
 class CheckboxInputMixin:
@@ -110,6 +110,8 @@ class BoundField(boundfield.BoundField):
         if isinstance(self.field, Activator) or self.widget_type == 'dualselector':
             label = self.name.replace('_', ' ').title() if self.field.label is None else self.field.label
             attrs['label'] = label  # remember label for ButtonWidget.get_context()
+        if self.widget_type == 'richtextarea':
+            attrs['form_prefix'] = self.form.prefix  # remember form prefix for RichtextArea.get_context()
         return attrs
 
     @cached_property

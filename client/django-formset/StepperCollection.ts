@@ -28,9 +28,9 @@ class StepperStep {
 		if (!isString(attrValue))
 			return () => {};
 		try {
-			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'InduceExpression'})}`);
+			const evalExpression = new Function('...args', `return ${parse(attrValue, {startRule: 'InduceExpression'})}`);
 			return (...args: any[]) => {
-				if (evalExpression.call(this)) {
+				if (evalExpression.call(this, ...args)) {
 					inducer(...args);
 				}
 			};
@@ -39,11 +39,8 @@ class StepperStep {
 		}
 	}
 
-	private isButtonActive(path: Array<string>, action: string): boolean {
-		const absPath = toAbsPath(this.path, path);
-		const formset = this.collection!.formset!;
-		const button = formset.buttons.find(button => isEqual(button.path, absPath));
-		return action === 'active' && button === formset.currentActiveButton;
+	protected isButtonActive(path: string[], activator: Function, button?: DjangoButton, ...args: any[]): boolean {
+		return button && isEqual(toAbsPath(this.path, path), button.path) && activator(...args);
 	}
 
 	private activateVisited = (event: Event) => {

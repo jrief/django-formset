@@ -32,9 +32,9 @@ export abstract class FormDialogBase {
 		if (!isString(attrValue))
 			return () => {};
 		try {
-			const evalExpression = new Function(`return ${parse(attrValue, {startRule: 'InduceExpression'})}`);
+			const evalExpression = new Function('...args', `return ${parse(attrValue, {startRule: 'InduceExpression'})}`);
 			return (...args: any[]) => {
-				if (evalExpression.call(this)) {
+				if (evalExpression.call(this, ...args)) {
 					inducer(...args);
 				}
 			};
@@ -43,7 +43,7 @@ export abstract class FormDialogBase {
 		}
 	}
 
-	protected openDialog(...args: any[]) {
+	protected openDialog(button?: DjangoButton, ...args: any[]) {
 		const viewport = window.visualViewport;
 		if (this.element.open || !viewport)
 			return;
@@ -62,8 +62,8 @@ export abstract class FormDialogBase {
 		this.element.addEventListener('close', () => this.closeDialog(), {once: true});
 	}
 
-	protected closeDialog(...args: any[]) {
-		this.element.close(args[1]);
+	protected closeDialog(button?: DjangoButton, returnValue?: string) {
+		this.element.close(returnValue);
 	}
 
 	private handlePointerDown = (event: PointerEvent|TouchEvent) => {
@@ -116,9 +116,11 @@ export abstract class FormDialogBase {
 	}
 
 	// Hook to be overridden by subclasses.
-	// path is where in the formset the button is located.
+	// `path` – against which path shall the button be compared.
+	// `activator` – function to determine whether the button is active.
+	// `button` – the button to be checked.
 	// It shall return true if the activation button is considered to be pressed.
-	protected isButtonActive(path: Array<string>, action: string): boolean {
+	protected isButtonActive(path: string[], activator: Function, button?: DjangoButton, ...args: any[]): boolean {
 		return false;
 	}
 
@@ -167,23 +169,23 @@ class FormDialog extends FormDialogBase implements Inducible {
 		return this.formIsValid();
 	}
 
-	protected openDialog(...args: any[]) {
+	protected openDialog(button?: DjangoButton, ...args: any[]) {
 		if (this.element.open)
 			return;
 		if (!this.form)
 			throw new Error(`${this}.form has never been registered`);
 		this.form.setPristine();
 		this.form.untouch();
-		if (args[0] /*instanceof DjangoButton*/ && isFunction(args[1])) {
-			args[1].call(args[0], this.form.path);
+		if (button?.element instanceof HTMLButtonElement && isFunction(args[0])) {
+			args[0].call(button, this.form.path);
 		}
-		super.openDialog(...args);
+		super.openDialog(button, ...args);
  	}
 
-	protected closeDialog(...args: any[]) {
-		if (!isString(args[1]))
+	protected closeDialog(button?: DjangoButton, returnValue?: string) {
+		if (!(button?.element instanceof HTMLButtonElement) || !isString(returnValue))
 			return;
-		switch (args[1]) {
+		switch (returnValue) {
 			case 'apply':
 				if (this.formIsValid()) {
 					this.element.close('apply');
@@ -210,10 +212,8 @@ class FormDialog extends FormDialogBase implements Inducible {
 		return this.form!.getDataValue(path);
 	}
 
-	protected isButtonActive(path: Path, action: string): boolean {
-		const absPath = toAbsPath(this.form!.path, path);
-		const button = this.form!.formset.buttons.find(button => isEqual(button.path, absPath));
-		return action === 'active' && button === this.form!.formset.currentActiveButton;
+	protected isButtonActive(path: string[], activator: Function, button?: DjangoButton, ...args: any[]): boolean {
+		return button && isEqual(toAbsPath(this.form!.path, path), button.path) && activator(...args);
 	}
 }
 

@@ -64,10 +64,23 @@ InduceFactor
   / getDataValue
 
 isButtonActive
-  = path:PATH ":" action:VARIABLE    // TODO: extend to allow params to be any VARIABLE
+  = path:PATH ":active"
   {
       const parts = path.split('.').map(part => `'${part}'`);
-      return `this.isButtonActive([${parts.join(',')}],'${action}')`;
+      const activator = '()=>true';
+      return `this.isButtonActive([${parts.join(',')}], ${activator}, ...args)`;
+  }
+  / path:PATH ":" action:arrow_function
+  {
+      const parts = path.split('.').map(part => `'${part}'`);
+      const activator = `(${action._funcArgs})=>${action._funcBody}`;
+      return `this.isButtonActive([${parts.join(',')}], ${activator}, ...args)`;
+  }
+  / path:PATH ":" action:$keystring
+  {
+      const parts = path.split('.').map(part => `'${part}'`);
+      const activator = `(action)=>action==='${action}'`;
+      return `this.isButtonActive([${parts.join(',')}], ${activator}, ...args)`;
   }
 
 
@@ -174,6 +187,27 @@ argument
     return {_funcName: 'getDataValue', _funcArgs: [path.split('.')]};
   }
 
+arrow_function
+  = _ '(' _ ')' _ '=>' _ body:arrow_funcbody
+  {
+    return {_funcArgs: [], _funcBody: `${body}`};
+  }
+  / _ '(' _ args:arrow_args _ ')' _ '=>' _ body:arrow_funcbody
+  {
+    return {_funcArgs: args, _funcBody: `${body}`};
+  }
+  / _ arg:VARIABLE _ '=>' _ body:arrow_funcbody
+  {
+    return {_funcArgs: [`${arg}`], _funcBody: `${body}`};
+  }
+
+arrow_args
+  = _ head:VARIABLE _ ',' _ tail:arrow_args { return [head].concat(tail) }
+  / _ head:VARIABLE _ { return [head] }
+
+arrow_funcbody
+  = $( ( [^{}] / '{' arrow_funcbody '}' )* )
+
 
 // ----- D. JSON -----
 
@@ -224,9 +258,9 @@ object
 
 member
   = name:string name_separator value:value
-  { return { name: name, value: value } }
+  { return {name: name, value: value}; }
   / name:$keystring name_separator value:value
-  { return { name: name, value: value } }
+  { return {name: name, value: value}; }
 
 keystring = [$A-Za-z_][$0-9A-Za-z_]*
 
@@ -263,23 +297,25 @@ zero = '0'
 // ----- 6. Strings -----
 
 string "string"
-  = '"' chars:$char_double_quote* '"' { return chars }
-  / "'" chars:$char_single_quote* "'" { return chars }
+  = '"' chars:$char_double_quote* '"' { return chars; }
+  / "'" chars:$char_single_quote* "'" { return chars; }
 
 char_double_quote
   = [^\0-\x1F\x22\x5C]
-  / '\\"' { return '"' }
+  / '\\"' { return '"'; }
   / escape
 
 char_single_quote
   = [^\0-\x1F\x27\x5C]
-  / "\\'" { return "'" }
+  / "\\'" { return "'"; }
   / escape
 
 escape
   = '\\\\' / '\\b' / '\\f' / '\\n' / '\\r' / '\\t'
   / '\\u' digits:$(HEXDIG HEXDIG HEXDIG HEXDIG)
-  { return String.fromCharCode(parseInt(digits, 16)) }
+  {
+      return String.fromCharCode(parseInt(digits, 16));
+  }
 
 
 // ----- 7. Boolean ----
@@ -297,27 +333,31 @@ NULL = 'null'
 // ----- 8. Variables -----
 
 PATH
-  = head:VAR_PREFIX tail:('.' (VARIABLE / DIGIT+))* {
+  = head:VAR_PREFIX tail:('.' (VARIABLE / DIGIT+))*
+  {
       return tail.reduce(function(result, element) {
           return result + '.' + element[1];
       }, head);
   }
 
 VAR_PREFIX
-  = prefix:('...' / '..' / '.') variable:VARIABLE {
+  = prefix:('...' / '..' / '.') variable:VARIABLE
+  {
       return prefix + variable;
   }
   / VARIABLE
 
 VARIABLE
-= var_starter:VAR_STARTER var_remainder:VAR_REMAINDER {
+= var_starter:VAR_STARTER var_remainder:VAR_REMAINDER
+{
    return var_starter + var_remainder;
 }
 
 VAR_STARTER = [$a-zA-Z_]
 
 VAR_REMAINDER
-  = identifier:[$a-zA-Z0-9_]* {
+  = identifier:[$a-zA-Z0-9_]*
+  {
     return identifier instanceof Array ? identifier.join('') : identifier;
   }
 

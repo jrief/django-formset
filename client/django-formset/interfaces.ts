@@ -12,7 +12,6 @@ interface DjangoFormset {
 	endpoint: string;
 	CSRFToken: string | undefined;
 	buttons: Array<DjangoButton>;
-	currentActiveButton: DjangoButton | null;
 	registerInducer(inducer: Inducible): void;
 }
 
