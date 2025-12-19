@@ -1,4 +1,6 @@
 import template from 'lodash.template';
+import {StyleHelpers} from './helpers';
+import styles from './FileUploadWidget.scss';
 
 
 export class FileUploadWidget {
@@ -12,6 +14,8 @@ export class FileUploadWidget {
 	private readonly initialData: Object[];
 	private readonly initialRequired: boolean;
 	private readonly maxUploadSize: number;
+	private readonly baseSelector = 'django-formset .dj-control-panel:has(input[type="file"])';
+	private readonly styleSheet: CSSStyleSheet;
 	public readonly inputElement: HTMLInputElement;
 	public uploadedFiles: Object[];
 
@@ -44,6 +48,7 @@ export class FileUploadWidget {
 		this.observer = new MutationObserver(mutationsList => this.attributesChanged(mutationsList));
 		this.observer.observe(this.inputElement, {attributes: true});
 		this.chooseFileButton.disabled = inputElement.disabled;
+		this.styleSheet = StyleHelpers.stylesAreInstalled(this.baseSelector) ?? this.transferStyles();
 
 		const initialData = document.getElementById(`initial_${inputElement.id}`);
 		if (initialData?.textContent) {
@@ -226,6 +231,43 @@ export class FileUploadWidget {
 				this.inputElement.required = false;
 			}
 		}
+	}
+
+	private transferStyles() : CSSStyleSheet {
+		const declaredStyles = document.createElement('style');
+		declaredStyles.innerText = styles;
+		document.head.appendChild(declaredStyles);
+		if (!declaredStyles.sheet)
+			throw new Error("Could not create <style> element");
+		this.inputElement.style.transition = 'none';  // prevent transition while pilfering styles
+		let loaded = false;
+		for (let index = 0; declaredStyles.sheet && index < declaredStyles.sheet.cssRules.length; index++) {
+			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
+			const selector = cssRule.selectorText.trim();
+			let extraStyles = '';
+			switch (selector) {
+				case this.baseSelector:
+					loaded = true;
+					break;
+				default:
+					break;
+			}
+			if (extraStyles) {
+				declaredStyles.sheet.insertRule(`${selector}{${extraStyles}}`, ++index);
+			}
+		}
+		this.inputElement.style.transition = '';
+		StyleHelpers.pushMediaQueryStyles(
+			declaredStyles.sheet,
+			this.baseSelector,
+			{
+				'--outline-color': 'outline-color',
+			},
+			this.inputElement,
+		);
+		if (!loaded)
+			throw new Error(`Could not load styles for ${this.baseSelector}`);
+		return declaredStyles.sheet as CSSStyleSheet;
 	}
 
 	public inProgress(): boolean {

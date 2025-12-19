@@ -1,4 +1,6 @@
-@mixin Dropbox {
+django-formset .dj-control-panel:has(input[type="file"]) {
+	--dummy-style: none;  // required by FileUploadWidget.transferStyles()
+
 	figure.dj-dropbox {
 		all: unset;
 		display: inline-flex;
@@ -8,7 +10,12 @@
 		padding: 1px;
 		height: 8rem;
 		max-width: 100%;
-		outline: rgb(128, 128, 128) thin dotted;
+		outline: var(--outline-color) thin dotted;
+
+		&:has(> .dj-empty-item) {
+			outline: var(--outline-color) 2px dashed;
+			border-radius: 0.25rem;
+		}
 
 		> div.dj-empty-item {
 			flex-grow: 1;
@@ -69,5 +76,6 @@
 			}
 
 		}
+
 	}
 }

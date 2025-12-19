@@ -1,5 +1,4 @@
 @use "sass:list";
-@import "dropbox";
 @import "colors";
 
 input::placeholder, select::placeholder {
@@ -210,7 +209,6 @@ django-formset {
 				}
 			}
 		}
-		@include Dropbox;
 	}
 
 	[is^="django-"][hidden] {
