@@ -286,7 +286,7 @@ def test_submit_missing(page, view, form, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
-def test_submit_value(page, mocker, view, form, viewname):
+def test_submit_value(page, view, form, viewname):
     dropdown_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-dropdown.single')
     expect(dropdown_element).not_to_be_visible()
     page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-control').click()
@@ -294,18 +294,16 @@ def test_submit_value(page, mocker, view, form, viewname):
     pseudo_option = dropdown_element.locator('div[data-selectable]').nth(8)
     expect(pseudo_option).to_be_visible()
     pseudo_option.click()
-    spy = mocker.spy(view.view_class, 'post')
-    page.locator('django-formset').evaluate('elem => elem.submit()')
-    request = json.loads(spy.call_args.args[1].body)
-    assert request['formset_data']['model_choice'] == str(get_initial_opinion().id)
-    assert spy.spy_return.status_code == 200
-    response = json.loads(spy.spy_return.content)
-    assert response['success_url'] == view.view_class.success_url
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset').evaluate('elem => elem.submit()')
+    assert response_info.value.ok is True
+    assert response_info.value.request.post_data_json['formset_data']['model_choice'] == str(get_initial_opinion().id)
+    assert response_info.value.json()['success_url'] == view.view_class.success_url
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectize1'])
-def test_submit_invalid(page, mocker, view, form, viewname):
+def test_submit_invalid(page, view, form, viewname):
     input_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-dropdown .dropdown-input-wrap input[type="text"]')
     dropdown_element = page.locator('django-formset .shadow-wrapper .ts-wrapper .ts-dropdown.single')
     expect(input_element).not_to_be_visible()
@@ -319,16 +317,11 @@ def test_submit_invalid(page, mocker, view, form, viewname):
     initial_opinion = get_initial_opinion()
     initial_opinion.tenant = 2  # this makes the selected option invalid
     initial_opinion.save(update_fields=['tenant'])
-    # spy = mocker.spy(view.view_class, 'post')
     with page.expect_response(page.url) as response_info:
         page.locator('django-formset').evaluate('elem => elem.submit()')
-    # sleep(0.2)
-    # request = json.loads(spy.call_args.args[1].body)
     assert response_info.value.status == 422
     request = response_info.value.request.post_data_json
     assert request['formset_data']['model_choice'] == str(initial_opinion.id)
-    # assert spy.spy_return.status_code == 422
-    # response = json.loads(spy.spy_return.content)
     error_message = models.ModelChoiceField.default_error_messages['invalid_choice']
     assert response_info.value.json() == {'model_choice': [error_message]}
     placeholder = page.locator('[role="group"] ul.dj-errorlist > li.dj-placeholder')

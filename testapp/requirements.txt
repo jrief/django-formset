@@ -14,7 +14,7 @@ pluggy==1.5.0
 pyee==13.0.0
 pytest==8.4.2
 pytest-django==4.11.1
-# pytest-mock==3.14.0
+pytest-mock==3.15.1
 pytest-subtests==0.14.1
 soupsieve==2.7
 sqlparse==0.5.5
