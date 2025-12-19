@@ -1,18 +1,40 @@
 ## Changes
 
 - 2.2
-  * Improve: Handle detached buttons separately when rendering form collections. This allows to use
-    detached buttons inside collections with siblings.
+  * Improve: Handle detached buttons separately when rendering form collections. This allows the use
+    of detached buttons inside collections with siblings.
+  * **Pending breaking change**: In classes inheriting from a `FormCollection` with siblings, the
+    attribute `add_label` is deprecated in favor of `induce_add_sibling` and its corresponding
+    activator field. This gives developers the freedom where to place and how to style the buttons
+    used to add siblings. 
+  * **Pending breaking change**: In classes inheriting from a `FormCollection` with siblings, method
+    `retrieve_instance` is replaced against `get_or_create_instance`. The latter now also returns a
+    Boolean value when an instance was created which is stored as `created` inside the valid holders
+    of a collection. This allows developers to distinguish between existing instances and newly
+    created ones, when preparing the response.
   * Each time a formset is submitted, an `extra_data` object is added to the request payload. This
     can be used to pass arbitrary data to the submission. If partial submissions are used, the new
-    button action `addExtraData` can be used to add response data to this object.
-  * Feat: Add attribute `reverse_accessor` on FormCollection. This allows to specify the reverse
-    accessor name of a `ForeignKey` relation used in collections.
-  * Fix: Detached buttons use prefixed path for name attributes.
+    button action `setExtraData` can be used to add response data to this object.
+  * Feat: Add attribute `reverse_accessor` on FormCollection. This allows developers to specify the
+    reverse accessor name of a `ForeignKey` relation used in collections.
+  * Fix: Detached buttons use the prefixed path for name attributes.
+  * Fix: The backend implementation of the `RichtextArea` widget now validates the length of
+    submitted text ignoring all HTML tags. This emulates the behaviour of its frontend counterpart.
   * If any of the forms to be submitted partially does not validate, then report that form and do
     not send any data to the server. This action can be bypassed by setting `force-submission`.
-  * Add a hook, so that dialogs and stepper-steps are forced to become visible when reporting
-    the validity and their forms contain invalid fields.
+  * Add hook, so that dialogs and stepper-steps are forced to become visible when reporting the
+    validity and their forms contain invalid fields.
+  * Fix: Widgets observing an `UploadedFileInput` now handle attributes `df-require`, `df-disable`,
+    `df-show` and `df-hide` as expected.
+  * Feat: Button action `setFieldValue()` now can update a complete datastructure of field values
+    inside `formset_data`. Until version 2.1 it only was possible to update scalar values. 
+  * Fix: The `Selectize` widget now correctly pilfers the height of its original widget, even if
+    style attribute is set `height: auto;`. 
+  * The initial values specified in an `Activator` field now is rendered as `value="…"` inside its
+    associated `Button` widget.
+  * Fix #244: Multiple widgets of type `RichtextArea` can use the same dialog form inheriting from
+    `RichtextDialogForm`. 
+  * Add support for Django-6.0 and drop support for Django-5.0.
 
 - 2.1.4
   * Fix: In `StepperCollection` only immediate children are considered as `StepperSteps`. This
