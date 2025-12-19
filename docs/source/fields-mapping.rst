@@ -4,7 +4,7 @@
 Fields Mapping
 ==============
 
-.. versionadded:: 2.0
+.. version-added:: 2.0
 
 A class inheriting from a Django model may contain fields which accept arbitrary data stored as
 JSON. Django itself, for that purpose provides a JSONField_ to store any kind of serializable data.

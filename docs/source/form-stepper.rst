@@ -4,8 +4,6 @@
 Form Stepper
 ============
 
-.. versionadded:: 1.7
-
 Whenever we need a user to fill multiple forms, it sometimes is convenient to break them up into
 multiple steps. This keeps the number of fields per form low and makes the form filling process
 less overwhelming. In addition, it allows to validate each form separately and to display the

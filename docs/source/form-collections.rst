@@ -183,15 +183,18 @@ specified as attribute ``help_text = "…"`` inside classes inheriting from
 :class:`formset.collection.FormCollection`, or as a parameter when initializing the collection.
 
 
-.. deprecated:: since 2.2
+.. version-deprecated:: 2.2
 
 .. rubric:: Label for "Add" button
 
 The parameter ``add_label`` shall contain a human readable string, telling the user what kind of
 collection to add as a sibling. If unset, the "Add" button just contains the **+** symbol.
 
+This attribute is deprecated in favor of ``induce_add_sibling`` and its corresponding activator
+field. See rubric below for details.
 
-.. versionadded:: 2.2
+
+.. version-added:: 2.2
 
 .. rubric:: Add a child to a collections with siblings
 
@@ -314,6 +317,8 @@ database.
 
 .. django-view:: sortable_siblings
 	:view-function: AddressBookView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'ab-result'}, collection_kwargs={'renderer': FormRenderer(field_css_classes='mb-3')})
+
+	from formset.collection import AddSiblingActivator
 
 	class PersonForm(forms.Form):
 	    full_name = fields.CharField(

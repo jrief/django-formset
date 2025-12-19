@@ -4,8 +4,6 @@
 Richtext Extensions
 ===================
 
-.. versionadded:: 1.4
-
 Having a Richtext editor which can set simple property values such as **bold** or *italic* on
 editable text elements is not a big deal, even the most basic implementation can do that. The
 difficulty arises when you want to set more than one property on a certain paragraph or node.

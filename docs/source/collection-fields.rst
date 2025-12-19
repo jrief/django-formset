@@ -4,7 +4,7 @@
 Collection Fields
 =================
 
-.. versionadded:: 2.0
+.. version-added:: 2.0
 
 Until version 2.0, collections could only hold forms or other collections. When using collections to
 store their values into multiple Django models, usually by using related foreign keys, the developer

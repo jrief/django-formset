@@ -4,8 +4,6 @@
 Dialog Forms
 ============
 
-.. versionadded:: 1.4
-
 Dialog forms are a way to create a form that is displayed in a dialog box. In **django-formset**
 this is possible by using a :class:`formset.collection.FormCollection` and as one of its members,
 an instance of type :class:`formset.dialog.DialogForm`. This is very similar to a setup as described

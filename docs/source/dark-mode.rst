@@ -4,8 +4,6 @@
 Dark Mode User Interface
 ========================
 
-.. versionadded:: 1.6
-
 Dark mode is a user interface design style that uses a dimmed and dark color theme for elements. It
 is considered "night-friendly" because it reduces screen glare. In low-light environments,
 activating **dark mode** can help reduce eye strain from bright screens. This is why **dark mode**
