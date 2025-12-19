@@ -102,6 +102,14 @@ frameworks supported by **django-formset**. It might be necessary to adopt the c
 classes.
 
 
+Button Sizes
+============
+
+The ``button_size`` attribute can be used to specify the size of the button in a consistent manner
+across the application. These sizes are defined in the ``ButtonSize`` enum types
+``ButtonSize.SMALL`` and ``ButtonSize.LARGE``. If not specified, the default button size is used.
+
+
 Button Icons
 ============
 
