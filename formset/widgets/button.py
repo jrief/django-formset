@@ -12,7 +12,6 @@ class Button(Widget):
     icon_path = None
     icon_char = None
     icon_left = None
-    value = None
 
     def __init__(
         self,
@@ -24,8 +23,7 @@ class Button(Widget):
         omit_restore=False,
         icon_path=None,
         icon_char=None,
-        icon_left=False,
-        value=None,
+        icon_left=False
     ):
         if action is not None:
             self.action = action
@@ -42,8 +40,6 @@ class Button(Widget):
         if icon_char:
             self.icon_char = icon_char
         self.icon_left = icon_left
-        if value is not None:
-            self.value = value
         super().__init__(attrs)
 
     def build_attrs(self, base_attrs, extra_attrs=None):
@@ -54,8 +50,6 @@ class Button(Widget):
             attrs['auto-disable'] = True
         if self.omit_restore:
             attrs['omit-restore'] = True
-        if self.value is not None:
-            attrs['value'] = self.value
         return attrs
 
     def get_context(self, name, value, attrs):

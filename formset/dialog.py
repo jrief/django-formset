@@ -37,6 +37,6 @@ class DialogModelForm(DialogFormMixin, BaseModelForm, metaclass=FormsetModelForm
     template_name = 'formset/default/form_dialog.html'
 
 
-ApplyButton = Button(action='activate("apply")', button_variant=ButtonVariant.PRIMARY, value='apply')
+ApplyButton = Button(action='activate("apply")', button_variant=ButtonVariant.PRIMARY)
 CancelButton = Button(action='activate("close")', button_variant=ButtonVariant.SECONDARY)
-RevertButton = Button(action='activate("revert")', button_variant=ButtonVariant.DANGER, value='revert')
+RevertButton = Button(action='activate("revert")', button_variant=ButtonVariant.DANGER)
