@@ -61,7 +61,7 @@ class FormCollectionMeta(MediaDefiningClass):
             warnings.warn(
                 "'add_label' is deprected in {module}.{name}. Use 'induce_add_sibling' and a "
                 "detached 'AddSiblingActivator' instead.".format(module=attrs.get('__module__'), name=name),
-                DeprecationWarning,
+                PendingDeprecationWarning,
             )
             attrs.setdefault('induce_add_sibling', '.add_sibling:active')
             attrs.setdefault('add_sibling', AddSiblingActivator(add_label))
@@ -459,7 +459,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         """
         warnings.warn(
             "'retrieve_instance' is deprected. Use 'get_or_create_instance(data)' instead.",
-            DeprecationWarning,
+            PendingDeprecationWarning,
         )
         return self.get_or_create_instance(data)[0]
 
