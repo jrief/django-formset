@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.12
 LABEL Description="django-formset testapp" Maintainer="Jacob Rief"
 RUN mkdir /web
 WORKDIR /web

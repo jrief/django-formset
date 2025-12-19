@@ -3,19 +3,19 @@ beautifulsoup4==4.13.4
 coverage==7.8.0
 https://github.com/jrief/django-countries/archive/refs/heads/main.zip
 docutils==0.21.2
-django-filter==25.1
+django-filter==25.2
 greenlet==3.2.1
 iniconfig==2.1.0
 packaging==25.0
-Pillow==11.2.1
-phonenumbers==8.13.55
-playwright==1.52.0
+Pillow==11.3.0
+phonenumbers==9.0.21
+playwright==1.57.0
 pluggy==1.5.0
 pyee==13.0.0
-pytest==8.3.5
+pytest==8.4.2
 pytest-django==4.11.1
-pytest-mock==3.14.0
+# pytest-mock==3.14.0
 pytest-subtests==0.14.1
 soupsieve==2.7
-sqlparse==0.5.3
+sqlparse==0.5.5
 typing_extensions==4.13.2

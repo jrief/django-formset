@@ -22,6 +22,7 @@ CLASSIFIERS = [
     'Framework :: Django :: 5.0',
     'Framework :: Django :: 5.1',
     'Framework :: Django :: 5.2',
+    'Framework :: Django :: 6.0',
 ]
 
 setup(
