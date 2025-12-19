@@ -17,6 +17,10 @@ django-formset .dj-control-panel:has(input[type="file"]) {
 			border-radius: 0.25rem;
 		}
 
+		&.drag-over {
+			opacity: 0.4;
+		}
+
 		> div.dj-empty-item {
 			flex-grow: 1;
 			text-align: center;

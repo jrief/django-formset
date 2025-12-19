@@ -58,9 +58,9 @@ export class FileUploadWidget {
 			this.uploadedFiles = this.initialData = [];
 		}
 		this.initialRequired = this.inputElement.required;
-		this.dropbox.addEventListener('dragenter', this.swallowEvent);
-		this.dropbox.addEventListener('dragover', this.swallowEvent);
-		this.dropbox.addEventListener('drop', this.fileDrop);
+		this.dropbox.addEventListener('dragover', this.handleDragOver);
+		this.dropbox.addEventListener('dragleave', this.handleDragLeave);
+		this.dropbox.addEventListener('drop', this.handleFileDrop);
 		this.chooseFileButton.addEventListener('click', () => {
 			inputElement.click();
 		});
@@ -87,7 +87,8 @@ export class FileUploadWidget {
 		return false;
 	}
 
-	private fileDrop = (event: DragEvent) => {
+	private handleFileDrop = (event: DragEvent) => {
+		this.dropbox.classList.remove('drag-over');
 		this.swallowEvent(event);
 		if (event.dataTransfer) {
 			for (const file of event.dataTransfer.files) {
@@ -117,6 +118,16 @@ export class FileUploadWidget {
 		this.fieldGroup.touch();
 		this.fieldGroup.inputted();
 		this.fieldGroup.validate();
+	};
+
+	private handleDragOver = (event: Event) => {
+		this.dropbox.classList.add('drag-over');
+		this.swallowEvent(event);
+	};
+
+	private handleDragLeave = (event: Event) => {
+		this.dropbox.classList.remove('drag-over');
+		this.swallowEvent(event);
 	};
 
 	private swallowEvent = (event: Event) => {
