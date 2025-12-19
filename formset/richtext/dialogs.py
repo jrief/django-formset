@@ -31,10 +31,12 @@ class RichtextDialogForm(DialogForm):
     revert = Activator(
         label=_("Revert"),
         widget=RevertButton,
+        initial='revert',
     )
     apply = Activator(
         label=_("Apply"),
         widget=ApplyButton,
+        initial='apply',
     )
 
     @property

@@ -23,7 +23,7 @@ class Button(Widget):
         omit_restore=False,
         icon_path=None,
         icon_char=None,
-        icon_left=False
+        icon_left=False,
     ):
         if action is not None:
             self.action = action
