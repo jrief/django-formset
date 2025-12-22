@@ -8,11 +8,9 @@ the internal Django implementation for
 
 ### News:
 
-Starting with version 2, developers can use `ModelForm`s and `FormCollection`s in the django-admin.
-In version 2 it also is possible to store the content of multiple form fields or even an entire form
-collection inside a `JSONField`. Make sure to read the
-[Changelog](https://github.com/jrief/django-formset/blob/releases/2.0/CHANGELOG.md) for version 2
-before proceeding.
+Starting with version 2.2, developers can style detached buttons separately when rendering form collections.
+Make sure to read the [Changelog](https://github.com/jrief/django-formset/blob/releases/2.2/CHANGELOG.md) for
+version 2.2 before proceeding.
 
 [![Interactive Documentation](https://img.shields.io/badge/Interactive-Documentation-532BEA)](https://django-formset.fly.dev/)
 [![Build Status](https://github.com/jrief/django-formset/actions/workflows/tests.yml/badge.svg)](https://github.com/jrief/django-formset/actions)
@@ -21,7 +19,7 @@ before proceeding.
 [![Python versions](https://img.shields.io/pypi/pyversions/django-formset.svg)](https://pypi.python.org/pypi/django-formset)
 [![Software license](https://img.shields.io/pypi/l/django-formset.svg)](https://github.com/jrief/django-formset/blob/master/LICENSE)
 
-**Before upgrading to version 2.0, please read the [Changelog](CHANGELOG.md).**
+**Before upgrading to version 2.2, please read the [Changelog](CHANGELOG.md).**
 
 Let's explain it using a short example. Say, we have a Django form with three fields:
 
