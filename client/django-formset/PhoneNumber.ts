@@ -59,7 +59,7 @@ class PhoneNumberField {
 			`<input type="search" placeholder="${gettext('Search …')}">`,
 			'<ul>',
 		];
-		for (let [countryName, callingCode, countryCode] of this.codeCountryMap) {
+		for (const [countryName, callingCode, countryCode] of this.codeCountryMap) {
 			htmlTags.push(`<li data-country="${countryCode}" data-calling-code="${callingCode}">`);
 			htmlTags.push(`<span class="flag-${countryCode.toLowerCase()} flag-icon"></span>${countryName} <strong>+${callingCode}</strong>`);
 			htmlTags.push('</li>');
@@ -442,11 +442,11 @@ class PhoneNumberField {
 				this.inputElement.setCustomValidity("Invalid mobile number");
 				return false;
 			}
-		} else {
+		} else if (this.inputElement.value) {
 			this.inputElement.setCustomValidity("Invalid phone number");
 			return false;
 		}
-		return true;
+		return !this.inputElement.required;
 	}
 }
 
