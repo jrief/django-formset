@@ -1,5 +1,9 @@
 ## Changes
 
+- 2.2.1
+  * Decativate all decorators `@allowedAction`, as they only work locally but not on
+    https://django-formset.fly.dev/
+
 - 2.2
   * Improve: Handle detached buttons separately when rendering form collections. This allows the use
     of detached buttons inside collections with siblings.
