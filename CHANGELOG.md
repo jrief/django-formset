@@ -3,6 +3,7 @@
 - 2.2.1
   * Decativate all decorators `@allowedAction`, as they only work locally but not on
     https://django-formset.fly.dev/
+  * Fix in `PhoneNumberField`: If field is not required and remains empty, it validates.
 
 - 2.2
   * Improve: Handle detached buttons separately when rendering form collections. This allows the use

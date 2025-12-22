@@ -1,7 +1,10 @@
-from django.forms.widgets import TextInput
+try:
+    from django.forms.widgets import TelInput
+except ImportError:
+    from django.forms.widgets import TextInput as TelInput  # Django<5.2
 
 
-class PhoneNumberInput(TextInput):
+class PhoneNumberInput(TelInput):
     def __init__(self, attrs=None):
         super().__init__(attrs)
         self.attrs.update({
