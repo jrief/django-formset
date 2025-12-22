@@ -53,6 +53,7 @@ class EventSeriesModel(models.Model):
     )
     registration_deadline = DateField(
         verbose_name="Registration Deadline",
+        null=True,
     )
 
     class Meta:

@@ -335,7 +335,7 @@ class Migration(migrations.Migration):
                 ('slug', models.CharField(max_length=50)),
                 ('lead', formset.modelfields.richtext.RichTextField(max_length=500, verbose_name='Lead Text')),
                 ('image', models.FileField(blank=True, null=True, upload_to='eventseries', verbose_name='Lead Image')),
-                ('registration_deadline', models.DateField(verbose_name='Registration Deadline')),
+                ('registration_deadline', models.DateField(null=True, verbose_name='Registration Deadline')),
             ],
             options={'verbose_name': 'Event-Series', 'verbose_name_plural': 'Event-Series'},
         ),
