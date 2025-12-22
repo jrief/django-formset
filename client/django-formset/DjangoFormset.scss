@@ -189,26 +189,6 @@ django-formset {
 		.dj-form-inlined {
 			display: inline-block;
 		}
-
-		input[type="file"] {
-			// `display: none;` causes Chrome to complain on calling `form.reportValidity()`.
-			width: 0 !important;
-			height: 0 !important;
-			margin: 0 !important;
-			padding: 0 !important;
-		}
-
-		.dj-control-panel {
-			display: flex;
-			> div {
-				height: fit-content;
-				margin-left: 0.5rem;
-				progress {
-					width: 100%;
-					margin-top: 0.25rem;
-				}
-			}
-		}
 	}
 
 	[is^="django-"][hidden] {

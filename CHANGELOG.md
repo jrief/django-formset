@@ -35,6 +35,7 @@
   * Fix #244: Multiple widgets of type `RichtextArea` can use the same dialog form inheriting from
     `RichtextDialogForm`. 
   * Add support for Django-6.0 and drop support for Django-5.0.
+  * Adopt the styling of the file upload widget, it now responds to dragging events. 
 
 - 2.1.4
   * Fix: In `StepperCollection` only immediate children are considered as `StepperSteps`. This

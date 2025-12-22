@@ -410,7 +410,7 @@ demo_css_classes = {
                 'reset': 'd-grid col-3',
             },
             'fieldset_css_classes': 'border rounded p-3 mt-3 mb-2',
-            'button_css_classes': 'mt-4',
+            'button_css_classes': 'mt-3',
         },
         'address': {
             'form_css_classes': 'row',

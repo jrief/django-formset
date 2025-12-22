@@ -1,5 +1,22 @@
 django-formset .dj-control-panel:has(input[type="file"]) {
-	--dummy-style: none;  // required by FileUploadWidget.transferStyles()
+	display: flex;
+
+	input[type="file"] {
+		// `display: none;` causes Chrome to complain on calling `form.reportValidity()`.
+		width: 0 !important;
+		height: 0 !important;
+		margin: 0 !important;
+		padding: 0 !important;
+	}
+
+	> div {
+		height: fit-content;
+		margin-left: 1rem;
+		progress {
+			width: 100%;
+			margin-top: 0.25rem;
+		}
+	}
 
 	figure.dj-dropbox {
 		all: unset;
@@ -27,7 +44,7 @@ django-formset .dj-control-panel:has(input[type="file"]) {
 			min-width: 8rem;
 			height: auto;
 			p {
-				padding: 0.5rem;
+				padding: 2rem;
 				margin: 0;
 			}
 		}
