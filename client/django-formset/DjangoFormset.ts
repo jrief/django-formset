@@ -614,7 +614,7 @@ class DjangoButton {
 	/**
 	 * Disable the button for further submission.
 	 */
-	@allowedAction
+	//@allowedAction
 	private disable() {
 		return (response: Response) => {
 			this.element.disabled = true;
@@ -625,7 +625,7 @@ class DjangoButton {
 	/**
 	 * Re-enable the button for further submission.
 	 */
-	@allowedAction
+	//@allowedAction
 	private enable() {
 		return (response: Response) => {
 			this.element.disabled = false;
@@ -636,7 +636,7 @@ class DjangoButton {
 	/**
 	 * Validate form content and submit to the endpoint given in element `<django-formset>`.
 	 */
-	@allowedAction
+	//@allowedAction
 	submit(data?: Object) {
 		return () => {
 			return new Promise((resolve, reject) => {
@@ -650,7 +650,7 @@ class DjangoButton {
 	/**
 	 * Validate the current form content and only submit that form's content to the endpoint given in element `<django-formset>`.
 	 */
-	@allowedAction
+	//@allowedAction
 	submitPartial(data?: Object) {
 		return () => {
 			return new Promise((resolve, reject) => {
@@ -665,7 +665,7 @@ class DjangoButton {
 	/**
 	 * Reset form content to their initial values.
 	 */
-	@allowedAction
+	//@allowedAction
 	reset() {
 		return (response: Response) => {
 			this.formset.resetToInitial();
@@ -673,7 +673,7 @@ class DjangoButton {
 		};
 	}
 
-	@allowedAction
+	//@allowedAction
 	private reload(includeQuery?: Boolean) {
 		return (response: Response) => {
 			includeQuery ? location.reload() : location.replace(window.location.pathname);
@@ -691,7 +691,7 @@ class DjangoButton {
 	 * @param proceedUrl (optional): If set, proceed to that URL regardless of the
 	 * response status.
 	 */
-	@allowedAction
+	//@allowedAction
 	private proceed(proceedUrl?: string) {
 		return async (response: Response) => {
 			if (isString(proceedUrl) && proceedUrl.length > 0) {
@@ -715,7 +715,7 @@ class DjangoButton {
 	 *
 	 * @param ms: Time to wait in milliseconds.
 	 */
-	@allowedAction
+	//@allowedAction
 	private delay(ms: number) {
 		return (response: Response) => new Promise(resolve => this.timeoutHandler = window.setTimeout(() => {
 			this.timeoutHandler = undefined;
@@ -726,7 +726,7 @@ class DjangoButton {
 	/**
 	 * Replace the button's decorator against a spinner icon.
 	 */
-	@allowedAction
+	//@allowedAction
 	private spinner() {
 		return (response: Response) => {
 			this.decoratorElement?.replaceChildren(this.spinnerElement);
@@ -737,7 +737,7 @@ class DjangoButton {
 	/**
 	 * Replace the button's decorator against an okay animation.
 	 */
-	@allowedAction
+	//@allowedAction
 	private okay(ms?: number) {
 		return this.decorate(this.okayElement, ms);
 	}
@@ -745,7 +745,7 @@ class DjangoButton {
 	/**
 	 * Replace the button's decorator against a bummer animation.
 	 */
-	@allowedAction
+	//@allowedAction
 	private bummer(ms?: number) {
 		return this.decorate(this.bummerElement, ms);
 	}
@@ -755,7 +755,7 @@ class DjangoButton {
 	 *
 	 * @param cssClass: The CSS class.
 	 */
-	@allowedAction
+	//@allowedAction
 	private addClass(cssClass: string) {
 		return (response: Response) => {
 			this.element.classList.add(cssClass);
@@ -768,7 +768,7 @@ class DjangoButton {
 	 *
 	 * @param cssClass: The CSS class.
 	 */
-	@allowedAction
+	//@allowedAction
 	private removeClass(cssClass: string) {
 		return (response: Response) => {
 			this.element.classList.remove(cssClass);
@@ -781,7 +781,7 @@ class DjangoButton {
 	 *
 	 * @param cssClass: The CSS class.
 	 */
-	@allowedAction
+	//@allowedAction
 	private toggleClass(cssClass: string) {
 		return (response: Response) => {
 			this.element.classList.toggle(cssClass);
@@ -794,7 +794,7 @@ class DjangoButton {
 	 *
 	 * @param event: The named event.
 	 */
-	@allowedAction
+	//@allowedAction
 	private emit(namedEvent: string, detail?: Object) {
 		return (response: Response) => {
 			const options = {bubbles: true, cancelable: true};
@@ -812,7 +812,7 @@ class DjangoButton {
 	 * For debugging purpose only: Intercept, log and forward the response object to the next handler.
 	 * @param selector: If selector points onto a valid element in the DOM, the server response is inserted.
  	 */
-	@allowedAction
+	//@allowedAction
 	private intercept(selector?: string) {
 		return (response: Response) => {
 			const body = {
@@ -835,7 +835,7 @@ class DjangoButton {
 	/**
 	 * Clear all errors in the current django-formset.
  	 */
-	@allowedAction
+	//@allowedAction
 	private clearErrors() {
 		return (response: Response) => {
 			this.formset.clearErrors();
@@ -846,7 +846,7 @@ class DjangoButton {
 	/**
 	 * Scroll to first element reporting an error.
  	 */
-	@allowedAction
+	//@allowedAction
 	private scrollToError() {
 		return (response: Response) => {
 			const errorReportElement = this.formset.findFirstErrorReport();
@@ -860,7 +860,7 @@ class DjangoButton {
 	/**
 	 * Confirm a user response. If it is accepted proceed, otherwise reject.
  	 */
-	@allowedAction
+	//@allowedAction
 	private confirm(message: string) {
 		if (!isString(message))
 			throw new Error("The confirm() action requires a message.");
@@ -877,7 +877,7 @@ class DjangoButton {
 	 * Show an alert message with the response text for other types of errors, such as permission denied.
 	 * This can be useful information to the end user in case the Django endpoint can not process a request.
  	 */
-	@allowedAction
+	//@allowedAction
 	private alertOnError() {
 		return (response: Response) => {
 			if (response.status !== 422) {
@@ -890,7 +890,7 @@ class DjangoButton {
 	/**
 	 * Action to activate a button so that a dialog can be induced by it.
  	 */
-	@allowedAction
+	//@allowedAction
 	private activate(...args: any[]) {
 		return (response: Response) => {
 			this.formset.updateOperability(this, ...args);
@@ -901,7 +901,7 @@ class DjangoButton {
 	/**
 	 * Transfer value from one element to another one.
  	 */
-	@allowedAction
+	//@allowedAction
 	private setFieldValue(target: Path, source: FieldValue) {
 		return (response: Response) => {
 			this.formset.setFieldValue(target, source);
@@ -912,7 +912,7 @@ class DjangoButton {
 	/**
 	 * Transfer value from one element to another one.
  	 */
-	@allowedAction
+	//@allowedAction
 	private setExtraData(target: Path, source: FieldValue) {
 		return (response: Response) => {
 			this.formset.setExtraData(target, source);
@@ -920,7 +920,7 @@ class DjangoButton {
 		}
 	}
 
-	@allowedAction
+	//@allowedAction
 	private deletePartial(target: Path, source: FieldValue) {
 		return (response: Response) => {
 			if (isString(source) && parseInt(source)) {
@@ -933,7 +933,7 @@ class DjangoButton {
 	/**
 	 * Prefill partial form with data fetched from endpoint.
  	 */
-	@allowedAction
+	//@allowedAction
 	private prefillPartial(pk: string) {
 		return (path: Path) => {
 			const response = this.formset.prefillPartial(pk, path);
@@ -944,7 +944,7 @@ class DjangoButton {
 	/**
 	 * Dummy action to be called in case of empty actionsQueue.
  	 */
-	@allowedAction
+	//@allowedAction
 	private noop() {
 		return (response: Response) => {
 			return Promise.resolve(response);
@@ -1039,7 +1039,7 @@ class DjangoButton {
 		const innerAction = (action: any) => {
 			if (isPlainObject(action) && isString(action._funcName) && Array.isArray(action._funcArgs)) {
 				const func = this[action._funcName as keyof DjangoButton];
-				if (!isFunction(func) || !func.hasOwnProperty('isAllowedAction'))
+				if (!isFunction(func)/* || !func.hasOwnProperty('isAllowedAction')*/)
 					throw new Error(`Unknown function '${action._funcName}'.`);
 				return new ButtonAction(func, action._funcArgs.map(innerAction));
 			}
@@ -1091,19 +1091,19 @@ class DjangoButton {
 	}
 
 	// to be called by code generated from the parser
-	@allowedAction
+	//@allowedAction
 	private maxNumSiblingsReached() : boolean|null {
 		return this.formset.maxNumSiblingsReached(this);
 	}
 
 	// to be called by code generated from the parser
-	@allowedAction
+	//@allowedAction
 	private getDataValue(path: Path) {
 		return this.formset.getDataValue(path);
 	}
 
 	// to be called by code generated from the parser
-	@allowedAction
+	//@allowedAction
 	private getResponseValue(path: Path, body: JSONValue) {
 		return getDataValue(body, path);
 	}
