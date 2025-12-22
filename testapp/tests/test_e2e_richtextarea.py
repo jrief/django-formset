@@ -206,6 +206,7 @@ def test_tiptap_marks(page, viewname, menubar, contenteditable, control):
     select_text(contenteditable.locator('p'), 6, 11)
     button = menubar.locator(f'[richtext-click="{control[0]}"]')
     button.click()
+    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
     assert contenteditable.inner_html() == f"<p>{lorem[:6]}<{control[1]}>{lorem[6:11]}</{control[1]}>{lorem[11:]}</p>"
     set_caret(page, contenteditable, 9)
     expect(button).to_have_class('active')
@@ -224,6 +225,7 @@ def test_tiptap_many_headings(page, viewname, menubar, contenteditable):
     menu_button.click()
     expect(submenu).to_be_visible()
     submenu.locator('[richtext-click="heading:1"]').click()
+    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
     assert contenteditable.inner_html() == f"<h1>{heading}</h1>"
     set_caret(page, contenteditable, 5)
     expect(menu_button).to_have_class('active')
@@ -246,10 +248,12 @@ def test_tiptap_single_heading(page, viewname, menubar, contenteditable):
     submenu = menubar.locator('[richtext-click="heading:2"] + ul[role="menu"]')
     expect(submenu).to_have_count(0)  # no submenu for single heading
     menu_button.click()
+    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
     assert contenteditable.inner_html() == f"<h2>{heading}</h2>"
     set_caret(page, contenteditable, 5)
     expect(menu_button).to_have_class('active')
     menu_button.click()  # toggle has no affect
+    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
     assert contenteditable.inner_html() == f"<h2>{heading}</h2>"
 
 
@@ -262,6 +266,7 @@ def test_tiptap_blockquote(page, viewname, menubar, contenteditable):
     set_caret(page, contenteditable, 0)
     menu_button = menubar.locator('[richtext-click="blockquote"]')
     menu_button.click()
+    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
     assert contenteditable.inner_html() == f"<blockquote><p>{block}</p></blockquote>"
     set_caret(page, contenteditable, 5)
     expect(menu_button).to_have_class('active')
@@ -280,6 +285,7 @@ def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
     submenu_items = family_menu_button.locator('+ ul[role="menu"] > li')
     expect(submenu_items).to_have_count(4)
     submenu_items.nth(2).click()
+    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
     assert contenteditable.inner_html() == '<p>Lorem <span class="font-family-b">ipsum dolor</span> sit amet.</p>'
     set_caret(page, contenteditable, 8)
     expect(family_menu_button).to_have_class('active')
@@ -300,6 +306,7 @@ def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
     submenu_items = fontsize_menu_button.locator('+ ul[role="menu"] > li')
     expect(submenu_items).to_have_count(4)
     submenu_items.nth(2).click()
+    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
     assert contenteditable.inner_html() == '<p>Lorem <span class="font-family-b">ipsum<span class="font-size-medium"> dolor</span></span><span class="font-size-medium"> sit</span> amet.</p>'
     set_caret(page, contenteditable, 8)
     expect(family_menu_button).to_have_class('active')
@@ -328,6 +335,7 @@ def test_tiptap_classbased_node(page, viewname, menubar, contenteditable):
     submenu_items = lineheight_menu_button.locator('+ ul[role="menu"] > li')
     expect(submenu_items).to_have_count(4)
     submenu_items.nth(2).click()
+    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
     assert contenteditable.inner_html() == '<p class="line-height-medium">Lorem ipsum dolor sit amet.</p>'
     expect(lineheight_menu_button).to_have_class('active')
     expect(lineheight_menu_button.locator('+ ul[role="menu"] > li').nth(2)).to_have_class('active')
@@ -337,6 +345,7 @@ def test_tiptap_classbased_node(page, viewname, menubar, contenteditable):
     submenu_items = marginbottom_menu_button.locator('+ ul[role="menu"] > li')
     expect(submenu_items).to_have_count(4)
     submenu_items.nth(2).click()
+    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
     assert contenteditable.inner_html() == '<p class="line-height-medium margin-bottom-2">Lorem ipsum dolor sit amet.</p>'
     set_caret(page, contenteditable, 1)
     expect(lineheight_menu_button).to_have_class('active')
