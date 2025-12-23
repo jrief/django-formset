@@ -1,5 +1,8 @@
 ## Changes
 
+- 2.2.2
+  * Fix in StepperCollection: Do not check the validity of transient forms.
+
 - 2.2.1
   * Decativate all decorators `@allowedAction`, as they only work locally but not on
     https://django-formset.fly.dev/
