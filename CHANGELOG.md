@@ -1,5 +1,9 @@
 ## Changes
 
+1.8.2
+  * Fix in StepperCollection: Do not check the validity of transient forms.
+
+
 1.8.1
   * Fix: Server side code of widget `RichtextArea` now properly re-validates the length of the
     submitted rich text.

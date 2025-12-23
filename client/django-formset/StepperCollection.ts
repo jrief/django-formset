@@ -120,7 +120,9 @@ class StepperCollection implements Inducible {
 
 		let previousStep: StepperStep|null = null;
 		for (const step of this.steps) {
-			if (previousStep && Object.values(previousStep.formCollection.querySelectorAll('form')).every(form => form.checkValidity())) {
+			if (previousStep && Object.values(previousStep.formCollection.querySelectorAll('form')).every(form => {
+				return form.hasAttribute('df-transient') || form.checkValidity();
+			})) {
 				step.setAsVisited();
 			}
 			previousStep = step;
