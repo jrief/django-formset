@@ -312,11 +312,15 @@ class PhoneNumberField {
 		}
 		this.editField.innerText = this.asYouType.input(phoneNumber);
 		const textNode = this.editField.childNodes[0] as Text;
-		const range = document.createRange();
-		range.setStart(textNode, Math.min(caretPosition, textNode.length));
-		range.collapse(true);
-		selection.removeAllRanges();
-		selection.addRange(range);
+		if (textNode) {
+			const range = document.createRange();
+			range.setStart(textNode, Math.min(caretPosition, textNode.length));
+			range.collapse(true);
+			selection.removeAllRanges();
+			selection.addRange(range);
+		} else {
+			selection.removeAllRanges();
+		}
 		this.inputElement.value = this.asYouType.getNumberValue() ?? '';
 		this.decorateInputField(this.asYouType.getCountry());
 		this.inputElement.dispatchEvent(new Event('input'));
