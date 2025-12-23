@@ -1,7 +1,8 @@
 ## Changes
 
 - 2.2.2
-  * Fix in StepperCollection: Do not check the validity of transient forms.
+  * Fix in `StepperCollection`: Do not check the validity of transient forms.
+  * Fix in `PhoneNumberField`: If field is empty, it now validates unless required.
 
 - 2.2.1
   * Decativate all decorators `@allowedAction`, as they only work locally but not on
