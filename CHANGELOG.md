@@ -1,8 +1,10 @@
 ## Changes
 
+1.8.3
+  * Fix in `PhoneNumberField`: If field is empty, it now validates unless required.
+
 1.8.2
   * Fix in `StepperCollection`: Do not check the validity of transient forms.
-  * Fix in `PhoneNumberField`: If field is empty, it now validates unless required.
 
 1.8.1
   * Fix: Server side code of widget `RichtextArea` now properly re-validates the length of the
