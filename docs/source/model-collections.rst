@@ -234,12 +234,15 @@ forms and collection to edit the company, its departments and their teams such a
 	
 	    add_team = AddSiblingActivator("Add Team")
 
-	    def retrieve_instance(self, data):
+	    def get_or_create_instance(self, data):
 	        if data := data.get('team'):
 	            try:
-	                return self.instance.teams.get(id=data.get('id') or 0)
+	                return self.instance.teams.get(id=data.get('id') or 0), False
 	            except (AttributeError, Team.DoesNotExist, ValueError):
-	                return Team(name=data.get('name'), department=self.instance)
+	                form = TeamForm(data=data)
+	                if form.is_valid():
+	                    return Team(name=form.cleaned_data['name'], department=self.instance), False
+	        return None, False
 	
 	class DepartmentForm(ModelForm):
 	    id = IntegerField(
@@ -261,13 +264,17 @@ forms and collection to edit the company, its departments and their teams such a
 
 	    add_department = AddSiblingActivator("Add Department")
 	
-	    def retrieve_instance(self, data):
+	    def get_or_create_instance(self, data):
 	        if data := data.get('department'):
 	            try:
-	                return self.instance.departments.get(id=data.get('id') or 0)
+	                return self.instance.departments.get(id=data.get('id') or 0), False
 	            except (AttributeError, Department.DoesNotExist, ValueError):
-	                return Department(name=data.get('name'), company=self.instance)
-	
+	                form = DepartmentForm(data=data)
+	                if form.is_valid():
+	                    return Department(name=form.cleaned_data['name'], company=self.instance), False
+	        return None, False
+
+
 	class CompanyForm(ModelForm):
 	    class Meta:
 	        model = Company
@@ -330,17 +337,25 @@ relation from ``Company`` to ``Department``, and ``teams`` for the relation from
 ommitted them here. They are only required, if the attribute name of the collection differs from the
 ``related_name`` of the foreign key.
 
-.. rubric:: ``retrieve_instance(data)``
+.. version-changed:: 2.2
+
+.. rubric:: ``get_or_create_instance(data)``
 
 We recall that in the form declaration, we added a hidden field named ``id`` to keep track of the
 primary key. During submission, we therefore must find the link between instances of type
 ``Department`` to their ``Company``, or between instances of type ``Team`` to their ``Department``.
 Forms which have been added using the buttons "Add Team" or "Add Department" have an empty ``id``
 field, because for obvious reasons, no primary key yet exists. For this to work we therefore have to
-implement a custom method ``retrieve_instance(data)``. This method is responsible to retrieve the
-wanted instance from the database, or if that hidden field is empty, must create an unsaved empty
-model instance. Forms which have been deleted using the trash symbol on the upper right corner of
-each form, are marked for removal and will be removed from the associated object.
+implement a custom method ``get_or_create_instance(data)``. This method is responsible to retrieve
+the wanted instance from the database, or if that hidden field is empty, must create an empty
+model instance. In some configurations, we might want to create such an instance and save it
+immediately. We then return the created object followed by ``True``. Usually however, we just create
+an unsaved model instance which will be added to the database in a later step. Forms which have been
+deleted using the trash symbol on the upper right corner of each form, are marked for removal and
+will be removed from the associated object.
+
+Until version 2.1, this method was named ``retrieve_instance`` and did not distinguish between
+saved and unsafed instances. It therefore only returned that instance.
 
 .. rubric:: ``form_collection_valid(form_collection)``
 
