@@ -227,7 +227,7 @@ forms and collection to edit the company, its departments and their teams such a
 	
 	class TeamCollection(FormCollection):
 	    legend = "Teams"
-	    induce_add_sibling = 'add_team:active'
+	    induce_add_sibling = '.add_team:active'
 	    related_field = 'department'
 	    team = TeamForm()
 	    min_siblings = 0
@@ -253,7 +253,7 @@ forms and collection to edit the company, its departments and their teams such a
 	
 	class DepartmentCollection(FormCollection):
 	    legend = "Departments"
-	    induce_add_sibling = 'add_department:active'
+	    induce_add_sibling = '.add_department:active'
 	    related_field = 'company'
 	    department = DepartmentForm()
 	    teams = TeamCollection()  # attribute name MUST match related_name (see note below)
