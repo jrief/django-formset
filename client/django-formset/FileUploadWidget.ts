@@ -89,12 +89,15 @@ export class FileUploadWidget {
 
 	private handleFileDrop = (event: DragEvent) => {
 		this.dropbox.classList.remove('drag-over');
+		this.fieldGroup.element.classList.remove('dj-untouched');
+		this.fieldGroup.element.classList.add('dj-touched');
 		this.swallowEvent(event);
 		if (event.dataTransfer) {
 			for (const file of event.dataTransfer.files) {
 				if (!this.matchesMimeType(file.type)) {
 					event.dataTransfer.clearData();
-					this.fieldGroup.reportFailedUpload();
+					const message = gettext(`A file with MIME-type '${file.type}' can not be dropped here.`);
+					this.fieldGroup.errorPlaceholder.reportCustomError(message);
 					return;
 				}
 			}

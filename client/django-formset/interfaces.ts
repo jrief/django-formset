@@ -37,7 +37,6 @@ interface FieldGroup {
 	errorPlaceholder: FieldErrorPlaceholder;
 	touch(): void;
 	validate(): void;
-	reportFailedUpload(): void;
 	inputted(): void;
 }
 

@@ -120,7 +120,7 @@ export class DjangoSelectize extends IncompleteSelect {
 			onChange: this.changed,
 			onItemRemove: this.itemRemoved,
 			render: {
-				no_results: `<div class="no-results">${gettext("No results found for '${input}'")}</div>`,
+				no_results: `<div class="no-results">${	gettext("No results found for '${input}'")}</div>`,
 			},
 		};
 		if (this.isIncomplete) {
