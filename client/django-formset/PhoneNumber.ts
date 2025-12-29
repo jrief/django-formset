@@ -280,12 +280,21 @@ class PhoneNumberField {
 
 	private updateInputField(phoneNumber: string) {
 		let caretPosition = this.getCaretPosition();
+		let isFirst = false;
 		if (this.editField.innerText.length === caretPosition) {
+			isFirst = caretPosition === 1;
 			++caretPosition;
 		}
 		this.asYouType.reset();
 		this.asYouType.input(phoneNumber);
-		this.inputElement.value = this.asYouType.getChars() === '+' ? '+' : this.asYouType.getNumberValue() ?? '';
+		if (this.asYouType.getChars() === '+') {
+			this.inputElement.value = '+';
+		} else {
+			this.inputElement.value = this.asYouType.getNumberValue() ?? '';
+			if (isFirst && this.defaultCountryCode) {
+				caretPosition = this.editField.innerText.length;
+			}
+		}
 		this.setCaretPosition(caretPosition);
 		this.inputElement.dispatchEvent(new Event('input'));
 	}
