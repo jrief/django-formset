@@ -30,6 +30,10 @@ class FormRenderer(DefaultFormRenderer):
         context['widget']['attrs']['class'] = ClassList('formset-text-input')
         return context
 
+    def _amend_tel_input(self, context):
+        context['widget']['attrs']['class'] = ClassList('formset-tel-input')
+        return context
+
     def _amend_email_input(self, context):
         context['widget']['attrs']['class'] = ClassList('formset-email-input')
         return context
@@ -119,6 +123,7 @@ class FormRenderer(DefaultFormRenderer):
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_text_input,
+        'django/forms/widgets/tel.html': _amend_tel_input,
         'django/forms/widgets/email.html': _amend_email_input,
         'django/forms/widgets/date.html': _amend_date_input,
         'django/forms/widgets/number.html': _amend_number_input,

@@ -93,6 +93,7 @@ class FormRenderer(DefaultFormRenderer):
     _context_modifiers = dict(DefaultFormRenderer._context_modifiers, **{
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_input,
+        'django/forms/widgets/tel.html': _amend_input,
         'django/forms/widgets/email.html': _amend_input,
         'django/forms/widgets/date.html': _amend_input,
         'django/forms/widgets/datetime.html': _amend_input,
