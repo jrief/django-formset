@@ -293,9 +293,11 @@ def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
     set_caret(page, contenteditable, 18)
     expect(family_menu_button).not_to_have_class('active')
     family_menu_button.click()
+    sleep(0.01)
     for item in submenu_items.all():
         expect(item).not_to_have_class('active')
     contenteditable.click(position={'x': 5, 'y': 5})  # closes the submenu
+    sleep(0.01)
     expect(family_menu_button.locator('+ ul[role="menu"]')).not_to_be_visible()
 
     # add another class to overlapping selection
@@ -303,6 +305,7 @@ def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
     fontsize_menu_button = menubar.locator('[richtext-click="classBasedMark:fontSize"]')
     expect(fontsize_menu_button).not_to_have_class('active')
     fontsize_menu_button.click()
+    sleep(0.01)
     submenu_items = fontsize_menu_button.locator('+ ul[role="menu"] > li')
     expect(submenu_items).to_have_count(4)
     submenu_items.nth(2).click()
@@ -318,6 +321,7 @@ def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
     expect(family_menu_button).not_to_have_class('active')
     expect(fontsize_menu_button).not_to_have_class('active')
     fontsize_menu_button.click()
+    sleep(0.01)
     for item in submenu_items.all():
         expect(item).not_to_have_class('active')
 
