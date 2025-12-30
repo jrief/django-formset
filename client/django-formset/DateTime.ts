@@ -38,6 +38,7 @@ class DateTimeField extends Widget {
 	private hasFocus: HTMLElement|null = null;
 	private cleanup?: Function;
 	private isOpen: boolean = false;
+	private mediaStylesIndex: number = -1;
 	private static readonly simpleComponents = ['django-datefield', 'django-datepicker', 'django-daterangefield', 'django-daterangepicker']
 	private static readonly rangeComponents = ['django-daterangefield', 'django-daterangepicker', 'django-datetimerangefield', 'django-datetimerangepicker'];
 
@@ -218,7 +219,24 @@ class DateTimeField extends Widget {
 		});
 		document.addEventListener('click', this.handleClick);
 		document.addEventListener('keydown', this.handleKeypress);
+		const observer = new MutationObserver(this.attributesChanged);
+		observer.observe(this.inputElement, {attributes: true});
 	}
+
+	private attributesChanged = (mutations: MutationRecord[]) => {
+		if (mutations.find(m => m.attributeName === 'disabled')) {
+			this.inputFields.forEach(inputField => inputField.contentEditable = this.inputElement.disabled ? 'false' : 'true');
+			this.mediaStylesIndex = StyleHelpers.replaceMediaQueryStyles(
+				this.mediaStylesIndex,
+				this.styleSheet,
+				`${this.baseSelector} + [role="textbox"]`,
+				{
+					'--background-color': 'background-color',
+				},
+				this.inputElement,
+			);
+		}
+	};
 
 	private openCalendar() {
 		if (!this.calendarOpener)

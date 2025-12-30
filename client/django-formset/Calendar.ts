@@ -202,19 +202,17 @@ export class CalendarSheet extends Widget {
 			if (this.minDate && date < this.minDate || this.maxDate && date > this.maxDate) {
 				elem.toggleAttribute('disabled', true);
 			}
-			if (!elem.hasAttribute('disabled')) {
-				elem.addEventListener('click', (event: Event) => {
-					if (event.target instanceof HTMLLIElement) {
-						this.setDate(event.target);
-						this.markSelectedDates();
-						if (!this.settings.withRange || this.dateRange[0] && this.dateRange[1]) {
-							this.settings.close();
-						}
+			elem.addEventListener('click', (event: Event) => {
+				if (event.target instanceof HTMLLIElement) {
+					this.setDate(event.target);
+					this.markSelectedDates();
+					if (!this.settings.withRange || this.dateRange[0] && this.dateRange[1]) {
+						this.settings.close();
 					}
-				}, {once: true});
-				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.hoverDateItem);
 				}
+			}, {once: true});
+			if (this.settings.withRange) {
+				elem.addEventListener('mouseenter', this.hoverDateItem);
 			}
 		});
 
@@ -234,15 +232,13 @@ export class CalendarSheet extends Widget {
 			if (this.element.querySelectorAll(`${selector} > li[data-date]:not([disabled])`).length === 0) {
 				elem.toggleAttribute('disabled', true);
 			}
-			if (!elem.hasAttribute('disabled')) {
-				elem.addEventListener('click', (event: Event) => {
-					if (event.target instanceof HTMLLIElement) {
-						this.selectHour(event.target);
-					}
-				});
-				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.hoverDateItem);
+			elem.addEventListener('click', (event: Event) => {
+				if (event.target instanceof HTMLLIElement) {
+					this.selectHour(event.target);
 				}
+			});
+			if (this.settings.withRange) {
+				elem.addEventListener('mouseenter', this.hoverDateItem);
 			}
 		});
 
@@ -258,11 +254,9 @@ export class CalendarSheet extends Widget {
 			if (this.minWeekDate && date < this.minWeekDate || this.maxWeekDate && date > this.maxWeekDate) {
 				elem.toggleAttribute('disabled', true);
 			}
-			if (!elem.hasAttribute('disabled')) {
-				elem.addEventListener('click', this.selectDay);
-				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.hoverDateItem);
-				}
+			elem.addEventListener('click', this.selectDay);
+			if (this.settings.withRange) {
+				elem.addEventListener('mouseenter', this.hoverDateItem);
 			}
 		});
 	}
@@ -275,11 +269,9 @@ export class CalendarSheet extends Widget {
 			if (this.minMonthDate && date < this.minMonthDate || this.maxMonthDate && date > this.maxMonthDate) {
 				elem.toggleAttribute('disabled', true);
 			}
-			if (!elem.hasAttribute('disabled')) {
-				elem.addEventListener('click', this.selectMonth);
-				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.hoverDateItem);
-				}
+			elem.addEventListener('click', this.selectMonth);
+			if (this.settings.withRange) {
+				elem.addEventListener('mouseenter', this.hoverDateItem);
 			}
 		});
 	}
@@ -292,11 +284,9 @@ export class CalendarSheet extends Widget {
 			if (this.minYearDate && date < this.minYearDate || this.maxYearDate && date > this.maxYearDate) {
 				elem.toggleAttribute('disabled', true);
 			}
-			if (!elem.hasAttribute('disabled')) {
-				elem.addEventListener('click', this.selectYear);
-				if (this.settings.withRange) {
-					elem.addEventListener('mouseenter', this.hoverDateItem);
-				}
+			elem.addEventListener('click', this.selectYear);
+			if (this.settings.withRange) {
+				elem.addEventListener('mouseenter', this.hoverDateItem);
 			}
 		});
 	}
@@ -711,7 +701,7 @@ export class CalendarSheet extends Widget {
 			await this.fetchCalendar(new Date(), ViewMode.weeks);
 			todayElem = this.element.querySelector(`li[data-date="${todayDateString}"]`);
 		}
-		if (todayElem && !todayElem.hasAttribute('disabled')) {
+		if (!this.settings.inputElement.disabled && todayElem && !todayElem.hasAttribute('disabled')) {
 			this.setDate(todayElem);
 			this.markSelectedDates();
 		}
@@ -891,7 +881,8 @@ export class CalendarSheet extends Widget {
 			}
 		}
 		inputElement.style.transition = '';
-		StyleHelpers.pushMediaQueryStyles(
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
 			sheet,
 			this.baseSelector,
 			{

@@ -1,5 +1,10 @@
 @import "colors";
 
+@mixin disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
 .dj-calendar {
 	background-color: var(--django-formset-background-color);
 	border: var(--border-width) var(--border-style) var(--border-color);
@@ -189,7 +194,7 @@
 					}
 
 					&[disabled] {
-						opacity: 0.5;
+						@include disabled;
 					}
 
 					&:not([disabled]):hover {
@@ -224,8 +229,17 @@
 [is="django-daterangecalendar"], [is="django-datetimerangecalendar"] {
 	& + .dj-calendar {
 		.sheet-body ul.monthdays {
-			grid-template-rows: repeat(6, 1fr);
+			grid-template-rows: repeat(6, 1fr);  // keeps height consistent across months
 		}
+	}
+}
+
+[is="django-datecalendar"], [is="django-datetimecalendar"],
+[is="django-daterangecalendar"], [is="django-datetimerangecalendar"],
+[is="django-datepicker"], [is="django-datetimepicker"],
+[is="django-daterangepicker"], [is="django-datetimerangepicker"] {
+	&[disabled] ~ .dj-calendar .sheet-body ul > li {
+		@include disabled;
 	}
 }
 
