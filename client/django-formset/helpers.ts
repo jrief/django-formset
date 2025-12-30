@@ -22,7 +22,7 @@ export namespace StyleHelpers {
 		return styles.join(';').concat(';');
 	}
 
-	export function mutableStyles(sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, extraCssClass?: string) : Function {
+	function mutableStyles(sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, extraCssClass?: string) : Function {
 		const setStyles = () => {
 			const transition = window.getComputedStyle(element).getPropertyValue('transition');
 			const hidden = element.hidden;
@@ -48,10 +48,13 @@ export namespace StyleHelpers {
 		};
 	}
 
-	export function pushMediaQueryStyles(sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, extraCssClass?: string) {
-		mediaQueryStyles.push(
-			mutableStyles(sheet, selector, properties, element, extraCssClass)
-		);
+	export function replaceMediaQueryStyles(index: number, sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, extraCssClass?: string) {
+		if (index < 0 || index >= mediaQueryStyles.length) {
+			return mediaQueryStyles.push(mutableStyles(sheet, selector, properties, element, extraCssClass)) - 1;
+		} else {
+			mediaQueryStyles.splice(index, 1, mutableStyles(sheet, selector, properties, element, extraCssClass));
+			return index;
+		}
 	}
 
 	function stylesHaveChanged() {

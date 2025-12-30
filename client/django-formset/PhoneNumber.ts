@@ -371,7 +371,8 @@ class PhoneNumberField {
 
 	private initialize() {
 		// some styles change when switching light/dark mode, so we need to update them
-		StyleHelpers.pushMediaQueryStyles(
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
 			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"]`,
 			{
@@ -380,7 +381,8 @@ class PhoneNumberField {
 			},
 			this.inputElement,
 		);
-		StyleHelpers.pushMediaQueryStyles(
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
 			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"].focus`,
 			{
@@ -390,7 +392,8 @@ class PhoneNumberField {
 			},
 			this.inputElement, '⁝focus',
 		);
-		StyleHelpers.pushMediaQueryStyles(
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
 			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"]`,
 			{
@@ -399,7 +402,8 @@ class PhoneNumberField {
 			},
 			this.inputElement,
 		);
-		StyleHelpers.pushMediaQueryStyles(
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
 			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] input[type="search"]:focus`,
 			{

@@ -271,7 +271,8 @@ export class FileUploadWidget {
 			}
 		}
 		this.inputElement.style.transition = '';
-		StyleHelpers.pushMediaQueryStyles(
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
 			declaredStyles.sheet,
 			this.baseSelector,
 			{

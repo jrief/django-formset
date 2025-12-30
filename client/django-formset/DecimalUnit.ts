@@ -330,7 +330,8 @@ class DecimalUnitField extends Widget {
 
 	public connect() {
 		// some styles change when switching light/dark mode, so we need to update them
-		StyleHelpers.pushMediaQueryStyles(
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
 			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"]`,
 			{
@@ -339,7 +340,8 @@ class DecimalUnitField extends Widget {
 			},
 			this.inputElement,
 		);
-		StyleHelpers.pushMediaQueryStyles(
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
 			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"].focus`,
 			{

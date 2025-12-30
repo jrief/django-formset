@@ -26,7 +26,8 @@ style.innerText = mainStyles;
 document.head.appendChild(style);
 
 if (style.sheet instanceof CSSStyleSheet) {
-	StyleHelpers.pushMediaQueryStyles(
+	StyleHelpers.replaceMediaQueryStyles(
+		-1,
 		style.sheet,
 		'django-formset',
 		{

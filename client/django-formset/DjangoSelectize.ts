@@ -450,7 +450,8 @@ export class DjangoSelectize extends IncompleteSelect {
 		const tomInput = this.tomSelect.input as HTMLSelectElement;
 
 		// some styles change when switching light/dark mode, so we need to update them
-		StyleHelpers.pushMediaQueryStyles(
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
 			sheet,
 			this.baseSelector, {
 				'--border-color': 'border-color',
@@ -458,7 +459,8 @@ export class DjangoSelectize extends IncompleteSelect {
 			},
 			tomInput
 		);
-		StyleHelpers.pushMediaQueryStyles(
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
 			sheet,
 			`${this.baseSelector}.focus .ts-control`, {
 				'box-shadow': 'box-shadow',
@@ -467,7 +469,8 @@ export class DjangoSelectize extends IncompleteSelect {
 			},
 			tomInput, '⁝focus'
 		);
-		StyleHelpers.pushMediaQueryStyles(
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
 			sheet,
 			`${this.baseSelector}.disabled .ts-control`, {
 				'background-color': 'background-color',

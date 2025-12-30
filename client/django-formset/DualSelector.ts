@@ -461,7 +461,8 @@ export class DualSelector extends IncompleteSelect {
 			}
 		}
 		this.selectLeftElement.style.transition = '';
-		StyleHelpers.pushMediaQueryStyles(
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
 			sheet,
 			this.baseSelector,
 			{
