@@ -1,5 +1,16 @@
 ## Changes
 
+- 2.2.3
+  * Widgets `DateRangePicker`, `DateRangeTextbox`, `DateRangeCalendar`, `DateTimeRangePicker`,
+    `DateTimeRangeTextbox` and `DateTimeRangeCalendar` now mimick the disabled properly if the
+    underlying input field is disabled.
+  * Fix #251: In `FileUploadWidget`, accept MIME-type is now checked on the client side before
+    upoading a file.
+  * Use proper renderer for widget `TelInput` introduced in Django-6.0.
+  * Fix #256: Set position for widget `PhoneNumberInput` if used with a default country.
+  * Fix: In `Selectize` widget, when using `filter_by`, an empty filter value is now properly
+    ignored when loading options lazily.
+
 - 2.2.2
   * Fix in `StepperCollection`: Do not check the validity of transient forms.
   * Fix in `PhoneNumberField`: If field is empty, it now validates unless required.
