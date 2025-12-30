@@ -370,6 +370,7 @@ def test_tiptap_valid_simple_link(page, viewname, richtext_wrapper, menubar, con
     dialog = richtext_wrapper.locator('dialog[df-induce-open=".dialog_simple_link:active"]').first
     expect(dialog).not_to_be_visible()
     menu_button.click()
+    sleep(0.01)
     expect(dialog).to_be_visible()
     text_input = dialog.locator('input[name="text"]')
     expect(text_input).to_have_value("here")
