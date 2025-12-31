@@ -6,8 +6,10 @@
     underlying input field is disabled.
   * Fix #251: In `FileUploadWidget`, accept MIME-type is now checked on the client side before
     upoading a file.
-  * Use proper renderer for widget `TelInput` introduced in Django-6.0.
+  * Fix: Use proper renderer for widget `TelInput` introduced in Django-6.0.
   * Fix #256: Set position for widget `PhoneNumberInput` if used with a default country.
+  * Fix: Open international selector for widget `PhoneNumberInput` if used without a default
+    country and user starts typing.
   * Fix: In `Selectize` widget, when using `filter_by`, an empty filter value is now properly
     ignored when loading options lazily.
 

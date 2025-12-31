@@ -291,8 +291,12 @@ class PhoneNumberField {
 			this.inputElement.value = '+';
 		} else {
 			this.inputElement.value = this.asYouType.getNumberValue() ?? '';
-			if (isFirst && this.defaultCountryCode) {
-				caretPosition = this.editField.innerText.length;
+			if (isFirst) {
+				if (this.defaultCountryCode) {
+					caretPosition = this.editField.innerText.length;
+				} else {
+					this.openInternationalSelector();
+				}
 			}
 		}
 		this.setCaretPosition(caretPosition);

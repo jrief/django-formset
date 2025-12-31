@@ -15,7 +15,7 @@ class PhoneForm(forms.Form):
     )
     mobile_number = fields.CharField(
         label="Mobile Number",
-        initial='+43 664 1234567',
+        #initial='+43 664 1234567',
         validators=[phone_number_validator],
         widget=PhoneNumberInput(attrs={'default-country-code': 'at', 'mobile-only': True}),
     )
