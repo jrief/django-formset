@@ -71,7 +71,7 @@ the collection is used to glue them together.
 	:caption: forms.py
 
 	from django.forms import fields, forms
-	from formset.collection import FormCollection
+	from formset.collection import AddSiblingActivator, FormCollection
 	from formset.formfields.collection import CollectionField
 	from formset.formfields.richtext import RichTextField
 	from formset.forms import ModelForm
@@ -95,13 +95,14 @@ the collection is used to glue them together.
 	
 	class SlideCollection(FormCollection):
 	    legend = "Carousel Slides"
-	    add_label = "Add Slide"
 	    min_siblings = 1
 	    max_siblings = 10
 	    is_sortable = True
 	    slide_form = SlideForm()
+	    induce_add_sibling = '.add_slide:active'
 	    ignore_marked_for_removal = True
-	
+	    add_slide = AddSiblingActivator("Add Slide")
+
 	class CarouselForm(ModelForm):
 	    auto_start = fields.BooleanField(
 	        label="Auto Start",
@@ -193,9 +194,10 @@ stored. We therefore can map the field named ``context`` directly onto the equal
 	    extra_siblings = 0
 	    accordion_item = AccordionItem()
 	    legend = "Accordion"
-	    add_label = "Add Accordion Item"
+	    induce_add_sibling = '.add_accordion_item:active'
 	    ignore_marked_for_removal = True
-	
+	    add_accordion_item = AddSiblingActivator("Add Accordion Item")
+
 	class AccordionForm(ModelForm):
 	    context = CollectionField(AccordionCollection)
 	

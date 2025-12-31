@@ -62,6 +62,7 @@ class FormCollectionMeta(MediaDefiningClass):
                 "'add_label' is deprected in {module}.{name}. Use 'induce_add_sibling' and a "
                 "detached 'AddSiblingActivator' instead.".format(module=attrs.get('__module__'), name=name),
                 PendingDeprecationWarning,
+                stacklevel=2,
             )
             attrs.setdefault('induce_add_sibling', '.add_sibling:active')
             attrs.setdefault('add_sibling', AddSiblingActivator(add_label))
