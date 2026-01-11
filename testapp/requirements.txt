@@ -8,7 +8,7 @@ greenlet==3.2.1
 iniconfig==2.1.0
 packaging==25.0
 Pillow==11.2.1
-phonenumbers==8.13.55
+phonenumbers==9.0.4
 playwright==1.52.0
 pluggy==1.5.0
 pyee==13.0.0
