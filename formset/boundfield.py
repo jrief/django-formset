@@ -143,13 +143,13 @@ class BoundField(boundfield.BoundField):
             client_messages['type_mismatch'] = client_messages['pattern_mismatch'] = server_messages['invalid']
         elif 'invalid_choice' in server_messages:
             client_messages['type_mismatch'] = server_messages['invalid_choice']
-        if 'bound_ordering' in server_messages:
-            client_messages['custom_error'] = server_messages['bound_ordering']
         else:
             for validator in self.field.validators:
                 validator_code = getattr(validator, 'code', None)
                 if validator_code == 'invalid':
                     client_messages['type_mismatch'] = client_messages['pattern_mismatch'] = validator.message
+        if 'bound_ordering' in server_messages:
+            client_messages['custom_error'] = server_messages['bound_ordering']
         if getattr(self.field, 'max_length', None) is not None:
             data = {'max_length': self.field.max_length}
             max_length_message = _("Ensure this value has at most %(max_length)s characters.")
