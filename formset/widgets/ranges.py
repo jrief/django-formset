@@ -1,9 +1,39 @@
 from datetime import date
 
 from django.forms.utils import to_current_timezone
+from django.forms.widgets import Input
 from django.utils.timezone import datetime, is_naive
 
 from formset.widgets import DateCalendar, DatePicker, DateTextbox, DateTimeCalendar, DateTimePicker, DateTimeTextbox
+
+
+class NumberRangeInput(Input):
+    input_type = 'range'
+    template_name = 'formset/default/widgets/range.html'
+
+
+class DualNumberRangeInput(NumberRangeInput):
+    """
+    A widget for inputting a range of two numbers.
+    """
+
+    def __init__(self, attrs=None):
+        default_attrs = {
+            'pattern': r'-?\d+(\.\d+)?;-?\d+(\.\d+)?',
+            'is': 'django-dual-number-range',
+        }
+        if attrs:
+            default_attrs.update(**attrs)
+        self.attrs = default_attrs
+
+    def format_value(self, values):
+        if values is None:
+            return ''
+        if isinstance(values, (list, tuple)) and len(values) == 2:
+            if any(v is None for v in values):
+                return ''
+            return ';'.join(str(v) for v in values)
+        return values
 
 
 class DateRangeMixin:

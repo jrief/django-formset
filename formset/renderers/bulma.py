@@ -66,5 +66,6 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/radio.html': _amend_radio,
         'formset/default/widgets/date.html': _amend_input,
         'formset/default/widgets/datetime.html': _amend_input,
+        'formset/default/widgets/range.html': _amend_input,
         'formset/default/widgets/richtextarea.html': _amend_textarea,
     })

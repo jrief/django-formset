@@ -59,6 +59,13 @@ function domLookup(fragmentRoot: Document|DocumentFragment, isTemplate: boolean=
 			}).catch(err => reject(err));
 		}));
 	}
+	if (fragmentRoot.querySelector('input[is="django-dual-number-range"]')) {
+		promises.push(new Promise((resolve, reject) => {
+			import('./django-formset/NumberRange').then(({DualNumberRangeElement}) => {
+				defineComponent(resolve, 'django-dual-number-range', DualNumberRangeElement, {extends: 'input'});
+			}).catch(err => reject(err));
+		}));
+	}
 	if (fragmentRoot.querySelector('textarea[is="django-richtext"]')) {
 		promises.push(new Promise((resolve, reject) => {
 			import('./django-formset/RichtextArea').then(({RichTextAreaElement}) => {

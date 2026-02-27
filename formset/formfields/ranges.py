@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.forms import fields
 from django.utils.translation import gettext_lazy as _
 
-from formset.widgets import DateRangePicker, DateTimeRangePicker
+from formset.widgets import DateRangePicker, DateTimeRangePicker, DualNumberRangeInput
 
 
 class BaseRangeField(fields.MultiValueField):
@@ -35,6 +35,18 @@ class BaseRangeField(fields.MultiValueField):
                 self.error_messages['bound_ordering'],
                 code='bound_ordering',
             )
+
+
+class DualIntegerRangeField(BaseRangeField):
+    default_error_messages = {
+        'invalid': _("Enter two valid integers."),
+        'bound_ordering': _("The start of the range must not exceed the end of the range."),
+    }
+    base_field = fields.IntegerField
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault('widget', DualNumberRangeInput())
+        super().__init__(**kwargs)
 
 
 class DateRangeField(BaseRangeField):

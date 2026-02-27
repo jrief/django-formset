@@ -67,6 +67,7 @@ from testapp.forms.product import ProductForm
 from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.profile import ProfileCollection
 from testapp.forms.questionnaire import QuestionnaireForm
+from testapp.forms.range import RangeForm
 from testapp.forms.schedule import ScheduleBoxForm, ScheduleCalendarForm, SchedulePickerForm
 from testapp.forms.state import StateFilteredForm, StateForm, StatesForm
 from testapp.forms.terms_of_use import AcceptTermsCollection
@@ -785,6 +786,9 @@ urlpatterns = [
         form_class=GalleryImageForm,
         model=Gallery,
     ), name='galleryform'),
+    path('rangeform', DemoFormView.as_view(
+        form_class=RangeForm,
+    ), name='range'),
     path('accordion', ComponentFormView.as_view(
         form_class=AccordionForm,
         model=AccordionForm._meta.model,

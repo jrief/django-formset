@@ -42,6 +42,10 @@ class FormRenderer(DefaultFormRenderer):
         context['widget']['attrs']['class'] = ClassList('formset-date-input')
         return context
 
+    def _amend_range_input(self, context):
+        context['widget']['attrs']['class'] = ClassList('formset-range-input')
+        return context
+
     def _amend_number_input(self, context):
         context['widget']['attrs']['class'] = ClassList('formset-number-input')
         return context
@@ -136,6 +140,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/radio.html': _amend_radio,
         'formset/default/widgets/button.html': _amend_button,
         'formset/default/widgets/datetime.html': _amend_date_input,
+        'formset/default/widgets/range.html': _amend_range_input,
         'formset/default/widgets/selectize.html': _amend_select,
         'formset/default/widgets/selectize_country.html': _amend_select,
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,

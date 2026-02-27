@@ -1,0 +1,13 @@
+@import "colors";
+
+django-formset {
+	--slider-thumb-bg-color: rgb(0, 175, 0);
+
+	[is="django-dual-number-range"] {
+		--dummy-style: none;
+
+		&::-webkit-slider-thumb {
+			--dummy-style: none;
+		}
+	}
+}

@@ -34,6 +34,11 @@ class FormRenderer(DefaultFormRenderer):
         context['widget']['attrs']['class'] = ClassList('form-check-input')
         return context
 
+    def _amend_range_input(self, context):
+        super()._amend_input(context)
+        context['widget']['attrs']['class'] = ClassList('form-range')
+        return context
+
     def _amend_select(self, context):
         context['widget']['attrs']['class'] = ClassList('form-select')
         return context
@@ -109,6 +114,7 @@ class FormRenderer(DefaultFormRenderer):
         'formset/default/widgets/calendar.html': _amend_input,
         'formset/default/widgets/datetime.html': _amend_input,
         'formset/default/widgets/file.html': _amend_file,
+        'formset/default/widgets/range.html': _amend_range_input,
         'formset/default/widgets/selectize.html': _amend_select,
         'formset/default/widgets/selectize_country.html': _amend_select,
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,

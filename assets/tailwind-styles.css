@@ -11,6 +11,10 @@ body {
 .formset-text-input, .formset-tel-input, .formset-email-input, .formset-date-input, .formset-select, .formset-select-multiple, .formset-number-input, .formset-textarea, .formset-password-input, .formset-url-input {
 	@apply w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300;
 }
+.formset-range-input {
+	/* TODO: probably not the best way to style range inputs with Tailwind */
+	@apply w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300;
+}
 .formset-dual-selector-select {
 	@apply formset-select-multiple rounded-t-none w-full !important;
 }

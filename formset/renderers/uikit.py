@@ -55,6 +55,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/select.html': _amend_select,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
+        'formset/default/widgets/range.html': _amend_input,
         'formset/default/widgets/selectize.html': _amend_select,
         'formset/default/widgets/selectize_country.html': _amend_select,
         'formset/forms/widgets/textarea.html': _amend_textarea,
