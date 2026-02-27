@@ -61,16 +61,10 @@ class RichtextDialogForm(DialogForm):
         context['extension_script'] = self.extension_script
         return context
 
-    def clean_content(self, richtext_field, content):
-        file_upload_fields = [
-            name for name, field in self.fields.items() if isinstance(field.widget, UploadedFileInput)
-        ]
-        for entry in content:
-            if 'content' in entry:
-                self.clean_content(richtext_field, entry['content'])
-            if 'attrs' in entry and entry.get('type', '_') == self.extension:
-                for field_name in file_upload_fields:
-                    persit_uploaded_file(richtext_field, field_name, self.fields[field_name].widget, entry['attrs'])
+    def clean_content(self, richtext_field, attributes):
+        for name, field in self.fields.items():
+            if isinstance(field.widget, UploadedFileInput):
+                persit_uploaded_file(richtext_field, name, field.widget, attributes)
 
 
 class SimpleLinkDialogForm(RichtextDialogForm):
