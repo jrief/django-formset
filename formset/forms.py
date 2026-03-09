@@ -119,7 +119,9 @@ class ModelFormMixin(FormMixin):
                 for af in assigned_fields:
                     try:
                         value = getattr(instance, field_name)[af]
-                    except (AttributeError, KeyError, TypeError):
+                    except KeyError:
+                        value = self.base_fields[af].initial
+                    except (AttributeError, TypeError):
                         value = None
                     initial.setdefault(af, initial_value(af, self.base_fields[af], value))
             elif isinstance(assigned_fields, str):
