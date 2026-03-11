@@ -4,7 +4,10 @@ from django import forms
 from django.utils.timezone import datetime
 
 from formset.formfields import DateTimeRangeField
-from formset.widgets import DateTimeRangeCalendar, DateTimeRangePicker, DateTimeRangeTextbox
+from formset.widgets import (
+    DateTimeRangeCalendar, DateTimeRangeDualCalendar, DateTimeRangePicker, DateTimeRangeDualPicker,
+    DateTimeRangeTextbox,
+)
 
 
 class ScheduleBoxForm(forms.Form):
@@ -23,13 +26,33 @@ class ScheduleCalendarForm(forms.Form):
     )
 
 
-class SchedulePickerForm(forms.Form):
+class ScheduleDualCalendarForm(forms.Form):
     date_range = DateTimeRangeField(
-        widget=DateTimeRangePicker(attrs={
+        widget=DateTimeRangeDualCalendar(attrs={
             'step': timedelta(minutes=10),
         }),
+    )
+
+
+class SchedulePickerForm(forms.Form):
+    date_range = DateTimeRangeField(
+        widget=DateTimeRangePicker(
+            attrs={
+                'step': timedelta(minutes=10),
+            },
+        ),
         initial=(
-            datetime(2024, 9, 9, 9, 40),
-            datetime(2024, 10, 10, 16, 10),
+            datetime(2024, 9, 9, 9, 0),
+            datetime(2024, 10, 10, 0, 10),
+        ),
+    )
+
+
+class ScheduleDualPickerForm(forms.Form):
+    date_range = DateTimeRangeField(
+        widget=DateTimeRangeDualPicker(
+            attrs={
+                'step': timedelta(minutes=10),
+            },
         ),
     )

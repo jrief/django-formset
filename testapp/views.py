@@ -43,7 +43,9 @@ from testapp.forms.contact import (
     SortableContactCollection, SortableContactCollectionList
 )
 from testapp.forms.birthdate import BirthdateBoxForm, BirthdateCalendarForm, BirthdateInputForm, BirthdatePickerForm
-from testapp.forms.booking import BookingBoxForm, BookingCalendarForm, BookingPickerForm
+from testapp.forms.booking import (
+    BookingBoxForm, BookingCalendarForm, BookingDualCalendarForm, BookingPickerForm, BookingDualPickerForm
+)
 from testapp.forms.button import ButtonActionsForm
 from testapp.forms.cafeteria import CafeteriaCollection, CoffeeOrderCollection
 from testapp.forms.carousel import CarouselForm
@@ -68,7 +70,9 @@ from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.profile import ProfileCollection
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.range import RangeForm
-from testapp.forms.schedule import ScheduleBoxForm, ScheduleCalendarForm, SchedulePickerForm
+from testapp.forms.schedule import (
+    ScheduleBoxForm, ScheduleCalendarForm, ScheduleDualCalendarForm, ScheduleDualPickerForm, SchedulePickerForm
+)
 from testapp.forms.state import StateFilteredForm, StateForm, StatesForm
 from testapp.forms.terms_of_use import AcceptTermsCollection
 from testapp.forms.user import UserCollection, UserExtensionCollection
@@ -630,18 +634,30 @@ urlpatterns = [
     path('booking.calendar', DemoFormView.as_view(
         form_class=BookingCalendarForm,
     ), name='booking.calendar'),
+    path('booking.dualcalendar', DemoFormView.as_view(
+        form_class=BookingDualCalendarForm,
+    ), name='booking.dualcalendar'),
     path('booking.picker', DemoFormView.as_view(
         form_class=BookingPickerForm,
     ), name='booking.picker'),
+    path('booking.dualpicker', DemoFormView.as_view(
+        form_class=BookingDualPickerForm,
+    ), name='booking.dualpicker'),
     path('schedule.box', DemoFormView.as_view(
         form_class=ScheduleBoxForm,
     ), name='schedule.box'),
     path('schedule.calendar', DemoFormView.as_view(
         form_class=ScheduleCalendarForm,
     ), name='schedule.calendar'),
+    path('schedule.dualcalendar', DemoFormView.as_view(
+        form_class=ScheduleDualCalendarForm,
+    ), name='schedule.dualcalendar'),
     path('schedule.picker', DemoFormView.as_view(
         form_class=SchedulePickerForm,
     ), name='schedule.picker'),
+    path('schedule.dualpicker', DemoFormView.as_view(
+        form_class=ScheduleDualPickerForm,
+    ), name='schedule.dualpicker'),
     path('opinion', DemoFormView.as_view(
         form_class=OpinionForm,
     ), name='opinion'),

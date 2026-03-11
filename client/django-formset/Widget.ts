@@ -90,7 +90,7 @@ export class FieldErrorPlaceholder {
 
 
 export abstract class Widget {
-	protected readonly endpoint: string | null;
+	public readonly endpoint: string | null;
 	protected readonly fieldName: string;
 	protected readonly fieldGroup: Element;
 	protected readonly errorPlaceholder: FieldErrorPlaceholder;

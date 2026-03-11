@@ -1,5 +1,5 @@
 import {autoUpdate, computePosition, flip, shift} from '@floating-ui/dom';
-import {CalendarSheet, CalendarSettings} from './Calendar';
+import {CalendarWidget, CalendarSettings} from './Calendar';
 import {Widget} from './Widget';
 import {StyleHelpers, asUTCDate} from './helpers';
 import styles from './DateTime.scss';
@@ -25,7 +25,7 @@ class DateTimeField extends Widget {
 	private readonly textBox: HTMLElement;
 	private readonly dateOnly: boolean;
 	private readonly withRange: boolean;
-	private readonly calendar: CalendarSheet|null = null;
+	private readonly calendar: CalendarWidget|null = null;
 	private readonly inputFields: Array<HTMLElement> = [];
 	private readonly inputFieldsOrder: Array<number> = [];
 	private readonly baseSelector = '[is^="django-date"]';
@@ -50,7 +50,7 @@ class DateTimeField extends Widget {
 		this.textBox = this.createTextBox();
 		this.setInitialDate();
 		if (calendarElement) {
-			this.calendar = new CalendarSheet(calendarElement, this.getCalendarSettings());
+			this.calendar = new CalendarWidget(calendarElement, this.getCalendarSettings(calendarElement));
 			const calendarOpener = this.textBox.querySelector('.calendar-picker-indicator');
 			if (!(calendarOpener instanceof HTMLElement))
 				throw new Error("Missing selector .calendar-picker-indicator");
@@ -95,11 +95,11 @@ class DateTimeField extends Widget {
 		}
 	}
 
-	private getCalendarSettings() : CalendarSettings {
+	private getCalendarSettings(calendarElement: HTMLElement) : CalendarSettings {
 		const settings: CalendarSettings = {
 			dateOnly: this.dateOnly,
 			withRange: this.withRange,
-			pure: false,
+			sheetType: CalendarSettings.layoutToSheetType(calendarElement),
 			inputElement: this.inputElement,
 			hour12: this.hour12,
 			updateDate: (currentDate: Date, extendedDate: Date|null|boolean) => this.updateDate(currentDate, extendedDate),

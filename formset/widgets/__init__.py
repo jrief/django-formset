@@ -9,7 +9,8 @@ from formset.widgets.models import (
 )
 from formset.widgets.phonenumber import PhoneNumberInput
 from formset.widgets.ranges import (
-    DateRangeCalendar, DateRangePicker, DateRangeTextbox, DateTimeRangeCalendar, DateTimeRangePicker,
+    DateRangeCalendar, DateRangeDualCalendar, DateRangePicker, DateRangeDualPicker, DateRangeTextbox,
+    DateTimeRangeCalendar, DateTimeRangeDualCalendar, DateTimeRangePicker, DateTimeRangeDualPicker,
     DateTimeRangeTextbox, DualNumberRangeInput, NumberRangeInput
 )
 from formset.widgets.slug import SlugInput
@@ -17,8 +18,9 @@ from formset.widgets.upload import UploadedFileInput
 
 __all__ = [
     'Button', 'CollectionWidget', 'DateCalendar', 'DateInput', 'DateTextbox', 'DatePicker', 'DateTimeCalendar',
-    'DateTimeInput', 'DateTimePicker', 'DateTimeTextbox', 'DateRangeCalendar', 'DateRangePicker', 'DateRangeTextbox',
-    'DateTimeRangeCalendar', 'DateTimeRangePicker', 'DateTimeRangeTextbox', 'DecimalUnitInput', 'DualNumberRangeInput',
-    'CountrySelectize', 'CountrySelectizeMultiple', 'DualSelector', 'DualSortableSelector', 'NumberRangeInput',
-    'PhoneNumberInput', 'Selectize', 'SelectizeMultiple', 'SlugInput', 'UploadedFileInput',
+    'DateTimeInput', 'DateTimePicker', 'DateTimeTextbox', 'DateRangeCalendar', 'DateRangeDualCalendar',
+    'DateRangePicker', 'DateRangeDualPicker', 'DateRangeTextbox', 'DateTimeRangeCalendar', 'DateTimeRangeDualCalendar',
+    'DateTimeRangePicker', 'DateTimeRangeDualPicker', 'DateTimeRangeTextbox', 'DecimalUnitInput',
+    'DualNumberRangeInput', 'CountrySelectize', 'CountrySelectizeMultiple', 'DualSelector', 'DualSortableSelector',
+    'NumberRangeInput', 'PhoneNumberInput', 'Selectize', 'SelectizeMultiple', 'SlugInput', 'UploadedFileInput',
 ]
