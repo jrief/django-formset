@@ -3,7 +3,9 @@ from datetime import date
 from django import forms
 
 from formset.formfields import DateRangeField
-from formset.widgets import DateRangeCalendar, DateRangePicker, DateRangeTextbox
+from formset.widgets import (
+    DateRangeCalendar, DateRangeDualCalendar, DateRangePicker, DateRangeDualPicker, DateRangeTextbox
+)
 
 
 class BookingBoxForm(forms.Form):
@@ -20,6 +22,12 @@ class BookingCalendarForm(forms.Form):
     )
 
 
+class BookingDualCalendarForm(forms.Form):
+    date_range = DateRangeField(
+        widget=DateRangeDualCalendar(),
+    )
+
+
 class BookingPickerForm(forms.Form):
     date_range = DateRangeField(
         widget=DateRangePicker(),
@@ -27,4 +35,10 @@ class BookingPickerForm(forms.Form):
             date(2023, 5, 18),
             date(2023, 10, 12),
         ],
+    )
+
+
+class BookingDualPickerForm(forms.Form):
+    date_range = DateRangeField(
+        widget=DateRangeDualPicker(),
     )

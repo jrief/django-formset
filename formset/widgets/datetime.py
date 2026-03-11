@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from django.forms.widgets import DateTimeBaseInput
 from django.utils.timezone import datetime
 
-from formset.calendar import CalendarRenderer
+from formset.calendar import CalendarRenderer, Layout
 
 
 class DateInput(DateTimeBaseInput):
@@ -63,12 +63,13 @@ class CalendarRendererMixin:
             calendar_renderer = self.calendar_renderer(start_datetime=value)
         else:
             calendar_renderer = self.calendar_renderer
-        context['calendar'] = calendar_renderer.get_context()
+        context['calendar'] = calendar_renderer.get_context(layout=self.layout)
         return context
 
 
 class DateTextbox(DateTimeBaseInput):
     template_name = 'formset/default/widgets/datetime.html'
+    layout = None
 
     def __init__(self, attrs=None):
         default_attrs = {
@@ -88,6 +89,7 @@ class DateTextbox(DateTimeBaseInput):
 class DateCalendar(CalendarRendererMixin, DateTimeBaseInput):
     template_name = 'formset/default/widgets/calendar.html'
     interval = timedelta(days=1)
+    layout = Layout.compact
 
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
@@ -110,6 +112,7 @@ class DateCalendar(CalendarRendererMixin, DateTimeBaseInput):
 
 class DatePicker(CalendarRendererMixin, DateTextbox):
     interval = timedelta(days=1)
+    layout = Layout.compact
 
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
@@ -125,12 +128,13 @@ class DatePicker(CalendarRendererMixin, DateTextbox):
             calendar_renderer = self.calendar_renderer(start_datetime=value)
         else:
             calendar_renderer = self.calendar_renderer
-        context['calendar'] = calendar_renderer.get_context(self.interval)
+        context['calendar'] = calendar_renderer.get_context(layout=self.layout, interval=self.interval)
         return context
 
 
 class DateTimeTextbox(DateTimeBaseInput):
     template_name = 'formset/default/widgets/datetime.html'
+    layout = None
 
     def __init__(self, attrs=None):
         default_attrs = {
@@ -150,6 +154,7 @@ class DateTimeTextbox(DateTimeBaseInput):
 class DateTimeCalendar(CalendarRendererMixin, DateTimeBaseInput):
     template_name = 'formset/default/widgets/calendar.html'
     interval = timedelta(hours=1)
+    layout = Layout.compact
 
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
@@ -172,6 +177,7 @@ class DateTimeCalendar(CalendarRendererMixin, DateTimeBaseInput):
 
 class DateTimePicker(CalendarRendererMixin, DateTimeTextbox):
     interval = timedelta(hours=1)
+    layout = Layout.compact
 
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {

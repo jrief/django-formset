@@ -3,6 +3,7 @@ from datetime import date
 from django.forms.utils import to_current_timezone
 from django.forms.widgets import Input
 from django.utils.timezone import datetime, is_naive
+from formset.calendar import Layout
 
 from formset.calendar import Layout
 from formset.widgets import DateCalendar, DatePicker, DateTextbox, DateTimeCalendar, DateTimePicker, DateTimeTextbox
@@ -57,6 +58,7 @@ class DateRangeMixin:
 
 class DateRangeCalendar(DateRangeMixin, DateCalendar):
     template_name = 'formset/default/widgets/calendar.html'
+    layout = Layout.plain
 
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
@@ -69,7 +71,13 @@ class DateRangeCalendar(DateRangeMixin, DateCalendar):
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
 
 
+class DateRangeDualCalendar(DateRangeCalendar):
+    layout = Layout.dual
+
+
 class DateRangePicker(DateRangeMixin, DatePicker):
+    layout = Layout.compact
+
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
@@ -79,6 +87,10 @@ class DateRangePicker(DateRangeMixin, DatePicker):
         if attrs:
             default_attrs.update(**attrs)
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
+
+
+class DateRangeDualPicker(DateRangePicker):
+     layout = Layout.dual
 
 
 class DateRangeTextbox(DateRangeMixin, DateTextbox):
@@ -115,6 +127,7 @@ class DateTimeRangeMixin:
 
 class DateTimeRangeCalendar(DateTimeRangeMixin, DateTimeCalendar):
     template_name = 'formset/default/widgets/calendar.html'
+    layout = Layout.plain
 
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
@@ -127,7 +140,13 @@ class DateTimeRangeCalendar(DateTimeRangeMixin, DateTimeCalendar):
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
 
 
+class DateTimeRangeDualCalendar(DateTimeRangeCalendar):
+    layout = Layout.dual
+
+
 class DateTimeRangePicker(DateTimeRangeMixin, DateTimePicker):
+    layout = Layout.compact
+
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
@@ -137,6 +156,10 @@ class DateTimeRangePicker(DateTimeRangeMixin, DateTimePicker):
         if attrs:
             default_attrs.update(**attrs)
         super().__init__(attrs=default_attrs, calendar_renderer=calendar_renderer)
+
+
+class DateTimeRangeDualPicker(DateTimeRangePicker):
+    layout = Layout.dual
 
 
 class DateTimeRangeTextbox(DateTimeRangeMixin, DateTimeTextbox):

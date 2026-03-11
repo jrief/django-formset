@@ -6,6 +6,7 @@
 }
 
 .dj-calendar {
+	display: flex;
 	background-color: var(--django-formset-background-color);
 	border: var(--border-width) var(--border-style) var(--border-color);
 	border-radius: var(--border-radius);
@@ -82,8 +83,8 @@
 				background-color: $selected-item-background-color;
 			}
 			> time:not(:empty) {
-				transform: rotate(-90deg) translate(-140px, 24px);
-				transform-origin: bottom left;
+				transform: rotate(-90deg) translate(-160px, 0);
+				transform-origin: top left;
 			}
 		}
 		.aside-right {
@@ -91,7 +92,7 @@
 				background-color: $selected-item-background-color;
 			}
 			> time:not(:empty) {
-				transform: rotate(90deg) translate(30px, -24px);
+				transform: rotate(90deg) translate(16px, -24px);
 				transform-origin: top left;
 			}
 		}
@@ -103,10 +104,6 @@
 			display: grid;
 			gap: 2px;
 			line-height: 38px;
-
-			&:not(*) {
-				background-color: $calendar-range-background-color;
-			}
 
 			> li {
 				list-style: none;
@@ -131,6 +128,22 @@
 					border-bottom-width: 2px;
 					border-top-left-radius: 5px;
 					border-top-right-radius: 5px;
+
+					&.lower {
+						background: linear-gradient(
+								to top left,
+								$calendar-range-background-color 50%,
+								transparent 50%
+						);
+					}
+
+					&.upper {
+						background: linear-gradient(
+								to bottom right,
+								$calendar-range-background-color 50%,
+								transparent 50%
+						);
+					}
 				}
 				> li:has(~ li.constricted) {
 					border-bottom: 2px solid $selected-item-border-color;
@@ -222,6 +235,35 @@
 			text-decoration: none;
 		}
 	}
+
+	@mixin sheet-body-list {
+		.sheet-body ul:not(*) {
+			background-color: $calendar-range-background-color;
+		}
+	}
+
+	.compact-datetime {
+		@include sheet-body-list;
+	}
+	.plain-datetime {
+		flex-grow: 1;
+
+		@include sheet-body-list;
+	}
+	.lower-datetime {
+		flex-grow: 1;
+		border-right: 1px solid var(--border-color);
+		margin-right: 1px;
+
+		@include sheet-body-list;
+	}
+	.upper-datetime {
+		flex-grow: 1;
+		border-left: 1px solid var(--border-color);
+		margin-left: 1px;
+
+		@include sheet-body-list;
+	}
 }
 
 // Calendar widget
@@ -256,5 +298,5 @@
 }
 
 [aria-expanded="true"] + .dj-calendar {
-	display: block;
+	display: flex;
 }

@@ -9,6 +9,22 @@ from django.utils.formats import date_format
 from django.utils.timezone import datetime
 
 
+class Layout(Enum):
+    compact = 'c'
+    dual = 'd'
+    plain = 'p'
+
+    @classmethod
+    def fromvalue(cls, value):
+        for val in cls.__members__.values():
+            if val.value.lower() == value:
+                return val
+        raise KeyError(value)
+
+    def get_template_name(self):
+        return f'calendar/{self.name}.html'
+
+
 class ViewMode(Enum):
     hours = 'h'
     weeks = 'w'
@@ -21,6 +37,9 @@ class ViewMode(Enum):
             if val.value.lower() == value:
                 return val
         raise KeyError(value)
+
+    def get_template_name(self):
+        return f'calendar/{self.name}.html'
 
 
 class CalendarRenderer:
@@ -143,11 +162,13 @@ class CalendarRenderer:
             context['years'].append((timestamp, date_format(year_date, 'Y')))
         return context
 
-    def get_context(self, hour12=False, interval=None):
+    def get_context(self, layout=None, hour12=False, interval=None):
         context = {
             'startdate': self.start_datetime,
-            'template': self.get_template_name(self.starting_view_mode),
+            'mode_template': self.get_template_name(self.starting_view_mode),
         }
+        if layout:
+            context.update(layout=layout.value, template=layout.get_template_name())
         context.update(self.get_context_hours(hour12, interval))
         context.update(self.get_context_weeks())
         context.update(self.get_context_months())
@@ -155,14 +176,12 @@ class CalendarRenderer:
         return context
 
     def get_template_name(self, view_mode):
-        return {
-            ViewMode.hours: 'calendar/hours.html',
-            ViewMode.years: 'calendar/years.html',
-            ViewMode.months: 'calendar/months.html',
-            ViewMode.weeks: 'calendar/weeks.html',
-        }[view_mode]
+        """
+        Hook to return a different template name based on the view mode.
+        """
+        return view_mode.get_template_name()
 
-    def render(self, view_mode, hour12=False, pure=False, interval=None):
+    def render(self, view_mode, hour12=False, interval=None):
         context = {
             'startdate': self.start_datetime,
         }
@@ -174,11 +193,8 @@ class CalendarRenderer:
             context.update(self.get_context_months())
         else:
             context.update(self.get_context_weeks())
-        template = get_template(self.get_template_name(view_mode))
-        if pure:
-            context.update(template=template)
-            template = get_template('calendar/range.html')
-        return template.render({'calendar': context})
+        render_template = get_template(view_mode.get_template_name())
+        return render_template.render({'calendar': context})
 
     @classmethod
     def parse_request(cls, request):
@@ -187,13 +203,12 @@ class CalendarRenderer:
         """
         start_datetime = datetime.fromisoformat(request.GET.get('date'))
         hour12 = 'hour12' in request.GET
-        pure = 'pure' in request.GET
         view_mode = ViewMode.frommode(request.GET.get('mode'))
         if 'interval' in request.GET:
             interval = timedelta(minutes=int(request.GET.get('interval')))
         else:
             interval = None
-        return start_datetime, hour12, pure, view_mode, interval
+        return start_datetime, hour12, view_mode, interval
 
 
 class CalendarResponseMixin:
@@ -205,9 +220,9 @@ class CalendarResponseMixin:
     def get(self, request, **kwargs):
         if request.accepts('text/html') and 'calendar' in request.GET:
             try:
-                start_datetime, hour12, pure, view_mode, interval = self.calendar_renderer_class.parse_request(request)
+                start_datetime, hour12, view_mode, interval = self.calendar_renderer_class.parse_request(request)
             except (TypeError, ValueError):
                 return HttpResponseBadRequest("Invalid parameter 'calendar'")
             cal = self.calendar_renderer_class(start_datetime=start_datetime)
-            return HttpResponse(cal.render(view_mode, hour12, pure, interval))
+            return HttpResponse(cal.render(view_mode, hour12, interval))
         return super().get(request, **kwargs)

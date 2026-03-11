@@ -5,9 +5,9 @@ Date- and Date-Time Range
 =========================
 
 While modern browsers offer input fields with built-in date and date-time pickers, they do not offer
-anything like that to select an interval from one date to another one. Therefore, **django-formset**
-offers a variant of the :ref:`date-time-input` fields with an interface allowing to select a range
-of dates or date-times.
+anything like that to select an interval from one date to another one. For this purpose,
+**django-formset** offers a variant of the :ref:`date-time-input` fields with an interface allowing
+to select a range of dates or date-times.
 
 
 Date Range Field
@@ -40,12 +40,16 @@ In a Django form class, the field can be used like this:
 The ``DateRangeField`` can be configured to use one of these widgets:
 
 * :class:`formset.widgets.DateRangePicker` – as shown here.
+* :class:`formset.widgets.DateRangeDualPicker` – the picker has two separate calendar sheets for
+  entering the lower- and upper date.
 * :class:`formset.widgets.DateRangeTextbox` – just an input field accepting two dates.
-* :class:`formset.widgets.DateRangeCalendar` – just the calendar widget without input field.
+* :class:`formset.widgets.DateRangeCalendar` – just the calendar widget without an input field.
+* :class:`formset.widgets.DateRangeDualCalendar` – widget without an input field, but with two
+  separate calendar sheets, one for entering the lower- and one to enter the upper date.
 
 If this field shall be initialized with a default value using attribute ``initial``, the given value
-must be a tuple or list of two dates. Then the first date is the start date and the second date is
-the end date of the given range.
+must be a two-tuple or list of two dates. Then the first date is the lower date and the second date
+is the upper date of the given date range.
 
 The view handling this form can be implemented like this:
 
@@ -61,9 +65,9 @@ The view handling this form can be implemented like this:
 	    template_name = "form.html"
 	    success_url = "/success"
 
-Note that the view uses the :class:`formset.calendar.CalendarResponseMixin` to render the calendar,
-which is rendered by the server. This mixin is not required if you use the
-:class:`formset.widgets.DateRangeTextbox` widget.
+.. note:: The view uses the :class:`formset.calendar.CalendarResponseMixin` to render the calendar,
+	which is rendered by the server. This mixin is not required if you use the
+	:class:`formset.widgets.DateRangeTextbox` widget.
 
 
 Date-Time Range Field
@@ -80,24 +84,29 @@ subclasses of Django's :class:`django.forms.fields.MultiValueField` and maps two
 	from django import forms
 	from django.utils.timezone import datetime
 	from formset.formfields import DateTimeRangeField
-	from formset.widgets import DateTimeRangePicker
+	from formset.widgets import DateTimeRangeDualPicker
 
 	class ScheduleForm(forms.Form):
 	    date_range = DateTimeRangeField(
-	        widget=DateTimeRangePicker(attrs={
+	        widget=DateTimeRangeDualPicker(attrs={
 	            'step': timedelta(minutes=15),
 	        }),
 	        initial=(
-	            datetime(2023, 9, 9, 9, 45),
-	            datetime(2023, 10, 10, 10, 15),
+	            datetime(2026, 9, 9, 9, 45),
+	            datetime(2026, 10, 10, 10, 15),
 	        ),
 	    )
 
 The ``DateTimeRangeField`` can be configured to use one of these widgets:
 
-* :class:`formset.widgets.DateTimeRangePicker` – as shown here.
+* :class:`formset.widgets.DateTimePicker` – the picker has a calendar dialog popping up when
+  the user clicks on the calendar icon. The lower- and upper date-timestamps must be entered into
+  the same calendar sheet.
+* :class:`formset.widgets.DateTimeRangeDualPicker` – as shown here.
 * :class:`formset.widgets.DateTimeRangeTextbox` – as input field accepting two timestamps.
-* :class:`formset.widgets.DateTimeRangeCalendar` – just the calendar widget without input field.
+* :class:`formset.widgets.DateTimeRangeCalendar` – just the calendar widget without an input field.
+* :class:`formset.widgets.DateTimeRangeDualCalendar` – widget without an input field, but with two
+  separate calendar sheets, one for entering the lower- and one to enter the upper date.
 
 Configuring a `DateTimeRangeField` without a calendar picker makes sense whenever we do not want to
 specify a range interval. In this case, we can use the `DateTimeRangeTextbox` widget to specify two
@@ -115,10 +124,19 @@ timestamps without any granularity.
 	    template_name = "form.html"
 	    success_url = "/success"
 
+Here we use the :class:`formset.widgets.DateTimeRangeDualPicker` widget, which shows two separate
+calendar sheets for entering the lower and upper date. Having to enter two timestamps using one
+calendar sheet, can be tricky. Therefore it is recommended to use this widget to facilitate the
+input of timestamps.
+
 When using the calendar picker in hour mode, there is one more thing to consider: After the starting
 date has been selected, the calendar picker will show the an additional cell named "24h" or "12am".
 This is so that the user can select end of day and doesn't have to navigate to the next day and
 chose midnight there.
+
+.. note:: The view uses the :class:`formset.calendar.CalendarResponseMixin` to render the calendar,
+	which is rendered by the server. This mixin is not required if you use the
+	:class:`formset.widgets.DateTimeRangeTextbox` widget.
 
 
 Applying Context to the Calendar
