@@ -1,0 +1,1 @@
+{% with mark=marks|first %}{% if mark %}{% with template="richtext/marks/"|add:mark.type|lower|add:".html" %}{% include template with marks=marks|slice:"1:" attrs=mark.attrs %}{% endwith %}{% else %}{{ text }}{% endif %}{% endwith %}
