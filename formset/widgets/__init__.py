@@ -9,8 +9,9 @@ from formset.widgets.models import (
 )
 from formset.widgets.phonenumber import PhoneNumberInput
 from formset.widgets.ranges import (
-    DateRangeCalendar, DateRangePicker, DateRangeTextbox, DateTimeRangeCalendar, DateTimeRangePicker,
-    DateTimeRangeTextbox, DualNumberRangeInput, NumberRangeInput
+    DateRangeCalendar, DateRangeDualCalendar, DateRangeDualPicker, DateRangePicker, DateRangeTextbox,
+    DateTimeRangeCalendar, DateTimeRangeDualCalendar, DateTimeRangeDualPicker, DateTimeRangePicker,
+    DateTimeRangeTextbox, DualNumberRangeInput, NumberRangeInput,
 )
 from formset.widgets.slug import SlugInput
 from formset.widgets.upload import UploadedFileInput
