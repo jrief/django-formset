@@ -680,7 +680,7 @@ class CalendarSheet {
 		if (!this.calendar.settings.withRange || this.viewMode !== ViewMode.hours)
 			return;
 		const midnightElement = this.element.querySelector('.sheet-body ul.hours:last-child > li[aria-details="midnight next day"]');
-		if (!(midnightElement instanceof HTMLElement))
+		if (!(midnightElement instanceof HTMLLIElement))
 			return;
 		const dateRange = this.calendar.dateRange;
 		if ([SheetType.compact, SheetType.plain].includes(this.calendar.settings.sheetType) && dateRange[1] instanceof Date) {
