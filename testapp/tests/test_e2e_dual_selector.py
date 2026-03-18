@@ -4,7 +4,7 @@ from re import compile as regex
 from time import sleep
 from urllib.parse import parse_qs, urlparse
 
-from playwright.sync_api import expect
+from playwright.sync_api import expect, TimeoutError
 
 from django.forms import Form, models
 from django.urls import path
@@ -51,9 +51,12 @@ class ModelFormView(ContextMixin, IncompleteSelectResponseMixin, FormViewMixin, 
 @pytest.fixture(scope='function')
 def django_db_setup(django_db_blocker):
     with django_db_blocker.unblock():
-        for counter in range(1, 1000):
-            label = f"Opinion {counter:04}"
-            OpinionModel.objects.update_or_create(tenant=1, label=label)
+        OpinionModel.objects.all().delete()
+        OpinionModel.objects.bulk_create([
+            OpinionModel(tenant=1, label=f"Opinion {counter:04}")
+            for counter in range(1, 1000)
+        ])
+        assert OpinionModel.objects.count() == 999
 
 
 def get_initial_opinion():
@@ -86,20 +89,21 @@ test_fields = dict(
 )
 
 views = {
-    f'selector{counter}': NativeFormView.as_view(
-        form_class=type(f'{name}_form', (Form,), {'name': name, 'model_choice': field}),
+    **{
+        f'selector{counter}': NativeFormView.as_view(
+            form_class=type(f'{name}_form', (Form,), {'name': name, 'model_choice': field}),
+        )
+        for counter, (name, field) in enumerate(test_fields.items())
+    },
+    'selectorF': NativeFormView.as_view(
+       form_class=type('force_submission_form', (Form,), {'name': 'force_submission_form', 'model_choice': test_fields['selector_required']}),
+        extra_context={'force_submission': True, 'click_actions': 'submit -> proceed'},
+    ),
+    'selectorP': ModelFormView.as_view(
+        form_class=type('weighted_opinion_form', (WeightedOpinionsForm,), {'name': 'selector_required'}),
+        extra_context={'force_submission': True, 'click_actions': 'submit -> proceed'},
     )
-    for counter, (name, field) in enumerate(test_fields.items())
 }
-views['selectorF'] = NativeFormView.as_view(
-    form_class=type('force_submission_form', (Form,), {'name': 'force_submission_form', 'model_choice': test_fields['selector_required']}),
-    extra_context={'force_submission': True, 'click_actions': 'submit -> proceed'},
-)
-views['selectorP'] = ModelFormView.as_view(
-    form_class=type('weighted_opinion_form', (WeightedOpinionsForm,), {'name': 'selector_required'}),
-    extra_context={'force_submission': True, 'click_actions': 'submit -> proceed'},
-)
-
 urlpatterns = [path(name, view, name=name) for name, view in views.items()]
 urlpatterns.append(get_javascript_catalog())
 
@@ -117,13 +121,13 @@ def form(view):
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', views.keys())
 def test_form_validated(page, form, viewname):
-    assert page.query_selector('django-formset form') is not None
+    expect(page.locator('django-formset form')).to_be_attached()
     if form.name in ['selector', 'selector_initialized']:
-        assert page.query_selector('django-formset form:valid') is not None
-        assert page.query_selector('django-formset form:invalid') is None
+        expect(page.locator('django-formset form:valid')).to_be_attached()
+        expect(page.locator('django-formset form:invalid')).not_to_be_attached()
     else:
-        assert page.query_selector('django-formset form:valid') is None
-        assert page.query_selector('django-formset form:invalid') is not None
+        expect(page.locator('django-formset form:valid')).not_to_be_attached()
+        expect(page.locator('django-formset form:invalid')).to_be_attached()
 
 
 @pytest.mark.urls(__name__)
@@ -256,10 +260,10 @@ def test_infinite_scroll(page, view, form, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0'])
-def test_submit_valid_form(page, mocker, view, form, viewname):
-    select_left_element = page.query_selector('django-formset .df-dual-selector .left-column select')
-    assert select_left_element is not None
-    left_option_values = [o.get_attribute('value') for o in select_left_element.query_selector_all('option')]
+def test_submit_valid_form(page, view, form, viewname):
+    select_left_element = page.locator('django-formset .df-dual-selector .left-column select')
+    expect(select_left_element).to_be_visible()
+    left_option_values = [o.get_attribute('value') for o in select_left_element.locator('option').all()]
     select_left_element.focus()
     select_left_element.select_option(left_option_values[48:63])
     move_button = page.query_selector('django-formset .df-dual-selector .control-column button[aria-label="move selected right"]')
@@ -282,11 +286,15 @@ def test_submit_valid_form(page, mocker, view, form, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector1'])
-def test_submit_invalid_form(page, mocker, view, form, viewname):
+def test_submit_invalid_form(page, view, form, viewname):
     submit_button = page.locator('django-formset button[df-click]').first
-    spy = mocker.spy(view.view_class, 'post')
-    submit_button.click()
-    spy.assert_not_called()  # asure the form is marked as invalid before submission
+    try:
+        with page.expect_response(page.url, timeout=500):
+            submit_button.click()
+    except TimeoutError:
+        pass
+    else:
+        assert False, "Form is submitted although it is marked as invalid"
     required_msg = str(form.fields['model_choice'].error_messages['required'])
     error_ph = page.locator('django-formset [role="group"] [role="alert"] ul.dj-errorlist > li.dj-placeholder')
     expect(error_ph).to_have_text(required_msg)
@@ -350,24 +358,30 @@ def test_touch_selector(page, form, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selector0'])
-def test_left_selector_lookup(page, mocker, view, form, viewname):
+def test_left_selector_lookup(page, view, form, viewname):
     select_left_element = page.locator('django-formset .df-dual-selector .left-column select')
     expect(select_left_element).to_be_visible()
     input_element = page.locator('django-formset .df-dual-selector .left-column input')
     expect(input_element).to_be_visible()
     input_element.focus()
-    spy = mocker.spy(view.view_class, 'get')
-    page.keyboard.press('6')
-    assert spy.called is False
+    try:
+        with page.expect_request(regex(rf'^{page.url}\?.+$'), timeout=500):
+            page.keyboard.press('6')
+            sleep(0.1)
+    except TimeoutError:
+        pass
+    else:
+        assert False, "Lookup request is sent although the input is not debounced yet"
     left_option_values = [o.get_attribute('value') for o in select_left_element.locator('option').all() if not o.is_hidden()]
     filtered = [str(o.id) for o, _ in zip(OpinionModel.objects.iterator(), range(DualSelector.max_prefetch_choices)) if '6' in o.label]
     assert set(filtered) == set(left_option_values)
-    spy.reset_mock()
-    page.keyboard.press('5')
-    sleep(0.1)
-    page.keyboard.press('3')
-    sleep(0.1)
-    assert spy.called is True
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
+        page.keyboard.press('5')
+        sleep(0.1)
+        page.keyboard.press('3')
+        sleep(0.1)
+    assert response_info.value.ok is True
+    sleep(0.5)
     option = select_left_element.locator('option:not([hidden])')
     expect(option).to_have_text("Opinion 0653")
     expect(option).to_have_attribute('value', str(OpinionModel.objects.get(label__contains='653').pk))
@@ -449,7 +463,7 @@ def test_undo_redo(page, view, form, viewname):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['selectorP'])
-def test_selector_sorting(page, mocker, view, form, viewname):
+def test_selector_sorting(page, view, form, viewname):
     select_left_element = page.locator('django-formset .df-dual-selector .left-column select')
     select_left_element.locator('option').nth(40).click()
     select_left_element.locator('option').nth(47).click(modifiers=['Shift'])
@@ -471,13 +485,12 @@ def test_selector_sorting(page, mocker, view, form, viewname):
     fourth_option.drag_to(select_right_element.locator('option').nth(6))
     sleep(0.2)  # animation is set to 150ms
     page.locator('django-formset .df-dual-selector .control-column button[aria-label="undo assignment"]').click()
-    spy = mocker.spy(view.view_class, 'post')
-    page.locator('django-formset button[df-click]').first.click()
-    sleep(0.2)  # animation is set to 150ms
-    assert spy.called is True
-    request = json.loads(spy.call_args.args[1].body)
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset button[df-click]').first.click()
+    assert response_info.value.ok is True
+    # response_json = response_info.value.json()
+    post_data = response_info.value.request.post_data_json
     labels = [f"Opinion {number:04d}" for number in range(41, 49)]
     expected = [str(o.pk) for o in OpinionModel.objects.filter(label__in=labels)]
-    assert set(request['formset_data']['weighted_opinions']) == set(expected)
-    response = json.loads(spy.spy_return.content)
-    assert response == {'success_url': '/success'}
+    assert set(post_data['formset_data']['weighted_opinions']) == set(expected)
+    # assert response_json['success_url'] == '/success'

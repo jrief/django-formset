@@ -1,9 +1,10 @@
 from datetime import timedelta
 from time import sleep
 import pytest
-from playwright.sync_api import expect
+from playwright.sync_api import expect, TimeoutError
+from re import compile as regex
+from urllib.parse import urlparse, parse_qs
 
-from django import VERSION as DJANGO_VERSION
 from django.forms import fields, forms
 from django.utils.timezone import datetime
 from django.urls import path
@@ -41,9 +42,9 @@ urlpatterns = [
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('locale', ['en-US', 'de-DE', 'ja-JP'])
+@pytest.mark.parametrize('locale', ['en-US', 'de-DE', 'ja-JP', 'sv-SE'])
 @pytest.mark.parametrize('viewname', ['new_schedule'])
-def test_datetimepicker_set(page, mocker, viewname, locale):
+def test_datetimepicker_set(page, viewname, locale):
     now = datetime.now()
     schedule_field = page.locator('django-formset input[name="schedule"]')
     textbox = page.locator('django-formset input[name="schedule"] + [role="textbox"]')
@@ -57,23 +58,24 @@ def test_datetimepicker_set(page, mocker, viewname, locale):
     expect(today_li).to_be_visible()
     today_string = now.date().isoformat()
     assert today_li.get_attribute('data-date') == f'{today_string}T00:00'
-    spy = mocker.spy(DemoFormView, 'get')
-    today_li.click()
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    querydict = spy.call_args.args[1].GET
-    assert querydict.get('date') == today_string
-    assert querydict.get('mode') == 'h'
-    assert querydict.get('interval') == '15'
-    spy.reset_mock()
+    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+        today_li.click()
+    assert response_info.value.ok is True
+    query_params = parse_qs(urlparse(response_info.value.request.url).query)
+    assert query_params.get('date') == [today_string]
+    assert query_params.get('mode') == ['h']
+    assert query_params.get('interval') == ['15']
     hour_li = calendar.locator('ul.hours > li.today')
     aria_label = hour_li.get_attribute('aria-label')
     minutes_ul = calendar.locator(f'ul.minutes[aria-labelledby="{aria_label}"]')
     expect(minutes_ul).not_to_be_visible()
-    hour_li.click()
-    sleep(0.2)
-    assert spy.called is False
+    try:
+        with page.expect_request(regex(rf'^{page.url}\?calendar.+$'), timeout=500):
+            hour_li.click()
+    except TimeoutError:
+        pass
+    else:
+        assert False
     expect(minutes_ul).to_be_visible()
     minute_li = minutes_ul.locator('li:nth-of-type(4)')
     minute_string = f'{now.isoformat()[:13]}:45'
@@ -92,10 +94,9 @@ def test_datetimepicker_set(page, mocker, viewname, locale):
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('locale', ['en-US', 'de-DE', 'ja-JP'])
+@pytest.mark.parametrize('locale', ['en-US', 'de-DE', 'ja-JP', 'sv-SE'])
 @pytest.mark.parametrize('viewname', ['current_schedule'])
-def test_datetimepicker_change(page, mocker, viewname, locale):
-    schedule_field = page.locator('django-formset input[name="schedule"]')
+def test_datetimepicker_change(page, viewname, locale):
     textbox = page.locator('django-formset input[name="schedule"] + [role="textbox"]')
     opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-picker-indicator')
     calendar = page.locator('django-formset input[name="schedule"] + [role="textbox"] + .dj-calendar')
@@ -108,79 +109,68 @@ def test_datetimepicker_change(page, mocker, viewname, locale):
         expect(textbox).to_have_text(datetime.strftime(schedule_datetime, '%Y/%m/%d %H:%M'))
     else:
         expect(textbox).to_have_text(datetime.strftime(schedule_datetime, '%Y-%m-%d %H:%M'))
-    opener.click()
+
+    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+        opener.click()
+    assert response_info.value.ok is True
+    query_params = parse_qs(urlparse(response_info.value.request.url).query)
+    assert query_params.get('date') == ['2023-02-13']
+    assert query_params.get('mode') == ['w']
+    assert query_params.get('interval') == ['15']
     expect(calendar).to_be_visible()
-    spy = mocker.spy(DemoFormView, 'get')
-    calendar.locator('button.next').click()
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    querydict = spy.call_args.args[1].GET
-    assert 'calendar' in querydict
-    assert querydict.get('date') == '2023-03-13'
-    assert querydict.get('mode') == 'w'
-    assert querydict.get('interval') == '15'
-    spy.reset_mock()
+
+    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+        calendar.locator('button.next').click()
+    assert response_info.value.ok is True
+    query_params = parse_qs(urlparse(response_info.value.request.url).query)
+    assert query_params.get('date') == ['2023-03-13']
+    assert query_params.get('mode') == ['w']
+    assert query_params.get('interval') == ['15']
 
     extend_button = calendar.locator('button.extend')
     expect(extend_button).to_have_text("March 2023")
-    extend_button.click()
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    querydict = spy.call_args.args[1].GET
-    assert 'calendar' in querydict
-    assert querydict.get('date') == '2023-03-13'
-    assert querydict.get('mode') == 'm'
-    assert querydict.get('interval') == '15'
-    spy.reset_mock()
+    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+        extend_button.click()
+    assert response_info.value.ok is True
+    query_params = parse_qs(urlparse(response_info.value.request.url).query)
+    assert query_params.get('date') == ['2023-03-13']
+    assert query_params.get('mode') == ['m']
+    assert query_params.get('interval') == ['15']
 
     extend_button = calendar.locator('button.extend')
     expect(extend_button).to_have_text("2023")
-    extend_button.click()
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    querydict = spy.call_args.args[1].GET
-    assert 'calendar' in querydict
-    assert querydict.get('date') == '2023-03-13'
-    assert querydict.get('mode') == 'y'
-    assert querydict.get('interval') == '15'
-    spy.reset_mock()
+    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+        extend_button.click()
+    assert response_info.value.ok is True
+    query_params = parse_qs(urlparse(response_info.value.request.url).query)
+    assert query_params.get('date') == ['2023-03-13']
+    assert query_params.get('mode') == ['y']
+    assert query_params.get('interval') == ['15']
 
     expect(calendar.locator('.controls time[datetime]')).to_have_text("2020 – 2039")
-    calendar.locator('.controls button.narrow').click()
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    querydict = spy.call_args.args[1].GET
-    assert 'calendar' in querydict
-    assert querydict.get('date') == '2023-03-13'
-    assert querydict.get('mode') == 'm'
-    assert querydict.get('interval') == '15'
-    spy.reset_mock()
+    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+        calendar.locator('.controls button.narrow').click()
+    assert response_info.value.ok is True
+    query_params = parse_qs(urlparse(response_info.value.request.url).query)
+    assert query_params.get('date') == ['2023-03-13']
+    assert query_params.get('mode') == ['m']
+    assert query_params.get('interval') == ['15']
 
-    calendar.locator('ul.months li[data-date="2023-07-01T00:00"]').click()
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    querydict = spy.call_args.args[1].GET
-    assert 'calendar' in querydict
-    assert querydict.get('date') == '2023-07-01'
-    assert querydict.get('mode') == 'w'
-    assert querydict.get('interval') == '15'
-    spy.reset_mock()
+    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+        calendar.locator('ul.months li[data-date="2023-07-01T00:00"]').click()
+    assert response_info.value.ok is True
+    query_params = parse_qs(urlparse(response_info.value.request.url).query)
+    assert query_params.get('date') == ['2023-07-01']
+    assert query_params.get('mode') == ['w']
+    assert query_params.get('interval') == ['15']
 
-    calendar.locator('ul.monthdays li[data-date="2023-07-09T00:00"]').click()
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    querydict = spy.call_args.args[1].GET
-    assert 'calendar' in querydict
-    assert querydict.get('date') == '2023-07-09'
-    assert querydict.get('mode') == 'h'
-    assert querydict.get('interval') == '15'
-    spy.reset_mock()
+    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+        calendar.locator('ul.monthdays li[data-date="2023-07-09T00:00"]').click()
+    assert response_info.value.ok is True
+    query_params = parse_qs(urlparse(response_info.value.request.url).query)
+    assert query_params.get('date') == ['2023-07-09']
+    assert query_params.get('mode') == ['h']
+    assert query_params.get('interval') == ['15']
 
     calendar.locator('ul.hours li[aria-label="2023-07-09T13:00"]').click()
     calendar.locator('ul.minutes li[data-date="2023-07-09T13:15"]').click()
@@ -198,7 +188,7 @@ def test_datetimepicker_change(page, mocker, viewname, locale):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['current_schedule'])
-def test_datetimepicker_navigate(page, mocker, viewname):
+def test_datetimepicker_navigate(page, viewname):
     opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-picker-indicator')
     calendar = page.locator('django-formset input[name="schedule"] + [role="textbox"] + .dj-calendar')
     expect(calendar).not_to_be_visible()
@@ -212,31 +202,24 @@ def test_datetimepicker_navigate(page, mocker, viewname):
     selected_date = datetime.fromisoformat(calendar.locator('ul.monthdays li.selected').get_attribute('data-date'))
     assert selected_date.date() == datetime(2023, 2, 21).date()
     page.keyboard.press('ArrowDown')
-    spy = mocker.spy(DemoFormView, 'get')
-    page.keyboard.press('ArrowRight')
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    querydict = spy.call_args.args[1].GET
-    assert 'calendar' in querydict
-    assert querydict.get('date') == '2023-03-01'
-    assert querydict.get('mode') == 'w'
-    assert querydict.get('interval') == '15'
-    spy.reset_mock()
+    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+        page.keyboard.press('ArrowRight')
+    assert response_info.value.ok is True
+    query_params = parse_qs(urlparse(response_info.value.request.url).query)
+    assert query_params.get('date') == ['2023-03-01']
+    assert query_params.get('mode') == ['w']
+    assert query_params.get('interval') == ['15']
 
     expect(calendar.locator('ul.monthdays li.selected')).to_have_attribute('data-date', '2023-03-01T00:00')
-    page.keyboard.press('ArrowDown')
-    page.keyboard.press('ArrowLeft')
-    page.keyboard.press('Enter')
-    sleep(0.2)
-    spy.assert_called()
-    assert spy.spy_return.status_code == 200
-    querydict = spy.call_args.args[1].GET
-    assert 'calendar' in querydict
-    assert querydict.get('date') == '2023-03-07'
-    assert querydict.get('mode') == 'h'
-    assert querydict.get('interval') == '15'
-    spy.reset_mock()
+    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+        page.keyboard.press('ArrowDown')
+        page.keyboard.press('ArrowLeft')
+        page.keyboard.press('Enter')
+    assert response_info.value.ok is True
+    query_params = parse_qs(urlparse(response_info.value.request.url).query)
+    assert query_params.get('date') == ['2023-03-07']
+    assert query_params.get('mode') == ['h']
+    assert query_params.get('interval') == ['15']
 
     page.keyboard.press('ArrowDown')
     expect(calendar.locator('ul.hours > li.constricted')).to_have_attribute('aria-label', '2023-03-07T01:00')
@@ -245,7 +228,7 @@ def test_datetimepicker_navigate(page, mocker, viewname):
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('language', ['en', 'de', 'fr', 'es', 'pt'])
+@pytest.mark.parametrize('language', ['en', 'de', 'fr', 'es', 'pt', 'sv'])
 @pytest.mark.parametrize('viewname', ['current_schedule'])
 def test_datetimepicker_i18n(page, viewname, language):
     calendar = page.locator('django-formset input[name="schedule"] + [role="textbox"] + .dj-calendar')
@@ -266,12 +249,11 @@ def test_datetimepicker_i18n(page, viewname, language):
         expect(title).to_have_text("février 2023")
         expect(wednesday).to_have_text("mer")
     elif language == 'es':
-        if DJANGO_VERSION < (4, 1):
-            expect(title).to_have_text("Febrero 2023")
-            expect(wednesday).to_have_text("Mié")
-        else:
-            expect(title).to_have_text("febrero 2023")
-            expect(wednesday).to_have_text("mié")
+        expect(title).to_have_text("febrero 2023")
+        expect(wednesday).to_have_text("mié")
     elif language == 'pt':
         expect(title).to_have_text("Fevereiro 2023")
         expect(wednesday).to_have_text("Qua")
+    elif language == 'sv':
+        expect(title).to_have_text("februari 2023")
+        expect(wednesday).to_have_text("ons")

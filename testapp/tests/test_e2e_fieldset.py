@@ -27,7 +27,7 @@ urlpatterns = [
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['customer'])
-def test_submit_fieldsets(page, mocker, viewname):
+def test_submit_fieldsets(page, viewname):
     fieldset = page.locator('django-formset > [role="form"] > fieldset')
     expect(fieldset).to_have_count(2)
     expect(fieldset.nth(0)).to_be_visible()
@@ -48,10 +48,11 @@ def test_submit_fieldsets(page, mocker, viewname):
     page.fill('#id_shipping\\.recipient', "Jane Doe")
     page.fill('#id_shipping\\.address\\.postal_code', "54321")
     page.fill('#id_shipping\\.address\\.city', "Shelbyville")
-    spy = mocker.spy(DemoFormView, 'post')
-    page.locator('django-formset button').first.click()
-    sleep(0.25)
-    expected = {
+
+    with page.expect_response(page.url) as response_info:
+         page.locator('django-formset button').first.click()
+    assert response_info.value.ok is True
+    assert response_info.value.request.post_data_json == {
         'extra_data': {},
         'formset_data': {
             'billing.recipient': "John Doe",
@@ -63,14 +64,11 @@ def test_submit_fieldsets(page, mocker, viewname):
             'use_billing_address': "",
         },
     }
-    spy.assert_called()
-    response = json.loads(spy.call_args.args[1].body)
-    assert response == expected
 
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['customer'])
-def test_submit_hidden_fieldset(page, mocker, viewname):
+def test_submit_hidden_fieldset(page, viewname):
     page.fill('#id_billing\\.recipient', "John Doe")
     page.fill('#id_billing\\.address\\.postal_code', "12345")
     page.fill('#id_billing\\.address\\.city', "Springfield")
@@ -79,10 +77,10 @@ def test_submit_hidden_fieldset(page, mocker, viewname):
     expect(fieldset).to_have_attribute('df-hide', 'use_billing_address')
     page.click('#id_use_billing_address')
     expect(fieldset).to_be_hidden()
-    spy = mocker.spy(DemoFormView, 'post')
-    page.locator('django-formset button').first.click()
-    sleep(0.25)
-    expected = {
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset button').first.click()
+    assert response_info.value.ok is True
+    assert response_info.value.request.post_data_json == {
         'extra_data': {},
         'formset_data': {
             'billing.recipient': "John Doe",
@@ -94,6 +92,3 @@ def test_submit_hidden_fieldset(page, mocker, viewname):
             'use_billing_address': "on",
         },
     }
-    spy.assert_called()
-    response = json.loads(spy.call_args.args[1].body)
-    assert response == expected

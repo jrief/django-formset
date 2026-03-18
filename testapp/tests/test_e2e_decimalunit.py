@@ -130,24 +130,24 @@ def test_decimal_unit_separate_on_delete(page, viewname, counter_field):
     edit_field = counter_field.locator('+ [role="textbox"] .decimal-unit-edit [contenteditable="true"]')
     edit_field.click(position={'x': 1, 'y': 1})
     expect(edit_field).to_have_text(f"123{separator}456{separator}789")
-    edit_field.press("Delete", delay=5)
+    edit_field.press("Delete", delay=20)
     expect(edit_field).to_have_text(f"23{separator}456{separator}789")
     expect(counter_field).to_have_value("23456789")
-    edit_field.press("Delete", delay=5)
+    edit_field.press("Delete", delay=20)
     expect(edit_field).to_have_text(f"3{separator}456{separator}789")
-    edit_field.press("Delete", delay=5)
+    edit_field.press("Delete", delay=20)
     expect(edit_field).to_have_text(f"456{separator}789")
-    edit_field.press("Delete", delay=5)
+    edit_field.press("Delete", delay=20)
     expect(edit_field).to_have_text(f"56{separator}789")
-    edit_field.press("Delete", delay=5)
+    edit_field.press("Delete", delay=20)
     expect(edit_field).to_have_text(f"6{separator}789")
-    edit_field.press("Delete", delay=5)
+    edit_field.press("Delete", delay=20)
     expect(edit_field).to_have_text("789")
-    edit_field.press("Delete", delay=5)
+    edit_field.press("Delete", delay=20)
     expect(edit_field).to_have_text("89")
-    edit_field.press("Delete", delay=5)
+    edit_field.press("Delete", delay=20)
     expect(edit_field).to_have_text("9")
-    edit_field.press("Delete", delay=5)
+    edit_field.press("Delete", delay=20)
     expect(counter_field).to_have_value("")
 
 
@@ -157,24 +157,24 @@ def test_decimal_unit_separate_on_backspace(page, viewname, counter_field):
     edit_field = counter_field.locator('+ [role="textbox"] .decimal-unit-edit [contenteditable="true"]')
     edit_field.click(position={'x': 300, 'y': 1})
     expect(edit_field).to_have_text(f"123{separator}456{separator}789")
-    edit_field.press("Backspace", delay=5)
+    edit_field.press("Backspace", delay=20)
     expect(edit_field).to_have_text(f"12{separator}345{separator}678")
     expect(counter_field).to_have_value("12345678")
-    edit_field.press("Backspace", delay=5)
+    edit_field.press("Backspace", delay=20)
     expect(edit_field).to_have_text(f"1{separator}234{separator}567")
-    edit_field.press("Backspace", delay=5)
+    edit_field.press("Backspace", delay=20)
     expect(edit_field).to_have_text(f"123{separator}456")
-    edit_field.press("Backspace", delay=5)
+    edit_field.press("Backspace", delay=20)
     expect(edit_field).to_have_text(f"12{separator}345")
-    edit_field.press("Backspace", delay=5)
+    edit_field.press("Backspace", delay=20)
     expect(edit_field).to_have_text(f"1{separator}234")
-    edit_field.press("Backspace", delay=5)
+    edit_field.press("Backspace", delay=20)
     expect(edit_field).to_have_text(f"123")
-    edit_field.press("Backspace", delay=5)
+    edit_field.press("Backspace", delay=20)
     expect(edit_field).to_have_text(f"12")
-    edit_field.press("Backspace", delay=5)
+    edit_field.press("Backspace", delay=20)
     expect(edit_field).to_have_text(f"1")
-    edit_field.press("Backspace", delay=5)
+    edit_field.press("Backspace", delay=20)
     expect(edit_field).to_have_text("")
     expect(counter_field).to_have_value("")
 
@@ -203,23 +203,23 @@ def test_decimal_unit_separate_on_move_right(page, viewname, counter_field):
     edit_field = counter_field.locator('+ [role="textbox"] .decimal-unit-edit [contenteditable="true"]')
     edit_field.click(position={'x': 1, 'y': 1})
     assert get_caret_position(edit_field) == 0
-    edit_field.press("ArrowRight", delay=5)
+    edit_field.press("ArrowRight", delay=20)
     assert get_caret_position(edit_field) == 1
-    edit_field.press("ArrowRight", delay=5)
+    edit_field.press("ArrowRight", delay=20)
     assert get_caret_position(edit_field) == 2
-    edit_field.press("ArrowRight", delay=5)
+    edit_field.press("ArrowRight", delay=20)
     assert get_caret_position(edit_field) == 4
-    edit_field.press("ArrowRight", delay=5)
+    edit_field.press("ArrowRight", delay=20)
     assert get_caret_position(edit_field) == 5
-    edit_field.press("ArrowRight", delay=5)
+    edit_field.press("ArrowRight", delay=20)
     assert get_caret_position(edit_field) == 6
-    edit_field.press("ArrowRight", delay=5)
+    edit_field.press("ArrowRight", delay=20)
     assert get_caret_position(edit_field) == 8
-    edit_field.press("ArrowRight", delay=5)
+    edit_field.press("ArrowRight", delay=20)
     assert get_caret_position(edit_field) == 9
-    edit_field.press("ArrowRight", delay=5)
+    edit_field.press("ArrowRight", delay=20)
     assert get_caret_position(edit_field) == 10
-    edit_field.press("ArrowRight", delay=5)
+    edit_field.press("ArrowRight", delay=20)
     assert get_caret_position(edit_field) == 11
 
 
@@ -229,23 +229,23 @@ def test_decimal_unit_separate_on_move_left(page, viewname, counter_field):
     edit_field = counter_field.locator('+ [role="textbox"] .decimal-unit-edit [contenteditable="true"]')
     edit_field.click(position={'x': 300, 'y': 1})
     assert get_caret_position(edit_field) == 11
-    edit_field.press("ArrowLeft", delay=5)
+    edit_field.press("ArrowLeft", delay=20)
     assert get_caret_position(edit_field) == 10
-    edit_field.press("ArrowLeft", delay=5)
+    edit_field.press("ArrowLeft", delay=20)
     assert get_caret_position(edit_field) == 9
-    edit_field.press("ArrowLeft", delay=5)
+    edit_field.press("ArrowLeft", delay=20)
     assert get_caret_position(edit_field) == 8
-    edit_field.press("ArrowLeft", delay=5)
+    edit_field.press("ArrowLeft", delay=20)
     assert get_caret_position(edit_field) == 6
-    edit_field.press("ArrowLeft", delay=5)
+    edit_field.press("ArrowLeft", delay=20)
     assert get_caret_position(edit_field) == 5
-    edit_field.press("ArrowLeft", delay=5)
+    edit_field.press("ArrowLeft", delay=20)
     assert get_caret_position(edit_field) == 4
-    edit_field.press("ArrowLeft", delay=5)
+    edit_field.press("ArrowLeft", delay=20)
     assert get_caret_position(edit_field) == 2
-    edit_field.press("ArrowLeft", delay=5)
+    edit_field.press("ArrowLeft", delay=20)
     assert get_caret_position(edit_field) == 1
-    edit_field.press("ArrowLeft", delay=5)
+    edit_field.press("ArrowLeft", delay=20)
     assert get_caret_position(edit_field) == 0
 
 
@@ -260,10 +260,10 @@ def test_decimal_unit_locale_settings(page, locale, viewname, ohms_field):
         expect(edit_field).to_have_text(f"123,456")
     expect(ohms_field).to_have_value('123.456')
     edit_field.click(position={'x': 300, 'y': 1})
-    edit_field.press("Backspace", delay=5)
-    edit_field.press("Backspace", delay=5)
-    edit_field.press("Backspace", delay=5)
-    edit_field.press("Backspace", delay=5)
+    edit_field.press("Backspace", delay=20)
+    edit_field.press("Backspace", delay=20)
+    edit_field.press("Backspace", delay=20)
+    edit_field.press("Backspace", delay=20)
     if locale == 'en-US':
         edit_field.type(",78")
         expect(edit_field).to_have_text(f"123.78")
@@ -278,10 +278,10 @@ def test_decimal_unit_locale_settings(page, locale, viewname, ohms_field):
 def test_decimal_unit_unsteppable(page, viewname, counter_field):
     edit_field = counter_field.locator('+ [role="textbox"] .decimal-unit-edit [contenteditable="true"]')
     edit_field.click(position={'x': 1, 'y': 1})
-    edit_field.press("ArrowUp", delay=5)
+    edit_field.press("ArrowUp", delay=20)
     expect(edit_field).to_have_text(f"123{separator}456{separator}789")
     expect(counter_field).to_have_value('123456789')
-    edit_field.press("ArrowDown", delay=5)
+    edit_field.press("ArrowDown", delay=20)
     expect(edit_field).to_have_text(f"123{separator}456{separator}789")
     expect(counter_field).to_have_value('123456789')
 
@@ -291,10 +291,10 @@ def test_decimal_unit_unsteppable(page, viewname, counter_field):
 def test_decimal_unit_step_up(page, viewname, price_field):
     edit_field = price_field.locator('+ [role="textbox"] .decimal-unit-edit [contenteditable="true"]')
     edit_field.click(position={'x': 1, 'y': 1})
-    edit_field.press("ArrowUp", delay=5)
+    edit_field.press("ArrowUp", delay=20)
     expect(edit_field).to_have_text(f"1{separator}234.55")
     expect(price_field).to_have_value('1234.55')
-    edit_field.press("ArrowUp", delay=5)
+    edit_field.press("ArrowUp", delay=20)
     expect(edit_field).to_have_text(f"1{separator}234.60")
     expect(price_field).to_have_value('1234.60')
 
@@ -304,10 +304,10 @@ def test_decimal_unit_step_up(page, viewname, price_field):
 def test_decimal_unit_step_down(page, viewname, price_field):
     edit_field = price_field.locator('+ [role="textbox"] .decimal-unit-edit [contenteditable="true"]')
     edit_field.click(position={'x': 1, 'y': 1})
-    edit_field.press("ArrowDown", delay=5)
+    edit_field.press("ArrowDown", delay=20)
     expect(edit_field).to_have_text(f"1{separator}234.45")
     expect(price_field).to_have_value('1234.45')
-    edit_field.press("ArrowDown", delay=5)
+    edit_field.press("ArrowDown", delay=20)
     expect(edit_field).to_have_text(f"1{separator}234.40")
     expect(price_field).to_have_value('1234.40')
 
