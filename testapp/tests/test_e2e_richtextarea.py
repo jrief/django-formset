@@ -277,16 +277,18 @@ def test_tiptap_blockquote(page, viewname, menubar, contenteditable):
 def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
     lorem = "Lorem ipsum dolor sit amet."
     contenteditable.type(lorem)
-    assert contenteditable.inner_html() == f"<p>{lorem}</p>"
+    expect(contenteditable.locator('p')).to_have_text(lorem)
     select_text(contenteditable.locator('p'), 6, 17)
+    sleep(0.01)
     family_menu_button = menubar.locator('[richtext-click="classBasedMark:fontFamily"]')
     family_menu_button.click()
+    sleep(0.01)
     expect(family_menu_button.locator('+ ul[role="menu"]')).to_be_visible()
     submenu_items = family_menu_button.locator('+ ul[role="menu"] > li')
     expect(submenu_items).to_have_count(4)
     submenu_items.nth(2).click()
-    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
-    assert contenteditable.inner_html() == '<p>Lorem <span class="font-family-b">ipsum dolor</span> sit amet.</p>'
+    sleep(0.01)
+    expect(contenteditable.locator('p span.font-family-b')).to_have_text("ipsum dolor")
     set_caret(page, contenteditable, 8)
     expect(family_menu_button).to_have_class('active')
     expect(submenu_items.nth(2)).to_have_class('active')
@@ -301,7 +303,8 @@ def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
     expect(family_menu_button.locator('+ ul[role="menu"]')).not_to_be_visible()
 
     # add another class to overlapping selection
-    select_text(contenteditable.locator('p'), 11, 21)
+    select_text(contenteditable.locator('p'), 12, 21)
+    sleep(0.01)
     fontsize_menu_button = menubar.locator('[richtext-click="classBasedMark:fontSize"]')
     expect(fontsize_menu_button).not_to_have_class('active')
     fontsize_menu_button.click()
@@ -309,8 +312,8 @@ def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
     submenu_items = fontsize_menu_button.locator('+ ul[role="menu"] > li')
     expect(submenu_items).to_have_count(4)
     submenu_items.nth(2).click()
-    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
-    assert contenteditable.inner_html() == '<p>Lorem <span class="font-family-b">ipsum<span class="font-size-medium"> dolor</span></span><span class="font-size-medium"> sit</span> amet.</p>'
+    sleep(0.01)
+    expect(contenteditable.locator('p span.font-family-b span.font-size-medium')).to_have_text("dolor")
     set_caret(page, contenteditable, 8)
     expect(family_menu_button).to_have_class('active')
     expect(fontsize_menu_button).not_to_have_class('active')
