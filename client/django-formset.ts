@@ -3,6 +3,28 @@ import 'requestidlecallback';
 import {DjangoFormsetElement} from './django-formset/DjangoFormset';
 import {StyleHelpers} from './django-formset/helpers';
 
+declare global {
+	interface Window {
+		djangoFormsetComponents: Array<{selector: string, loader: (fragmentRoot: Document|DocumentFragment) => Promise<void>}>;
+	}
+}
+
+// Initialize the external components registry if it doesn't exist yet.
+// External scripts can push entries before or after this script loads:
+//   window.djangoFormsetComponents = window.djangoFormsetComponents || [];
+//   window.djangoFormsetComponents.push({
+//       selector: 'my-custom-widget',
+//       loader: (fragmentRoot) => new Promise((resolve, reject) => {
+//           import('./my-widget.js').then(({MyWidget}) => {
+//               if (!window.customElements.get('my-custom-widget')) {
+//                   window.customElements.define('my-custom-widget', MyWidget);
+//               }
+//               window.customElements.whenDefined('my-custom-widget').then(() => resolve());
+//           }).catch(err => reject(err));
+//       }),
+//   });
+window.djangoFormsetComponents = window.djangoFormsetComponents || [];
+
 
 function domLookup(fragmentRoot: Document|DocumentFragment, isTemplate: boolean=false) : Promise<void[]> {
 	function defineComponent(resolve: Function, selector: string, newComponent: CustomElementConstructor, options: ElementDefinitionOptions|undefined=undefined) {
@@ -189,6 +211,13 @@ function domLookup(fragmentRoot: Document|DocumentFragment, isTemplate: boolean=
 				defineComponent(resolve, 'django-stepper-collection', StepperCollectionElement);
 			}).catch(err => reject(err));
 		}));
+	}
+
+	// register external web components using the same approach
+	for (const {selector, loader} of window.djangoFormsetComponents) {
+		if (fragmentRoot.querySelector(selector)) {
+			promises.push(loader(fragmentRoot));
+		}
 	}
 
 	return Promise.all(promises);

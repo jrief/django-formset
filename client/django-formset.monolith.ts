@@ -3,6 +3,14 @@ import 'requestidlecallback';
 import {DjangoFormsetElement} from './django-formset/DjangoFormset';
 import {StyleHelpers} from './django-formset/helpers';
 
+declare global {
+	interface Window {
+		djangoFormsetComponents: Array<{selector: string, loader: (fragmentRoot: Document|DocumentFragment) => Promise<void>}>;
+	}
+}
+
+window.djangoFormsetComponents = window.djangoFormsetComponents || [];
+
 // remember to always reflect imports below here also in django-formset.ts
 import {DjangoSelectizeElement} from './django-formset/DjangoSelectize';
 import {CountrySelectizeElement} from './django-formset/DjangoSelectizeCountry';
@@ -87,6 +95,13 @@ function handleDOMLoaded() {
 			throw new Error(`There are at least two elements with attribute id="${foundId}"`);
 		foundIds.add(foundId);
 	});
+
+	// register external web components using the same approach
+	for (const {selector, loader} of window.djangoFormsetComponents) {
+		if (document.querySelector(selector)) {
+			promises.push(loader(document));
+		}
+	}
 
 	promises.push(...customElementNames.map(name => window.customElements.whenDefined(name)));
 	Promise.all(promises).then(() => {
