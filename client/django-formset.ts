@@ -3,11 +3,6 @@ import 'requestidlecallback';
 import {DjangoFormsetElement} from './django-formset/DjangoFormset';
 import {StyleHelpers} from './django-formset/helpers';
 
-declare global {
-	interface Window {
-		djangoFormsetComponents: Array<{selector: string, loader: (fragmentRoot: Document|DocumentFragment) => Promise<void>}>;
-	}
-}
 
 // Initialize the external components registry if it doesn't exist yet.
 // External scripts can push entries before or after this script loads:
