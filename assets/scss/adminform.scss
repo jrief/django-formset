@@ -63,6 +63,10 @@ django-formset {
 				border-top: none;
 			}
 
+			&:not(:last-of-type) {
+				border-bottom: 1px solid var(--header-bg);
+			}
+
 			&:last-of-type > [role=form] > fieldset {
 				> [role=group]:last-of-type {
 					border-bottom: none;
@@ -153,6 +157,8 @@ django-formset {
 	}
 
 	.form-row {
+		border-bottom: none;
+
 		&:has([role="dialog"], [is^="django-selectize"]) {
 			overflow: visible;
 		}
