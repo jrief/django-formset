@@ -34,7 +34,7 @@ setup(
     url='https://django-formset.fly.dev/',
     packages=find_namespace_packages(include=['formset']),
     install_requires=[
-        'django>=5.0',
+        'django>=5.1',
     ],
     extra_requires={
         'thumbnail': ['Pillow'],

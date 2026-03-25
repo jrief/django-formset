@@ -1,5 +1,10 @@
 ## Changes
 
+- 2.2.4
+  * Better handling of methods `clean_content` in RichtextArea and its dialog forms.
+  * Fix: Richtext rendering for text nodes with multiple marks now handled properly.
+  * Fix: In forms Meta classes using `fields_map`, the initial value is ignored.
+
 - 2.2.3
   * Widgets `DateRangePicker`, `DateRangeTextbox`, `DateRangeCalendar`, `DateTimeRangePicker`,
     `DateTimeRangeTextbox` and `DateTimeRangeCalendar` now mimick the disabled properly if the

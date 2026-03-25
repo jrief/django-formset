@@ -1,1 +1,1 @@
-<span {% if attrs.classBased %}class="{{ attrs.textColor }}"{% else %}style="color: {{ attrs.textColor }}"{% endif %}>{{ text }}</span>
+<span {% if attrs.classBased %}class="{{ attrs.textColor }}"{% else %}style="color: {{ attrs.textColor }}"{% endif %}>{% include "richtext/mark.html" %}</span>

@@ -1,9 +1,9 @@
 import re
 
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.template.loader import get_template, select_template
 from django.utils.functional import cached_property
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 
 from formset.dialog import DialogForm
 
@@ -313,7 +313,16 @@ class DialogControl(ControlElement):
         }
 
     def clean_content(self, richtext_field, content):
-        self.dialog_form.clean_content(richtext_field, content)
+        errmsg = gettext("Invalid content structure: Expected a list of dictionaries.")
+        if not isinstance(content, list):
+            raise ValidationError(errmsg)
+        for entry in content:
+            if not isinstance(entry, dict):
+                raise ValidationError(errmsg)
+            if 'content' in entry:
+                self.clean_content(richtext_field, entry['content'])
+            elif entry.get('type') == self.dialog_form.extension and 'attrs' in entry:
+                self.dialog_form.clean_content(richtext_field, entry['attrs'])
 
 
 class Separator(ControlElement):

@@ -167,6 +167,10 @@ django-formset {
 			}
 		}
 
+		input.dj-concealed {
+			@include concealed;
+		}
+
 		select, textarea {
 			background-image: none !important;
 
