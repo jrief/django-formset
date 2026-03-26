@@ -124,13 +124,13 @@ class FormRenderer(DefaultFormRenderer):
     })
 
 
-def richtext_attributes(attrs):
+def richtext_attributes(node):
     """
     Converts the internal representation of node attributes into a specific string such as
     ``class="specfic-css-class"``. This enforces paragraph styling according to Bootstrap's best practice.
     """
     classes = []
-    for key, value in attrs.items():
+    for key, value in node.get('attrs', {}).items():
         if not value:
             continue
         if key == 'textIndent' and value == 'indent':
@@ -145,5 +145,6 @@ def richtext_attributes(attrs):
             classes.append('text-center')
         elif key == 'textAlign' and value == 'right':
             classes.append('text-end')
-    attributes = format_html(' class="{}"', ' '.join(classes)) if classes else ''
-    return attributes
+    if classes:
+        return format_html(' class="{classes}"', classes=' '.join(classes))
+    return ''

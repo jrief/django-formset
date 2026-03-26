@@ -155,14 +155,14 @@ class FormRenderer(DjangoTemplates):
         return template.render(context, request=request).strip()
 
 
-def richtext_attributes(attrs):
+def richtext_attributes(node):
     """
-    Converts the internal representation of node attributes into a specific string such as
+    Converts the internal representation of a TipTap node into a specific string such as
     ``style="prop: value"`` or ``class="specfic-css-class"``. This is to enforce paragraph
     styling according to the CSS framework's best practice.
     """
     styles = {}
-    for key, value in attrs.items():
+    for key, value in node.get('attrs', {}).items():
         if not value:
             continue
         if key == 'textIndent' and value == 'indent':
@@ -174,5 +174,8 @@ def richtext_attributes(attrs):
         elif key == 'textAlign':
             styles.update({'text-align': value})
     if styles:
-        return format_html(' style="{}"', ' '.join(f'{prop}: {val};' for prop, val in styles.items()))
+        return format_html(
+            ' style="{style}"',
+            style=' '.join(f'{prop}: {val};' for prop, val in styles.items()),
+        )
     return ''
