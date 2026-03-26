@@ -896,7 +896,7 @@ class RichtextFormDialog extends FormDialogBase {
 				return;  // nothing selected
 			this.textSelectionField.value = doc.textBetween(selection.from, selection.to, '');
 		}
-		const extensionConfig = editor.extensionManager.extensions.find(ext => ext.name === this.extension)?.config;
+		const extensionConfig = editor.extensionManager.extensions.find(ext => ext.name === this.extension)?.config as any;
 		for (let inputElement of this.inputElements) {
 			if (inputElement.hasAttribute('richtext-bidirectional')) {
 				inputElement.value = getDataValue(attributes, inputElement.name) ?? '';
@@ -959,7 +959,7 @@ class RichtextFormDialog extends FormDialogBase {
 				return;
 			}
 			let attributes = {};
-			const extensionConfig = editor.extensionManager.extensions.find(ext => ext.name === this.extension)?.config;
+			const extensionConfig = editor.extensionManager.extensions.find(ext => ext.name === this.extension)?.config as any;
 			for (const inputElement of this.inputElements) {
 				let mapFunction: Function;
 				if (inputElement.hasAttribute('richtext-bidirectional')) {
@@ -1177,7 +1177,7 @@ class RichtextArea {
 		const limit = parseInt(this.textAreaElement.getAttribute('maxlength') ?? '');
 		if (limit > 0) {
 			extensions.push(CharacterCount.configure({limit}));
-			this.characterCountTemplate = template(`\${count}/${limit}`);
+			this.characterCountTemplate = template(`<%= count %>/${limit}`);
 			this.charaterCountDiv = document.createElement('div');
 			this.charaterCountDiv.classList.add('character-count');
 			this.wrapperElement.insertAdjacentElement('beforeend', this.charaterCountDiv);
