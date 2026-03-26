@@ -209,9 +209,10 @@ def test_tiptap_marks(page, viewname, menubar, contenteditable, control):
     contenteditable.type(lorem)
     assert contenteditable.inner_html() == f"<p>{lorem}</p>"
     select_text(contenteditable.locator('p'), 6, 11)
+    wait_until_idle(page)
     button = menubar.locator(f'[richtext-click="{control[0]}"]')
     button.click()
-    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
+    sleep(0.05)  # Playwright does not offer `expect(...).to_have_html()`
     assert contenteditable.inner_html() == f"<p>{lorem[:6]}<{control[1]}>{lorem[6:11]}</{control[1]}>{lorem[11:]}</p>"
     set_caret(page, contenteditable, 9)
     expect(button).to_have_class('active')
@@ -371,11 +372,11 @@ def test_tiptap_valid_simple_link(page, viewname, richtext_wrapper, menubar, con
     contenteditable.type(clickme)
     assert contenteditable.inner_html() == f"<p>{clickme}</p>"
     select_text(contenteditable.locator('p'), 6, 10)
+    wait_until_idle(page)
     menu_button = menubar.locator('button[name="text.dialog_simple_link"]')
     dialog = richtext_wrapper.locator('dialog[df-induce-open=".dialog_simple_link:active"]').first
     expect(dialog).not_to_be_visible()
     menu_button.click()
-    sleep(0.01)
     expect(dialog).to_be_visible()
     text_input = dialog.locator('input[name="text"]')
     expect(text_input).to_have_value("here")
@@ -402,6 +403,7 @@ def test_tiptap_invalid_simple_link(page, viewname, richtext_wrapper, menubar, c
     contenteditable.type(clickme)
     assert contenteditable.inner_html() == f"<p>{clickme}</p>"
     select_text(contenteditable.locator('p'), 6, 10)
+    wait_until_idle(page)
     menu_button = menubar.locator('button[name="text.dialog_simple_link"]')
     dialog = richtext_wrapper.locator('dialog[df-induce-open=".dialog_simple_link:active"]').first
     expect(dialog).not_to_be_visible()
