@@ -861,13 +861,31 @@ class CalendarSheet {
 			this.element.querySelectorAll(`ul[aria-labelledby]:not([aria-labelledby="${labelDateString}"])`).forEach(elem => {
 				elem.toggleAttribute('hidden', true);
 			});
-		} else {
-			this.element.querySelectorAll('li[aria-label], li[aria-details="midnight next day"]').forEach(elem => {
-				elem.classList.remove('selected', 'preselected', 'constricted', 'lower', 'upper');
-			});
-			this.element.querySelectorAll('ul[aria-labelledby]').forEach(elem => {
-				elem.toggleAttribute('hidden', true);
-			});
+		} else if (this.calendar.settings.sheetType === SheetType.dual) {
+			const restoreHourConstriction = (element: HTMLElement, date?: Date|null) => {
+				element.querySelectorAll('li[aria-label], li[aria-details="midnight next day"]').forEach(elem => {
+					elem.classList.remove('selected', 'preselected', 'constricted', 'lower', 'upper');
+				});
+				element.querySelectorAll('ul[aria-labelledby]').forEach(elem => {
+					elem.toggleAttribute('hidden', true);
+				});
+				if (date) {
+					const labelDateString = `${asUTCDate(date).toISOString().slice(0, 13)}:00`;
+					element.querySelectorAll(`li[aria-label="${labelDateString}"]`).forEach(elem => {
+						elem.classList.add('constricted');
+					});
+					element.querySelectorAll(`ul[aria-labelledby="${labelDateString}"]`).forEach(elem => {
+						elem.toggleAttribute('hidden', false);
+					});
+				}
+			};
+			restoreHourConstriction(this.element);
+			const dateRange = this.calendar.dateRange;
+			if (this.sheetType === SheetType.lower) {
+				restoreHourConstriction(this.calendar.calendarSheets[1]!.element, dateRange[1]);
+			} else if (this.sheetType === SheetType.upper) {
+				restoreHourConstriction(this.calendar.calendarSheets[0]!.element, dateRange[0]);
+			}
 		}
 		this.rangeSelectCssRule.selectorText = `${this.sheetSelector} .sheet-body ul:not(*)`;
 		const label = liElement.getAttribute('aria-label');
