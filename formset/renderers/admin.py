@@ -14,6 +14,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/div.html': 'formset/admin/form.html',
         'formset/default/collection.html': 'formset/admin/collection.html',
         'formset/default/fieldset.html': 'formset/admin/fieldset.html',
+        'formset/default/widgets/collection.html': 'formset/admin/widgets/collection.html',
         'formset/default/widgets/file.html': 'formset/admin/widgets/file.html',
         'formset/default/widgets/dual_selector.html': 'formset/admin/widgets/dual_selector.html',
     })
