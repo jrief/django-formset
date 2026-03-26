@@ -10,25 +10,21 @@ import {Editor, EditorEvents, Extension, Mark, Node, markPasteRule, mergeAttribu
 import {Plugin, PluginKey} from '@tiptap/pm/state';
 import Blockquote from '@tiptap/extension-blockquote';
 import Bold from '@tiptap/extension-bold';
-import BulletList from '@tiptap/extension-bullet-list';
-import CharacterCount from '@tiptap/extension-character-count';
 import CodeBlock from '@tiptap/extension-code-block';
 import Document from '@tiptap/extension-document';
 import HardBreak from '@tiptap/extension-hard-break';
 import {Heading, Level} from '@tiptap/extension-heading';
-import History from '@tiptap/extension-history';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
 import Italic from '@tiptap/extension-italic';
-import ListItem from '@tiptap/extension-list-item';
-import OrderedList from '@tiptap/extension-ordered-list';
+import {BulletList, ListItem, OrderedList} from '@tiptap/extension-list';
 import Paragraph from '@tiptap/extension-paragraph';
-import Placeholder from '@tiptap/extension-placeholder';
 import Strike from '@tiptap/extension-strike';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import Text from '@tiptap/extension-text';
 import {TextAlign, TextAlignOptions} from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
+import {CharacterCount, UndoRedo, Placeholder} from '@tiptap/extensions';
 import {TextIndent, TextIndentOptions } from '../tiptap-extensions/indent';
 import {TextMargin, TextMarginOptions } from '../tiptap-extensions/margin';
 import {TextColor} from '../tiptap-extensions/color';
@@ -142,7 +138,6 @@ abstract class DropdownAction extends Action {
 			const expanded = (force !== false && this.button.ariaExpanded === 'false');
 			this.button.ariaExpanded = expanded ? 'true' : 'false';
 			if (expanded) {
-				const textAreaElement = editor.options.element.nextElementSibling;
 				computePosition(this.button, this.dropdownMenu, {strategy: 'fixed'}).then(
 					({x, y}) => {
 						Object.assign(this.dropdownMenu!.style, {left: `${x}px`, top: `${y}px`});
@@ -572,7 +567,7 @@ namespace controls {
 	}
 
 	export class UndoAction extends Action {
-		protected readonly extensions = [History];
+		protected readonly extensions = [UndoRedo];
 
 		clicked(editor: Editor) {
 			editor.commands.undo();
@@ -580,7 +575,7 @@ namespace controls {
 	}
 
 	export class RedoAction extends Action {
-		protected readonly extensions = [History];
+		protected readonly extensions = [UndoRedo];
 
 		clicked(editor: Editor) {
 			editor.commands.redo();
