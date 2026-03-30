@@ -262,14 +262,18 @@ class CalendarSheet {
 			const label = elem.getAttribute('aria-label')!;
 			elem.classList.toggle('today', label === todayHourString);
 			const selector = `ul[aria-labelledby="${label}"]`;
-			if (lowerHourString === label.slice(0, 13)) {
-				elem.classList.add('constricted', 'lower');
+			const hourLabelString = label.slice(0, 13);
+			if ([lowerHourString, upperHourString].includes(hourLabelString)) {
+				elem.classList.add('constricted');
 				this.element.querySelector(selector)?.removeAttribute('hidden');
-			} else if (upperHourString === label.slice(0, 13)) {
-				elem.classList.add('constricted', 'upper');
-				this.element.querySelector(selector)?.removeAttribute('hidden');
+				if (this.calendar.settings.withRange) {
+					if (lowerHourString === hourLabelString) {
+						elem.classList.add( 'lower');
+					} else if (upperHourString === hourLabelString) {
+						elem.classList.add('upper');
+					}
+				}
 			}
-
 			if (this.element.querySelectorAll(`${selector} > li[data-date]:not([disabled])`).length === 0) {
 				elem.toggleAttribute('disabled', true);
 			}
@@ -844,7 +848,9 @@ class CalendarSheet {
 				this.element.querySelectorAll(`ul[aria-labelledby]:not([aria-labelledby="${labelDateString}"])`).forEach(elem => {
 					elem.toggleAttribute('hidden', true);
 				});
-				this.markDateRange(dateRange[0], new Date(elementDateString), true);
+				if (this.calendar.settings.withRange) {
+					this.markDateRange(dateRange[0], new Date(elementDateString), true);
+				}
 			}
 			this.setDate(liElement);
 			this.markSelectedDates();
@@ -862,12 +868,32 @@ class CalendarSheet {
 				elem.toggleAttribute('hidden', true);
 			});
 		} else {
-			this.element.querySelectorAll('li[aria-label], li[aria-details="midnight next day"]').forEach(elem => {
-				elem.classList.remove('selected', 'preselected', 'constricted', 'lower', 'upper');
-			});
-			this.element.querySelectorAll('ul[aria-labelledby]').forEach(elem => {
-				elem.toggleAttribute('hidden', true);
-			});
+			const restoreHourConstriction = (element: HTMLElement, date?: Date|null) => {
+				element.querySelectorAll('li[aria-label], li[aria-details="midnight next day"]').forEach(elem => {
+					elem.classList.remove('selected', 'preselected', 'constricted', 'lower', 'upper');
+				});
+				element.querySelectorAll('ul[aria-labelledby]').forEach(elem => {
+					elem.toggleAttribute('hidden', true);
+				});
+				if (date) {
+					const labelDateString = `${asUTCDate(date).toISOString().slice(0, 13)}:00`;
+					element.querySelectorAll(`li[aria-label="${labelDateString}"]`).forEach(elem => {
+						elem.classList.add('constricted');
+					});
+					element.querySelectorAll(`ul[aria-labelledby="${labelDateString}"]`).forEach(elem => {
+						elem.toggleAttribute('hidden', false);
+					});
+				}
+			};
+			restoreHourConstriction(this.element);
+			if (this.calendar.settings.sheetType === SheetType.dual) {
+				const dateRange = this.calendar.dateRange;
+				if (this.sheetType === SheetType.lower) {
+					restoreHourConstriction(this.calendar.calendarSheets[1]!.element, dateRange[1]);
+				} else if (this.sheetType === SheetType.upper) {
+					restoreHourConstriction(this.calendar.calendarSheets[0]!.element, dateRange[0]);
+				}
+			}
 		}
 		this.rangeSelectCssRule.selectorText = `${this.sheetSelector} .sheet-body ul:not(*)`;
 		const label = liElement.getAttribute('aria-label');
@@ -988,7 +1014,7 @@ class CalendarSheet {
 	private getSheetBounds() : [Date, Date] {
 		const firstItem = this.calendarItems.item(0);
 		const lastItem = this.calendarItems.item(this.calendarItems.length - 1);
-		const lower= new Date(firstItem.dataset.date!);
+		const lower = new Date(firstItem.dataset.date!);
 		const upper = new Date(lastItem.dataset.date!);
 		return [lower, upper];
 	}
