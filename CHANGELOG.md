@@ -1,6 +1,8 @@
 ## Changes
 
 - 2.2.4
+  * Fix #266: Timing issue in widgets `DateField` and `DateTimeField`. Input focus switched before
+    processing user input in Firefox and Safari browsers.
   * Better handling of methods `clean_content` in RichtextArea and its dialog forms.
   * Fix: Richtext rendering for text nodes with multiple marks now handled properly.
   * Fix: In forms Meta classes using `fields_map`, the initial value is ignored.

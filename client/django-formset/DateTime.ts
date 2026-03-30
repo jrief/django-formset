@@ -453,7 +453,7 @@ class DateTimeField extends Widget {
 				}
 				const maxLength = hasFocus.ariaPlaceholder?.length ?? 0;
 				if (hasFocus.innerText.length === maxLength - 1) {
-					setTimeout(() => this.nextInputField?.focus(), 0);
+					requestIdleCallback(() => this.nextInputField?.focus());
 				}
 				return hasFocus.innerText.length === maxLength;
 			default:
