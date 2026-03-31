@@ -8,6 +8,8 @@ on:
       - '**.md'
       - '**.rst'
       - '/docs/**'
+      - '.deployment/*'
+      - '.github/workflows/*'
   pull_request:
     branches:
       - develop
@@ -15,6 +17,8 @@ on:
       - '**.md'
       - '**.rst'
       - '/docs/**'
+      - '.deployment/*'
+      - '.github/workflows/*'
 
 jobs:
   build:
