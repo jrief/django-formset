@@ -777,7 +777,9 @@ class CalendarSheet {
 		if (!sheetBody)
 			throw new Error("Missing sheet body element for showing calendar date range");
 
-		sheetBody.insertAdjacentHTML('afterbegin', '<div class="aside-left"><time></time></div>');
+		if (!sheetBody.querySelector('.aside-left')) {
+			sheetBody.insertAdjacentHTML('afterbegin', '<div class="aside-left"><time></time></div>');
+		}
 		const leftAsideElement = sheetBody.querySelector('.aside-left > time') as HTMLTimeElement;
 		const firstItem = this.element.querySelector('li[data-date]:first-child')!;
 		const firstDate = this.getDate(firstItem);
@@ -790,7 +792,9 @@ class CalendarSheet {
 			leftAsideElement.textContent = '';
 		}
 
-		sheetBody.insertAdjacentHTML('beforeend', '<div class="aside-right"><time></time></div>');
+		if (!sheetBody.querySelector('.aside-right')) {
+			sheetBody.insertAdjacentHTML('beforeend', '<div class="aside-right"><time></time></div>');
+		}
 		const rightAsideElement = sheetBody.querySelector('.aside-right > time') as HTMLTimeElement;
 		const lastItem = this.element.querySelector('li[data-date]:last-child')!;
 		const lastDate = this.getDate(lastItem);
