@@ -41,5 +41,5 @@ await build({
     }),
   ],
   loader: {'.svg': 'text'},
-  target: ['es2020', 'chrome84', 'firefox84', 'safari14', 'edge84']
+  target: ['es2022', 'chrome100', 'firefox100', 'safari15', 'edge100']
 }).catch(() => process.exit(1));
