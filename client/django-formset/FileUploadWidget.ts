@@ -167,8 +167,12 @@ export class FileUploadWidget {
 			const complete = event.lengthComputable ? event.loaded / event.total : 0;
 			if (self.progressBar) {
 				self.progressBar.style.visibility = 'visible';
-				// the remaining 3% of the progress bar are reserved for image transformation
-				self.progressBar.value = 0.97 * complete;
+				if (complete < 1) {
+					self.progressBar.value = complete;
+				} else {
+					self.progressBar.value = 1;
+					self.progressBar.classList.add('processing');
+				}
 			}
 		}
 
@@ -180,6 +184,7 @@ export class FileUploadWidget {
 			function transferComplete() {
 				if (self.progressBar) {
 					self.progressBar.value = 1;
+					self.progressBar.classList.remove('processing');
 					window.setTimeout(() => self.progressBar!.style.visibility = 'hidden', 333);
 				}
 				if (request.status === 200) {
@@ -191,6 +196,7 @@ export class FileUploadWidget {
 
 			const request = new XMLHttpRequest();
 			if (self.progressBar) {
+				self.progressBar.classList.remove('processing');
 				request.addEventListener('loadstart', updateProgress);
 				request.upload.addEventListener('progress', updateProgress, false);
 			}
@@ -257,7 +263,7 @@ export class FileUploadWidget {
 		let loaded = false;
 		for (let index = 0; declaredStyles.sheet && index < declaredStyles.sheet.cssRules.length; index++) {
 			const cssRule = declaredStyles.sheet.cssRules.item(index) as CSSStyleRule;
-			const selector = cssRule.selectorText.trim();
+			const selector = cssRule.selectorText?.trim();
 			let extraStyles = '';
 			switch (selector) {
 				case this.baseSelector:
