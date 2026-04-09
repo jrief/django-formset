@@ -83,7 +83,7 @@
 				background-color: $selected-item-background-color;
 			}
 			> time:not(:empty) {
-				transform: rotate(-90deg) translate(-160px, 0);
+				transform: rotate(-90deg);
 				transform-origin: top left;
 			}
 		}
@@ -92,7 +92,7 @@
 				background-color: $selected-item-background-color;
 			}
 			> time:not(:empty) {
-				transform: rotate(90deg) translate(16px, -24px);
+				transform: rotate(90deg);
 				transform-origin: top left;
 			}
 		}
