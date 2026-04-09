@@ -92,6 +92,7 @@ class CalendarSheet {
 	private maxYearDate?: Date;
 	private readonly rangeSelectCssRule: CSSStyleRule;
 	private readonly rangeSelectorText: string;
+	private readonly asideElementOffsetTop = 40;
 
 	constructor(calendar: CalendarWidget, element: HTMLElement, sheetType: SheetType) {
 		this.calendar = calendar;
@@ -187,6 +188,7 @@ class CalendarSheet {
 	}
 
 	private registerCalendar() {
+		const settings = this.calendar.settings;
 		this.viewMode = this.getViewMode();
 		this.prevSheetDate = this.getDate('button.prev');
 		const prevButton = this.element.querySelector('button.prev');
@@ -196,14 +198,14 @@ class CalendarSheet {
 		const nextButton = this.element.querySelector('button.next');
 		const extendButton = this.element.querySelector('button.extend');
 		this.extendSheetDate = extendButton ? this.getDate(extendButton) : undefined;
-		if (this.calendar.settings.withRange) {
+		if (settings.withRange) {
 			prevButton?.addEventListener('mouseenter', this.hoverPrevButton);
 		}
 		prevButton?.addEventListener('click', this.turnPrev, {once: true});
 		narrowButton?.addEventListener('click', this.turnNarrow, {once: true});
 		extendButton?.addEventListener('click', this.turnExtend, {once: true});
 		this.element.querySelector('button.today')?.addEventListener('click', this.turnToday, {once: true});
-		if (this.calendar.settings.withRange) {
+		if (settings.withRange) {
 			nextButton?.addEventListener('mouseenter', this.hoverNextButton);
 		}
 		nextButton?.addEventListener('click', this.turnNext, {once: true});
@@ -228,6 +230,9 @@ class CalendarSheet {
 			textElem.textContent = String((new Date()).getDate());
 		}
 		this.sheetBounds = this.getSheetBounds();
+		if (settings.sheetType === SheetType.plain) {
+			this.showDateRange();
+		}
 		this.markSelectedDates();
 	}
 
@@ -791,6 +796,8 @@ class CalendarSheet {
 			leftAsideElement.dateTime = '';
 			leftAsideElement.textContent = '';
 		}
+		const leftAsideRect = leftAsideElement.getBoundingClientRect();
+		leftAsideElement.style.translate = `0 ${leftAsideRect.height + this.asideElementOffsetTop}px`;
 
 		if (!sheetBody.querySelector('.aside-right')) {
 			sheetBody.insertAdjacentHTML('beforeend', '<div class="aside-right"><time></time></div>');
@@ -806,6 +813,8 @@ class CalendarSheet {
 			rightAsideElement.dateTime = '';
 			rightAsideElement.textContent = '';
 		}
+		const rightAsideRect = rightAsideElement.getBoundingClientRect();
+		rightAsideElement.style.translate = `${rightAsideRect.width}px ${this.asideElementOffsetTop}px`;
 	}
 
 	private async selectToday() {
@@ -990,11 +999,12 @@ class CalendarSheet {
 	}
 
 	public async fetchCalendar(atDate: Date, viewMode?: ViewMode) {
+		const settings = this.calendar.settings;
 		const query = new URLSearchParams([
 			['date', asUTCDate(atDate).toISOString().slice(0, 10)],
 			['mode', viewMode ?? this.viewMode],
 		]);
-		if (this.calendar.settings.hour12) {
+		if (settings.hour12) {
 			query.set('hour12', '');
 		}
 		if (this.interval) {
@@ -1007,7 +1017,7 @@ class CalendarSheet {
 		this.element.classList.remove('loading');
 		if (response.status === 200) {
 			this.element.innerHTML = await response.text();
-			if (this.calendar.settings.sheetType === SheetType.plain) {
+			if (settings.sheetType === SheetType.plain) {
 				this.showDateRange();
 			}
 		} else {
