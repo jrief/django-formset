@@ -1,5 +1,18 @@
 ## Changes
 
+- 2.3
+  * Add support for Django-6.0 and Python-3.12.
+  * Add widgets `DateRangeDualCalendar`, `DateTimeRangeDualCalendar`, `DateRangeDualPicker` and
+    `DateTimeRangeDualPicker` which show two calendars side by side to select a lower- and upper
+    timestamp in a datetime range.
+  * Add registry to add 3rd party components defined outside of the **django-formset** library.
+  * Fix: Rendering of `CollectionsField` in **django-formset**'s `ModelAdmin` was inconsistent.
+  * Refactor function `richtext_attributes` to use the TipTap document node.
+  * Upgrade Richtext editor to TipTap version 3.
+  * Upgrade esbuild to compilation target ES2022.
+  * In `FileUploadWidget`, the progress bar now distinguishes between uploading and its final
+    processing using an animated background image.
+
 - 2.2.4
   * Better handling of methods `clean_content` in RichtextArea and its dialog forms.
   * Fix: Richtext rendering for text nodes with multiple marks now handled properly.
