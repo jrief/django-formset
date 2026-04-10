@@ -140,52 +140,35 @@ def contenteditable(richtext_wrapper):
     return contenteditable
 
 
-def select_text(paragraph, start, end):
+def select_text(page, paragraph, start, end):
     paragraph.evaluate(f'''paragraph => {{
         const selection = window.getSelection();
         const range = document.createRange();
+        const walker = document.createTreeWalker(paragraph, NodeFilter.SHOW_TEXT);
         let start = {start};
-        for (let k = 0; k < paragraph.childNodes.length; k++) {{
-            let childNode = paragraph.childNodes[k];
-            if (childNode instanceof HTMLSpanElement) {{
-                if (start > childNode.textContent.length) {{
-                    start -= childNode.textContent.length;
-                }} else {{
-                    childNode = childNode.childNodes[0];
-                }}
+        while (walker.nextNode()) {{
+            const node = walker.currentNode;
+            if (start <= node.length) {{
+                range.setStart(node, start);
+                break;
             }}
-            if (childNode instanceof Text) {{
-                if (start > childNode.length) {{
-                    start -= childNode.length;
-                }} else {{
-                    range.setStart(childNode, start);
-                    break;
-                }}
-            }}
+            start -= node.length;
         }}
         let end = {end};
-        for (let k = 0; k < paragraph.childNodes.length; k++) {{
-            let childNode = paragraph.childNodes[k];
-            if (childNode instanceof HTMLSpanElement) {{
-                if (end > childNode.textContent.length) {{
-                    end -= childNode.textContent.length;
-                }} else {{
-                    childNode = childNode.childNodes[0];
-                }}
+        walker.currentNode = paragraph;
+        while (walker.nextNode()) {{
+            const node = walker.currentNode;
+            if (end <= node.length) {{
+                range.setEnd(node, end);
+                break;
             }}
-            if (childNode instanceof Text) {{
-                if (end > childNode.length) {{
-                    end -= childNode.length;
-                }} else {{
-                    range.setEnd(childNode, end);
-                    break;
-                }}
-            }}
+            end -= node.length;
         }}
         selection.removeAllRanges();
         selection.addRange(range);
+        document.dispatchEvent(new Event('selectionchange'));
     }}''')
-    sleep(0.05)
+    wait_until_idle(page)
 
 
 def wait_until_idle(page):
@@ -193,12 +176,26 @@ def wait_until_idle(page):
 
 
 def set_caret(page, contenteditable, position):
-    contenteditable.click(position={'x': 2, 'y': 2})
-    page.keyboard.press('Home')
-    sleep(0.05)
-    for _ in range(position):
-        page.keyboard.press('ArrowRight')
-        sleep(0.05)
+    contenteditable.evaluate(f'''contenteditable => {{
+        contenteditable.focus();
+        const walker = document.createTreeWalker(contenteditable, NodeFilter.SHOW_TEXT);
+        let pos = {position};
+        while (walker.nextNode()) {{
+            const node = walker.currentNode;
+            if (pos <= node.length) {{
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.setStart(node, pos);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                document.dispatchEvent(new Event('selectionchange'));
+                return;
+            }}
+            pos -= node.length;
+        }}
+    }}''')
+    wait_until_idle(page)
 
 
 @pytest.mark.urls(__name__)
@@ -207,13 +204,12 @@ def set_caret(page, contenteditable, position):
 def test_tiptap_marks(page, viewname, menubar, contenteditable, control):
     lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
     contenteditable.type(lorem)
-    assert contenteditable.inner_html() == f"<p>{lorem}</p>"
-    select_text(contenteditable.locator('p'), 6, 11)
-    wait_until_idle(page)
+    expect(contenteditable.locator('p')).to_have_text(lorem)
+    select_text(page, contenteditable.locator('p'), 6, 11)
     button = menubar.locator(f'[richtext-click="{control[0]}"]')
     button.click()
-    sleep(0.05)  # Playwright does not offer `expect(...).to_have_html()`
-    assert contenteditable.inner_html() == f"<p>{lorem[:6]}<{control[1]}>{lorem[6:11]}</{control[1]}>{lorem[11:]}</p>"
+    wait_until_idle(page)
+    expect(contenteditable.locator(f'p > {control[1]}')).to_have_text(lorem[6:11])
     set_caret(page, contenteditable, 9)
     expect(button).to_have_class('active')
 
@@ -223,7 +219,7 @@ def test_tiptap_marks(page, viewname, menubar, contenteditable, control):
 def test_tiptap_many_headings(page, viewname, menubar, contenteditable):
     heading = "Tiptap Editor"
     contenteditable.type(heading)
-    assert contenteditable.inner_html() == f"<p>{heading}</p>"
+    expect(contenteditable.locator('p')).to_have_text(heading)
     set_caret(page, contenteditable, 0)
     menu_button = menubar.locator('[richtext-click="heading"]')
     submenu = menubar.locator('[richtext-click="heading"] + ul[role="menu"]')
@@ -231,8 +227,7 @@ def test_tiptap_many_headings(page, viewname, menubar, contenteditable):
     menu_button.click()
     expect(submenu).to_be_visible()
     submenu.locator('[richtext-click="heading:1"]').click()
-    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
-    assert contenteditable.inner_html() == f"<h1>{heading}</h1>"
+    expect(contenteditable.locator('h1')).to_have_text(heading)
     set_caret(page, contenteditable, 5)
     expect(menu_button).to_have_class('active')
     expect(submenu).not_to_be_visible()
@@ -248,19 +243,17 @@ def test_tiptap_many_headings(page, viewname, menubar, contenteditable):
 def test_tiptap_single_heading(page, viewname, menubar, contenteditable):
     heading = "Tiptap Editor"
     contenteditable.type(heading)
-    assert contenteditable.inner_html() == f"<p>{heading}</p>"
+    expect(contenteditable.locator('p')).to_have_text(heading)
     set_caret(page, contenteditable, 0)
     menu_button = menubar.locator('[richtext-click="heading:2"]')
     submenu = menubar.locator('[richtext-click="heading:2"] + ul[role="menu"]')
     expect(submenu).to_have_count(0)  # no submenu for single heading
     menu_button.click()
-    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
-    assert contenteditable.inner_html() == f"<h2>{heading}</h2>"
+    expect(contenteditable.locator('h2')).to_have_text(heading)
     set_caret(page, contenteditable, 5)
     expect(menu_button).to_have_class('active')
     menu_button.click()  # toggle has no affect
-    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
-    assert contenteditable.inner_html() == f"<h2>{heading}</h2>"
+    expect(contenteditable.locator('h2')).to_have_text(heading)
 
 
 @pytest.mark.urls(__name__)
@@ -268,12 +261,11 @@ def test_tiptap_single_heading(page, viewname, menubar, contenteditable):
 def test_tiptap_blockquote(page, viewname, menubar, contenteditable):
     block = "Tiptap Block"
     contenteditable.type(block)
-    assert contenteditable.inner_html() == f"<p>{block}</p>"
+    expect(contenteditable.locator('p')).to_have_text(block)
     set_caret(page, contenteditable, 0)
     menu_button = menubar.locator('[richtext-click="blockquote"]')
     menu_button.click()
-    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
-    assert contenteditable.inner_html() == f"<blockquote><p>{block}</p></blockquote>"
+    expect(contenteditable.locator('blockquote > p')).to_have_text(block)
     set_caret(page, contenteditable, 5)
     expect(menu_button).to_have_class('active')
 
@@ -284,7 +276,7 @@ def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
     lorem = "Lorem ipsum dolor sit amet."
     contenteditable.type(lorem)
     expect(contenteditable.locator('p')).to_have_text(lorem)
-    select_text(contenteditable.locator('p'), 6, 17)
+    select_text(page, contenteditable.locator('p'), 6, 17)
     family_menu_button = menubar.locator('[richtext-click="classBasedMark:fontFamily"]')
     family_menu_button.click()
     wait_until_idle(page)
@@ -306,7 +298,7 @@ def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
     expect(family_menu_button.locator('+ ul[role="menu"]')).not_to_be_visible()
 
     # add another class to overlapping selection
-    select_text(contenteditable.locator('p'), 12, 21)
+    select_text(page, contenteditable.locator('p'), 12, 21)
     fontsize_menu_button = menubar.locator('[richtext-click="classBasedMark:fontSize"]')
     expect(fontsize_menu_button).not_to_have_class('active')
     fontsize_menu_button.click()
@@ -336,7 +328,7 @@ def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
 def test_tiptap_classbased_node(page, viewname, menubar, contenteditable):
     lorem = "Lorem ipsum dolor sit amet."
     contenteditable.type(lorem)
-    assert contenteditable.inner_html() == f"<p>{lorem}</p>"
+    expect(contenteditable.locator('p')).to_have_text(lorem)
     set_caret(page, contenteditable, 1)
     lineheight_menu_button = menubar.locator('[richtext-click="classBasedNode:lineHeight"]')
     lineheight_menu_button.click()
@@ -344,8 +336,7 @@ def test_tiptap_classbased_node(page, viewname, menubar, contenteditable):
     submenu_items = lineheight_menu_button.locator('+ ul[role="menu"] > li')
     expect(submenu_items).to_have_count(4)
     submenu_items.nth(2).click()
-    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
-    assert contenteditable.inner_html() == '<p class="line-height-medium">Lorem ipsum dolor sit amet.</p>'
+    expect(contenteditable.locator('p.line-height-medium')).to_have_text("Lorem ipsum dolor sit amet.")
     expect(lineheight_menu_button).to_have_class('active')
     expect(lineheight_menu_button.locator('+ ul[role="menu"] > li').nth(2)).to_have_class('active')
     marginbottom_menu_button = menubar.locator('[richtext-click="classBasedNode:marginBottom"]')
@@ -354,8 +345,7 @@ def test_tiptap_classbased_node(page, viewname, menubar, contenteditable):
     submenu_items = marginbottom_menu_button.locator('+ ul[role="menu"] > li')
     expect(submenu_items).to_have_count(4)
     submenu_items.nth(2).click()
-    sleep(0.01)  # Playwright does not offer `expect(...).to_have_html()`
-    assert contenteditable.inner_html() == '<p class="line-height-medium margin-bottom-2">Lorem ipsum dolor sit amet.</p>'
+    expect(contenteditable.locator('p.line-height-medium.margin-bottom-2')).to_have_text("Lorem ipsum dolor sit amet.")
     set_caret(page, contenteditable, 1)
     expect(lineheight_menu_button).to_have_class('active')
     expect(marginbottom_menu_button).to_have_class('active')
@@ -374,8 +364,7 @@ def test_tiptap_valid_simple_link(page, viewname, richtext_wrapper, menubar, con
     clickme = "Click here"
     contenteditable.type(clickme)
     assert contenteditable.inner_html() == f"<p>{clickme}</p>"
-    select_text(contenteditable.locator('p'), 6, 10)
-    wait_until_idle(page)
+    select_text(page, contenteditable.locator('p'), 6, 10)
     menu_button = menubar.locator('button[name="text.dialog_simple_link"]')
     dialog = richtext_wrapper.locator('dialog[df-induce-open=".dialog_simple_link:active"]').first
     expect(dialog).not_to_be_visible()
@@ -405,8 +394,7 @@ def test_tiptap_invalid_simple_link(page, viewname, richtext_wrapper, menubar, c
     clickme = "Click here"
     contenteditable.type(clickme)
     assert contenteditable.inner_html() == f"<p>{clickme}</p>"
-    select_text(contenteditable.locator('p'), 6, 10)
-    wait_until_idle(page)
+    select_text(page, contenteditable.locator('p'), 6, 10)
     menu_button = menubar.locator('button[name="text.dialog_simple_link"]')
     dialog = richtext_wrapper.locator('dialog[df-induce-open=".dialog_simple_link:active"]').first
     expect(dialog).not_to_be_visible()
