@@ -71,6 +71,7 @@ class DepartmentCollection(FormCollection):
                     return Department(name=form.cleaned_data['name'], company=self.instance), False
         return None, False
 
+
 class CompanyForm(ModelForm):
     class Meta:
         model = Company

@@ -23,6 +23,7 @@ django-formset .dj-control-panel:has(input[type="file"]) {
 	> div {
 		height: fit-content;
 		margin-left: 1rem;
+
 		progress {
 			width: 100%;
 			height: 1rem;
@@ -33,17 +34,35 @@ django-formset .dj-control-panel:has(input[type="file"]) {
 				border-radius: 0.5rem;
 			}
 
-			&::-webkit-progress-value, &::-moz-progress-bar {
+			&::-webkit-progress-value {
 				transition: width 0.3s ease;
 				background-color: $selected-item-background-color;
 				border-radius: 0.5rem;
 			}
 
-			&[value="1"]::-webkit-progress-value, &[value="1"]::-moz-progress-bar {
+			&::-moz-progress-bar {
+				transition: width 0.3s ease;
+				background-color: $selected-item-background-color;
+				border-radius: 0.5rem;
+			}
+
+			&[value="1"]::-webkit-progress-value {
 				background-color: $selected-item-border-color;
 			}
 
-			&.processing::-webkit-progress-value, &.processing::-moz-progress-bar {
+			&[value="1"]::-moz-progress-bar {
+				background-color: $selected-item-border-color;
+			}
+
+			&.processing::-webkit-progress-value {
+				background-color: $selected-item-background-color;
+				background-image: linear-gradient(-45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent);
+				background-size: 50px 50px;
+				background-repeat: repeat;
+				animation: progress-animation 2s linear infinite;
+			}
+
+			&.processing::-moz-progress-bar {
 				background-color: $selected-item-background-color;
 				background-image: linear-gradient(-45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent);
 				background-size: 50px 50px;
