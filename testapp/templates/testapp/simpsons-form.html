@@ -1,0 +1,12 @@
+{% extends "./native-form.html" %}
+{% load static %}
+
+{% block head %}
+	{{ block.super }}
+	<script src="{% static 'testapp/js/formset-extensions.js' %}"></script>
+{% endblock %}
+
+{% block main-content %}
+	<meta name="jacob" />
+	{{ block.super }}
+{% endblock %}

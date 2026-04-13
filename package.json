@@ -12,6 +12,7 @@
     "compilescss": "node assets/sass.config.mjs",
     "tailwindcss": "tailwindcss --input assets/tailwind-styles.css --config assets/tailwind.config.js --output formset/static/formset/css/tailwind.css",
     "docscss": "postcss docs/source/_templates/css/nested-styles.text --config assets/postcss.config.js --output docs/build/json/_static/styles/nested-styles.css",
+    "testapp-extensions": "node testapp/assets/formset-extensions/esbuild.config.mjs",
     "testclient": "jest",
     "sprite-flags": "node assets/sprite-flags.mjs"
   },
