@@ -1,0 +1,10 @@
+{% load static %}
+{% include "django/forms/widgets/input.html" %}
+<ul>
+{% for member, label in widget.simpsons %}
+	<li data-member="{{ member }}">
+		<label>{{ label }}</label>
+		<img src="{% static 'testapp/simpsons/'|add:member|add:'.svg' %}" />
+	</li>
+{% endfor %}
+</ul>

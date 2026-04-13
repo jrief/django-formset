@@ -49,6 +49,7 @@ Django's counterparts.
 	country-selectize
 	phone-number-field
 	admin-integration
+	extending-formset
 	development
 	contributing
 	faq
