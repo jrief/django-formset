@@ -50,12 +50,12 @@ member.
 	        context['widget']['simpsons'] = [
 	            ('abraham', "Abraham Simpson"),
 	            ('bart', "Bart Simpson"),
-	            ('burns', "Montgomery Burns"),
-	            ('flanders', "Ned Flanders"),
+	            ('homer', "Homer Simpson"),
+	            ('marge', "Marge Simpson"),
 	            ('lisa', "Lisa Simpson"),
 	            ('maggie', "Maggie Simpson"),
-	            ('marge', "Marge Simpson"),
-	            ('santas', "Santas the Dog"),
+	            ('flanders', "Ned Flanders"),
+	            ('santas', "Santas"),
 	        ]
 	        return context
 
@@ -125,10 +125,10 @@ state. Vice versa, it also updates the visual state when the value of the input 
 that the select area is always in sync with the value of the input field.
 
 .. note:: After this Web Component has been connected to the DOM, the input field will be
-	"concealed" which means that it becomes invisible to the user, but renmains "visible" to the
-	browser. This is done by reducing the size to one pixel and removing the border and background.
-	Using ``display: none;``, ``visibility: hidden;`` or ``width: 0;`` would make the input field
-	unresponsive to browser events and form validation would not work as intended. 
+	"concealed" which means that it becomes invisible to the user, but remains "visible" to the
+	browser. This is done by reducing its size to one pixel and removing the border, paddings and
+	background. Using ``display: none;``, ``visibility: hidden;`` or ``width: 0;`` would make the
+	input field unresponsive to browser events and hence form validation would not work as intended. 
 
 .. literalinclude:: ../../testapp/assets/formset-extensions/SimpsonsSelector.ts
 	:language: typescript
