@@ -1134,6 +1134,9 @@ class DjangoFieldset {
 		this.element = element;
 		this.updateVisibility = this.evalVisibility('df-show', true) ?? this.evalVisibility('df-hide', false) ?? function() {};
 		this.updateDisabled = this.evalDisable();
+		if (element.ariaExpanded) {
+			this.handleCollapse();
+		}
 	}
 
 	private evalVisibility(attribute: string, visible: boolean): Function|null {
@@ -1164,6 +1167,21 @@ class DjangoFieldset {
 			throw new Error(`Error while parsing <fieldset df-disable="${attrValue}">: ${error}.`);
 		}
 	}
+
+	private handleCollapse() {
+		const legendElement = this.element.querySelector(':scope > legend');
+		if (legendElement instanceof HTMLLegendElement) {
+			const fieldsetRect = this.element.getBoundingClientRect();
+			const legendRect = legendElement.getBoundingClientRect();
+			const collapsedHeight = legendRect.top > fieldsetRect.top ? legendRect.top - fieldsetRect.top + legendRect.height : 0;
+			this.element.style.setProperty('--collapsed-height', `${collapsedHeight}px`);
+			legendElement.addEventListener('click', this.toggleCollapse);
+		}
+	}
+
+	private toggleCollapse = (event: Event) => {
+		this.element.ariaExpanded = this.element.ariaExpanded === 'true' ? 'false' : 'true';
+	};
 
 	private getDataValue(path: Path) : string|undefined {
 		return this.form.getDataValue(path, `${this.element.name}.`);
