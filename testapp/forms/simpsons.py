@@ -11,12 +11,16 @@ class SimpsonSelector(TextInput):
         context['widget']['simpsons'] = [
             ('abraham', "Abraham Simpson"),
             ('bart', "Bart Simpson"),
-            ('burns', "Montgomery Burns"),
+            ('homer', "Homer Simpson"),
+            ('marge', "Marge Simpson"),
             ('flanders', "Ned Flanders"),
+            ('burns', "Montgomery Burns"),
             ('lisa', "Lisa Simpson"),
             ('maggie', "Maggie Simpson"),
-            ('marge', "Marge Simpson"),
-            ('santas', "Santas Dog"),
+            ('clancy', "Clancy Wiggum"),
+            ('milhouse', "Milhouse Van Houten"),
+            ('ralph', "Ralph"),
+            ('santas', "Santas dog"),
         ]
         return context
 
