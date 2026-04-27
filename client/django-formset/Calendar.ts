@@ -92,7 +92,7 @@ class CalendarSheet {
 	private maxYearDate?: Date;
 	private readonly rangeSelectCssRule: CSSStyleRule;
 	private readonly rangeSelectorText: string;
-	private readonly asideElementOffsetTop = 40;
+	private readonly asideElementOffsetTop = 15;
 
 	constructor(calendar: CalendarWidget, element: HTMLElement, sheetType: SheetType) {
 		this.calendar = calendar;
@@ -786,7 +786,7 @@ class CalendarSheet {
 			sheetBody.insertAdjacentHTML('afterbegin', '<div class="aside-left"><time></time></div>');
 		}
 		const leftAsideElement = sheetBody.querySelector('.aside-left > time') as HTMLTimeElement;
-		const firstItem = this.element.querySelector('li[data-date]:first-child')!;
+		const firstItem = this.element.querySelector('ul > li[data-date]:first-child')!;
 		const firstDate = this.getDate(firstItem);
 		if (dateRange[1] && dateRange[1] < firstDate) {
 			setAsideElement(leftAsideElement, dateRange[1]);
@@ -803,7 +803,7 @@ class CalendarSheet {
 			sheetBody.insertAdjacentHTML('beforeend', '<div class="aside-right"><time></time></div>');
 		}
 		const rightAsideElement = sheetBody.querySelector('.aside-right > time') as HTMLTimeElement;
-		const lastItem = this.element.querySelector('li[data-date]:last-child')!;
+		const lastItem = this.element.querySelector('ul:last-child > li[data-date]:last-child')!;
 		const lastDate = this.getDate(lastItem);
 		if (dateRange[0] && dateRange[0] > lastDate) {
 			setAsideElement(rightAsideElement, dateRange[0]);

@@ -132,16 +132,16 @@
 					&.lower {
 						background: linear-gradient(
 								to top left,
-								$calendar-range-background-color 50%,
-								transparent 50%
+								$calendar-range-background-color 47%,
+								transparent 53%,
 						);
 					}
 
 					&.upper {
 						background: linear-gradient(
 								to bottom right,
-								$calendar-range-background-color 50%,
-								transparent 50%
+								$calendar-range-background-color 47%,
+								transparent 53%
 						);
 					}
 				}
