@@ -8,6 +8,7 @@ declare module '*.svg' {
 }
 declare function gettext(s: string): string;
 declare function ngettext(s1: string, s2: string, count: number): string;
+// @ts-ignore
 declare global {
 	interface Window {
 		djangoFormsetComponents: Array<{selector: string, loader: (fragmentRoot: Document|DocumentFragment) => Promise<void>}>;
