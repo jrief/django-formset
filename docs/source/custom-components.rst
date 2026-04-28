@@ -1,8 +1,8 @@
-.. _extending-formset:
+.. _custom-components:
 
-=================================================
-Extending django-formset with your own Components
-=================================================
+=================
+Custom Components
+=================
 
 .. raw:: html
 
@@ -12,13 +12,15 @@ Extending django-formset with your own Components
 
 Sometimes the widgets provided by **django-formset** are not sufficient for your needs. In this case
 you can create your own combination of a Web Component and a Django widget, and use them in your
-forms. A proven approach is to create a Web Component that mimics the behavior of an existing HTML
-input element, and then use it as a drop-in replacement for the corresponding Django widget. This
+forms just as you would use do with widgets provided by Django itself.
+
+A proven approach is to create a Web Component that mimics the behavior of an existing HTML input
+element, and then use it as a drop-in replacement for the corresponding Django widget. This
 way, you can leverage the existing form handling and validation logic of Django, while providing a
 custom user interface.
 
 We therefore create a Django widget that renders an HTML input field and optionally additional
-elements. Since we want that input element to behave like a Web Component, we can use the
+elements. Since we want that input element to behave like a Web Component, we typically use the
 `is="my-component" <https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/is>`_
 syntax for that purpose.
 
@@ -146,4 +148,4 @@ in the global scope of **django-formset**, so that it can be used inside our mai
 
 .. rubric:: Footnotes
 
-Icons for the Simpson family are provided by `icons8.com <https://icons8.com/>`_.
+Icons for the Simpson family are provided by `icons8.com <https://icons8.com/icons/set/simpsons>`_.
