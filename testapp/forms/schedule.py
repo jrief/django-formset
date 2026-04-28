@@ -18,6 +18,7 @@ class ScheduleCalendarForm(forms.Form):
     date_range = DateTimeRangeField(
         widget=DateTimeRangeCalendar(attrs={
             'step': timedelta(minutes=10),
+            'show-upper': True,
         }),
         initial=(
             datetime(2024, 9, 9, 9, 40),

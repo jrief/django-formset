@@ -19,7 +19,7 @@ enum Direction {
 }
 
 
-enum SheetType {
+export enum SheetType {
 	compact,
 	plain,
 	lower,
@@ -33,6 +33,7 @@ export type CalendarSettings = {
 	withRange: boolean,  // if true, a range of dates can be selected
 	hour12: boolean,  // if true, use 12-hour format
 	sheetType: SheetType,
+	showUpper: boolean,
 	inputElement: HTMLInputElement,  // input element to pilfer styles from
 	updateDate: Function,  // callback to update date input
 	close: Function,  // callback to close calendar
@@ -1151,14 +1152,12 @@ export class CalendarWidget extends Widget {
 	}
 
 	public updateDate(currentDate: Date|null, extendedDate: Date|null) {
+		this.dateRange = [currentDate, extendedDate];
 		if (currentDate) {
-			this.dateRange = [currentDate, extendedDate];
-			this.calendarSheets[0].fetchCalendar(currentDate);
+			this.calendarSheets[0].fetchCalendar(this.settings.showUpper && extendedDate ? extendedDate : currentDate);
 			if (this.calendarSheets[1] && extendedDate) {
 				this.calendarSheets[1].fetchCalendar(extendedDate);
 			}
-		} else {
-			this.dateRange = [null, null];
 		}
 	}
 
@@ -1198,6 +1197,7 @@ export class DateCalendarElement extends HTMLInputElement {
 			inputElement: this,
 			hour12: dateTimeFormat.resolvedOptions().hour12 ?? false,
 			sheetType: CalendarSettings.layoutToSheetType(calendarElement),
+			showUpper: false,
 			updateDate: (date: Date) => {
 				this.value = date.toISOString().slice(0, 10);
 				this.dispatchEvent(new Event('input'));
@@ -1236,6 +1236,7 @@ export class DateTimeCalendarElement extends HTMLInputElement {
 			inputElement: this,
 			hour12: dateTimeFormat.resolvedOptions().hour12 ?? false,
 			sheetType: CalendarSettings.layoutToSheetType(calendarElement),
+			showUpper: false,
 			updateDate: (date: Date) => {
 				this.value = date.toISOString().slice(0, 16);
 				this.dispatchEvent(new Event('input'));
@@ -1268,12 +1269,14 @@ export class DateRangeCalendarElement extends HTMLInputElement {
 		if (!(calendarElement instanceof HTMLElement))
 			throw new Error(`Could not find calendar element for ${this}`);
 		const dateTimeFormat = Intl.DateTimeFormat(navigator.language, {hour: '2-digit'});
+		const sheetType = CalendarSettings.layoutToSheetType(calendarElement);
 		const settings: CalendarSettings = {
 			dateOnly: true,
 			withRange: true,
 			inputElement: this,
 			hour12: dateTimeFormat.resolvedOptions().hour12 ?? false,
-			sheetType: CalendarSettings.layoutToSheetType(calendarElement),
+			sheetType: sheetType,
+			showUpper: [SheetType.compact, SheetType.plain].includes(sheetType) && this.hasAttribute('show-upper'),
 			updateDate: (lowerDate: Date, upperDate?: Date) => {
 				const dateStrings = [
 					`${asUTCDate(lowerDate).toISOString().slice(0, 10)}T00:00`,
@@ -1311,12 +1314,14 @@ export class DateTimeRangeCalendarElement extends HTMLInputElement {
 		if (!(calendarElement instanceof HTMLElement))
 			throw new Error(`Could not find calendar element for ${this}`);
 		const dateTimeFormat = Intl.DateTimeFormat(navigator.language, {hour: '2-digit'});
+		const sheetType = CalendarSettings.layoutToSheetType(calendarElement);
 		const settings: CalendarSettings = {
 			dateOnly: false,
 			withRange: true,
 			inputElement: this,
 			hour12: dateTimeFormat.resolvedOptions().hour12 ?? false,
-			sheetType: CalendarSettings.layoutToSheetType(calendarElement),
+			sheetType: sheetType,
+			showUpper: [SheetType.compact, SheetType.plain].includes(sheetType) && this.hasAttribute('show-upper'),
 			updateDate: (lowerDate: Date, upperDate?: Date) => {
 				const dateStrings = [
 					asUTCDate(lowerDate).toISOString().slice(0, 16),

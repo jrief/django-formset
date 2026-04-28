@@ -5,6 +5,9 @@
   * Add widgets `DateRangeDualCalendar`, `DateTimeRangeDualCalendar`, `DateRangeDualPicker` and
     `DateTimeRangeDualPicker` which show two calendars side by side to select a lower- and upper
     timestamp in a datetime range.
+  * Widgets `DateRangePicker`, `DateTimeRangePicker`, `DateRangeCalendar` and
+    `DateTimeRangeCalendar` now accept the optional attribute `show-upper` which loads the
+    calendar's upper date sheet for a set date-time-range.
   * Add registry to add 3rd party components defined outside of the **django-formset** library.
   * Fix: Rendering of `CollectionsField` in **django-formset**'s `ModelAdmin` was inconsistent.
   * Refactor function `richtext_attributes` to use the TipTap document node.

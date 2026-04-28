@@ -1,5 +1,5 @@
 import {autoUpdate, computePosition, flip, shift} from '@floating-ui/dom';
-import {CalendarWidget, CalendarSettings} from './Calendar';
+import {CalendarWidget, CalendarSettings, SheetType} from './Calendar';
 import {Widget} from './Widget';
 import {StyleHelpers, asUTCDate} from './helpers';
 import styles from './DateTime.scss';
@@ -96,10 +96,12 @@ class DateTimeField extends Widget {
 	}
 
 	private getCalendarSettings(calendarElement: HTMLElement) : CalendarSettings {
+		const sheetType = CalendarSettings.layoutToSheetType(calendarElement)
 		const settings: CalendarSettings = {
 			dateOnly: this.dateOnly,
 			withRange: this.withRange,
-			sheetType: CalendarSettings.layoutToSheetType(calendarElement),
+			sheetType: sheetType,
+			showUpper: sheetType === SheetType.compact && this.inputElement.hasAttribute('show-upper'),
 			inputElement: this.inputElement,
 			hour12: this.hour12,
 			updateDate: (currentDate: Date, extendedDate: Date|null|boolean) => this.updateDate(currentDate, extendedDate),
