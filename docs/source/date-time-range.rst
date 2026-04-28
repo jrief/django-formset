@@ -98,8 +98,8 @@ calendar widgets: when no ``step`` attribute is provided, or when ``step`` is se
 	        label="Shift",
 	        widget=DateTimeRangePicker(),
 	        initial=(
-	            datetime(2026, 4, 6, 8, 0),
-	            datetime(2026, 4, 6, 16, 0),
+	            datetime(2026, 4, 7, 8, 0),
+	            datetime(2026, 4, 24, 16, 0),
 	        ),
 	    )
 
@@ -130,6 +130,11 @@ The ``DateTimeRangeField`` can be configured to use one of these widgets:
 Here the calendar only renders the hour cells. If the granularity of the calendar is shorter, a
 minutes view is rendered as well. Having to deal with two timestamps inside the same calendar sheet
 can be tricky.
+
+When using the calendar picker in hour mode, there is one more thing to consider: After the starting
+date has been selected, the calendar picker will show an additional cell named "24h" or "12am". This
+special cell is added, so that the user can select end of day and doesn't have to navigate to the
+next day and chose midnight there.
 
 
 Date-Time-Range Picker with Dual Calendar Sheets
@@ -180,9 +185,9 @@ calendar sheets for entering the lower and upper date. Having to enter two times
 calendar sheet, can be tricky. Therefore it is recommended to use this widget to facilitate the
 input of timestamps.
 
-When using the calendar picker in hour mode, there is one more thing to consider: After the starting
-date has been selected, the calendar picker will show the an additional cell named "24h" or "12am".
-This is so that the user can select end of day and doesn't have to navigate to the next day and
+When using the calendar picker in hour mode, there is one more thing to consider: The calendar sheet
+to select the upper date-time will show an additional cell named "24h" or "12am". This special cell
+is added, so that the user can select end of day and doesn't have to navigate to the next day and
 chose midnight there.
 
 .. note:: The view uses the :class:`formset.calendar.CalendarResponseMixin` to render the calendar,
@@ -229,6 +234,32 @@ two timestamps without any granularity.
 Since this widget is a plain text input without a calendar sheet, the user can type any valid
 date-time down to the minute. No :class:`formset.calendar.CalendarResponseMixin` is needed on the
 view.
+
+
+Extra Widget Attributes
+=======================
+
+The date- and date-time-range widgets accept the following extra attributes:
+
+* ``step``: This attribute specifies the granularity of the calendar for the widgets
+  ``DateTimeRangePicker``, ``DateTimeRangeDualPicker``, ``DateTimeRangeCalendar`` and
+  ``DateTimeRangeDualCalendar``. The value of this attribute must be a ``datetime.timedelta``
+  object.
+* ``min``: This attribute specifies the minimum date or date-time that can be selected in the
+  calendar. The value of this attribute must be a date or date-time object. List items with a date
+  or date-time smaller than this value are disabled in the calendar.
+* ``max``: This attribute specifies the maximum date or date-time that can be selected in the
+  calendar. The value of this attribute must be a date or date-time object. List items with a date
+  or date-time larger than this value are disabled in the calendar.
+* ``date-format``: This attribute specifies the format in which the date or date-time is displayed
+  in the input field for the widgets ``DateRangeTextbox``, ``DateTimeRangeTextbox``,
+  ``DateRangePicker``, ``DateRangeDualPicker``, ``DateTimeRangePicker`` and
+  ``DateTimeRangeDualPicker``. The value of this attribute must be a string in the format or ``iso``
+  to use the ISO format. The default is to use the browser's locale setting.
+* ``show-upper``: If set to ``True``, the calendar shows the upper date or date-time in the calendar
+  sheet. This is only relevant for the widgets ``DateRangePicker``, ``DateTimeRangePicker``,
+  ``DateRangeCalendar`` and ``DateTimeRangeCalendar``. The default value is ``False`` which means
+  that only the lower date or date-time of any given range is shown in the calendar sheet.
 
 
 Applying Context to the Calendar

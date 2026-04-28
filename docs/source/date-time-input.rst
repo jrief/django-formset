@@ -303,6 +303,26 @@ future.
 	    success_url = "/success"
 
 
+Extra Widget Attributes
+=======================
+
+The date- and date-time widgets accept the following extra attributes:
+
+* ``step``: This attribute specifies the granularity of the calendar for the widgets
+  ``DateTimePicker`` and ``DateTimeCalendar``. The value of this attribute must be a
+  ``datetime.timedelta`` object.
+* ``min``: This attribute specifies the minimum date or date-time that can be selected in the
+  calendar. The value of this attribute must be a date or date-time object. List items with a date
+  or date-time smaller than this value are disabled in the calendar.
+* ``max``: This attribute specifies the maximum date or date-time that can be selected in the
+  calendar. The value of this attribute must be a date or date-time object. List items with a date
+  or date-time larger than this value are disabled in the calendar.
+* ``date-format``: This attribute specifies the format in which the date or date-time is displayed
+  in the input field for the widgets ``DateTextbox``, ``DateTimeTextbox``, ``DatePicker`` and
+  ``DateTimePicker``. The value of this attribute must be a string in the format or ``iso``
+  to use the ISO format. The default is to use the browser's locale setting.
+
+
 Applying Context to the Calendar
 ================================
 

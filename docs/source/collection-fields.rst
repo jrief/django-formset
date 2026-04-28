@@ -225,4 +225,4 @@ default anyway. This is because the stored JSON then is a list rather then a dic
 .. _JSONDecoder: https://docs.python.org/3/library/json.html#json.JSONDecoder
 
 .. note:: After submission, the accordion item configuration is stored in the database. Therefore,
-	after reloading this page, the same images and captions will reappear.
+	after reloading this page, the same headings and body texts will reappear.
