@@ -15,6 +15,8 @@
   * Upgrade esbuild to compilation target ES2022.
   * In `FileUploadWidget`, the progress bar now distinguishes between uploading and its final
     processing using an animated background image.
+  * Fix: When mapping a `Fieldset` to a model field using `fields_map` in the ModelForm's `Meta`
+    class, the submitted form data was not mapped properly.
 
 - 2.2.4
   * Fix #266: Timing issue in widgets `DateField` and `DateTimeField`. Input focus switched before

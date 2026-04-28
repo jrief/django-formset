@@ -163,8 +163,11 @@ class ModelFormMixin(FormMixin):
                             self.cleaned_data[af]
                         )
                 elif isinstance(assigned_fields, str):
-                    af = assigned_fields
-                    cleaned_data[af] = CollectionFieldMixin.pre_serialize(self.instance, af, self.cleaned_data[af])
+                    cleaned_data[field_name] = CollectionFieldMixin.pre_serialize(
+                        self.instance,
+                        assigned_fields,
+                        self.cleaned_data[assigned_fields]
+                    )
             self.cleaned_data = cleaned_data
         for field_name, field in self.base_fields.items():
             if (
