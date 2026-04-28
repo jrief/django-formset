@@ -1173,7 +1173,13 @@ class DjangoFieldset {
 		if (legendElement instanceof HTMLLegendElement) {
 			const fieldsetRect = this.element.getBoundingClientRect();
 			const legendRect = legendElement.getBoundingClientRect();
-			const collapsedHeight = legendRect.top > fieldsetRect.top ? legendRect.top - fieldsetRect.top + legendRect.height : 0;
+			let collapsedHeight: number;
+			if (legendRect.top > fieldsetRect.top) {
+				collapsedHeight = legendRect.top - fieldsetRect.top + legendRect.height;
+				collapsedHeight += parseFloat(getComputedStyle(legendElement).marginBottom);
+			} else {
+				collapsedHeight = 0;
+			}
 			this.element.style.setProperty('--collapsed-height', `${collapsedHeight}px`);
 			legendElement.addEventListener('click', this.toggleCollapse);
 		}

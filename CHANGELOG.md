@@ -15,6 +15,8 @@
   * Upgrade esbuild to compilation target ES2022.
   * In `FileUploadWidget`, the progress bar now distinguishes between uploading and its final
     processing using an animated background image.
+  * Class `Fieldset` now accepts an optional `collapsed` parameter which if set, makes the rendered
+    `<fieldset>`-element collpasible.
   * Fix: When mapping a `Fieldset` to a model field using `fields_map` in the ModelForm's `Meta`
     class, the submitted form data was not mapped properly.
 
