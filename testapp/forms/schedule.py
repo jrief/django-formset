@@ -31,7 +31,12 @@ class ScheduleDualCalendarForm(forms.Form):
     date_range = DateTimeRangeField(
         widget=DateTimeRangeDualCalendar(attrs={
             'step': timedelta(minutes=10),
+            'show-upper': True,
         }),
+        initial=(
+            datetime(2024, 9, 9, 9, 40),
+            datetime(2024, 10, 10, 16, 10),
+        ),
     )
 
 
@@ -40,6 +45,7 @@ class SchedulePickerForm(forms.Form):
         widget=DateTimeRangePicker(
             attrs={
                 'step': timedelta(minutes=15),
+                'show-upper': True,
             },
         ),
         initial=(
@@ -55,6 +61,11 @@ class ScheduleDualPickerForm(forms.Form):
             attrs={
                 'step': timedelta(minutes=10),
                 'date-format': 'iso',
+                'show-upper': True,
             },
+        ),
+        initial=(
+            datetime(2024, 9, 9, 9, 0),
+            datetime(2024, 10, 10, 0, 10),
         ),
     )
