@@ -60,7 +60,7 @@
     `retrieve_instance` is replaced against `get_or_create_instance`. The latter now also returns a
     Boolean value when an instance was created which is stored as `created` inside the valid holders
     of a collection. This allows developers to distinguish between existing instances and newly
-    created ones, when preparing the response.
+    created ones when preparing the response.
   * Each time a formset is submitted, an `extra_data` object is added to the request payload. This
     can be used to pass arbitrary data to the submission. If partial submissions are used, the new
     button action `setExtraData` can be used to add response data to this object.
@@ -91,16 +91,16 @@
     caused problems when nesting collections.
   * Fix race condition during initialization of `RichtextArea` widget: This web component might
     already have been initialized, before `FieldGroup` was constructed.
-  * Improve readablility: Use emdash in Date(Time)Range widget to separate from – until datetimes.
-  * Fix rare problem when dragging a sortable collection.
+  * Improve readablility: Use emdash in `Date(Time)Range` widget to separate from – until datetimes.
+  * Fix a rare problem when dragging a sortable collection.
   * Improve UX: Set background-color for smoother dragging of a `FormCollection`.
-  * Fix: Accept Date(Time)Range objects delivered by Postgres in associated widgets.
+  * Fix: Accept `Date(Time)Range` objects delivered by Postgres in associated widgets.
   * Improve UX: When sorting form collections, the trash symbol now is hidden to prevent confusion.
   * Fix: add extra check to see if instance marked for removal has already been deleted.
   * Improve UX: Make disabled `Selectize` widgets better distinguishable by applying opacity to 
     the whole widget.
   * Fix regression from 2.1.3: Hover in Calendar over prev and next button highlights until start
-    or begin of calendar sheet, even in non-range mode.
+    or begin of a calendar sheet, even in non-range mode.
 
 - 2.1.3
   * The `Selectize` widget never renders the `empty_label` provided by the field. Instead, the user
