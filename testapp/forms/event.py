@@ -142,7 +142,7 @@ class EventOccurrenceCollection(FormCollection):
         )
     )
 
-    def get_or_create_instance(self, data):
+    def get_or_create_instance(self, data, position):
         if data := data.get('event_occurrence'):
             try:
                 return self.instance.occurrences.get(id=data.get('id') or 0), False

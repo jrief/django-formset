@@ -75,7 +75,7 @@ class UserListCollection(FormCollection):
 
     add_extension = AddSiblingActivator("Add phone number")
 
-    def get_or_create_instance(self, data):
+    def get_or_create_instance(self, data, position):
         if data := data.get('extension'):
             try:
                 return self.instance.user_extensions.get(id=data.get('id') or 0), False

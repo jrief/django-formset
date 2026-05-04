@@ -1,6 +1,9 @@
 ## Changes
 
 - 2.3
+  * **Minor breaking change**: Hook method `FormCollection.get_or_create_instance` now requires
+    the additional argument `position`. This gives developers a better way to use an orderable
+    field for sortable collections with siblings. Read the documentation for details.
   * Add support for Django-6.0 and Python-3.12.
   * Add widgets `DateRangeDualCalendar`, `DateTimeRangeDualCalendar`, `DateRangeDualPicker` and
     `DateTimeRangeDualPicker` which show two calendars side by side to select a lower- and upper

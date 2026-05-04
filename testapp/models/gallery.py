@@ -38,3 +38,11 @@ class Image(models.Model):
         on_delete=models.CASCADE,
         related_name='images',
     )
+    position = models.PositiveIntegerField(
+        editable=False,
+        default=0,
+    )
+
+    class Meta:
+        ordering = ['position']
+        indexes = [models.Index(fields=['position'], name='image_position_idx')]

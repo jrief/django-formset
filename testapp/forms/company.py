@@ -28,7 +28,7 @@ class TeamCollection(FormCollection):
 
     add_team = AddSiblingActivator("Add Team")
 
-    def get_or_create_instance(self, data):
+    def get_or_create_instance(self, data, position):
         if data := data.get('team'):
             try:
                 return self.instance.teams.get(id=data.get('id') or 0), False
@@ -61,7 +61,7 @@ class DepartmentCollection(FormCollection):
 
     add_department = AddSiblingActivator("Add Department")
 
-    def get_or_create_instance(self, data):
+    def get_or_create_instance(self, data, position):
         if data := data.get('department'):
             try:
                 return self.instance.departments.get(id=data.get('id') or 0), False
@@ -105,7 +105,7 @@ class CompaniesCollection(FormCollection):
 
     add_company = AddSiblingActivator("Add Company")
 
-    def get_or_create_instance(self, data):
+    def get_or_create_instance(self, data, position):
         if data := data.get('company'):
             try:
                 return Company.objects.get(id=data.get('id') or 0), False
