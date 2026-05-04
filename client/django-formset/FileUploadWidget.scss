@@ -82,10 +82,10 @@ django-formset .dj-control-panel:has(input[type="file"]) {
 		height: 8rem;
 		max-width: 100%;
 		outline: var(--outline-color) thin dotted;
+		border-radius: 0.25rem;
 
 		&:has(> .dj-empty-item) {
 			outline: var(--outline-color) 2px dashed;
-			border-radius: 0.25rem;
 		}
 
 		&.drag-over {
