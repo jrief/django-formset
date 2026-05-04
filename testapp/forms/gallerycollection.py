@@ -28,17 +28,20 @@ class ImageCollection(FormCollection):
     legend = "Gallery Images"
     induce_add_sibling = '.add_image:active'
     related_field = 'gallery'
+    is_sortable = True
 
     add_image = AddSiblingActivator("Add Image")
 
-    def get_or_create_instance(self, data):
+    def get_or_create_instance(self, data, position):
         if data := data.get('image'):
             try:
-                return self.instance.images.get(id=data.get('id') or 0), False
-            except (AttributeError, Image.DoesNotExist, ValueError):
+                image = self.instance.images.get(id=data.get('id') or 0)
+                image.position = position
+                return image, False
+            except Image.DoesNotExist:
                 form = ImageForm(data=data)
                 if form.is_valid():
-                    return Image(image=form.cleaned_data['image'], gallery=self.instance), False
+                    return Image(image=form.cleaned_data['image'], gallery=self.instance, position=position), True
         return None, False
 
 

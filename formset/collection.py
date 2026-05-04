@@ -326,14 +326,17 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         if self.has_many:
             self.valid_holders = []
             self._errors = ErrorList()
+            position = 1  # 1-based indexing is the standard convention for positions
+            all_marked_for_removal = len(self.data) > 0
             for index, data in enumerate(self.data):
                 if data is None:
                     # JavaScript allows arrays with holes
                     continue
                 initial = self.initial[index] if self.initial and index < len(self.initial) else None
-                instance, created = self.get_or_create_instance(data)
+                instance, created = self.get_or_create_instance(data, position)
                 valid_holders = {}
                 errors = ErrorDict()
+                this_marked_for_removal = False
                 for name, declared_holder in self.declared_holders.items():
                     if name in data:
                         holder = declared_holder.replicate(
@@ -345,20 +348,26 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                         )
                         if MARKED_FOR_REMOVAL in holder.data:
                             if holder.ignore_marked_for_removal:
+                                valid_holders.clear()
                                 break
                             if getattr(holder, 'has_many', False):
                                 holder.marked_for_removal = True
-                            elif self.has_many:
-                                self.marked_for_removal = True
+                            else:
+                                this_marked_for_removal = True
+                        else:
+                            all_marked_for_removal = False
                         if holder.is_valid():
                             valid_holders[name] = holder
                         errors[name] = holder._errors
                     elif not self.partial:
-                        # can only happen, if client bypasses browser control
+                        # can only happen if the client bypasses browser control
                         errors[name] = {NON_FIELD_ERRORS: ["Form data is missing."]}
                 else:
                     self.valid_holders.append(valid_holders)
                     self._errors.append(errors)
+                if not this_marked_for_removal:
+                    position += 1
+            self.marked_for_removal = all_marked_for_removal
             self.validate_unique()
         else:
             self.valid_holders = {}
@@ -368,7 +377,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
                     # TODO: Button can have a value and could be validated since it is a field
                     continue
                 if isinstance(self.data, dict) and name in self.data:
-                    instance, created = self.get_or_create_instance(self.data[name])
+                    instance, created = self.get_or_create_instance(self.data[name], None)
                     holder = declared_holder.replicate(
                         data=self.data[name],
                         initial=self.initial.get(name, declared_holder.initial) if self.initial else None,
@@ -459,12 +468,12 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         Hook to retrieve the main object for a multi object collection.
         """
         warnings.warn(
-            "'retrieve_instance' is deprected. Use 'get_or_create_instance(data)' instead.",
+            "'retrieve_instance' is deprected. Use 'get_or_create_instance(data, position)' instead.",
             PendingDeprecationWarning,
         )
-        return self.get_or_create_instance(data)[0]
+        return self.get_or_create_instance(data, None)[0]
 
-    def get_or_create_instance(self, data):
+    def get_or_create_instance(self, data, position):
         """
         Hook to retrieve or create the main object for a multi object collection.
         Returns a tuple of (instance, created), where 'created' is a boolean specifying

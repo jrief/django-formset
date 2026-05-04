@@ -193,7 +193,9 @@ class Migration(migrations.Migration):
                 ('image', models.FileField(blank=True, upload_to='images')),
                 ('caption', formset.modelfields.RichTextField(blank=True, null=True)),
                 ('gallery', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='images', to='testapp.gallery')),
+                ('position', models.PositiveIntegerField(default=0, editable=False)),
             ],
+            options={'ordering': ['position'], 'indexes': [models.Index(fields=['position'], name='image_position_idx')]},
         ),
         migrations.CreateModel(
             name='OpinionModel',
