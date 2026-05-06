@@ -97,8 +97,14 @@ django-formset .dj-control-panel:has(input[type="file"]) {
 			text-align: center;
 			min-width: 8rem;
 			height: auto;
+			color: var(--outline-color);
+			svg {
+				width: 4rem;
+				height: auto;
+				opacity: 0.75;
+			}
 			p {
-				padding: 2rem;
+				padding: 0.5rem 2rem 0;
 				margin: 0;
 			}
 		}

@@ -7,7 +7,12 @@
 		{% endwith %}
 	{% endif %}
 	{% block "dropbox" %}
-	<figure class="dj-dropbox"><div class="dj-empty-item"><p>{% trans "Drag file here" %}</p></div></figure>
+	<figure class="dj-dropbox">
+		<div class="dj-empty-item">
+			{% include "formset/icons/upload.svg" %}
+			<p>{% trans "Drag file here" %}</p>
+		</div>
+	</figure>
 	{% endblock %}
 	{% block "controller" %}
 	<div>
