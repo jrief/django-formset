@@ -1303,7 +1303,7 @@ class RichtextArea {
 					break;
 				case `${this.baseSelector}.focused`:
 					this.textAreaElement.style.transition = 'none';
-					this.textAreaElement.focus();
+					this.textAreaElement.focus({preventScroll: true});
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
 						'border', 'box-shadow', 'outline']);
 					this.textAreaElement.blur();
