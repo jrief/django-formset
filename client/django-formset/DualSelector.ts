@@ -470,8 +470,7 @@ export class DualSelector extends IncompleteSelect {
 				'--border-color': 'border-color',
 				'--outline': 'outline',
 			},
-			this.selectorElement,
-			this.selectorElement.className,
+			this.selectorElement, {}, this.selectorElement.className,
 		);
 		if (!loaded)
 			throw new Error(`Could not load styles for ${this.baseSelector}`);

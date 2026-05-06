@@ -22,22 +22,36 @@ export namespace StyleHelpers {
 		return styles.join(';').concat(';');
 	}
 
-	function mutableStyles(sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, extraCssClass?: string) : Function {
+	function mutableStyles(sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, attributes: {[key: string]: string|null}, extraCssClass?: string) : Function {
 		const setStyles = () => {
 			const transition = window.getComputedStyle(element).getPropertyValue('transition');
-			const hidden = element.hidden;
 			element.style.transition = 'none';  // temporarily disable transitions
-			element.hidden = false;  // temporarily make element visible to pilfer styles
+			attributes['hidden'] = null;  // make element temporarily visible to pilfer styles
+
+			// remember element attributes and CSS classes and overwrite them
+			const currentValues: [string, string|null][] = Object.entries(attributes).map(([qualifiedName]) =>
+				[qualifiedName, element.getAttribute(qualifiedName)]
+			);
+			Object.entries(attributes).forEach(([qualifiedName, value]) => {
+				value === null ? element.removeAttribute(qualifiedName) : element.setAttribute(qualifiedName, value);
+			});
 			if (extraCssClass) {
 				element.classList.add(extraCssClass);
 			}
+
+			// pilfer styles for given properties
 			const style = Object.entries(properties).map(([property, value]) => {
 				return `${property}:${window.getComputedStyle(element).getPropertyValue(value)};`;
 			}).join('');
+
+			// restore element attributes and CSS classes
 			if (extraCssClass) {
 				element.classList.remove(extraCssClass);
 			}
-			element.hidden = hidden;  // restore visibility
+			currentValues.forEach(([qualifiedName, value]) => {
+				value === null ? element.removeAttribute(qualifiedName) : element.setAttribute(qualifiedName, value);
+			});
+
 			element.style.transition = transition;  // restore transitions
 			return style;
 		};
@@ -48,11 +62,11 @@ export namespace StyleHelpers {
 		};
 	}
 
-	export function replaceMediaQueryStyles(index: number, sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, extraCssClass?: string) {
+	export function replaceMediaQueryStyles(index: number, sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, attributes: {[key: string]: string|null} = {}, extraCssClass?: string) {
 		if (index < 0 || index >= mediaQueryStyles.length) {
-			return mediaQueryStyles.push(mutableStyles(sheet, selector, properties, element, extraCssClass)) - 1;
+			return mediaQueryStyles.push(mutableStyles(sheet, selector, properties, element, attributes, extraCssClass)) - 1;
 		} else {
-			mediaQueryStyles.splice(index, 1, mutableStyles(sheet, selector, properties, element, extraCssClass));
+			mediaQueryStyles.splice(index, 1, mutableStyles(sheet, selector, properties, element, attributes, extraCssClass));
 			return index;
 		}
 	}

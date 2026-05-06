@@ -227,15 +227,6 @@ class DateTimeField extends Widget {
 	private attributesChanged = (mutations: MutationRecord[]) => {
 		if (mutations.find(m => m.attributeName === 'disabled')) {
 			this.inputFields.forEach(inputField => inputField.contentEditable = this.inputElement.disabled ? 'false' : 'true');
-			this.mediaStylesIndex = StyleHelpers.replaceMediaQueryStyles(
-				this.mediaStylesIndex,
-				this.styleSheet,
-				`${this.baseSelector} + [role="textbox"]`,
-				{
-					'--background-color': 'background-color',
-				},
-				this.inputElement,
-			);
 		}
 	};
 
@@ -539,13 +530,31 @@ class DateTimeField extends Widget {
 		StyleHelpers.replaceMediaQueryStyles(
 			-1,
 			this.styleSheet,
+			`${this.baseSelector} + [role="textbox"]`,
+			{
+				'--background-color': 'background-color',
+			},
+			this.inputElement, {'disabled': null},
+		);
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
+			this.styleSheet,
+			`${this.baseSelector}[disabled] + [role="textbox"]`,
+			{
+				'--background-muted-color': 'background-color',
+			},
+			this.inputElement, {'disabled': ''},
+		);
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
+			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"].focus`,
 			{
 				'border-color': 'border-color',
 				'box-shadow': 'box-shadow',
 				'outline': 'outline',
 			},
-			this.inputElement, '⁝focus',
+			this.inputElement, {},'⁝focus',
 		);
 		this.inputElement.hidden = true;  // setting type="hidden" prevents dispatching events
 	}

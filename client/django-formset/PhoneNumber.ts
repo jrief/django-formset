@@ -394,7 +394,7 @@ class PhoneNumberField {
 				'box-shadow': 'box-shadow',
 				'outline': 'outline',
 			},
-			this.inputElement, '⁝focus',
+			this.inputElement, {}, '⁝focus',
 		);
 		StyleHelpers.replaceMediaQueryStyles(
 			-1,
@@ -416,7 +416,7 @@ class PhoneNumberField {
 				'outline': 'outline',
 				'transition': 'transition',
 			},
-			this.inputElement, '⁝focus',
+			this.inputElement, {}, '⁝focus',
 		);
 	}
 

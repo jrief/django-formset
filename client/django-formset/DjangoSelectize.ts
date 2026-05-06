@@ -467,7 +467,7 @@ export class DjangoSelectize extends IncompleteSelect {
 				'border-color': 'border-color',
 				'outline': 'outline',
 			},
-			tomInput, '⁝focus'
+			tomInput, {}, '⁝focus'
 		);
 		StyleHelpers.replaceMediaQueryStyles(
 			-1,
@@ -478,7 +478,7 @@ export class DjangoSelectize extends IncompleteSelect {
 				'color': 'color',
 				'outline': 'outline',
 			},
-			tomInput, '⁝disabled'
+			tomInput, {}, '⁝disabled'
 		);
 		this.setupFilters(tomInput);
 		if (this.mustReloadOptions()) {

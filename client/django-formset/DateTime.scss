@@ -85,4 +85,9 @@
 		}
 	}
 
+
+	&[disabled] + [role="textbox"] {
+		background-color: var(--background-muted-color);
+	}
+
 }
