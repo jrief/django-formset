@@ -2170,9 +2170,7 @@ export class DjangoFormset implements DjangoFormset {
 			if (!this.endpoint)
 				throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
 			this.removeFreshCollections();
-			const body = Object.assign(
-				{extra_data: Object.assign({}, this.extraData, extraData)}, this.buildBody()
-			);
+			const body = {extra_data: {...this.extraData, ...(extraData ?? {})}, ...this.buildBody()};
 			try {
 				const headers = new Headers();
 				headers.append('Accept', 'application/json');
@@ -2266,7 +2264,7 @@ export class DjangoFormset implements DjangoFormset {
 		}
 		const fullPath = ['formset_data', ...path];
 		const body = setDataValue(
-			{extra_data: Object.assign({}, this.extraData, extraData)},
+			{extra_data: {...this.extraData, ...(extraData ?? {})}},
 			fullPath, getDataValue(this.buildBody(), fullPath)
 		);
 		try {
