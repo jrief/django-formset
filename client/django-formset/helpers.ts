@@ -7,7 +7,7 @@ export namespace StyleHelpers {
 	observer.observe(document.body, {attributes: true});
 	window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', stylesHaveChanged);
 
-	export function extractStyles(element: Element, properties: Array<string>|{[key: string]: string}): string {
+	export function extractStyles(element: Element, properties: Array<string>|Record<string, string>): string {
 		let styles = Array<string>();
 		const style = window.getComputedStyle(element);
 		if (Array.isArray(properties)) {
@@ -22,7 +22,7 @@ export namespace StyleHelpers {
 		return styles.join(';').concat(';');
 	}
 
-	function mutableStyles(sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, attributes: {[key: string]: string|null}, extraCssClass?: string) : Function {
+	function mutableStyles(sheet: CSSStyleSheet, selector: string, properties: Record<string, string>, element: HTMLElement, attributes: Record<string, string|null>, extraCssClass?: string) : Function {
 		const setStyles = () => {
 			const transition = window.getComputedStyle(element).getPropertyValue('transition');
 			element.style.transition = 'none';  // temporarily disable transitions
@@ -62,7 +62,7 @@ export namespace StyleHelpers {
 		};
 	}
 
-	export function replaceMediaQueryStyles(index: number, sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, attributes: {[key: string]: string|null} = {}, extraCssClass?: string) {
+	export function replaceMediaQueryStyles(index: number, sheet: CSSStyleSheet, selector: string, properties: Record<string, string>, element: HTMLElement, attributes: Record<string, string|null> = {}, extraCssClass?: string) {
 		if (index < 0 || index >= mediaQueryStyles.length) {
 			return mediaQueryStyles.push(mutableStyles(sheet, selector, properties, element, attributes, extraCssClass)) - 1;
 		} else {
