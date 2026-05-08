@@ -38,7 +38,7 @@ class ImageCollection(FormCollection):
                 image = self.instance.images.get(id=data.get('id') or 0)
                 image.position = position
                 return image, False
-            except Image.DoesNotExist:
+            except (AttributeError, Image.DoesNotExist, ValueError):
                 form = ImageForm(data=data)
                 if form.is_valid():
                     return Image(image=form.cleaned_data['image'], gallery=self.instance, position=position), True
