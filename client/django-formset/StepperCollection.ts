@@ -56,7 +56,9 @@ class StepperStep {
 				if (firstInvalidStep) {
 					step.visited = false;
 					step.listItem.classList.remove('visited');
-				} else if (Object.values(step.formCollection.querySelectorAll('form')).some(form => !form.checkValidity())) {
+				} else if (Array.from(step.formCollection.querySelectorAll('form')).some(form => {
+					return !(form.hasAttribute('df-transient') || form.checkValidity());
+				})) {
 					firstInvalidStep = step;
 				}
 			}
@@ -108,11 +110,14 @@ class StepperCollection implements Inducible {
 		this.formset.registerInducer(this);
 
 		let previousStep: StepperStep|null = null;
+		let isVisited = true;
 		for (const step of this.steps) {
-			if (previousStep && Object.values(previousStep.formCollection.querySelectorAll('form')).every(form => {
+			if (isVisited && (previousStep === null || Array.from(previousStep.formCollection.querySelectorAll('form')).every(form => {
 				return form.hasAttribute('df-transient') || form.checkValidity();
-			})) {
+			}))) {
 				step.setAsVisited();
+			} else {
+				isVisited = false;
 			}
 			previousStep = step;
 		}
