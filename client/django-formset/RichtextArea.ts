@@ -1182,6 +1182,8 @@ class RichtextArea {
 			this.charaterCountDiv.classList.add('character-count');
 			this.wrapperElement.insertAdjacentElement('beforeend', this.charaterCountDiv);
 		}
+		// the native element also counts HTML tags, which is not what we want for a Richtext editor
+		this.textAreaElement.removeAttribute('maxlength');
 	}
 
 	private installEventHandlers() {
