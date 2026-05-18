@@ -22,6 +22,10 @@
     `<fieldset>`-element collpasible.
   * Fix: When mapping a `Fieldset` to a model field using `fields_map` in the ModelForm's `Meta`
     class, the submitted form data was not mapped properly.
+  * Fix: Transient sub-forms, for instance, dialogs in RichtextArea now do not create any data to be
+    submitted to the server. This caused invalid data in rare occasions.
+  * Fix: In the `Selectize` widget, the placeholder in the internal lookup field now is only
+    rendered if nothing has been selected.
 
 - 2.2.4
   * Fix #266: Timing issue in widgets `DateField` and `DateTimeField`. Input focus switched before
