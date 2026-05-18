@@ -95,7 +95,7 @@
 	}
 
 	&.has-items .ts-control {
-		input::placeholder {
+		input[role="combobox"]::placeholder {
 			opacity: 0;
 		}
 
