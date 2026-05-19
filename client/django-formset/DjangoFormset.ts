@@ -882,7 +882,10 @@ class DjangoButton {
 	private alertOnError() {
 		return (response: Response) => {
 			if (response.status !== 422) {
-				window.alert(response.statusText);
+				return new Promise(resolve => response.text().then(text => {
+					window.alert(`${response.statusText}: ${text}`);
+					resolve(response);
+				}));
 			}
 			return Promise.resolve(response);
 		}
