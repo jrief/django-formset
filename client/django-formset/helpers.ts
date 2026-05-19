@@ -136,9 +136,20 @@ export namespace StyleHelpers {
 	export function stylesAreInstalled(baseSelector: string) : CSSStyleSheet|null {
 		// check if styles have been loaded for this widget and return the CSSStyleSheet
 		for (let k = document.styleSheets.length - 1; k >= 0; --k) {
-			const cssRule = document?.styleSheets?.item(k)?.cssRules?.item(0);
-			if (cssRule instanceof CSSStyleRule && cssRule.selectorText.trim() === baseSelector) {
-				return document.styleSheets.item(k);
+			try {
+				const cssRule = document?.styleSheets?.item(k)?.cssRules?.item(0);
+				if (cssRule instanceof CSSStyleRule && cssRule.selectorText.trim() === baseSelector) {
+					return document.styleSheets.item(k);
+				}
+			} catch (e: any) {
+				if (e.name === 'SecurityError') {
+					// Trying (and failing) to load a stylesheet from another domain.
+					// It won't be the one we're looking for, so just swallow the error.
+					// Please also read
+					// https://medium.com/better-programming/how-to-fix-the-failed-to-read-the-cssrules-property-from-cssstylesheet-error-431d84e4a139
+				} else {
+					throw e;
+				}
 			}
 		}
 		return null;
