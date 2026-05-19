@@ -27,6 +27,7 @@
   * Fix: In the `Selectize` widget, the placeholder in the internal lookup field now is only
     rendered if nothing has been selected.
   * Fix: CSS loading problems, if 3rd party CSS is loaded from external sources.
+  * Fix: Response action handler `alertOnError` now also shows the response text serverd by Django.
 
 - 2.2.4
   * Fix #266: Timing issue in widgets `DateField` and `DateTimeField`. Input focus switched before
