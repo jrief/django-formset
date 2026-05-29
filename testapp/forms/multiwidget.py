@@ -5,6 +5,12 @@ from formset.forms import Form
 
 class PhoneWidget(forms.MultiWidget):
 
+    def __init__(self, attrs=None):
+        super().__init__(
+            widgets=[forms.TextInput, forms.TextInput, forms.TextInput],
+            attrs=attrs,
+        )
+
     def decompress(self, value):
         if value is None:
             return ['', '', '']
@@ -13,7 +19,7 @@ class PhoneWidget(forms.MultiWidget):
 
 class PhoneField(forms.MultiValueField):
 
-    widget = PhoneWidget(widgets=[forms.TextInput, forms.TextInput, forms.TextInput])
+    widget = PhoneWidget()
 
     def __init__(self, **kwargs):
         super().__init__(fields=(forms.CharField(), forms.CharField(), forms.CharField()), **kwargs)
