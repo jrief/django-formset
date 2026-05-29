@@ -123,7 +123,11 @@ class FieldGroup {
 				this.setDirty()
 			});
 			selectElement.addEventListener('invalid', () => this.errorPlaceholder.reportValidationError());
-			this.fieldElements = [selectElement];
+			if (this.fieldElements.length === 0) {
+				this.fieldElements = [selectElement];
+			} else {
+				this.fieldElements.push(selectElement);  // MultiWidget: append, do not overwrite
+			}
 		}
 
 		// <div role="group"> can contain at most one <textarea> element
@@ -213,6 +217,9 @@ class FieldGroup {
 				} else if (element.type === 'radio') {
 					if ((element as HTMLInputElement).checked)
 						return element.value;
+				} else {
+					// For MultiWidget, we will have multiple elements
+					value.push({name: element.name, value: element.value});
 				}
 			}
 			return value;
@@ -267,14 +274,40 @@ class FieldGroup {
 
 	private assertUniqueName() : string {
 		let name = '__undefined__';
+		const seen = new Set();
+		const allowedDuplicateTypes = new Set(['checkbox', 'radio']);
+		const duplicateTypeNames = new Map<string, string[]>();
 		for (const element of this.fieldElements) {
 			if (name === '__undefined__') {
 				name = element.name;
+			}
+
+			if (allowedDuplicateTypes.has(element.type)) {
+				if (!duplicateTypeNames.has(element.name)) {
+					duplicateTypeNames.set(element.name, []);
+				}
+				duplicateTypeNames.get(element.name)!.push(element.type);
 			} else {
-				if (name !== element.name)
-					throw new Error(`Duplicate name '${name}' on multiple input fields on '${element.name}'`);
+				if (seen.has(element.name)) {
+					throw new Error(`Duplicate name '${element.name}' on multiple input fields.`);
+				}
+				seen.add(element.name);
 			}
 		}
+
+		// Checking that all 'checkbox' and 'radio' elements with the same name are consistent
+		for (const [name, types] of duplicateTypeNames.entries()) {
+			if (new Set(types).size !== 1) {
+				throw new Error(`Inconsistent name '${name}' for elements of type 'checkbox' or 'radio'. All names must be the same.`);
+			}
+		}
+
+		// MultiWidget: if several distinct names are detected, derive the base name (e.g., phone_number_0 → phone_number)
+		if (seen.size > 1) {
+			const match = name.match(/^(.+)_\d+$/);
+			if (match) return match[1];
+		}
+
 		return name;
 	}
 
@@ -1213,7 +1246,14 @@ class DjangoForm {
 	aggregateValues(): Map<string, FieldValue> {
 		const data = new Map<string, FieldValue>();
 		for (const fieldGroup of this.fieldGroups) {
-			data.set(fieldGroup.name, fieldGroup.aggregateValue());
+			const val = fieldGroup.aggregateValue();
+			if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'object' && val[0] !== null && 'name' in (val[0] as object)) {
+				for (const item of val as Array<{name: string, value: string}>) {
+					data.set(item.name, item.value);
+				}
+			} else {
+				data.set(fieldGroup.name, val);
+			}
 		}
 		// hidden fields are not handled by a <div role="group">
 		for (const element of this.hiddenInputFields.filter(e => e.type === 'hidden')) {
