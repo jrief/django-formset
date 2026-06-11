@@ -221,7 +221,7 @@ def test_button_confirm_dismiss(page, mocker, viewname):
 def test_button_alert(page, viewname):
     def handle_dialog(dialog):
         assert dialog.type == 'alert'
-        assert dialog.message == "Forbidden"
+        assert dialog.message == "Forbidden: "
         dialog.dismiss()
 
     input_elem = page.locator('#id_enter')

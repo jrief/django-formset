@@ -101,13 +101,13 @@ export class DualSelector extends IncompleteSelect {
 	}
 
 	public async initialize() {
-		const initialValues: string[] = [];
+		const initialOptions: OptionData[] = [];
 		const optionElements = this.selectorElement.querySelectorAll(':scope > option') as NodeListOf<HTMLOptionElement>;
 		optionElements.forEach(option => {
 			const optionData : OptionData = {id: option.value, label: option.label};
 			if (option.selected) {
 				this.addOptionToSelectElement(optionData, this.selectRightElement);
-				initialValues.push(option.value);
+				initialOptions.push(optionData);
 			} else {
 				this.addOptionToSelectElement(optionData, this.selectLeftElement);
 			}
@@ -119,7 +119,7 @@ export class DualSelector extends IncompleteSelect {
 				const optionData : OptionData = {id: option.value, label: option.label, optgroup: optGroupElement.label};
 				if (option.selected) {
 					this.addOptionToSelectElement(optionData, this.selectRightElement);
-					initialValues.push(option.value);
+					initialOptions.push(optionData);
 				} else {
 					this.addOptionToSelectElement(optionData, this.selectLeftElement);
 				}
@@ -127,7 +127,7 @@ export class DualSelector extends IncompleteSelect {
 			});
 			optGroupElement.replaceWith(...optGroupElement.childNodes);
 		});
-		this.historicValues.push(initialValues);
+		this.historicValues.push(initialOptions.map(o => o.id));
 		this.setHistoryCursor(0);
 		if (this.selectRightElement instanceof SortableSelectElement) {
 			this.selectRightElement.initialize(this.selectLeftElement);
@@ -136,6 +136,7 @@ export class DualSelector extends IncompleteSelect {
 		this.setupFilters(this.selectorElement);
 		if (this.mustReloadOptions()) {
 			await this.reloadOptions();
+			initialOptions.forEach(optionData => this.addOptionToSelectElement(optionData, this.selectRightElement));
 		}
 		this.installEventHandlers();
 	}
@@ -469,8 +470,7 @@ export class DualSelector extends IncompleteSelect {
 				'--border-color': 'border-color',
 				'--outline': 'outline',
 			},
-			this.selectorElement,
-			this.selectorElement.className,
+			this.selectorElement, {}, this.selectorElement.className,
 		);
 		if (!loaded)
 			throw new Error(`Could not load styles for ${this.baseSelector}`);

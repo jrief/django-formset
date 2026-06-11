@@ -70,6 +70,7 @@ from testapp.forms.poll import ModelPollForm, PollCollection
 from testapp.forms.profile import ProfileCollection
 from testapp.forms.questionnaire import QuestionnaireForm
 from testapp.forms.range import RangeForm
+from testapp.forms.simpsons import SimpsonsForm
 from testapp.forms.schedule import (
     ScheduleBoxForm, ScheduleCalendarForm, ScheduleDualCalendarForm, ScheduleDualPickerForm, SchedulePickerForm
 )
@@ -670,6 +671,10 @@ urlpatterns = [
     path('questionnaire', DemoFormView.as_view(
         form_class=QuestionnaireForm,
     ), name='questionnaire'),
+    path('simpsons', DemoFormView.as_view(
+        form_class=SimpsonsForm,
+        template_name='testapp/simpsons-form.html',
+    ), name='simpsons'),
     path('simplecontact', DemoFormCollectionView.as_view(
         collection_class=SimpleContactCollection,
         # initial={'person': sample_person_data},

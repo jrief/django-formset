@@ -23,6 +23,8 @@ django-formset {
 	$feedback-fields: list.join($feedback-input-fields, (select, textarea));
 	$has-feedback: ':not(.dj-exempt-feedback)';
 
+	interpolate-size: allow-keywords;
+
 	ul.dj-errorlist {
 		list-style: none;
 		margin-top: 0;
@@ -235,6 +237,36 @@ django-formset {
 			@include dialog-flex;
 			justify-content: flex-end;
 		}
+	}
+
+	fieldset[aria-expanded] {
+		height: auto;
+		transition: height 0.2s ease-out;
+		--collapsed-height: 10px;
+
+		&[aria-expanded="false"] {
+			height: var(--collapsed-height);
+			overflow: hidden;
+		}
+
+		&[aria-expanded="true"] > legend::before {
+			transform: rotateZ(90deg);
+		}
+
+		> legend::before {
+			content: " ";
+			width: 0;
+			height: 0;
+			border-top: 5px solid transparent;
+			border-bottom: 5px solid transparent;
+			border-left: 5px solid currentColor;
+			border-right: 5px solid transparent;
+			margin-right: 0.25em;
+			cursor: pointer;
+			display: inline-block;
+			transform: translate(2.5px, -2.5px);
+		}
+
 	}
 }
 

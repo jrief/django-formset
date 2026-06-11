@@ -193,7 +193,7 @@ class CalendarRenderer:
             context.update(self.get_context_months())
         else:
             context.update(self.get_context_weeks())
-        render_template = get_template(view_mode.get_template_name())
+        render_template = get_template(self.get_template_name(view_mode))
         return render_template.render({'calendar': context})
 
     @classmethod

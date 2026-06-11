@@ -32,6 +32,7 @@ class Fieldset(metaclass=FieldsetFieldsMetaclass):
     show_condition = None
     hide_condition = None
     disable_condition = None
+    collapsed = None
     help_text = None
     template_name = 'formset/default/fieldset.html'
 
@@ -41,6 +42,7 @@ class Fieldset(metaclass=FieldsetFieldsMetaclass):
         show_condition=None,
         hide_condition=None,
         disable_condition=None,
+        collapsed=None,
         help_text=None,
         template_name=None,
     ):
@@ -53,6 +55,8 @@ class Fieldset(metaclass=FieldsetFieldsMetaclass):
             self.hide_condition = hide_condition
         if disable_condition:
             self.disable_condition = disable_condition
+        if collapsed is not None:
+            self.collapsed = collapsed
         if legend:
             self.legend = legend
         if help_text:
@@ -62,13 +66,16 @@ class Fieldset(metaclass=FieldsetFieldsMetaclass):
         super().__init__()
 
     def get_context(self):
-        return {
+        context = {
             'show_condition': self.show_condition,
             'hide_condition': self.hide_condition,
             'disable_condition': self.disable_condition,
             'legend': self.legend,
             'help_text': self.help_text,
         }
+        if self.collapsed is not None:
+            context['expanded'] = 'false' if self.collapsed else 'true'
+        return context
 
     def __repr__(self):
         return f'<{self.__class__.__name__} legend="{self.legend}" template_name="{self.template_name}">'

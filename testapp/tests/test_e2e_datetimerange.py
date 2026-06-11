@@ -10,19 +10,50 @@ from django.urls import path
 from formset.calendar import CalendarResponseMixin
 from formset.views import FormView
 from formset.formfields import DateRangeField, DateTimeRangeField
-from formset.widgets import DateRangeCalendar, DateTimeRangePicker
+from formset.widgets import (
+    DateRangeCalendar, DateRangeDualCalendar, DateRangePicker, DateRangeDualPicker, DateRangeTextbox,
+    DateTimeRangePicker
+)
 
 from .utils import ContextMixin, get_javascript_catalog
 
 
-class BookingForm(forms.Form):
+class BookingBoxForm(forms.Form):
     range = DateRangeField(
-        initial=(
-            datetime(2023, 8, 8).date(),
-            datetime(2023, 10, 10).date(),
-        ),
+        widget=DateRangeTextbox(),
+    )
+
+
+class BookingCalendarForm(forms.Form):
+    range = DateRangeField(
         widget=DateRangeCalendar(),
     )
+
+
+class BookingDualCalendarForm(forms.Form):
+    range = DateRangeField(
+        widget=DateRangeDualCalendar(),
+    )
+
+
+class BookingPickerForm(forms.Form):
+    range = DateRangeField(
+        widget=DateRangePicker(),
+    )
+
+
+class BookingDualPickerForm(forms.Form):
+    range = DateRangeField(
+        widget=DateRangeDualPicker(),
+    )
+
+
+initial_daterange = {
+    'range': (
+        datetime(2023, 8, 8).date(),
+        datetime(2023, 10, 10).date(),
+    )
+}
 
 
 class ReservationForm(forms.Form):
@@ -30,11 +61,15 @@ class ReservationForm(forms.Form):
         widget=DateTimeRangePicker(attrs={
             'step': timedelta(minutes=15),
         }),
-        initial=(
-            datetime(2025, 7, 9, 9, 15),
-            datetime(2025, 9, 7, 16, 45),
-        ),
     )
+
+
+initial_datetimerange = {
+    'schedule': (
+        datetime(2025, 7, 9, 9, 15),
+        datetime(2025, 9, 7, 16, 45),
+    )
+}
 
 
 class DemoFormView(ContextMixin, CalendarResponseMixin, FormView):
@@ -43,14 +78,24 @@ class DemoFormView(ContextMixin, CalendarResponseMixin, FormView):
 
 
 urlpatterns = [
-    path('booking', DemoFormView.as_view(form_class=BookingForm), name='booking'),
+    path('booking.box', DemoFormView.as_view(form_class=BookingBoxForm), name='booking.box'),
+    path('booking.box-initialized', DemoFormView.as_view(form_class=BookingBoxForm, initial=initial_daterange), name='booking.calendar-initialized'),
+    path('booking.calendar', DemoFormView.as_view(form_class=BookingCalendarForm), name='booking.calendar'),
+    path('booking.calendar-initialized', DemoFormView.as_view(form_class=BookingCalendarForm, initial=initial_daterange), name='booking.calendar-initialized'),
+    path('booking.dualcalendar', DemoFormView.as_view(form_class=BookingDualCalendarForm), name='booking.dualcalendar'),
+    path('booking.dualcalendar-initialized', DemoFormView.as_view(form_class=BookingDualCalendarForm, initial=initial_daterange), name='booking.dualcalendar-initialized'),
+    path('booking.picker', DemoFormView.as_view(form_class=BookingPickerForm), name='booking.picker'),
+    path('booking.picker-initialized', DemoFormView.as_view(form_class=BookingPickerForm, initial=initial_daterange), name='booking.picker-initialized'),
+    path('booking.dualpicker', DemoFormView.as_view(form_class=BookingDualPickerForm), name='booking.dualpicker'),
+    path('booking.dualpicker-initialized', DemoFormView.as_view(form_class=BookingDualPickerForm, initial=initial_daterange), name='booking.dualpicker-initialized'),
     path('reservation', DemoFormView.as_view(form_class=ReservationForm), name='reservation'),
+    path('reservation-initialized', DemoFormView.as_view(form_class=ReservationForm, initial=initial_datetimerange), name='reservation-initialized'),
     get_javascript_catalog(),
 ]
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['booking'])
+@pytest.mark.parametrize('viewname', ['booking.calendar-initialized'])
 def test_daterange_initial(page, viewname):
     calendar = page.locator('django-formset input[name="range"] + .dj-calendar')
     expect(calendar).to_be_visible()
@@ -86,7 +131,7 @@ def test_daterange_initial(page, viewname):
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['booking'])
+@pytest.mark.parametrize('viewname', ['booking.calendar'])
 def test_daterange_set(page, viewname):
     calendar = page.locator('django-formset input[name="range"] + .dj-calendar')
     expect(calendar).to_be_visible()
@@ -112,7 +157,7 @@ def test_daterange_set(page, viewname):
 
 
 @pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['reservation'])
+@pytest.mark.parametrize('viewname', ['reservation-initialized'])
 def test_datetimerange_initial(page, viewname):
     calendar = page.locator('django-formset input[name="schedule"] ~ .dj-calendar')
     expect(calendar).not_to_be_visible()

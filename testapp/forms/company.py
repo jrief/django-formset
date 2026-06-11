@@ -28,11 +28,11 @@ class TeamCollection(FormCollection):
 
     add_team = AddSiblingActivator("Add Team")
 
-    def get_or_create_instance(self, data):
+    def get_or_create_instance(self, data, position):
         if data := data.get('team'):
             try:
                 return self.instance.teams.get(id=data.get('id') or 0), False
-            except (AttributeError, Team.DoesNotExist, ValueError):
+            except (Team.DoesNotExist, ValueError):
                 form = TeamForm(data=data)
                 if form.is_valid():
                     return Team(name=form.cleaned_data['name'], department=self.instance), False
@@ -61,15 +61,16 @@ class DepartmentCollection(FormCollection):
 
     add_department = AddSiblingActivator("Add Department")
 
-    def get_or_create_instance(self, data):
+    def get_or_create_instance(self, data, position):
         if data := data.get('department'):
             try:
                 return self.instance.departments.get(id=data.get('id') or 0), False
-            except (AttributeError, Department.DoesNotExist, ValueError):
+            except (Department.DoesNotExist, ValueError):
                 form = DepartmentForm(data=data)
                 if form.is_valid():
                     return Department(name=form.cleaned_data['name'], company=self.instance), False
         return None, False
+
 
 class CompanyForm(ModelForm):
     class Meta:
@@ -104,7 +105,7 @@ class CompaniesCollection(FormCollection):
 
     add_company = AddSiblingActivator("Add Company")
 
-    def get_or_create_instance(self, data):
+    def get_or_create_instance(self, data, position):
         if data := data.get('company'):
             try:
                 return Company.objects.get(id=data.get('id') or 0), False

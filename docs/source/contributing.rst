@@ -124,8 +124,9 @@ Please use spaces instead of tabs for indentation of Python code. The number of 
 For HTML, CSS and JavaScript files, please use one tab for indentation. This allows developers to
 adopt the indentation level to their personal preferences.
 
-When indenting HTML code, please use two separate independent indentation levels, one for the HTML
-code and one for the Django template control structures, such as ``{% for … %}`` or ``{% if … %}``.
+When indenting HTML code, please use **two separate and independent** indentation levels, one for
+the HTML code and one for the Django template control structures, such as ``{% for … %}``,
+``{% if … %}``, ``{% with … %}``, etc.
 
 .. code-block:: html
 

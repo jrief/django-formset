@@ -1,6 +1,37 @@
 ## Changes
 
+- 2.3
+  * **Minor breaking change**: Hook method `FormCollection.get_or_create_instance` now requires
+    the additional argument `position`. This gives developers a better way to use an orderable
+    field for sortable collections with siblings. Read the documentation for details.
+  * Add support for Django-6.0 and Python-3.12.
+  * Add widgets `DateRangeDualCalendar`, `DateTimeRangeDualCalendar`, `DateRangeDualPicker` and
+    `DateTimeRangeDualPicker` which show two calendars side by side to select a lower- and upper
+    timestamp in a datetime range.
+  * Widgets `DateRangePicker`, `DateTimeRangePicker`, `DateRangeCalendar` and
+    `DateTimeRangeCalendar` now accept the optional attribute `show-upper` which loads the
+    calendar's upper date sheet for a set date-time-range.
+  * Add registry to add 3rd party components defined outside of the **django-formset** library.
+  * Fix: Rendering of `CollectionsField` in **django-formset**'s `ModelAdmin` was inconsistent.
+  * Refactor function `richtext_attributes` to use the TipTap document node.
+  * Upgrade Richtext editor to TipTap version 3.
+  * Upgrade esbuild to compilation target ES2022.
+  * In `FileUploadWidget`, the progress bar now distinguishes between uploading and its final
+    processing using an animated background image.
+  * Class `Fieldset` now accepts an optional `collapsed` parameter which if set, makes the rendered
+    `<fieldset>`-element collpasible.
+  * Fix: When mapping a `Fieldset` to a model field using `fields_map` in the ModelForm's `Meta`
+    class, the submitted form data was not mapped properly.
+  * Fix: Transient sub-forms, for instance, dialogs in RichtextArea now do not create any data to be
+    submitted to the server. This caused invalid data in rare occasions.
+  * Fix: In the `Selectize` widget, the placeholder in the internal lookup field now is only
+    rendered if nothing has been selected.
+  * Fix: CSS loading problems, if 3rd party CSS is loaded from external sources.
+  * Fix: Response action handler `alertOnError` now also shows the response text serverd by Django.
+
 - 2.2.4
+  * Fix #266: Timing issue in widgets `DateField` and `DateTimeField`. Input focus switched before
+    processing user input in Firefox and Safari browsers.
   * Better handling of methods `clean_content` in RichtextArea and its dialog forms.
   * Fix: Richtext rendering for text nodes with multiple marks now handled properly.
   * Fix: In forms Meta classes using `fields_map`, the initial value is ignored.
@@ -38,7 +69,7 @@
     `retrieve_instance` is replaced against `get_or_create_instance`. The latter now also returns a
     Boolean value when an instance was created which is stored as `created` inside the valid holders
     of a collection. This allows developers to distinguish between existing instances and newly
-    created ones, when preparing the response.
+    created ones when preparing the response.
   * Each time a formset is submitted, an `extra_data` object is added to the request payload. This
     can be used to pass arbitrary data to the submission. If partial submissions are used, the new
     button action `setExtraData` can be used to add response data to this object.
@@ -69,16 +100,16 @@
     caused problems when nesting collections.
   * Fix race condition during initialization of `RichtextArea` widget: This web component might
     already have been initialized, before `FieldGroup` was constructed.
-  * Improve readablility: Use emdash in Date(Time)Range widget to separate from – until datetimes.
-  * Fix rare problem when dragging a sortable collection.
+  * Improve readablility: Use emdash in `Date(Time)Range` widget to separate from – until datetimes.
+  * Fix a rare problem when dragging a sortable collection.
   * Improve UX: Set background-color for smoother dragging of a `FormCollection`.
-  * Fix: Accept Date(Time)Range objects delivered by Postgres in associated widgets.
+  * Fix: Accept `Date(Time)Range` objects delivered by Postgres in associated widgets.
   * Improve UX: When sorting form collections, the trash symbol now is hidden to prevent confusion.
   * Fix: add extra check to see if instance marked for removal has already been deleted.
   * Improve UX: Make disabled `Selectize` widgets better distinguishable by applying opacity to 
     the whole widget.
   * Fix regression from 2.1.3: Hover in Calendar over prev and next button highlights until start
-    or begin of calendar sheet, even in non-range mode.
+    or begin of a calendar sheet, even in non-range mode.
 
 - 2.1.3
   * The `Selectize` widget never renders the `empty_label` provided by the field. Instead, the user

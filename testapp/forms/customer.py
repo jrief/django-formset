@@ -6,6 +6,7 @@ from formset.forms import Form
 
 class AddressFieldset(Fieldset):
     legend = "Address"
+    collapsed = False
 
     postal_code = fields.CharField(
         label="Postal Code",
@@ -35,12 +36,13 @@ class CustomerForm(Form):
 
     billing = CustomerFieldset(
         legend="Billing",
-    )
-    shipping = CustomerFieldset(
-        legend="Shipping",
-        hide_condition='use_billing_address',
+        collapsed=True,
     )
     use_billing_address = fields.BooleanField(
         label="Use Billing Address for Shipping",
         required=False,
+    )
+    shipping = CustomerFieldset(
+        legend="Shipping",
+        hide_condition='use_billing_address',
     )

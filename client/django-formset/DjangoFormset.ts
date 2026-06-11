@@ -882,7 +882,10 @@ class DjangoButton {
 	private alertOnError() {
 		return (response: Response) => {
 			if (response.status !== 422) {
-				window.alert(response.statusText);
+				return new Promise(resolve => response.text().then(text => {
+					window.alert(`${response.statusText}: ${text}`);
+					resolve(response);
+				}));
 			}
 			return Promise.resolve(response);
 		}
@@ -1134,6 +1137,9 @@ class DjangoFieldset {
 		this.element = element;
 		this.updateVisibility = this.evalVisibility('df-show', true) ?? this.evalVisibility('df-hide', false) ?? function() {};
 		this.updateDisabled = this.evalDisable();
+		if (element.ariaExpanded) {
+			this.handleCollapse();
+		}
 	}
 
 	private evalVisibility(attribute: string, visible: boolean): Function|null {
@@ -1164,6 +1170,27 @@ class DjangoFieldset {
 			throw new Error(`Error while parsing <fieldset df-disable="${attrValue}">: ${error}.`);
 		}
 	}
+
+	private handleCollapse() {
+		const legendElement = this.element.querySelector(':scope > legend');
+		if (legendElement instanceof HTMLLegendElement) {
+			const fieldsetRect = this.element.getBoundingClientRect();
+			const legendRect = legendElement.getBoundingClientRect();
+			let collapsedHeight: number;
+			if (legendRect.top > fieldsetRect.top) {
+				collapsedHeight = legendRect.top - fieldsetRect.top + legendRect.height;
+				collapsedHeight += parseFloat(getComputedStyle(legendElement).marginBottom);
+			} else {
+				collapsedHeight = 0;
+			}
+			this.element.style.setProperty('--collapsed-height', `${collapsedHeight}px`);
+			legendElement.addEventListener('click', this.toggleCollapse);
+		}
+	}
+
+	private toggleCollapse = (event: Event) => {
+		this.element.ariaExpanded = this.element.ariaExpanded === 'true' ? 'false' : 'true';
+	};
 
 	private getDataValue(path: Path) : string|undefined {
 		return this.form.getDataValue(path, `${this.element.name}.`);
@@ -2024,6 +2051,8 @@ export class DjangoFormset implements DjangoFormset {
 	public aggregateValues() {
 		this.data = {};
 		for (const form of this.forms) {
+			if (form.isTransient)
+				continue;
 			setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
 		}
 	}
@@ -2146,9 +2175,7 @@ export class DjangoFormset implements DjangoFormset {
 			if (!this.endpoint)
 				throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
 			this.removeFreshCollections();
-			const body = Object.assign(
-				{extra_data: Object.assign({}, this.extraData, extraData)}, this.buildBody()
-			);
+			const body = {extra_data: {...this.extraData, ...(extraData ?? {})}, ...this.buildBody()};
 			try {
 				const headers = new Headers();
 				headers.append('Accept', 'application/json');
@@ -2242,7 +2269,7 @@ export class DjangoFormset implements DjangoFormset {
 		}
 		const fullPath = ['formset_data', ...path];
 		const body = setDataValue(
-			{extra_data: Object.assign({}, this.extraData, extraData)},
+			{extra_data: {...this.extraData, ...(extraData ?? {})}},
 			fullPath, getDataValue(this.buildBody(), fullPath)
 		);
 		try {

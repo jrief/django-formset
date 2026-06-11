@@ -1,0 +1,39 @@
+[is="simpsons-selector"] + ul {
+
+	list-style: none;
+	display: flex;
+	flex-wrap: wrap;
+
+	& li {
+		margin-right: 20px;
+		padding: 10px;
+		display: flow;
+		border: 2px solid transparent;
+
+		&:last-child {
+			margin-right: 0;
+		}
+
+		&:hover {
+			border-color: darkred;
+		}
+
+		&[aria-selected="true"] {
+			border-color: darkred;
+			background-color: beige;
+		}
+
+		& label {
+			display: block;
+			height: 40px;
+			width: 100px;
+			margin-left: auto;
+			margin-right: auto;
+			margin-bottom: 5px;
+		}
+
+		& img {
+			width: 125px;
+		}
+	}
+}

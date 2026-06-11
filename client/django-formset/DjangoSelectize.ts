@@ -80,12 +80,10 @@ export class DjangoSelectize extends IncompleteSelect {
 			throw new Error('<select is="django-selectize" requires a sibling to wrap the shadow root');
 		this.shadowWrapper = tomInput.nextElementSibling;
 		this.shadowWrapper.classList.add(...nativeClasses);
-		if (this.nativeStyles.height === 'auto') {
-			const params = [
-				this.nativeStyles.lineHeight,
-				this.nativeStyles.paddingTop,
-				this.nativeStyles.paddingBottom,
-			];
+		if (Number.isNaN(parseFloat(this.nativeStyles.height))) {
+			// height of the native element has no pixel values, try another approach
+			const lineHeight = Number.isNaN(parseFloat(this.nativeStyles.lineHeight)) ? `${this.nativeStyles.fontSize} * 1.5` : this.nativeStyles.lineHeight;
+			const params = [lineHeight, this.nativeStyles.paddingTop, this.nativeStyles.paddingBottom];
 			if (this.nativeStyles.boxSizing === 'border-box') {
 				params.push(this.nativeStyles.borderTopWidth, this.nativeStyles.borderBottomWidth);
 			}
@@ -467,7 +465,7 @@ export class DjangoSelectize extends IncompleteSelect {
 				'border-color': 'border-color',
 				'outline': 'outline',
 			},
-			tomInput, '⁝focus'
+			tomInput, {}, '⁝focus'
 		);
 		StyleHelpers.replaceMediaQueryStyles(
 			-1,
@@ -478,7 +476,7 @@ export class DjangoSelectize extends IncompleteSelect {
 				'color': 'color',
 				'outline': 'outline',
 			},
-			tomInput, '⁝disabled'
+			tomInput, {}, '⁝disabled'
 		);
 		this.setupFilters(tomInput);
 		if (this.mustReloadOptions()) {

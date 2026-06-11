@@ -19,7 +19,7 @@ enum Direction {
 }
 
 
-enum SheetType {
+export enum SheetType {
 	compact,
 	plain,
 	lower,
@@ -33,6 +33,7 @@ export type CalendarSettings = {
 	withRange: boolean,  // if true, a range of dates can be selected
 	hour12: boolean,  // if true, use 12-hour format
 	sheetType: SheetType,
+	showUpper: boolean,
 	inputElement: HTMLInputElement,  // input element to pilfer styles from
 	updateDate: Function,  // callback to update date input
 	close: Function,  // callback to close calendar
@@ -92,6 +93,7 @@ class CalendarSheet {
 	private maxYearDate?: Date;
 	private readonly rangeSelectCssRule: CSSStyleRule;
 	private readonly rangeSelectorText: string;
+	private readonly asideElementOffsetTop = 15;
 
 	constructor(calendar: CalendarWidget, element: HTMLElement, sheetType: SheetType) {
 		this.calendar = calendar;
@@ -187,6 +189,7 @@ class CalendarSheet {
 	}
 
 	private registerCalendar() {
+		const settings = this.calendar.settings;
 		this.viewMode = this.getViewMode();
 		this.prevSheetDate = this.getDate('button.prev');
 		const prevButton = this.element.querySelector('button.prev');
@@ -196,14 +199,14 @@ class CalendarSheet {
 		const nextButton = this.element.querySelector('button.next');
 		const extendButton = this.element.querySelector('button.extend');
 		this.extendSheetDate = extendButton ? this.getDate(extendButton) : undefined;
-		if (this.calendar.settings.withRange) {
+		if (settings.withRange) {
 			prevButton?.addEventListener('mouseenter', this.hoverPrevButton);
 		}
 		prevButton?.addEventListener('click', this.turnPrev, {once: true});
 		narrowButton?.addEventListener('click', this.turnNarrow, {once: true});
 		extendButton?.addEventListener('click', this.turnExtend, {once: true});
 		this.element.querySelector('button.today')?.addEventListener('click', this.turnToday, {once: true});
-		if (this.calendar.settings.withRange) {
+		if (settings.withRange) {
 			nextButton?.addEventListener('mouseenter', this.hoverNextButton);
 		}
 		nextButton?.addEventListener('click', this.turnNext, {once: true});
@@ -228,6 +231,9 @@ class CalendarSheet {
 			textElem.textContent = String((new Date()).getDate());
 		}
 		this.sheetBounds = this.getSheetBounds();
+		if (settings.sheetType === SheetType.plain) {
+			this.showDateRange();
+		}
 		this.markSelectedDates();
 	}
 
@@ -777,9 +783,11 @@ class CalendarSheet {
 		if (!sheetBody)
 			throw new Error("Missing sheet body element for showing calendar date range");
 
-		sheetBody.insertAdjacentHTML('afterbegin', '<div class="aside-left"><time></time></div>');
+		if (!sheetBody.querySelector('.aside-left')) {
+			sheetBody.insertAdjacentHTML('afterbegin', '<div class="aside-left"><time></time></div>');
+		}
 		const leftAsideElement = sheetBody.querySelector('.aside-left > time') as HTMLTimeElement;
-		const firstItem = this.element.querySelector('li[data-date]:first-child')!;
+		const firstItem = this.element.querySelector('ul > li[data-date]:first-child')!;
 		const firstDate = this.getDate(firstItem);
 		if (dateRange[1] && dateRange[1] < firstDate) {
 			setAsideElement(leftAsideElement, dateRange[1]);
@@ -789,10 +797,14 @@ class CalendarSheet {
 			leftAsideElement.dateTime = '';
 			leftAsideElement.textContent = '';
 		}
+		const leftAsideRect = leftAsideElement.getBoundingClientRect();
+		leftAsideElement.style.translate = `0 ${leftAsideRect.height + this.asideElementOffsetTop}px`;
 
-		sheetBody.insertAdjacentHTML('beforeend', '<div class="aside-right"><time></time></div>');
+		if (!sheetBody.querySelector('.aside-right')) {
+			sheetBody.insertAdjacentHTML('beforeend', '<div class="aside-right"><time></time></div>');
+		}
 		const rightAsideElement = sheetBody.querySelector('.aside-right > time') as HTMLTimeElement;
-		const lastItem = this.element.querySelector('li[data-date]:last-child')!;
+		const lastItem = this.element.querySelector('ul:last-child > li[data-date]:last-child')!;
 		const lastDate = this.getDate(lastItem);
 		if (dateRange[0] && dateRange[0] > lastDate) {
 			setAsideElement(rightAsideElement, dateRange[0]);
@@ -802,6 +814,8 @@ class CalendarSheet {
 			rightAsideElement.dateTime = '';
 			rightAsideElement.textContent = '';
 		}
+		const rightAsideRect = rightAsideElement.getBoundingClientRect();
+		rightAsideElement.style.translate = `${rightAsideRect.width}px ${this.asideElementOffsetTop}px`;
 	}
 
 	private async selectToday() {
@@ -986,11 +1000,12 @@ class CalendarSheet {
 	}
 
 	public async fetchCalendar(atDate: Date, viewMode?: ViewMode) {
+		const settings = this.calendar.settings;
 		const query = new URLSearchParams([
 			['date', asUTCDate(atDate).toISOString().slice(0, 10)],
 			['mode', viewMode ?? this.viewMode],
 		]);
-		if (this.calendar.settings.hour12) {
+		if (settings.hour12) {
 			query.set('hour12', '');
 		}
 		if (this.interval) {
@@ -1003,7 +1018,7 @@ class CalendarSheet {
 		this.element.classList.remove('loading');
 		if (response.status === 200) {
 			this.element.innerHTML = await response.text();
-			if (this.calendar.settings.sheetType === SheetType.plain) {
+			if (settings.sheetType === SheetType.plain) {
 				this.showDateRange();
 			}
 		} else {
@@ -1137,14 +1152,12 @@ export class CalendarWidget extends Widget {
 	}
 
 	public updateDate(currentDate: Date|null, extendedDate: Date|null) {
+		this.dateRange = [currentDate, extendedDate];
 		if (currentDate) {
-			this.dateRange = [currentDate, extendedDate];
-			this.calendarSheets[0].fetchCalendar(currentDate);
+			this.calendarSheets[0].fetchCalendar(this.settings.showUpper && extendedDate ? extendedDate : currentDate);
 			if (this.calendarSheets[1] && extendedDate) {
 				this.calendarSheets[1].fetchCalendar(extendedDate);
 			}
-		} else {
-			this.dateRange = [null, null];
 		}
 	}
 
@@ -1184,6 +1197,7 @@ export class DateCalendarElement extends HTMLInputElement {
 			inputElement: this,
 			hour12: dateTimeFormat.resolvedOptions().hour12 ?? false,
 			sheetType: CalendarSettings.layoutToSheetType(calendarElement),
+			showUpper: false,
 			updateDate: (date: Date) => {
 				this.value = date.toISOString().slice(0, 10);
 				this.dispatchEvent(new Event('input'));
@@ -1222,6 +1236,7 @@ export class DateTimeCalendarElement extends HTMLInputElement {
 			inputElement: this,
 			hour12: dateTimeFormat.resolvedOptions().hour12 ?? false,
 			sheetType: CalendarSettings.layoutToSheetType(calendarElement),
+			showUpper: false,
 			updateDate: (date: Date) => {
 				this.value = date.toISOString().slice(0, 16);
 				this.dispatchEvent(new Event('input'));
@@ -1254,12 +1269,14 @@ export class DateRangeCalendarElement extends HTMLInputElement {
 		if (!(calendarElement instanceof HTMLElement))
 			throw new Error(`Could not find calendar element for ${this}`);
 		const dateTimeFormat = Intl.DateTimeFormat(navigator.language, {hour: '2-digit'});
+		const sheetType = CalendarSettings.layoutToSheetType(calendarElement);
 		const settings: CalendarSettings = {
 			dateOnly: true,
 			withRange: true,
 			inputElement: this,
 			hour12: dateTimeFormat.resolvedOptions().hour12 ?? false,
-			sheetType: CalendarSettings.layoutToSheetType(calendarElement),
+			sheetType: sheetType,
+			showUpper: [SheetType.compact, SheetType.plain].includes(sheetType) && this.hasAttribute('show-upper'),
 			updateDate: (lowerDate: Date, upperDate?: Date) => {
 				const dateStrings = [
 					`${asUTCDate(lowerDate).toISOString().slice(0, 10)}T00:00`,
@@ -1297,12 +1314,14 @@ export class DateTimeRangeCalendarElement extends HTMLInputElement {
 		if (!(calendarElement instanceof HTMLElement))
 			throw new Error(`Could not find calendar element for ${this}`);
 		const dateTimeFormat = Intl.DateTimeFormat(navigator.language, {hour: '2-digit'});
+		const sheetType = CalendarSettings.layoutToSheetType(calendarElement);
 		const settings: CalendarSettings = {
 			dateOnly: false,
 			withRange: true,
 			inputElement: this,
 			hour12: dateTimeFormat.resolvedOptions().hour12 ?? false,
-			sheetType: CalendarSettings.layoutToSheetType(calendarElement),
+			sheetType: sheetType,
+			showUpper: [SheetType.compact, SheetType.plain].includes(sheetType) && this.hasAttribute('show-upper'),
 			updateDate: (lowerDate: Date, upperDate?: Date) => {
 				const dateStrings = [
 					asUTCDate(lowerDate).toISOString().slice(0, 16),

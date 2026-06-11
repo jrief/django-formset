@@ -105,12 +105,12 @@ then adopts itself to the browser's current locale setting.
 Date Picker Widget
 ==================
 
-In addition to the two native widgets :class:`formset.widgets.DatePicker` and
-:class:`formset.widgets.DateTimePicker` mentioned before, **django-formset** offers widgets which
-render the calendar part of the input field server-side, using Python's built-in Calendar_ class.
-This gives us finer control over the styling of the date picker, and offers the same user experience
-across all browsers. They furthermore have a more appealing user interface which is consistent with
-the :ref:`date-time-range` fields provided by **django-formset**.
+In addition to the two native widgets :class:`formset.widgets.DateInput` and
+:class:`formset.widgets.DateTimeInput` just mentioned, **django-formset** offers additional widgets
+which render the calendar part of the input field on the server-side, using Python's built-in
+Calendar_ class. This gives us finer control over the styling of the date picker, and offers the
+same user experience across all browsers. They furthermore have a more appealing user interface
+which is consistent with the :ref:`date-time-range` fields provided by **django-formset**.
 
 In this example, we want to add a field to enter the publishing date of our blog. By using the named
 widgets instead of the default, this input field opens a calendar, whenever the user clicks on it.
@@ -235,7 +235,7 @@ In our form, we want to add a field to enter the launch date and time. By using
 :class:`formset.widgets.DateTimePicker` instead of the default widget, this input field opens a
 calendar, whenever the user clicks on it. This calendar differs from the default HTML date picker,
 which is rendered when using the widget :class:`formset.widgets.DateTimeInput`. While technically
-possible, it is not recomended to interchange them on the same page or even application as this
+possible, it is not recommended to interchange them on the same page or even application as this
 results in unexpected user experience.
 
 By clicking on a date inside the ``DateTimePicker`` widget, a 24 hour view appears. Depending on the
@@ -271,8 +271,9 @@ the user can select.
 Date and Time Constraints
 =========================
 
-Both widgets :class:`formset.widgets.DatePicker` and :class:`formset.widgets.DateTimePicker` respect
-the minimum and maximum values passed to the widget ``DatePicker`` and ``DateTimePicker``. By
+All widgets :class:`formset.widgets.DatePicker`, :class:`formset.widgets.DateTimePicker`,
+:class:`formset.widgets.DateCalendar` and :class:`formset.widgets.DateTimeCalendar` respect the
+minimum and maximum values passed to the given form fields ``DateField`` or ``DateTimeField``. By
 combining it with ``now`` and ``timedelta`` this becomes very useful, since it prevents users from
 selecting dates too far in the past or in the future.
 
@@ -289,7 +290,8 @@ selecting dates too far in the past or in the future.
 	        }),
 	    )
 
-This example disables all dates which lie in the past and are more than two weeks in the future.
+This example disables all dates which lie in the past and are more than two weeks ahead in the
+future.
 
 .. django-view:: appointment_view
 	:view-function: AppointmentView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'appointment-result'}, form_kwargs={'auto_id': 'af_id_%s'})
@@ -301,16 +303,35 @@ This example disables all dates which lie in the past and are more than two week
 	    success_url = "/success"
 
 
+Extra Widget Attributes
+=======================
+
+The date- and date-time widgets accept the following extra attributes:
+
+* ``step``: This attribute specifies the granularity of the calendar for the widgets
+  ``DateTimePicker`` and ``DateTimeCalendar``. The value of this attribute must be a
+  ``datetime.timedelta`` object.
+* ``min``: This attribute specifies the minimum date or date-time that can be selected in the
+  calendar. The value of this attribute must be a date or date-time object. List items with a date
+  or date-time smaller than this value are disabled in the calendar.
+* ``max``: This attribute specifies the maximum date or date-time that can be selected in the
+  calendar. The value of this attribute must be a date or date-time object. List items with a date
+  or date-time larger than this value are disabled in the calendar.
+* ``date-format``: This attribute specifies the format in which the date or date-time is displayed
+  in the input field for the widgets ``DateTextbox``, ``DateTimeTextbox``, ``DatePicker`` and
+  ``DateTimePicker``. The value of this attribute must be a string in the format or ``iso``
+  to use the ISO format. The default is to use the browser's locale setting.
+
+
 Applying Context to the Calendar
 ================================
 
 Apart from not having to integrate date arithmetics into the client-side part of this library, one
 of the big advantages of using a server side rendered calendar sheet is, that we are able to enrich
 the rendering context with additional data. Say that we want to show the phases of the moon for each
-date (this of course could also be done in JavaScript, but here it is used for simple demonstration
-purposes). Normally one would use some information stored in the database, for instance to display
-vacant or occupied rooms in a booking application. Or it can be useful to display extra information
-such as holidays.
+date [#moon_phases]_. Normally one would use some information stored in the database, for instance
+to display vacant or occupied rooms in a booking application. Or it can be useful to display extra
+information such as holidays.
 
 .. django-view:: moon_form
 	:caption: form.py
@@ -371,3 +392,9 @@ mixin class :class:`formset.calendar.CalendarResponseMixin` to use that by passi
 	    calendar_renderer_class = MoonCalendarRenderer
 	    template_name = "form.html"
 	    success_url = "/success"
+
+.. rubric:: Footnotes
+
+.. [#moon_phases] This of course could also be done in JavaScript, but here it is used for simple
+   demonstration purposes.
+

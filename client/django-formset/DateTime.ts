@@ -1,5 +1,5 @@
 import {autoUpdate, computePosition, flip, shift} from '@floating-ui/dom';
-import {CalendarWidget, CalendarSettings} from './Calendar';
+import {CalendarWidget, CalendarSettings, SheetType} from './Calendar';
 import {Widget} from './Widget';
 import {StyleHelpers, asUTCDate} from './helpers';
 import styles from './DateTime.scss';
@@ -96,10 +96,12 @@ class DateTimeField extends Widget {
 	}
 
 	private getCalendarSettings(calendarElement: HTMLElement) : CalendarSettings {
+		const sheetType = CalendarSettings.layoutToSheetType(calendarElement)
 		const settings: CalendarSettings = {
 			dateOnly: this.dateOnly,
 			withRange: this.withRange,
-			sheetType: CalendarSettings.layoutToSheetType(calendarElement),
+			sheetType: sheetType,
+			showUpper: sheetType === SheetType.compact && this.inputElement.hasAttribute('show-upper'),
 			inputElement: this.inputElement,
 			hour12: this.hour12,
 			updateDate: (currentDate: Date, extendedDate: Date|null|boolean) => this.updateDate(currentDate, extendedDate),
@@ -225,15 +227,6 @@ class DateTimeField extends Widget {
 	private attributesChanged = (mutations: MutationRecord[]) => {
 		if (mutations.find(m => m.attributeName === 'disabled')) {
 			this.inputFields.forEach(inputField => inputField.contentEditable = this.inputElement.disabled ? 'false' : 'true');
-			this.mediaStylesIndex = StyleHelpers.replaceMediaQueryStyles(
-				this.mediaStylesIndex,
-				this.styleSheet,
-				`${this.baseSelector} + [role="textbox"]`,
-				{
-					'--background-color': 'background-color',
-				},
-				this.inputElement,
-			);
 		}
 	};
 
@@ -452,7 +445,7 @@ class DateTimeField extends Widget {
 				}
 				const maxLength = hasFocus.ariaPlaceholder?.length ?? 0;
 				if (hasFocus.innerText.length === maxLength - 1) {
-					setTimeout(() => this.nextInputField?.focus(), 0);
+					requestIdleCallback(() => this.nextInputField?.focus());
 				}
 				return hasFocus.innerText.length === maxLength;
 			default:
@@ -537,13 +530,31 @@ class DateTimeField extends Widget {
 		StyleHelpers.replaceMediaQueryStyles(
 			-1,
 			this.styleSheet,
+			`${this.baseSelector} + [role="textbox"]`,
+			{
+				'--background-color': 'background-color',
+			},
+			this.inputElement, {'disabled': null},
+		);
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
+			this.styleSheet,
+			`${this.baseSelector}[disabled] + [role="textbox"]`,
+			{
+				'--background-muted-color': 'background-color',
+			},
+			this.inputElement, {'disabled': ''},
+		);
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
+			this.styleSheet,
 			`${this.baseSelector} + [role="textbox"].focus`,
 			{
 				'border-color': 'border-color',
 				'box-shadow': 'box-shadow',
 				'outline': 'outline',
 			},
-			this.inputElement, '⁝focus',
+			this.inputElement, {},'⁝focus',
 		);
 		this.inputElement.hidden = true;  // setting type="hidden" prevents dispatching events
 	}

@@ -26,7 +26,7 @@ class BirthdateBoxForm(forms.Form):
         label="Birthdate",
         initial=datetime(2021, 7, 9, tzinfo=timezone.utc),
         widget=DateTextbox(attrs={
-            # 'date-format': 'iso',
+            'date-format': 'iso',
             'max': lambda: datetime.now(tz=timezone.utc).date() + timedelta(days=1),
             'df-disable': '!.enable',
         }),

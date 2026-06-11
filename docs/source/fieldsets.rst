@@ -27,10 +27,14 @@ introduces the Python class :class:`formset.fieldset.Fieldset` to group multiple
 a ``<fieldset>``-element. Such a ``Fieldset`` class can be used multiple times in a form. To
 distinguish those fields, each field is prefixed with the fieldset's name, separated by a dot.
 
-A fieldset accepts the optional string attribute ``legend``. This then is rendered as a
-``<legend>``-element inside the ``<fieldset>``. A fieldset also accepts the optional string
-attribute ``help_text``. This is rendered as a muted ``<p>``-element after the last field but inside
-that fieldset.
+A ``Fieldset`` accepts the optional string attribute ``legend``. If set, this string then is
+rendered in a ``<legend>``-element inside the ``<fieldset>``. If a ``Fieldset`` contains a
+``legend``, it also accepts the optional Boolean attribute ``collapsed``. If this is set to
+``True``, the ``<fieldset>``-element is rendered in a collapsed state, only displaying its legend.
+The legend of a collapsible fieldset shows a caret icon to indicate that it can be expanded.
+
+A ``Fieldset`` also accepts the optional string attribute ``help_text``. This is rendered as a muted
+``<p>``-element after the last field but inside that fieldset.
 
 Another purpose of using fieldsets, is to use :ref:`conditionals`. This allows us to hide or disable
 the whole fieldset depending on the context of another field.
@@ -65,14 +69,16 @@ checkbox to hide the latter. Here we create this form to build one submittable e
 	class CustomerForm(Form):
 	    billing_address = AddressFieldset(
 	        legend="Billing Address",
+	        collapsed=True,
+	    )
+	    use_billing_address = BooleanField(
+	        label="Use billing Address for shipping",
+	        initial=True,
+	        required=False,
 	    )
 	    shipping_address = AddressFieldset(
 	        legend="Shipping Address",
 	        hide_condition='use_billing_address',
-	    )
-	    use_billing_address = BooleanField(
-	        label="Use billing Address for shipping",
-	        required=False,
 	    )
 	
 .. django-view:: fieldset_view

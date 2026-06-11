@@ -158,7 +158,7 @@ class FormRenderer(DjangoTemplates):
 def richtext_attributes(node):
     """
     Converts the internal representation of a TipTap node into a specific string such as
-    ``style="prop: value"`` or ``class="specfic-css-class"``. This is to enforce paragraph
+    ``style="prop: value"`` or ``class="specific-css-class"``. This is to enforce paragraph
     styling according to the CSS framework's best practice.
     """
     styles = {}

@@ -234,7 +234,7 @@ forms and collection to edit the company, its departments and their teams such a
 	
 	    add_team = AddSiblingActivator("Add Team")
 
-	    def get_or_create_instance(self, data):
+	    def get_or_create_instance(self, data, position):
 	        if data := data.get('team'):
 	            try:
 	                return self.instance.teams.get(id=data.get('id') or 0), False
@@ -264,7 +264,7 @@ forms and collection to edit the company, its departments and their teams such a
 
 	    add_department = AddSiblingActivator("Add Department")
 	
-	    def get_or_create_instance(self, data):
+	    def get_or_create_instance(self, data, position):
 	        if data := data.get('department'):
 	            try:
 	                return self.instance.departments.get(id=data.get('id') or 0), False
@@ -315,17 +315,146 @@ dedicated object. The latter usually is determined by using a unique identifier,
 primary key or a slug.
 
 
+.. _sortable-model-collections-one-to-many:
+
+Sortable One-to-Many Relations
+==============================
+
+A special use case of one-to-many relations is when the order of the child objects is relevant. This
+is usually the case when the child model contains an explicit ordering field (here ``position``) and
+the form collection has ``is_sortable = True``. In this example, we want to create a sortable
+collection of images to be used in a gallery. The models only contain a gallery with a relation to
+their associated images:
+
+.. code-block:: python
+	:caption: models.py
+	:emphasize-lines: 24-28
+
+	from django.db import models
+	from formset.modelfields import RichTextField
+	
+	class Gallery(models.Model):
+	    name = models.CharField(
+	        verbose_name="Gallery name",
+	        max_length=50,
+	    )
+	
+	class Image(models.Model):
+	    image = models.FileField(
+	        upload_to='images',
+	        blank=True,
+	    )
+	    caption = RichTextField(
+	        blank=True,
+	        null=True,
+	    )
+	    gallery = models.ForeignKey(
+	        Gallery,
+	        on_delete=models.CASCADE,
+	        related_name='images',
+	    )
+	    position = models.PositiveIntegerField(
+	        editable=False,
+	        default=0,
+	        db_index=True,
+	    )
+	
+	    class Meta:
+	        ordering = ['position']
+
+
+.. django-view:: gallery_collection
+	:hide-view:
+	:caption: collections.py
+	:emphasize-lines: 25, 39, 42
+
+	from django.forms import fields, widgets
+	from django.forms.models import ModelForm
+	from formset.collection import AddSiblingActivator, FormCollection
+	from formset.widgets import UploadedFileInput
+	from testapp.models.gallery import Image, Gallery
+	
+	class ImageForm(ModelForm):
+	    id = fields.IntegerField(
+	        required=False,
+	        widget=widgets.HiddenInput,
+	    )
+	
+	    class Meta:
+	        model = Image
+	        fields = ['id', 'image', 'caption']
+	        widgets = {'image': UploadedFileInput}
+	
+	class ImageCollection(FormCollection):
+	    min_siblings = 0
+	    extra_siblings = 1
+	    image = ImageForm()
+	    legend = "Gallery Images"
+	    induce_add_sibling = '.add_image:active'
+	    related_field = 'gallery'
+	    is_sortable = True
+	
+	    add_image = AddSiblingActivator("Add Image")
+	
+	    def get_or_create_instance(self, data, position):
+	        if data := data.get('image'):
+	            try:
+	                image = self.instance.images.get(id=data.get('id') or 0)
+	                image.position = position
+	                return image, False
+	            except (AttributeError, Image.DoesNotExist, ValueError):
+	                form = ImageForm(data=data)
+	                if form.is_valid():
+	                    return Image(
+	                        image=form.cleaned_data['image'],
+	                        gallery=self.instance,
+	                        position=position
+	                    ), True
+	        return None, False
+	
+	class GalleryForm(ModelForm):
+	    class Meta:
+	        model = Gallery
+	        fields = ['name']
+	
+	class GalleryCollection(FormCollection):
+	    gallery = GalleryForm()
+	    images = ImageCollection()
+
+Finally, our ``GalleryCollection`` must be served by a Django view class. Here we can use the the
+view class :class:`formset.views.EditCollectionView` as in the previous examples:
+
+.. django-view:: gallery_view
+	:view-function: type('GalleryCollectionView', (SessionFormCollectionViewMixin, model_collections.GalleryCollectionView), {}).as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'gallery-collection'}, collection_kwargs={'renderer': FormRenderer(field_css_classes='mb-2')})
+	:hide-code:
+
+	class GalleryCollectionView(EditCollectionView):
+	    model = Gallery
+	    collection_class = GalleryCollection
+	    template_name = 'form-collection.html'
+
+Note the drag handle on the upper right corner of each image form in the collection. By dragging,
+this allows the user to change the order of the images. The position of each image then is stored in
+the database using the ``position`` attribute passed in when invoking the method
+``get_or_create_instance(…)``.
+
+.. note:: After submission, the content of these form collections is stored in the database.
+	Therefore after reloading this page, the same content will reappear in the form.
+
+
 Collection Attributes Usage
----------------------------
+===========================
 
 .. rubric:: ``related_field``
 
-In this example we have to implement the attribute ``related_field`` in our main collection class
-``CompanyCollection``. This is because **django-formset** otherwise does not know how the
-``DepartmentCollection`` is related to model ``Company``, and how the ``TeamCollection`` is related
-to model ``Department``. Here, ``related_field`` refers to the name of the foreign key attribute in
-model ``Department`` pointing to model ``Company``, and to the foreign key attribute in model
-``Team`` pointing to model ``Department`` respectively.
+In these examples we have to implement the attribute ``related_field`` in our main collection
+classes ``CompanyCollection``, ``TeamCollection`` and ``ImageCollection``. This is because
+**django-formset** otherwise does not know how the ``DepartmentCollection`` is related to model
+``Company``, ``TeamCollection`` is related to model ``Department``, or ``ImageCollection`` is
+related to model ``Gallery``. Here, ``related_field`` refers to the name of the foreign key
+attribute in models ``Department`` pointing to ``Company``, ``Team`` pointing to model
+``Department``, and to the foreign key attribute ``gallery`` in model ``Image`` pointing to model
+``Gallery`` respectively.
 
 .. rubric:: ``reverse_accessor``
 
@@ -339,23 +468,35 @@ ommitted them here. They are only required, if the attribute name of the collect
 
 .. version-changed:: 2.2
 
-.. rubric:: ``get_or_create_instance(data)``
+.. rubric:: ``get_or_create_instance(data, position)``
 
 We recall that in the form declaration, we added a hidden field named ``id`` to keep track of the
 primary key. During submission, we therefore must find the link between instances of type
-``Department`` to their ``Company``, or between instances of type ``Team`` to their ``Department``.
-Forms which have been added using the buttons "Add Team" or "Add Department" have an empty ``id``
-field, because for obvious reasons, no primary key yet exists. For this to work we therefore have to
-implement a custom method ``get_or_create_instance(data)``. This method is responsible to retrieve
-the wanted instance from the database, or if that hidden field is empty, must create an empty
-model instance. In some configurations, we might want to create such an instance and save it
-immediately. We then return the created object followed by ``True``. Usually however, we just create
-an unsaved model instance which will be added to the database in a later step. Forms which have been
-deleted using the trash symbol on the upper right corner of each form, are marked for removal and
-will be removed from the associated object.
+``Department`` to their ``Company``, instances of type ``Team`` to their ``Department`` or between
+instances of type ``Image`` to their ``Gallery``.
 
-Until version 2.1, this method was named ``retrieve_instance`` and did not distinguish between
-saved and unsafed instances. It therefore only returned that instance.
+Forms which have been added using the buttons "Add Team", "Add Department" or "Add Image" have an
+empty ``id`` field, because for obvious reasons, no primary key yet exists. For this to work we
+therefore have to implement a custom method ``get_or_create_instance(data, position)``. This method
+is responsible to retrieve the wanted instance from the database, or if that hidden field is empty,
+must create an empty model instance. In some configurations, we might want to create such an
+instance and save it immediately. We then return the created object followed by ``True``. Usually
+however, we just create an unsaved model instance which will be added to the database in a later
+step. Forms which have been deleted using the trash symbol on the upper right corner of each form,
+are marked for removal and will be removed from the associated object.
+
+.. versionchanged:: 2.1
+
+Until version 2.1, method ``get_or_create_instance`` was named ``retrieve_instance`` and did not
+distinguish between saved and unsaved instances. It therefore only returned that instance.
+
+.. versionchanged:: 2.3
+
+When implementing this method, the argument ``position`` can be used while creating a new instance,
+or when modifying an existing instance. It corresponds to the 1-indexed position of the given child
+in the list of child instances related to the main object. This is especially useful when the order
+is relevant, which usually is the case when the child model contains an explicit ordering field and
+the form collection has ``is_sortable = True``.
 
 .. rubric:: ``form_collection_valid(form_collection)``
 
