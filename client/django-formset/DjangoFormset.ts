@@ -2051,8 +2051,6 @@ export class DjangoFormset implements DjangoFormset {
 	public aggregateValues() {
 		this.data = {};
 		for (const form of this.forms) {
-			if (form.isTransient)
-				continue;
 			setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
 		}
 	}
