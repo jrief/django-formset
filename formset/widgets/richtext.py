@@ -39,7 +39,9 @@ class RichTextarea(Textarea):
             if not isinstance(value, dict):
                 raise ValidationError(gettext("The submitted data is not a valid JSON structure."))
         else:
-            if not isinstance(value, str):
+            if isinstance(value, dict) and '__html__' in value:
+                value = value['__html__']
+            elif not isinstance(value, str):
                 raise ValidationError(gettext("The submitted data is not a valid text string."))
         if max_length := self.attrs.get('maxlength'):
             if use_json:
