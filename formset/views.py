@@ -27,6 +27,7 @@ class IncompleteSelectResponseMixin:
     :class:`formset.widgets.Selectize`, :class:`formset.widgets.SelectizeMultiple` or
     :class:`formset.widgets.DualSelector`.
     """
+
     def get(self, request, **kwargs):
         if request.accepts('application/json') and 'field' in request.GET:
             return self._fetch_options(request)

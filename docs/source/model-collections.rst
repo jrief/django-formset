@@ -237,7 +237,7 @@ forms and collection to edit the company, its departments and their teams such a
 	    def get_or_create_instance(self, data, position):
 	        if data := data.get('team'):
 	            try:
-	                return self.instance.teams.get(id=data.get('id') or 0), False
+	                return self.instance.teams.get(id=data.get('id')), False
 	            except (AttributeError, Team.DoesNotExist, ValueError):
 	                form = TeamForm(data=data)
 	                if form.is_valid():
@@ -267,7 +267,7 @@ forms and collection to edit the company, its departments and their teams such a
 	    def get_or_create_instance(self, data, position):
 	        if data := data.get('department'):
 	            try:
-	                return self.instance.departments.get(id=data.get('id') or 0), False
+	                return self.instance.departments.get(id=data.get('id')), False
 	            except (AttributeError, Department.DoesNotExist, ValueError):
 	                form = DepartmentForm(data=data)
 	                if form.is_valid():
@@ -399,7 +399,7 @@ their associated images:
 	    def get_or_create_instance(self, data, position):
 	        if data := data.get('image'):
 	            try:
-	                image = self.instance.images.get(id=data.get('id') or 0)
+	                image = self.instance.images.get(id=data.get('id'))
 	                image.position = position
 	                return image, False
 	            except (AttributeError, Image.DoesNotExist, ValueError):
@@ -477,13 +477,14 @@ instances of type ``Image`` to their ``Gallery``.
 
 Forms which have been added using the buttons "Add Team", "Add Department" or "Add Image" have an
 empty ``id`` field, because for obvious reasons, no primary key yet exists. For this to work we
-therefore have to implement a custom method ``get_or_create_instance(data, position)``. This method
-is responsible to retrieve the wanted instance from the database, or if that hidden field is empty,
-must create an empty model instance. In some configurations, we might want to create such an
-instance and save it immediately. We then return the created object followed by ``True``. Usually
-however, we just create an unsaved model instance which will be added to the database in a later
-step. Forms which have been deleted using the trash symbol on the upper right corner of each form,
-are marked for removal and will be removed from the associated object.
+therefore have to override the method ``get_or_create_instance(data, position)`` by our custom
+implementation. This method then is responsible to retrieve the wanted instance from the database,
+or if that hidden field is empty, must create an empty model instance. In some configurations, we
+might want to create such an instance and save it immediately to the database. We then return the
+created object followed by ``True``. Usually however, we just create an unsaved model instance which
+will be added to the database in a later step. Forms which have been deleted using the trash symbol
+on the upper right corner of each form, are marked for removal and will be removed from the
+associated object.
 
 .. versionchanged:: 2.1
 
