@@ -112,7 +112,7 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
             )
 
         if request.method == 'GET' and ('calendar' in request.GET or 'field' in request.GET):
-            # intercept calendar requests
+            # intercept calendar and/or incomplete requests
             return super().get(request)
 
         if request.method == 'POST' and request.content_type == 'multipart/form-data' and 'temp_file' in request.FILES:
