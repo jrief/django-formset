@@ -138,17 +138,20 @@
 		left: var(--border-radius);
 		right: var(--border-radius);
 		z-index: 2;
-
-		background-color: color-mix(in srgb, var(--django-formset-background-color), transparent 25%);
-		backdrop-filter: blur(1rem);
 		margin: 0;
-		border-top: none;
-		border-right: var(--border-width) var(--border-style) var(--border-color);
-		border-bottom: var(--border-width) var(--border-style) var(--border-color);
-		border-left: var(--border-width) var(--border-style) var(--border-color);
-		border-bottom-left-radius: var(--border-radius);
-		border-bottom-right-radius: var(--border-radius);
-		box-sizing: border-box;
+
+		.ts-dropdown-content {
+			background-color: color-mix(in srgb, var(--django-formset-background-color), transparent 25%);
+			backdrop-filter: blur(1rem);
+			border-top: none;
+			border-right: var(--border-width) var(--border-style) var(--border-color);
+			border-bottom: var(--border-width) var(--border-style) var(--border-color);
+			border-left: var(--border-width) var(--border-style) var(--border-color);
+			border-bottom-left-radius: var(--border-radius);
+			border-bottom-right-radius: var(--border-radius);
+			box-sizing: border-box;
+			margin-bottom: 1rem;
+		}
 
 		[data-selectable] {
 			cursor: pointer;
