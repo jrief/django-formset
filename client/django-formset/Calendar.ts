@@ -1178,10 +1178,8 @@ export class CalendarWidget extends Widget {
 }
 
 
-const CAL = Symbol('Calendar');
-
 export class DateCalendarElement extends HTMLInputElement {
-	private [CAL]!: CalendarWidget;  // hides internal implementation
+	private #calendar: CalendarWidget;  // hides internal implementation
 
 	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');
@@ -1206,21 +1204,21 @@ export class DateCalendarElement extends HTMLInputElement {
 			close: () => {},
 		};
 
-		this[CAL] = new CalendarWidget(calendarElement as HTMLElement, settings);
+		this.#calendar = new CalendarWidget(calendarElement as HTMLElement, settings);
 		if (this.value) {
-			this[CAL].updateDate(new Date(`${this.value}T00:00`), null);
+			this.#calendar.updateDate(new Date(`${this.value}T00:00`), null);
 		}
 		this.hidden = true;
 	}
 
 	get valueAsDate() : Date|null {
-		return this[CAL].valueAsDate();
+		return this.#calendar.valueAsDate();
 	}
 }
 
 
 export class DateTimeCalendarElement extends HTMLInputElement {
-	private [CAL]!: CalendarWidget;  // hides internal implementation
+	private #calendar: CalendarWidget;  // hides internal implementation
 
 	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');
@@ -1245,21 +1243,21 @@ export class DateTimeCalendarElement extends HTMLInputElement {
 			close: () => {},
 		};
 
-		this[CAL] = new CalendarWidget(calendarElement as HTMLElement, settings);
+		this.#calendar = new CalendarWidget(calendarElement as HTMLElement, settings);
 		if (this.value) {
-			this[CAL].updateDate(new Date(this.value), null);
+			this.#calendar.updateDate(new Date(this.value), null);
 		}
 		this.hidden = true;
 	}
 
 	get valueAsDate() : Date|null {
-		return this[CAL].valueAsDate();
+		return this.#calendar.valueAsDate();
 	}
 }
 
 
 export class DateRangeCalendarElement extends HTMLInputElement {
-	private [CAL]!: CalendarWidget;  // hides internal implementation
+	private #calendar: CalendarWidget;  // hides internal implementation
 
 	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');
@@ -1289,22 +1287,22 @@ export class DateRangeCalendarElement extends HTMLInputElement {
 			close: () => {},
 		};
 
-		this[CAL] = new CalendarWidget(calendarElement as HTMLElement, settings);
+		this.#calendar = new CalendarWidget(calendarElement as HTMLElement, settings);
 		if (this.value) {
 			const [start, end] = this.value.split(';');
-			this[CAL].updateDate(new Date(start), new Date(end));
+			this.#calendar.updateDate(new Date(start), new Date(end));
 		}
 		this.hidden = true;
 	}
 
 	get valueAsDate() : Date|null {
-		return this[CAL].valueAsDate();
+		return this.#calendar.valueAsDate();
 	}
 }
 
 
 export class DateTimeRangeCalendarElement extends HTMLInputElement {
-	private [CAL]!: CalendarWidget;  // hides internal implementation
+	private #calendar: CalendarWidget;  // hides internal implementation
 
 	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');
@@ -1334,15 +1332,15 @@ export class DateTimeRangeCalendarElement extends HTMLInputElement {
 			close: () => {},
 		};
 
-		this[CAL] = new CalendarWidget(calendarElement as HTMLElement, settings);
+		this.#calendar = new CalendarWidget(calendarElement as HTMLElement, settings);
 		if (this.value) {
 			const [start, end] = this.value.split(';');
-			this[CAL].updateDate(new Date(start), new Date(end));
+			this.#calendar.updateDate(new Date(start), new Date(end));
 		}
 		this.hidden = true;
 	}
 
 	get valueAsDate() : Date|null {
-		return this[CAL].valueAsDate();
+		return this.#calendar.valueAsDate();
 	}
 }
