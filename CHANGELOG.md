@@ -28,6 +28,13 @@
     rendered if nothing has been selected.
   * Fix: CSS loading problems, if 3rd party CSS is loaded from external sources.
   * Fix: Response action handler `alertOnError` now also shows the response text serverd by Django.
+  * Fix: If the URL used in `<django-formset endpoint="…">` contains query paramaters, they are not
+    discarded anymore.
+  * Fix: Add some margin to the bottom of the Selectize dropdown.
+  * Fix: Recenter the dialog box inside the viewport when its content changes.
+  * Fix: Import all variables, functions and mixins from the Bootstrap SCSS library.
+  * Fix: Templatetag `render_richtext` now also passes the `request` object to its underlying
+    extensions.
 
 - 2.2.4
   * Fix #266: Timing issue in widgets `DateField` and `DateTimeField`. Input focus switched before
