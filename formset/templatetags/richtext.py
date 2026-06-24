@@ -1,6 +1,7 @@
 import json
 
 from django import template
+from django.http import HttpRequest
 from django.template.loader import get_template
 from django.utils.html import mark_safe, strip_spaces_between_tags
 from django.utils.module_loading import import_string
@@ -14,7 +15,7 @@ def render_richtext(context, data, doc_template='richtext/doc.html', richtext_at
             root_node = json.loads(data)
         except json.JSONDecodeError:
             root_node = {}
-    request = context['request']
+    request = context.get('request', HttpRequest())
     template = get_template(doc_template)
     context = {
         'node': root_node,
