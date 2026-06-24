@@ -198,6 +198,18 @@
 		color: var(--richtext-placeholder-color);
 	}
 
+	dialog {
+		max-height: calc(100% - 1rem);
+		max-width: calc(100% - 1rem);
+		flex-direction: column;
+		overflow-y: auto;
+		resize: both;
+
+		&[open] {
+			display: flex;
+		}
+	}
+
 	.ProseMirror {
 		position: absolute;
 		inset: auto 0 0 0;
