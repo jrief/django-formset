@@ -54,6 +54,7 @@ from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerForm
 from testapp.forms.event import EventOccurrenceCollection, EventSeriesCollection
+from testapp.forms.fountain import FountainForm
 from testapp.forms.gallerycollection import GalleryCollection
 from testapp.forms.galleryform import GalleryImageForm
 from testapp.forms.issue import EditIssueCollection, EditIssueManyCollection
@@ -682,6 +683,7 @@ urlpatterns = [
         extra_context={'click_actions': 'disable -> submit -> setFieldValue(profession.company, ^success_url) !~ scrollToError'},
     ), name='simplecontact'),
     path('event', EventSeriesCollectionView.as_view(), name='event'),
+    path('fountain', DemoFormView.as_view(form_class=FountainForm), name='fountain'),
     path('checkout', DemoFormCollectionView.as_view(
         collection_class=CheckoutCollection,
         template_name='testapp/form-collection-no-buttons.html',

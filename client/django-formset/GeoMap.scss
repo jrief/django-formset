@@ -1,0 +1,12 @@
+@use "node_modules/leaflet/dist/leaflet.css";
+
+[is="django-geo-map"] + div {
+	position: relative;
+	border-color: var(--border-color);
+
+	.leaflet-map {
+		position: absolute;
+		inset: 0;
+	}
+
+}

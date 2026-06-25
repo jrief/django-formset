@@ -200,6 +200,13 @@ function domLookup(fragmentRoot: Document|DocumentFragment, isTemplate: boolean=
 			}).catch(err => reject(err));
 		}));
 	}
+	if (fragmentRoot.querySelector('textarea[is="django-geo-map"]')) {
+		promises.push(new Promise((resolve, reject) => {
+			import('./django-formset/GeoMap').then(({GeoMapElement}) => {
+				defineComponent(resolve, 'django-geo-map', GeoMapElement, {extends: 'textarea'});
+			}).catch(err => reject(err));
+		}));
+	}
 	if (fragmentRoot.querySelector('django-stepper-collection')) {
 		promises.push(new Promise((resolve, reject) => {
 			import('./django-formset/StepperCollection').then(({StepperCollectionElement}) => {
