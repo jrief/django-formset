@@ -1262,7 +1262,7 @@ class RichtextArea {
 			if (this.useJson) {
 				chain.insertContent((this.initialValue as any).content);
 			} else {
-				chain.insertContent((this.initialValue as any)['__html__']);
+				chain.insertContent((this.initialValue as any)['_html_']);
 			}
 			chain.run();
 		}
@@ -1370,7 +1370,7 @@ class RichtextArea {
 	public getValue() : JSONContent|string {
 		if (this.editor === undefined || this.editor.isEmpty)
 			return '';  // otherwise empty field is not detected by calling function
-		return this.useJson ? this.editor.getJSON() : {'__html__': this.editor.getHTML()};
+		return this.useJson ? this.editor.getJSON() : {'_html_': this.editor.getHTML()};
 	}
 
 	public updateOperability(...args: any[]) : void {
