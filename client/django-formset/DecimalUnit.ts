@@ -378,25 +378,24 @@ class DecimalUnitField extends Widget {
 	}
 }
 
-const DU = Symbol('DecimalUnit');
 
 export class DecimalUnitElement extends HTMLInputElement {
-	private [DU]: DecimalUnitField;  // hides internal implementation
+	readonly #decimalunit: DecimalUnitField;
 
 	constructor() {
 		super();
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
-		this[DU] = new DecimalUnitField(this);
+		this.#decimalunit = new DecimalUnitField(this);
 	}
 
 	connectedCallback() {
-		this[DU].connect();
+		this.#decimalunit.connect();
 	}
 
 	disconnectedCallback() {
-		this[DU].disconnect();
+		this.#decimalunit.disconnect();
 	}
 
 	checkValidity() {

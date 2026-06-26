@@ -1179,7 +1179,7 @@ export class CalendarWidget extends Widget {
 
 
 export class DateCalendarElement extends HTMLInputElement {
-	private #calendar: CalendarWidget;  // hides internal implementation
+	#calendar!: CalendarWidget;
 
 	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');
@@ -1218,7 +1218,7 @@ export class DateCalendarElement extends HTMLInputElement {
 
 
 export class DateTimeCalendarElement extends HTMLInputElement {
-	private #calendar: CalendarWidget;  // hides internal implementation
+	#calendar!: CalendarWidget;
 
 	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');
@@ -1257,7 +1257,7 @@ export class DateTimeCalendarElement extends HTMLInputElement {
 
 
 export class DateRangeCalendarElement extends HTMLInputElement {
-	private #calendar: CalendarWidget;  // hides internal implementation
+	#calendar!: CalendarWidget;
 
 	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');
@@ -1302,7 +1302,7 @@ export class DateRangeCalendarElement extends HTMLInputElement {
 
 
 export class DateTimeRangeCalendarElement extends HTMLInputElement {
-	private #calendar: CalendarWidget;  // hides internal implementation
+	#calendar!: CalendarWidget;
 
 	connectedCallback() {
 		const fieldGroup = this.closest('[role="group"]');

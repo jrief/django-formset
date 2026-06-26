@@ -567,37 +567,36 @@ export class DjangoSelectize extends IncompleteSelect {
 	}
 }
 
-const DS = Symbol('DjangoSelectize');
 
 export class DjangoSelectizeElement extends HTMLSelectElement {
-	private [DS]?: DjangoSelectize;  // hides internal implementation
+	readonly #selectize?: DjangoSelectize;
 
 	constructor() {
 		super();
 		if (this.form) {
-			this[DS] = new DjangoSelectize(this);
+			this.#selectize = new DjangoSelectize(this);
 		}
 	}
 
 	connectedCallback() {
-		this[DS]?.initialize();
+		this.#selectize?.initialize();
 	}
 
 	get value() {
-		const value = this[DS]?.tomSelect.getValue();
+		const value = this.#selectize?.tomSelect.getValue();
 	 	return Array.isArray(value) ? value.join(',') : value;
 	}
 
 	set value(val: any) {
 		if (this.multiple) {
 			if (isString(val)) {
-				this[DS]?.setValues(val.split(','));
+				this.#selectize?.setValues(val.split(','));
 			} else if (Array.isArray(val)) {
-				this[DS]?.setValues(val);
+				this.#selectize?.setValues(val);
 			}
 		} else {
 			if (isString(val) || isFinite(val)) {
-				this[DS]?.setValue(val);
+				this.#selectize?.setValue(val);
 			}
 		}
 	}

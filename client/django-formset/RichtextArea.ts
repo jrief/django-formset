@@ -1379,36 +1379,34 @@ class RichtextArea {
 }
 
 
-const RA = Symbol('RichtextArea');
-
 export class RichTextAreaElement extends HTMLTextAreaElement {
 	isInitialized = false;
-	private [RA]: RichtextArea;  // hides internal implementation
+	readonly #richtext: RichtextArea;
 
 	constructor() {
 		super();
 		const wrapperElement = this.previousElementSibling;
 		if (!(wrapperElement instanceof HTMLElement && wrapperElement.classList.contains('dj-richtext-wrapper')))
 			throw new Error(`${this} must be a child of '<ANY class="dj-richtext-wrapper">' element.`);
-		this[RA] = new RichtextArea(wrapperElement, this);
+		this.#richtext = new RichtextArea(wrapperElement, this);
 	}
 
 	connectedCallback() {
-		this[RA].initializedPromise.then(() => {
+		this.#richtext.initializedPromise.then(() => {
 			this.isInitialized = true;
 			this.dispatchEvent(new CustomEvent('initialized'));
 		});
 	}
 
 	disconnectCallback() {
-		this[RA].disconnect();
+		this.#richtext.disconnect();
 	}
 
 	get value() : any {
-		return this[RA].getValue();
+		return this.#richtext.getValue();
 	}
 
 	updateOperability(...args: any[]) : void {
-		this[RA].updateOperability(...args);
+		this.#richtext.updateOperability(...args);
 	}
 }

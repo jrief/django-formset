@@ -35,17 +35,15 @@ class DjangoSelectizeCountry extends DjangoSelectize {
 }
 
 
-const CS = Symbol('CountrySelectize');
-
 export class CountrySelectizeElement extends HTMLSelectElement {
-	private [CS]: DjangoSelectizeCountry;  // hides internal implementation
+	readonly #selectize: DjangoSelectizeCountry;
 
 	constructor() {
 		super();
-		this[CS] = new DjangoSelectizeCountry(this);
+		this.#selectize = new DjangoSelectizeCountry(this);
 	}
 
 	connectedCallback() {
-		this[CS].initialize();
+		this.#selectize.initialize();
 	}
 }

@@ -550,29 +550,28 @@ export class DualSelector extends IncompleteSelect {
 	}
 }
 
-const DS = Symbol('DualSelectorElement');
 
 export class DualSelectorElement extends HTMLSelectElement {
-	private [DS]: DualSelector;  // hides internal implementation
+	readonly #dualselector: DualSelector;
 
 	constructor() {
 		super();
-		this[DS] = new DualSelector(this, 'django-dual-selector');
+		this.#dualselector = new DualSelector(this, 'django-dual-selector');
 	}
 
 	connectedCallback() {
-		this[DS].initialize();
+		this.#dualselector.initialize();
 	}
 
 	get value(): any {
-		return this[DS].getValue().join(',');
+		return this.#dualselector.getValue().join(',');
 	}
 
 	set value(val: any) {
 		if (isString(val)) {
-			this[DS].setValues(val.split(','));
+			this.#dualselector.setValues(val.split(','));
 		} else if (Array.isArray(val)) {
-			this[DS].setValues(val);
+			this.#dualselector.setValues(val);
 		}
 	}
 }

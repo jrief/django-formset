@@ -582,30 +582,29 @@ class DateTimeField extends Widget {
 	}
 }
 
-const DT = Symbol('DateTime');
 
 export class DateFieldElement extends HTMLInputElement {
-	private [DT]: DateTimeField;  // hides internal implementation
+	readonly #datetime: DateTimeField;
 
 	constructor() {
 		super();
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
-		this[DT] = new DateTimeField(this, null);
+		this.#datetime = new DateTimeField(this, null);
 	}
 
 	connectedCallback() {
-		this[DT].initialize();
+		this.#datetime.initialize();
 	}
 
 	get valueAsDate() : Date | null {
-		return this[DT].valueAsDate();
+		return this.#datetime.valueAsDate();
 	}
 }
 
 export class DatePickerElement extends HTMLInputElement {
-	private [DT]: DateTimeField;  // hides internal implementation
+	readonly #datetime: DateTimeField;
 
 	constructor() {
 		super();
@@ -613,40 +612,40 @@ export class DatePickerElement extends HTMLInputElement {
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
+		this.#datetime = new DateTimeField(this, calendarElement as HTMLElement);
 	}
 
 	connectedCallback() {
-		this[DT].initialize();
+		this.#datetime.initialize();
 	}
 
 	get valueAsDate() : Date | null {
-		return this[DT].valueAsDate();
+		return this.#datetime.valueAsDate();
 	}
 }
 
 export class DateTimeFieldElement extends HTMLInputElement {
-	private [DT]: DateTimeField;  // hides internal implementation
+	readonly #datetime: DateTimeField;
 
 	constructor() {
 		super();
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
-		this[DT] = new DateTimeField(this, null);
+		this.#datetime = new DateTimeField(this, null);
 	}
 
 	connectedCallback() {
-		this[DT].initialize();
+		this.#datetime.initialize();
 	}
 
 	get valueAsDate() : Date | null {
-		return this[DT].valueAsDate();
+		return this.#datetime.valueAsDate();
 	}
 }
 
 export class DateTimePickerElement extends HTMLInputElement {
-	private [DT]: DateTimeField;  // hides internal implementation
+	readonly #datetime: DateTimeField;
 
 	constructor() {
 		super();
@@ -654,43 +653,43 @@ export class DateTimePickerElement extends HTMLInputElement {
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
+		this.#datetime = new DateTimeField(this, calendarElement as HTMLElement);
 	}
 
 	connectedCallback() {
-		this[DT].initialize();
+		this.#datetime.initialize();
 	}
 
 	get valueAsDate() : Date | null {
-		return this[DT].valueAsDate();
+		return this.#datetime.valueAsDate();
 	}
 }
 
 export class DateRangeFieldElement extends HTMLInputElement {
-	private [DT]: DateTimeField;  // hides internal implementation
+	readonly #datetime: DateTimeField;
 
 	constructor() {
 		super();
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
-		this[DT] = new DateTimeField(this, null);
+		this.#datetime = new DateTimeField(this, null);
 	}
 
 	connectedCallback() {
-		this[DT].initialize();
+		this.#datetime.initialize();
 	}
 
 	checkValidity() {
 		if (!super.checkValidity())
 			return false;
-		return this[DT].checkValidity();
+		return this.#datetime.checkValidity();
 	}
 }
 
 
 export class DateRangePickerElement extends HTMLInputElement {
-	private [DT]: DateTimeField;  // hides internal implementation
+	readonly #datetime: DateTimeField;
 
 	constructor() {
 		super();
@@ -698,44 +697,44 @@ export class DateRangePickerElement extends HTMLInputElement {
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
+		this.#datetime = new DateTimeField(this, calendarElement as HTMLElement);
 	}
 
 	connectedCallback() {
-		this[DT].initialize();
+		this.#datetime.initialize();
 	}
 
 	checkValidity() {
 		if (!super.checkValidity())
 			return false;
-		return this[DT].checkValidity();
+		return this.#datetime.checkValidity();
 	}
 }
 
 export class DateTimeRangeFieldElement extends HTMLInputElement {
-	private [DT]: DateTimeField;  // hides internal implementation
+	readonly #datetime: DateTimeField;
 
 	constructor() {
 		super();
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
-		this[DT] = new DateTimeField(this, null);
+		this.#datetime = new DateTimeField(this, null);
 	}
 
 	connectedCallback() {
-		this[DT].initialize();
+		this.#datetime.initialize();
 	}
 
 	checkValidity() {
 		if (!super.checkValidity())
 			return false;
-		return this[DT].checkValidity();
+		return this.#datetime.checkValidity();
 	}
 }
 
 export class DateTimeRangePickerElement extends HTMLInputElement {
-	private [DT]: DateTimeField;  // hides internal implementation
+	readonly #datetime: DateTimeField;
 
 	constructor() {
 		super();
@@ -743,16 +742,16 @@ export class DateTimeRangePickerElement extends HTMLInputElement {
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
-		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
+		this.#datetime = new DateTimeField(this, calendarElement as HTMLElement);
 	}
 
 	connectedCallback() {
-		this[DT].initialize();
+		this.#datetime.initialize();
 	}
 
 	checkValidity() {
 		if (!super.checkValidity())
 			return false;
-		return this[DT].checkValidity();
+		return this.#datetime.checkValidity();
 	}
 }

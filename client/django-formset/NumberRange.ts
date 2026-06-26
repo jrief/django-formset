@@ -79,24 +79,22 @@ class NumberRangeField extends Widget {
 }
 
 
-const DNR = Symbol('DualNumberRange');
-
 export class DualNumberRangeElement extends HTMLInputElement {
-	private [DNR]: NumberRangeField;  // hides internal implementation
+	readonly #numberrange: NumberRangeField;
 
 	constructor() {
 		super();
 		const fieldGroup = this.closest('[role="group"]');
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
-		this[DNR] = new NumberRangeField(this);
+		this.#numberrange = new NumberRangeField(this);
 	}
 
 	connectedCallback() {
-		this[DNR].connect();
+		this.#numberrange.connect();
 	}
 
 	disconnectedCallback() {
-		this[DNR].disconnect();
+		this.#numberrange.disconnect();
 	}
 }

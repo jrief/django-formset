@@ -468,22 +468,20 @@ class PhoneNumberField {
 }
 
 
-const PN = Symbol('DjangoPhoneNumberElement');
-
 export class PhoneNumberElement extends HTMLInputElement {
-	private [PN]: PhoneNumberField;  // hides internal implementation
+	readonly #phonenumber: PhoneNumberField;
 
 	constructor() {
 		super();
-		this[PN] = new PhoneNumberField(this);
+		this.#phonenumber = new PhoneNumberField(this);
 	}
 
 	connectedCallback() {
-		this[PN].connect();
+		this.#phonenumber.connect();
 	}
 
 	disconnectedCallback() {
-		this[PN].disconnect();
+		this.#phonenumber.disconnect();
 	}
 
 	get value() : string {
@@ -492,13 +490,13 @@ export class PhoneNumberElement extends HTMLInputElement {
 
 	set value(value: string) {
 		super.value = value;
-		this[PN].setValue(value);
+		this.#phonenumber.setValue(value);
 	}
 
 	checkValidity() {
 		if (!super.checkValidity()) {
 			return false;
 		}
-		return this[PN].checkValidity();
+		return this.#phonenumber.checkValidity();
 	}
 }

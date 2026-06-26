@@ -148,17 +148,15 @@ class StepperCollection implements Inducible {
 }
 
 
-const SC = Symbol('StepperCollection');
-
 export class StepperCollectionElement extends HTMLElement {
-	private [SC]: StepperCollection;  // hides internal implementation
+	readonly #collection: StepperCollection;
 
 	constructor() {
 		super();
-		this[SC] = new StepperCollection(this);
+		this.#collection = new StepperCollection(this);
 	}
 
 	connectedCallback() {
-		this[SC].connectedCallback();
+		this.#collection.connectedCallback();
 	}
 }

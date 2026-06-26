@@ -2473,14 +2473,12 @@ export class DjangoFormset implements DjangoFormset {
 }
 
 
-const FS = Symbol('DjangoFormset');
-
 export class DjangoFormsetElement extends HTMLElement {
-	private readonly [FS]: DjangoFormset;  // hides internal implementation
+	readonly #formset: DjangoFormset;
 
 	constructor() {
 		super();
-		this[FS] = new DjangoFormset(this);
+		this.#formset = new DjangoFormset(this);
 	}
 
 	static get observedAttributes() {
@@ -2488,18 +2486,18 @@ export class DjangoFormsetElement extends HTMLElement {
 	}
 
 	connectedCallback() {
-		this[FS].connectedCallback();
+		this.#formset.connectedCallback();
 	}
 
 	async submit(data?: Object) : Promise<Response|undefined> {
-		return this[FS].submit(data);
+		return this.#formset.submit(data);
 	}
 
 	async abort() {
-		return this[FS].abort();
+		return this.#formset.abort();
 	}
 
 	async reset() {
-		return this[FS].resetToInitial();
+		return this.#formset.resetToInitial();
 	}
 }

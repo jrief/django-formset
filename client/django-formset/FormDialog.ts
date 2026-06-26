@@ -230,13 +230,11 @@ class FormDialog extends FormDialogBase implements Inducible {
 }
 
 
-const FD = Symbol('FormDialog');
-
 export class FormDialogElement extends HTMLDialogElement {
-	private [FD]: FormDialog;  // hides internal implementation
+	readonly #formdialog: FormDialog;
 
 	constructor() {
 		super();
-		this[FD] = new FormDialog(this);
+		this.#formdialog = new FormDialog(this);
 	}
 }
