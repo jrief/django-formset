@@ -3,5 +3,5 @@
 	<div role="menubar" style="visibility: hidden;">{{ control_panel }}</div>
 	{% for dialog_form in dialog_forms %}{{ dialog_form }}{% endfor %}
 </div>
-<textarea is="django-richtext" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>{{ widget.value }}</textarea>
+<textarea name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>{{ widget.value }}</textarea>
 {% endspaceless %}

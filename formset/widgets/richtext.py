@@ -53,6 +53,11 @@ class RichTextarea(Textarea):
                 raise ValidationError(msg.format(text_length=text_length, max_length=max_length))
         return value
 
+    def build_attrs(self, base_attrs, extra_attrs=None):
+        attrs = super().build_attrs(base_attrs, extra_attrs)
+        attrs['is'] = 'django-richtext'
+        return attrs
+
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
         if attrs.get('use_json') or self.attrs.get('use_json'):
