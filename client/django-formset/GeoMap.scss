@@ -1,12 +1,45 @@
 @use "node_modules/leaflet/dist/leaflet.css";
 
-[is="django-geo-map"] + div {
+.dj-geomap-wrapper {
 	position: relative;
 	border-color: var(--border-color);
 
 	.leaflet-map {
 		position: absolute;
 		inset: 0;
+	}
+
+	.leaflet-touch .leaflet-bar a:has(span > svg) {
+		line-height: 24px;
+	}
+
+	.leaflet-popup {
+
+		.leaflet-popup-content {
+			margin: 10px;
+		}
+
+		button {
+			line-height: 24px;
+			border: 2px solid #ccc;
+			border-radius: 4px;
+			background-color: transparent;
+			width: 30px;
+			height: 30px;
+			padding: 0;
+
+			&:not(:last-of-type) {
+				margin-right: 5px;
+			}
+		}
+	}
+
+	.marker-placement, .marker-placement .leaflet-interactive {
+		cursor: crosshair !important;
+	}
+
+	dialog {
+		z-index: 1000;  // Leaflet uses z-indices up to 700
 	}
 
 }

@@ -29,7 +29,7 @@ import {TextMargin, TextMarginOptions } from '../tiptap-extensions/margin';
 import {TextColor} from '../tiptap-extensions/color';
 import {ClassBasedMark, ClassBasedNode} from '../tiptap-extensions/classbased';
 import {StyleHelpers, toAbsPath} from './helpers';
-import {ActionFormDialog} from './FormDialog';
+import {TransientFormDialog} from './FormDialog';
 import {parse} from '../build/no-comments';
 import styles from './RichtextArea.scss';
 
@@ -776,7 +776,7 @@ interface FormDialogOptions {
 }
 
 
-class RichtextFormDialog extends ActionFormDialog {
+class RichtextFormDialog extends TransientFormDialog {
 	private readonly richtext: RichtextArea;
 	private readonly induceButton: HTMLButtonElement;
 	private readonly inputElements: (HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)[] = [];
@@ -784,16 +784,13 @@ class RichtextFormDialog extends ActionFormDialog {
 	private applyAttributes: Function = () => {};
 	private revertAttributes: Function = () => {};
 	private readonly functionRegex = new RegExp('^(\\w+)\\s*\\([^)]*\\)$');
-	public readonly extension: string;
+	private readonly revertButton: HTMLButtonElement|null = null;
 
 	constructor(element: HTMLDialogElement, button: HTMLButtonElement, richtext: RichtextArea) {
 		super(element, richtext.path);
 		this.induceButton = button;
+		this.revertButton = Array.from(this.formElement.elements).find(elm => elm instanceof HTMLButtonElement && elm.value === 'revert') as HTMLButtonElement;
 		this.richtext = richtext;
-		const extension = this.formElement.getAttribute('richtext-extension');
-		if (!extension)
-			throw new Error(`${this} requires a <form richtext-extension="…">`);
-		this.extension = extension;
 		this.initialize();
 	}
 
@@ -918,7 +915,7 @@ class RichtextFormDialog extends ActionFormDialog {
 		super.openDialog();
 	}
 
-	protected openDialog(button?: DjangoButton) {
+	public openDialog(button?: DjangoButton) {
 		if (this.element.open)
 			return;
 		this.formElement.reset();  // reset form to be pristine for the next usage
@@ -935,7 +932,7 @@ class RichtextFormDialog extends ActionFormDialog {
 		this.richtext.textAreaElement.dispatchEvent(new Event('blur', {bubbles: true}));
 	}
 
-	protected async closeDialog(button?: DjangoButton, returnValue?: string) {
+	public async closeDialog(button?: DjangoButton, returnValue?: string) {
 		if (!(button?.element instanceof HTMLButtonElement) || !isString(returnValue))
 			return;
 		const editor = this.richtext.editor;
@@ -977,7 +974,7 @@ class RichtextFormDialog extends ActionFormDialog {
 		super.closeDialog(button, returnValue);
 	}
 
-	private applyMarkAttributes(editor: Editor, attributes: Object) {
+	private applyMarkAttributes(editor: Editor, attributes: Record<string, any>) {
 		const selection = editor.view.state.selection;
 		const markedEditor = editor.chain().focus()
 			.extendMarkRange(this.extension)
@@ -995,7 +992,7 @@ class RichtextFormDialog extends ActionFormDialog {
 			.run();
 	}
 
-	private applyNodeAttributes(editor: Editor, options: Object) {
+	private applyNodeAttributes(editor: Editor, options: Record<string, any>) {
 		editor.chain().focus().insertContent({type: this.extension, attrs: options}).run();
 	}
 
@@ -1126,7 +1123,7 @@ class RichtextArea implements Inducible {
 		return new Promise<void>(resolve => {
 			const promises: Promise<Mark|Node>[] = [];
 			this.wrapperElement.querySelectorAll(':scope > dialog[df-induce-open]').forEach(dialogElement => {
-				const extension = dialogElement?.querySelector('form[method="dialog"][richtext-extension]')?.getAttribute('richtext-extension');
+				const extension = dialogElement?.querySelector('form[method="dialog"][df-extension]')?.getAttribute('df-extension');
 				if (!extension || !(dialogElement instanceof HTMLDialogElement))
 					return;
 				const buttonElement = this.menubarElement?.querySelector(`button[name$="${extension}"]`);

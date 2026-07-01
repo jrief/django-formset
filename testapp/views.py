@@ -50,11 +50,11 @@ from testapp.forms.button import ButtonActionsForm
 from testapp.forms.cafeteria import CafeteriaCollection, CoffeeOrderCollection
 from testapp.forms.carousel import CarouselForm
 from testapp.forms.checkout import CheckoutCollection
+from testapp.forms.church import ChurchModelForm
 from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerForm
 from testapp.forms.event import EventOccurrenceCollection, EventSeriesCollection
-from testapp.forms.church import ChurchForm
 from testapp.forms.gallerycollection import GalleryCollection
 from testapp.forms.galleryform import GalleryImageForm
 from testapp.forms.issue import EditIssueCollection, EditIssueManyCollection
@@ -79,8 +79,8 @@ from testapp.forms.state import StateFilteredForm, StateForm, StatesForm
 from testapp.forms.terms_of_use import AcceptTermsCollection
 from testapp.forms.user import UserCollection, UserExtensionCollection
 from testapp.forms.upload import UploadForm
-from testapp.models import (BlogModel, Company, EventSeriesModel, IssueModel, PersonModel, PollModel, ProductModel,
-    Reporter, User)
+from testapp.models import (BlogModel, ChurchModel, Company, EventSeriesModel, IssueModel, PersonModel, PollModel,
+    ProductModel, Reporter, User)
 from testapp.models.gallery import Gallery
 
 
@@ -683,7 +683,10 @@ urlpatterns = [
         extra_context={'click_actions': 'disable -> submit -> setFieldValue(profession.company, ^success_url) !~ scrollToError'},
     ), name='simplecontact'),
     path('event', EventSeriesCollectionView.as_view(), name='event'),
-    path('church', DemoFormView.as_view(form_class=ChurchForm), name='church'),
+    path('church', DemoModelFormView.as_view(
+        form_class=ChurchModelForm,
+        model=ChurchModel,
+    ), name='church'),
     path('checkout', DemoFormCollectionView.as_view(
         collection_class=CheckoutCollection,
         template_name='testapp/form-collection-no-buttons.html',

@@ -1,53 +1,439 @@
-import {Control, map, latLng, tileLayer, Map, MapOptions} from 'leaflet';
-import {StyleHelpers, toAbsPath} from './helpers';
+import {
+	Control,
+	ControlOptions,
+	ControlPosition,
+	Icon,
+	IconOptions,
+	LatLng,
+	LatLngBounds,
+	Layer,
+	LeafletMouseEvent,
+	Map,
+	MapOptions,
+	Marker,
+	MarkerOptions,
+	Popup,
+	map,
+	latLng,
+	tileLayer, LatLngExpression, PopupOptions
+} from 'leaflet';
+import getDataValue from 'lodash.get';
+import setDataValue from 'lodash.set';
+import isPlainObject from 'lodash.isplainobject';
+import {StyleHelpers} from './helpers';
+import {TransientFormDialog} from './FormDialog';
 import styles from './GeoMap.scss';
 
 
-class GeoMapComponent {
-	private readonly textAreaElement: HTMLTextAreaElement;
-	private readonly baseSelector = '[is="django-geo-map"] + div';
-	private readonly mapElement: HTMLDivElement;
-	private readonly options: MapOptions = {
-		center: latLng(47.23, 11.15),
-		zoom: 12,
-		maxZoom: 18,
+const CONTROL_POSITIONS: ReadonlyArray<ControlPosition> = ['topleft', 'topright', 'bottomleft', 'bottomright'] as const;
+
+const MarkerIcon = new Icon({
+	iconUrl: '/static/formset/icons/marker-icon.svg',
+	iconSize: [25, 41],
+	iconAnchor: [13, 41],
+	popupAnchor: [-2, -44],
+	shadowUrl: '/static/formset/icons/marker-shadow.png',
+	shadowSize: [68, 68],
+	shadowAnchor: [22, 68],
+} as IconOptions);
+
+
+class GeoMapMarker extends Marker {
+	private readonly editor: GeometryEditor;
+	public readonly properties: Record<string, any> = {};
+	public readonly index: number;
+
+	constructor(editor: GeometryEditor, latlng: LatLng, index: number, popupTemplate: HTMLDivElement) {
+		const options: MarkerOptions = {
+			icon: MarkerIcon,
+			draggable: true,
+			autoPan: true,
+			bubblingMouseEvents: true,
+		};
+		super(latlng, options);
+		this.editor = editor;
+		this.index = index;
+		this.addTo(this.editor.geomap.map);
+		this.attachPopup(popupTemplate);
+	}
+
+	private attachPopup(popupTemplate: HTMLDivElement) {
+		const popupContent = document.importNode(popupTemplate, true);
+		this.editor.geomap.formset!.assignDetachedButtons(popupContent);
+		popupContent.querySelectorAll('[df-click="activate"]').forEach((button: Element) => {
+			if (button instanceof HTMLButtonElement) {
+				button.dataset.identifier = `${this.editor.identifier}:${this.index}`;
+			}
+		});
+		popupContent.querySelector('[name="delete_marker"]')?.addEventListener('click', () => this.deleteMarker());
+		const popup = new Popup({closeButton: false, autoClose: true, closeOnClick: true});
+		popup.setContent(popupContent);
+		this.bindPopup(popup);
+	}
+
+	openPopup(latlng?: LatLngExpression): this {
+		this.editor.geomap.formDialogs.forEach(dialog => dialog.closeDialog());
+		return super.openPopup(latlng);
+	}
+
+	closePopup(): this {
+		return super.closePopup();
+	}
+
+	public initialPlacement() {
+		const map = this.editor.geomap.map;
+		const mapContainer = map.getContainer();
+		mapContainer.classList.add('marker-placement');
+		const moveMarker = (event: LeafletMouseEvent) => this.setLatLng(event.latlng);
+		map.on('mousemove', moveMarker);
+		map.once('click', (event: LeafletMouseEvent) => {
+			moveMarker(event);
+			map.off('mousemove', moveMarker);
+			mapContainer.classList.remove('marker-placement');
+		});
+	}
+
+	private deleteMarker() {
+		this.removeFrom(this.editor.geomap.map);
+		this.editor.deleteLayer(this.index);
+	}
+}
+
+
+class GeoMapFormDialog extends TransientFormDialog {
+	private readonly geomap: GeoMap;
+	private readonly propertiesMap: Record<string, string>;
+	private boundLayer: (Layer|null) = null;
+
+	constructor(element: HTMLDialogElement, geomap: GeoMap) {
+		super(element, geomap.path);
+		this.geomap = geomap;
+		this.propertiesMap = JSON.parse(this.formElement.dataset.propertiesMap || '{}');
+	}
+
+	public openDialog(button?: DjangoButton) {
+		if (this.element.open || !button?.element.dataset.identifier)
+			return;
+
+		this.boundLayer = this.geomap.getLayer(button.element.dataset.identifier);
+		if (this.boundLayer instanceof GeoMapMarker) {
+			for (const [source, target] of Object.entries(this.propertiesMap)) {
+				const inputElement = this.formElement.elements.namedItem(source);
+				if (!(inputElement instanceof HTMLInputElement || inputElement instanceof HTMLSelectElement || inputElement instanceof HTMLTextAreaElement))
+					continue;
+				inputElement.value = getDataValue(this.boundLayer.properties, `${this.extension}.${target}`, null);
+				inputElement.dispatchEvent(new Event('change', {bubbles: true}));
+				const groupElement = inputElement.closest('[role="group"]');
+				if (groupElement instanceof HTMLElement) {
+					groupElement.classList.remove('dj-dirty', 'dj-touched');
+					groupElement.classList.add('dj-pristine', 'dj-untouched');
+					groupElement.querySelector('.dj-errorlist .dj-placeholder')?.replaceChildren();
+				}
+			}
+		}
+		super.openDialog();
+	}
+
+	public async closeDialog(button?: DjangoButton, returnValue?: string) {
+		if (returnValue === 'apply') {
+			this.formElement.dispatchEvent(new Event('submit', {bubbles: true}));
+			if (!this.formElement.reportValidity()) {
+				// reportValidity() triggers the invalid event for each invalid input field
+				return;
+			}
+			if (this.boundLayer instanceof GeoMapMarker) {
+				for (const [source, target] of Object.entries(this.propertiesMap)) {
+					const formField = this.formElement.elements.namedItem(source);
+					if (!(formField instanceof HTMLInputElement || formField instanceof HTMLSelectElement || formField instanceof HTMLTextAreaElement))
+						continue;
+					setDataValue(this.boundLayer.properties, `${this.extension}.${target}`, formField.value);
+				}
+			}
+		}
+		super.closeDialog(button, returnValue);
+		if (this.boundLayer) {
+			this.boundLayer.closePopup();
+			this.boundLayer = null;
+		}
+	}
+}
+
+
+abstract class GeometryEditor {
+	public readonly geomap: GeoMap;
+
+	constructor(geomap: GeoMap) {
+		this.geomap = geomap;
+	}
+
+	public abstract get identifier(): string;
+
+	public abstract register() : void;
+
+	public abstract resetToInitial() : void;
+
+	public abstract getFeatures() : Record<string, any[]>[];
+
+	public abstract getLayer(index: number) : Layer|null;
+
+	public abstract deleteLayer(index: number) : void;
+}
+
+
+class PointEditor extends GeometryEditor {
+	public readonly markers: (GeoMapMarker|null)[] = [];
+	private readonly popupTemplate: HTMLDivElement;
+
+	constructor(geomap: GeoMap) {
+		super(geomap);
+		const popupTemplate = this.geomap.controlsTemplate.content.querySelector(`[role="tooltip"][aria-labeledby="${this.identifier}"]`);
+		if (!(popupTemplate instanceof HTMLDivElement))
+			throw new Error('Could not find popup template for [role="tooltip"]');
+		this.popupTemplate = popupTemplate;
+	}
+
+	public get identifier() {
+		return 'point-editor';
+	}
+
+	public register() {
+		this.setupInitialMarkers();
+		this.geomap.map.on('click', this.handleClick);
+	}
+
+	public resetToInitial() {
+		for (const marker of this.markers) {
+			if (marker) {
+				marker.removeFrom(this.geomap.map);
+			}
+		}
+		this.markers.splice(0, this.markers.length);
+		this.setupInitialMarkers();
+	}
+
+	public getFeatures() : Record<string, any[]>[] {
+		const features: Record<string, any>[] = [];
+		for (const marker of this.markers) {
+			if (!marker)
+				continue;
+			const latlng = marker.getLatLng();
+			features.push({
+				geometry: {
+					type: 'Point',
+					coordinates: [latlng.lng, latlng.lat],
+				},
+				properties: marker.properties,
+			});
+		}
+		return features;
+	}
+
+	public getLayer(index: number) : Layer|null {
+		return this.markers[index];
+	}
+
+	public deleteLayer(index: number) {
+		this.markers[index] = null;
+	}
+
+	// public updateOperability(...args: any[]) {
+	// 	this.formDialogs.forEach(dialog => dialog.updateOperability(...args));
+	// }
+
+	private handleClick = (event: LeafletMouseEvent) => {
+		const target = event.originalEvent.target;
+		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaLabel !== 'point-editor')
+			return;
+		const marker = new GeoMapMarker(this, event.latlng, this.markers.length, this.popupTemplate);
+		this.markers.push(marker);
+		marker.initialPlacement();
 	};
-	private map?: Map;
+
+	private setupInitialMarkers() {
+		if (getDataValue(this.geomap.initialData, 'type') === 'FeatureCollection') {
+			const features = getDataValue(this.geomap.initialData, 'features');
+			if (Array.isArray(features)) {
+				for (const [index, feature] of features.entries()) {
+					const geometry = getDataValue(feature, 'geometry');
+					if (isPlainObject(geometry) && getDataValue(geometry, 'type') === 'Point') {
+						const coordinates = getDataValue(geometry, 'coordinates');
+						if (Array.isArray(coordinates) && coordinates.length === 2) {
+							const latlng = latLng(coordinates[1] as number, coordinates[0] as number);
+							const marker = new GeoMapMarker(this, latlng, index, this.popupTemplate);
+							const properties = getDataValue(feature, 'properties');
+							if (isPlainObject(properties)) {
+								Object.assign(marker.properties, properties);
+							}
+							this.markers.push(marker);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+
+const registry: Record<string, new (...args: any[]) => GeometryEditor> = {
+	'point-editor': PointEditor,
+};
+
+
+class GeoMap implements Inducible {
+	private readonly textAreaElement: HTMLTextAreaElement;
+	private readonly baseSelector = '.dj-geomap-wrapper';
+	private readonly mapElement: HTMLDivElement;
+	private readonly wrapperElement: HTMLDivElement;
+	public readonly controlsTemplate: HTMLTemplateElement;
+	public formset?: DjangoFormset;
+	private resizeObserver?: ResizeObserver;
+	public readonly initialData: JSONValue;
+	public readonly editors: GeometryEditor[] = [];
+	public readonly formDialogs: GeoMapFormDialog[] = [];
+	public map: Map;
 
 	constructor(element: GeoMapElement) {
 		this.textAreaElement = element;
-		const wrapperDiv = document.createElement('DIV') as HTMLDivElement;
-		this.textAreaElement.insertAdjacentElement('afterend', wrapperDiv);
-		this.mapElement = document.createElement('DIV') as HTMLDivElement;
-		this.mapElement.classList.add('leaflet-map');
-		wrapperDiv.appendChild(this.mapElement);
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector) && wrapperDiv.checkVisibility()) {
+		this.wrapperElement = element.previousElementSibling as HTMLDivElement;
+		const controlsTemplate = this.wrapperElement.querySelector('template');
+		if (!(controlsTemplate instanceof HTMLTemplateElement))
+			throw new Error(`Could not find <template> element in ${this.wrapperElement}`);
+		this.controlsTemplate = controlsTemplate;
+		this.mapElement = this.wrapperElement?.querySelector('.leaflet-map') as HTMLDivElement;
+		if (!(this.mapElement instanceof HTMLDivElement))
+			throw new Error(`Could not find .leaflet-map element in ${this.wrapperElement}`);
+		this.registerInducer();
+		if (!StyleHelpers.stylesAreInstalled(this.baseSelector) && this.wrapperElement.checkVisibility()) {
 			this.transferStyles();
 		}
 		this.textAreaElement.classList.add('dj-concealed');
+		this.initialData = JSON.parse(this.textAreaElement.dataset.content as string ?? 'null');
+		this.map = this.createMap();
 	}
 
-	public async connectedCallback() {
-		// initialize the Leaflet map here
-		this.map = map(this.mapElement, this.options);
-		tileLayer('https://maptiles.uibk.ac.at/{z}/{x}/{y}.png', {
+	public connectedCallback() {
+		tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			tileSize: 512,
 			zoomOffset: -1,
-			minZoom: 1,
 			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>',
 			crossOrigin: true,
 			detectRetina: true,
 		}).addTo(this.map);
+		this.extendControls();
+		this.registerFormDialogs();
+		this.resizeObserver = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				if (entry.contentBoxSize) {
+					this.map.invalidateSize();
+				}
+			}
+		});
+		this.resizeObserver.observe(this.wrapperElement);
+		const form = this.textAreaElement.form as HTMLFormElement;
+		form.addEventListener('reset', this.formResetted);
+		form.addEventListener('submitted', this.formSubmitted);
 	}
 
 	public disconnectedCallback() {
-		// clean up the Leaflet map here
+		this.resizeObserver?.unobserve(this.wrapperElement);
 	}
 
-	public getValue() {
-		// return the values from the Leaflet map here
-		return {};
+	public get path(): Path {
+		return this.textAreaElement.name.split('.');
 	}
+
+	private formResetted = () => {
+		this.editors.forEach(editor => editor.resetToInitial());
+	};
+
+	private formSubmitted = () => {
+		this.textAreaElement.checkValidity();
+	};
+
+	private createMap() : Map {
+		const bbox = getDataValue(this.initialData, 'bbox', [-175, -75, 175, 75]) as number[];
+		const bounds = new LatLngBounds([bbox[1], bbox[0]], [bbox[3], bbox[2]]);
+		const options: MapOptions = {maxZoom: 18, minZoom: 1, zoom: 10, center: bounds.getCenter()};
+		const leafletMap = map(this.mapElement, options);
+		leafletMap.setZoom(leafletMap.getBoundsZoom(bounds));
+		return leafletMap;
+	}
+
+	private extendControls() {
+		const self = this;
+		const CustomControls = Control.extend({
+			onAdd: function(map: Map) {
+				const opts = (this as any).options as ControlOptions;
+				const controlTemplate = self.controlsTemplate.content.querySelector(`[aria-current="${opts.position}"]`);
+				if (!(controlTemplate instanceof HTMLDivElement))
+					throw new Error(`Could not find control template for position ${opts.position}`);
+				controlTemplate.querySelectorAll('a[aria-label]').forEach((anchor: Element) => {
+					if (anchor.ariaLabel && registry[anchor.ariaLabel] instanceof Function) {
+						self.editors.push(new registry[anchor.ariaLabel](self));
+					}
+				});
+				return document.importNode(controlTemplate, true);
+			},
+			onRemove: (map: Map) => {
+				// Nothing to do yet
+			},
+		});
+		const customControls = (opts: ControlOptions) => new CustomControls(opts);
+		for (let position of CONTROL_POSITIONS) {
+			customControls({position: position as ControlPosition}).addTo(this.map);
+		}
+	}
+
+	private registerInducer() {
+		const formset = this.wrapperElement.closest('django-formset');
+		if (!formset)
+			return;
+		formset.addEventListener('django-formset-connected', (event: Event) => {
+			if (!(event instanceof CustomEvent))
+				return;
+			this.formset = event.detail.formset as DjangoFormset;
+			this.formset.registerInducer(this);
+			// this.setupMarkers(this.initialData);
+			// this.markers.forEach(marker => marker !== null && this.bindPopup(marker));
+			this.editors.forEach(editor => editor.register());
+		}, {once: true});
+	}
+
+	private registerFormDialogs() {
+		this.wrapperElement.querySelectorAll(':scope > dialog[df-induce-open]').forEach(dialogElement => {
+			if (!(dialogElement instanceof HTMLDialogElement))
+				return;
+			const formDialog = new GeoMapFormDialog(dialogElement, this);
+			this.formDialogs.push(formDialog);
+		});
+	}
+
+	public getLayer(identifier: string) : Layer|null {
+		const [editorName, index] = [...identifier.split(':')];
+		return this.editors.find(editor => editor.identifier === editorName)?.getLayer(Number(index)) ?? null;
+	}
+
+	public getValue() : object {
+		// return the values from the Leaflet map here
+		const bounds = this.map.getBounds();
+		const result = {
+			type: 'FeatureCollection',
+			bbox: bounds ? [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()] : null,
+			features: [] as Record<string, any>,
+		};
+		for (const editor of this.editors) {
+			result.features.push(...editor.getFeatures());
+		}
+		this.textAreaElement.innerText = result.features.length === 0 ? "" : "_has_value_";  // required for validation
+		return result;
+	}
+
+	public updateOperability(...args: any[]) {
+		// this.editors.forEach(editor => editor.updateOperability(...args));
+		this.formDialogs.forEach(dialog => dialog.updateOperability(...args));
+	}
+
+	public forceVisibility(formElement: HTMLFormElement) {}
 
 	private transferStyles() {
 		const declaredStyles = document.createElement('style');
@@ -65,7 +451,7 @@ class GeoMapComponent {
 				case this.baseSelector:
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
 						'height', 'background-image', 'border-style', 'border-width', 'border-radius', 'box-shadow',
-						'outline', 'resize',
+						'outline', 'overflow', 'resize',
 					]);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					loaded = true;
@@ -92,11 +478,11 @@ class GeoMapComponent {
 
 
 export class GeoMapElement extends HTMLTextAreaElement {
-	#geomap: GeoMapComponent;
+	readonly #geomap: GeoMap;
 
 	constructor() {
 		super();
-		this.#geomap = new GeoMapComponent(this);
+		this.#geomap = new GeoMap(this);
 	}
 
 	connectedCallback() {
@@ -105,5 +491,9 @@ export class GeoMapElement extends HTMLTextAreaElement {
 
 	disconnectedCallback() {
 		this.#geomap.disconnectedCallback();
+	}
+
+	get value() : any {
+		return this.#geomap.getValue();
 	}
 }

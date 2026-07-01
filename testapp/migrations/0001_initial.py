@@ -329,6 +329,14 @@ class Migration(migrations.Migration):
             options={'verbose_name': 'Product', 'verbose_name_plural': 'Products'},
         ),
         migrations.CreateModel(
+            name='ChurchModel',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('map', formset.modelfields.geomap.GeoMapField()),
+                ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
+            ],
+        ),
+        migrations.CreateModel(
             name='EventSeriesModel',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),

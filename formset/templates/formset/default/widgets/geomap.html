@@ -1,0 +1,15 @@
+{% spaceless %}
+<div class="{% block wrapper_classes %}dj-geomap-wrapper{% endblock %}">
+	<template role="none">
+	{% for control_element in control_elements %}
+		{{ control_element }}
+	{% endfor %}
+	{% for popup in popups %}
+		{% include "formset/geomap/popup.html" %}
+	{% endfor %}
+	</template>
+	<div role="presentation" class="leaflet-map"></div>
+	{% for dialog_form in dialog_forms %}{{ dialog_form }}{% endfor %}
+</div>
+<textarea name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>{{ widget.value }}</textarea>
+{% endspaceless %}

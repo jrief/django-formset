@@ -1,4 +1,5 @@
 import copy
+import json
 import types
 
 from django.forms.renderers import DjangoTemplates
@@ -117,8 +118,10 @@ class FormRenderer(DjangoTemplates):
         )
         return context
 
-    def _amend_richtext_form_dialog(self, context):
-        context['form'] = context['form'].replicate(renderer=self)
+    def _amend_geomap_form_dialog(self, context):
+        context = self._amend_form_dialog(context)
+        if properties_map := getattr(context['form'], 'properties_map', None):
+            context['properties_map'] = json.dumps(properties_map)
         return context
 
     _context_modifiers = {
@@ -132,7 +135,8 @@ class FormRenderer(DjangoTemplates):
         'formset/default/detached_field.html': _amend_detached_field,
         'formset/default/collection.html': _amend_collection,
         'formset/default/widgets/collection.html': _amend_collection,
-        'formset/richtext/form_dialog.html': _amend_richtext_form_dialog,
+        'formset/geomap/form_dialog.html': _amend_geomap_form_dialog,
+        'formset/richtext/form_dialog.html': _amend_form_dialog,
     }
 
     @classmethod

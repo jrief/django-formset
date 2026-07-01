@@ -44,7 +44,7 @@ margin_bottom_classes = {
 class MarginBottom(controls.ClassBaseControlElement):
     extension = 'marginBottom'
     label = "Margin Bottom"
-    icon = 'testapp/margin-bottom.svg'
+    icon = 'testapp/icons/margin-bottom.svg'
     extension_type = 'node'
 
 
