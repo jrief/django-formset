@@ -44,7 +44,7 @@ export abstract class FormDialogBase {
 		}
 	}
 
-	protected openDialog(button?: DjangoButton, ...args: any[]) {
+	public openDialog(button?: DjangoButton, ...args: any[]) {
 		if (this.element.open)
 			return;
 		if (this.isModal) {
@@ -58,7 +58,7 @@ export abstract class FormDialogBase {
 		this.element.addEventListener('close', () => this.closeDialog(), {once: true});
 	}
 
-	protected closeDialog(button?: DjangoButton, returnValue?: string) {
+	public closeDialog(button?: DjangoButton, returnValue?: string) {
 		if (this.dialogHeaderElement) {
 			this.dialogHeaderElement.removeEventListener('pointerdown', this.handlePointerDown);
 			this.dialogHeaderElement.removeEventListener('touchstart', this.handlePointerDown);
@@ -181,7 +181,7 @@ class FormDialog extends FormDialogBase implements Inducible {
 		return this.formIsValid();
 	}
 
-	protected openDialog(button?: DjangoButton, ...args: any[]) {
+	public openDialog(button?: DjangoButton, ...args: any[]) {
 		if (this.element.open)
 			return;
 		if (!this.form)
@@ -194,7 +194,7 @@ class FormDialog extends FormDialogBase implements Inducible {
 		super.openDialog(button, ...args);
  	}
 
-	protected closeDialog(button?: DjangoButton, returnValue?: string) {
+	public closeDialog(button?: DjangoButton, returnValue?: string) {
 		if (!(button?.element instanceof HTMLButtonElement) || !isString(returnValue))
 			return;
 		switch (returnValue) {
@@ -240,16 +240,19 @@ export class FormDialogElement extends HTMLDialogElement {
 }
 
 
-export class ActionFormDialog extends FormDialogBase {
+export class TransientFormDialog extends FormDialogBase {
 	private readonly basePath: Path;
 	protected readonly applyButton: HTMLButtonElement|null = null;
-	protected readonly revertButton: HTMLButtonElement|null = null;
+	public readonly extension: string;
 
 	constructor(element: HTMLDialogElement, path: Path) {
 		super(element);
 		this.basePath = path;
 		this.applyButton = Array.from(this.formElement.elements).find(elm => elm instanceof HTMLButtonElement && elm.value === 'apply') as HTMLButtonElement;
-		this.revertButton = Array.from(this.formElement.elements).find(elm => elm instanceof HTMLButtonElement && elm.value === 'revert') as HTMLButtonElement;
+		const extension = this.formElement.getAttribute('df-extension');
+		if (!extension)
+			throw new Error(`${this} requires a <form df-extension="…">`);
+		this.extension = extension;
 	}
 
 	public get path(): Path {

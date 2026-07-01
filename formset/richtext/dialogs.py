@@ -1,7 +1,7 @@
 from django.forms import fields, widgets
 from django.utils.translation import gettext_lazy as _
 
-from formset.dialog import ActionDialogForm, ApplyButton, CancelButton, RevertButton
+from formset.dialog import ApplyButton, CancelButton, RevertButton, TransientDialogForm
 from formset.formfields.activator import Activator
 from formset.richtext import controls
 from formset.richtext.upload import persit_uploaded_file
@@ -9,10 +9,9 @@ from formset.widgets import UploadedFileInput
 from formset.widgets.richtext import RichTextarea
 
 
-class RichtextDialogForm(ActionDialogForm):
-    extension = None
-    plugin_type = None
+class RichtextDialogForm(TransientDialogForm):
     template_name = 'formset/richtext/form_dialog.html'
+    plugin_type = None
     extension_script = None
 
     cancel = Activator(
@@ -36,6 +35,10 @@ class RichtextDialogForm(ActionDialogForm):
         if not self.extension_script and self.extension:
             self.extension_script = f'formset/tiptap-extensions/{self.extension}.js'
         super().__init__(**kwargs)
+
+    @property
+    def induce_close(self):
+        return f'.dialog_{self.extension}.cancel:active || .dialog_{self.extension}.revert:active || .dialog_{self.extension}.apply:active'
 
     def get_context(self):
         context = super().get_context()

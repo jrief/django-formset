@@ -1,13 +1,14 @@
 from django.forms import fields
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from formset.dialog import ActionDialogForm, ApplyButton, CancelButton
+from formset.dialog import ApplyButton, CancelButton, TransientDialogForm
 from formset.formfields.activator import Activator
 
 
-class GeoMapDialogForm(ActionDialogForm):
-    extension = None
-    template_name = 'formset/default/form_dialog.html'
+class GeoMapDialogForm(TransientDialogForm):
+    template_name = 'formset/geomap/form_dialog.html'
+    icon = 'formset/icons/edit-marker.svg'
 
     cancel = Activator(
         label=_("Cancel"),
@@ -19,9 +20,20 @@ class GeoMapDialogForm(ActionDialogForm):
         initial='apply',
     )
 
+    @property
+    def induce_close(self):
+        return f'.dialog_{self.extension}.cancel:active || .dialog_{self.extension}.apply:active'
+
+    @cached_property
+    def button_icon(self):
+        if icon := getattr(self, 'icon', None):
+            return icon
+        return f'formset/icons/{self.extension.lower()}.svg'
+
 
 class SimpleNameDialogForm(GeoMapDialogForm):
     title = _("Edit Marker Name")
     extension = 'simple_name'
+    properties_map = {'name': 'name'}
 
     name = fields.CharField()

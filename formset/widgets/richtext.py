@@ -68,7 +68,7 @@ class RichTextarea(Textarea):
                 context['widget']['attrs']['data-content'] = value
             else:
                 context['widget']['attrs']['data-content'] = '{"type": "doc"}'  # empty document
-            context['widget'].pop('value', None)
+            context['widget'].pop('value', None)  # we don't want the <textarea> to contain any JSON data
         context['widget']['attrs'].pop('use_json', None)
         return context
 

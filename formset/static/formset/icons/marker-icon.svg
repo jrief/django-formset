@@ -1,0 +1,82 @@
+<svg
+   version="1.1"
+   viewBox="0 0 25 41"
+   height="41"
+   width="25"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs3424">
+    <linearGradient
+       y2="503.72"
+       x2="445.30099"
+       y1="541.28601"
+       x1="445.30099"
+       gradientTransform="translate(-432.796,-502.5761)"
+       gradientUnits="userSpaceOnUse"
+       id="c"
+       xlink:href="#a" />
+    <linearGradient
+       id="a">
+      <stop
+         id="stop12"
+         stop-color="#126fc6"
+         offset="0" />
+      <stop
+         id="stop14"
+         stop-color="#4c9cd1"
+         offset="1" />
+    </linearGradient>
+    <linearGradient
+       y2="503.72101"
+       x2="351.74799"
+       y1="522.77399"
+       x1="351.74799"
+       gradientTransform="translate(-341.216,-502.5771)"
+       gradientUnits="userSpaceOnUse"
+       id="d"
+       xlink:href="#b" />
+    <linearGradient
+       id="b">
+      <stop
+         id="stop7"
+         stop-color="#2e6c97"
+         offset="0" />
+      <stop
+         id="stop9"
+         stop-color="#3883b7"
+         offset="1" />
+    </linearGradient>
+  </defs>
+  <metadata
+     id="metadata3427">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(-133.16429,-525.76147)"
+     id="layer1">
+    <g
+       id="g167">
+      <path
+         id="path46"
+         style="fill:url(#c);stroke:url(#d);stroke-width:1.10000002;stroke-linecap:round"
+         d="M 12.59375 1.3222656 C 6.02075 1.3222656 0.55078125 7.0144531 0.55078125 13.189453 C 0.55078125 15.967453 2.1141406 19.497547 3.2441406 21.935547 L 12.550781 39.806641 L 21.8125 21.935547 C 22.9425 19.497547 24.550781 16.144453 24.550781 13.189453 C 24.550781 7.0144531 19.16675 1.3222656 12.59375 1.3222656 z M 12.275391 8.9296875 A 4.5 4.5 0 0 1 12.386719 8.9296875 A 4.5 4.5 0 0 1 16.886719 13.429688 A 4.5 4.5 0 0 1 12.386719 17.929688 A 4.5 4.5 0 0 1 7.8867188 13.429688 A 4.5 4.5 0 0 1 12.275391 8.9296875 z "
+         transform="translate(133.16429,525.76147)" />
+      <path
+         d="m 145.74529,528.19137 c -5.944,0 -10.938,5.219 -10.938,10.75 0,2.359 1.443,5.832 2.563,8.25 l 0.031,0.031 8.313,15.969 8.25,-15.969 0.031,-0.031 c 1.135,-2.448 2.625,-5.706 2.625,-8.25 0,-5.538 -4.931,-10.75 -10.875,-10.75 z"
+         id="path70"
+         style="fill:none;stroke:#ffffff;stroke-width:1.10000002;stroke-linecap:round;stroke-opacity:0.122" />
+    </g>
+  </g>
+</svg>

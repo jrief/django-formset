@@ -110,6 +110,8 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/checkbox.html': _amend_checkbox,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
+        'formset/default/detached_field.html': _amend_detached_field,
+        'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/widgets/button.html': _amend_button,
         'formset/default/widgets/calendar.html': _amend_input,
         'formset/default/widgets/datetime.html': _amend_input,
@@ -118,8 +120,7 @@ class FormRenderer(DefaultFormRenderer):
         'formset/default/widgets/selectize.html': _amend_select,
         'formset/default/widgets/selectize_country.html': _amend_select,
         'formset/default/widgets/dual_selector.html': _amend_dual_selector,
-        'formset/default/fieldset.html': _amend_fieldset,
-        'formset/default/detached_field.html': _amend_detached_field,
+        'formset/default/widgets/geomap.html': _amend_input,
         'formset/default/widgets/richtextarea.html': _amend_input,
     })
 

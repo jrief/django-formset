@@ -42,8 +42,15 @@ CancelButton = Button(action='activate("close")', button_variant=ButtonVariant.S
 RevertButton = Button(action='activate("revert")', button_variant=ButtonVariant.DANGER)
 
 
-class ActionDialogForm(DialogForm):
+class TransientDialogForm(DialogForm):
+    """
+    Represents a transient dialog form with specific attributes and methods.
+    Transient dialog forms are required whenever the form data is controlled by a parent object,
+    for instance, a dialog form to edit the link parameters of a Richtext instance.
+    """
+
     is_transient = True
+    extension = 'unknown'
     _prefix = '.dialog_'
 
     @property
@@ -58,7 +65,3 @@ class ActionDialogForm(DialogForm):
     @property
     def induce_open(self):
         return f'.dialog_{self.extension}:active'
-
-    @property
-    def induce_close(self):
-        return f'.dialog_{self.extension}.cancel:active || .dialog_{self.extension}.revert:active || .dialog_{self.extension}.apply:active'
