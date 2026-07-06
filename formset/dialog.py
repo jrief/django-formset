@@ -40,3 +40,25 @@ class DialogModelForm(DialogFormMixin, BaseModelForm, metaclass=FormsetModelForm
 ApplyButton = Button(action='activate("apply")', button_variant=ButtonVariant.PRIMARY)
 CancelButton = Button(action='activate("close")', button_variant=ButtonVariant.SECONDARY)
 RevertButton = Button(action='activate("revert")', button_variant=ButtonVariant.DANGER)
+
+
+class ActionDialogForm(DialogForm):
+    is_transient = True
+    _prefix = '.dialog_'
+
+    @property
+    def prefix(self):
+        return f'{self._prefix}{self.extension}'
+
+    @prefix.setter
+    def prefix(self, value):
+        if self._prefix.startswith('.'):
+            self._prefix = f'{value}{self._prefix}'
+
+    @property
+    def induce_open(self):
+        return f'.dialog_{self.extension}:active'
+
+    @property
+    def induce_close(self):
+        return f'.dialog_{self.extension}.cancel:active || .dialog_{self.extension}.revert:active || .dialog_{self.extension}.apply:active'

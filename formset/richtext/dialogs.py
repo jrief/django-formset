@@ -1,7 +1,7 @@
 from django.forms import fields, widgets
 from django.utils.translation import gettext_lazy as _
 
-from formset.dialog import ApplyButton, CancelButton, DialogForm, RevertButton
+from formset.dialog import ActionDialogForm, ApplyButton, CancelButton, RevertButton
 from formset.formfields.activator import Activator
 from formset.richtext import controls
 from formset.richtext.upload import persit_uploaded_file
@@ -9,20 +9,11 @@ from formset.widgets import UploadedFileInput
 from formset.widgets.richtext import RichTextarea
 
 
-class RichtextDialogForm(DialogForm):
+class RichtextDialogForm(ActionDialogForm):
     extension = None
     plugin_type = None
-    is_transient = True
     template_name = 'formset/richtext/form_dialog.html'
     extension_script = None
-    _prefix = '.dialog_'
-
-    def __init__(self, extension_script=None, **kwargs):
-        if extension_script:
-            self.extension_script = extension_script
-        if not self.extension_script and self.extension:
-            self.extension_script = f'formset/tiptap-extensions/{self.extension}.js'
-        super().__init__(**kwargs)
 
     cancel = Activator(
         label=_("Cancel"),
@@ -39,22 +30,12 @@ class RichtextDialogForm(DialogForm):
         initial='apply',
     )
 
-    @property
-    def prefix(self):
-        return f'{self._prefix}{self.extension}'
-
-    @prefix.setter
-    def prefix(self, value):
-        if self._prefix.startswith('.'):
-            self._prefix = f'{value}{self._prefix}'
-
-    @property
-    def induce_open(self):
-        return f'.dialog_{self.extension}:active'
-
-    @property
-    def induce_close(self):
-        return f'.dialog_{self.extension}.cancel:active || .dialog_{self.extension}.revert:active || .dialog_{self.extension}.apply:active'
+    def __init__(self, extension_script=None, **kwargs):
+        if extension_script:
+            self.extension_script = extension_script
+        if not self.extension_script and self.extension:
+            self.extension_script = f'formset/tiptap-extensions/{self.extension}.js'
+        super().__init__(**kwargs)
 
     def get_context(self):
         context = super().get_context()

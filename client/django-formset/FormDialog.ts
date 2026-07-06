@@ -238,3 +238,34 @@ export class FormDialogElement extends HTMLDialogElement {
 		this.#formdialog = new FormDialog(this);
 	}
 }
+
+
+export class ActionFormDialog extends FormDialogBase {
+	private readonly basePath: Path;
+	protected readonly induceButton: HTMLButtonElement;
+	protected readonly applyButton: HTMLButtonElement|null = null;
+	protected readonly revertButton: HTMLButtonElement|null = null;
+
+	constructor(element: HTMLDialogElement, button: HTMLButtonElement, path: Path) {
+		super(element);
+		this.basePath = path;
+		this.induceButton = button;
+		this.applyButton = Array.from(this.formElement.elements).find(elm => elm instanceof HTMLButtonElement && elm.value === 'apply') as HTMLButtonElement;
+		this.revertButton = Array.from(this.formElement.elements).find(elm => elm instanceof HTMLButtonElement && elm.value === 'revert') as HTMLButtonElement;
+	}
+
+	public get path(): Path {
+		return toAbsPath(this.basePath, this.formElement.getAttribute('name')!.split('.'));
+	}
+
+	protected isButtonActive(path: string[], activator: Function, button?: DjangoButton, ...args: any[]): boolean {
+		return button && isEqual(toAbsPath(this.basePath, path), button.path) && activator(...args);
+	}
+
+	public updateOperability(...args: any[]) {
+		super.updateOperability(...args);
+		if (this.applyButton?.hasAttribute('auto-disable')) {
+			this.applyButton.disabled = !this.formElement.checkValidity();
+		}
+	}
+}

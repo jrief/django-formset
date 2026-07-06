@@ -30,7 +30,7 @@ import {TextMargin, TextMarginOptions } from '../tiptap-extensions/margin';
 import {TextColor} from '../tiptap-extensions/color';
 import {ClassBasedMark, ClassBasedNode} from '../tiptap-extensions/classbased';
 import {StyleHelpers, toAbsPath} from './helpers';
-import {FormDialogBase} from './FormDialog';
+import {ActionFormDialog} from './FormDialog';
 import {parse} from '../build/no-comments';
 import styles from './RichtextArea.scss';
 
@@ -777,23 +777,17 @@ interface FormDialogOptions {
 }
 
 
-class RichtextFormDialog extends FormDialogBase {
+class RichtextFormDialog extends ActionFormDialog {
 	private readonly richtext: RichtextArea;
 	private readonly inputElements: (HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)[] = [];
 	private textSelectionField: HTMLInputElement|null = null;
 	private applyAttributes: Function = () => {};
 	private revertAttributes: Function = () => {};
-	private readonly induceButton: HTMLButtonElement;
-	private readonly applyButton: HTMLButtonElement|null = null;
-	private readonly revertButton: HTMLButtonElement|null = null;
 	private readonly functionRegex = new RegExp('^(\\w+)\\s*\\([^)]*\\)$');
 	public readonly extension: string;
 
 	constructor(element: HTMLDialogElement, button: HTMLButtonElement, richtext: RichtextArea) {
-		super(element);
-		this.induceButton = button;
-		this.applyButton = Array.from(this.formElement.elements).find(elm => elm instanceof HTMLButtonElement && elm.value === 'apply') as HTMLButtonElement;
-		this.revertButton = Array.from(this.formElement.elements).find(elm => elm instanceof HTMLButtonElement && elm.value === 'revert') as HTMLButtonElement;
+		super(element, button, richtext.path);
 		this.richtext = richtext;
 		const extension = this.formElement.getAttribute('richtext-extension');
 		if (!extension)
@@ -817,10 +811,6 @@ class RichtextFormDialog extends FormDialogBase {
 			}
 		});
 		this.induceButton.addEventListener('mouseenter', appearTooltip);
-	}
-
-	public get path(): Path {
-		return toAbsPath(this.richtext.path, this.formElement.getAttribute('name')!.split('.'));
 	}
 
 	activate(editor: Editor) {
@@ -881,10 +871,6 @@ class RichtextFormDialog extends FormDialogBase {
 			// @ts-ignore
 			throw new Error(`Error while parsing <script type="text/plain" tiptap-plugin="${this.extension}"></script>: "${error}" at line ${error.location?.start?.line}:${error.location?.start?.column}.`);
 		}
-	}
-
-	protected isButtonActive(path: string[], activator: Function, button?: DjangoButton, ...args: any[]): boolean {
-		return button && isEqual(toAbsPath(this.richtext.path, path), button.path) && activator(...args);
 	}
 
 	private async openPrefilledDialog(attributes: Object) {
@@ -1015,13 +1001,6 @@ class RichtextFormDialog extends FormDialogBase {
 	private revertNodeAttributes(editor: Editor) {
 		const {from, to} = editor.view.state.selection;
 		editor.chain().focus().deleteRange({from, to}).run();
-	}
-
-	public updateOperability(...args: any[]) {
-		super.updateOperability(...args);
-		if (this.applyButton?.hasAttribute('auto-disable')) {
-			this.applyButton.disabled = !this.formElement.checkValidity();
-		}
 	}
 }
 
