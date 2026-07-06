@@ -54,6 +54,11 @@ class FormRenderer(DjangoTemplates):
         self._rendered_fields.clear()
         return context
 
+    def _amend_form_dialog(self, context):
+        self._amend_form(context)
+        context['form'] = context['form'].replicate(renderer=self)
+        return context
+
     def _amend_label(self, context, hide_checkbox_label=False):
         if not isinstance(context['attrs'], dict):
             context['attrs'] = {}
@@ -119,7 +124,7 @@ class FormRenderer(DjangoTemplates):
     _context_modifiers = {
         'django/forms/div.html': _amend_form,
         'formset/default/form.html': _amend_form,
-        'formset/default/form_dialog.html': _amend_form,
+        'formset/default/form_dialog.html': _amend_form_dialog,
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
