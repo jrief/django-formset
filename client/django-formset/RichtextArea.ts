@@ -779,7 +779,7 @@ interface FormDialogOptions {
 
 class RichtextFormDialog extends FormDialogBase {
 	private readonly richtext: RichtextArea;
-	private readonly inputElements = new Array<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>();
+	private readonly inputElements: (HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)[] = [];
 	private textSelectionField: HTMLInputElement|null = null;
 	private applyAttributes: Function = () => {};
 	private revertAttributes: Function = () => {};
@@ -1030,8 +1030,8 @@ class RichtextArea {
 	public readonly textAreaElement: HTMLTextAreaElement;
 	private readonly menubarElement: HTMLElement|null;
 	public readonly wrapperElement: HTMLElement;
-	private readonly registeredActions = new Array<Action>();
-	public readonly formDialogs = new Array<RichtextFormDialog>();
+	private readonly registeredActions: Action[] = [];
+	public readonly formDialogs: RichtextFormDialog[] = [];
 	private readonly useJson: boolean = false;
 	private readonly attributesObserver: MutationObserver;
 	private readonly resizeObserver: ResizeObserver;
@@ -1102,12 +1102,12 @@ class RichtextArea {
 	}
 
 	private async createEditor(wrapperElement: HTMLElement, content: any) : Promise<Editor> {
-		const extensions = new Array<Extension|Mark|Node>(
+		const extensions: (Extension|Mark|Node)[] = [
 			Document,
 			Paragraph,
 			Text,
 			HardBreak,  // always add hard breaks via keyboard entry
-		);
+		];
 		this.registerControlActions(extensions);
 		await this.registerFormDialogs(extensions);
 		this.registerPlaceholder(extensions);
@@ -1143,7 +1143,7 @@ class RichtextArea {
 
 	private async registerFormDialogs(extensions: Array<Extension|Mark|Node>) {
 		return new Promise<void>(resolve => {
-			const promises = new Array<Promise<Mark|Node>>();
+			const promises: Promise<Mark|Node>[] = [];
 			this.wrapperElement.querySelectorAll(':scope > dialog[df-induce-open]').forEach(dialogElement => {
 				const extension = dialogElement?.querySelector('form[method="dialog"][richtext-extension]')?.getAttribute('richtext-extension');
 				if (!extension || !(dialogElement instanceof HTMLDialogElement))

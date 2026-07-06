@@ -127,7 +127,7 @@ class BoundField(boundfield.BoundField):
         if auto_id and '%s' in str(auto_id):
             auto_id = auto_id % self.html_name
             if getattr(self.form, 'name', None):
-                return f'{self.form.name}_{auto_id}'
+                auto_id = f'{self.form.name}_{auto_id}'
             return auto_id
         elif auto_id:
             return self.html_name
