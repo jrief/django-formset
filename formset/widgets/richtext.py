@@ -73,10 +73,10 @@ class RichTextarea(Textarea):
         return context
 
     def render(self, name, value, attrs=None, renderer=None):
-        def add_dialog(dialog_form):
+        def render_dialog(dialog_form):
             dialog_form.prefix = f'{form_prefix}.{name}' if form_prefix else name
             dialog_context = dialog_form.get_context()
-            dialog_forms.append(dialog_form.render(context=dialog_context, renderer=renderer))
+            return dialog_form.render(context=dialog_context, renderer=renderer)
 
         form_prefix = attrs.pop('form_prefix', None)  # added by BoundField.build_widget_attrs
         context = self.get_context(name, value, attrs)
@@ -86,11 +86,11 @@ class RichTextarea(Textarea):
         dialog_forms = []
         for control_element in self.control_elements:
             if isinstance(control_element, controls.DialogControl):
-                add_dialog(control_element.dialog_form)
+                dialog_forms.append(render_dialog(control_element.dialog_form))
             elif isinstance(control_element, controls.Group):
                 for elm in control_element:
                     if isinstance(elm, controls.DialogControl):
-                        add_dialog(elm.dialog_form)
+                        dialog_forms.append(render_dialog(elm.dialog_form))
 
         context.update(
             control_panel=control_panel,
