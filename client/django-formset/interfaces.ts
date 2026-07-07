@@ -10,9 +10,11 @@ interface DjangoButton {
 
 interface DjangoFormset {
 	endpoint: string;
-	CSRFToken: string | undefined;
+	CSRFToken?: string;
 	buttons: Array<DjangoButton>;
+	assignDetachedButtons(element: Element): void;
 	registerInducer(inducer: Inducible): void;
+	updateOperability(...args: any[]): void;
 }
 
 interface DjangoForm {

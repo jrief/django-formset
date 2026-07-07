@@ -1,6 +1,5 @@
 import template from 'lodash.template';
 import isEmpty from 'lodash.isempty';
-import isEqual from 'lodash.isequal';
 import isFunction from 'lodash.isfunction';
 import isPlainObject from 'lodash.isplainobject';
 import isString from 'lodash.isstring';
@@ -779,6 +778,7 @@ interface FormDialogOptions {
 
 class RichtextFormDialog extends ActionFormDialog {
 	private readonly richtext: RichtextArea;
+	private readonly induceButton: HTMLButtonElement;
 	private readonly inputElements: (HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)[] = [];
 	private textSelectionField: HTMLInputElement|null = null;
 	private applyAttributes: Function = () => {};
@@ -787,7 +787,8 @@ class RichtextFormDialog extends ActionFormDialog {
 	public readonly extension: string;
 
 	constructor(element: HTMLDialogElement, button: HTMLButtonElement, richtext: RichtextArea) {
-		super(element, button, richtext.path);
+		super(element, richtext.path);
+		this.induceButton = button;
 		this.richtext = richtext;
 		const extension = this.formElement.getAttribute('richtext-extension');
 		if (!extension)
@@ -1005,7 +1006,7 @@ class RichtextFormDialog extends ActionFormDialog {
 }
 
 
-class RichtextArea {
+class RichtextArea implements Inducible {
 	public readonly textAreaElement: HTMLTextAreaElement;
 	private readonly menubarElement: HTMLElement|null;
 	public readonly wrapperElement: HTMLElement;
@@ -1033,6 +1034,7 @@ class RichtextArea {
 		this.attributesObserver = new MutationObserver(mutationsList => this.attributesChanged(mutationsList));
 		this.resizeObserver = new ResizeObserver(() => this.adjustMenubarLayout());
 		this.initializedPromise = this.initialize();
+		this.registerInducer();
 	}
 
 	private async initialize() {
@@ -1143,6 +1145,17 @@ class RichtextArea {
 				resolve();
 			});
 		});
+	}
+
+	private registerInducer() {
+		const formset = this.wrapperElement.closest('django-formset');
+		if (!formset)
+			return;
+		formset.addEventListener('django-formset-connected', (event: Event) => {
+			if (!(event instanceof CustomEvent))
+				return;
+			(event.detail.formset as DjangoFormset).registerInducer(this);
+		}, {once: true});
 	}
 
 	private registerPlaceholder(extensions: Array<Extension|Mark|Node>) {
@@ -1352,14 +1365,16 @@ class RichtextArea {
 		return this.useJson ? this.editor.getJSON() : {'_html_': this.editor.getHTML()};
 	}
 
-	public updateOperability(...args: any[]) : void {
+	updateOperability(...args: any[]) : void {
 		this.formDialogs.forEach(dialog => dialog.updateOperability(...args));
 	}
+
+	forceVisibility(formElement: HTMLFormElement) {}
 }
 
 
 export class RichTextAreaElement extends HTMLTextAreaElement {
-	isInitialized = false;
+	#isInitialized = false;
 	readonly #richtext: RichtextArea;
 
 	constructor() {
@@ -1372,20 +1387,16 @@ export class RichTextAreaElement extends HTMLTextAreaElement {
 
 	connectedCallback() {
 		this.#richtext.initializedPromise.then(() => {
-			this.isInitialized = true;
+			this.#isInitialized = true;
 			this.dispatchEvent(new CustomEvent('initialized'));
 		});
 	}
 
-	disconnectCallback() {
+	disconnectedCallback() {
 		this.#richtext.disconnect();
 	}
 
 	get value() : any {
 		return this.#richtext.getValue();
-	}
-
-	updateOperability(...args: any[]) : void {
-		this.#richtext.updateOperability(...args);
 	}
 }

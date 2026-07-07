@@ -246,11 +246,6 @@ class FieldGroup {
 		this.updateVisibility();
 		this.updateDisabled();
 		this.updateRequired();
-		this.fieldElements.filter(
-			fieldElement => isFunction((fieldElement as any).updateOperability)
-		).forEach(
-			fieldElement => (fieldElement as any).updateOperability(...args)
-		);
 	}
 
 	public disableRequiredConstraint() {
@@ -1800,7 +1795,7 @@ class DjangoFormCollectionTemplate implements Inducible {
 		this.formset.findForms(newCollectionElement);
 		this.formset.assignFieldsToForms(newCollectionElement);
 		this.formset.assignFormsToCollections();
-		this.formset.findDetachedButtons(newCollectionElement);
+		this.formset.assignDetachedButtons(newCollectionElement);
 		this.formset.findCollectionErrorsList();
 		newCollectionSibling.markAsFreshAndEmpty(true);
 		this.formset.validate();
@@ -1881,7 +1876,7 @@ export class DjangoFormset implements DjangoFormset {
 		this.findCollectionErrorsList();
 		this.assignFieldsToForms();
 		this.assignFormsToCollections();
-		this.findDetachedButtons();
+		this.assignDetachedButtons();
 		this.formCollections.forEach(collection => collection.markAsFreshAndEmpty());
 		this.extraData = JSON.parse(this.element.dataset.extra ? this.element.dataset.extra : '{}');
 		Promise.all(this.forms.map(form => form.isConnected)).then(() => {
@@ -2022,7 +2017,7 @@ export class DjangoFormset implements DjangoFormset {
 		}
 	}
 
-	public findDetachedButtons(parentElement?: Element) {
+	public assignDetachedButtons(parentElement?: Element) {
 		parentElement = parentElement ?? this.element;
 		for (const element of parentElement.getElementsByTagName('BUTTON')) {
 			if (element.hasAttribute('df-click')) {

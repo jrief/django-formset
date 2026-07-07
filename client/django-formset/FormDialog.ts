@@ -242,14 +242,12 @@ export class FormDialogElement extends HTMLDialogElement {
 
 export class ActionFormDialog extends FormDialogBase {
 	private readonly basePath: Path;
-	protected readonly induceButton: HTMLButtonElement;
 	protected readonly applyButton: HTMLButtonElement|null = null;
 	protected readonly revertButton: HTMLButtonElement|null = null;
 
-	constructor(element: HTMLDialogElement, button: HTMLButtonElement, path: Path) {
+	constructor(element: HTMLDialogElement, path: Path) {
 		super(element);
 		this.basePath = path;
-		this.induceButton = button;
 		this.applyButton = Array.from(this.formElement.elements).find(elm => elm instanceof HTMLButtonElement && elm.value === 'apply') as HTMLButtonElement;
 		this.revertButton = Array.from(this.formElement.elements).find(elm => elm instanceof HTMLButtonElement && elm.value === 'revert') as HTMLButtonElement;
 	}
@@ -258,7 +256,7 @@ export class ActionFormDialog extends FormDialogBase {
 		return toAbsPath(this.basePath, this.formElement.getAttribute('name')!.split('.'));
 	}
 
-	protected isButtonActive(path: string[], activator: Function, button?: DjangoButton, ...args: any[]): boolean {
+	protected isButtonActive(path: Path, activator: Function, button?: DjangoButton, ...args: any[]): boolean {
 		return button && isEqual(toAbsPath(this.basePath, path), button.path) && activator(...args);
 	}
 
