@@ -26,7 +26,7 @@ class ContactForm(Form):
 
 
 class ShippingForm(Form):
-    # step_label = "Shipping"
+    step_label = "Shipping"
     induce_activate = 'contact.next:active || payment.previous:active'
 
     street = CharField(

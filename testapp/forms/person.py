@@ -5,7 +5,9 @@ from formset.forms import FormMixin, ModelForm
 from formset.formfields import DateRangeField
 from formset.formfields.richtext import RichTextField
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
+from formset.richtext.dialogs import SimpleLinkDialogForm
 from formset.widgets import DatePicker, DateTimePicker, DualSelector, PhoneNumberInput, Selectize, UploadedFileInput
+from formset.widgets.richtext import controls, RichTextarea
 
 from testapp.models import PersonModel
 from .customer import AddressFieldset
@@ -58,6 +60,19 @@ sample_person_data = {
 }
 
 
+control_elements = [
+    controls.Bold(),
+    controls.Italic(),
+    controls.BulletList(),
+    controls.OrderedList(),
+    controls.DialogControl(SimpleLinkDialogForm()),
+    controls.Separator(),
+    controls.ClearFormat(),
+    controls.Undo(),
+    controls.Redo(),
+]
+
+
 class ModelPersonForm(ModelForm):
     field_order = ['full_name', 'avatar', 'validity', 'activity_days', 'activity_datetime', 'about', 'phone_number']
     activity_datetime = fields.DateTimeField(
@@ -77,6 +92,7 @@ class ModelPersonForm(ModelForm):
     about = RichTextField(
         label="About",
         required=False,
+        widget=RichTextarea(control_elements=control_elements)
     )
     phone_number = fields.CharField(
         label="Phone number",

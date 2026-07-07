@@ -1,7 +1,7 @@
 from django.forms import forms, models
 from django_filters import FilterSet, ModelChoiceFilter
-from formset.widgets import DualSelector, Selectize, SelectizeMultiple
 
+from formset.widgets import DualSelector, Selectize, SelectizeMultiple
 from testapp.models import County, State
 
 
@@ -73,7 +73,20 @@ class StatesForm(forms.Form):
             search_lookup=['name__icontains'],
             filter_by={'states': 'state__id'},
         ),
-        # initial=[3, 70, 2940],
+        initial=[
+            2822,
+            2823,
+            2824,
+            68,
+            69,
+            70,
+            71,
+            72,
+            2825,
+            2826,
+            2827,
+            2777,
+        ],
     )
 
 
