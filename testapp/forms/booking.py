@@ -30,12 +30,13 @@ class BookingDualCalendarForm(forms.Form):
 
 class BookingPickerForm(forms.Form):
     date_range = DateRangeField(
-        widget=DateRangePicker(),
+        widget=DateRangePicker(attrs={'df-disable': '!.enabled'}),
         initial=[
             date(2023, 5, 18),
             date(2023, 10, 12),
         ],
     )
+    enabled = forms.BooleanField(required=False)
 
 
 class BookingDualPickerForm(forms.Form):
