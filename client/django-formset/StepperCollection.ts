@@ -83,8 +83,8 @@ class StepperCollection implements Inducible {
 	private readonly element: StepperCollectionElement;
 	private readonly baseSelector = 'django-stepper-collection';
 	private readonly styleSheet: CSSStyleSheet;
+	private formset?: DjangoFormset;
 	public readonly steps: Array<StepperStep> = [];
-	public formset?: DjangoFormset;
 
 	constructor(element: StepperCollectionElement) {
 		this.element = element;
