@@ -1232,14 +1232,14 @@ class DjangoForm {
 		});
 	}
 
-	aggregateValues(): Map<string, FieldValue> {
-		const data = new Map<string, FieldValue>();
+	aggregateValues(): Record<string, FieldValue> {
+		const data: Record<string, FieldValue> = {};
 		for (const fieldGroup of this.fieldGroups) {
-			data.set(fieldGroup.name, fieldGroup.aggregateValue());
+			data[fieldGroup.name] = fieldGroup.aggregateValue();
 		}
 		// hidden fields are not handled by a <div role="group">
 		for (const element of this.hiddenInputFields.filter(e => e.type === 'hidden')) {
-			data.set(element.name, element.value);
+			data[element.name] = element.value;
 		}
 		return data;
 	}
@@ -2046,7 +2046,7 @@ export class DjangoFormset implements DjangoFormset {
 	public aggregateValues() {
 		this.data = {};
 		for (const form of this.forms) {
-			setDataValue(this.data, form.getAbsPath(), Object.fromEntries(form.aggregateValues()));
+			setDataValue(this.data, form.getAbsPath(), form.aggregateValues());
 		}
 	}
 
@@ -2138,7 +2138,7 @@ export class DjangoFormset implements DjangoFormset {
 				continue;
 			} else if (index === 0 && !form.name) {
 				// a single form, which doesn't have a name
-				const formsetData = Object.fromEntries(form.aggregateValues());
+				const formsetData = form.aggregateValues();
 				Object.assign(body['formset_data'], formsetData);
 			} else {
 				const absPath = form.getAbsPath();
