@@ -73,7 +73,7 @@ class instantiating the model.
 
 .. code-block:: python
 
-	from formset.widgets import RichTextarea
+	from formset.widgets.richtext import RichTextarea
 
 	class ArticleForm(ModelForm):
 	    class Meta:
