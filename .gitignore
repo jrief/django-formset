@@ -38,3 +38,4 @@ docs/build/
 workdir/
 testapp/*.sqlite3
 TODO.md
+testapp/static/testapp/js/formset-extensions.js*
