@@ -5,9 +5,9 @@ Edit Richtext
 =============
 
 A ``RichTextarea`` allows editing or pasting formatted text, similar to traditional "What you see is
-what you get" (WYSIWYG) editors. The current implementation offers common text formatting options
-such as paragraphs, headings, emphasized and bold text, ordered and bulleted lists, and hyperlinks.
-More text formatting options will be implemented in the future.
+what you get" (WYSIWYG) editors. The current implementation offers many common text formatting
+options, check the list below for the full set of options. Moreover it is possible to create custom
+formatting options using your own :ref:`Dialog Forms <dialog-forms>`.
 
 The **django-formset** library provides a widget, which can be used as a drop-in replacement for the
 HTML element ``<textarea>``, implemented as a web component. In a Django form's ``CharField``, we
