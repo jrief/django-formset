@@ -62,7 +62,7 @@ class GeoMapMarker extends Marker {
 	}
 
 	openPopup(latlng?: LatLngExpression): this {
-		this.editor.geomap.formDialogs.forEach(dialog => dialog.closeDialog());
+		this.editor.geomap.closeAllDialogs();
 		return super.openPopup(latlng);
 	}
 
@@ -151,9 +151,25 @@ class GeoMapFormDialog extends TransientFormDialog {
 
 abstract class GeometryEditor {
 	public readonly geomap: GeoMap;
+	public readonly formDialogs: GeoMapFormDialog[] = [];
 
 	constructor(geomap: GeoMap) {
 		this.geomap = geomap;
+		this.registerFormDialogs();
+	}
+
+	private registerFormDialogs() {
+		const dialogs = this.geomap.wrapperElement.querySelectorAll(`:scope > dialog[df-induce-open][aria-labeledby="${this.identifier}"]`);
+		for (const dialogElement of dialogs) {
+			if (!(dialogElement instanceof HTMLDialogElement))
+				return;
+			const formDialog = new GeoMapFormDialog(dialogElement, this.geomap);
+			this.formDialogs.push(formDialog);
+		}
+	}
+
+	public closeAllDialogs() {
+		this.formDialogs.forEach(dialog => dialog.closeDialog());
 	}
 
 	public abstract get identifier(): string;
@@ -167,6 +183,10 @@ abstract class GeometryEditor {
 	public abstract getLayer(index: number) : Layer|null;
 
 	public abstract deleteLayer(index: number) : void;
+
+	public updateOperability(...args: any[]) {
+		this.formDialogs.forEach(dialog => dialog.updateOperability(...args));
+	}
 }
 
 
@@ -228,10 +248,6 @@ class PointEditor extends GeometryEditor {
 		this.markers[index] = null;
 	}
 
-	// public updateOperability(...args: any[]) {
-	// 	this.formDialogs.forEach(dialog => dialog.updateOperability(...args));
-	// }
-
 	private handleClick = (event: LeafletMouseEvent) => {
 		const target = event.originalEvent.target;
 		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaLabel !== 'point-editor')
@@ -275,13 +291,12 @@ class GeoMap implements Inducible {
 	private readonly textAreaElement: HTMLTextAreaElement;
 	private readonly baseSelector = '.dj-geomap-wrapper';
 	private readonly mapElement: HTMLDivElement;
-	private readonly wrapperElement: HTMLDivElement;
+	public readonly wrapperElement: HTMLDivElement;
 	public readonly controlsTemplate: HTMLTemplateElement;
 	public formset?: DjangoFormset;
 	private resizeObserver?: ResizeObserver;
 	public readonly initialData: JSONValue;
 	public readonly editors: GeometryEditor[] = [];
-	public readonly formDialogs: GeoMapFormDialog[] = [];
 	public map: Map;
 
 	constructor(element: GeoMapElement) {
@@ -312,7 +327,6 @@ class GeoMap implements Inducible {
 			detectRetina: true,
 		}).addTo(this.map);
 		this.extendControls();
-		this.registerFormDialogs();
 		this.resizeObserver = new ResizeObserver((entries) => {
 			for (const entry of entries) {
 				if (entry.contentBoxSize) {
@@ -390,13 +404,8 @@ class GeoMap implements Inducible {
 		}, {once: true});
 	}
 
-	private registerFormDialogs() {
-		this.wrapperElement.querySelectorAll(':scope > dialog[df-induce-open]').forEach(dialogElement => {
-			if (!(dialogElement instanceof HTMLDialogElement))
-				return;
-			const formDialog = new GeoMapFormDialog(dialogElement, this);
-			this.formDialogs.push(formDialog);
-		});
+	public closeAllDialogs() {
+		this.editors.forEach(editor => editor.closeAllDialogs());
 	}
 
 	public getLayer(identifier: string) : Layer|null {
@@ -420,8 +429,7 @@ class GeoMap implements Inducible {
 	}
 
 	public updateOperability(...args: any[]) {
-		// this.editors.forEach(editor => editor.updateOperability(...args));
-		this.formDialogs.forEach(dialog => dialog.updateOperability(...args));
+		this.editors.forEach(editor => editor.updateOperability(...args));
 	}
 
 	public forceVisibility(formElement: HTMLFormElement) {}
