@@ -15,7 +15,8 @@ import {
 	Popup,
 	map,
 	latLng,
-	tileLayer, LatLngExpression, PopupOptions
+	LatLngExpression,
+	tileLayer,
 } from 'leaflet';
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
@@ -27,25 +28,14 @@ import styles from './GeoMap.scss';
 
 const CONTROL_POSITIONS: ReadonlyArray<ControlPosition> = ['topleft', 'topright', 'bottomleft', 'bottomright'] as const;
 
-const MarkerIcon = new Icon({
-	iconUrl: '/static/formset/icons/marker-icon.svg',
-	iconSize: [25, 41],
-	iconAnchor: [13, 41],
-	popupAnchor: [-2, -44],
-	shadowUrl: '/static/formset/icons/marker-shadow.png',
-	shadowSize: [68, 68],
-	shadowAnchor: [22, 68],
-} as IconOptions);
-
-
 class GeoMapMarker extends Marker {
 	private readonly editor: GeometryEditor;
 	public readonly properties: Record<string, any> = {};
 	public readonly index: number;
 
-	constructor(editor: GeometryEditor, latlng: LatLng, index: number, popupTemplate: HTMLDivElement) {
+	constructor(editor: GeometryEditor, latlng: LatLng, index: number, popupTemplate: HTMLDivElement, icon: Icon) {
 		const options: MarkerOptions = {
-			icon: MarkerIcon,
+			icon: icon,
 			draggable: true,
 			autoPan: true,
 			bubblingMouseEvents: true,
@@ -183,13 +173,15 @@ abstract class GeometryEditor {
 class PointEditor extends GeometryEditor {
 	public readonly markers: (GeoMapMarker|null)[] = [];
 	private readonly popupTemplate: HTMLDivElement;
+	private readonly markerIcon: Icon;
 
-	constructor(geomap: GeoMap) {
+	constructor(geomap: GeoMap, iconOptions: IconOptions) {
 		super(geomap);
 		const popupTemplate = this.geomap.controlsTemplate.content.querySelector(`[role="tooltip"][aria-labeledby="${this.identifier}"]`);
 		if (!(popupTemplate instanceof HTMLDivElement))
 			throw new Error('Could not find popup template for [role="tooltip"]');
 		this.popupTemplate = popupTemplate;
+		this.markerIcon = new Icon(iconOptions);
 	}
 
 	public get identifier() {
@@ -244,7 +236,7 @@ class PointEditor extends GeometryEditor {
 		const target = event.originalEvent.target;
 		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaLabel !== 'point-editor')
 			return;
-		const marker = new GeoMapMarker(this, event.latlng, this.markers.length, this.popupTemplate);
+		const marker = new GeoMapMarker(this, event.latlng, this.markers.length, this.popupTemplate, this.markerIcon);
 		this.markers.push(marker);
 		marker.initialPlacement();
 	};
@@ -259,7 +251,7 @@ class PointEditor extends GeometryEditor {
 						const coordinates = getDataValue(geometry, 'coordinates');
 						if (Array.isArray(coordinates) && coordinates.length === 2) {
 							const latlng = latLng(coordinates[1] as number, coordinates[0] as number);
-							const marker = new GeoMapMarker(this, latlng, index, this.popupTemplate);
+							const marker = new GeoMapMarker(this, latlng, index, this.popupTemplate, this.markerIcon);
 							const properties = getDataValue(feature, 'properties');
 							if (isPlainObject(properties)) {
 								Object.assign(marker.properties, properties);
@@ -368,8 +360,9 @@ class GeoMap implements Inducible {
 				if (!(controlTemplate instanceof HTMLDivElement))
 					throw new Error(`Could not find control template for position ${opts.position}`);
 				controlTemplate.querySelectorAll('a[aria-label]').forEach((anchor: Element) => {
-					if (anchor.ariaLabel && registry[anchor.ariaLabel] instanceof Function) {
-						self.editors.push(new registry[anchor.ariaLabel](self));
+					if (anchor instanceof HTMLAnchorElement && anchor.ariaLabel && registry[anchor.ariaLabel] instanceof Function) {
+						const iconOptions = JSON.parse(anchor.dataset.marker as any) as IconOptions;
+						self.editors.push(new registry[anchor.ariaLabel](self, iconOptions));
 					}
 				});
 				return document.importNode(controlTemplate, true);
@@ -393,8 +386,6 @@ class GeoMap implements Inducible {
 				return;
 			this.formset = event.detail.formset as DjangoFormset;
 			this.formset.registerInducer(this);
-			// this.setupMarkers(this.initialData);
-			// this.markers.forEach(marker => marker !== null && this.bindPopup(marker));
 			this.editors.forEach(editor => editor.register());
 		}, {once: true});
 	}
@@ -493,7 +484,7 @@ export class GeoMapElement extends HTMLTextAreaElement {
 		this.#geomap.disconnectedCallback();
 	}
 
-	get value() : any {
+	get value(): any {
 		return this.#geomap.getValue();
 	}
 }

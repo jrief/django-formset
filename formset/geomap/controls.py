@@ -1,5 +1,7 @@
+import json
+
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.template.loader import get_template, select_template
-from django.utils.functional import cached_property
 from django.utils.translation import gettext, gettext_lazy as _
 
 from formset.dialog import DialogForm
@@ -11,9 +13,13 @@ class ControlElement:
     label = None
     dialog_forms = []
 
-    def __init__(self, label=None, dialog_forms=None):
+    def __init__(self, label=None, button_icon=None, marker=None,dialog_forms=None):
         if isinstance(label, str):
             self.label = label
+        if isinstance(button_icon, str):
+            self.button_icon = button_icon
+        if isinstance(marker, dict):
+            self.marker = marker
         if isinstance(dialog_forms, (list, tuple)) and all(isinstance(f, DialogForm) for f in dialog_forms):
             self.dialog_forms.extend(dialog_forms)
 
@@ -24,17 +30,12 @@ class ControlElement:
         ]
         return select_template(templates)
 
-    @cached_property
-    def button_icon(self):
-        if icon := getattr(self, 'icon', None):
-            return icon
-        return f'formset/icons/{self.name.lower()}.svg'
-
     def get_context(self):
         return {
             'name': self.name,
             'title': self.label,
-            'icon': self.button_icon,
+            'button_icon': getattr(self, 'button_icon', f'formset/icons/{self.name.lower()}.svg'),
+            'marker': json.dumps(getattr(self, 'marker', {})),
         }
 
     def clean_content(self, richtext_field, content):
@@ -61,7 +62,19 @@ class Group(list):
         return template.render(context)
 
 
+default_marker = {
+    'iconUrl': staticfiles_storage.url('formset/icons/marker-icon.svg'),
+    'iconSize': [25, 41],
+    'iconAnchor': [13, 41],
+    'popupAnchor': [-2, -44],
+    'shadowUrl': staticfiles_storage.url('formset/icons/marker-shadow.png'),
+    'shadowSize': [68, 68],
+    'shadowAnchor': [22, 68],
+}
+
+
 class PointEditor(ControlElement):
     name = 'point-editor'
     label = _("Edit Point")
-    icon = 'formset/icons/map-pin.svg'
+    button_icon = 'formset/icons/map-pin.svg'
+    marker = default_marker
