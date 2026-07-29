@@ -7,6 +7,7 @@ import {
 	LatLng,
 	LatLngBounds,
 	Layer,
+	LeafletKeyboardEvent,
 	LeafletMouseEvent,
 	Map,
 	MapOptions,
@@ -75,12 +76,20 @@ class GeoMapMarker extends Marker {
 		const mapContainer = map.getContainer();
 		mapContainer.classList.add('marker-placement');
 		const moveMarker = (event: LeafletMouseEvent) => this.setLatLng(event.latlng);
-		map.on('mousemove', moveMarker);
-		map.once('click', (event: LeafletMouseEvent) => {
-			moveMarker(event);
+		const dropMarker = () => {
 			map.off('mousemove', moveMarker);
 			mapContainer.classList.remove('marker-placement');
-		});
+		};
+		const handleEscape = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				this.deleteMarker();
+				dropMarker();
+				document.removeEventListener('keydown', handleEscape);
+			}
+		};
+		map.on('mousemove', moveMarker);
+		document.addEventListener('keydown', handleEscape);
+		map.once('click', dropMarker);
 	}
 
 	private deleteMarker() {
