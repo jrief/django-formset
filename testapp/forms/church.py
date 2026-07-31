@@ -66,7 +66,12 @@ class CapacityDialogForm(dialogs.GeoMapDialogForm):
     max_visitors = fields.IntegerField()
 
 
-orange_marker = {**controls.default_marker, 'iconUrl': staticfiles_storage.url('testapp/geomap-markers/marker-orange.svg')}
+church_marker = {
+    'iconUrl': staticfiles_storage.url('testapp/geomap-markers/church.svg'),
+    'iconSize': [32, 32],
+    'iconAnchor': [17, 35],
+    'popupAnchor': [0, -28],
+}
 
 
 class ChurchModelForm(ModelForm):
@@ -83,7 +88,8 @@ class ChurchModelForm(ModelForm):
             controls_topright=[
                 controls.PointEditor(
                     identifier='point_editor_2',
-                    marker=orange_marker,
+                    button_icon='testapp/icons/church-marker.svg',
+                    marker=church_marker,
                     dialog_forms=[
                         dialogs.SimpleNameDialogForm(extension='simple_name_2'),
                     ],

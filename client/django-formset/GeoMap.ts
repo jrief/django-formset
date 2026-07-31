@@ -275,7 +275,7 @@ class PointEditor extends GeometryEditor {
 		if (getDataValue(this.geomap.initialData, 'type') === 'FeatureCollection') {
 			const features = getDataValue(this.geomap.initialData, 'features');
 			if (Array.isArray(features)) {
-				for (const [index1, feature] of features.entries()) {
+				for (const feature of features) {
 					if (String(getDataValue(feature, 'id', '')).split(':')[0] !== this.identifier)
 						continue;
 					const geometry = getDataValue(feature, 'geometry');
@@ -283,7 +283,7 @@ class PointEditor extends GeometryEditor {
 						const coordinates = getDataValue(geometry, 'coordinates');
 						if (Array.isArray(coordinates) && coordinates.length === 2) {
 							const latlng = latLng(coordinates[1] as number, coordinates[0] as number);
-							const marker = new GeoMapMarker(this, latlng, index1, this.popupTemplate, this.markerIcon);
+							const marker = new GeoMapMarker(this, latlng, this.markers.length, this.popupTemplate, this.markerIcon);
 							const properties = getDataValue(feature, 'properties');
 							if (isPlainObject(properties)) {
 								Object.assign(marker.properties, properties);
