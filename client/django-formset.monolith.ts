@@ -24,6 +24,7 @@ import {DjangoSlugElement} from './django-formset/DjangoSlug';
 import {DateCalendarElement, DateTimeCalendarElement, DateRangeCalendarElement, DateTimeRangeCalendarElement} from './django-formset/Calendar';
 import {DateFieldElement, DatePickerElement, DateTimeFieldElement, DateTimePickerElement, DateRangeFieldElement, DateTimeRangeFieldElement, DateRangePickerElement, DateTimeRangePickerElement} from './django-formset/DateTime';
 import {FormDialogElement} from './django-formset/FormDialog';
+import {GeoMapElement} from './django-formset/GeoMap';
 import {StepperCollectionElement} from './django-formset/StepperCollection';
 
 
@@ -85,6 +86,8 @@ function handleDOMLoaded() {
 	customElementNames.push('django-datetimerangepicker');
 	window.customElements.define('django-form-dialog', FormDialogElement, {extends: 'dialog'});
 	customElementNames.push('django-form-dialog');
+	window.customElements.define('django-geo-map', GeoMapElement, {extends: 'textarea'});
+	customElementNames.push('django-geo-map');
 	window.customElements.define('django-stepper-collection', StepperCollectionElement);
 	customElementNames.push('django-stepper-collection');
 
