@@ -1,5 +1,6 @@
 import json
 
+from django.core.exceptions import ImproperlyConfigured
 from django.forms.widgets import Textarea
 from django.utils.html import format_html, format_html_join
 
@@ -31,6 +32,27 @@ class GeoMapWidget(Textarea):
             self.controls['bottomright'] = controls_bottomright
         if isinstance(controls_bottomleft, list):
             self.controls['bottomleft'] = controls_bottomleft
+        self.check_settings()
+
+    def check_settings(self):
+        """
+        Validate the widget's configuration.
+        """
+        editor_identifiers, dialog_form_extensions = set(), set()
+        for position in ['topleft', 'topright', 'bottomright', 'bottomleft']:
+            for editor in self.controls[position]:
+                if editor.identifier in editor_identifiers:
+                    raise ImproperlyConfigured(
+                        f"The editor identifier “{editor.identifier}” has already been registered on {self}."
+                    )
+                editor_identifiers.add(editor.identifier)
+                for dialog_form in editor.dialog_forms:
+                    if dialog_form.extension in dialog_form_extensions:
+                        raise ImproperlyConfigured(
+                            f"The dialog form using extension “{dialog_form.extension}” has "
+                            f"already been registered on {self}."
+                        )
+                    dialog_form_extensions.add(dialog_form.extension)
 
     def build_attrs(self, base_attrs, extra_attrs=None):
         attrs = super().build_attrs(base_attrs, extra_attrs)
@@ -47,9 +69,9 @@ class GeoMapWidget(Textarea):
         return context
 
     def render(self, name, value, attrs=None, renderer=None):
-        def render_dialog(dialog_form, labeled_by):
+        def render_dialog(dialog_form, described_by):
             dialog_form.prefix = f'{form_prefix}.{name}' if form_prefix else name
-            dialog_context = {**dialog_form.get_context(), 'labeled_by': labeled_by}
+            dialog_context = {**dialog_form.get_context(), 'described_by': described_by}
             return dialog_form.render(context=dialog_context, renderer=renderer)
 
         form_prefix = attrs.pop('form_prefix', None)  # added by BoundField.build_widget_attrs
@@ -64,10 +86,10 @@ class GeoMapWidget(Textarea):
                 )
             )
             for control_element in controls:
-                popups.append({'labeled_by': control_element.name, 'dialogs': []})
+                popups.append({'labeled_by': control_element.identifier, 'dialogs': []})
                 for dialog_form in control_element.dialog_forms:
                     if isinstance(dialog_form, GeoMapDialogForm):
-                        dialog_forms.append(render_dialog(dialog_form, control_element.name))
+                        dialog_forms.append(render_dialog(dialog_form, control_element.identifier))
                         popups[-1]['dialogs'].append({'prefix': dialog_form.prefix, 'icon': dialog_form.button_icon})
 
         context.update(

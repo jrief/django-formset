@@ -48,12 +48,16 @@ class GeoMapMarker extends Marker {
 		this.attachPopup(popupTemplate);
 	}
 
+	public get identifier(): string {
+		return `${this.editor.identifier}:${this.index}`;
+	}
+
 	private attachPopup(popupTemplate: HTMLDivElement) {
 		const popupContent = document.importNode(popupTemplate, true);
 		this.editor.geomap.formset!.assignDetachedButtons(popupContent);
 		popupContent.querySelectorAll('[df-click="activate"]').forEach((button: Element) => {
 			if (button instanceof HTMLButtonElement) {
-				button.dataset.identifier = `${this.editor.identifier}:${this.index}`;
+				button.dataset.identifier = this.identifier;
 			}
 		});
 		popupContent.querySelector('[name="delete_marker"]')?.addEventListener('click', () => this.deleteMarker());
@@ -160,15 +164,22 @@ class GeoMapFormDialog extends TransientFormDialog {
 
 abstract class GeometryEditor {
 	public readonly geomap: GeoMap;
+	protected readonly popupTemplate: HTMLDivElement;
 	public readonly formDialogs: GeoMapFormDialog[] = [];
+	protected readonly anchor: HTMLAnchorElement;
 
-	constructor(geomap: GeoMap) {
+	constructor(geomap: GeoMap, anchor: HTMLAnchorElement) {
 		this.geomap = geomap;
+		this.anchor = anchor;
+		const popupTemplate = this.geomap.controlsTemplate.content.querySelector(`[role="tooltip"][aria-labeledby="${this.identifier}"]`);
+		if (!(popupTemplate instanceof HTMLDivElement))
+			throw new Error('Could not find popup template for [role="tooltip"]');
+		this.popupTemplate = popupTemplate;
 		this.registerFormDialogs();
 	}
 
 	private registerFormDialogs() {
-		const dialogs = this.geomap.wrapperElement.querySelectorAll(`:scope > dialog[df-induce-open][aria-labeledby="${this.identifier}"]`);
+		const dialogs = this.geomap.wrapperElement.querySelectorAll(`:scope > dialog[df-induce-open][aria-describedby="${this.identifier}"]`);
 		for (const dialogElement of dialogs) {
 			if (!(dialogElement instanceof HTMLDialogElement))
 				return;
@@ -181,7 +192,9 @@ abstract class GeometryEditor {
 		this.formDialogs.forEach(dialog => dialog.closeDialog());
 	}
 
-	public abstract get identifier(): string;
+	public get identifier()  {
+		return this.anchor.ariaDescription;
+	}
 
 	public abstract register() : void;
 
@@ -201,20 +214,11 @@ abstract class GeometryEditor {
 
 class PointEditor extends GeometryEditor {
 	public readonly markers: (GeoMapMarker|null)[] = [];
-	private readonly popupTemplate: HTMLDivElement;
 	private readonly markerIcon: Icon;
 
-	constructor(geomap: GeoMap, iconOptions: IconOptions) {
-		super(geomap);
-		const popupTemplate = this.geomap.controlsTemplate.content.querySelector(`[role="tooltip"][aria-labeledby="${this.identifier}"]`);
-		if (!(popupTemplate instanceof HTMLDivElement))
-			throw new Error('Could not find popup template for [role="tooltip"]');
-		this.popupTemplate = popupTemplate;
+	constructor(geomap: GeoMap, anchor: HTMLAnchorElement, iconOptions: IconOptions) {
+		super(geomap, anchor);
 		this.markerIcon = new Icon(iconOptions);
-	}
-
-	public get identifier() {
-		return 'point-editor';
 	}
 
 	public register() {
@@ -244,6 +248,7 @@ class PointEditor extends GeometryEditor {
 					coordinates: [latlng.lng, latlng.lat],
 				},
 				properties: marker.properties,
+				id: marker.identifier,
 			});
 		}
 		return features;
@@ -259,7 +264,7 @@ class PointEditor extends GeometryEditor {
 
 	private handleClick = (event: LeafletMouseEvent) => {
 		const target = event.originalEvent.target;
-		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaLabel !== 'point-editor')
+		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaDescription !== this.anchor.ariaDescription)
 			return;
 		const marker = new GeoMapMarker(this, event.latlng, this.markers.length, this.popupTemplate, this.markerIcon);
 		this.markers.push(marker);
@@ -270,13 +275,15 @@ class PointEditor extends GeometryEditor {
 		if (getDataValue(this.geomap.initialData, 'type') === 'FeatureCollection') {
 			const features = getDataValue(this.geomap.initialData, 'features');
 			if (Array.isArray(features)) {
-				for (const [index, feature] of features.entries()) {
+				for (const [index1, feature] of features.entries()) {
+					if (String(getDataValue(feature, 'id', '')).split(':')[0] !== this.identifier)
+						continue;
 					const geometry = getDataValue(feature, 'geometry');
 					if (isPlainObject(geometry) && getDataValue(geometry, 'type') === 'Point') {
 						const coordinates = getDataValue(geometry, 'coordinates');
 						if (Array.isArray(coordinates) && coordinates.length === 2) {
 							const latlng = latLng(coordinates[1] as number, coordinates[0] as number);
-							const marker = new GeoMapMarker(this, latlng, index, this.popupTemplate, this.markerIcon);
+							const marker = new GeoMapMarker(this, latlng, index1, this.popupTemplate, this.markerIcon);
 							const properties = getDataValue(feature, 'properties');
 							if (isPlainObject(properties)) {
 								Object.assign(marker.properties, properties);
@@ -291,8 +298,8 @@ class PointEditor extends GeometryEditor {
 }
 
 
-const registry: Record<string, new (...args: any[]) => GeometryEditor> = {
-	'point-editor': PointEditor,
+const registry: Record<string, new (geomap: GeoMap, anchor: HTMLAnchorElement, ...args: any[]) => GeometryEditor> = {
+	PointEditor,
 };
 
 
@@ -305,7 +312,7 @@ class GeoMap implements Inducible {
 	public formset?: DjangoFormset;
 	private resizeObserver?: ResizeObserver;
 	public readonly initialData: JSONValue;
-	public readonly editors: GeometryEditor[] = [];
+	public readonly editors: Record<string, GeometryEditor> = {};
 	public map: Map;
 
 	constructor(element: GeoMapElement) {
@@ -358,7 +365,8 @@ class GeoMap implements Inducible {
 	}
 
 	private formResetted = () => {
-		this.editors.forEach(editor => editor.resetToInitial());
+		Object.values(this.editors).forEach(editor => editor.resetToInitial());
+		this.getValue();
 	};
 
 	private formSubmitted = () => {
@@ -382,13 +390,18 @@ class GeoMap implements Inducible {
 				const controlTemplate = self.controlsTemplate.content.querySelector(`[aria-current="${opts.position}"]`);
 				if (!(controlTemplate instanceof HTMLDivElement))
 					throw new Error(`Could not find control template for position ${opts.position}`);
-				controlTemplate.querySelectorAll('a[aria-label]').forEach((anchor: Element) => {
+				const controlElements = document.importNode(controlTemplate, true);
+				controlElements.querySelectorAll('a[aria-label]').forEach((anchor: Element) => {
 					if (anchor instanceof HTMLAnchorElement && anchor.ariaLabel && registry[anchor.ariaLabel] instanceof Function) {
+						if (!anchor.ariaDescription)
+							throw new Error(`${anchor} is missing property aria-description`);
+						if (Object.keys(self.editors).includes(anchor.ariaDescription))
+							throw new Error(`Duplicate editor identifier ${anchor.ariaDescription}`);
 						const iconOptions = JSON.parse(anchor.dataset.marker as any) as IconOptions;
-						self.editors.push(new registry[anchor.ariaLabel](self, iconOptions));
+						self.editors[anchor.ariaDescription] = new registry[anchor.ariaLabel](self, anchor, iconOptions);
 					}
 				});
-				return document.importNode(controlTemplate, true);
+				return controlElements;
 			},
 			onRemove: (map: Map) => {
 				// Nothing to do yet
@@ -409,17 +422,18 @@ class GeoMap implements Inducible {
 				return;
 			this.formset = event.detail.formset as DjangoFormset;
 			this.formset.registerInducer(this);
-			this.editors.forEach(editor => editor.register());
+			Object.values(this.editors).forEach(editor => editor.register());
+			this.getValue();  // to set "_has_value_" on textarea element
 		}, {once: true});
 	}
 
 	public closeAllDialogs() {
-		this.editors.forEach(editor => editor.closeAllDialogs());
+		Object.values(this.editors).forEach(editor => editor.closeAllDialogs());
 	}
 
 	public getLayer(identifier: string) : Layer|null {
-		const [editorName, index] = [...identifier.split(':')];
-		return this.editors.find(editor => editor.identifier === editorName)?.getLayer(Number(index)) ?? null;
+		const [editorName, layerIndex] = [...identifier.split(':')];
+		return this.editors[editorName]?.getLayer(Number(layerIndex)) ?? null;
 	}
 
 	public getValue() : object {
@@ -430,7 +444,7 @@ class GeoMap implements Inducible {
 			bbox: bounds ? [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()] : null,
 			features: [] as Record<string, any>,
 		};
-		for (const editor of this.editors) {
+		for (const editor of Object.values(this.editors)) {
 			result.features.push(...editor.getFeatures());
 		}
 		this.textAreaElement.innerText = result.features.length === 0 ? "" : "_has_value_";  // required for validation
@@ -438,7 +452,7 @@ class GeoMap implements Inducible {
 	}
 
 	public updateOperability(...args: any[]) {
-		this.editors.forEach(editor => editor.updateOperability(...args));
+		Object.values(this.editors).forEach(editor => editor.updateOperability(...args));
 	}
 
 	public forceVisibility(formElement: HTMLFormElement) {}

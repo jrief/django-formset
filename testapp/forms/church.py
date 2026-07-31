@@ -1,3 +1,4 @@
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.forms import fields, ModelForm
 
 from formset.formfields.geomap import GeoMapField
@@ -65,14 +66,28 @@ class CapacityDialogForm(dialogs.GeoMapDialogForm):
     max_visitors = fields.IntegerField()
 
 
+orange_marker = {**controls.default_marker, 'iconUrl': staticfiles_storage.url('testapp/geomap-markers/marker-orange.svg')}
+
+
 class ChurchModelForm(ModelForm):
     map = GeoMapField(
         widget=GeoMapWidget(
             controls_topleft=[
-                controls.PointEditor(dialog_forms=[
-                    dialogs.SimpleNameDialogForm(),
-                    CapacityDialogForm(),
-                ]),
+                controls.PointEditor(
+                    dialog_forms=[
+                        dialogs.SimpleNameDialogForm(),
+                        CapacityDialogForm(),
+                    ],
+                ),
+            ],
+            controls_topright=[
+                controls.PointEditor(
+                    identifier='point_editor_2',
+                    marker=orange_marker,
+                    dialog_forms=[
+                        dialogs.SimpleNameDialogForm(extension='simple_name_2'),
+                    ],
+                ),
             ],
             attrs={'style': 'height: 600px;'},
         )

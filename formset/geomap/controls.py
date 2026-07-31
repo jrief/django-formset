@@ -9,11 +9,13 @@ from formset.dialog import DialogForm
 
 class ControlElement:
     template_name = 'formset/geomap/control.html'
-    name = None
+    identifier = None
     label = None
     dialog_forms = []
 
-    def __init__(self, label=None, button_icon=None, marker=None,dialog_forms=None):
+    def __init__(self, identifier=None, label=None, button_icon=None, marker=None, dialog_forms=None):
+        if isinstance(identifier, str):
+            self.identifier = identifier
         if isinstance(label, str):
             self.label = label
         if isinstance(button_icon, str):
@@ -21,7 +23,7 @@ class ControlElement:
         if isinstance(marker, dict):
             self.marker = marker
         if isinstance(dialog_forms, (list, tuple)) and all(isinstance(f, DialogForm) for f in dialog_forms):
-            self.dialog_forms.extend(dialog_forms)
+            self.dialog_forms = list(dialog_forms)
 
     def get_template(self, renderer):
         templates = [
@@ -31,10 +33,12 @@ class ControlElement:
         return select_template(templates)
 
     def get_context(self):
+        name = self.__class__.__name__
         return {
-            'name': self.name,
+            'name': name,
+            'identifier': self.identifier,
             'title': self.label,
-            'button_icon': getattr(self, 'button_icon', f'formset/icons/{self.name.lower()}.svg'),
+            'button_icon': getattr(self, 'button_icon', f'formset/icons/{name.lower()}.svg'),
             'marker': json.dumps(getattr(self, 'marker', {})),
         }
 
@@ -74,7 +78,7 @@ default_marker = {
 
 
 class PointEditor(ControlElement):
-    name = 'point-editor'
+    identifier = 'point-editor'
     label = _("Edit Point")
     button_icon = 'formset/icons/map-pin.svg'
     marker = default_marker

@@ -1,5 +1,5 @@
 {% spaceless %}
-<dialog{% if not form.is_transient %} is="django-form-dialog"{% endif %}{% if form.is_modal %} df-modal{% endif %}{% if form.induce_open %} df-induce-open="{{ form.induce_open }}"{% endif %}{% if form.induce_close %} df-induce-close="{{ form.induce_close }}"{% endif %}{% if labeled_by %} aria-labeledby="{{ labeled_by }}"{% endif %}>
+<dialog{% if not form.is_transient %} is="django-form-dialog"{% endif %}{% if form.is_modal %} df-modal{% endif %}{% if form.induce_open %} df-induce-open="{{ form.induce_open }}"{% endif %}{% if form.induce_close %} df-induce-close="{{ form.induce_close }}"{% endif %}{% if described_by %} aria-describedby="{{ described_by }}"{% endif %}>
 {% block dialog-header %}
 	{% if form.title %}
 	<div class="dialog-header">
