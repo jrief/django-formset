@@ -69,7 +69,7 @@ class CapacityDialogForm(dialogs.GeoMapDialogForm):
 church_marker = {
     'iconUrl': staticfiles_storage.url('testapp/geomap-markers/church.svg'),
     'iconSize': [32, 32],
-    'iconAnchor': [17, 35],
+    'iconAnchor': [16, 35],
     'popupAnchor': [0, -28],
 }
 
@@ -79,10 +79,14 @@ class ChurchModelForm(ModelForm):
         widget=GeoMapWidget(
             controls_topleft=[
                 controls.PointEditor(
-                    dialog_forms=[
-                        dialogs.SimpleNameDialogForm(),
-                        CapacityDialogForm(),
-                    ],
+                    # dialog_forms=[
+                    #     dialogs.SimpleNameDialogForm(),
+                    # ],
+                ),
+                controls.PolylineEditor(
+                    # dialog_forms=[
+                    #     dialogs.SimpleNameDialogForm(),
+                    # ],
                 ),
             ],
             controls_topright=[
@@ -92,6 +96,7 @@ class ChurchModelForm(ModelForm):
                     marker=church_marker,
                     dialog_forms=[
                         dialogs.SimpleNameDialogForm(extension='simple_name_2'),
+                        CapacityDialogForm(),
                     ],
                 ),
             ],
