@@ -78,7 +78,19 @@ default_marker = {
 
 
 class PointEditor(ControlElement):
-    identifier = 'point-editor'
-    label = _("Edit Point")
+    identifier = 'default-marker'
+    label = _("Edit Marker Point")
     button_icon = 'formset/icons/map-pin.svg'
     marker = default_marker
+
+
+class PolylineEditor(ControlElement):
+    identifier = 'polyline'
+    label = _("Edit Polyline")
+    button_icon = 'formset/icons/map-polyline.svg'
+
+
+class PolygonEditor(ControlElement):
+    identifier = 'polygon'
+    label = _("Edit Polygon")
+    button_icon = 'formset/icons/map-polygon.svg'

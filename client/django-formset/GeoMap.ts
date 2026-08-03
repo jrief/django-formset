@@ -2,25 +2,32 @@ import {
 	Control,
 	ControlOptions,
 	ControlPosition,
+	DivIcon,
+	GeoJSON,
 	Icon,
 	IconOptions,
 	LatLng,
-	LatLngBounds,
+	LatLngExpression,
 	Layer,
-	LeafletKeyboardEvent,
+	LayerGroup,
+	LeafletEvent,
 	LeafletMouseEvent,
 	Map,
 	MapOptions,
 	Marker,
 	MarkerOptions,
+	Polyline,
+	PolylineOptions,
+	Polygon,
 	Popup,
 	map,
-	latLng,
-	LatLngExpression,
+	latLngBounds,
+	polyline,
 	tileLayer,
 } from 'leaflet';
 import getDataValue from 'lodash.get';
 import setDataValue from 'lodash.set';
+import isEqual from 'lodash.isequal';
 import isPlainObject from 'lodash.isplainobject';
 import {StyleHelpers} from './helpers';
 import {TransientFormDialog} from './FormDialog';
@@ -28,80 +35,6 @@ import styles from './GeoMap.scss';
 
 
 const CONTROL_POSITIONS: ReadonlyArray<ControlPosition> = ['topleft', 'topright', 'bottomleft', 'bottomright'] as const;
-
-class GeoMapMarker extends Marker {
-	private readonly editor: GeometryEditor;
-	public readonly properties: Record<string, any> = {};
-	public readonly index: number;
-
-	constructor(editor: GeometryEditor, latlng: LatLng, index: number, popupTemplate: HTMLDivElement, icon: Icon) {
-		const options: MarkerOptions = {
-			icon: icon,
-			draggable: true,
-			autoPan: true,
-			bubblingMouseEvents: true,
-		};
-		super(latlng, options);
-		this.editor = editor;
-		this.index = index;
-		this.addTo(this.editor.geomap.map);
-		this.attachPopup(popupTemplate);
-	}
-
-	public get identifier(): string {
-		return `${this.editor.identifier}:${this.index}`;
-	}
-
-	private attachPopup(popupTemplate: HTMLDivElement) {
-		const popupContent = document.importNode(popupTemplate, true);
-		this.editor.geomap.formset!.assignDetachedButtons(popupContent);
-		popupContent.querySelectorAll('[df-click="activate"]').forEach((button: Element) => {
-			if (button instanceof HTMLButtonElement) {
-				button.dataset.identifier = this.identifier;
-			}
-		});
-		popupContent.querySelector('[name="delete_marker"]')?.addEventListener('click', () => this.deleteMarker());
-		const popup = new Popup({closeButton: false, autoClose: true, closeOnClick: true});
-		popup.setContent(popupContent);
-		this.bindPopup(popup);
-	}
-
-	openPopup(latlng?: LatLngExpression): this {
-		this.editor.geomap.closeAllDialogs();
-		return super.openPopup(latlng);
-	}
-
-	closePopup(): this {
-		return super.closePopup();
-	}
-
-	public initialPlacement() {
-		const map = this.editor.geomap.map;
-		const mapContainer = map.getContainer();
-		mapContainer.classList.add('marker-placement');
-		const moveMarker = (event: LeafletMouseEvent) => this.setLatLng(event.latlng);
-		const dropMarker = () => {
-			map.off('mousemove', moveMarker);
-			mapContainer.classList.remove('marker-placement');
-		};
-		const handleEscape = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') {
-				this.deleteMarker();
-				dropMarker();
-				document.removeEventListener('keydown', handleEscape);
-			}
-		};
-		map.on('mousemove', moveMarker);
-		document.addEventListener('keydown', handleEscape);
-		map.once('click', dropMarker);
-	}
-
-	private deleteMarker() {
-		this.removeFrom(this.editor.geomap.map);
-		this.editor.deleteLayer(this.index);
-	}
-}
-
 
 class GeoMapFormDialog extends TransientFormDialog {
 	private readonly geomap: GeoMap;
@@ -111,7 +44,7 @@ class GeoMapFormDialog extends TransientFormDialog {
 	constructor(element: HTMLDialogElement, geomap: GeoMap) {
 		super(element, geomap.path);
 		this.geomap = geomap;
-		this.propertiesMap = JSON.parse(this.formElement.dataset.propertiesMap || '{}');
+		this.propertiesMap = JSON.parse(this.formElement.dataset.propertiesMap ?? '{}');
 	}
 
 	public openDialog(button?: DjangoButton) {
@@ -119,12 +52,13 @@ class GeoMapFormDialog extends TransientFormDialog {
 			return;
 
 		this.boundLayer = this.geomap.getLayer(button.element.dataset.identifier);
-		if (this.boundLayer instanceof GeoMapMarker) {
+		const properties = (this.boundLayer as any).properties;
+		if (isPlainObject(properties)) {
 			for (const [source, target] of Object.entries(this.propertiesMap)) {
 				const inputElement = this.formElement.elements.namedItem(source);
 				if (!(inputElement instanceof HTMLInputElement || inputElement instanceof HTMLSelectElement || inputElement instanceof HTMLTextAreaElement))
 					continue;
-				inputElement.value = getDataValue(this.boundLayer.properties, `${this.extension}.${target}`, null);
+				inputElement.value = getDataValue(properties, `${this.extension}.${target}`, null);
 				inputElement.dispatchEvent(new Event('change', {bubbles: true}));
 				const groupElement = inputElement.closest('[role="group"]');
 				if (groupElement instanceof HTMLElement) {
@@ -144,12 +78,12 @@ class GeoMapFormDialog extends TransientFormDialog {
 				// reportValidity() triggers the invalid event for each invalid input field
 				return;
 			}
-			if (this.boundLayer instanceof GeoMapMarker) {
+			if (isPlainObject((this.boundLayer as any).properties)) {
 				for (const [source, target] of Object.entries(this.propertiesMap)) {
 					const formField = this.formElement.elements.namedItem(source);
 					if (!(formField instanceof HTMLInputElement || formField instanceof HTMLSelectElement || formField instanceof HTMLTextAreaElement))
 						continue;
-					setDataValue(this.boundLayer.properties, `${this.extension}.${target}`, formField.value);
+					setDataValue((this.boundLayer as any).properties, `${this.extension}.${target}`, formField.value);
 				}
 			}
 		}
@@ -212,6 +146,82 @@ abstract class GeometryEditor {
 }
 
 
+class GeoMapMarker extends Marker {
+	private readonly editor: GeometryEditor;
+	public readonly properties: Record<string, any> = {};
+	public readonly index: number;
+
+	constructor(editor: GeometryEditor, latlng: LatLng, index: number, popupTemplate: HTMLDivElement, icon: Icon) {
+		const options: MarkerOptions = {
+			icon: icon,
+			draggable: true,
+			autoPan: true,
+			bubblingMouseEvents: true,
+		};
+		super(latlng, options);
+		this.editor = editor;
+		this.index = index;
+		this.addTo(this.editor.geomap.map);
+		this.attachPopup(popupTemplate);
+	}
+
+	public get identifier(): string {
+		return `${this.editor.identifier}:${this.index}`;
+	}
+
+	private attachPopup(popupTemplate: HTMLDivElement) {
+		const popupContent = document.importNode(popupTemplate, true);
+		this.editor.geomap.formset!.assignDetachedButtons(popupContent);
+		popupContent.querySelectorAll('[df-click="activate"]').forEach((button: Element) => {
+			if (button instanceof HTMLButtonElement) {
+				button.dataset.identifier = this.identifier;
+			}
+		});
+		popupContent.querySelector('[name="delete_marker"]')?.addEventListener('click', () => this.deleteMarker());
+		const popup = new Popup({closeButton: false, autoClose: true, closeOnClick: true});
+		popup.setContent(popupContent);
+		this.bindPopup(popup);
+	}
+
+	openPopup(latlng?: LatLngExpression): this {
+		this.editor.geomap.closeAllDialogs();
+		return super.openPopup(latlng);
+	}
+
+	closePopup(): this {
+		return super.closePopup();
+	}
+
+	public initialPlacement() {
+		const map = this.editor.geomap.map;
+		const mapContainer = map.getContainer();
+		mapContainer.classList.add('marker-placement');
+		const moveMarker = (event: LeafletMouseEvent) => this.setLatLng(event.latlng);
+		const dropMarker = () => {
+			map.off('mousemove', moveMarker);
+			document.removeEventListener('keydown', handleEscape);
+			mapContainer.classList.remove('marker-placement');
+		};
+		const handleEscape = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				this.deleteMarker();
+				dropMarker();
+				document.removeEventListener('keydown', handleEscape);
+			}
+		};
+		map.on('mousemove', moveMarker);
+		map.once('click', dropMarker);
+		document.addEventListener('keydown', handleEscape);
+	}
+
+	public deleteMarker() {
+		this.editor.closeAllDialogs();
+		this.removeFrom(this.editor.geomap.map);
+		this.editor.deleteLayer(this.index);
+	}
+}
+
+
 class PointEditor extends GeometryEditor {
 	public readonly markers: (GeoMapMarker|null)[] = [];
 	private readonly markerIcon: Icon;
@@ -222,34 +232,30 @@ class PointEditor extends GeometryEditor {
 	}
 
 	public register() {
-		this.setupInitialMarkers();
+		this.setupInitial();
 		this.geomap.map.on('click', this.handleClick);
 	}
 
 	public resetToInitial() {
 		for (const marker of this.markers) {
 			if (marker) {
-				marker.removeFrom(this.geomap.map);
+				marker.deleteMarker();
 			}
 		}
 		this.markers.splice(0, this.markers.length);
-		this.setupInitialMarkers();
+		this.setupInitial();
 	}
 
 	public getFeatures() : Record<string, any[]>[] {
 		const features: Record<string, any>[] = [];
 		for (const marker of this.markers) {
-			if (!marker)
-				continue;
-			const latlng = marker.getLatLng();
-			features.push({
-				geometry: {
-					type: 'Point',
-					coordinates: [latlng.lng, latlng.lat],
-				},
-				properties: marker.properties,
-				id: marker.identifier,
-			});
+			if (marker) {
+				features.push({
+					...marker.toGeoJSON(),
+					properties: marker.properties,
+					id: marker.identifier,
+				});
+			}
 		}
 		return features;
 	}
@@ -259,6 +265,7 @@ class PointEditor extends GeometryEditor {
 	}
 
 	public deleteLayer(index: number) {
+		this.markers[index]?.unbindPopup();
 		this.markers[index] = null;
 	}
 
@@ -271,7 +278,7 @@ class PointEditor extends GeometryEditor {
 		marker.initialPlacement();
 	};
 
-	private setupInitialMarkers() {
+	private setupInitial() {
 		if (getDataValue(this.geomap.initialData, 'type') === 'FeatureCollection') {
 			const features = getDataValue(this.geomap.initialData, 'features');
 			if (Array.isArray(features)) {
@@ -282,7 +289,7 @@ class PointEditor extends GeometryEditor {
 					if (isPlainObject(geometry) && getDataValue(geometry, 'type') === 'Point') {
 						const coordinates = getDataValue(geometry, 'coordinates');
 						if (Array.isArray(coordinates) && coordinates.length === 2) {
-							const latlng = latLng(coordinates[1] as number, coordinates[0] as number);
+							const latlng = GeoJSON.coordsToLatLng(coordinates as [number, number]);
 							const marker = new GeoMapMarker(this, latlng, this.markers.length, this.popupTemplate, this.markerIcon);
 							const properties = getDataValue(feature, 'properties');
 							if (isPlainObject(properties)) {
@@ -298,8 +305,592 @@ class PointEditor extends GeometryEditor {
 }
 
 
+class VertexMarker extends Marker {
+	static readonly vertexIcon = new DivIcon({
+		className: 'leaflet-div-icon vertex-marker',
+		iconSize: [10, 10],
+		iconAnchor: [5, 5],
+	});
+	static readonly halfwayOpacity = 0.7;
+	private readonly path: GeoMapPolyline|GeoMapPolygon;
+
+	constructor(latlng: LatLng, path: GeoMapPolyline|GeoMapPolygon, halfway: boolean) {
+		const options: MarkerOptions = {
+			icon: VertexMarker.vertexIcon,
+			draggable: true,
+			opacity: halfway ? VertexMarker.halfwayOpacity : 1.0,
+		};
+		super(latlng, options);
+		this.path = path;
+		this.on('drag', this.dragVertex);
+		this.on('click', this.deleteVertex);
+	}
+
+	private dragVertex = (event: LeafletEvent) => {
+		const latlng = (event as LeafletMouseEvent).latlng;
+		if (latlng instanceof LatLng) {
+			const index = this.path.vertexMarkers.indexOf(this);
+			this.path.updateVertices(index, latlng);
+		}
+	};
+
+	private deleteVertex = (event: LeafletEvent) => {
+		const index = this.path.vertexMarkers.indexOf(this);
+		if (index % 2 === 0) {
+			this.path.deleteVertex(index);
+		}
+	};
+}
+
+
+class GeoMapPolyline extends Polyline {
+	private readonly editor: GeometryEditor;
+	public readonly properties: Record<string, any> = {};
+	public readonly index: number;
+	public readonly group: LayerGroup;
+	private tempVertex: Polyline|null = null;  // temporary vertex moving with the cursor
+	public vertexMarkers: VertexMarker[] = [];
+
+	constructor(editor: GeometryEditor, latlngs: LatLngExpression[], index: number, popupTemplate: HTMLDivElement) {
+		const options: PolylineOptions = {
+			bubblingMouseEvents: true,
+		};
+		super(latlngs, options);
+		this.editor = editor;
+		this.index = index;
+		this.group = new LayerGroup();
+		this.group.addTo(editor.geomap.map);
+		this.addTo(this.group);
+		this.attachPopup(popupTemplate);
+	}
+
+	public get identifier(): string {
+		return `${this.editor.identifier}:${this.index}`;
+	}
+
+	private attachPopup(popupTemplate: HTMLDivElement) {
+		const popupContent = document.importNode(popupTemplate, true);
+		this.editor.geomap.formset!.assignDetachedButtons(popupContent);
+		popupContent.querySelectorAll('[df-click="activate"]').forEach((button: Element) => {
+			if (button instanceof HTMLButtonElement) {
+				button.dataset.identifier = this.identifier;
+			}
+		});
+		popupContent.querySelector('[name="delete_marker"]')?.addEventListener('click', () => this.deletePolyline());
+		const popup = new Popup({closeButton: false, autoClose: true, closeOnClick: true});
+		popup.setContent(popupContent);
+		this.bindPopup(popup);
+	}
+
+	public initialPlacement() {
+		const mapContainer = this.editor.geomap.map.getContainer();
+		mapContainer.classList.add('marker-placement');
+		const moveVertex = (event: LeafletMouseEvent) => {
+			if (this.tempVertex) {
+				const firstLatLng = this.tempVertex.getLatLngs()[0] as LatLng;
+				this.tempVertex.setLatLngs([firstLatLng, event.latlng]);
+			}
+		};
+		const addVertex = (event: LeafletMouseEvent) => {
+			if (this.tempVertex) {
+				this.tempVertex.setLatLngs([event.latlng, event.latlng]);
+			} else {
+				const options: PolylineOptions = {
+					bubblingMouseEvents: false,
+					dashArray: "2 4",
+					weight: 1.5,
+				};
+				this.tempVertex = polyline([event.latlng, event.latlng], options);
+				this.tempVertex.addTo(this.group);
+			}
+			this.addLatLng(event.latlng);
+		};
+		const finishPolyline = (event: LeafletMouseEvent) => {
+			const latlngs = this.getLatLngs() as LatLng[];
+			if (latlngs.length > 2) {
+				if (isEqual(latlngs[latlngs.length - 1], latlngs[latlngs.length - 2])) {
+					latlngs.pop();  // added by second click in dblclick
+				}
+				this.setVertexMarkers(latlngs);
+			} else {
+				latlngs.length = 0;
+			}
+			this.setLatLngs(latlngs);
+			if (this.tempVertex) {
+				this.group.removeLayer(this.tempVertex);
+				this.tempVertex = null;
+			}
+			this.editor.geomap.map.off('mousemove', moveVertex);
+			this.editor.geomap.map.off('click', addVertex);
+			document.removeEventListener('keydown', handleEscape);
+			mapContainer.classList.remove('marker-placement');
+			event.originalEvent.stopPropagation();
+		};
+		const handleEscape = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				this.group.removeFrom(this.editor.geomap.map);
+				this.editor.deleteLayer(this.index);
+				this.editor.geomap.map.off('mousemove', moveVertex);
+				this.editor.geomap.map.off('click', addVertex);
+				mapContainer.classList.remove('marker-placement');
+				document.removeEventListener('keydown', handleEscape);
+			}
+		};
+		this.editor.geomap.map.on('mousemove', moveVertex);
+		this.editor.geomap.map.on('click', addVertex);
+		this.editor.geomap.map.once('dblclick', finishPolyline);
+		document.addEventListener('keydown', handleEscape);
+	}
+
+	public setVertexMarkers(latlngs: LatLng[]) {
+		let prevLatLng: LatLng|null = null;
+		for (const latlng of latlngs) {
+			if (prevLatLng) {
+				const vertextMarker = new VertexMarker(latLngBounds(prevLatLng, latlng).getCenter(), this, true);
+				vertextMarker.addTo(this.group);
+				this.vertexMarkers.push(vertextMarker);
+			}
+			const vertexMarker = new VertexMarker(latlng, this, false);
+			vertexMarker.addTo(this.group);
+			this.vertexMarkers.push(vertexMarker);
+			prevLatLng = latlng;
+		}
+	}
+
+	public updateVertices(index: number, latlng: LatLng) {
+		const latlngs = this.getLatLngs() as LatLng[];
+		if (index % 2 === 1) {
+			// halfway – insert a vertex marker
+			latlngs.splice((index + 1) / 2, 0, latlng);
+			this.vertexMarkers[index].setOpacity(1.0);
+			let prevVertexMarker = this.vertexMarkers[index - 1];
+			prevVertexMarker = new VertexMarker(latLngBounds(prevVertexMarker.getLatLng(), latlng).getCenter(), this, true);
+			prevVertexMarker.addTo(this.group);
+			let nextVertexMarker = this.vertexMarkers[index + 1];
+			nextVertexMarker = new VertexMarker(latLngBounds(latlng, nextVertexMarker.getLatLng()).getCenter(), this, true);
+			nextVertexMarker.addTo(this.group);
+			this.vertexMarkers.splice(index, 0, prevVertexMarker);
+			this.vertexMarkers.splice(index + 2, 0, nextVertexMarker);
+		} else {
+			latlngs[index / 2] = latlng;
+			const prevVertexMarker = this.vertexMarkers[index - 1];
+			if (prevVertexMarker) {
+				prevVertexMarker.setLatLng(latLngBounds(latlngs[index / 2 - 1], latlng).getCenter());
+			}
+			const nextVertexMarker = this.vertexMarkers[index + 1];
+			if (nextVertexMarker) {
+				nextVertexMarker.setLatLng(latLngBounds(latlng, latlngs[index / 2 + 1]).getCenter());
+			}
+		}
+		this.setLatLngs(latlngs);
+	}
+
+	public deleteVertex(index: number) {
+		const latlngs = this.getLatLngs() as LatLng[];
+		const vertexMarker = this.vertexMarkers[index];
+		if (index === 0) {
+			this.vertexMarkers.splice(0, 2).forEach(marker => this.group.removeLayer(marker));
+		} else {
+			if (index < this.vertexMarkers.length - 1) {
+				const [nextVertexMarker] = this.vertexMarkers.splice(index + 1, 1);
+				this.group.removeLayer(nextVertexMarker);
+			} else {
+				this.group.removeLayer(this.vertexMarkers.pop() as Layer);
+			}
+			const [prevVertexMarker] = this.vertexMarkers.splice(index - 1, 1);
+			this.group.removeLayer(prevVertexMarker);
+		}
+		if (latlngs.length <= 2) {
+			this.deletePolyline();
+		} else {
+			index /= 2;
+			if (index < latlngs.length - 1) {
+				if (index === 0) {
+					// this.vertexMarkers[this.vertexMarkers.length - 1].setLatLng(latLngBounds([latlngs[latlngs.length - 1], latlngs[1]]).getCenter());
+				} else {
+					vertexMarker.setLatLng(latLngBounds([latlngs[index - 1], latlngs[index + 1]]).getCenter());
+				}
+				vertexMarker.setOpacity(VertexMarker.halfwayOpacity);
+			}
+			latlngs.splice(index, 1);
+			this.setLatLngs(latlngs);
+		}
+	}
+
+	public deletePolyline() {
+		this.editor.closeAllDialogs();
+		this.vertexMarkers.forEach(marker => this.group.removeLayer(marker));
+		this.vertexMarkers.length = 0;
+		this.group.removeLayer(this);
+		this.group.removeFrom(this.editor.geomap.map);
+		this.editor.deleteLayer(this.index);
+	}
+}
+
+
+class PolylineEditor extends GeometryEditor {
+	public readonly polylines: (GeoMapPolyline | null)[] = [];
+
+	constructor(geomap: GeoMap, anchor: HTMLAnchorElement) {
+		super(geomap, anchor);
+	}
+
+	public register() {
+		this.setupInitial();
+		this.geomap.map.on('click', this.handleClick);
+	}
+
+	public getLayer(index: number) : Layer|null {
+		return this.polylines[index];
+	}
+
+	public deleteLayer(index: number) {
+		this.polylines[index]?.unbindPopup();
+		this.polylines[index] = null;
+	}
+
+	private handleClick = (event: LeafletMouseEvent) => {
+		const target = event.originalEvent.target;
+		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaDescription !== this.anchor.ariaDescription)
+			return;
+		const polyline = new GeoMapPolyline(this, [], this.polylines.length, this.popupTemplate);
+		this.polylines.push(polyline);
+		polyline.initialPlacement();
+	};
+
+	public resetToInitial() {
+		for (const polyline of this.polylines) {
+			if (polyline) {
+				polyline.deletePolyline();
+			}
+		}
+		this.polylines.length = 0;
+		this.setupInitial();
+	}
+
+	public getFeatures() : Record<string, any[]>[] {
+		const features: Record<string, any>[] = [];
+		for (const polyline of this.polylines) {
+			if (polyline) {
+				features.push({
+					...polyline.toGeoJSON(),
+					properties: polyline.properties,
+					id: polyline.identifier,
+				});
+			}
+		}
+		return features;
+	}
+
+	private setupInitial() {
+		if (getDataValue(this.geomap.initialData, 'type') === 'FeatureCollection') {
+			const features = getDataValue(this.geomap.initialData, 'features');
+			if (Array.isArray(features)) {
+				for (const feature of features) {
+					if (String(getDataValue(feature, 'id', '')).split(':')[0] !== this.identifier)
+						continue;
+					const geometry = getDataValue(feature, 'geometry');
+					if (isPlainObject(geometry) && getDataValue(geometry, 'type') === 'LineString') {
+						const latlngs = (GeoJSON.geometryToLayer(geometry as any) as any).getLatLngs() as LatLng[];
+						const polyline = new GeoMapPolyline(this, latlngs, this.polylines.length, this.popupTemplate);
+						const properties = getDataValue(feature, 'properties');
+						if (isPlainObject(properties)) {
+							Object.assign(polyline.properties, properties);
+						}
+						polyline.setVertexMarkers(latlngs);
+						this.polylines.push(polyline);
+					}
+				}
+			}
+		}
+	}
+}
+
+
+class GeoMapPolygon extends Polygon {
+	private readonly editor: GeometryEditor;
+	public readonly properties: Record<string, any> = {};
+	public readonly index: number;
+	public readonly group: LayerGroup;
+	private tempVertex: Polyline|null = null;  // temporary vertex moving with the cursor
+	public vertexMarkers: VertexMarker[] = [];
+
+	constructor(editor: GeometryEditor, latlngs: LatLngExpression[], index: number, popupTemplate: HTMLDivElement) {
+		const options: PolylineOptions = {
+			bubblingMouseEvents: true,
+		};
+		super(latlngs, options);
+		this.editor = editor;
+		this.index = index;
+		this.group = new LayerGroup();
+		this.group.addTo(editor.geomap.map);
+		this.addTo(this.group);
+		this.attachPopup(popupTemplate);
+	}
+
+	public get identifier(): string {
+		return `${this.editor.identifier}:${this.index}`;
+	}
+
+	private attachPopup(popupTemplate: HTMLDivElement) {
+		const popupContent = document.importNode(popupTemplate, true);
+		this.editor.geomap.formset!.assignDetachedButtons(popupContent);
+		popupContent.querySelectorAll('[df-click="activate"]').forEach((button: Element) => {
+			if (button instanceof HTMLButtonElement) {
+				button.dataset.identifier = this.identifier;
+			}
+		});
+		popupContent.querySelector('[name="delete_marker"]')?.addEventListener('click', () => this.deletePolygon());
+		const popup = new Popup({closeButton: false, autoClose: true, closeOnClick: true});
+		popup.setContent(popupContent);
+		this.bindPopup(popup);
+	}
+
+	public initialPlacement() {
+		const mapContainer = this.editor.geomap.map.getContainer();
+		mapContainer.classList.add('marker-placement');
+		const moveVertex = (event: LeafletMouseEvent) => {
+			if (this.tempVertex) {
+				const latLngs = this.getLatLngs()[0] as LatLng[];
+				const lastLatLng = this.tempVertex.getLatLngs()[0] as LatLng;
+				if (latLngs.length < 2) {
+					this.tempVertex.setLatLngs([lastLatLng, event.latlng]);
+				} else {
+					this.tempVertex.setLatLngs([lastLatLng, event.latlng, latLngs[0]]);
+				}
+			}
+		};
+		const addVertex = (event: LeafletMouseEvent) => {
+			if (this.tempVertex) {
+				this.tempVertex.setLatLngs([event.latlng, event.latlng]);
+			} else {
+				const options: PolylineOptions = {
+					bubblingMouseEvents: false,
+					dashArray: "2 4",
+					weight: 1.5,
+				};
+				this.tempVertex = polyline([event.latlng, event.latlng], options);
+				this.tempVertex.addTo(this.group);
+			}
+			this.addLatLng(event.latlng);
+		};
+		const finishPolygon = (event: LeafletMouseEvent) => {
+			const latlngs = this.getLatLngs()[0] as LatLng[];
+			if (latlngs.length > 2) {
+				if (isEqual(latlngs[latlngs.length - 1], latlngs[latlngs.length - 2])) {
+					latlngs.pop();  // added by second click in dblclick
+				}
+				this.setVertexMarkers(latlngs);
+			} else {
+				latlngs.length = 0;
+			}
+			this.setLatLngs(latlngs);
+			if (this.tempVertex) {
+				this.group.removeLayer(this.tempVertex);
+				this.tempVertex = null;
+			}
+			this.editor.geomap.map.off('mousemove', moveVertex);
+			this.editor.geomap.map.off('click', addVertex);
+			document.removeEventListener('keydown', handleEscape);
+			mapContainer.classList.remove('marker-placement');
+			event.originalEvent.stopPropagation();
+			// this.closePopup();
+		};
+		const handleEscape = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				this.group.removeFrom(this.editor.geomap.map);
+				this.editor.deleteLayer(this.index);
+				this.editor.geomap.map.off('mousemove', moveVertex);
+				this.editor.geomap.map.off('click', addVertex);
+				mapContainer.classList.remove('marker-placement');
+				document.removeEventListener('keydown', handleEscape);
+			}
+		};
+		this.editor.geomap.map.on('mousemove', moveVertex);
+		this.editor.geomap.map.on('click', addVertex);
+		this.editor.geomap.map.once('dblclick', finishPolygon);
+		document.addEventListener('keydown', handleEscape);
+	}
+
+	public setVertexMarkers(latlngs: LatLng[]) {
+		let prevLatLng: LatLng|null = null;
+		for (const latlng of latlngs) {
+			if (prevLatLng) {
+				const vertextMarker = new VertexMarker(latLngBounds(prevLatLng, latlng).getCenter(), this, true);
+				vertextMarker.addTo(this.group);
+				this.vertexMarkers.push(vertextMarker);
+			}
+			const vertexMarker = new VertexMarker(latlng, this, false);
+			vertexMarker.addTo(this.group);
+			this.vertexMarkers.push(vertexMarker);
+			prevLatLng = latlng;
+		}
+		if (prevLatLng) {
+			const vertextMarker = new VertexMarker(latLngBounds(prevLatLng, latlngs[0]).getCenter(), this, true);
+			vertextMarker.addTo(this.group);
+			this.vertexMarkers.push(vertextMarker);
+		}
+	}
+
+	public updateVertices(index: number, latlng: LatLng) {
+		const latlngs = this.getLatLngs()[0] as LatLng[];
+		if (index % 2 === 1) {
+			// halfway – insert a vertex marker
+			latlngs.splice((index + 1) / 2, 0, latlng);
+			this.vertexMarkers[index].setOpacity(1.0);
+			let prevVertexMarker = this.vertexMarkers[index - 1];
+			prevVertexMarker = new VertexMarker(latLngBounds(prevVertexMarker.getLatLng(), latlng).getCenter(), this, true);
+			prevVertexMarker.addTo(this.group);
+			let nextVertexMarker = index === this.vertexMarkers.length - 1 ? this.vertexMarkers[0] : this.vertexMarkers[index + 1];
+			nextVertexMarker = new VertexMarker(latLngBounds(latlng, nextVertexMarker.getLatLng()).getCenter(), this, true);
+			nextVertexMarker.addTo(this.group);
+			this.vertexMarkers.splice(index, 0, prevVertexMarker);
+			this.vertexMarkers.splice(index + 2, 0, nextVertexMarker);
+		} else {
+			latlngs[index / 2] = latlng;
+			if (index === 0) {
+				const prevVertexMarker = this.vertexMarkers[this.vertexMarkers.length - 1];
+				prevVertexMarker.setLatLng(latLngBounds(latlngs[this.vertexMarkers.length / 2 - 1], latlng).getCenter());
+			} else {
+				const prevVertexMarker = this.vertexMarkers[index - 1];
+				prevVertexMarker.setLatLng(latLngBounds(latlngs[index / 2 - 1], latlng).getCenter());
+			}
+			const nextVertexMarker = this.vertexMarkers[index + 1];
+			if (index === this.vertexMarkers.length - 2) {
+				nextVertexMarker.setLatLng(latLngBounds(latlng, latlngs[0]).getCenter());
+			} else {
+				nextVertexMarker.setLatLng(latLngBounds(latlng, latlngs[index / 2 + 1]).getCenter());
+			}
+		}
+		this.setLatLngs(latlngs);
+	}
+
+	public deleteVertex(index: number) {
+		const latlngs = this.getLatLngs()[0] as LatLng[];
+		console.log('delete vertex: ', latlngs.length, index);
+		const vertexMarker = this.vertexMarkers[index];
+		if (index === 0) {
+			this.vertexMarkers.splice(0, 2).forEach(marker => this.group.removeLayer(marker));
+		} else {
+			const [nextVertexMarker] = this.vertexMarkers.splice(index + 1, 1);
+			this.group.removeLayer(nextVertexMarker);
+			const [prevVertexMarker] = this.vertexMarkers.splice(index - 1, 1);
+			this.group.removeLayer(prevVertexMarker);
+		}
+		if (latlngs.length <= 2) {
+			this.deletePolygon();
+		} else {
+			index /= 2;
+			if (index < latlngs.length - 1) {
+				if (index === 0) {
+					this.vertexMarkers[this.vertexMarkers.length - 1].setLatLng(latLngBounds([latlngs[latlngs.length - 1], latlngs[1]]).getCenter());
+				} else {
+					vertexMarker.setLatLng(latLngBounds([latlngs[index - 1], latlngs[index + 1]]).getCenter());
+				}
+				vertexMarker.setOpacity(VertexMarker.halfwayOpacity);
+			} else {
+				vertexMarker.setLatLng(latLngBounds([latlngs[index - 1], latlngs[0]]).getCenter());
+				vertexMarker.setOpacity(VertexMarker.halfwayOpacity);
+			}
+			latlngs.splice(index, 1);
+			this.setLatLngs(latlngs);
+		}
+	}
+
+	public deletePolygon() {
+		this.editor.closeAllDialogs();
+		this.vertexMarkers.forEach(marker => this.group.removeLayer(marker));
+		this.vertexMarkers.length = 0;
+		this.group.removeLayer(this);
+		this.group.removeFrom(this.editor.geomap.map);
+		this.editor.deleteLayer(this.index);
+	}
+}
+
+
+class PolygonEditor extends GeometryEditor {
+	public readonly polygones: (GeoMapPolygon | null)[] = [];
+
+	constructor(geomap: GeoMap, anchor: HTMLAnchorElement) {
+		super(geomap, anchor);
+	}
+
+	public register() {
+		this.setupInitial();
+		this.geomap.map.on('click', this.handleClick);
+	}
+
+	public getLayer(index: number) : Layer|null {
+		return this.polygones[index];
+	}
+
+	public deleteLayer(index: number) {
+		this.polygones[index]?.unbindPopup();
+		this.polygones[index] = null;
+	}
+
+	private handleClick = (event: LeafletMouseEvent) => {
+		const target = event.originalEvent.target;
+		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaDescription !== this.anchor.ariaDescription)
+			return;
+		const polygon = new GeoMapPolygon(this, [], this.polygones.length, this.popupTemplate);
+		this.polygones.push(polygon);
+		polygon.initialPlacement();
+	};
+
+	public resetToInitial() {
+		for (const polygon of this.polygones) {
+			if (polygon) {
+				polygon.deletePolygon();
+			}
+		}
+		this.polygones.length = 0;
+		this.setupInitial();
+	}
+
+	public getFeatures() : Record<string, any[]>[] {
+		const features: Record<string, any>[] = [];
+		for (const polygon of this.polygones) {
+			if (polygon) {
+				features.push({
+					...polygon.toGeoJSON(),
+					properties: polygon.properties,
+					id: polygon.identifier,
+				});
+			}
+		}
+		return features;
+	}
+
+	private setupInitial() {
+		if (getDataValue(this.geomap.initialData, 'type') === 'FeatureCollection') {
+			const features = getDataValue(this.geomap.initialData, 'features');
+			if (Array.isArray(features)) {
+				for (const feature of features) {
+					if (String(getDataValue(feature, 'id', '')).split(':')[0] !== this.identifier)
+						continue;
+					const geometry = getDataValue(feature, 'geometry');
+					if (isPlainObject(geometry) && getDataValue(geometry, 'type') === 'Polygon') {
+						const latlngs = (GeoJSON.geometryToLayer(geometry as any) as any).getLatLngs()[0] as LatLng[];
+						const polygon = new GeoMapPolygon(this, latlngs, this.polygones.length, this.popupTemplate);
+						const properties = getDataValue(feature, 'properties');
+						if (isPlainObject(properties)) {
+							Object.assign(polygon.properties, properties);
+						}
+						polygon.setVertexMarkers(latlngs);
+						this.polygones.push(polygon);
+					}
+				}
+			}
+		}
+	}
+}
+
+
 const registry: Record<string, new (geomap: GeoMap, anchor: HTMLAnchorElement, ...args: any[]) => GeometryEditor> = {
 	PointEditor,
+	PolylineEditor,
+	PolygonEditor,
 };
 
 
@@ -311,7 +902,7 @@ class GeoMap implements Inducible {
 	public readonly controlsTemplate: HTMLTemplateElement;
 	public formset?: DjangoFormset;
 	private resizeObserver?: ResizeObserver;
-	public readonly initialData: JSONValue;
+	public initialData: JSONValue = null;
 	public readonly editors: Record<string, GeometryEditor> = {};
 	public map: Map;
 
@@ -330,7 +921,6 @@ class GeoMap implements Inducible {
 			this.transferStyles();
 		}
 		this.textAreaElement.classList.add('dj-concealed');
-		this.initialData = JSON.parse(this.textAreaElement.dataset.content as string ?? 'null');
 		this.map = this.createMap();
 	}
 
@@ -354,6 +944,8 @@ class GeoMap implements Inducible {
 		const form = this.textAreaElement.form as HTMLFormElement;
 		form.addEventListener('reset', this.formResetted);
 		form.addEventListener('submitted', this.formSubmitted);
+		this.initialData = JSON.parse(this.textAreaElement.dataset.content as string ?? 'null');
+		this.initializeMap();
 	}
 
 	public disconnectedCallback() {
@@ -365,6 +957,8 @@ class GeoMap implements Inducible {
 	}
 
 	private formResetted = () => {
+		this.initialData = JSON.parse(this.textAreaElement.dataset.content as string ?? 'null');
+		this.initializeMap();
 		Object.values(this.editors).forEach(editor => editor.resetToInitial());
 		this.getValue();
 	};
@@ -374,12 +968,17 @@ class GeoMap implements Inducible {
 	};
 
 	private createMap() : Map {
-		const bbox = getDataValue(this.initialData, 'bbox', [-175, -75, 175, 75]) as number[];
-		const bounds = new LatLngBounds([bbox[1], bbox[0]], [bbox[3], bbox[2]]);
-		const options: MapOptions = {maxZoom: 18, minZoom: 1, zoom: 10, center: bounds.getCenter()};
-		const leafletMap = map(this.mapElement, options);
-		leafletMap.setZoom(leafletMap.getBoundsZoom(bounds));
-		return leafletMap;
+		const center = new LatLng(0, 0);
+		const options: MapOptions = {maxZoom: 18, minZoom: 1, zoom: 10, center: center};
+		return map(this.mapElement, options);
+	}
+
+	private initializeMap() {
+		const bbox = getDataValue(this.initialData, 'bbox') as number[];
+		if (bbox) {
+			const bounds = latLngBounds([bbox[1], bbox[0]], [bbox[3], bbox[2]]);
+			this.map.setView(bounds.getCenter(), this.map.getBoundsZoom(bounds));
+		}
 	}
 
 	private extendControls() {
