@@ -1,8 +1,8 @@
-{% spaceless %}
+{% load i18n %}{% spaceless %}
 <div role="tooltip" aria-labeledby="{{ popup.labeled_by }}">
 	{% for dialog in popup.dialogs %}
-	<button role="button" df-click="activate" name="{{ dialog.prefix }}">{% include dialog.icon %}</button>
+	<button role="button" df-click="activate" name="{{ dialog.prefix }}" title="{{ dialog.title }}">{% include dialog.icon %}</button>
 	{% endfor %}
-	<button role="button" name="delete_marker">{% include "formset/icons/delete-marker.svg" %}</button>
+	<button role="button" name="delete_layer" title="{% translate 'Delete this element' %}">{% include popup.delete_button_icon %}</button>
 </div>
 {% endspaceless %}

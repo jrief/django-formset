@@ -86,11 +86,19 @@ class GeoMapWidget(Textarea):
                 )
             )
             for control_element in controls:
-                popups.append({'labeled_by': control_element.identifier, 'dialogs': []})
+                popups.append({
+                    'labeled_by': control_element.identifier,
+                    'dialogs': [],
+                    'delete_button_icon': control_element.delete_button_icon,
+                })
                 for dialog_form in control_element.dialog_forms:
                     if isinstance(dialog_form, GeoMapDialogForm):
                         dialog_forms.append(render_dialog(dialog_form, control_element.identifier))
-                        popups[-1]['dialogs'].append({'prefix': dialog_form.prefix, 'icon': dialog_form.button_icon})
+                        popups[-1]['dialogs'].append({
+                            'prefix': dialog_form.prefix,
+                            'icon': dialog_form.button_icon,
+                            'title': dialog_form.title,
+                        })
 
         context.update(
             control_elements=control_elements,

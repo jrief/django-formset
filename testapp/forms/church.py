@@ -97,7 +97,7 @@ class ChurchModelForm(ModelForm):
             controls_topright=[
                 controls.PointEditor(
                     identifier='point_editor_2',
-                    button_icon='testapp/icons/church-marker.svg',
+                    add_button_icon='testapp/icons/add-church-marker.svg',
                     marker=church_marker,
                     dialog_forms=[
                         dialogs.SimpleNameDialogForm(extension='simple_name_2'),

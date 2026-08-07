@@ -13,13 +13,23 @@ class ControlElement:
     label = None
     dialog_forms = []
 
-    def __init__(self, identifier=None, label=None, button_icon=None, marker=None, dialog_forms=None):
+    def __init__(
+        self,
+        identifier=None,
+        label=None,
+        add_button_icon=None,
+        delete_button_icon=None,
+        marker=None,
+        dialog_forms=None,
+    ):
         if isinstance(identifier, str):
             self.identifier = identifier
         if isinstance(label, str):
             self.label = label
-        if isinstance(button_icon, str):
-            self.button_icon = button_icon
+        if isinstance(add_button_icon, str):
+            self.add_button_icon = add_button_icon
+        if isinstance(delete_button_icon, str):
+            self.delete_button_icon = delete_button_icon
         if isinstance(marker, dict):
             self.marker = marker
         if isinstance(dialog_forms, (list, tuple)) and all(isinstance(f, DialogForm) for f in dialog_forms):
@@ -38,7 +48,8 @@ class ControlElement:
             'name': name,
             'identifier': self.identifier,
             'title': self.label,
-            'button_icon': getattr(self, 'button_icon', f'formset/icons/{name.lower()}.svg'),
+            'add_button_icon': getattr(self, 'add_button_icon', f'formset/geomap/icons/add-{name.lower()}.svg'),
+            'delete_button_icon': getattr(self, 'delete_button_icon', f'formset/geomap/icons/delete-layer.svg'),
             'marker': json.dumps(getattr(self, 'marker', {})),
         }
 
@@ -80,17 +91,20 @@ default_marker = {
 class PointEditor(ControlElement):
     identifier = 'default-marker'
     label = _("Edit Marker Point")
-    button_icon = 'formset/icons/map-pin.svg'
+    add_button_icon = 'formset/geomap/icons/add-marker.svg'
+    delete_button_icon = 'formset/geomap/icons/delete-marker.svg'
     marker = default_marker
 
 
 class PolylineEditor(ControlElement):
     identifier = 'polyline'
     label = _("Edit Polyline")
-    button_icon = 'formset/icons/map-polyline.svg'
+    add_button_icon = 'formset/geomap/icons/add-polyline.svg'
+    delete_button_icon = 'formset/geomap/icons/delete-polyline.svg'
 
 
 class PolygonEditor(ControlElement):
     identifier = 'polygon'
     label = _("Edit Polygon")
-    button_icon = 'formset/icons/map-polygon.svg'
+    add_button_icon = 'formset/geomap/icons/add-polygon.svg'
+    delete_button_icon = 'formset/geomap/icons/delete-polygon.svg'

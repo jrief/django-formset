@@ -376,7 +376,7 @@ class GeoMapPolyline extends Polyline {
 				button.dataset.identifier = this.identifier;
 			}
 		});
-		popupContent.querySelector('[name="delete_marker"]')?.addEventListener('click', () => this.deletePolyline());
+		popupContent.querySelector('[name="delete_layer"]')?.addEventListener('click', () => this.deletePolyline());
 		const popup = new Popup({closeButton: false, autoClose: true, closeOnClick: true});
 		popup.setContent(popupContent);
 		this.bindPopup(popup);
@@ -640,7 +640,7 @@ class GeoMapPolygon extends Polygon {
 				button.dataset.identifier = this.identifier;
 			}
 		});
-		popupContent.querySelector('[name="delete_marker"]')?.addEventListener('click', () => this.deletePolygon());
+		popupContent.querySelector('[name="delete_layer"]')?.addEventListener('click', () => this.deletePolygon());
 		const popup = new Popup({closeButton: false, autoClose: true, closeOnClick: true});
 		popup.setContent(popupContent);
 		this.bindPopup(popup);
