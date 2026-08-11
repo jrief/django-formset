@@ -13,7 +13,7 @@ class GeoMapWidget(Textarea):
     """
 
     template_name = 'formset/default/widgets/geomap.html'
-    controls = {'topleft': [], 'topright': [], 'bottomright': [], 'bottomleft': []}
+    controls = None
 
     def __init__(
         self,
@@ -24,14 +24,20 @@ class GeoMapWidget(Textarea):
         controls_bottomleft=None,
     ):
         super().__init__(attrs)
+        if self.controls is None:
+            self.controls = {}
+        self.controls.setdefault('topleft', [])
+        self.controls.setdefault('topright', [])
+        self.controls.setdefault('bottomright', [])
+        self.controls.setdefault('bottomleft', [])
         if isinstance(controls_topleft, list):
-            self.controls['topleft'] = controls_topleft
+            self.controls['topleft'] = list(controls_topleft)
         if isinstance(controls_topright, list):
-            self.controls['topright'] = controls_topright
+            self.controls['topright'] = list(controls_topright)
         if isinstance(controls_bottomright, list):
-            self.controls['bottomright'] = controls_bottomright
+            self.controls['bottomright'] = list(controls_bottomright)
         if isinstance(controls_bottomleft, list):
-            self.controls['bottomleft'] = controls_bottomleft
+            self.controls['bottomleft'] = list(controls_bottomleft)
         self.check_settings()
 
     def check_settings(self):
@@ -40,6 +46,8 @@ class GeoMapWidget(Textarea):
         """
         editor_identifiers, dialog_form_extensions = set(), set()
         for position in ['topleft', 'topright', 'bottomright', 'bottomleft']:
+            if position not in self.controls:
+                continue
             for editor in self.controls[position]:
                 if editor.identifier in editor_identifiers:
                     raise ImproperlyConfigured(
