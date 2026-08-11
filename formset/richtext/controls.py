@@ -22,7 +22,7 @@ class ControlElement:
     @cached_property
     def button_icon(self):
         if not (icon := getattr(self, 'icon', None)):
-            icon = f'formset/icons/{self.extension.lower()}.svg'
+            icon = f'formset/richtext/icons/{self.extension.lower()}.svg'
         return icon
 
     def get_context(self):
@@ -149,11 +149,11 @@ class TextIndent(ControlElement):
         if indent == 'indent':
             self.extension = 'textIndent:indent'
             self.label = _("Indent First Line")
-            self.icon = 'formset/icons/indentfirstline.svg'
+            self.icon = 'formset/richtext/icons/indentfirstline.svg'
         elif indent == 'outdent':
             self.extension = 'textIndent:outdent'
             self.label = _("Outdent First Line")
-            self.icon = 'formset/icons/outdentfirstline.svg'
+            self.icon = 'formset/richtext/icons/outdentfirstline.svg'
         else:
             raise ImproperlyConfigured("Misconfigured argument: indent")
 
@@ -163,11 +163,11 @@ class TextMargin(ControlElement):
         if indent == 'increase':
             self.extension = 'textMargin:increase'
             self.label = _("Increase Margin")
-            self.icon = 'formset/icons/increasemargin.svg'
+            self.icon = 'formset/richtext/icons/increasemargin.svg'
         elif indent == 'decrease':
             self.extension = 'textMargin:decrease'
             self.label = _("Decrease Margin")
-            self.icon = 'formset/icons/decreasemargin.svg'
+            self.icon = 'formset/richtext/icons/decreasemargin.svg'
         else:
             raise ImproperlyConfigured("Misconfigured argument: indent")
 
@@ -240,11 +240,13 @@ class Superscript(ControlElement):
 class Undo(ControlElement):
     extension = 'undo'
     label = _("Undo")
+    icon = 'formset/icons/undo.svg'
 
 
 class Redo(ControlElement):
     extension = 'redo'
     label = _("Redo")
+    icon = 'formset/icons/redo.svg'
 
 
 class ClassBaseControlElement(ControlElement):
@@ -273,19 +275,19 @@ class ClassBaseControlElement(ControlElement):
 class FontFamily(ClassBaseControlElement):
     extension = 'fontFamily'
     label = _("Font Family")
-    icon = 'formset/icons/font-family.svg'
+    icon = 'formset/richtext/icons/font-family.svg'
 
 
 class FontSize(ClassBaseControlElement):
     extension = 'fontSize'
     label = _("Font Size")
-    icon = 'formset/icons/font-size.svg'
+    icon = 'formset/richtext/icons/font-size.svg'
 
 
 class LineHeight(ClassBaseControlElement):
     extension = 'lineHeight'
     label = _("Line Height")
-    icon = 'formset/icons/line-height.svg'
+    icon = 'formset/richtext/icons/line-height.svg'
     extension_type = 'node'
 
 
@@ -302,7 +304,7 @@ class DialogControl(ControlElement):
     @cached_property
     def button_icon(self):
         if not (icon := getattr(self, 'icon', None)) and not (icon := getattr(self.dialog_form, 'icon', None)):
-            icon = 'formset/icons/activator.svg'
+            icon = 'formset/richtext/icons/activator.svg'
         return icon
 
     def get_context(self):

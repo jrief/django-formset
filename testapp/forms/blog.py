@@ -12,7 +12,7 @@ class CustomImageDialogForm(dialogs.RichtextDialogForm):
     title = "Edit Image"
     extension = 'custom_image'
     extension_script = 'testapp/tiptap-extensions/custom_image.js'
-    icon = 'formset/icons/image.svg'
+    icon = 'formset/richtext/icons/image.svg'
     plugin_type = 'node'
     prefix = 'custom_image_dialog'
 

@@ -8,7 +8,7 @@ from formset.formfields.activator import Activator
 
 class GeoMapDialogForm(TransientDialogForm):
     template_name = 'formset/geomap/form_dialog.html'
-    icon = 'formset/icons/edit-marker.svg'
+    icon = 'formset/geomap/icons/edit-marker.svg'
 
     cancel = Activator(
         label=_("Cancel"),
@@ -35,7 +35,7 @@ class GeoMapDialogForm(TransientDialogForm):
     def button_icon(self):
         if icon := getattr(self, 'icon', None):
             return icon
-        return f'formset/icons/{self.extension.lower()}.svg'
+        return f'formset/geomap/icons/{self.extension.lower()}.svg'
 
 
 class SimpleNameDialogForm(GeoMapDialogForm):

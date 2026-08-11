@@ -24,10 +24,7 @@ control_elements = [
     controls.Italic(),
     controls.BulletList(),
     controls.OrderedList(),
-    controls.DialogControl(
-        SimpleLinkDialogForm(),
-        icon='formset/icons/link.svg',
-    ),
+    controls.DialogControl(SimpleLinkDialogForm()),
     controls.Separator(),
     controls.ClearFormat(),
     controls.Undo(),

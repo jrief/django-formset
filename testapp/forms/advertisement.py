@@ -145,6 +145,7 @@ class CustomHyperlinkDialogForm(dialogs.RichtextDialogForm):
     title = "Edit Hyperlink"
     extension = 'custom_hyperlink'
     extension_script = 'testapp/tiptap-extensions/custom_hyperlink.js'
+    icon = 'formset/richtext/icons/link.svg'
     plugin_type = 'mark'
 
     text = fields.CharField(
@@ -266,16 +267,13 @@ class AdvertisementForm(forms.Form):
                 controls.ClearFormat(),
                 controls.Redo(),
                 controls.Undo(),
-                controls.DialogControl(
-                    CustomHyperlinkDialogForm(),
-                    icon='formset/icons/link.svg',
-                ),
+                controls.DialogControl(CustomHyperlinkDialogForm()),
                 controls.DialogControl(dialogs.SimpleImageDialogForm()),
                 controls.DialogControl(dialogs.PlaceholderDialogForm()),
                 controls.DialogControl(dialogs.FootnoteDialogForm()),
             ]),
         ],
-        attrs={'placeholder': "Start typing …", 'use_json': True, 'maxlength': 2000}),
+        attrs={'placeholder': "Start typing …", 'use_json': True, 'maxlength': 2000, 'style': 'height: 450px;'}),
         initial=initial_json['ad_text'],
     )
     extra_text = fields.CharField(
@@ -288,13 +286,13 @@ class AdvertisementForm(forms.Form):
                 controls.OrderedList(),
                 controls.DialogControl(
                     CustomHyperlinkDialogForm(),
-                    icon='formset/icons/link.svg',
+                    icon='formset/richtext/icons/link.svg',
                 ),
                 controls.Separator(),
                 controls.ClearFormat(),
                 controls.Undo(),
                 controls.Redo(),
             ],
-            attrs={'maxlength': 500},
+            attrs={'maxlength': 500, 'style': 'height: 250px;'},
         )
     )

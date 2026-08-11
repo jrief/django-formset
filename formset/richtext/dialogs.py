@@ -55,7 +55,7 @@ class SimpleLinkDialogForm(RichtextDialogForm):
     title = _("Edit Link")
     extension = 'simple_link'
     plugin_type = 'mark'
-    icon = 'formset/icons/link.svg'
+    icon = 'formset/richtext/icons/link.svg'
 
     text = fields.CharField(
         label=_("Link Text"),
@@ -78,7 +78,7 @@ class SimpleImageDialogForm(RichtextDialogForm):
     title = _("Edit Image")
     extension = 'simple_image'
     plugin_type = 'node'
-    icon = 'formset/icons/image.svg'
+    icon = 'formset/richtext/icons/image.svg'
 
     image = fields.ImageField(
         label=_("Uploaded Image"),
@@ -95,7 +95,7 @@ class PlaceholderDialogForm(RichtextDialogForm):
     title = _("Edit Placeholder")
     extension = 'procurator'  # The named extension 'placeholder' is already declared by TipTap
     plugin_type = 'mark'
-    icon = 'formset/icons/placeholder.svg'
+    icon = 'formset/richtext/icons/placeholder.svg'
     variable_pattern = r'^[A-Za-z_][0-9A-Za-z_\.]{0,254}$'
 
     variable_name = fields.RegexField(
@@ -120,7 +120,7 @@ class FootnoteDialogForm(RichtextDialogForm):
     title = _("Edit Footnote")
     extension = 'footnote'
     plugin_type = 'node'
-    icon = 'formset/icons/footnote.svg'
+    icon = 'formset/richtext/icons/footnote.svg'
 
     content = fields.CharField(
         label=_("Footnote Content"),
