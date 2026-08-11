@@ -310,4 +310,12 @@
 	.dj-dirty &:not(.focused).valid {
 		border-color: var(--django-formset-color-valid);
 	}
+
+	geojson-renderer {
+		display: block;
+		border: 1px solid red;
+		background-color: pink;
+		width: 100px;
+		height: 50px;
+	}
 }

@@ -20,6 +20,8 @@ import {
 	PolylineOptions,
 	Polygon,
 	Popup,
+	Tooltip,
+	TooltipOptions,
 	map,
 	latLngBounds,
 	polyline,
@@ -110,6 +112,7 @@ abstract class GeometryEditor {
 			throw new Error('Could not find popup template for [role="tooltip"]');
 		this.popupTemplate = popupTemplate;
 		this.registerFormDialogs();
+		//this.registerTooltip();
 	}
 
 	private registerFormDialogs() {
@@ -122,6 +125,13 @@ abstract class GeometryEditor {
 		}
 	}
 
+	// private registerTooltip() {
+	// 	const latlng = this.anchor
+	// 	const tooltip = new Tooltip(latlng, );
+	// 	this.anchor.addEventListener('mouseenter', showTooltip);
+	// 	this.anchor.addEventListener('mouseleave', hideTooltip);
+	// }
+
 	public closeAllDialogs() {
 		this.formDialogs.forEach(dialog => dialog.closeDialog());
 	}
@@ -132,7 +142,9 @@ abstract class GeometryEditor {
 
 	public abstract register() : void;
 
-	public abstract resetToInitial() : void;
+	public abstract setInitialData(initialData: JSONValue) : void;
+
+	public abstract clear() : void;
 
 	public abstract getFeatures() : Record<string, any[]>[];
 
@@ -177,7 +189,7 @@ class GeoMapMarker extends Marker {
 				button.dataset.identifier = this.identifier;
 			}
 		});
-		popupContent.querySelector('[name="delete_marker"]')?.addEventListener('click', () => this.deleteMarker());
+		popupContent.querySelector('[name="delete_layer"]')?.addEventListener('click', () => this.deleteMarker());
 		const popup = new Popup({closeButton: false, autoClose: true, closeOnClick: true});
 		popup.setContent(popupContent);
 		this.bindPopup(popup);
@@ -201,6 +213,7 @@ class GeoMapMarker extends Marker {
 			map.off('mousemove', moveMarker);
 			document.removeEventListener('keydown', handleEscape);
 			mapContainer.classList.remove('marker-placement');
+			this.editor.geomap.getValue();  // required for validation
 		};
 		const handleEscape = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
@@ -232,18 +245,41 @@ class PointEditor extends GeometryEditor {
 	}
 
 	public register() {
-		this.setupInitial();
 		this.geomap.map.on('click', this.handleClick);
 	}
 
-	public resetToInitial() {
+	public setInitialData(initialData: JSONValue) {
+		if (getDataValue(initialData, 'type') === 'FeatureCollection') {
+			const features = getDataValue(initialData, 'features');
+			if (Array.isArray(features)) {
+				for (const feature of features) {
+					if (String(getDataValue(feature, 'id', '')).split(':')[0] !== this.identifier)
+						continue;
+					const geometry = getDataValue(feature, 'geometry');
+					if (isPlainObject(geometry) && getDataValue(geometry, 'type') === 'Point') {
+						const coordinates = getDataValue(geometry, 'coordinates');
+						if (Array.isArray(coordinates) && coordinates.length === 2) {
+							const latlng = GeoJSON.coordsToLatLng(coordinates as [number, number]);
+							const marker = new GeoMapMarker(this, latlng, this.markers.length, this.popupTemplate, this.markerIcon);
+							const properties = getDataValue(feature, 'properties');
+							if (isPlainObject(properties)) {
+								Object.assign(marker.properties, properties);
+							}
+							this.markers.push(marker);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	public clear() {
 		for (const marker of this.markers) {
 			if (marker) {
 				marker.deleteMarker();
 			}
 		}
-		this.markers.splice(0, this.markers.length);
-		this.setupInitial();
+		this.markers.length = 0;
 	}
 
 	public getFeatures() : Record<string, any[]>[] {
@@ -277,31 +313,6 @@ class PointEditor extends GeometryEditor {
 		this.markers.push(marker);
 		marker.initialPlacement();
 	};
-
-	private setupInitial() {
-		if (getDataValue(this.geomap.initialData, 'type') === 'FeatureCollection') {
-			const features = getDataValue(this.geomap.initialData, 'features');
-			if (Array.isArray(features)) {
-				for (const feature of features) {
-					if (String(getDataValue(feature, 'id', '')).split(':')[0] !== this.identifier)
-						continue;
-					const geometry = getDataValue(feature, 'geometry');
-					if (isPlainObject(geometry) && getDataValue(geometry, 'type') === 'Point') {
-						const coordinates = getDataValue(geometry, 'coordinates');
-						if (Array.isArray(coordinates) && coordinates.length === 2) {
-							const latlng = GeoJSON.coordsToLatLng(coordinates as [number, number]);
-							const marker = new GeoMapMarker(this, latlng, this.markers.length, this.popupTemplate, this.markerIcon);
-							const properties = getDataValue(feature, 'properties');
-							if (isPlainObject(properties)) {
-								Object.assign(marker.properties, properties);
-							}
-							this.markers.push(marker);
-						}
-					}
-				}
-			}
-		}
-	}
 }
 
 
@@ -536,7 +547,6 @@ class PolylineEditor extends GeometryEditor {
 	}
 
 	public register() {
-		this.setupInitial();
 		this.geomap.map.on('click', this.handleClick);
 	}
 
@@ -558,33 +568,9 @@ class PolylineEditor extends GeometryEditor {
 		polyline.initialPlacement();
 	};
 
-	public resetToInitial() {
-		for (const polyline of this.polylines) {
-			if (polyline) {
-				polyline.deletePolyline();
-			}
-		}
-		this.polylines.length = 0;
-		this.setupInitial();
-	}
-
-	public getFeatures() : Record<string, any[]>[] {
-		const features: Record<string, any>[] = [];
-		for (const polyline of this.polylines) {
-			if (polyline) {
-				features.push({
-					...polyline.toGeoJSON(),
-					properties: polyline.properties,
-					id: polyline.identifier,
-				});
-			}
-		}
-		return features;
-	}
-
-	private setupInitial() {
-		if (getDataValue(this.geomap.initialData, 'type') === 'FeatureCollection') {
-			const features = getDataValue(this.geomap.initialData, 'features');
+	public setInitialData(initialData: JSONValue) {
+		if (getDataValue(initialData, 'type') === 'FeatureCollection') {
+			const features = getDataValue(initialData, 'features');
 			if (Array.isArray(features)) {
 				for (const feature of features) {
 					if (String(getDataValue(feature, 'id', '')).split(':')[0] !== this.identifier)
@@ -603,6 +589,29 @@ class PolylineEditor extends GeometryEditor {
 				}
 			}
 		}
+	}
+
+	public clear() {
+		for (const polyline of this.polylines) {
+			if (polyline) {
+				polyline.deletePolyline();
+			}
+		}
+		this.polylines.length = 0;
+	}
+
+	public getFeatures() : Record<string, any[]>[] {
+		const features: Record<string, any>[] = [];
+		for (const polyline of this.polylines) {
+			if (polyline) {
+				features.push({
+					...polyline.toGeoJSON(),
+					properties: polyline.properties,
+					id: polyline.identifier,
+				});
+			}
+		}
+		return features;
 	}
 }
 
@@ -816,7 +825,6 @@ class PolygonEditor extends GeometryEditor {
 	}
 
 	public register() {
-		this.setupInitial();
 		this.geomap.map.on('click', this.handleClick);
 	}
 
@@ -838,33 +846,9 @@ class PolygonEditor extends GeometryEditor {
 		polygon.initialPlacement();
 	};
 
-	public resetToInitial() {
-		for (const polygon of this.polygones) {
-			if (polygon) {
-				polygon.deletePolygon();
-			}
-		}
-		this.polygones.length = 0;
-		this.setupInitial();
-	}
-
-	public getFeatures() : Record<string, any[]>[] {
-		const features: Record<string, any>[] = [];
-		for (const polygon of this.polygones) {
-			if (polygon) {
-				features.push({
-					...polygon.toGeoJSON(),
-					properties: polygon.properties,
-					id: polygon.identifier,
-				});
-			}
-		}
-		return features;
-	}
-
-	private setupInitial() {
-		if (getDataValue(this.geomap.initialData, 'type') === 'FeatureCollection') {
-			const features = getDataValue(this.geomap.initialData, 'features');
+	public setInitialData(initialData: JSONValue) {
+		if (getDataValue(initialData, 'type') === 'FeatureCollection') {
+			const features = getDataValue(initialData, 'features');
 			if (Array.isArray(features)) {
 				for (const feature of features) {
 					if (String(getDataValue(feature, 'id', '')).split(':')[0] !== this.identifier)
@@ -884,6 +868,29 @@ class PolygonEditor extends GeometryEditor {
 			}
 		}
 	}
+
+	public clear() {
+		for (const polygon of this.polygones) {
+			if (polygon) {
+				polygon.deletePolygon();
+			}
+		}
+		this.polygones.length = 0;
+	}
+
+	public getFeatures() : Record<string, any[]>[] {
+		const features: Record<string, any>[] = [];
+		for (const polygon of this.polygones) {
+			if (polygon) {
+				features.push({
+					...polygon.toGeoJSON(),
+					properties: polygon.properties,
+					id: polygon.identifier,
+				});
+			}
+		}
+		return features;
+	}
 }
 
 
@@ -901,6 +908,8 @@ class GeoMap implements Inducible {
 	public readonly wrapperElement: HTMLDivElement;
 	public readonly controlsTemplate: HTMLTemplateElement;
 	public formset?: DjangoFormset;
+	private readonly intersectionObserver?: IntersectionObserver;
+	private readonly mutationObserver: MutationObserver;
 	private resizeObserver?: ResizeObserver;
 	public initialData: JSONValue = null;
 	public readonly editors: Record<string, GeometryEditor> = {};
@@ -917,10 +926,26 @@ class GeoMap implements Inducible {
 		if (!(this.mapElement instanceof HTMLDivElement))
 			throw new Error(`Could not find .leaflet-map element in ${this.wrapperElement}`);
 		this.registerInducer();
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector) && this.wrapperElement.checkVisibility()) {
-			this.transferStyles();
+		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+			if (this.wrapperElement.checkVisibility()) {
+				this.transferStyles();
+				this.concealTextArea();
+			} else {
+				this.intersectionObserver = new IntersectionObserver(entries => {
+					entries.forEach(entry => {
+						if (entry.isIntersecting) {
+							if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+								this.transferStyles();
+							}
+							this.concealTextArea();
+						}
+					});
+				});
+				this.intersectionObserver.observe(this.wrapperElement);
+			}
 		}
-		this.textAreaElement.classList.add('dj-concealed');
+		this.mutationObserver = new MutationObserver(this.attributesChanged);
+		this.mutationObserver.observe(this.textAreaElement, {attributes: true});
 		this.map = this.createMap();
 	}
 
@@ -945,7 +970,6 @@ class GeoMap implements Inducible {
 		form.addEventListener('reset', this.formResetted);
 		form.addEventListener('submitted', this.formSubmitted);
 		this.initialData = JSON.parse(this.textAreaElement.dataset.content as string ?? 'null');
-		this.initializeMap();
 	}
 
 	public disconnectedCallback() {
@@ -958,8 +982,11 @@ class GeoMap implements Inducible {
 
 	private formResetted = () => {
 		this.initialData = JSON.parse(this.textAreaElement.dataset.content as string ?? 'null');
-		this.initializeMap();
-		Object.values(this.editors).forEach(editor => editor.resetToInitial());
+		this.setInitialData(this.initialData);
+		for (const editor of Object.values(this.editors)) {
+			editor.clear();
+			editor.setInitialData(this.initialData);
+		}
 		this.getValue();
 	};
 
@@ -967,17 +994,30 @@ class GeoMap implements Inducible {
 		this.textAreaElement.checkValidity();
 	};
 
+	private concealTextArea() {
+		if (!this.textAreaElement.classList.contains('dj-concealed')) {
+			const style = window.getComputedStyle(this.textAreaElement);
+			this.wrapperElement.style.height = style.height;
+			this.wrapperElement.style.width = style.width;
+			this.textAreaElement.classList.add('dj-concealed');
+		}
+	}
+
 	private createMap() : Map {
 		const center = new LatLng(0, 0);
 		const options: MapOptions = {maxZoom: 18, minZoom: 1, zoom: 10, center: center};
 		return map(this.mapElement, options);
 	}
 
-	private initializeMap() {
-		const bbox = getDataValue(this.initialData, 'bbox') as number[];
+	private setInitialData(initialData: JSONValue) {
+		const bbox = getDataValue(initialData, 'bbox') as number[];
 		if (bbox) {
 			const bounds = latLngBounds([bbox[1], bbox[0]], [bbox[3], bbox[2]]);
-			this.map.setView(bounds.getCenter(), this.map.getBoundsZoom(bounds));
+			this.map.flyToBounds(bounds, {animate: false});
+		}
+		for (const editor of Object.values(this.editors)) {
+			editor.clear();
+			editor.setInitialData(initialData);
 		}
 	}
 
@@ -1022,6 +1062,7 @@ class GeoMap implements Inducible {
 			this.formset = event.detail.formset as DjangoFormset;
 			this.formset.registerInducer(this);
 			Object.values(this.editors).forEach(editor => editor.register());
+			this.setInitialData(this.initialData);
 			this.getValue();  // to set "_has_value_" on textarea element
 		}, {once: true});
 	}
@@ -1034,6 +1075,24 @@ class GeoMap implements Inducible {
 		const [editorName, layerIndex] = [...identifier.split(':')];
 		return this.editors[editorName]?.getLayer(Number(layerIndex)) ?? null;
 	}
+
+	private attributesChanged = (mutationsList: Array<MutationRecord>) => {
+		for (const mutation of mutationsList) {
+			if (mutation.type !== 'attributes') {
+				continue;
+			}
+			if (mutation.attributeName === 'data-content') {
+				this.initialData = JSON.parse(this.textAreaElement.dataset.content as string);
+				if (getDataValue(this.initialData, 'type') === 'FeatureCollection') {
+					window.requestIdleCallback(() => {
+						this.setInitialData(this.initialData);
+					});
+				} else {
+					Object.values(this.editors).forEach(editor => editor.clear());
+				}
+			}
+		}
+	};
 
 	public getValue() : object {
 		// return the values from the Leaflet map here
@@ -1071,7 +1130,7 @@ class GeoMap implements Inducible {
 			switch (cssRule.selectorText) {
 				case this.baseSelector:
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
-						'height', 'background-image', 'border-style', 'border-width', 'border-radius', 'box-shadow',
+						'background-image', 'border-style', 'border-width', 'border-radius', 'box-shadow',
 						'outline', 'overflow', 'resize',
 					]);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);

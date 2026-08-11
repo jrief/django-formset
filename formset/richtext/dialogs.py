@@ -3,9 +3,12 @@ from django.utils.translation import gettext_lazy as _
 
 from formset.dialog import ApplyButton, CancelButton, RevertButton, TransientDialogForm
 from formset.formfields.activator import Activator
+from formset.formfields.geomap import GeoMapField
+from formset.geomap.controls import PointEditor
 from formset.richtext import controls
 from formset.richtext.upload import persit_uploaded_file
 from formset.widgets import UploadedFileInput
+from formset.widgets.geomap import GeoMapWidget
 from formset.widgets.richtext import RichTextarea
 
 
@@ -88,6 +91,28 @@ class SimpleImageDialogForm(RichtextDialogForm):
             # 'richtext-map-from': '{dataset: {fileupload: JSON.stringify(attributes.dataset)}}',
             'richtext-map-from': 'document_to_image()',  # equivalent to the above commented line using simple_image.js
         }),
+    )
+
+
+class SimpleGeoMapDialogForm(RichtextDialogForm):
+    title = _("Edit Map")
+    extension = 'simple_geomap'
+    plugin_type = 'node'
+    icon = 'formset/richtext/icons/edit-map.svg'
+
+    geomap = GeoMapField(
+        label=_("Edit Map Markers"),
+        widget=GeoMapWidget(
+            controls_topleft=[
+                PointEditor()
+            ],
+            attrs={
+                'style': 'height:300px;width:100%;',
+                'richtext-map-to': '{dataset: elements.geomap.value}',
+                'richtext-map-from': '{dataset: {content: JSON.stringify(attributes.dataset)}}',
+            },
+        ),
+        required=False,
     )
 
 

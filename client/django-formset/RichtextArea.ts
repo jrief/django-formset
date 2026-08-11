@@ -1011,6 +1011,7 @@ class RichtextArea implements Inducible {
 	public readonly formDialogs: RichtextFormDialog[] = [];
 	private readonly useJson: boolean = false;
 	private readonly attributesObserver: MutationObserver;
+	private readonly intersectionObserver?: IntersectionObserver;
 	private readonly resizeObserver: ResizeObserver;
 	public editor!: Editor;
 	private initialValue!: JSONContent|string;
@@ -1025,8 +1026,23 @@ class RichtextArea implements Inducible {
 		this.textAreaElement = textAreaElement;
 		this.menubarElement = wrapperElement.querySelector(':scope > [role="menubar"]');
 		this.useJson = Object.hasOwn(this.textAreaElement.dataset, 'content');
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector) && this.wrapperElement.checkVisibility()) {
-			this.transferStyles();
+		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+			if (this.wrapperElement.checkVisibility()) {
+				this.transferStyles();
+			} else {
+				this.intersectionObserver = new IntersectionObserver(entries => {
+					entries.forEach(entry => {
+						if (entry.isIntersecting && !StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+							this.transferStyles();
+							if (this.isInitialized) {
+								this.concealTextArea();
+							}
+							this.intersectionObserver?.disconnect();
+						}
+					});
+				});
+				this.intersectionObserver.observe(this.wrapperElement);
+			}
 		}
 		this.attributesObserver = new MutationObserver(mutationsList => this.attributesChanged(mutationsList));
 		this.resizeObserver = new ResizeObserver(() => this.adjustMenubarLayout());
@@ -1040,7 +1056,9 @@ class RichtextArea implements Inducible {
 			this.createEditor(this.wrapperElement, initialContent).then(editor => {
 				this.editor = editor;
 				this.initialValue = this.getValue();
-				this.concealTextArea(this.wrapperElement);
+				if (StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+					this.concealTextArea();
+				}
 				if (this.useJson) {
 					// innerHTML must reflect the content, otherwise field validation complains about a missing value
 					this.textAreaElement.innerHTML = this.editor.getHTML();
@@ -1192,7 +1210,10 @@ class RichtextArea implements Inducible {
 		this.registeredActions.forEach(action => action.installEventHandler(this.editor));
 	}
 
-	private concealTextArea(wrapperElement: HTMLElement) {
+	private concealTextArea() {
+		const style = window.getComputedStyle(this.textAreaElement);
+		this.wrapperElement.style.height = style.height;
+		this.wrapperElement.style.width = style.width;
 		this.textAreaElement.classList.add('dj-concealed');
 	}
 
@@ -1286,7 +1307,7 @@ class RichtextArea implements Inducible {
 			switch (cssRule.selectorText) {
 				case this.baseSelector:
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
-						'height', 'background-image', 'border-style', 'border-width', 'border-radius', 'box-shadow',
+						'background-image', 'border-style', 'border-width', 'border-radius', 'box-shadow',
 						'outline', 'resize',
 					]);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
@@ -1353,13 +1374,26 @@ class RichtextArea implements Inducible {
 	}
 
 	public disconnect() {
-		// TODO: remove event handlers
+		this.intersectionObserver?.disconnect();
+		this.resizeObserver.disconnect();
 	}
 
 	public getValue() : JSONContent|string {
 		if (this.editor === undefined || this.editor.isEmpty)
 			return '';  // otherwise empty field is not detected by calling function
 		return this.useJson ? this.editor.getJSON() : {'_html_': this.editor.getHTML()};
+	}
+
+	public setValue(val: any) {
+		if (this.editor) {
+			if (isPlainObject(val) && val.type === 'doc') {
+				this.editor.commands.setContent(val);
+			} else if (isPlainObject(val) && '_html_' in val) {
+				this.editor.commands.setContent(val['_html_']);
+			} else if (typeof val === 'string') {
+				this.editor.commands.setContent(val);
+			}
+		}
 	}
 
 	updateOperability(...args: any[]) : void {
@@ -1395,5 +1429,9 @@ export class RichTextAreaElement extends HTMLTextAreaElement {
 
 	get value() : any {
 		return this.#richtext.getValue();
+	}
+
+	set value(val: any) {
+		this.#richtext.setValue(val);
 	}
 }

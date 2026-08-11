@@ -3,6 +3,7 @@
 .dj-geomap-wrapper {
 	position: relative;
 	border-color: var(--border-color);
+	z-index: 0;
 
 	.leaflet-map {
 		position: absolute;
