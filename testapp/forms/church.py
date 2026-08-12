@@ -1,9 +1,14 @@
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.forms import fields, ModelForm
+from django.utils.translation import gettext_lazy as _
 
 from formset.formfields.geomap import GeoMapField
-from formset.geomap import controls, dialogs
+from formset.formfields.richtext import RichTextField
+from formset.geomap import controls as geomap_controls, dialogs as geomap_dialogs
+from formset.richtext import controls as richtext_controls
+from formset.richtext.dialogs import SimpleGeoMapDialogForm, PlaceholderDialogForm, SimpleImageDialogForm
 from formset.widgets.geomap import GeoMapWidget
+from formset.widgets.richtext import RichTextarea
 
 from testapp.models import ChurchModel
 
@@ -57,13 +62,22 @@ initial_geojson = {
 }
 
 
-class CapacityDialogForm(dialogs.GeoMapDialogForm):
+class RichtextDialogForm(geomap_dialogs.GeoMapDialogForm):
+    title = "Edit"
+    extension = 'extra_body'
+    properties_map = {'body': 'body'}
+
+    body = RichTextField()
+
+
+class ChurchDialogForm(geomap_dialogs.GeoMapDialogForm):
     title = "Edit Capacity"
     extension = 'capacity'
-    properties_map = {'max_visitors': 'max_visitors'}
+    properties_map = {'max_visitors': 'max_visitors', 'body': 'body'}
     icon = 'testapp/icons/users.svg'
 
     max_visitors = fields.IntegerField()
+    body = RichTextField()
 
 
 church_marker = {
@@ -74,41 +88,76 @@ church_marker = {
 }
 
 
+class SpecialGeoMapDialogForm(SimpleGeoMapDialogForm):
+    geomap = GeoMapField(
+        label=_("Edit Map Markers"),
+        widget=GeoMapWidget(
+            controls_topleft=[
+                geomap_controls.PointEditor(
+                    dialog_forms=[
+                        RichtextDialogForm(),
+                    ],
+                ),
+            ],
+            attrs={
+                'style': 'height:300px;width:100%;',
+                'richtext-map-to': '{dataset: elements.geomap.value}',
+                'richtext-map-from': '{dataset: {content: JSON.stringify(attributes.dataset)}}',
+            },
+        ),
+        required=False,
+    )
+
+
+
 class ChurchModelForm(ModelForm):
     map = GeoMapField(
         widget=GeoMapWidget(
             controls_topleft=[
-                controls.PointEditor(
-                    # dialog_forms=[
-                    #     dialogs.SimpleNameDialogForm(),
-                    # ],
-                ),
-                controls.PolylineEditor(
-                    # dialog_forms=[
-                    #     dialogs.SimpleNameDialogForm(),
-                    # ],
-                ),
-                controls.PolygonEditor(
+                geomap_controls.PointEditor(
                     dialog_forms=[
-                        dialogs.SimpleNameDialogForm(),
+                        geomap_dialogs.SimpleNameDialogForm(),
                     ],
+                ),
+                geomap_controls.PolylineEditor(
+                    # dialog_forms=[
+                    #     geomap_dialogs.SimpleNameDialogForm(),
+                    # ],
+                ),
+                geomap_controls.PolygonEditor(
+                    # dialog_forms=[
+                    #     geomap_dialogs.SimpleNameDialogForm(),
+                    # ],
                 ),
             ],
             controls_topright=[
-                controls.PointEditor(
-                    identifier='point_editor_2',
+                geomap_controls.PointEditor(
+                    identifier='church_editor',
                     add_button_icon='testapp/icons/add-church-marker.svg',
                     marker=church_marker,
                     dialog_forms=[
-                        dialogs.SimpleNameDialogForm(extension='simple_name_2'),
-                        CapacityDialogForm(),
+                        ChurchDialogForm(),
                     ],
                 ),
             ],
-            attrs={'style': 'height: 600px;'},
+            attrs={'style': 'height: 450px;'},
+        )
+    )
+    body = RichTextField(
+        widget=RichTextarea(
+            control_elements=[
+                richtext_controls.Bold(),
+                richtext_controls.Italic(),
+                richtext_controls.DialogControl(SpecialGeoMapDialogForm()),
+                richtext_controls.DialogControl(SimpleImageDialogForm()),
+                richtext_controls.Separator(),
+                richtext_controls.ClearFormat(),
+                richtext_controls.Redo(),
+                richtext_controls.Undo(),
+            ],
         )
     )
 
     class Meta:
         model = ChurchModel
-        fields = '__all__'
+        fields = ['body', 'map']
