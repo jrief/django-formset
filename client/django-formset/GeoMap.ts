@@ -22,7 +22,6 @@ import {
 	Popup,
 	Tooltip,
 	TooltipOptions,
-	map,
 	latLngBounds,
 	polyline,
 	tileLayer,
@@ -173,7 +172,7 @@ class GeoMapMarker extends Marker {
 		super(latlng, options);
 		this.editor = editor;
 		this.index = index;
-		this.addTo(this.editor.geomap.map);
+		this.addTo(this.editor.geomap);
 		this.attachPopup(popupTemplate);
 	}
 
@@ -205,7 +204,7 @@ class GeoMapMarker extends Marker {
 	}
 
 	public initialPlacement() {
-		const map = this.editor.geomap.map;
+		const map = this.editor.geomap;
 		const mapContainer = map.getContainer();
 		mapContainer.classList.add('marker-placement');
 		const moveMarker = (event: LeafletMouseEvent) => this.setLatLng(event.latlng);
@@ -229,7 +228,7 @@ class GeoMapMarker extends Marker {
 
 	public deleteMarker() {
 		this.editor.closeAllDialogs();
-		this.removeFrom(this.editor.geomap.map);
+		this.removeFrom(this.editor.geomap);
 		this.editor.deleteLayer(this.index);
 	}
 }
@@ -245,7 +244,7 @@ class PointEditor extends GeometryEditor {
 	}
 
 	public register() {
-		this.geomap.map.on('click', this.handleClick);
+		this.geomap.on('click', this.handleClick);
 	}
 
 	public setInitialData(initialData: JSONValue) {
@@ -370,7 +369,7 @@ class GeoMapPolyline extends Polyline {
 		this.editor = editor;
 		this.index = index;
 		this.group = new LayerGroup();
-		this.group.addTo(editor.geomap.map);
+		this.group.addTo(editor.geomap);
 		this.addTo(this.group);
 		this.attachPopup(popupTemplate);
 	}
@@ -394,7 +393,7 @@ class GeoMapPolyline extends Polyline {
 	}
 
 	public initialPlacement() {
-		const mapContainer = this.editor.geomap.map.getContainer();
+		const mapContainer = this.editor.geomap.getContainer();
 		mapContainer.classList.add('marker-placement');
 		const moveVertex = (event: LeafletMouseEvent) => {
 			if (this.tempVertex) {
@@ -431,25 +430,25 @@ class GeoMapPolyline extends Polyline {
 				this.group.removeLayer(this.tempVertex);
 				this.tempVertex = null;
 			}
-			this.editor.geomap.map.off('mousemove', moveVertex);
-			this.editor.geomap.map.off('click', addVertex);
+			this.editor.geomap.off('mousemove', moveVertex);
+			this.editor.geomap.off('click', addVertex);
 			document.removeEventListener('keydown', handleEscape);
 			mapContainer.classList.remove('marker-placement');
 			event.originalEvent.stopPropagation();
 		};
 		const handleEscape = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
-				this.group.removeFrom(this.editor.geomap.map);
+				this.group.removeFrom(this.editor.geomap);
 				this.editor.deleteLayer(this.index);
-				this.editor.geomap.map.off('mousemove', moveVertex);
-				this.editor.geomap.map.off('click', addVertex);
+				this.editor.geomap.off('mousemove', moveVertex);
+				this.editor.geomap.off('click', addVertex);
 				mapContainer.classList.remove('marker-placement');
 				document.removeEventListener('keydown', handleEscape);
 			}
 		};
-		this.editor.geomap.map.on('mousemove', moveVertex);
-		this.editor.geomap.map.on('click', addVertex);
-		this.editor.geomap.map.once('dblclick', finishPolyline);
+		this.editor.geomap.on('mousemove', moveVertex);
+		this.editor.geomap.on('click', addVertex);
+		this.editor.geomap.once('dblclick', finishPolyline);
 		document.addEventListener('keydown', handleEscape);
 	}
 
@@ -533,7 +532,7 @@ class GeoMapPolyline extends Polyline {
 		this.vertexMarkers.forEach(marker => this.group.removeLayer(marker));
 		this.vertexMarkers.length = 0;
 		this.group.removeLayer(this);
-		this.group.removeFrom(this.editor.geomap.map);
+		this.group.removeFrom(this.editor.geomap);
 		this.editor.deleteLayer(this.index);
 	}
 }
@@ -547,7 +546,7 @@ class PolylineEditor extends GeometryEditor {
 	}
 
 	public register() {
-		this.geomap.map.on('click', this.handleClick);
+		this.geomap.on('click', this.handleClick);
 	}
 
 	public getLayer(index: number) : Layer|null {
@@ -632,7 +631,7 @@ class GeoMapPolygon extends Polygon {
 		this.editor = editor;
 		this.index = index;
 		this.group = new LayerGroup();
-		this.group.addTo(editor.geomap.map);
+		this.group.addTo(editor.geomap);
 		this.addTo(this.group);
 		this.attachPopup(popupTemplate);
 	}
@@ -656,7 +655,7 @@ class GeoMapPolygon extends Polygon {
 	}
 
 	public initialPlacement() {
-		const mapContainer = this.editor.geomap.map.getContainer();
+		const mapContainer = this.editor.geomap.getContainer();
 		mapContainer.classList.add('marker-placement');
 		const moveVertex = (event: LeafletMouseEvent) => {
 			if (this.tempVertex) {
@@ -698,8 +697,8 @@ class GeoMapPolygon extends Polygon {
 				this.group.removeLayer(this.tempVertex);
 				this.tempVertex = null;
 			}
-			this.editor.geomap.map.off('mousemove', moveVertex);
-			this.editor.geomap.map.off('click', addVertex);
+			this.editor.geomap.off('mousemove', moveVertex);
+			this.editor.geomap.off('click', addVertex);
 			document.removeEventListener('keydown', handleEscape);
 			mapContainer.classList.remove('marker-placement');
 			event.originalEvent.stopPropagation();
@@ -707,17 +706,17 @@ class GeoMapPolygon extends Polygon {
 		};
 		const handleEscape = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
-				this.group.removeFrom(this.editor.geomap.map);
+				this.group.removeFrom(this.editor.geomap);
 				this.editor.deleteLayer(this.index);
-				this.editor.geomap.map.off('mousemove', moveVertex);
-				this.editor.geomap.map.off('click', addVertex);
+				this.editor.geomap.off('mousemove', moveVertex);
+				this.editor.geomap.off('click', addVertex);
 				mapContainer.classList.remove('marker-placement');
 				document.removeEventListener('keydown', handleEscape);
 			}
 		};
-		this.editor.geomap.map.on('mousemove', moveVertex);
-		this.editor.geomap.map.on('click', addVertex);
-		this.editor.geomap.map.once('dblclick', finishPolygon);
+		this.editor.geomap.on('mousemove', moveVertex);
+		this.editor.geomap.on('click', addVertex);
+		this.editor.geomap.once('dblclick', finishPolygon);
 		document.addEventListener('keydown', handleEscape);
 	}
 
@@ -811,7 +810,7 @@ class GeoMapPolygon extends Polygon {
 		this.vertexMarkers.forEach(marker => this.group.removeLayer(marker));
 		this.vertexMarkers.length = 0;
 		this.group.removeLayer(this);
-		this.group.removeFrom(this.editor.geomap.map);
+		this.group.removeFrom(this.editor.geomap);
 		this.editor.deleteLayer(this.index);
 	}
 }
@@ -825,7 +824,7 @@ class PolygonEditor extends GeometryEditor {
 	}
 
 	public register() {
-		this.geomap.map.on('click', this.handleClick);
+		this.geomap.on('click', this.handleClick);
 	}
 
 	public getLayer(index: number) : Layer|null {
@@ -901,10 +900,9 @@ const registry: Record<string, new (geomap: GeoMap, anchor: HTMLAnchorElement, .
 };
 
 
-class GeoMap implements Inducible {
+class GeoMap extends Map implements Inducible {
 	private readonly textAreaElement: HTMLTextAreaElement;
 	private readonly baseSelector = '.dj-geomap-wrapper';
-	private readonly mapElement: HTMLDivElement;
 	public readonly wrapperElement: HTMLDivElement;
 	public readonly controlsTemplate: HTMLTemplateElement;
 	public formset?: DjangoFormset;
@@ -913,21 +911,23 @@ class GeoMap implements Inducible {
 	private resizeObserver?: ResizeObserver;
 	public initialData: JSONValue = null;
 	public readonly editors: Record<string, GeometryEditor> = {};
-	public map: Map;
 
 	constructor(element: GeoMapElement) {
+		const wrapperElement = element.previousElementSibling as HTMLDivElement;
+		const mapElement = wrapperElement?.querySelector('.leaflet-map') as HTMLDivElement;
+		if (!(mapElement instanceof HTMLDivElement))
+			throw new Error(`Could not find .leaflet-map element in ${wrapperElement}`);
+		const options: MapOptions = {maxZoom: 18, minZoom: 1, zoom: 10, center: new LatLng(0, 0)};
+		super(mapElement, options);
 		this.textAreaElement = element;
-		this.wrapperElement = element.previousElementSibling as HTMLDivElement;
-		const controlsTemplate = this.wrapperElement.querySelector('template');
+		this.wrapperElement = wrapperElement;
+		const controlsTemplate = wrapperElement.querySelector('template');
 		if (!(controlsTemplate instanceof HTMLTemplateElement))
-			throw new Error(`Could not find <template> element in ${this.wrapperElement}`);
+			throw new Error(`Could not find <template> element in ${wrapperElement}`);
 		this.controlsTemplate = controlsTemplate;
-		this.mapElement = this.wrapperElement?.querySelector('.leaflet-map') as HTMLDivElement;
-		if (!(this.mapElement instanceof HTMLDivElement))
-			throw new Error(`Could not find .leaflet-map element in ${this.wrapperElement}`);
 		this.registerInducer();
 		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-			if (this.wrapperElement.checkVisibility()) {
+			if (wrapperElement.checkVisibility()) {
 				this.transferStyles();
 				this.concealTextArea();
 			} else {
@@ -941,12 +941,11 @@ class GeoMap implements Inducible {
 						}
 					});
 				});
-				this.intersectionObserver.observe(this.wrapperElement);
+				this.intersectionObserver.observe(wrapperElement);
 			}
 		}
 		this.mutationObserver = new MutationObserver(this.attributesChanged);
 		this.mutationObserver.observe(this.textAreaElement, {attributes: true});
-		this.map = this.createMap();
 	}
 
 	public connectedCallback() {
@@ -956,12 +955,12 @@ class GeoMap implements Inducible {
 			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>',
 			crossOrigin: true,
 			detectRetina: true,
-		}).addTo(this.map);
+		}).addTo(this);
 		this.extendControls();
 		this.resizeObserver = new ResizeObserver((entries) => {
 			for (const entry of entries) {
 				if (entry.contentBoxSize) {
-					this.map.invalidateSize();
+					this.invalidateSize();
 				}
 			}
 		});
@@ -1003,17 +1002,11 @@ class GeoMap implements Inducible {
 		}
 	}
 
-	private createMap() : Map {
-		const center = new LatLng(0, 0);
-		const options: MapOptions = {maxZoom: 18, minZoom: 1, zoom: 10, center: center};
-		return map(this.mapElement, options);
-	}
-
 	private setInitialData(initialData: JSONValue) {
 		const bbox = getDataValue(initialData, 'bbox') as number[];
 		if (bbox) {
 			const bounds = latLngBounds([bbox[1], bbox[0]], [bbox[3], bbox[2]]);
-			this.map.flyToBounds(bounds, {animate: false});
+			this.flyToBounds(bounds, {animate: false});
 		}
 		for (const editor of Object.values(this.editors)) {
 			editor.clear();
@@ -1048,7 +1041,7 @@ class GeoMap implements Inducible {
 		});
 		const customControls = (opts: ControlOptions) => new CustomControls(opts);
 		for (let position of CONTROL_POSITIONS) {
-			customControls({position: position as ControlPosition}).addTo(this.map);
+			customControls({position: position as ControlPosition}).addTo(this);
 		}
 	}
 
@@ -1096,7 +1089,7 @@ class GeoMap implements Inducible {
 
 	public getValue() : object {
 		// return the values from the Leaflet map here
-		const bounds = this.map.getBounds();
+		const bounds = this.getBounds();
 		const result = {
 			type: 'FeatureCollection',
 			bbox: bounds ? [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()] : null,
