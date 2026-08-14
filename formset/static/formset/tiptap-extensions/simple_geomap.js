@@ -6,8 +6,16 @@
 
 	addAttributes() {
 		return {
-			dataset: {
-				default: {},
+			content: {
+				default: null,
+				renderHTML: attributes => {
+					return {
+						content: JSON.stringify(attributes.content ?? {type: 'FeatureCollection'}),
+					};
+				},
+				parseHTML: element => {
+					return JSON.parse(element.getAttribute('content') ?? '{"type": "FeatureCollection"}');
+				},
 			},
 		};
 	},
@@ -19,4 +27,5 @@
 	renderHTML({HTMLAttributes}) {
 		return ['geojson-renderer', HTMLAttributes];
 	},
+
 }

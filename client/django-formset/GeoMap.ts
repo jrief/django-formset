@@ -1071,10 +1071,7 @@ class GeoMap extends Map implements Inducible {
 
 	private attributesChanged = (mutationsList: Array<MutationRecord>) => {
 		for (const mutation of mutationsList) {
-			if (mutation.type !== 'attributes') {
-				continue;
-			}
-			if (mutation.attributeName === 'data-content') {
+			if (mutation.type === 'attributes' && mutation.attributeName === 'data-content') {
 				this.initialData = JSON.parse(this.textAreaElement.dataset.content as string);
 				if (getDataValue(this.initialData, 'type') === 'FeatureCollection') {
 					window.requestIdleCallback(() => {

@@ -2,9 +2,8 @@ from django.forms import fields, forms, models, widgets
 
 from formset.richtext import controls, dialogs
 from formset.widgets.richtext import RichTextarea
-from formset.widgets import Selectize
 
-from testapp.models.page import PageModel
+from testapp.forms.dialogs import CustomHyperlinkDialogForm, SpecialGeoMapDialogForm
 
 initial_html = """
 <p>
@@ -122,6 +121,70 @@ initial_json = {
                 "type": "paragraph",
                 "content": [
                     {
+                        "type": "simple_geomap",
+                        "attrs": {
+                            "content": {
+                                "type": "FeatureCollection",
+                                "bbox": [
+                                    -8.554444313049318,
+                                    41.103172309560755,
+                                    -8.550356626510622,
+                                    41.10559760505117
+                                ],
+                                "features": [
+                                    {
+                                        "type": "Feature",
+                                        "properties": {
+                                            "special_marker": {
+                                                "body": {
+                                                    "type": "doc",
+                                                    "content": [
+                                                        {
+                                                            "type": "paragraph",
+                                                            "content": [
+                                                                {
+                                                                    "type": "text",
+                                                                    "marks": [
+                                                                        {
+                                                                            "type": "bold"
+                                                                        }
+                                                                    ],
+                                                                    "text": "Capela do Senhor do Palheirnho"
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "paragraph",
+                                                            "content": [
+                                                                {
+                                                                    "type": "text",
+                                                                    "marks": [
+                                                                        {
+                                                                            "type": "italic"
+                                                                        }
+                                                                    ],
+                                                                    "text": "Avintes"
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "geometry": {
+                                            "type": "Point",
+                                            "coordinates": [
+                                                -8.552256,
+                                                41.10432
+                                            ]
+                                        },
+                                        "id": "default-marker:0"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
                         "type": "text",
                         "marks": [
                             {
@@ -139,53 +202,6 @@ initial_json = {
         ]
     }
 }
-
-
-class CustomHyperlinkDialogForm(dialogs.RichtextDialogForm):
-    title = "Edit Hyperlink"
-    extension = 'custom_hyperlink'
-    extension_script = 'testapp/tiptap-extensions/custom_hyperlink.js'
-    icon = 'formset/richtext/icons/link.svg'
-    plugin_type = 'mark'
-
-    text = fields.CharField(
-        label="Link Text",
-        widget=widgets.TextInput(attrs={
-            'richtext-selection': True,
-            'size': 50,
-        })
-    )
-    link_type = fields.ChoiceField(
-        label="Link Type",
-        choices=[
-            ('external', "External URL"),
-            ('internal', "Internal Page"),
-        ],
-        initial='internal',
-        widget=widgets.Select(attrs={
-            'richtext-map-from': '{value: attributes.href ? "external" : "internal"}',
-        }),
-    )
-    url = fields.URLField(
-        label="External URL",
-        widget=widgets.URLInput(attrs={
-            'size': 50,
-            'richtext-map-to': '{href: elements.link_type.value == "external" ? elements.url.value : ""}',
-            'richtext-map-from': 'href',
-            'df-show': '.link_type == "external"',
-            'df-require': '.link_type == "external"',
-        }),
-    )
-    page = models.ModelChoiceField(
-        queryset=PageModel.objects.all(),
-        label="Internal Page",
-        widget=Selectize(attrs={
-            'richtext-map-to': '{page_id: elements.link_type.value == "internal" ? elements.page.value : ""}',
-            'richtext-map-from': 'page_id',
-            'df-show': '.link_type == "internal"',
-            'df-require': '.link_type == "internal"',
-        }),
-    )
 
 
 font_family_classes = {
@@ -271,6 +287,7 @@ class AdvertisementForm(forms.Form):
                 controls.DialogControl(dialogs.SimpleImageDialogForm()),
                 controls.DialogControl(dialogs.PlaceholderDialogForm()),
                 controls.DialogControl(dialogs.FootnoteDialogForm()),
+                controls.DialogControl(SpecialGeoMapDialogForm()),
             ]),
         ],
         attrs={'placeholder': "Start typing …", 'use_json': True, 'maxlength': 2000, 'style': 'height: 450px;'}),
@@ -284,10 +301,7 @@ class AdvertisementForm(forms.Form):
                 controls.Italic(),
                 controls.BulletList(),
                 controls.OrderedList(),
-                controls.DialogControl(
-                    CustomHyperlinkDialogForm(),
-                    icon='formset/richtext/icons/link.svg',
-                ),
+                controls.DialogControl(CustomHyperlinkDialogForm()),
                 controls.Separator(),
                 controls.ClearFormat(),
                 controls.Undo(),

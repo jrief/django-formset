@@ -1,15 +1,15 @@
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.forms import fields, ModelForm
-from django.utils.translation import gettext_lazy as _
 
 from formset.formfields.geomap import GeoMapField
 from formset.formfields.richtext import RichTextField
 from formset.geomap import controls as geomap_controls, dialogs as geomap_dialogs
 from formset.richtext import controls as richtext_controls
-from formset.richtext.dialogs import SimpleGeoMapDialogForm, PlaceholderDialogForm, SimpleImageDialogForm
+from formset.richtext.dialogs import SimpleImageDialogForm
 from formset.widgets.geomap import GeoMapWidget
 from formset.widgets.richtext import RichTextarea
 
+from testapp.forms.dialogs import SpecialGeoMapDialogForm
 from testapp.models import ChurchModel
 
 
@@ -86,28 +86,6 @@ church_marker = {
     'iconAnchor': [16, 35],
     'popupAnchor': [0, -28],
 }
-
-
-class SpecialGeoMapDialogForm(SimpleGeoMapDialogForm):
-    geomap = GeoMapField(
-        label=_("Edit Map Markers"),
-        widget=GeoMapWidget(
-            controls_topleft=[
-                geomap_controls.PointEditor(
-                    dialog_forms=[
-                        RichtextDialogForm(),
-                    ],
-                ),
-            ],
-            attrs={
-                'style': 'height:300px;width:100%;',
-                'richtext-map-to': '{dataset: elements.geomap.value}',
-                'richtext-map-from': '{dataset: {content: JSON.stringify(attributes.dataset)}}',
-            },
-        ),
-        required=False,
-    )
-
 
 
 class ChurchModelForm(ModelForm):
