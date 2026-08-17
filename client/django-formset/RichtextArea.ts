@@ -1011,7 +1011,7 @@ class RichtextArea implements Inducible {
 	public readonly formDialogs: RichtextFormDialog[] = [];
 	private readonly useJson: boolean = false;
 	private readonly attributesObserver: MutationObserver;
-	private readonly intersectionObserver?: IntersectionObserver;
+	private readonly intersectionObserver: IntersectionObserver;
 	private readonly resizeObserver: ResizeObserver;
 	public editor!: Editor;
 	private initialValue!: JSONContent|string;
@@ -1019,6 +1019,7 @@ class RichtextArea implements Inducible {
 	private charaterCountDiv: HTMLElement|null = null;
 	private readonly baseSelector = '.dj-richtext-wrapper';
 	public readonly initializedPromise: Promise<void>;
+	private initialBBox: Record<string, string> = {height: '', minHeight: '', maxHeight: ''};
 	public isInitialized = false;
 
 	constructor(wrapperElement: HTMLElement, textAreaElement: HTMLTextAreaElement) {
@@ -1026,39 +1027,23 @@ class RichtextArea implements Inducible {
 		this.textAreaElement = textAreaElement;
 		this.menubarElement = wrapperElement.querySelector(':scope > [role="menubar"]');
 		this.useJson = Object.hasOwn(this.textAreaElement.dataset, 'content');
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-			if (this.wrapperElement.checkVisibility()) {
-				this.transferStyles();
-			} else {
-				this.intersectionObserver = new IntersectionObserver(entries => {
-					entries.forEach(entry => {
-						if (entry.isIntersecting && !StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-							this.transferStyles();
-							if (this.isInitialized) {
-								this.concealTextArea();
-							}
-							this.intersectionObserver?.disconnect();
-						}
-					});
-				});
-				this.intersectionObserver.observe(this.wrapperElement);
-			}
-		}
-		this.attributesObserver = new MutationObserver(mutationsList => this.attributesChanged(mutationsList));
-		this.resizeObserver = new ResizeObserver(() => this.adjustMenubarLayout());
+		this.attributesObserver = new MutationObserver(this.attributesChanged);
+		this.intersectionObserver = new IntersectionObserver(this.handleVisibility);
+		this.resizeObserver = new ResizeObserver(this.adjustMenubarLayout);
 		this.initializedPromise = this.initialize();
 		this.registerInducer();
 	}
 
 	private async initialize() {
 		const initialContent = this.useJson ? JSON.parse(this.textAreaElement.dataset.content as string) : this.textAreaElement.textContent;
+		const computedStyle = window.getComputedStyle(this.textAreaElement);
+		this.initialBBox.height = computedStyle.height;
+		this.initialBBox.minHeight = computedStyle.minHeight;
+		this.initialBBox.maxHeight = computedStyle.maxHeight;
 		return new Promise<void>(resolve => {
 			this.createEditor(this.wrapperElement, initialContent).then(editor => {
 				this.editor = editor;
 				this.initialValue = this.getValue();
-				if (StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-					this.concealTextArea();
-				}
 				if (this.useJson) {
 					// innerHTML must reflect the content, otherwise field validation complains about a missing value
 					this.textAreaElement.innerHTML = this.editor.getHTML();
@@ -1066,6 +1051,7 @@ class RichtextArea implements Inducible {
 				this.updateCharCounter();
 				this.installEventHandlers();
 				this.attributesObserver.observe(this.textAreaElement, {attributes: true});
+				this.intersectionObserver.observe(this.wrapperElement);
 				if (this.menubarElement) {
 					// to prevent flickering when loading the page, the visibility of the menubar is hidden
 					this.menubarElement.style.visibility = '';
@@ -1084,7 +1070,27 @@ class RichtextArea implements Inducible {
 		return path;
 	}
 
-	private adjustMenubarLayout() {
+	private attributesChanged = (mutationsList: MutationRecord[]) => {
+		for (const mutation of mutationsList) {
+			if (mutation.type === 'attributes' && mutation.attributeName === 'data-content') {
+				const content = JSON.parse(this.textAreaElement.dataset.content ?? '{"type": "doc"}');
+				this.editor.chain().clearContent().insertContent(content).run();
+			}
+		}
+	};
+
+	private handleVisibility = (entries: IntersectionObserverEntry[]) => {
+		entries.forEach(entry => {
+			if (entry.isIntersecting) {
+				if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+					this.transferStyles();
+				}
+				this.concealTextArea();
+			}
+		});
+	};
+
+	private adjustMenubarLayout = () => {
 		// add class 'has-sibling' to all groups that have a sibling group on their right of the same row
 		this.menubarElement?.querySelectorAll(':scope > [role="group"]').forEach(element => {
 			if (!(element instanceof HTMLElement) || !(element.nextElementSibling instanceof HTMLElement))
@@ -1095,6 +1101,14 @@ class RichtextArea implements Inducible {
 		const menubarHeight = this.menubarElement?.getBoundingClientRect().height ?? 0;
 		this.wrapperElement.style.setProperty('min-height', `${Math.round(menubarHeight + 80)}px`);
 		this.editor.view.dom.style.setProperty('top', `${menubarHeight + 1}px`);
+	};
+
+	private concealTextArea() {
+		if (!this.textAreaElement.classList.contains('dj-concealed')) {
+			this.wrapperElement.style.height = this.initialBBox.height;
+			this.wrapperElement.classList.add(this.textAreaElement.classList.toString());
+			this.textAreaElement.classList.add('dj-concealed');
+		}
 	}
 
 	private async createEditor(wrapperElement: HTMLElement, content: any) : Promise<Editor> {
@@ -1210,13 +1224,6 @@ class RichtextArea implements Inducible {
 		this.registeredActions.forEach(action => action.installEventHandler(this.editor));
 	}
 
-	private concealTextArea() {
-		const style = window.getComputedStyle(this.textAreaElement);
-		this.wrapperElement.style.height = style.height;
-		this.wrapperElement.style.width = style.width;
-		this.textAreaElement.classList.add('dj-concealed');
-	}
-
 	private validate() {
 		// an empty editor would set innerHTML to `<p></p>` which fails validation for required fields
 		this.textAreaElement.innerHTML = this.editor.getText().length === 0 ? '' : this.editor.getHTML();
@@ -1282,15 +1289,6 @@ class RichtextArea implements Inducible {
 	private formSubmitted = () => {
 		this.validate();
 	};
-
-	private attributesChanged(mutationsList: Array<MutationRecord>) {
-		for (const mutation of mutationsList) {
-			if (mutation.type === 'attributes' && mutation.attributeName === 'data-content') {
-				const content = JSON.parse(this.textAreaElement.dataset.content ?? '{"type": "doc"}');
-				this.editor.chain().clearContent().insertContent(content).run();
-			}
-		}
-	}
 
 	private transferStyles() {
 		const declaredStyles = document.createElement('style');

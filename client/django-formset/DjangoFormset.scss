@@ -102,8 +102,8 @@ django-formset {
 	}
 
 	@mixin concealed {
-		// HTML fields replaced by counterpart: 'django-selectize', 'django-dual-selector' or 'django-richtext'
-		// and hence marked as concealed.
+		// HTML fields replaced by a counterpart auch as `django-selectize`, `django-dual-selector`, `django-richtext' or
+		// `django-geomap` and hence marked as concealed.
 		// Styling with 'display: none;' or 'visible: hidden;' would report this console error
 		// "An invalid form control with name='…' is not focusable" while processing the 'invalid' event handler.
 		display: block !important;
