@@ -9,11 +9,10 @@ export abstract class FormDialogBase {
 	protected readonly element: HTMLDialogElement;
 	protected readonly formElement: HTMLFormElement;
 	private readonly dialogHeaderElement: HTMLElement|null;
-	private subtreeObserver: MutationObserver|null = null;
+	// private subtreeObserver: MutationObserver|null = null;  –– presumably not needed because the dialog box is positioned in fixed coordinates
 	protected readonly isModal: boolean;
 	protected readonly induceOpen: Function;
 	protected readonly induceClose: Function;
-	private dialogRect: DOMRect|null = null;
 	private dialogOffsetX: number = 0;
 	private dialogOffsetY: number = 0;
 
@@ -52,8 +51,8 @@ export abstract class FormDialogBase {
 		} else {
 			this.element.show();
 			this.positionDialogBox();
-			this.subtreeObserver = new MutationObserver(() => this.positionDialogBox());
-			this.subtreeObserver.observe(this.element, {childList: true, subtree: true});
+			// this.subtreeObserver = new MutationObserver(() => this.positionDialogBox());
+			// this.subtreeObserver.observe(this.element, {childList: true, subtree: true});
 		}
 		this.element.addEventListener('close', () => this.closeDialog(), {once: true});
 	}
@@ -63,16 +62,27 @@ export abstract class FormDialogBase {
 			this.dialogHeaderElement.removeEventListener('pointerdown', this.handlePointerDown);
 			this.dialogHeaderElement.removeEventListener('touchstart', this.handlePointerDown);
 		}
-		this.subtreeObserver?.disconnect();
+		// this.subtreeObserver?.disconnect();
 		this.element.close(returnValue);
 	}
 
 	private positionDialogBox() {
-		const viewport = window.visualViewport;
-		if (this.dialogHeaderElement && viewport) {
-			this.dialogRect = this.element.getBoundingClientRect();
-			this.dialogOffsetY = Math.max((viewport.height - this.dialogRect.height) / 2, 0);
-			this.element.style.transform = `translate(${this.dialogOffsetX}px, ${this.dialogOffsetY}px)`;
+		const parentDialog = this.element.parentElement?.closest('dialog');
+		const parentRect = parentDialog instanceof HTMLDialogElement
+			? parentDialog.getBoundingClientRect()
+			: new DOMRect(0, 0, window.visualViewport?.width ?? 0, window.visualViewport?.height ?? 0);
+		const dialogRect = this.element.getBoundingClientRect();
+		this.dialogOffsetX = (parentRect.width - dialogRect.width) / 2;
+		this.dialogOffsetY = (parentRect.height - dialogRect.height) / 2;
+		if (this.dialogHeaderElement) {
+			// Freeze dialog in viewport coordinates.
+			Object.assign(this.element.style, {
+				position: 'fixed',
+				top: 0,
+				margin: '0',
+				overflow: 'visible',
+				transform: `translate(${this.dialogOffsetX}px, ${this.dialogOffsetY}px)`,
+			});
 			this.dialogHeaderElement.addEventListener('pointerdown', this.handlePointerDown);
 			this.dialogHeaderElement.addEventListener('touchstart', this.handlePointerDown);
 		}
@@ -80,44 +90,45 @@ export abstract class FormDialogBase {
 
 	private handlePointerDown = (event: PointerEvent|TouchEvent) => {
 		const viewport = window.visualViewport!;
-		const dialogRect = this.dialogRect!;
-		const dialogHeaderElement = this.dialogHeaderElement!;
-		let offsetX: number;
-		let offsetY: number;
-
-		const moveDialog = (pointerX: number, pointerY: number) => {
-			this.dialogOffsetX = Math.max(pointerX - offsetX, -dialogRect.left);
-			this.dialogOffsetY = Math.max(pointerY - offsetY, -dialogRect.top);
-			this.dialogOffsetX = Math.min(this.dialogOffsetX, viewport.width - dialogRect.right);
-			this.dialogOffsetY = Math.min(this.dialogOffsetY, viewport.height - dialogRect.bottom);
-			this.element.style.transform = `translate(${this.dialogOffsetX}px, ${this.dialogOffsetY}px)`;
-		};
-		const handlePointerMove = (pointerMoveEvt: PointerEvent) => {
-			moveDialog(pointerMoveEvt.clientX, pointerMoveEvt.clientY);
-		};
-		const handleTouchMove = (touchMoveEvt: TouchEvent) => {
-			touchMoveEvt.preventDefault();
-			moveDialog(touchMoveEvt.touches[0].clientX, touchMoveEvt.touches[0].clientY);
-		};
-		const handlePointerUp = (pointerUpEvt: PointerEvent) => {
-			dialogHeaderElement.releasePointerCapture(pointerUpEvt.pointerId);
-			dialogHeaderElement.removeEventListener('pointermove', handlePointerMove);
-		};
-		const handleTouchEnd = (touchEndEvt: TouchEvent) => {
-			dialogHeaderElement.removeEventListener('touchmove', handleTouchMove);
+		const header = this.dialogHeaderElement!;
+		const dialogRect = this.element.getBoundingClientRect();
+		const parentDialog = this.element.parentElement?.closest('dialog');
+		const parentRect = parentDialog instanceof HTMLDialogElement
+			? parentDialog.getBoundingClientRect()
+			: new DOMRect(0, 0, 0, 0);
+		const [maxX, maxY] = [viewport.width - dialogRect.width - parentRect.x, viewport.height - dialogRect.height - parentRect.y];
+		const moveDialog = (clientX: number, clientY: number) => {
+			let [x, y] = [clientX - this.dialogOffsetX, clientY - this.dialogOffsetY];
+			x = Math.max(-parentRect.x, Math.min(x, maxX));
+			y = Math.max(-parentRect.y, Math.min(y, maxY));
+			this.element.style.transform = `translate(${x}px, ${y}px)`;
 		};
 
 		if (event instanceof PointerEvent) {
-			offsetX = event.clientX - this.dialogOffsetX;
-			offsetY = event.clientY - this.dialogOffsetY;
-			dialogHeaderElement.setPointerCapture(event.pointerId);
-			dialogHeaderElement.addEventListener('pointermove', handlePointerMove);
-			dialogHeaderElement.addEventListener('pointerup', handlePointerUp, {once: true});
+			const handlePointerMove = (e: PointerEvent) => {
+				moveDialog(e.clientX, e.clientY);
+			};
+			this.dialogOffsetX = event.clientX - dialogRect.x + parentRect.x;
+			this.dialogOffsetY = event.clientY - dialogRect.y + parentRect.y;
+			moveDialog(event.clientX, event.clientY);
+			header.setPointerCapture(event.pointerId);
+			header.addEventListener('pointermove', handlePointerMove);
+			header.addEventListener('pointerup', (up) => {
+				header.releasePointerCapture(up.pointerId);
+				header.removeEventListener('pointermove', handlePointerMove);
+			}, {once: true});
 		} else {
-			offsetX = event.touches[0].clientX - this.dialogOffsetX;
-			offsetY = event.touches[0].clientY - this.dialogOffsetY;
-			dialogHeaderElement.addEventListener('touchmove', handleTouchMove);
-			dialogHeaderElement.addEventListener('touchend', handleTouchEnd, {once: true});
+			const handleTouchMove = (e: TouchEvent) => {
+				e.preventDefault();
+				moveDialog(e.touches[0].clientX, e.touches[0].clientY);
+			};
+			this.dialogOffsetX = event.touches[0].clientX - dialogRect.x + parentRect.x;
+			this.dialogOffsetY = event.touches[0].clientY - dialogRect.y + parentRect.y;
+			moveDialog(event.touches[0].clientX, event.touches[0].clientY);
+			header.addEventListener('touchmove', handleTouchMove, {passive: false});
+			header.addEventListener('touchend', () => {
+				header.removeEventListener('touchmove', handleTouchMove);
+			}, {once: true});
 		}
 	};
 

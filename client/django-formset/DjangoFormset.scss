@@ -223,8 +223,8 @@ django-formset {
 		}
 
 		position: fixed;
-		top: 0;  // compute top using viewport and dialog's height
 		z-index: 2;  // input fields in dual selector have z-index: 1
+		overflow: visible;
 
 		&:not([df-modal]) .dialog-header {
 			cursor: pointer;
