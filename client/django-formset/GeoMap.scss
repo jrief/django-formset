@@ -45,4 +45,7 @@
 		z-index: 1000;  // Leaflet uses z-indices up to 700
 	}
 
+	&:has(>dialog[open]) {
+		resize: none;  // in Chrome the resize handler always shines through dialog boxes which are children of .dj-geomap-wrapper
+	}
 }
