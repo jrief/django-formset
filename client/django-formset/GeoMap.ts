@@ -20,8 +20,6 @@ import {
 	PolylineOptions,
 	Polygon,
 	Popup,
-	Tooltip,
-	TooltipOptions,
 	latLngBounds,
 	polyline,
 	tileLayer,
@@ -123,13 +121,6 @@ abstract class GeometryEditor {
 			this.formDialogs.push(formDialog);
 		}
 	}
-
-	// private registerTooltip() {
-	// 	const latlng = this.anchor
-	// 	const tooltip = new Tooltip(latlng, );
-	// 	this.anchor.addEventListener('mouseenter', showTooltip);
-	// 	this.anchor.addEventListener('mouseleave', hideTooltip);
-	// }
 
 	public closeAllDialogs() {
 		this.formDialogs.forEach(dialog => dialog.closeDialog());
@@ -906,11 +897,12 @@ class GeoMap extends Map implements Inducible {
 	public readonly wrapperElement: HTMLDivElement;
 	public readonly controlsTemplate: HTMLTemplateElement;
 	public formset?: DjangoFormset;
-	private readonly intersectionObserver?: IntersectionObserver;
+	private readonly intersectionObserver: IntersectionObserver;
 	private readonly mutationObserver: MutationObserver;
-	private resizeObserver?: ResizeObserver;
+	private resizeObserver: ResizeObserver;
 	public initialData: JSONValue = null;
 	public readonly editors: Record<string, GeometryEditor> = {};
+	private initialBBox: Record<string, string> = {height: '', minHeight: '', maxHeight: ''};
 
 	constructor(element: GeoMapElement) {
 		const wrapperElement = element.previousElementSibling as HTMLDivElement;
@@ -926,26 +918,9 @@ class GeoMap extends Map implements Inducible {
 			throw new Error(`Could not find <template> element in ${wrapperElement}`);
 		this.controlsTemplate = controlsTemplate;
 		this.registerInducer();
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-			if (wrapperElement.checkVisibility()) {
-				this.transferStyles();
-				this.concealTextArea();
-			} else {
-				this.intersectionObserver = new IntersectionObserver(entries => {
-					entries.forEach(entry => {
-						if (entry.isIntersecting) {
-							if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-								this.transferStyles();
-							}
-							this.concealTextArea();
-						}
-					});
-				});
-				this.intersectionObserver.observe(wrapperElement);
-			}
-		}
+		this.intersectionObserver = new IntersectionObserver(this.handleVisibility);
 		this.mutationObserver = new MutationObserver(this.attributesChanged);
-		this.mutationObserver.observe(this.textAreaElement, {attributes: true});
+		this.resizeObserver = new ResizeObserver(this.handleResize);
 	}
 
 	public connectedCallback() {
@@ -957,18 +932,17 @@ class GeoMap extends Map implements Inducible {
 			detectRetina: true,
 		}).addTo(this);
 		this.extendControls();
-		this.resizeObserver = new ResizeObserver((entries) => {
-			for (const entry of entries) {
-				if (entry.contentBoxSize) {
-					this.invalidateSize();
-				}
-			}
-		});
+		this.intersectionObserver.observe(this.wrapperElement);
+		this.mutationObserver.observe(this.textAreaElement, {attributes: true});
 		this.resizeObserver.observe(this.wrapperElement);
 		const form = this.textAreaElement.form as HTMLFormElement;
 		form.addEventListener('reset', this.formResetted);
 		form.addEventListener('submitted', this.formSubmitted);
 		this.initialData = JSON.parse(this.textAreaElement.dataset.content as string ?? 'null');
+		const computedStyle = window.getComputedStyle(this.textAreaElement);
+		this.initialBBox.height = computedStyle.height;
+		this.initialBBox.minHeight = computedStyle.minHeight;
+		this.initialBBox.maxHeight = computedStyle.maxHeight;
 	}
 
 	public disconnectedCallback() {
@@ -995,9 +969,12 @@ class GeoMap extends Map implements Inducible {
 
 	private concealTextArea() {
 		if (!this.textAreaElement.classList.contains('dj-concealed')) {
-			const style = window.getComputedStyle(this.textAreaElement);
-			this.wrapperElement.style.height = style.height;
-			this.wrapperElement.style.width = style.width;
+			Object.assign(this.wrapperElement.style, {
+				height: this.initialBBox.height,
+				minHeight: this.initialBBox.minHeight,
+				maxHeight: this.initialBBox.maxHeight,
+			});
+			this.wrapperElement.classList.add(this.textAreaElement.classList.toString());
 			this.textAreaElement.classList.add('dj-concealed');
 		}
 	}
@@ -1069,6 +1046,17 @@ class GeoMap extends Map implements Inducible {
 		return this.editors[editorName]?.getLayer(Number(layerIndex)) ?? null;
 	}
 
+	private handleVisibility = (entries: IntersectionObserverEntry[]) => {
+		entries.forEach(entry => {
+			if (entry.isIntersecting) {
+				if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+					this.transferStyles();
+				}
+				this.concealTextArea();
+			}
+		});
+	};
+
 	private attributesChanged = (mutationsList: Array<MutationRecord>) => {
 		for (const mutation of mutationsList) {
 			if (mutation.type === 'attributes' && mutation.attributeName === 'data-content') {
@@ -1080,6 +1068,14 @@ class GeoMap extends Map implements Inducible {
 				} else {
 					Object.values(this.editors).forEach(editor => editor.clear());
 				}
+			}
+		}
+	};
+
+	private handleResize = (entries: ResizeObserverEntry[]) => {
+		for (const entry of entries) {
+			if (entry.contentBoxSize) {
+				this.invalidateSize();
 			}
 		}
 	};

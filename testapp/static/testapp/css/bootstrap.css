@@ -37,3 +37,8 @@ django-form-collection[sibling-position] > .collection-drag-handle ~ .remove-col
 	height: 1em;
 	bottom: 0;
 }
+
+hr {
+	position: sticky;
+	z-index: -1;
+}

@@ -1117,7 +1117,11 @@ class RichtextArea implements Inducible {
 
 	private concealTextArea() {
 		if (!this.textAreaElement.classList.contains('dj-concealed')) {
-			this.wrapperElement.style.height = this.initialBBox.height;
+			Object.assign(this.wrapperElement.style, {
+				height: this.initialBBox.height,
+				minHeight: this.initialBBox.minHeight,
+				maxHeight: this.initialBBox.maxHeight,
+			});
 			this.wrapperElement.classList.add(this.textAreaElement.classList.toString());
 			this.textAreaElement.classList.add('dj-concealed');
 		}
