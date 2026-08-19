@@ -34,18 +34,28 @@ import {parse} from '../build/no-comments';
 import styles from './RichtextArea.scss';
 
 
-function appearTooltip(event: MouseEvent) {
-	if (!(event.target instanceof HTMLButtonElement && event.target.ariaLabel))
-		return;
-	const button = event.target;
+function appendTooltip(button: HTMLButtonElement) {
 	const tooltipElement = document.createElement('div');
 	tooltipElement.classList.add('tooltip');
 	tooltipElement.innerText = button.ariaLabel ?? '';
 	const arrowElement = document.createElement('div');
 	arrowElement.classList.add('arrow');
 	tooltipElement.appendChild(arrowElement);
-	button.insertAdjacentElement('beforebegin', tooltipElement);
-	computePosition(button, tooltipElement, {
+	button.insertAdjacentElement('afterbegin', tooltipElement);
+	button.addEventListener('mouseleave', () => {
+		Object.assign(tooltipElement.style, {visibility: 'hidden'});
+	});
+}
+
+function appearTooltip(event: MouseEvent) {
+	if (!(event.target instanceof HTMLButtonElement && event.target.ariaLabel))
+		return;
+	const button = event.target;
+	const tooltipElement = button.querySelector('.tooltip');
+	const arrowElement = tooltipElement?.querySelector('.tooltip .arrow');
+	if (!(tooltipElement instanceof HTMLElement && arrowElement instanceof HTMLElement))
+		return;
+	computePosition(event.target, tooltipElement, {
 		placement: 'top',
 		strategy: 'fixed',
 		middleware: [arrow({element: arrowElement}), autoPlacement()],
@@ -54,11 +64,10 @@ function appearTooltip(event: MouseEvent) {
 			left: `${x}px`,
 			top: `${y}px`,
 			opacity: '0.75',
-			transition: 'opacity 0.5s 1.2s',
+			visibility: 'visible',
 		});
 		tooltipElement.classList.add(`tooltip-${placement}`);
 	});
-	button.addEventListener('mouseleave', () => tooltipElement.remove(), {once: true});
 }
 
 
@@ -75,6 +84,7 @@ abstract class Action {
 
 	public installEventHandler(editor: Editor) {
 		this.button.addEventListener('click', () => this.clicked(editor));
+		appendTooltip(this.button);
 		this.button.addEventListener('mouseenter', appearTooltip);
 	}
 
@@ -129,6 +139,7 @@ abstract class DropdownAction extends Action {
 		} else {
 			this.button.addEventListener('click', event => this.toggleItem(event, editor));
 		}
+		appendTooltip(this.button);
 		this.button.addEventListener('mouseenter', appearTooltip);
 	}
 
@@ -808,6 +819,7 @@ class RichtextFormDialog extends TransientFormDialog {
 				this.inputElements.push(innerElement as HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement);
 			}
 		});
+		appendTooltip(this.induceButton);
 		this.induceButton.addEventListener('mouseenter', appearTooltip);
 	}
 
