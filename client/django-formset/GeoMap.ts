@@ -130,7 +130,7 @@ abstract class GeometryEditor {
 		return this.anchor.ariaDescription;
 	}
 
-	public abstract register() : void;
+	protected abstract handleClick(event: LeafletMouseEvent) : void;
 
 	public abstract setInitialData(initialData: JSONValue) : void;
 
@@ -138,9 +138,15 @@ abstract class GeometryEditor {
 
 	public abstract getFeatures() : Record<string, any[]>[];
 
-	public abstract getLayer(index: number) : Layer|null;
+	public abstract getLayer(index: [number, number]) : Layer|null;
 
-	public abstract deleteLayer(index: number) : void;
+	public abstract deleteLayer(index: [number, number]) : void;
+
+	public extendLayer(index: [number, number]) {}
+
+	public register() {
+		this.geomap.on('click', this.handleClick);
+	}
 
 	public updateOperability(...args: any[]) {
 		this.formDialogs.forEach(dialog => dialog.updateOperability(...args));
@@ -150,10 +156,11 @@ abstract class GeometryEditor {
 
 class GeoMapMarker extends Marker {
 	private readonly editor: GeometryEditor;
+	private readonly popup: Popup;
 	public readonly properties: Record<string, any> = {};
-	public readonly index: number;
+	public readonly index: [number, number];
 
-	constructor(editor: GeometryEditor, latlng: LatLng, index: number, popupTemplate: HTMLDivElement, icon: Icon) {
+	constructor(editor: GeometryEditor, latlng: LatLng, index: [number, number], popupTemplate: HTMLDivElement, icon: Icon) {
 		const options: MarkerOptions = {
 			icon: icon,
 			draggable: true,
@@ -164,14 +171,14 @@ class GeoMapMarker extends Marker {
 		this.editor = editor;
 		this.index = index;
 		this.addTo(this.editor.geomap);
-		this.attachPopup(popupTemplate);
+		this.popup = this.attachPopup(popupTemplate);
 	}
 
 	public get identifier(): string {
-		return `${this.editor.identifier}:${this.index}`;
+		return `${this.editor.identifier}:${this.index[0]}`;
 	}
 
-	private attachPopup(popupTemplate: HTMLDivElement) {
+	private attachPopup(popupTemplate: HTMLDivElement) : Popup {
 		const popupContent = document.importNode(popupTemplate, true);
 		this.editor.geomap.formset!.assignDetachedButtons(popupContent);
 		popupContent.querySelectorAll('[df-click="activate"]').forEach((button: Element) => {
@@ -183,15 +190,12 @@ class GeoMapMarker extends Marker {
 		const popup = new Popup({closeButton: false, autoClose: true, closeOnClick: true});
 		popup.setContent(popupContent);
 		this.bindPopup(popup);
+		return popup;
 	}
 
-	openPopup(latlng?: LatLngExpression): this {
+	public openPopup(latlng?: LatLngExpression): this {
 		this.editor.geomap.closeAllDialogs();
 		return super.openPopup(latlng);
-	}
-
-	closePopup(): this {
-		return super.closePopup();
 	}
 
 	public initialPlacement() {
@@ -234,10 +238,6 @@ class PointEditor extends GeometryEditor {
 		this.markerIcon = new Icon(iconOptions);
 	}
 
-	public register() {
-		this.geomap.on('click', this.handleClick);
-	}
-
 	public setInitialData(initialData: JSONValue) {
 		if (getDataValue(initialData, 'type') === 'FeatureCollection') {
 			const features = getDataValue(initialData, 'features');
@@ -250,7 +250,7 @@ class PointEditor extends GeometryEditor {
 						const coordinates = getDataValue(geometry, 'coordinates');
 						if (Array.isArray(coordinates) && coordinates.length === 2) {
 							const latlng = GeoJSON.coordsToLatLng(coordinates as [number, number]);
-							const marker = new GeoMapMarker(this, latlng, this.markers.length, this.popupTemplate, this.markerIcon);
+							const marker = new GeoMapMarker(this, latlng, [this.markers.length, 0], this.popupTemplate, this.markerIcon);
 							const properties = getDataValue(feature, 'properties');
 							if (isPlainObject(properties)) {
 								Object.assign(marker.properties, properties);
@@ -286,20 +286,20 @@ class PointEditor extends GeometryEditor {
 		return features;
 	}
 
-	public getLayer(index: number) : Layer|null {
-		return this.markers[index];
+	public getLayer(index: [number, number]) : Layer|null {
+		return this.markers[index[0]];
 	}
 
-	public deleteLayer(index: number) {
-		this.markers[index]?.unbindPopup();
-		this.markers[index] = null;
+	public deleteLayer(index: [number, number]) {
+		this.markers[index[0]]?.unbindPopup();
+		this.markers[index[0]] = null;
 	}
 
-	private handleClick = (event: LeafletMouseEvent) => {
+	protected handleClick = (event: LeafletMouseEvent) => {
 		const target = event.originalEvent.target;
 		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaDescription !== this.anchor.ariaDescription)
 			return;
-		const marker = new GeoMapMarker(this, event.latlng, this.markers.length, this.popupTemplate, this.markerIcon);
+		const marker = new GeoMapMarker(this, event.latlng, [this.markers.length, 0], this.popupTemplate, this.markerIcon);
 		this.markers.push(marker);
 		marker.initialPlacement();
 	};
@@ -330,29 +330,38 @@ class VertexMarker extends Marker {
 	private dragVertex = (event: LeafletEvent) => {
 		const latlng = (event as LeafletMouseEvent).latlng;
 		if (latlng instanceof LatLng) {
-			const index = this.path.vertexMarkers.indexOf(this);
-			this.path.updateVertices(index, latlng);
+			for (const [index0, vertextMarkers] of this.path.vertexMarkers.entries()) {
+				const index1 = vertextMarkers.indexOf(this);
+				if (index1 === -1)
+					continue;
+				this.path.updateVertices([index0, index1], latlng);
+			}
 		}
 	};
 
 	private deleteVertex = (event: LeafletEvent) => {
-		const index = this.path.vertexMarkers.indexOf(this);
-		if (index % 2 === 0) {
-			this.path.deleteVertex(index);
+		for (const [index0, vertexMarkers] of this.path.vertexMarkers.entries()) {
+			const index1 = vertexMarkers.indexOf(this);
+			if (index1 === -1)
+				continue;
+			if (index1 % 2 === 0) {
+				this.path.deleteVertex([index0, index1]);
+			}
 		}
-	};
+	}
 }
 
 
 class GeoMapPolyline extends Polyline {
 	private readonly editor: GeometryEditor;
 	public readonly properties: Record<string, any> = {};
-	public readonly index: number;
+	public readonly index: [number, number];
 	public readonly group: LayerGroup;
+	private readonly popup: Popup;
 	private tempVertex: Polyline|null = null;  // temporary vertex moving with the cursor
-	public vertexMarkers: VertexMarker[] = [];
+	public vertexMarkers: VertexMarker[][] = [];
 
-	constructor(editor: GeometryEditor, latlngs: LatLngExpression[], index: number, popupTemplate: HTMLDivElement) {
+	constructor(editor: GeometryEditor, latlngs: LatLngExpression[], index: [number, number], popupTemplate: HTMLDivElement) {
 		const options: PolylineOptions = {
 			bubblingMouseEvents: true,
 		};
@@ -362,14 +371,14 @@ class GeoMapPolyline extends Polyline {
 		this.group = new LayerGroup();
 		this.group.addTo(editor.geomap);
 		this.addTo(this.group);
-		this.attachPopup(popupTemplate);
+		this.popup = this.attachPopup(popupTemplate);
 	}
 
 	public get identifier(): string {
-		return `${this.editor.identifier}:${this.index}`;
+		return `${this.editor.identifier}:${this.index[0]}`;
 	}
 
-	private attachPopup(popupTemplate: HTMLDivElement) {
+	private attachPopup(popupTemplate: HTMLDivElement) : Popup {
 		const popupContent = document.importNode(popupTemplate, true);
 		this.editor.geomap.formset!.assignDetachedButtons(popupContent);
 		popupContent.querySelectorAll('[df-click="activate"]').forEach((button: Element) => {
@@ -381,6 +390,7 @@ class GeoMapPolyline extends Polyline {
 		const popup = new Popup({closeButton: false, autoClose: true, closeOnClick: true});
 		popup.setContent(popupContent);
 		this.bindPopup(popup);
+		return popup;
 	}
 
 	public initialPlacement() {
@@ -426,6 +436,7 @@ class GeoMapPolyline extends Polyline {
 			document.removeEventListener('keydown', handleEscape);
 			mapContainer.classList.remove('marker-placement');
 			event.originalEvent.stopPropagation();
+			this.bindPopup(this.popup);
 		};
 		const handleEscape = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
@@ -435,8 +446,11 @@ class GeoMapPolyline extends Polyline {
 				this.editor.geomap.off('click', addVertex);
 				mapContainer.classList.remove('marker-placement');
 				document.removeEventListener('keydown', handleEscape);
+				this.bindPopup(this.popup);
 			}
 		};
+		this.closePopup();
+		this.unbindPopup();
 		this.editor.geomap.on('mousemove', moveVertex);
 		this.editor.geomap.on('click', addVertex);
 		this.editor.geomap.once('dblclick', finishPolyline);
@@ -445,82 +459,85 @@ class GeoMapPolyline extends Polyline {
 
 	public setVertexMarkers(latlngs: LatLng[]) {
 		let prevLatLng: LatLng|null = null;
+		while (this.index[0] >= this.vertexMarkers.length) {
+			this.vertexMarkers.push([]);
+		}
 		for (const latlng of latlngs) {
 			if (prevLatLng) {
 				const vertextMarker = new VertexMarker(latLngBounds(prevLatLng, latlng).getCenter(), this, true);
 				vertextMarker.addTo(this.group);
-				this.vertexMarkers.push(vertextMarker);
+				this.vertexMarkers[this.index[0]].push(vertextMarker);
 			}
 			const vertexMarker = new VertexMarker(latlng, this, false);
 			vertexMarker.addTo(this.group);
-			this.vertexMarkers.push(vertexMarker);
+			this.vertexMarkers[this.index[0]].push(vertexMarker);
 			prevLatLng = latlng;
 		}
 	}
 
-	public updateVertices(index: number, latlng: LatLng) {
+	public updateVertices(index: [number, number], latlng: LatLng) {
 		const latlngs = this.getLatLngs() as LatLng[];
-		if (index % 2 === 1) {
+		const [index0, index1] = index;
+		if (index1 % 2 === 1) {
 			// halfway – insert a vertex marker
-			latlngs.splice((index + 1) / 2, 0, latlng);
-			this.vertexMarkers[index].setOpacity(1.0);
-			let prevVertexMarker = this.vertexMarkers[index - 1];
+			latlngs.splice((index1 + 1) / 2, 0, latlng);
+			this.vertexMarkers[index0][index1].setOpacity(1.0);
+			let prevVertexMarker = this.vertexMarkers[index0][index1 - 1];
 			prevVertexMarker = new VertexMarker(latLngBounds(prevVertexMarker.getLatLng(), latlng).getCenter(), this, true);
 			prevVertexMarker.addTo(this.group);
-			let nextVertexMarker = this.vertexMarkers[index + 1];
+			let nextVertexMarker = this.vertexMarkers[index0][index1 + 1];
 			nextVertexMarker = new VertexMarker(latLngBounds(latlng, nextVertexMarker.getLatLng()).getCenter(), this, true);
 			nextVertexMarker.addTo(this.group);
-			this.vertexMarkers.splice(index, 0, prevVertexMarker);
-			this.vertexMarkers.splice(index + 2, 0, nextVertexMarker);
+			this.vertexMarkers[index0].splice(index1, 0, prevVertexMarker);
+			this.vertexMarkers[index0].splice(index1 + 2, 0, nextVertexMarker);
 		} else {
-			latlngs[index / 2] = latlng;
-			const prevVertexMarker = this.vertexMarkers[index - 1];
+			latlngs[index1 / 2] = latlng;
+			const prevVertexMarker = this.vertexMarkers[index0][index1 - 1];
 			if (prevVertexMarker) {
-				prevVertexMarker.setLatLng(latLngBounds(latlngs[index / 2 - 1], latlng).getCenter());
+				prevVertexMarker.setLatLng(latLngBounds(latlngs[index1 / 2 - 1], latlng).getCenter());
 			}
-			const nextVertexMarker = this.vertexMarkers[index + 1];
+			const nextVertexMarker = this.vertexMarkers[index0][index1 + 1];
 			if (nextVertexMarker) {
-				nextVertexMarker.setLatLng(latLngBounds(latlng, latlngs[index / 2 + 1]).getCenter());
+				nextVertexMarker.setLatLng(latLngBounds(latlng, latlngs[index1 / 2 + 1]).getCenter());
 			}
 		}
 		this.setLatLngs(latlngs);
 	}
 
-	public deleteVertex(index: number) {
+	public deleteVertex(index: [number, number]) {
 		const latlngs = this.getLatLngs() as LatLng[];
-		const vertexMarker = this.vertexMarkers[index];
-		if (index === 0) {
-			this.vertexMarkers.splice(0, 2).forEach(marker => this.group.removeLayer(marker));
+		let [index0, index1] = index;
+		const vertexMarker = this.vertexMarkers[index0][index1];
+		if (index1 === 0) {
+			this.vertexMarkers[index0].splice(0, 2).forEach(marker => this.group.removeLayer(marker));
 		} else {
-			if (index < this.vertexMarkers.length - 1) {
-				const [nextVertexMarker] = this.vertexMarkers.splice(index + 1, 1);
+			if (index1 < this.vertexMarkers[index0].length - 1) {
+				const [nextVertexMarker] = this.vertexMarkers[index0].splice(index1 + 1, 1);
 				this.group.removeLayer(nextVertexMarker);
 			} else {
-				this.group.removeLayer(this.vertexMarkers.pop() as Layer);
+				this.group.removeLayer(this.vertexMarkers[index0].pop() as Layer);
 			}
-			const [prevVertexMarker] = this.vertexMarkers.splice(index - 1, 1);
+			const [prevVertexMarker] = this.vertexMarkers[index0].splice(index1 - 1, 1);
 			this.group.removeLayer(prevVertexMarker);
 		}
 		if (latlngs.length <= 2) {
 			this.deletePolyline();
 		} else {
-			index /= 2;
-			if (index < latlngs.length - 1) {
-				if (index === 0) {
-					// this.vertexMarkers[this.vertexMarkers.length - 1].setLatLng(latLngBounds([latlngs[latlngs.length - 1], latlngs[1]]).getCenter());
-				} else {
-					vertexMarker.setLatLng(latLngBounds([latlngs[index - 1], latlngs[index + 1]]).getCenter());
+			index1 /= 2;
+			if (index1 < latlngs.length - 1) {
+				if (index1 !== 0) {
+					vertexMarker.setLatLng(latLngBounds([latlngs[index1 - 1], latlngs[index1 + 1]]).getCenter());
 				}
 				vertexMarker.setOpacity(VertexMarker.halfwayOpacity);
 			}
-			latlngs.splice(index, 1);
+			latlngs.splice(index1, 1);
 			this.setLatLngs(latlngs);
 		}
 	}
 
 	public deletePolyline() {
 		this.editor.closeAllDialogs();
-		this.vertexMarkers.forEach(marker => this.group.removeLayer(marker));
+		this.vertexMarkers.forEach(markers => markers.forEach(marker => this.group.removeLayer(marker)));
 		this.vertexMarkers.length = 0;
 		this.group.removeLayer(this);
 		this.group.removeFrom(this.editor.geomap);
@@ -530,30 +547,26 @@ class GeoMapPolyline extends Polyline {
 
 
 class PolylineEditor extends GeometryEditor {
-	public readonly polylines: (GeoMapPolyline | null)[] = [];
+	public readonly polylines: (GeoMapPolyline|null)[] = [];
 
 	constructor(geomap: GeoMap, anchor: HTMLAnchorElement) {
 		super(geomap, anchor);
 	}
 
-	public register() {
-		this.geomap.on('click', this.handleClick);
+	public getLayer(index: [number, number]) : Layer|null {
+		return this.polylines[index[0]];
 	}
 
-	public getLayer(index: number) : Layer|null {
-		return this.polylines[index];
+	public deleteLayer(index: [number, number]) {
+		this.polylines[index[0]]?.unbindPopup();
+		this.polylines[index[0]] = null;
 	}
 
-	public deleteLayer(index: number) {
-		this.polylines[index]?.unbindPopup();
-		this.polylines[index] = null;
-	}
-
-	private handleClick = (event: LeafletMouseEvent) => {
+	protected handleClick = (event: LeafletMouseEvent) => {
 		const target = event.originalEvent.target;
 		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaDescription !== this.anchor.ariaDescription)
 			return;
-		const polyline = new GeoMapPolyline(this, [], this.polylines.length, this.popupTemplate);
+		const polyline = new GeoMapPolyline(this, [], [this.polylines.length, 0], this.popupTemplate);
 		this.polylines.push(polyline);
 		polyline.initialPlacement();
 	};
@@ -568,7 +581,7 @@ class PolylineEditor extends GeometryEditor {
 					const geometry = getDataValue(feature, 'geometry');
 					if (isPlainObject(geometry) && getDataValue(geometry, 'type') === 'LineString') {
 						const latlngs = (GeoJSON.geometryToLayer(geometry as any) as any).getLatLngs() as LatLng[];
-						const polyline = new GeoMapPolyline(this, latlngs, this.polylines.length, this.popupTemplate);
+						const polyline = new GeoMapPolyline(this, latlngs, [this.polylines.length, 0], this.popupTemplate);
 						const properties = getDataValue(feature, 'properties');
 						if (isPlainObject(properties)) {
 							Object.assign(polyline.properties, properties);
@@ -608,13 +621,14 @@ class PolylineEditor extends GeometryEditor {
 
 class GeoMapPolygon extends Polygon {
 	private readonly editor: GeometryEditor;
-	public readonly properties: Record<string, any> = {};
-	public readonly index: number;
+	public readonly properties: Record<string, Record<string, any>> = {};
+	public readonly index: [number, number];
 	public readonly group: LayerGroup;
+	private readonly popup: Popup;
 	private tempVertex: Polyline|null = null;  // temporary vertex moving with the cursor
-	public vertexMarkers: VertexMarker[] = [];
+	public vertexMarkers: VertexMarker[][] = [];
 
-	constructor(editor: GeometryEditor, latlngs: LatLngExpression[], index: number, popupTemplate: HTMLDivElement) {
+	constructor(editor: GeometryEditor, latlngs: LatLngExpression[][], index: [number, number], popupTemplate: HTMLDivElement) {
 		const options: PolylineOptions = {
 			bubblingMouseEvents: true,
 		};
@@ -624,14 +638,14 @@ class GeoMapPolygon extends Polygon {
 		this.group = new LayerGroup();
 		this.group.addTo(editor.geomap);
 		this.addTo(this.group);
-		this.attachPopup(popupTemplate);
+		this.popup = this.attachPopup(popupTemplate);
 	}
 
 	public get identifier(): string {
-		return `${this.editor.identifier}:${this.index}`;
+		return `${this.editor.identifier}:${this.index[0]}`;
 	}
 
-	private attachPopup(popupTemplate: HTMLDivElement) {
+	private attachPopup(popupTemplate: HTMLDivElement) : Popup {
 		const popupContent = document.importNode(popupTemplate, true);
 		this.editor.geomap.formset!.assignDetachedButtons(popupContent);
 		popupContent.querySelectorAll('[df-click="activate"]').forEach((button: Element) => {
@@ -639,19 +653,21 @@ class GeoMapPolygon extends Polygon {
 				button.dataset.identifier = this.identifier;
 			}
 		});
-		popupContent.querySelector('[name="delete_layer"]')?.addEventListener('click', () => this.deletePolygon());
+		popupContent.querySelector('[name="delete_layer"]')?.addEventListener('click', () => this.deleteAllPolygons());
+		popupContent.querySelector('[name="extend_layer"]')?.addEventListener('click', () => this.editor.extendLayer(this.index));
 		const popup = new Popup({closeButton: false, autoClose: true, closeOnClick: true});
 		popup.setContent(popupContent);
 		this.bindPopup(popup);
+		return popup;
 	}
 
-	public initialPlacement() {
+	public initialPlacement(index: number) {
 		const mapContainer = this.editor.geomap.getContainer();
 		mapContainer.classList.add('marker-placement');
 		const moveVertex = (event: LeafletMouseEvent) => {
 			if (this.tempVertex) {
-				const latLngs = this.getLatLngs()[0] as LatLng[];
 				const lastLatLng = this.tempVertex.getLatLngs()[0] as LatLng;
+				const latLngs = this.getLatLngs()[index] as LatLng[];
 				if (latLngs.length < 2) {
 					this.tempVertex.setLatLngs([lastLatLng, event.latlng]);
 				} else {
@@ -671,19 +687,20 @@ class GeoMapPolygon extends Polygon {
 				this.tempVertex = polyline([event.latlng, event.latlng], options);
 				this.tempVertex.addTo(this.group);
 			}
-			this.addLatLng(event.latlng);
+			const latlngs = this.getLatLngs()[index] as LatLng[];
+			this.addLatLng(event.latlng, latlngs);
 		};
 		const finishPolygon = (event: LeafletMouseEvent) => {
-			const latlngs = this.getLatLngs()[0] as LatLng[];
+			const latlngs = this.getLatLngs()[index] as LatLng[];
 			if (latlngs.length > 2) {
 				if (isEqual(latlngs[latlngs.length - 1], latlngs[latlngs.length - 2])) {
 					latlngs.pop();  // added by second click in dblclick
 				}
-				this.setVertexMarkers(latlngs);
+				this.setVertexMarkers(this.getLatLngs() as LatLng[][]);
 			} else {
 				latlngs.length = 0;
 			}
-			this.setLatLngs(latlngs);
+			this.redraw();
 			if (this.tempVertex) {
 				this.group.removeLayer(this.tempVertex);
 				this.tempVertex = null;
@@ -693,112 +710,133 @@ class GeoMapPolygon extends Polygon {
 			document.removeEventListener('keydown', handleEscape);
 			mapContainer.classList.remove('marker-placement');
 			event.originalEvent.stopPropagation();
-			// this.closePopup();
+			this.bindPopup(this.popup);
 		};
 		const handleEscape = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
-				this.group.removeFrom(this.editor.geomap);
-				this.editor.deleteLayer(this.index);
+				this.deletePolygon(index);
 				this.editor.geomap.off('mousemove', moveVertex);
 				this.editor.geomap.off('click', addVertex);
 				mapContainer.classList.remove('marker-placement');
 				document.removeEventListener('keydown', handleEscape);
+				this.bindPopup(this.popup);
 			}
 		};
+		this.closePopup();
+		this.unbindPopup();
 		this.editor.geomap.on('mousemove', moveVertex);
 		this.editor.geomap.on('click', addVertex);
 		this.editor.geomap.once('dblclick', finishPolygon);
 		document.addEventListener('keydown', handleEscape);
 	}
 
-	public setVertexMarkers(latlngs: LatLng[]) {
-		let prevLatLng: LatLng|null = null;
-		for (const latlng of latlngs) {
-			if (prevLatLng) {
-				const vertextMarker = new VertexMarker(latLngBounds(prevLatLng, latlng).getCenter(), this, true);
-				vertextMarker.addTo(this.group);
-				this.vertexMarkers.push(vertextMarker);
+	public setVertexMarkers(latlngRings: LatLng[][]) {
+		for (const [index, latlngs] of latlngRings.entries()) {
+			while (this.vertexMarkers.length <= index) {
+				this.vertexMarkers.push([]);
 			}
-			const vertexMarker = new VertexMarker(latlng, this, false);
-			vertexMarker.addTo(this.group);
-			this.vertexMarkers.push(vertexMarker);
-			prevLatLng = latlng;
-		}
-		if (prevLatLng) {
-			const vertextMarker = new VertexMarker(latLngBounds(prevLatLng, latlngs[0]).getCenter(), this, true);
-			vertextMarker.addTo(this.group);
-			this.vertexMarkers.push(vertextMarker);
+			let prevLatLng: LatLng|null = null;
+			for (const latlng of latlngs) {
+				if (prevLatLng) {
+					const vertextMarker = new VertexMarker(latLngBounds(prevLatLng, latlng).getCenter(), this, true);
+					vertextMarker.addTo(this.group);
+					this.vertexMarkers[index].push(vertextMarker);
+				}
+				const vertexMarker = new VertexMarker(latlng, this, false);
+				vertexMarker.addTo(this.group);
+				this.vertexMarkers[index].push(vertexMarker);
+				prevLatLng = latlng;
+			}
+			if (prevLatLng) {
+				const vertextMarker = new VertexMarker(latLngBounds(prevLatLng, latlngs[0]).getCenter(), this, true);
+				vertextMarker.addTo(this.group);
+				this.vertexMarkers[index].push(vertextMarker);
+			}
 		}
 	}
 
-	public updateVertices(index: number, latlng: LatLng) {
-		const latlngs = this.getLatLngs()[0] as LatLng[];
-		if (index % 2 === 1) {
+	public updateVertices(index: [number, number], latlng: LatLng) {
+		const [index0, index1] = index;
+		const latlngs = this.getLatLngs()[index0] as LatLng[];
+		if (index1 % 2 === 1) {
 			// halfway – insert a vertex marker
-			latlngs.splice((index + 1) / 2, 0, latlng);
-			this.vertexMarkers[index].setOpacity(1.0);
-			let prevVertexMarker = this.vertexMarkers[index - 1];
+			latlngs.splice((index1 + 1) / 2, 0, latlng);
+			this.vertexMarkers[index0][index1].setOpacity(1.0);
+			let prevVertexMarker = this.vertexMarkers[index0][index1 - 1];
 			prevVertexMarker = new VertexMarker(latLngBounds(prevVertexMarker.getLatLng(), latlng).getCenter(), this, true);
 			prevVertexMarker.addTo(this.group);
-			let nextVertexMarker = index === this.vertexMarkers.length - 1 ? this.vertexMarkers[0] : this.vertexMarkers[index + 1];
+			let nextVertexMarker = index1 === this.vertexMarkers[index0].length - 1 ? this.vertexMarkers[index0][0] : this.vertexMarkers[index0][index1 + 1];
 			nextVertexMarker = new VertexMarker(latLngBounds(latlng, nextVertexMarker.getLatLng()).getCenter(), this, true);
 			nextVertexMarker.addTo(this.group);
-			this.vertexMarkers.splice(index, 0, prevVertexMarker);
-			this.vertexMarkers.splice(index + 2, 0, nextVertexMarker);
+			this.vertexMarkers[index0].splice(index1, 0, prevVertexMarker);
+			this.vertexMarkers[index0].splice(index1 + 2, 0, nextVertexMarker);
 		} else {
-			latlngs[index / 2] = latlng;
-			if (index === 0) {
-				const prevVertexMarker = this.vertexMarkers[this.vertexMarkers.length - 1];
-				prevVertexMarker.setLatLng(latLngBounds(latlngs[this.vertexMarkers.length / 2 - 1], latlng).getCenter());
+			latlngs[index1 / 2] = latlng;
+			if (index1 === 0) {
+				const prevVertexMarker = this.vertexMarkers[index0][this.vertexMarkers[index0].length - 1];
+				prevVertexMarker.setLatLng(latLngBounds(latlngs[this.vertexMarkers[index0].length / 2 - 1], latlng).getCenter());
 			} else {
-				const prevVertexMarker = this.vertexMarkers[index - 1];
-				prevVertexMarker.setLatLng(latLngBounds(latlngs[index / 2 - 1], latlng).getCenter());
+				const prevVertexMarker = this.vertexMarkers[index0][index1 - 1];
+				prevVertexMarker.setLatLng(latLngBounds(latlngs[index1 / 2 - 1], latlng).getCenter());
 			}
-			const nextVertexMarker = this.vertexMarkers[index + 1];
-			if (index === this.vertexMarkers.length - 2) {
+			const nextVertexMarker = this.vertexMarkers[index0][index1 + 1];
+			if (index1 === this.vertexMarkers[index0].length - 2) {
 				nextVertexMarker.setLatLng(latLngBounds(latlng, latlngs[0]).getCenter());
 			} else {
-				nextVertexMarker.setLatLng(latLngBounds(latlng, latlngs[index / 2 + 1]).getCenter());
+				nextVertexMarker.setLatLng(latLngBounds(latlng, latlngs[index1 / 2 + 1]).getCenter());
 			}
 		}
-		this.setLatLngs(latlngs);
+		this.redraw();
 	}
 
-	public deleteVertex(index: number) {
-		const latlngs = this.getLatLngs()[0] as LatLng[];
-		console.log('delete vertex: ', latlngs.length, index);
-		const vertexMarker = this.vertexMarkers[index];
-		if (index === 0) {
-			this.vertexMarkers.splice(0, 2).forEach(marker => this.group.removeLayer(marker));
+	public deleteVertex(index: [number, number]) {
+		let [index0, index1] = index;
+		const latlngs = this.getLatLngs()[index0] as LatLng[];
+		const vertexMarker = this.vertexMarkers[index0][index1];
+		if (index1 === 0) {
+			this.vertexMarkers[index0].splice(0, 2).forEach(marker => this.group.removeLayer(marker));
 		} else {
-			const [nextVertexMarker] = this.vertexMarkers.splice(index + 1, 1);
+			const [nextVertexMarker] = this.vertexMarkers[index0].splice(index1 + 1, 1);
 			this.group.removeLayer(nextVertexMarker);
-			const [prevVertexMarker] = this.vertexMarkers.splice(index - 1, 1);
+			const [prevVertexMarker] = this.vertexMarkers[index0].splice(index1 - 1, 1);
 			this.group.removeLayer(prevVertexMarker);
 		}
 		if (latlngs.length <= 2) {
-			this.deletePolygon();
+			this.deletePolygon(index0);
 		} else {
-			index /= 2;
-			if (index < latlngs.length - 1) {
-				if (index === 0) {
-					this.vertexMarkers[this.vertexMarkers.length - 1].setLatLng(latLngBounds([latlngs[latlngs.length - 1], latlngs[1]]).getCenter());
+			index1 /= 2;
+			if (index1 < latlngs.length - 1) {
+				if (index1 === 0) {
+					this.vertexMarkers[index0][this.vertexMarkers[index0].length - 1].setLatLng(latLngBounds([latlngs[latlngs.length - 1], latlngs[1]]).getCenter());
 				} else {
-					vertexMarker.setLatLng(latLngBounds([latlngs[index - 1], latlngs[index + 1]]).getCenter());
+					vertexMarker.setLatLng(latLngBounds([latlngs[index1 - 1], latlngs[index1 + 1]]).getCenter());
 				}
 				vertexMarker.setOpacity(VertexMarker.halfwayOpacity);
 			} else {
-				vertexMarker.setLatLng(latLngBounds([latlngs[index - 1], latlngs[0]]).getCenter());
+				vertexMarker.setLatLng(latLngBounds([latlngs[index1 - 1], latlngs[0]]).getCenter());
 				vertexMarker.setOpacity(VertexMarker.halfwayOpacity);
 			}
-			latlngs.splice(index, 1);
-			this.setLatLngs(latlngs);
+			latlngs.splice(index1, 1);
+			this.redraw();
 		}
 	}
 
-	public deletePolygon() {
+	public deletePolygon(index0: number) {
+		if (Array.isArray(this.vertexMarkers[index0])) {
+			this.vertexMarkers[index0].forEach(marker => this.group.removeLayer(marker));
+			this.vertexMarkers.splice(index0, 1);
+		}
+		this.getLatLngs().splice(index0, 1);
+		if (this.getLatLngs().length === 0) {
+			this.deleteAllPolygons();
+		} else {
+			this.redraw();
+		}
+	}
+
+	public deleteAllPolygons() {
 		this.editor.closeAllDialogs();
-		this.vertexMarkers.forEach(marker => this.group.removeLayer(marker));
+		this.vertexMarkers.forEach(markers => markers.forEach(marker => this.group.removeLayer(marker)));
 		this.vertexMarkers.length = 0;
 		this.group.removeLayer(this);
 		this.group.removeFrom(this.editor.geomap);
@@ -808,32 +846,28 @@ class GeoMapPolygon extends Polygon {
 
 
 class PolygonEditor extends GeometryEditor {
-	public readonly polygones: (GeoMapPolygon | null)[] = [];
+	public readonly polygones: (GeoMapPolygon|null)[] = [];
 
 	constructor(geomap: GeoMap, anchor: HTMLAnchorElement) {
 		super(geomap, anchor);
 	}
 
-	public register() {
-		this.geomap.on('click', this.handleClick);
+	public getLayer(index: [number, number]) : Layer|null {
+		return this.polygones[index[0]];
 	}
 
-	public getLayer(index: number) : Layer|null {
-		return this.polygones[index];
+	public deleteLayer(index: [number, number]) {
+		this.polygones[index[0]]?.unbindPopup();
+		this.polygones[index[0]] = null;
 	}
 
-	public deleteLayer(index: number) {
-		this.polygones[index]?.unbindPopup();
-		this.polygones[index] = null;
-	}
-
-	private handleClick = (event: LeafletMouseEvent) => {
+	protected handleClick = (event: LeafletMouseEvent) => {
 		const target = event.originalEvent.target;
 		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaDescription !== this.anchor.ariaDescription)
 			return;
-		const polygon = new GeoMapPolygon(this, [], this.polygones.length, this.popupTemplate);
+		const polygon = new GeoMapPolygon(this, [], [this.polygones.length, 0], this.popupTemplate);
 		this.polygones.push(polygon);
-		polygon.initialPlacement();
+		polygon.initialPlacement(0);
 	};
 
 	public setInitialData(initialData: JSONValue) {
@@ -845,8 +879,8 @@ class PolygonEditor extends GeometryEditor {
 						continue;
 					const geometry = getDataValue(feature, 'geometry');
 					if (isPlainObject(geometry) && getDataValue(geometry, 'type') === 'Polygon') {
-						const latlngs = (GeoJSON.geometryToLayer(geometry as any) as any).getLatLngs()[0] as LatLng[];
-						const polygon = new GeoMapPolygon(this, latlngs, this.polygones.length, this.popupTemplate);
+						const latlngs = (GeoJSON.geometryToLayer(geometry as any) as any).getLatLngs() as LatLng[][];
+						const polygon = new GeoMapPolygon(this, latlngs, [this.polygones.length, 0], this.popupTemplate);
 						const properties = getDataValue(feature, 'properties');
 						if (isPlainObject(properties)) {
 							Object.assign(polygon.properties, properties);
@@ -862,7 +896,7 @@ class PolygonEditor extends GeometryEditor {
 	public clear() {
 		for (const polygon of this.polygones) {
 			if (polygon) {
-				polygon.deletePolygon();
+				polygon.deleteAllPolygons();
 			}
 		}
 		this.polygones.length = 0;
@@ -884,10 +918,28 @@ class PolygonEditor extends GeometryEditor {
 }
 
 
+class MultiPolygonEditor extends PolygonEditor {
+	constructor(geomap: GeoMap, anchor: HTMLAnchorElement) {
+		super(geomap, anchor);
+	}
+
+	public extendLayer(index: [number, number]) {
+		const polygon = this.polygones[index[0]];
+		if (polygon) {
+			const latLngs = polygon.getLatLngs();
+			latLngs.push([]);  // add empty polygon
+			polygon.setLatLngs(latLngs);
+			polygon.initialPlacement(latLngs.length - 1);
+		}
+	}
+}
+
+
 const registry: Record<string, new (geomap: GeoMap, anchor: HTMLAnchorElement, ...args: any[]) => GeometryEditor> = {
 	PointEditor,
 	PolylineEditor,
 	PolygonEditor,
+	MultiPolygonEditor,
 };
 
 
@@ -1043,7 +1095,7 @@ class GeoMap extends Map implements Inducible {
 
 	public getLayer(identifier: string) : Layer|null {
 		const [editorName, layerIndex] = [...identifier.split(':')];
-		return this.editors[editorName]?.getLayer(Number(layerIndex)) ?? null;
+		return this.editors[editorName]?.getLayer([Number(layerIndex), 0]) ?? null;
 	}
 
 	private handleVisibility = (entries: IntersectionObserverEntry[]) => {
