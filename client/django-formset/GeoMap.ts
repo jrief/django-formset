@@ -207,7 +207,7 @@ class GeoMapMarker extends Marker {
 			map.off('mousemove', moveMarker);
 			document.removeEventListener('keydown', handleEscape);
 			mapContainer.classList.remove('marker-placement');
-			this.editor.geomap.getValue();  // required for validation
+			this.editor.geomap.checkValidity();
 		};
 		const handleEscape = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
@@ -225,6 +225,7 @@ class GeoMapMarker extends Marker {
 		this.editor.closeAllDialogs();
 		this.removeFrom(this.editor.geomap);
 		this.editor.deleteLayer(this.index);
+		this.editor.geomap.checkValidity();
 	}
 }
 
@@ -435,6 +436,7 @@ class GeoMapPolyline extends Polyline {
 			this.editor.geomap.off('click', addVertex);
 			document.removeEventListener('keydown', handleEscape);
 			mapContainer.classList.remove('marker-placement');
+			this.editor.geomap.checkValidity();
 			this.bindPopup(this.popup);
 		};
 		const handleEscape = (event: KeyboardEvent) => {
@@ -541,6 +543,7 @@ class GeoMapPolyline extends Polyline {
 		this.group.removeLayer(this);
 		this.group.removeFrom(this.editor.geomap);
 		this.editor.deleteLayer(this.index);
+		this.editor.geomap.checkValidity();
 	}
 }
 
@@ -708,6 +711,7 @@ class GeoMapPolygon extends Polygon {
 			this.editor.geomap.off('click', addVertex);
 			document.removeEventListener('keydown', handleEscape);
 			mapContainer.classList.remove('marker-placement');
+			this.editor.geomap.checkValidity();
 			this.bindPopup(this.popup);
 		};
 		const handleEscape = (event: KeyboardEvent) => {
@@ -839,6 +843,7 @@ class GeoMapPolygon extends Polygon {
 		this.group.removeLayer(this);
 		this.group.removeFrom(this.editor.geomap);
 		this.editor.deleteLayer(this.index);
+		this.editor.geomap.checkValidity();
 	}
 }
 
@@ -950,7 +955,6 @@ class GeoMap extends Map implements Inducible {
 	private readonly intersectionObserver: IntersectionObserver;
 	private readonly mutationObserver: MutationObserver;
 	private resizeObserver: ResizeObserver;
-	public initialData: JSONValue = null;
 	public readonly editors: Record<string, GeometryEditor> = {};
 	private initialBBox: Record<string, string> = {height: '', minHeight: '', maxHeight: ''};
 
@@ -994,7 +998,6 @@ class GeoMap extends Map implements Inducible {
 		const form = this.textAreaElement.form as HTMLFormElement;
 		form.addEventListener('reset', this.formResetted);
 		form.addEventListener('submitted', this.formSubmitted);
-		this.initialData = JSON.parse(this.textAreaElement.dataset.content as string ?? 'null');
 		const computedStyle = window.getComputedStyle(this.textAreaElement);
 		this.initialBBox.height = computedStyle.height;
 		this.initialBBox.minHeight = computedStyle.minHeight;
@@ -1010,13 +1013,9 @@ class GeoMap extends Map implements Inducible {
 	}
 
 	private formResetted = () => {
-		this.initialData = JSON.parse(this.textAreaElement.dataset.content as string ?? 'null');
-		this.setInitialData(this.initialData);
-		for (const editor of Object.values(this.editors)) {
-			editor.clear();
-			editor.setInitialData(this.initialData);
-		}
-		this.getValue();
+		const initialData = JSON.parse(this.textAreaElement.dataset.content as string ?? 'null');
+		this.setInitialData(initialData);
+		this.checkValidity();
 	};
 
 	private formSubmitted = () => {
@@ -1039,12 +1038,13 @@ class GeoMap extends Map implements Inducible {
 		const bbox = getDataValue(initialData, 'bbox') as number[];
 		if (bbox) {
 			const bounds = latLngBounds([bbox[1], bbox[0]], [bbox[3], bbox[2]]);
-			this.flyToBounds(bounds, {animate: false});
+			window.requestIdleCallback(() => this.flyToBounds(bounds, {animate: false}));
 		}
 		for (const editor of Object.values(this.editors)) {
 			editor.clear();
 			editor.setInitialData(initialData);
 		}
+		this.checkValidity();
 	}
 
 	private extendControls() {
@@ -1088,8 +1088,8 @@ class GeoMap extends Map implements Inducible {
 			this.formset = event.detail.formset as DjangoFormset;
 			this.formset.registerInducer(this);
 			Object.values(this.editors).forEach(editor => editor.register());
-			this.setInitialData(this.initialData);
-			this.getValue();  // to set "_has_value_" on textarea element
+			const initialData = JSON.parse(this.textAreaElement.dataset.content as string ?? 'null');
+			this.setInitialData(initialData);
 		}, {once: true});
 	}
 
@@ -1116,10 +1116,10 @@ class GeoMap extends Map implements Inducible {
 	private attributesChanged = (mutationsList: Array<MutationRecord>) => {
 		for (const mutation of mutationsList) {
 			if (mutation.type === 'attributes' && mutation.attributeName === 'data-content') {
-				this.initialData = JSON.parse(this.textAreaElement.dataset.content as string);
-				if (getDataValue(this.initialData, 'type') === 'FeatureCollection') {
+				const initialData = JSON.parse(this.textAreaElement.dataset.content as string);
+				if (getDataValue(initialData, 'type') === 'FeatureCollection') {
 					window.requestIdleCallback(() => {
-						this.setInitialData(this.initialData);
+						this.setInitialData(initialData);
 					});
 				} else {
 					Object.values(this.editors).forEach(editor => editor.clear());
@@ -1136,19 +1136,23 @@ class GeoMap extends Map implements Inducible {
 		}
 	};
 
-	public getValue() : object {
+	public getValue() : Record<string, any> {
 		// return the values from the Leaflet map here
 		const bounds = this.getBounds();
 		const result = {
 			type: 'FeatureCollection',
 			bbox: bounds ? [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()] : null,
-			features: [] as Record<string, any>,
+			features: [] as Record<string, any>[],
 		};
 		for (const editor of Object.values(this.editors)) {
 			result.features.push(...editor.getFeatures());
 		}
-		this.textAreaElement.innerText = result.features.length === 0 ? "" : "_has_value_";  // required for validation
 		return result;
+	}
+
+	public checkValidity() {
+		const hasContent = Object.values(this.editors).some(editor => editor.getFeatures().length > 0);
+		this.textAreaElement.innerText = hasContent ? "_has_value_" : "";  // required for validation
 	}
 
 	public updateOperability(...args: any[]) {
