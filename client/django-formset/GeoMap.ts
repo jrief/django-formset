@@ -435,7 +435,6 @@ class GeoMapPolyline extends Polyline {
 			this.editor.geomap.off('click', addVertex);
 			document.removeEventListener('keydown', handleEscape);
 			mapContainer.classList.remove('marker-placement');
-			event.originalEvent.stopPropagation();
 			this.bindPopup(this.popup);
 		};
 		const handleEscape = (event: KeyboardEvent) => {
@@ -709,7 +708,6 @@ class GeoMapPolygon extends Polygon {
 			this.editor.geomap.off('click', addVertex);
 			document.removeEventListener('keydown', handleEscape);
 			mapContainer.classList.remove('marker-placement');
-			event.originalEvent.stopPropagation();
 			this.bindPopup(this.popup);
 		};
 		const handleEscape = (event: KeyboardEvent) => {
@@ -961,7 +959,13 @@ class GeoMap extends Map implements Inducible {
 		const mapElement = wrapperElement?.querySelector('.leaflet-map') as HTMLDivElement;
 		if (!(mapElement instanceof HTMLDivElement))
 			throw new Error(`Could not find .leaflet-map element in ${wrapperElement}`);
-		const options: MapOptions = {maxZoom: 18, minZoom: 1, zoom: 10, center: new LatLng(0, 0)};
+		const options: MapOptions = {
+			maxZoom: 18,
+			minZoom: 1,
+			zoom: 9,
+			center: new LatLng(47, 9),
+			doubleClickZoom: false,
+		};
 		super(mapElement, options);
 		this.textAreaElement = element;
 		this.wrapperElement = wrapperElement;
