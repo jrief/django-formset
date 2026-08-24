@@ -3,7 +3,9 @@ import json
 from django.core.exceptions import ImproperlyConfigured
 from django.forms.widgets import Textarea
 from django.utils.html import format_html, format_html_join
+from django.utils.safestring import mark_safe
 
+from formset.geomap.controls import ControlElement
 from formset.geomap.dialogs import GeoMapDialogForm
 
 
@@ -49,18 +51,34 @@ class GeoMapWidget(Textarea):
             if position not in self.controls:
                 continue
             for editor in self.controls[position]:
-                if editor.identifier in editor_identifiers:
-                    raise ImproperlyConfigured(
-                        f"The editor identifier “{editor.identifier}” has already been registered on {self}."
-                    )
-                editor_identifiers.add(editor.identifier)
-                for dialog_form in editor.dialog_forms:
-                    if dialog_form.extension in dialog_form_extensions:
+                if isinstance(editor, ControlElement):
+                    if editor.identifier in editor_identifiers:
                         raise ImproperlyConfigured(
-                            f"The dialog form using extension “{dialog_form.extension}” has "
-                            f"already been registered on {self}."
+                            f"The editor identifier “{editor.identifier}” has already been registered on {self}."
                         )
-                    dialog_form_extensions.add(dialog_form.extension)
+                    editor_identifiers.add(editor.identifier)
+                    for dialog_form in editor.dialog_forms:
+                        if dialog_form.extension in dialog_form_extensions:
+                            raise ImproperlyConfigured(
+                                f"The dialog form using extension “{dialog_form.extension}” has "
+                                f"already been registered on {self}."
+                            )
+                        dialog_form_extensions.add(dialog_form.extension)
+                elif isinstance(editor, (list, tuple)):
+                    for sub_editor in editor:
+                        if sub_editor.identifier in editor_identifiers:
+                            raise ImproperlyConfigured(
+                                f"The editor identifier “{sub_editor.identifier}” has already been registered on {self}."
+                            )
+                        editor_identifiers.add(sub_editor.identifier)
+                        for dialog_form in sub_editor.dialog_forms:
+                            if dialog_form.extension in dialog_form_extensions:
+                                raise ImproperlyConfigured(
+                                    f"The dialog form using extension “{dialog_form.extension}” has "
+                                    f"already been registered on {self}."
+                                )
+                            dialog_form_extensions.add(dialog_form.extension)
+
 
     def build_attrs(self, base_attrs, extra_attrs=None):
         attrs = super().build_attrs(base_attrs, extra_attrs)
@@ -77,6 +95,9 @@ class GeoMapWidget(Textarea):
         return context
 
     def render(self, name, value, attrs=None, renderer=None):
+        def render_controls(controls):
+            return
+
         def render_dialog(dialog_form, described_by):
             dialog_form.prefix = f'{form_prefix}.{name}' if form_prefix else name
             dialog_context = {**dialog_form.get_context(), 'described_by': described_by}
@@ -86,28 +107,53 @@ class GeoMapWidget(Textarea):
         context = self.get_context(name, value, attrs)
         control_elements, popups, dialog_forms = [], [], []
         for position, controls in self.controls.items():
+            rendered_controls = [[]]
+            for control_element in controls:
+                if isinstance(control_element, ControlElement):
+                    rendered_controls[-1].append(control_element.render(renderer))
+                    popups.append({
+                        'labeled_by': control_element.identifier,
+                        'dialogs': [],
+                        'delete_button_icon': control_element.delete_button_icon,
+                        'extend_button_icon': getattr(control_element, 'extend_button_icon', None),
+                    })
+                    for dialog_form in control_element.dialog_forms:
+                        if isinstance(dialog_form, GeoMapDialogForm):
+                            dialog_forms.append(render_dialog(dialog_form, control_element.identifier))
+                            popups[-1]['dialogs'].append({
+                                'prefix': dialog_form.prefix,
+                                'icon': dialog_form.button_icon,
+                                'title': dialog_form.title,
+                            })
+                elif isinstance(control_element, (list, tuple)):
+                    rendered_controls.append([ctrl_elm.render(renderer) for ctrl_elm in control_element])
+                    rendered_controls.append([])
+                    for ctrl_elm in control_element:
+                        popups.append({
+                            'labeled_by': ctrl_elm.identifier,
+                            'dialogs': [],
+                            'delete_button_icon': ctrl_elm.delete_button_icon,
+                            'extend_button_icon': getattr(ctrl_elm, 'extend_button_icon', None),
+                        })
+                        for dialog_form in ctrl_elm.dialog_forms:
+                            if isinstance(dialog_form, GeoMapDialogForm):
+                                dialog_forms.append(render_dialog(dialog_form, ctrl_elm.identifier))
+                                popups[-1]['dialogs'].append({
+                                    'prefix': dialog_form.prefix,
+                                    'icon': dialog_form.button_icon,
+                                    'title': dialog_form.title,
+                                })
             control_elements.append(
                 format_html(
-                    '<div aria-current="{position}" class="leaflet-bar">{controls}</div>',
+                    '<div aria-current="{position}">{controls}</div>',
                     position=position,
-                    controls=format_html_join('', '{0}', ([elm.render(renderer)] for elm in controls)),
+                    controls=format_html_join(
+                        '',
+                        '<div class="leaflet-bar">{0}</div>',
+                        ((mark_safe(''.join(rc)),) for rc in rendered_controls if rc),
+                    ),
                 )
             )
-            for control_element in controls:
-                popups.append({
-                    'labeled_by': control_element.identifier,
-                    'dialogs': [],
-                    'delete_button_icon': control_element.delete_button_icon,
-                })
-                for dialog_form in control_element.dialog_forms:
-                    if isinstance(dialog_form, GeoMapDialogForm):
-                        dialog_forms.append(render_dialog(dialog_form, control_element.identifier))
-                        popups[-1]['dialogs'].append({
-                            'prefix': dialog_form.prefix,
-                            'icon': dialog_form.button_icon,
-                            'title': dialog_form.title,
-                        })
-
         context.update(
             control_elements=control_elements,
             popups=popups,

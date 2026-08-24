@@ -65,18 +65,6 @@ class ControlElement:
         return template.render(context)
 
 
-class Group(list):
-    template_name = 'formset/geomap/control_group.html'
-
-    def render(self, renderer, context=None):
-        if context is None:
-            context = {
-                'elements': [element.render(renderer) for element in self],
-            }
-        template = get_template(self.template_name)
-        return template.render(context)
-
-
 default_marker = {
     'iconUrl': staticfiles_storage.url('formset/icons/marker-icon.svg'),
     'iconSize': [25, 41],
@@ -108,3 +96,20 @@ class PolygonEditor(ControlElement):
     label = _("Edit Polygon")
     add_button_icon = 'formset/geomap/icons/add-polygon.svg'
     delete_button_icon = 'formset/geomap/icons/delete-polygon.svg'
+
+
+class MultiPolygonEditor(ControlElement):
+    identifier = 'multipolygon'
+    label = _("Edit Multi-Polygon")
+    add_button_icon = 'formset/geomap/icons/add-multipolygon.svg'
+    delete_button_icon = 'formset/geomap/icons/delete-multipolygon.svg'
+    extend_button_icon = 'formset/geomap/icons/extend-multipolygon.svg'
+
+    def __init__(
+        self,
+        extend_button_icon=None,
+        **kwargs,
+    ):
+        if extend_button_icon is not None:
+            self.extend_button_icon = extend_button_icon
+        super().__init__(**kwargs)
