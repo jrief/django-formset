@@ -1,1 +1,1 @@
-<a title="{{ title }}" role="button" aria-label="{{ name }}" aria-description="{{ identifier }}" data-marker="{{ marker }}"><span>{% include add_button_icon %}<span/></a>
+<a title="{{ title }}" role="button" aria-label="{{ name }}" aria-description="{{ identifier }}" data-marker="{{ marker }}"{% if min_entries %} data-min-entries="{{ min_entries }}"{% endif %}{% if max_entries %} data-max-entries="{{ max_entries }}"{% endif %}><span>{% include add_button_icon %}<span/></a>

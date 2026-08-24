@@ -42,6 +42,7 @@ Django's counterparts.
 	form-stepper
 	richtext
 	richtext-extensions
+	geographic-data
 	slug-input
 	date-time-input
 	date-time-range

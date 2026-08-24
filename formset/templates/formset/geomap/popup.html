@@ -3,6 +3,9 @@
 	{% for dialog in popup.dialogs %}
 	<button role="button" df-click="activate" name="{{ dialog.prefix }}" title="{{ dialog.title }}">{% include dialog.icon %}</button>
 	{% endfor %}
+	{% if popup.extend_button_icon %}
+	<button role="button" name="extend_layer" title="{% translate 'Extend this element' %}">{% include popup.extend_button_icon %}</button>
+	{% endif %}
 	<button role="button" name="delete_layer" title="{% translate 'Delete this element' %}">{% include popup.delete_button_icon %}</button>
 </div>
 {% endspaceless %}

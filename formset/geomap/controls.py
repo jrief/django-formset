@@ -12,6 +12,8 @@ class ControlElement:
     identifier = None
     label = None
     dialog_forms = []
+    min_entries = None
+    max_entries = None
 
     def __init__(
         self,
@@ -21,6 +23,8 @@ class ControlElement:
         delete_button_icon=None,
         marker=None,
         dialog_forms=None,
+        min_entries=None,
+        max_entries=None,
     ):
         if isinstance(identifier, str):
             self.identifier = identifier
@@ -34,6 +38,10 @@ class ControlElement:
             self.marker = marker
         if isinstance(dialog_forms, (list, tuple)) and all(isinstance(f, DialogForm) for f in dialog_forms):
             self.dialog_forms = list(dialog_forms)
+        if isinstance(min_entries, int):
+            self.min_entries = min_entries
+        if isinstance(max_entries, int):
+            self.max_entries = max_entries
 
     def get_template(self, renderer):
         templates = [
@@ -51,6 +59,8 @@ class ControlElement:
             'add_button_icon': getattr(self, 'add_button_icon', f'formset/geomap/icons/add-{name.lower()}.svg'),
             'delete_button_icon': getattr(self, 'delete_button_icon', f'formset/geomap/icons/delete-layer.svg'),
             'marker': json.dumps(getattr(self, 'marker', {})),
+            'min_entries': self.min_entries,
+            'max_entries': self.max_entries,
         }
 
     def clean_content(self, richtext_field, content):
@@ -62,18 +72,6 @@ class ControlElement:
         template = self.get_template(renderer)
         if context is None:
             context = self.get_context()
-        return template.render(context)
-
-
-class Group(list):
-    template_name = 'formset/geomap/control_group.html'
-
-    def render(self, renderer, context=None):
-        if context is None:
-            context = {
-                'elements': [element.render(renderer) for element in self],
-            }
-        template = get_template(self.template_name)
         return template.render(context)
 
 
@@ -95,6 +93,9 @@ class PointEditor(ControlElement):
     delete_button_icon = 'formset/geomap/icons/delete-marker.svg'
     marker = default_marker
 
+    def __init__(self, min_markers=None, max_markers=None, **kwargs):
+        super().__init__(min_entries=min_markers, max_entries=max_markers, **kwargs)
+
 
 class PolylineEditor(ControlElement):
     identifier = 'polyline'
@@ -102,9 +103,32 @@ class PolylineEditor(ControlElement):
     add_button_icon = 'formset/geomap/icons/add-polyline.svg'
     delete_button_icon = 'formset/geomap/icons/delete-polyline.svg'
 
+    def __init__(self, min_polylines=None, max_polylines=None, **kwargs):
+        super().__init__(min_entries=min_polylines, max_entries=max_polylines, **kwargs)
+
 
 class PolygonEditor(ControlElement):
     identifier = 'polygon'
     label = _("Edit Polygon")
     add_button_icon = 'formset/geomap/icons/add-polygon.svg'
     delete_button_icon = 'formset/geomap/icons/delete-polygon.svg'
+
+    def __init__(self, min_polygons=None, max_polygons=None, **kwargs):
+        super().__init__(min_entries=min_polygons, max_entries=max_polygons, **kwargs)
+
+
+class MultiPolygonEditor(ControlElement):
+    identifier = 'multipolygon'
+    label = _("Edit Multi-Polygon")
+    add_button_icon = 'formset/geomap/icons/add-multipolygon.svg'
+    delete_button_icon = 'formset/geomap/icons/delete-multipolygon.svg'
+    extend_button_icon = 'formset/geomap/icons/extend-multipolygon.svg'
+
+    def __init__(
+        self,
+        extend_button_icon=None,
+        **kwargs,
+    ):
+        if extend_button_icon is not None:
+            self.extend_button_icon = extend_button_icon
+        super().__init__(**kwargs)

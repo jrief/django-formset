@@ -1,6 +1,5 @@
 import {
 	Control,
-	ControlOptions,
 	ControlPosition,
 	DivIcon,
 	GeoJSON,
@@ -20,6 +19,7 @@ import {
 	PolylineOptions,
 	Polygon,
 	Popup,
+	TileLayerOptions,
 	latLngBounds,
 	polyline,
 	tileLayer,
@@ -34,6 +34,11 @@ import styles from './GeoMap.scss';
 
 
 const CONTROL_POSITIONS: ReadonlyArray<ControlPosition> = ['topleft', 'topright', 'bottomleft', 'bottomright'] as const;
+
+type ControlOptions = {
+	position: string;
+	leafletBar: HTMLElement;
+}
 
 class GeoMapFormDialog extends TransientFormDialog {
 	private readonly geomap: GeoMap;
@@ -100,16 +105,19 @@ abstract class GeometryEditor {
 	protected readonly popupTemplate: HTMLDivElement;
 	public readonly formDialogs: GeoMapFormDialog[] = [];
 	protected readonly anchor: HTMLAnchorElement;
+	protected readonly minEntries: number|null;
+	protected readonly maxEntries: number|null;
 
 	constructor(geomap: GeoMap, anchor: HTMLAnchorElement) {
 		this.geomap = geomap;
 		this.anchor = anchor;
+		this.minEntries = anchor.dataset.minEntries ? parseInt(anchor.dataset.minEntries) : null;
+		this.maxEntries = anchor.dataset.maxEntries ? parseInt(anchor.dataset.maxEntries) : null;
 		const popupTemplate = this.geomap.controlsTemplate.content.querySelector(`[role="tooltip"][aria-labeledby="${this.identifier}"]`);
 		if (!(popupTemplate instanceof HTMLDivElement))
 			throw new Error('Could not find popup template for [role="tooltip"]');
 		this.popupTemplate = popupTemplate;
 		this.registerFormDialogs();
-		//this.registerTooltip();
 	}
 
 	private registerFormDialogs() {
@@ -142,6 +150,10 @@ abstract class GeometryEditor {
 
 	public abstract deleteLayer(index: [number, number]) : void;
 
+	public abstract cancelInitialPlacement() : void;
+
+	public abstract checkValidity() : boolean;
+
 	public extendLayer(index: [number, number]) {}
 
 	public register() {
@@ -159,6 +171,7 @@ class GeoMapMarker extends Marker {
 	private readonly popup: Popup;
 	public readonly properties: Record<string, any> = {};
 	public readonly index: [number, number];
+	public moveMarker: Function|null = null;
 
 	constructor(editor: GeometryEditor, latlng: LatLng, index: [number, number], popupTemplate: HTMLDivElement, icon: Icon) {
 		const options: MarkerOptions = {
@@ -200,26 +213,19 @@ class GeoMapMarker extends Marker {
 
 	public initialPlacement() {
 		const map = this.editor.geomap;
-		const mapContainer = map.getContainer();
-		mapContainer.classList.add('marker-placement');
-		const moveMarker = (event: LeafletMouseEvent) => this.setLatLng(event.latlng);
-		const dropMarker = () => {
-			map.off('mousemove', moveMarker);
-			document.removeEventListener('keydown', handleEscape);
-			mapContainer.classList.remove('marker-placement');
-			this.editor.geomap.checkValidity();
-		};
-		const handleEscape = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') {
-				this.deleteMarker();
-				dropMarker();
-				document.removeEventListener('keydown', handleEscape);
-			}
-		};
-		map.on('mousemove', moveMarker);
-		map.once('click', dropMarker);
-		document.addEventListener('keydown', handleEscape);
+		map.getContainer().classList.add('marker-placement');
+		this.moveMarker = (event: LeafletMouseEvent) => this.setLatLng(event.latlng);
+		map.on('mousemove', this.moveMarker as any);
+		map.once('click', this.dropMarker);
 	}
+
+	public dropMarker = () => {
+		const map = this.editor.geomap;
+		map.off('mousemove', this.moveMarker as any);
+		this.moveMarker = null;
+		map.getContainer().classList.remove('marker-placement');
+		map.checkValidity();
+	};
 
 	public deleteMarker() {
 		this.editor.closeAllDialogs();
@@ -291,6 +297,24 @@ class PointEditor extends GeometryEditor {
 		return this.markers[index[0]];
 	}
 
+	public cancelInitialPlacement() {
+		if (this.markers.at(-1)?.moveMarker) {
+			const marker = this.markers.pop()!;
+			const map = this.geomap;
+			map.getContainer().classList.remove('marker-placement');
+			map.off('mousemove', marker.moveMarker as any);
+			map.off('click', marker.dropMarker as any);
+			marker.moveMarker = null;
+			marker.deleteMarker();
+		}
+	}
+
+	public checkValidity(): boolean {
+		const numEntries = this.markers.filter(marker => marker !== null).length;
+ 		this.anchor.ariaDisabled = this.maxEntries !== null && numEntries >= this.maxEntries ? 'true' : null;
+		return (this.minEntries === null || numEntries >= this.minEntries);
+	}
+
 	public deleteLayer(index: [number, number]) {
 		this.markers[index[0]]?.unbindPopup();
 		this.markers[index[0]] = null;
@@ -300,6 +324,7 @@ class PointEditor extends GeometryEditor {
 		const target = event.originalEvent.target;
 		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaDescription !== this.anchor.ariaDescription)
 			return;
+		this.geomap.cancelInitialPlacements();
 		const marker = new GeoMapMarker(this, event.latlng, [this.markers.length, 0], this.popupTemplate, this.markerIcon);
 		this.markers.push(marker);
 		marker.initialPlacement();
@@ -361,6 +386,7 @@ class GeoMapPolyline extends Polyline {
 	private readonly popup: Popup;
 	private tempVertex: Polyline|null = null;  // temporary vertex moving with the cursor
 	public vertexMarkers: VertexMarker[][] = [];
+	public moveVertex: Function|null = null;
 
 	constructor(editor: GeometryEditor, latlngs: LatLngExpression[], index: [number, number], popupTemplate: HTMLDivElement) {
 		const options: PolylineOptions = {
@@ -394,69 +420,65 @@ class GeoMapPolyline extends Polyline {
 		return popup;
 	}
 
+	public openPopup(latlng?: LatLngExpression): this {
+		this.editor.geomap.closeAllDialogs();
+		return super.openPopup(latlng);
+	}
+
 	public initialPlacement() {
-		const mapContainer = this.editor.geomap.getContainer();
-		mapContainer.classList.add('marker-placement');
-		const moveVertex = (event: LeafletMouseEvent) => {
+		const map = this.editor.geomap;
+		map.getContainer().classList.add('marker-placement');
+		this.moveVertex = (event: LeafletMouseEvent) => {
 			if (this.tempVertex) {
 				const firstLatLng = this.tempVertex.getLatLngs()[0] as LatLng;
 				this.tempVertex.setLatLngs([firstLatLng, event.latlng]);
 			}
 		};
-		const addVertex = (event: LeafletMouseEvent) => {
-			if (this.tempVertex) {
-				this.tempVertex.setLatLngs([event.latlng, event.latlng]);
-			} else {
-				const options: PolylineOptions = {
-					bubblingMouseEvents: false,
-					dashArray: "2 4",
-					weight: 1.5,
-				};
-				this.tempVertex = polyline([event.latlng, event.latlng], options);
-				this.tempVertex.addTo(this.group);
-			}
-			this.addLatLng(event.latlng);
-		};
-		const finishPolyline = (event: LeafletMouseEvent) => {
-			const latlngs = this.getLatLngs() as LatLng[];
-			if (latlngs.length > 2) {
-				if (isEqual(latlngs[latlngs.length - 1], latlngs[latlngs.length - 2])) {
-					latlngs.pop();  // added by second click in dblclick
-				}
-				this.setVertexMarkers(latlngs);
-			} else {
-				latlngs.length = 0;
-			}
-			this.setLatLngs(latlngs);
-			if (this.tempVertex) {
-				this.group.removeLayer(this.tempVertex);
-				this.tempVertex = null;
-			}
-			this.editor.geomap.off('mousemove', moveVertex);
-			this.editor.geomap.off('click', addVertex);
-			document.removeEventListener('keydown', handleEscape);
-			mapContainer.classList.remove('marker-placement');
-			this.editor.geomap.checkValidity();
-			this.bindPopup(this.popup);
-		};
-		const handleEscape = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') {
-				this.group.removeFrom(this.editor.geomap);
-				this.editor.deleteLayer(this.index);
-				this.editor.geomap.off('mousemove', moveVertex);
-				this.editor.geomap.off('click', addVertex);
-				mapContainer.classList.remove('marker-placement');
-				document.removeEventListener('keydown', handleEscape);
-				this.bindPopup(this.popup);
-			}
-		};
 		this.closePopup();
 		this.unbindPopup();
-		this.editor.geomap.on('mousemove', moveVertex);
-		this.editor.geomap.on('click', addVertex);
-		this.editor.geomap.once('dblclick', finishPolyline);
-		document.addEventListener('keydown', handleEscape);
+		map.on('mousemove', this.moveVertex as any);
+		map.on('click', this.addVertex);
+		map.once('dblclick', this.finishPolyline);
 	}
+
+	public addVertex = (event: LeafletMouseEvent) => {
+		if (this.tempVertex) {
+			this.tempVertex.setLatLngs([event.latlng, event.latlng]);
+		} else {
+			const options: PolylineOptions = {
+				bubblingMouseEvents: false,
+				dashArray: "2 4",
+				weight: 1.5,
+			};
+			this.tempVertex = polyline([event.latlng, event.latlng], options);
+			this.tempVertex.addTo(this.group);
+		}
+		this.addLatLng(event.latlng);
+	};
+
+	public finishPolyline = (event: LeafletMouseEvent) => {
+		const latlngs = this.getLatLngs() as LatLng[];
+		if (latlngs.length > 2) {
+			if (isEqual(latlngs[latlngs.length - 1], latlngs[latlngs.length - 2])) {
+				latlngs.pop();  // added by second click in dblclick
+			}
+			this.setVertexMarkers(latlngs);
+		} else {
+			latlngs.length = 0;
+		}
+		this.setLatLngs(latlngs);
+		if (this.tempVertex) {
+			this.group.removeLayer(this.tempVertex);
+			this.tempVertex = null;
+		}
+		const map = this.editor.geomap;
+		map.off('mousemove', this.moveVertex as any);
+		map.off('click', this.addVertex);
+		this.moveVertex = null;
+		map.getContainer().classList.remove('marker-placement');
+		map.checkValidity();
+		this.bindPopup(this.popup);
+	};
 
 	public setVertexMarkers(latlngs: LatLng[]) {
 		let prevLatLng: LatLng|null = null;
@@ -538,6 +560,10 @@ class GeoMapPolyline extends Polyline {
 
 	public deletePolyline() {
 		this.editor.closeAllDialogs();
+		if (this.tempVertex) {
+			this.group.removeLayer(this.tempVertex);
+			this.tempVertex = null;
+		}
 		this.vertexMarkers.forEach(markers => markers.forEach(marker => this.group.removeLayer(marker)));
 		this.vertexMarkers.length = 0;
 		this.group.removeLayer(this);
@@ -559,6 +585,25 @@ class PolylineEditor extends GeometryEditor {
 		return this.polylines[index[0]];
 	}
 
+	public cancelInitialPlacement() {
+		if (this.polylines.at(-1)?.moveVertex) {
+			const polyline = this.polylines.pop()!;
+			const map = this.geomap;
+			map.getContainer().classList.remove('marker-placement');
+			map.off('mousemove', polyline.moveVertex as any);
+			map.off('click', polyline.addVertex as any);
+			map.off('dblclick', polyline.finishPolyline as any);
+			polyline.moveVertex = null;
+			polyline.deletePolyline();
+		}
+	}
+
+	public checkValidity(): boolean {
+		const numEntries = this.polylines.filter(polyline => polyline !== null).length;
+ 		this.anchor.ariaDisabled = this.maxEntries !== null && numEntries >= this.maxEntries ? 'true' : null;
+		return (this.minEntries === null || numEntries >= this.minEntries);
+	}
+
 	public deleteLayer(index: [number, number]) {
 		this.polylines[index[0]]?.unbindPopup();
 		this.polylines[index[0]] = null;
@@ -568,6 +613,7 @@ class PolylineEditor extends GeometryEditor {
 		const target = event.originalEvent.target;
 		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaDescription !== this.anchor.ariaDescription)
 			return;
+		this.geomap.cancelInitialPlacements();
 		const polyline = new GeoMapPolyline(this, [], [this.polylines.length, 0], this.popupTemplate);
 		this.polylines.push(polyline);
 		polyline.initialPlacement();
@@ -629,6 +675,7 @@ class GeoMapPolygon extends Polygon {
 	private readonly popup: Popup;
 	private tempVertex: Polyline|null = null;  // temporary vertex moving with the cursor
 	public vertexMarkers: VertexMarker[][] = [];
+	public moveVertex: Function|null = null;
 
 	constructor(editor: GeometryEditor, latlngs: LatLngExpression[][], index: [number, number], popupTemplate: HTMLDivElement) {
 		const options: PolylineOptions = {
@@ -663,10 +710,14 @@ class GeoMapPolygon extends Polygon {
 		return popup;
 	}
 
+
+	public openPopup(latlng?: LatLngExpression): this {
+		this.editor.geomap.closeAllDialogs();
+		return super.openPopup(latlng);
+	}
+
 	public initialPlacement(index: number) {
-		const mapContainer = this.editor.geomap.getContainer();
-		mapContainer.classList.add('marker-placement');
-		const moveVertex = (event: LeafletMouseEvent) => {
+		this.moveVertex = (event: LeafletMouseEvent) => {
 			if (this.tempVertex) {
 				const lastLatLng = this.tempVertex.getLatLngs()[0] as LatLng;
 				const latLngs = this.getLatLngs()[index] as LatLng[];
@@ -677,60 +728,54 @@ class GeoMapPolygon extends Polygon {
 				}
 			}
 		};
-		const addVertex = (event: LeafletMouseEvent) => {
-			if (this.tempVertex) {
-				this.tempVertex.setLatLngs([event.latlng, event.latlng]);
-			} else {
-				const options: PolylineOptions = {
-					bubblingMouseEvents: false,
-					dashArray: "2 4",
-					weight: 1.5,
-				};
-				this.tempVertex = polyline([event.latlng, event.latlng], options);
-				this.tempVertex.addTo(this.group);
-			}
-			const latlngs = this.getLatLngs()[index] as LatLng[];
-			this.addLatLng(event.latlng, latlngs);
-		};
-		const finishPolygon = (event: LeafletMouseEvent) => {
-			const latlngs = this.getLatLngs()[index] as LatLng[];
-			if (latlngs.length > 2) {
-				if (isEqual(latlngs[latlngs.length - 1], latlngs[latlngs.length - 2])) {
-					latlngs.pop();  // added by second click in dblclick
-				}
-				this.setVertexMarkers(this.getLatLngs() as LatLng[][]);
-			} else {
-				latlngs.length = 0;
-			}
-			this.redraw();
-			if (this.tempVertex) {
-				this.group.removeLayer(this.tempVertex);
-				this.tempVertex = null;
-			}
-			this.editor.geomap.off('mousemove', moveVertex);
-			this.editor.geomap.off('click', addVertex);
-			document.removeEventListener('keydown', handleEscape);
-			mapContainer.classList.remove('marker-placement');
-			this.editor.geomap.checkValidity();
-			this.bindPopup(this.popup);
-		};
-		const handleEscape = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') {
-				this.deletePolygon(index);
-				this.editor.geomap.off('mousemove', moveVertex);
-				this.editor.geomap.off('click', addVertex);
-				mapContainer.classList.remove('marker-placement');
-				document.removeEventListener('keydown', handleEscape);
-				this.bindPopup(this.popup);
-			}
-		};
 		this.closePopup();
 		this.unbindPopup();
-		this.editor.geomap.on('mousemove', moveVertex);
-		this.editor.geomap.on('click', addVertex);
-		this.editor.geomap.once('dblclick', finishPolygon);
-		document.addEventListener('keydown', handleEscape);
+		const map = this.editor.geomap;
+		map.getContainer().classList.add('marker-placement');
+		map.on('mousemove', this.moveVertex as any);
+		map.on('click', this.addVertex);
+		map.once('dblclick', this.finishPolygon);
 	}
+
+	public addVertex = (event: LeafletMouseEvent) => {
+		if (this.tempVertex) {
+			this.tempVertex.setLatLngs([event.latlng, event.latlng]);
+		} else {
+			const options: PolylineOptions = {
+				bubblingMouseEvents: false,
+				dashArray: "2 4",
+				weight: 1.5,
+			};
+			this.tempVertex = polyline([event.latlng, event.latlng], options);
+			this.tempVertex.addTo(this.group);
+		}
+		const latlngRing = this.getLatLngs().at(-1) as LatLng[];
+		this.addLatLng(event.latlng, latlngRing);
+	};
+
+	public finishPolygon = (event: LeafletMouseEvent) => {
+		const latlngs = this.getLatLngs().at(-1) as LatLng[];
+		if (latlngs.length > 2) {
+			if (isEqual(latlngs[latlngs.length - 1], latlngs[latlngs.length - 2])) {
+				latlngs.pop();  // added by second click in dblclick
+			}
+			this.setVertexMarkers(this.getLatLngs() as LatLng[][]);
+		} else {
+			latlngs.length = 0;
+		}
+		this.redraw();
+		if (this.tempVertex) {
+			this.group.removeLayer(this.tempVertex);
+			this.tempVertex = null;
+		}
+		const map = this.editor.geomap;
+		map.off('mousemove', this.moveVertex as any);
+		map.off('click', this.addVertex);
+		this.moveVertex = null;
+		map.getContainer().classList.remove('marker-placement');
+		map.checkValidity();
+		this.bindPopup(this.popup);
+	};
 
 	public setVertexMarkers(latlngRings: LatLng[][]) {
 		for (const [index, latlngs] of latlngRings.entries()) {
@@ -824,6 +869,10 @@ class GeoMapPolygon extends Polygon {
 	}
 
 	public deletePolygon(index0: number) {
+		if (this.tempVertex) {
+			this.group.removeLayer(this.tempVertex);
+			this.tempVertex = null;
+		}
 		if (Array.isArray(this.vertexMarkers[index0])) {
 			this.vertexMarkers[index0].forEach(marker => this.group.removeLayer(marker));
 			this.vertexMarkers.splice(index0, 1);
@@ -834,10 +883,15 @@ class GeoMapPolygon extends Polygon {
 		} else {
 			this.redraw();
 		}
+		this.bindPopup(this.popup);
 	}
 
 	public deleteAllPolygons() {
 		this.editor.closeAllDialogs();
+		if (this.tempVertex) {
+			this.group.removeLayer(this.tempVertex);
+			this.tempVertex = null;
+		}
 		this.vertexMarkers.forEach(markers => markers.forEach(marker => this.group.removeLayer(marker)));
 		this.vertexMarkers.length = 0;
 		this.group.removeLayer(this);
@@ -859,6 +913,25 @@ class PolygonEditor extends GeometryEditor {
 		return this.polygones[index[0]];
 	}
 
+	public cancelInitialPlacement() {
+		if (this.polygones.at(-1)?.moveVertex) {
+			const polygon = this.polygones.pop()!;
+			const map = this.geomap;
+			map.getContainer().classList.remove('marker-placement');
+			map.off('mousemove', polygon.moveVertex as any);
+			map.off('click', polygon.addVertex as any);
+			map.off('dblclick', polygon.finishPolygon as any);
+			polygon.moveVertex = null;
+			polygon.deletePolygon(polygon.getLatLngs().length - 1);
+		}
+	}
+
+	public checkValidity(): boolean {
+		const numEntries = this.polygones.filter(polygone => polygone !== null).length;
+ 		this.anchor.ariaDisabled = this.maxEntries !== null && numEntries >= this.maxEntries ? 'true' : null;
+		return (this.minEntries === null || numEntries >= this.minEntries);
+	}
+
 	public deleteLayer(index: [number, number]) {
 		this.polygones[index[0]]?.unbindPopup();
 		this.polygones[index[0]] = null;
@@ -868,6 +941,7 @@ class PolygonEditor extends GeometryEditor {
 		const target = event.originalEvent.target;
 		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaDescription !== this.anchor.ariaDescription)
 			return;
+		this.geomap.cancelInitialPlacements();
 		const polygon = new GeoMapPolygon(this, [], [this.polygones.length, 0], this.popupTemplate);
 		this.polygones.push(polygon);
 		polygon.initialPlacement(0);
@@ -930,8 +1004,8 @@ class MultiPolygonEditor extends PolygonEditor {
 		const polygon = this.polygones[index[0]];
 		if (polygon) {
 			const latLngs = polygon.getLatLngs();
-			latLngs.push([]);  // add empty polygon
-			polygon.setLatLngs(latLngs);
+			latLngs.push([] as any);  // add empty polygon
+			polygon.redraw();
 			polygon.initialPlacement(latLngs.length - 1);
 		}
 	}
@@ -957,19 +1031,27 @@ class GeoMap extends Map implements Inducible {
 	private resizeObserver: ResizeObserver;
 	public readonly editors: Record<string, GeometryEditor> = {};
 	private initialBBox: Record<string, string> = {height: '', minHeight: '', maxHeight: ''};
+	static readonly defaultMapOptions: MapOptions = {
+		maxZoom: 18,
+		minZoom: 1,
+		zoom: 9,
+		center: new LatLng(47, 9),
+		doubleClickZoom: false,
+	};
+	static readonly defaultTileLayerOptions: TileLayerOptions = {
+		tileSize: 512,
+		zoomOffset: -1,
+		attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>',
+		crossOrigin: true,
+		detectRetina: true,
+	};
 
 	constructor(element: GeoMapElement) {
 		const wrapperElement = element.previousElementSibling as HTMLDivElement;
 		const mapElement = wrapperElement?.querySelector('.leaflet-map') as HTMLDivElement;
 		if (!(mapElement instanceof HTMLDivElement))
 			throw new Error(`Could not find .leaflet-map element in ${wrapperElement}`);
-		const options: MapOptions = {
-			maxZoom: 18,
-			minZoom: 1,
-			zoom: 9,
-			center: new LatLng(47, 9),
-			doubleClickZoom: false,
-		};
+		const options = element.dataset.mapOptions ? JSON.parse(element.dataset.mapOptions) : GeoMap.defaultMapOptions;
 		super(mapElement, options);
 		this.textAreaElement = element;
 		this.wrapperElement = wrapperElement;
@@ -984,24 +1066,27 @@ class GeoMap extends Map implements Inducible {
 	}
 
 	public connectedCallback() {
-		tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			tileSize: 512,
-			zoomOffset: -1,
-			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>',
-			crossOrigin: true,
-			detectRetina: true,
-		}).addTo(this);
+		const urlTemplate = this.textAreaElement.dataset.urlTemplate ?? 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+		const options = this.textAreaElement.dataset.tileLayerOptions ? JSON.parse(this.textAreaElement.dataset.tileLayerOptions) : GeoMap.defaultTileLayerOptions;
+		tileLayer(urlTemplate, options).addTo(this);
 		this.extendControls();
-		this.intersectionObserver.observe(this.wrapperElement);
+		const computedStyle = window.getComputedStyle(this.textAreaElement);
+		this.initialBBox.height = computedStyle.height;
+		this.initialBBox.minHeight = computedStyle.minHeight;
+		this.initialBBox.maxHeight = computedStyle.maxHeight;
+		if (this.wrapperElement.checkVisibility()) {
+			if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+				this.transferStyles();
+			}
+			this.concealTextArea();
+		} else {
+			this.intersectionObserver.observe(this.wrapperElement);
+		}
 		this.mutationObserver.observe(this.textAreaElement, {attributes: true});
 		this.resizeObserver.observe(this.wrapperElement);
 		const form = this.textAreaElement.form as HTMLFormElement;
 		form.addEventListener('reset', this.formResetted);
 		form.addEventListener('submitted', this.formSubmitted);
-		const computedStyle = window.getComputedStyle(this.textAreaElement);
-		this.initialBBox.height = computedStyle.height;
-		this.initialBBox.minHeight = computedStyle.minHeight;
-		this.initialBBox.maxHeight = computedStyle.maxHeight;
 	}
 
 	public disconnectedCallback() {
@@ -1029,7 +1114,10 @@ class GeoMap extends Map implements Inducible {
 				minHeight: this.initialBBox.minHeight,
 				maxHeight: this.initialBBox.maxHeight,
 			});
-			this.wrapperElement.classList.add(this.textAreaElement.classList.toString());
+			const cssClass = this.textAreaElement.classList.toString();
+			if (cssClass) {
+				this.wrapperElement.classList.add(cssClass);
+			}
 			this.textAreaElement.classList.add('dj-concealed');
 		}
 	}
@@ -1051,11 +1139,8 @@ class GeoMap extends Map implements Inducible {
 		const self = this;
 		const CustomControls = Control.extend({
 			onAdd: function(map: Map) {
-				const opts = (this as any).options as ControlOptions;
-				const controlTemplate = self.controlsTemplate.content.querySelector(`[aria-current="${opts.position}"]`);
-				if (!(controlTemplate instanceof HTMLDivElement))
-					throw new Error(`Could not find control template for position ${opts.position}`);
-				const controlElements = document.importNode(controlTemplate, true);
+				const opts = (this as any).options;
+				const controlElements = document.importNode(opts.leafletBar, true);
 				controlElements.querySelectorAll('a[aria-label]').forEach((anchor: Element) => {
 					if (anchor instanceof HTMLAnchorElement && anchor.ariaLabel && registry[anchor.ariaLabel] instanceof Function) {
 						if (!anchor.ariaDescription)
@@ -1072,9 +1157,11 @@ class GeoMap extends Map implements Inducible {
 				// Nothing to do yet
 			},
 		});
-		const customControls = (opts: ControlOptions) => new CustomControls(opts);
-		for (let position of CONTROL_POSITIONS) {
-			customControls({position: position as ControlPosition}).addTo(this);
+		const customControls = (opts: ControlOptions) => new CustomControls(opts as any);
+		for (const position of CONTROL_POSITIONS) {
+			for (const leafletBar of self.controlsTemplate.content.querySelectorAll(`[aria-current="${position}"] > .leaflet-bar`) as NodeListOf<HTMLDivElement>) {
+				customControls({position, leafletBar}).addTo(this);
+			}
 		}
 	}
 
@@ -1090,11 +1177,21 @@ class GeoMap extends Map implements Inducible {
 			Object.values(this.editors).forEach(editor => editor.register());
 			const initialData = JSON.parse(this.textAreaElement.dataset.content as string ?? 'null');
 			this.setInitialData(initialData);
+			const handleEscape = (event: KeyboardEvent) => {
+				if (event.key === 'Escape') {
+					this.cancelInitialPlacements();
+				}
+			};
+			document.addEventListener('keydown', handleEscape);
 		}, {once: true});
 	}
 
 	public closeAllDialogs() {
 		Object.values(this.editors).forEach(editor => editor.closeAllDialogs());
+	}
+
+	public cancelInitialPlacements() {
+		Object.values(this.editors).forEach(editor => editor.cancelInitialPlacement());
 	}
 
 	public getLayer(identifier: string) : Layer|null {
@@ -1151,8 +1248,8 @@ class GeoMap extends Map implements Inducible {
 	}
 
 	public checkValidity() {
-		const hasContent = Object.values(this.editors).some(editor => editor.getFeatures().length > 0);
-		this.textAreaElement.innerText = hasContent ? "_has_value_" : "";  // required for validation
+		const isValid = Object.values(this.editors).every(editor => editor.checkValidity());
+		this.textAreaElement.innerText = isValid ? "_is_valid_" : "";  // required for validation
 	}
 
 	public updateOperability(...args: any[]) {
@@ -1192,8 +1289,22 @@ class GeoMap extends Map implements Inducible {
 			-1,
 			sheet,
 			this.baseSelector,
-			{'--border-color': 'border-color'},
+			{
+				'--border-color': 'border-color',
+				'--text-color': 'color',
+				'--background-color': 'background-color',
+			},
 			this.textAreaElement,
+		);
+		StyleHelpers.replaceMediaQueryStyles(
+			-1,
+			sheet,
+			this.baseSelector,
+			{
+				'--text-muted-color': 'color',
+				'--background-muted-color': 'background-color',
+			},
+			this.textAreaElement, {'disabled': ''},
 		);
 
 		if (!loaded)
