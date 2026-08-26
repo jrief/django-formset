@@ -23,7 +23,6 @@ be pre populated using the content of another text input field. To emulate a sim
             label="Title",
             max_length=100,
         )
-
         slug = fields.SlugField(
             label="Slug",
             widget=SlugInput('title'),
