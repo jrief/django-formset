@@ -48,7 +48,7 @@ django-formset.bootstrap {
 		}
 	}
 	dialog {
-		z-index: 51;  /* Furo's <aside>-element has z-index: 50 */
+		z-index: 1001;  /* Furo's <aside>-element has z-index: 50, Leaflet's map has z-index: 1000 */
 		color: var(--bs-body-color);
 	}
 	button[name="activate_submit"] {
