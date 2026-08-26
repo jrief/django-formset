@@ -16,23 +16,24 @@ In **django-formset**, we can use a special widget to display a map canvas and c
 it can be used to edit multiple geographic data structures at once. In addition to that, we can
 attach zero to many customized form dialogs to each of those geographic editor components, allowing
 to add arbitrary information to each of them. This data then is exported as GeoJSON according to the
-specification RFC-7946_. This allows to store the edited geographic information in a database using
-a JSONField_. This allows developers to use a database without GIS extensions, such as PostGIS_ or
-SpatiaLite_, and still be able to edit geographic data structures in a convenient way.
+specification RFC-7946_. This allows us to store the edited geographic information in our database
+using a JSONField_. It also prevents us from having to install GIS extensions, such as PostGIS_ or
+SpatiaLite_ to our databases, and still be able to edit geographic data structures in a convenient
+way.
 
 For this purpose, **django-formset** offers:
 
- * A special model field :class:`formset.modelfields.geomap.GeoMapField`.
- * A special form field :class:`formset.formfields.geomap.GeoMapField`.
- * A special widget class :class:`formset.widgets.geomap.GeoMapWidget` to create a customized
-   geographic editor component. This widget can be configured to edit multiple different geographic
-   data structures using one of these controls:
+* A special model field :class:`formset.modelfields.geomap.GeoMapField`.
+* A special form field :class:`formset.formfields.geomap.GeoMapField`.
+* A special widget class :class:`formset.widgets.geomap.GeoMapWidget` to create a customized
+  geographic editor component. This widget can be configured to edit multiple different geographic
+  data structures using one of these controls:
 
-   * A :class:`formset.geomap.controls.PointEditor` to edit multiple geographic points.
-   * A :class:`formset.geomap.controls.PolylineEditor` to edit multiple geographic line strings.
-   * A :class:`formset.geomap.controls.PolygonEditor` to edit multiple geographic polygons.
-   * A :class:`formset.geomap.controls.MultiPolygonEditor` to edit multiple geographic
-     multi-polygons.
+  * A :class:`formset.geomap.controls.PointEditor` to edit multiple geographic points.
+  * A :class:`formset.geomap.controls.PolylineEditor` to edit multiple geographic line strings.
+  * A :class:`formset.geomap.controls.PolygonEditor` to edit multiple geographic polygons.
+  * A :class:`formset.geomap.controls.MultiPolygonEditor` to edit multiple geographic
+    multi-polygons.
 
 Each of those geographic control elements can optionally attach customized form dialogs. Read below
 for details.
@@ -279,8 +280,63 @@ server and can be used for various purposes.
 .. _basemap.at: https://basemap.at/
 
 
+Attribute Reference for ``GeoMapWidget``
+========================================
+
+The ``GeoMapWidget`` inherits from :class:`django.forms.widgets.Textarea` class and hence accepts
+all of its attributes. In addition, it accepts these attributes:
+
+* ``controls_topleft``, ``controls_topright``, ``controls_bottomleft``, ``controls_bottomright``:
+  If set, each of these attributes must be a list of instances of a class inheriting from
+  :class:`formset.geomap.controls.ControlElement`. They are used to specify an editor for a
+  geographic data structure. Currently these editors are implemented:
+  :class:`formset.geomap.controls.PointEditor`, :class:`formset.geomap.controls.PolylineEditor`,
+  :class:`formset.geomap.controls.PolygonEditor` and
+  :class:`formset.geomap.controls.MultiPolygonEditor`. Each of these editors can be used to
+  add, edit and remove the corresponding geographic data structures. Editors can also be grouped
+  together by putting them inside a list.
+* If the same editor is used multiple times, the attribute ``identifier`` must specify a string
+  which is unique for all control elements used in the ``GeoMapWidget``. It is used as prefix in
+  the ``id`` record inside the GeoJSON data structure.
+* Each editor can accept an optional custom icon for the control button. The attribute is named
+  ``add_button_icon``. If unset, a default icon is used. If a custom icon is specified, it must be
+  a string containing the path to an SVG file located in a templates folder.
+* Each editor can accept an optional custom icon for the delete button appearing in the popup.
+  The attribute is named ``delete_button_icon``. If unset, a default icon is used. If a custom icon
+  is specified, it must be be a string containing the path to an SVG file located in a templates
+  folder.
+* :class:`formset.geomap.controls.PointEditor` can accept an optional custom marker symbol for the
+  geographic data structure. The attribute is named ``marker``. If unset the default marker symbol
+  is used. The marker must be specfied through a dictionary containing the following keys:
+
+  * ``iconUrl``: A string containing the path to an image file located in a static folder.
+  * ``iconSize``: A list of two integers specifying the width and height of the icon in pixels.
+  * ``iconAnchor``: A list of two integers specifying the point of the icon which will correspond to
+    the marker's location. The coordinates are given in pixels relative to the top left corner of
+    the icon image.
+  * ``popupAnchor``: A list of two integers specifying the point from which popups will "open",
+    relative to the icon anchor. The coordinates are given in pixels relative to the top left corner
+    of the icon image.
+* Each editor can accept an optional minimum- and maximum number of entities to be added. They are
+  named ``min_markers`` and ``max_markers`` for the :class:`formset.geomap.controls.PointEditor`,
+  ``min_polylines`` and ``max_polylines`` for the :class:`formset.geomap.controls.PolylineEditor`,
+  ``min_polygons`` and ``max_polygons`` for the :class:`formset.geomap.controls.PolygonEditor` and
+  :class:`formset.geomap.controls.MultiPolygonEditor`. If unset no limit is enforced. If a minimum
+  number is specified, the user must add at least that many entities, otherwise the form is
+  considered as invalid. If a maximum number is specified, the user cannot add more than that many
+  entities.
+* Each editor can accept an optional list of form dialogs to be attached to each of its entities.
+  The attribute is named ``dialog_forms``. If unset, no extra form dialogs are attached to the given
+  editor. This list must contain instances of a class inheriting from
+  :class:`formset.geomap.dialogs.GeoMapDialogForm`.
+* Classes inheriting from :class:`formset.geomap.dialogs.GeoMapDialogForm` must specify a member
+  string named ``extension``. This string is used to identify the ``properties`` record in the
+  GeoJSON data structure and must be unique accross all form dialogs attached to the
+  ``GeoMapWidget``.
+
+
 Implementation Details
-----------------------
+======================
 
 The implementation of the ``GeoMapWidget`` is based on the Leaflet_ JavaScript library. This differs
 from the GeoDjango implementation, which is based on OpenLayers_. The Leaflet has a more modern API
