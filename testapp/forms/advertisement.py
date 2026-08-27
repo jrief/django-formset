@@ -160,6 +160,13 @@ initial_json = {
                                                                     "type": "text",
                                                                     "marks": [
                                                                         {
+                                                                            "type": "custom_hyperlink",
+                                                                            "attrs": {
+                                                                                "href": "https://www.avintes.pt",
+                                                                                "page_id": ""
+                                                                            }
+                                                                        },
+                                                                        {
                                                                             "type": "italic"
                                                                         }
                                                                     ],

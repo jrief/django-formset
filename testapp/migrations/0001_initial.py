@@ -332,7 +332,7 @@ class Migration(migrations.Migration):
             name='ChurchModel',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('map', formset.modelfields.geomap.GeoMapField()),
+                ('map', formset.modelfields.geomap.GeoMapField(blank=True, null=True, verbose_name='Map of Churches')),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
             ],
         ),

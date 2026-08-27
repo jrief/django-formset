@@ -5,8 +5,10 @@ from formset.formfields.geomap import GeoMapField
 from formset.formfields.richtext import RichTextField
 from formset.geomap.controls import PointEditor
 from formset.geomap.dialogs import GeoMapDialogForm
+from formset.richtext import controls as richtext_controls
 from formset.richtext import dialogs as richtext_dialogs
 from formset.widgets.geomap import GeoMapWidget
+from formset.widgets.richtext import RichTextarea
 
 from testapp.models.page import PageModel
 
@@ -63,7 +65,22 @@ class EditMarkerDialogForm(GeoMapDialogForm):
     extension = 'special_marker'
     properties_map = {'body': 'body'}
 
-    body = RichTextField()
+    body = RichTextField(
+        widget=RichTextarea(
+            control_elements=[
+                richtext_controls.Bold(),
+                richtext_controls.Italic(),
+                richtext_controls.BulletList(),
+                richtext_controls.OrderedList(),
+                richtext_controls.DialogControl(CustomHyperlinkDialogForm()),
+                richtext_controls.Separator(),
+                richtext_controls.ClearFormat(),
+                richtext_controls.Undo(),
+                richtext_controls.Redo(),
+            ],
+            attrs={'maxlength': 500, 'style': 'height: 250px;'},
+        )
+    )
 
 
 class SpecialGeoMapDialogForm(richtext_dialogs.SimpleGeoMapDialogForm):
