@@ -62,11 +62,10 @@ class GeoMapFormDialog extends TransientFormDialog {
 				const inputElement = this.formElement.elements.namedItem(source);
 				if (!(inputElement instanceof HTMLInputElement || inputElement instanceof HTMLSelectElement || inputElement instanceof HTMLTextAreaElement))
 					continue;
-				inputElement.value = getDataValue(properties, `${this.extension}.${target}`, null);
-				inputElement.dispatchEvent(new Event('change', {bubbles: true}));
+				inputElement.value = getDataValue(properties, `${this.extension}.${target}`, '');
 				const groupElement = inputElement.closest('[role="group"]');
 				if (groupElement instanceof HTMLElement) {
-					groupElement.classList.remove('dj-dirty', 'dj-touched');
+					groupElement.classList.remove('dj-dirty', 'dj-submitted', 'dj-touched');
 					groupElement.classList.add('dj-pristine', 'dj-untouched');
 					groupElement.querySelector('.dj-errorlist .dj-placeholder')?.replaceChildren();
 				}
