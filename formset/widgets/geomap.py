@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.forms.widgets import Textarea
 from django.utils.html import format_html, format_html_join
@@ -16,21 +17,21 @@ class GeoMapWidget(Textarea):
 
     template_name = 'formset/default/widgets/geomap.html'
     controls = None
-    url_template = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-    tile_layer_options = {
+    url_template = settings.FORMSET_GEOMAP.get('url_template', 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+    tile_layer_options = settings.FORMSET_GEOMAP.get('tile_layer_options', {
         'tileSize': 512,
         'zoomOffset': -1,
         'attribution': 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>',
         'crossOrigin': True,
         'detectRetina': True,
-    }
-    map_options = {
+    })
+    map_options = settings.FORMSET_GEOMAP.get('map_options', {
         'maxZoom': 18,
         'minZoom': 1,
         'zoom': 9,
         'center': [47, 9],
         'doubleClickZoom': False,
-    }
+    })
 
     def __init__(
         self,

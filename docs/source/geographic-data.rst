@@ -280,6 +280,36 @@ server and can be used for various purposes.
 .. _basemap.at: https://basemap.at/
 
 
+Global Settings
+---------------
+
+If the ``GeoMapWidget`` is instantiated without specifying the ``url_template``,
+``tile_layer_options`` or ``map_options`` attributes, it can be configured to use global settings
+for the map. This allows to set the default values for these attributes in Django's ``settings.py``
+module:
+
+.. code-block:: python
+	:caption: settings.py
+
+	GEOMAP_WIDGET = {
+	    'url_template': 'https://maps.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png',
+	    'tile_layer_options': {
+	        'tileSize': 512,
+	        'zoomOffset': -1,
+	        'attribution': '&copy; <a href="http://basemap.at">Basemap.at</a>',
+	        'detectRetina': True,
+	        'crossOrigin': True,
+	    },
+	    'map_options': {
+	        'maxZoom': 18,
+	        'minZoom': 7,
+	        'zoom': 11,
+	        'center': [47.5, 13.6],
+	        'doubleClickZoom': False,
+	    },
+	}
+
+
 Attribute Reference for ``GeoMapWidget``
 ========================================
 
