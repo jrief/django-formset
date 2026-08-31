@@ -893,7 +893,7 @@ class RichtextFormDialog extends TransientFormDialog {
 			this.textSelectionField.value = doc.textBetween(selection.from, selection.to, '');
 		}
 		const extensionConfig = editor.extensionManager.extensions.find(ext => ext.name === this.extension)?.config as any;
-		for (let inputElement of this.inputElements) {
+		for (const inputElement of this.inputElements) {
 			if (inputElement.hasAttribute('richtext-bidirectional')) {
 				inputElement.value = getDataValue(attributes, inputElement.name) ?? '';
 				inputElement.dispatchEvent(new Event('change', {bubbles: true}));
@@ -1044,11 +1044,11 @@ class RichtextArea implements Inducible {
 		this.resizeObserver = new ResizeObserver(this.adjustMenubarLayout);
 		this.initializedPromise = this.initialize();
 		this.registerInducer();
+		this.initialBBox = this.computeInitialBBox();
 	}
 
 	private async initialize() {
 		const initialContent = this.useJson ? JSON.parse(this.textAreaElement.dataset.content as string) : this.textAreaElement.textContent;
-		this.initialBBox = this.computeInitialBBox();
 		return new Promise<void>(resolve => {
 			this.createEditor(this.wrapperElement, initialContent).then(editor => {
 				this.editor = editor;
