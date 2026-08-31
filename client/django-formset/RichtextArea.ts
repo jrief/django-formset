@@ -41,6 +41,7 @@ function appendTooltip(button: HTMLButtonElement) {
 	const arrowElement = document.createElement('div');
 	arrowElement.classList.add('arrow');
 	tooltipElement.appendChild(arrowElement);
+	tooltipElement.style.visibility = 'hidden';
 	button.insertAdjacentElement('afterbegin', tooltipElement);
 	button.addEventListener('mouseleave', () => {
 		Object.assign(tooltipElement.style, {visibility: 'hidden'});
