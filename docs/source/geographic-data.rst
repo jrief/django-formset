@@ -292,15 +292,13 @@ module:
 	:caption: settings.py
 
 	GEOMAP_WIDGET = {
-	    'url_template': 'https://maps.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png',
-	    'tile_layer_options': {
-	        'tileSize': 512,
-	        'zoomOffset': -1,
+	    'urlTemplate': 'https://maps.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png',
+	    'tileLayerOptions': {
 	        'attribution': '&copy; <a href="http://basemap.at">Basemap.at</a>',
 	        'detectRetina': True,
 	        'crossOrigin': True,
 	    },
-	    'map_options': {
+	    'mapOptions': {
 	        'maxZoom': 18,
 	        'minZoom': 7,
 	        'zoom': 11,
@@ -369,7 +367,9 @@ Implementation Details
 ======================
 
 The implementation of the ``GeoMapWidget`` is based on the Leaflet_ JavaScript library. This differs
-from the GeoDjango implementation, which is based on OpenLayers_. The Leaflet has a more modern API
-and is easier to use. No additional third party plugins are required. 
+from the GeoDjango implementation, which is based on OpenLayers_. The Leaflet library is smaller,
+has no extra dependencies, is easier to use and `far more popular`_. No additional third party
+plugins such as Leaflet.Draw or Leaflet-Geoman are required. 
 
 .. _OpenLayers: https://openlayers.org/
+.. _far more popular: https://npmtrends.com/leaflet-vs-ol
