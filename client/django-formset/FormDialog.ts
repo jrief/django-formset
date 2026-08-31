@@ -9,7 +9,6 @@ export abstract class FormDialogBase {
 	protected readonly element: HTMLDialogElement;
 	protected readonly formElement: HTMLFormElement;
 	private readonly dialogHeaderElement: HTMLElement|null;
-	// private subtreeObserver: MutationObserver|null = null;  –– presumably not needed because the dialog box is positioned in fixed coordinates
 	protected readonly isModal: boolean;
 	protected readonly induceOpen: Function;
 	protected readonly induceClose: Function;
@@ -51,8 +50,6 @@ export abstract class FormDialogBase {
 		} else {
 			this.element.show();
 			this.positionDialogBox();
-			// this.subtreeObserver = new MutationObserver(() => this.positionDialogBox());
-			// this.subtreeObserver.observe(this.element, {childList: true, subtree: true});
 		}
 		this.element.addEventListener('close', () => this.closeDialog(), {once: true});
 	}
@@ -62,7 +59,6 @@ export abstract class FormDialogBase {
 			this.dialogHeaderElement.removeEventListener('pointerdown', this.handlePointerDown);
 			this.dialogHeaderElement.removeEventListener('touchstart', this.handlePointerDown);
 		}
-		// this.subtreeObserver?.disconnect();
 		this.element.close(returnValue);
 	}
 
@@ -72,8 +68,8 @@ export abstract class FormDialogBase {
 			? parentDialog.getBoundingClientRect()
 			: new DOMRect(0, 0, window.visualViewport?.width ?? 0, window.visualViewport?.height ?? 0);
 		const dialogRect = this.element.getBoundingClientRect();
-		this.dialogOffsetX = (parentRect.width - dialogRect.width) / 2;
-		this.dialogOffsetY = (parentRect.height - dialogRect.height) / 2;
+		this.dialogOffsetX = Math.max((parentRect.width - dialogRect.width) / 2, 0);
+		this.dialogOffsetY = Math.max((parentRect.height - dialogRect.height) / 2, 0);
 		if (this.dialogHeaderElement) {
 			// Freeze dialog in viewport coordinates.
 			Object.assign(this.element.style, {
