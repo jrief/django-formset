@@ -1225,6 +1225,8 @@ class GeoMap extends Map implements Inducible {
 	};
 
 	private handleResize = (entries: ResizeObserverEntry[]) => {
+		if (!this.wrapperElement.checkVisibility())
+			return;
 		for (const entry of entries) {
 			if (entry.contentBoxSize) {
 				this.invalidateSize();
