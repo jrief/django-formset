@@ -1122,7 +1122,10 @@ class RichtextArea implements Inducible {
 				minHeight: this.initialBBox.minHeight,
 				maxHeight: this.initialBBox.maxHeight,
 			});
-			this.wrapperElement.classList.add(this.textAreaElement.classList.toString());
+			const cssClass = this.textAreaElement.classList.toString();
+			if (cssClass) {
+				this.wrapperElement.classList.add(...cssClass.split(/\s+/));
+			}
 			this.textAreaElement.classList.add('dj-concealed');
 		}
 	}
@@ -1217,7 +1220,7 @@ class RichtextArea implements Inducible {
 			this.characterCountTemplate = template(`<%= count %>/${limit}`);
 			this.charaterCountDiv = document.createElement('div');
 			this.charaterCountDiv.classList.add('character-count');
-			this.wrapperElement.insertAdjacentElement('beforeend', this.charaterCountDiv);
+			this.wrapperElement.insertAdjacentElement('beforeend', this.charaterCountDiv as HTMLDivElement);
 		}
 		// the native element also counts HTML tags, which is not what we want for a Richtext editor
 		this.textAreaElement.removeAttribute('maxlength');

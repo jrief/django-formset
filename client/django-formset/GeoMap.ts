@@ -1115,7 +1115,7 @@ class GeoMap extends Map implements Inducible {
 			});
 			const cssClass = this.textAreaElement.classList.toString();
 			if (cssClass) {
-				this.wrapperElement.classList.add(cssClass);
+				this.wrapperElement.classList.add(...cssClass.split(/\s+/));
 			}
 			this.textAreaElement.classList.add('dj-concealed');
 		}
