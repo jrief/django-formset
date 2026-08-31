@@ -1031,7 +1031,7 @@ class RichtextArea implements Inducible {
 	private charaterCountDiv: HTMLElement|null = null;
 	private readonly baseSelector = '.dj-richtext-wrapper';
 	public readonly initializedPromise: Promise<void>;
-	private initialBBox: Record<string, string> = {height: '', minHeight: '', maxHeight: ''};
+	private readonly initialBBox: Record<string, string>;
 	public isInitialized = false;
 
 	constructor(wrapperElement: HTMLElement, textAreaElement: HTMLTextAreaElement) {
@@ -1048,10 +1048,7 @@ class RichtextArea implements Inducible {
 
 	private async initialize() {
 		const initialContent = this.useJson ? JSON.parse(this.textAreaElement.dataset.content as string) : this.textAreaElement.textContent;
-		const computedStyle = window.getComputedStyle(this.textAreaElement);
-		this.initialBBox.height = computedStyle.height;
-		this.initialBBox.minHeight = computedStyle.minHeight;
-		this.initialBBox.maxHeight = computedStyle.maxHeight;
+		this.initialBBox = this.computeInitialBBox();
 		return new Promise<void>(resolve => {
 			this.createEditor(this.wrapperElement, initialContent).then(editor => {
 				this.editor = editor;
@@ -1080,6 +1077,16 @@ class RichtextArea implements Inducible {
 		const path = this.textAreaElement.form?.getAttribute('name')?.split('.') ?? [];
 		path.push(this.textAreaElement.name);
 		return path;
+	}
+
+	private computeInitialBBox() {
+		const style = this.textAreaElement.style;
+		const computedStyle = window.getComputedStyle(this.textAreaElement);
+		return {
+			height: style.height ? style.height: computedStyle.height,
+			minHeight: style.minHeight,
+			maxHeight: style.maxHeight,
+		};
 	}
 
 	private attributesChanged = (mutationsList: MutationRecord[]) => {
@@ -1122,7 +1129,10 @@ class RichtextArea implements Inducible {
 				minHeight: this.initialBBox.minHeight,
 				maxHeight: this.initialBBox.maxHeight,
 			});
-			this.wrapperElement.classList.add(this.textAreaElement.classList.toString());
+			const cssClass = this.textAreaElement.classList.toString();
+			if (cssClass) {
+				this.wrapperElement.classList.add(...cssClass.split(/\s+/));
+			}
 			this.textAreaElement.classList.add('dj-concealed');
 		}
 	}
@@ -1217,7 +1227,7 @@ class RichtextArea implements Inducible {
 			this.characterCountTemplate = template(`<%= count %>/${limit}`);
 			this.charaterCountDiv = document.createElement('div');
 			this.charaterCountDiv.classList.add('character-count');
-			this.wrapperElement.insertAdjacentElement('beforeend', this.charaterCountDiv);
+			this.wrapperElement.insertAdjacentElement('beforeend', this.charaterCountDiv as HTMLDivElement);
 		}
 		// the native element also counts HTML tags, which is not what we want for a Richtext editor
 		this.textAreaElement.removeAttribute('maxlength');

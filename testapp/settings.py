@@ -146,6 +146,24 @@ FORMS_URLFIELD_ASSUME_HTTPS = True
 
 FORMSET_IGNORE_MARKED_FOR_REMOVAL = False
 
+FORMSET_GEOMAP = {
+    'url_template': 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    'tile_layer_options': {
+        'tileSize': 512,
+        'zoomOffset': -1,
+        'attribution': 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>',
+        'crossOrigin': True,
+        'detectRetina': True,
+    },
+    'map_options': {
+        'maxZoom': 18,
+        'minZoom': 1,
+        'zoom': 9,
+        'center': [47, 9],
+        'doubleClickZoom': False,
+    },
+}
+
 if DEBUG:
     import mimetypes
     mimetypes.add_type("application/javascript", ".js", True)

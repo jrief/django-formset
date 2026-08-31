@@ -280,6 +280,34 @@ server and can be used for various purposes.
 .. _basemap.at: https://basemap.at/
 
 
+Global Settings
+---------------
+
+If the ``GeoMapWidget`` is instantiated without specifying the ``url_template``,
+``tile_layer_options`` or ``map_options`` attributes, it can be configured to use global settings
+for the map. This allows to set the default values for these attributes in Django's ``settings.py``
+module:
+
+.. code-block:: python
+	:caption: settings.py
+
+	GEOMAP_WIDGET = {
+	    'urlTemplate': 'https://maps.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png',
+	    'tileLayerOptions': {
+	        'attribution': '&copy; <a href="http://basemap.at">Basemap.at</a>',
+	        'detectRetina': True,
+	        'crossOrigin': True,
+	    },
+	    'mapOptions': {
+	        'maxZoom': 18,
+	        'minZoom': 7,
+	        'zoom': 11,
+	        'center': [47.5, 13.6],
+	        'doubleClickZoom': False,
+	    },
+	}
+
+
 Attribute Reference for ``GeoMapWidget``
 ========================================
 
@@ -339,7 +367,9 @@ Implementation Details
 ======================
 
 The implementation of the ``GeoMapWidget`` is based on the Leaflet_ JavaScript library. This differs
-from the GeoDjango implementation, which is based on OpenLayers_. The Leaflet has a more modern API
-and is easier to use. No additional third party plugins are required. 
+from the GeoDjango implementation, which is based on OpenLayers_. The Leaflet library is smaller,
+has no extra dependencies, is easier to use and `far more popular`_. No additional third party
+plugins such as Leaflet.Draw or Leaflet-Geoman are required. 
 
 .. _OpenLayers: https://openlayers.org/
+.. _far more popular: https://npmtrends.com/leaflet-vs-ol
