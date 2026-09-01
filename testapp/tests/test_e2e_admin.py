@@ -24,6 +24,7 @@ def test_admin_edit_person(live_server, page, viewname, nth_save, subtests):
     page.locator('#id_birth_date + [role="textbox"] [aria-placeholder="dd"]').fill("25")
     page.locator('#id_continent').select_option('2')
     page.locator('#id_annotation').focus()
+    expect(page.locator('#id_annotation')).to_be_focused()
     with page.expect_response(page.url) as response_info:
         page.locator('.submit-row > button[type="button"]').nth(nth_save).click()
     assert response_info.value.ok is True
