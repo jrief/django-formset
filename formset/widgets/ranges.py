@@ -48,10 +48,11 @@ class DateRangeMixin:
         except ImportError:
             pass
         if isinstance(values, (list, tuple)) and len(values) == 2:
-            if any(v is None for v in values):
-                return ''
             if all(isinstance(v, date) for v in values):
                 return ';'.join(v.strftime('%Y-%m-%dT00:00') for v in values)
+            if all(isinstance(v, str) and len(v) >= 10 for v in values):
+                return ';'.join('{:.10}T00:00'.format(v) for v in values)
+            return ''
         return values
 
 
@@ -115,12 +116,13 @@ class DateTimeRangeMixin:
         except ImportError:
             pass
         if isinstance(values, (list, tuple)) and len(values) == 2:
-            if any(v is None for v in values):
-                return ''
             if all(isinstance(v, datetime) for v in values):
                 if any(is_naive(v) for v in values):
                     return ';'.join(v.strftime('%Y-%m-%dT%H:%M') for v in values)
                 return ';'.join(to_current_timezone(v).strftime('%Y-%m-%dT%H:%M') for v in values)
+            if all(isinstance(v, str) and len(v) >= 16 for v in values):
+                return ';'.join(v[:16] for v in values)
+            return ''
         return values
 
 
