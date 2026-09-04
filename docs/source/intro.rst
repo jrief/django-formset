@@ -14,7 +14,7 @@ the form is re-rendered, annotating the fields containing invalid data with a me
 message. The latter requires to fully reload the whole page. From a usability point of view, this
 approach is far from being contemporary.
 
-An often used apporach to improve the user experience is to combine a popular JavaScript framework
+An often used approach to improve the user experience is to combine a popular JavaScript framework
 with `Django REST framework`_. Those JavaScript frameworks however impose their own way of getting
 stuff done and usually don't share the same mindset with Django. For instance, in Django we
 distinguish between `bound and unbound forms`_. This concept however doesn't make sense in
