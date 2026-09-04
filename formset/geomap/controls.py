@@ -1,10 +1,14 @@
-import json
+import re
 
-from django.contrib.staticfiles.storage import staticfiles_storage
+from django.template.exceptions import TemplateDoesNotExist
 from django.template.loader import get_template, select_template
-from django.utils.translation import gettext, gettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from formset.dialog import DialogForm
+
+
+def replace_whitespace(s):
+    return re.sub(r'\s+', ' ', s.replace('\n', ''))
 
 
 class ControlElement:
@@ -52,13 +56,18 @@ class ControlElement:
 
     def get_context(self):
         name = self.__class__.__name__
+        try:
+            marker_template = get_template(f'geomap/markers/{self.identifier}.json')
+            marker_json = replace_whitespace(marker_template.render())
+        except TemplateDoesNotExist:
+            marker_json = None
         return {
             'name': name,
             'identifier': self.identifier,
             'title': self.label,
             'add_button_icon': getattr(self, 'add_button_icon', f'formset/geomap/icons/add-{name.lower()}.svg'),
             'delete_button_icon': getattr(self, 'delete_button_icon', f'formset/geomap/icons/delete-layer.svg'),
-            'marker': json.dumps(getattr(self, 'marker', {})),
+            'marker_json': marker_json,
             'min_entries': self.min_entries,
             'max_entries': self.max_entries,
         }
@@ -75,26 +84,21 @@ class ControlElement:
         return template.render(context)
 
 
-default_marker = {
-    'iconUrl': staticfiles_storage.url('formset/icons/marker-icon.svg'),
-    'iconSize': [25, 41],
-    'iconAnchor': [13, 41],
-    'popupAnchor': [-2, -44],
-    'shadowUrl': staticfiles_storage.url('formset/icons/marker-shadow.png'),
-    'shadowSize': [68, 68],
-    'shadowAnchor': [22, 68],
-}
-
-
 class PointEditor(ControlElement):
     identifier = 'default-marker'
     label = _("Edit Marker Point")
     add_button_icon = 'formset/geomap/icons/add-marker.svg'
     delete_button_icon = 'formset/geomap/icons/delete-marker.svg'
-    marker = default_marker
+    default_marker_template = get_template('geomap/markers/default-marker.json')
 
     def __init__(self, min_markers=None, max_markers=None, **kwargs):
         super().__init__(min_entries=min_markers, max_entries=max_markers, **kwargs)
+
+    def get_context(self):
+        context = super().get_context()
+        if not context['marker_json']:
+            context['marker_json'] = replace_whitespace(self.default_marker_template.render())
+        return context
 
 
 class PolylineEditor(ControlElement):
