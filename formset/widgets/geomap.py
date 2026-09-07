@@ -126,13 +126,25 @@ class GeoMapWidget(Textarea):
         return context
 
     def render(self, name, value, attrs=None, renderer=None):
-        def render_controls(controls):
-            return
+        def get_popup(control_element):
+            return {
+                'labeled_by': control_element.identifier,
+                'dialogs': [],
+                'delete_button_icon': control_element.delete_button_icon,
+                'extend_button_icon': getattr(control_element, 'extend_button_icon', None),
+            }
 
         def render_dialog(dialog_form, described_by):
             dialog_form.prefix = f'{form_prefix}.{name}' if form_prefix else name
             dialog_context = {**dialog_form.get_context(), 'described_by': described_by}
             return dialog_form.render(context=dialog_context, renderer=renderer)
+
+        def get_popup_dialog(dialog_form):
+            return {
+                'prefix': dialog_form.prefix,
+                'icon': dialog_form.button_icon,
+                'title': dialog_form.title,
+            }
 
         form_prefix = attrs.pop('form_prefix', None)  # added by BoundField.build_widget_attrs
         context = self.get_context(name, value, attrs)
@@ -142,38 +154,20 @@ class GeoMapWidget(Textarea):
             for control_element in controls:
                 if isinstance(control_element, ControlElement):
                     rendered_controls[-1].append(control_element.render(renderer))
-                    popups.append({
-                        'labeled_by': control_element.identifier,
-                        'dialogs': [],
-                        'delete_button_icon': control_element.delete_button_icon,
-                        'extend_button_icon': getattr(control_element, 'extend_button_icon', None),
-                    })
+                    popups.append(get_popup(control_element))
                     for dialog_form in control_element.dialog_forms:
                         if isinstance(dialog_form, GeoMapDialogForm):
                             dialog_forms.append(render_dialog(dialog_form, control_element.identifier))
-                            popups[-1]['dialogs'].append({
-                                'prefix': dialog_form.prefix,
-                                'icon': dialog_form.button_icon,
-                                'title': dialog_form.title,
-                            })
+                            popups[-1]['dialogs'].append(get_popup_dialog(dialog_form))
                 elif isinstance(control_element, (list, tuple)):
                     rendered_controls.append([ctrl_elm.render(renderer) for ctrl_elm in control_element])
                     rendered_controls.append([])
                     for ctrl_elm in control_element:
-                        popups.append({
-                            'labeled_by': ctrl_elm.identifier,
-                            'dialogs': [],
-                            'delete_button_icon': ctrl_elm.delete_button_icon,
-                            'extend_button_icon': getattr(ctrl_elm, 'extend_button_icon', None),
-                        })
+                        popups.append(get_popup(ctrl_elm))
                         for dialog_form in ctrl_elm.dialog_forms:
                             if isinstance(dialog_form, GeoMapDialogForm):
                                 dialog_forms.append(render_dialog(dialog_form, ctrl_elm.identifier))
-                                popups[-1]['dialogs'].append({
-                                    'prefix': dialog_form.prefix,
-                                    'icon': dialog_form.button_icon,
-                                    'title': dialog_form.title,
-                                })
+                                popups[-1]['dialogs'].append(get_popup_dialog(dialog_form))
             control_elements.append(
                 format_html(
                     '<div aria-current="{position}">{controls}</div>',

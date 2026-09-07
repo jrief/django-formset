@@ -1,4 +1,4 @@
-import re
+import json
 
 from django.template.exceptions import TemplateDoesNotExist
 from django.template.loader import get_template, select_template
@@ -7,8 +7,8 @@ from django.utils.translation import gettext_lazy as _
 from formset.dialog import DialogForm
 
 
-def replace_whitespace(s):
-    return re.sub(r'\s+', ' ', s.replace('\n', ''))
+def compact_json(s):
+    return json.dumps(json.loads(s), separators=(',', ':'))
 
 
 class ControlElement:
@@ -56,21 +56,20 @@ class ControlElement:
 
     def get_context(self):
         name = self.__class__.__name__
-        try:
-            marker_template = get_template(f'geomap/markers/{self.identifier}.json')
-            marker_json = replace_whitespace(marker_template.render())
-        except TemplateDoesNotExist:
-            marker_json = None
-        return {
+        context = {
             'name': name,
             'identifier': self.identifier,
             'title': self.label,
             'add_button_icon': getattr(self, 'add_button_icon', f'formset/geomap/icons/add-{name.lower()}.svg'),
             'delete_button_icon': getattr(self, 'delete_button_icon', f'formset/geomap/icons/delete-layer.svg'),
-            'marker_json': marker_json,
             'min_entries': self.min_entries,
             'max_entries': self.max_entries,
         }
+        try:
+            context['marker_json'] = compact_json(get_template(f'geomap/markers/{self.identifier}.json').render())
+        except TemplateDoesNotExist:
+            pass
+        return context
 
     def clean_content(self, richtext_field, content):
         """
@@ -89,15 +88,15 @@ class PointEditor(ControlElement):
     label = _("Edit Marker Point")
     add_button_icon = 'formset/geomap/icons/add-marker.svg'
     delete_button_icon = 'formset/geomap/icons/delete-marker.svg'
-    default_marker_template = get_template('geomap/markers/default-marker.json')
+    default_marker_json = compact_json(get_template('geomap/markers/default-marker.json').render())
 
     def __init__(self, min_markers=None, max_markers=None, **kwargs):
         super().__init__(min_entries=min_markers, max_entries=max_markers, **kwargs)
 
     def get_context(self):
         context = super().get_context()
-        if not context['marker_json']:
-            context['marker_json'] = replace_whitespace(self.default_marker_template.render())
+        if not context.get('marker_json'):
+            context['marker_json'] = self.default_marker_json
         return context
 
 

@@ -1030,6 +1030,7 @@ class GeoMap extends Map implements Inducible {
 	private resizeObserver: ResizeObserver;
 	public readonly editors: Record<string, GeometryEditor> = {};
 	private initialBBox: Record<string, string> = {height: '', minHeight: '', maxHeight: ''};
+	static readonly defaultUrlTemplate = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 	static readonly defaultMapOptions: MapOptions = {
 		maxZoom: 18,
 		minZoom: 1,
@@ -1065,7 +1066,7 @@ class GeoMap extends Map implements Inducible {
 	}
 
 	public connectedCallback() {
-		const urlTemplate = this.textAreaElement.dataset.urlTemplate ?? 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+		const urlTemplate = this.textAreaElement.dataset.urlTemplate ?? GeoMap.defaultUrlTemplate;
 		const options = this.textAreaElement.dataset.tileLayerOptions ? JSON.parse(this.textAreaElement.dataset.tileLayerOptions) : GeoMap.defaultTileLayerOptions;
 		tileLayer(urlTemplate, options).addTo(this);
 		this.extendControls();
@@ -1125,6 +1126,7 @@ class GeoMap extends Map implements Inducible {
 		const bbox = getDataValue(initialData, 'bbox') as number[];
 		if (bbox) {
 			const bounds = latLngBounds([bbox[1], bbox[0]], [bbox[3], bbox[2]]);
+			// use requestIdleCallback to avoid blocking the main thread during map initialization
 			window.requestIdleCallback(() => this.flyToBounds(bounds, {animate: false}));
 		}
 		for (const editor of Object.values(this.editors)) {
