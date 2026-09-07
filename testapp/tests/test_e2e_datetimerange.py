@@ -95,6 +95,32 @@ urlpatterns = [
 
 
 @pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['booking.calendar'])
+def test_daterange_set(page, viewname):
+    calendar = page.locator('django-formset input[name="range"] + .dj-calendar')
+    expect(calendar).to_be_visible()
+    calendar.locator('button.today').click()
+    expect(calendar.locator('ul.monthdays li.today')).to_be_visible()
+    today = datetime.today()
+    expect(calendar.locator('ul.monthdays li.selected')).to_have_count(1)
+    if today.day < 15:
+        other = (today + timedelta(days=9)).strftime('%Y-%m-%d')
+    else:
+        other = (today - timedelta(days=9)).strftime('%Y-%m-%d')
+    calendar.locator(f'ul.monthdays li[data-date="{other}T00:00"]').hover()
+    calendar.locator(f'ul.monthdays li[data-date="{other}T00:00"]').click()
+    expect(calendar.locator('ul.monthdays li.selected')).to_have_count(2)
+    with page.expect_response(page.url) as response_info:
+        page.locator('django-formset').evaluate('elem => elem.submit()')
+    assert response_info.value.ok is True
+    post_data = response_info.value.request.post_data_json
+    if today.day < 15:
+        assert post_data['formset_data']['range'] == [today.strftime('%Y-%m-%d'), other]
+    else:
+        assert post_data['formset_data']['range'] == [other, today.strftime('%Y-%m-%d')]
+
+
+@pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['booking.calendar-initialized'])
 def test_daterange_initial(page, viewname):
     calendar = page.locator('django-formset input[name="range"] + .dj-calendar')
@@ -128,32 +154,6 @@ def test_daterange_initial(page, viewname):
     assert response_info.value.ok is True
     post_data = response_info.value.request.post_data_json
     assert post_data['formset_data']['range'] == ['2023-08-08', '2023-10-10']
-
-
-@pytest.mark.urls(__name__)
-@pytest.mark.parametrize('viewname', ['booking.calendar'])
-def test_daterange_set(page, viewname):
-    calendar = page.locator('django-formset input[name="range"] + .dj-calendar')
-    expect(calendar).to_be_visible()
-    calendar.locator('button.today').click()
-    expect(calendar.locator('ul.monthdays li.today')).to_be_visible()
-    today = datetime.today()
-    expect(calendar.locator('ul.monthdays li.selected')).to_have_count(1)
-    if today.day < 15:
-        other = (today + timedelta(days=9)).strftime('%Y-%m-%d')
-    else:
-        other = (today - timedelta(days=9)).strftime('%Y-%m-%d')
-    calendar.locator(f'ul.monthdays li[data-date="{other}T00:00"]').hover()
-    calendar.locator(f'ul.monthdays li[data-date="{other}T00:00"]').click()
-    expect(calendar.locator('ul.monthdays li.selected')).to_have_count(2)
-    with page.expect_response(page.url) as response_info:
-        page.locator('django-formset').evaluate('elem => elem.submit()')
-    assert response_info.value.ok is True
-    post_data = response_info.value.request.post_data_json
-    if today.day < 15:
-        assert post_data['formset_data']['range'] == [today.strftime('%Y-%m-%d'), other]
-    else:
-        assert post_data['formset_data']['range'] == [other, today.strftime('%Y-%m-%d')]
 
 
 @pytest.mark.urls(__name__)

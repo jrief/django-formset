@@ -21,8 +21,22 @@ import {DualNumberRangeElement} from './django-formset/NumberRange';
 import {PhoneNumberElement} from './django-formset/PhoneNumber';
 import {RichTextAreaElement} from './django-formset/RichtextArea';
 import {DjangoSlugElement} from './django-formset/DjangoSlug';
-import {DateCalendarElement, DateTimeCalendarElement, DateRangeCalendarElement, DateTimeRangeCalendarElement} from './django-formset/Calendar';
-import {DateFieldElement, DatePickerElement, DateTimeFieldElement, DateTimePickerElement, DateRangeFieldElement, DateTimeRangeFieldElement, DateRangePickerElement, DateTimeRangePickerElement} from './django-formset/DateTime';
+import {
+	DateCalendarElement,
+	DateTimeCalendarElement,
+	DateRangeCalendarElement,
+	DateTimeRangeCalendarElement
+} from './django-formset/Calendar';
+import {
+	DateFieldElement,
+	DatePickerElement,
+	DateTimeFieldElement,
+	DateTimePickerElement,
+	DateRangeFieldElement,
+	DateTimeRangeFieldElement,
+	DateRangePickerElement,
+	DateTimeRangePickerElement
+} from './django-formset/DateTime';
 import {FormDialogElement} from './django-formset/FormDialog';
 import {GeoMapElement} from './django-formset/GeoMap';
 import {StepperCollectionElement} from './django-formset/StepperCollection';
