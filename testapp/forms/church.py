@@ -67,14 +67,6 @@ class ChurchDialogForm(geomap_dialogs.GeoMapDialogForm):
     body = RichTextField()
 
 
-church_marker = {
-    'iconUrl': staticfiles_storage.url('testapp/geomap-markers/church.svg'),
-    'iconSize': [32, 32],
-    'iconAnchor': [16, 35],
-    'popupAnchor': [0, -28],
-}
-
-
 class ChurchModelForm(ModelForm):
     class Meta:
         model = ChurchModel
@@ -97,9 +89,8 @@ class ChurchModelForm(ModelForm):
                 ],
                 controls_topright=[
                     geomap_controls.PointEditor(
-                        identifier='church_editor',
+                        identifier='church',
                         add_button_icon='testapp/icons/add-church-marker.svg',
-                        marker=church_marker,
                         dialog_forms=[
                             ChurchDialogForm(),
                         ],

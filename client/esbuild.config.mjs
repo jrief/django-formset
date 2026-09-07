@@ -9,7 +9,10 @@ const buildOptions = parser(process.argv.slice(2), {
 });
 
 await build({
-  entryPoints: [buildOptions.monolith ? 'client/django-formset.monolith.ts' : 'client/django-formset.ts'],
+  entryPoints: [
+    buildOptions.monolith ? 'client/django-formset.monolith.ts' : 'client/django-formset.ts',
+    'client/geojson-renderer.ts'
+  ],
   bundle: true,
   minify: !buildOptions.debug,
   sourcemap: buildOptions.debug,

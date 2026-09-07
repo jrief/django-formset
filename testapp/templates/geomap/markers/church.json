@@ -1,0 +1,7 @@
+{% load static %}
+{
+  "iconUrl": "{% static 'testapp/geomap-markers/church.svg' %}",
+  "iconSize": [32, 32],
+  "iconAnchor": [16, 35],
+  "popupAnchor": [0, -28]
+}
