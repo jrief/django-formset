@@ -1063,6 +1063,7 @@ class GeoMap extends Map implements Inducible {
 		this.intersectionObserver = new IntersectionObserver(this.handleVisibility);
 		this.mutationObserver = new MutationObserver(this.attributesChanged);
 		this.resizeObserver = new ResizeObserver(this.handleResize);
+		this.initialBBox = this.computeInitialBBox();
 	}
 
 	public connectedCallback() {
@@ -1070,10 +1071,6 @@ class GeoMap extends Map implements Inducible {
 		const options = this.textAreaElement.dataset.tileLayerOptions ? JSON.parse(this.textAreaElement.dataset.tileLayerOptions) : GeoMap.defaultTileLayerOptions;
 		tileLayer(urlTemplate, options).addTo(this);
 		this.extendControls();
-		const computedStyle = window.getComputedStyle(this.textAreaElement);
-		this.initialBBox.height = computedStyle.height;
-		this.initialBBox.minHeight = computedStyle.minHeight;
-		this.initialBBox.maxHeight = computedStyle.maxHeight;
 		if (this.wrapperElement.checkVisibility()) {
 			if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
 				this.transferStyles();
@@ -1095,6 +1092,16 @@ class GeoMap extends Map implements Inducible {
 
 	public get path(): Path {
 		return this.textAreaElement.name.split('.');
+	}
+
+	private computeInitialBBox() {
+		const style = this.textAreaElement.style;
+		const computedStyle = window.getComputedStyle(this.textAreaElement);
+		return {
+			height: style.height ? style.height: computedStyle.height,
+			minHeight: style.minHeight,
+			maxHeight: style.maxHeight,
+		};
 	}
 
 	private formResetted = () => {
