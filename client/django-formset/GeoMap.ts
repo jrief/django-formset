@@ -1155,7 +1155,7 @@ class GeoMap extends Map implements Inducible {
 							throw new Error(`${anchor} is missing property aria-description`);
 						if (Object.keys(self.editors).includes(anchor.ariaDescription))
 							throw new Error(`Duplicate editor identifier ${anchor.ariaDescription}`);
-						const iconOptions = JSON.parse(anchor.dataset.marker as any) as IconOptions;
+						const iconOptions = JSON.parse(anchor.dataset.marker ?? 'null') as IconOptions;
 						self.editors[anchor.ariaDescription] = new registry[anchor.ariaLabel](self, anchor, iconOptions);
 					}
 				});
