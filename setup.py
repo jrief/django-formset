@@ -16,11 +16,9 @@ CLASSIFIERS = [
     'Operating System :: OS Independent',
     'Programming Language :: Python',
     'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-    'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
     'Programming Language :: Python :: 3.12',
     'Programming Language :: Python :: 3.13',
-    'Framework :: Django :: 5.1',
     'Framework :: Django :: 5.2',
     'Framework :: Django :: 6.0',
 ]
@@ -34,7 +32,7 @@ setup(
     url='https://django-formset.fly.dev/',
     packages=find_namespace_packages(include=['formset']),
     install_requires=[
-        'django>=5.1',
+        'django>=5.2,<6.1',
     ],
     extra_requires={
         'thumbnail': ['Pillow'],
