@@ -377,16 +377,16 @@ embedded inside a ``<django-formset>``.
 	<script src="{% static 'formset/js/geojson-renderer.js' %}" type="module"></script>
 	…
 	<div style="height: 500px; width: 100%;">
-	{% render_geojson map_data filter='feature?.id?.startsWith("church:")' %}
+	{% render_geojson map_data filter="feature?.id?.startsWith('church:')" %}
 	</div>
 
-Here, the context variable ``map_data`` is the GeoJSON data structure.
+When rendering this template, the context variable ``map_data`` contains the GeoJSON data structure.
 
-Since this data structure can contain multiple geographic data structures of different types, here
-we use the optional parameter ``filter`` to restrict the features to be rendered to only churches.
-In this example, we only want to render the features which have an ``id`` starting with ``church:``.
-The filter must be a valid JavaScript expression. The variable ``feature`` is the current feature
-being processed. If unset or invalid, all features from the GeoJSON data structure will be rendered.
+Since this data structure can contain multiple geographic data structures of different type, we use
+the optional parameter ``filter`` to restrict the features to be rendered to only churches. In this
+example, we only want to render the features which have an ``id`` starting with ``church:``. The
+filter must be a valid JavaScript expression. The variable ``feature`` is the current feature being
+processed. If unset or invalid, all features from the GeoJSON data structure will be rendered.
 
 .. django-view:: church_detail_view
 	:view-function: ChurchDetailView.as_view()
@@ -404,8 +404,9 @@ being processed. If unset or invalid, all features from the GeoJSON data structu
 	        context = {'map_data': object.map}
 	        return self.render_to_response(context)
 
-.. note:: The geographic data shown here has been retrieved from the database for each specific
-	user. It is saved whenever that user submits the form for the model field example shown above.
+.. note:: This map is not part of a form and hence not editable. The geographic data shown here has
+	been retrieved from the database. It is saved whenever the current user submits the form for the
+	model field shown in the previous example.
 
 
 Alternative Map Tiles

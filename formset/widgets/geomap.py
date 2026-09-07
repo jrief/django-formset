@@ -18,7 +18,7 @@ default_settings.setdefault('mapOptions', {
    'maxZoom': 18,
    'minZoom': 1,
    'zoom': 9,
-   'center': [47, 9],
+   'center': [51.5, 0],
    'doubleClickZoom': False,
 })
 

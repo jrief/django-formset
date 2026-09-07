@@ -26,7 +26,7 @@ class GeoJSONRenderer extends HTMLElement {
 		maxZoom: 18,
 		minZoom: 1,
 		zoom: 9,
-		center: new LatLng(47, 9),
+		center: new LatLng(51.5, 0),
 		doubleClickZoom: false,
 	};
 	static readonly defaultTileLayerOptions: TileLayerOptions = {
