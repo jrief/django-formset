@@ -70,8 +70,16 @@ class GeoJSONRenderer extends HTMLElement {
 			}
 		});
 		const geojson = JSON.parse(this.getAttribute('json') ?? '{}');
+		let filterFunction: (feature: any) => boolean;
+		try {
+			const filterString = decodeURIComponent(this.getAttribute('filter') ?? '');
+			filterFunction = new Function('feature', `return ${filterString}`) as (feature: any) => boolean;
+		} catch (e) {
+			filterFunction = () => true;
+		}
 		const bbox = getDataValue(geojson, 'bbox') as number[];
 		const options: GeoJSONOptions = {
+			filter: filterFunction,
 			pointToLayer: (feature, latlng) => {
 				const options: MarkerOptions = {
 					icon: new Icon(feature.properties.marker.icon as IconOptions),
@@ -87,7 +95,7 @@ class GeoJSONRenderer extends HTMLElement {
 					const options = feature.properties.tooltip.options ?? {} as TooltipOptions;
 					layer.bindTooltip(feature.properties.tooltip.content, options);
 				}
-			}
+			},
 		};
 		const nextLayer = new GeoJSON(geojson, options);
 		this.#leaflet.addLayer(nextLayer);

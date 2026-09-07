@@ -13,13 +13,13 @@ data structures inside the same map canvas. In GeoDjango we currently have to ed
 using an explicit map for each geographic data structure. This sometimes may be inconvenient.
 
 In **django-formset**, we can use a special widget to display a map canvas and configure it so that
-it can be used to edit multiple geographic data structures at once. In addition to that, we can
-attach zero to many customized form dialogs to each of those geographic editor components, allowing
-to add arbitrary information to each of them. This data then is exported as GeoJSON according to the
-specification RFC-7946_. This allows us to store the edited geographic information in our database
-using a JSONField_. It also prevents us from having to install GIS extensions, such as PostGIS_ or
-SpatiaLite_ to our databases, and still be able to edit geographic data structures in a convenient
-way.
+it can be used to edit multiple geographic data structures at once. They optionally can be of
+different type. In addition to that, we can attach zero to many customized form dialogs to each of
+those geographic editor components, allowing to add arbitrary information to each of them. This data
+then is exported as GeoJSON according to the specification RFC-7946_. This allows us to store the
+edited geographic information in our database using a JSONField_. It also prevents us from having to
+install GIS extensions, such as PostGIS_ or SpatiaLite_ to our databases, and still be able to edit
+geographic data structures in a convenient way.
 
 For this purpose, **django-formset** offers:
 
@@ -56,7 +56,7 @@ This example shows how to use the form field for a geographic map together with 
 
 	from django.forms.forms import Form
 	from formset.formfields.geomap import GeoMapField
-	from formset.geomap import controls 
+	from formset.geomap.controls import PointEditor
 	from formset.widgets.geomap import GeoMapWidget
 	
 	class SimplePointForm(Form):
@@ -64,7 +64,7 @@ This example shows how to use the form field for a geographic map together with 
 	        label="Map",
 	        widget=GeoMapWidget(
 	            controls_topleft=[
-	                controls.PointEditor(max_markers=3),
+	                PointEditor(max_markers=3),
 	            ],
 	        ),
 	    )
@@ -81,56 +81,151 @@ This example shows how to use the form field for a geographic map together with 
 
 Here, as control element we only allow a ``PointEditor``. By adding the attribute ``max_markers=3``,
 we limit the number of addable points to three. By clicking on the marker button on the upper left
-of the map canvas, the user can start dragging a marker to a position of his choice. The user can
-remove this marker again, by clicking on the marker and select the trash symbol appearing inside the
-popup.
+side of the map canvas, the user can start dragging a marker to a position of his choice. The user
+can remove this marker again, by clicking on the marker and select the trash symbol appearing inside
+the popup. Markers can be moved to a new position by simply dragging them.
 
 
-Using Custom Marker Symbols
----------------------------
+Geographic Data Structures of Different Types
+=============================================
 
-In this example we create a map to edit the position of churches.
+Since the ``map`` field is a GeoJSON data structure, it can contain multiple geographic data
+structures of different types. In this example we allow the user to add points, polylines, polygons
+and multipolygons to the map canvas. The user can add as many of them as he wants.
+
+.. django-view:: multiple_geodata_form
+	:view-function: GeoMapView.as_view(form_class=geographic_data.MultiGeoDataForm, extra_context={'framework': 'bootstrap', 'pre_id': 'multi-geodata-result'}, form_kwargs={'auto_id': 'mgd_id_%s'})
+	:caption: form.py
+
+	from django.forms.forms import Form
+	from formset.formfields.geomap import GeoMapField
+	from formset.geomap.controls import PolylineEditor, PolygonEditor, MultiPolygonEditor
+	from formset.widgets.geomap import GeoMapWidget
+	
+	class MultiGeoDataForm(Form):
+	    map = GeoMapField(
+	        label="Map",
+	        widget=GeoMapWidget(
+	            controls_topleft=[
+	                [PointEditor(), PolylineEditor()],
+	                [PolygonEditor(), MultiPolygonEditor()],
+	            ],
+	        ),
+	    )
+
+Here we use four control elements, ``PointEditor``, ``PolylineEditor``, ``PolygonEditor`` and
+``MultiPolygonEditor``. All four of them are placed in to upper left corner of the map canvas but
+other configurations are possible by using the parameters ``controls_topright``,
+``controls_bottomleft`` and ``controls_bottomright``. Control buttons can be grouped together by
+putting them inside a list, which leaves a small space between the two groups.
+
+The polylines and polygons can be edited by dragging their vertex markers. Each vertex has a halfway
+marker, which allows to add a new vertex in between two existing vertices. With a short click on an
+existing vertex edge, the adjacent vertices are merged. When clicking on a marker, polyline or
+polygon, a popup appears with a trash button to remove that entity.
+
+A multipolygon can be used to represent a polygon with holes. The outer polygon and the inner
+polygons are represented as separate polygons inside the same data structure. In order to add a new
+separate polygon to a multipolygon, a user must first click on the polygon which opens the popup,
+then as a second step, he must click on the "Add Polygon" button.
+
+
+Custom Marker Symbols
+=====================
+
+The default marker symbol for the ``PointEditor`` is a well known blue marker. In some occasions
+however, we might want to replace it with a custom marker symbol of our choice. In this example we
+create a map to edit the position of churches using the same ``PointEditor`` as above. In Leaflet,
+the marker symbol is specified through a dictionary containing the keys ``iconUrl``,
+``iconSize``, ``iconAnchor`` and ``popupAnchor``. Please refer to the Leaflet documentation for
+details on these attributes. In this example we create a special JSON file located in a Django
+templates folder starting with ``geomap/markers``.
+
+.. code-block:: django
+	:caption: geomap/markers/church.json
+
+	{% load static %}
+	{
+	    "iconUrl": "{% static 'testapp/geomap-markers/church.svg' %}",
+	    "iconSize": [32, 32],
+	    "iconAnchor": [16, 35],
+	    "popupAnchor": [0, -28]
+	}
+
+The name of that JSON template file refers to the parameter ``identifier`` passed to the
+``PointEditor`` control element, which is set to ``church`` in this example.
 
 .. django-view:: churches_map_form
 	:view-function: GeoMapView.as_view(form_class=geographic_data.ChurchesMapForm, extra_context={'framework': 'bootstrap', 'pre_id': 'churches-map-result'}, form_kwargs={'auto_id': 'cf_id_%s'})
-
-	from django.contrib.staticfiles.storage import staticfiles_storage
-	from django.forms.forms import Form
-	from django.forms.fields import IntegerField
-	from formset.formfields.geomap import GeoMapField
-	from formset.formfields.richtext import RichTextField
-	from formset.geomap import controls, dialogs 
-	from formset.widgets.geomap import GeoMapWidget
-	
-	church_marker = {
-	    'iconUrl': staticfiles_storage.url('testapp/geomap-markers/church.svg'),
-	    'iconSize': [32, 32],
-	    'iconAnchor': [16, 35],
-	    'popupAnchor': [0, -28],
-	}
-
-	class ChurchCapacityForm(dialogs.GeoMapDialogForm):
-	    title = "Edit Capacity"
-	    extension = 'capacity'
-	    properties_map = {'max_visitors': 'max_visitors', 'description': 'description'}
-	    icon = 'testapp/icons/users.svg'
-
-	    max_visitors = IntegerField()
-	    description = RichTextField(required=False)
-
+	:caption: form.py
 
 	class ChurchesMapForm(Form):
 	    map = GeoMapField(
 	        label="Map of Churches",
 	        widget=GeoMapWidget(
 	            controls_topright=[
-	                controls.PointEditor(
-	                    identifier='church_editor',
+	                PointEditor(
+	                    identifier='church',
 	                    add_button_icon='testapp/icons/add-church-marker.svg',
-	                    marker=church_marker,
-	                    dialog_forms=[
-	                        ChurchCapacityForm(),
-	                    ],
+	                ),
+	            ],
+	        ),
+	    )
+
+Here we move the control button into the upper right corner and also replace the symbol with a
+custom SVG icon using the parameter ``add_button_icon`` by specifying a path to a file located in a
+Django templates folder.
+
+
+Extend with Custom Form Dialogs
+===============================
+
+Since **django-formset** allows to nest forms inside each other, we can attach a custom form dialog
+to any of the existing geometry editors. Say that we want to name each church and add a maximum
+number of visitors together with a short description to each of the given geometry structures. For
+this purpose we create a new form class:
+
+
+.. django-view:: church_dialog_form
+	:caption: dialog_form.py
+
+	from django.forms.fields import CharField, IntegerField
+	from formset.formfields.richtext import RichTextField
+	from formset.geomap.dialogs import GeoMapDialogForm
+	
+	class ChurchDetailForm(GeoMapDialogForm):
+	    title = "Edit Church Details"
+	    extension = 'church_details'
+	    properties_map = {
+	        'name': 'name',
+	        'max_visitors': 'max_visitors',
+	        'description': 'description',
+	    }
+	    icon = 'testapp/icons/users.svg'
+
+	    name = CharField(max_length=100)
+	    max_visitors = IntegerField()
+	    description = RichTextField(required=False)
+
+This dialog form can be attached to the ``PointEditor`` control element. The attribute
+``extension`` is used to identify the ``properties`` record in the GeoJSON data structure. The
+attribute ``properties_map`` is used to map the form fields to the corresponding keys in the
+``properties`` structure. The attribute ``icon`` is used to specify a custom icon for the dialog
+form. This icon is displayed in the popup of the marker. The above form then can be rewritten as:
+
+
+.. code-block:: python
+	:emphasize-lines: 9
+
+	class ChurchesMapForm(Form):
+	    map = GeoMapField(
+	        label="Map of Churches",
+	        widget=GeoMapWidget(
+	            controls_topright=[
+	                PointEditor(
+	                    identifier='church',
+	                    add_button_icon='testapp/icons/add-church-marker.svg',
+	                    dialog_forms=[ChurchDetailForm()],
 	                ),
 	            ],
 	        ),
@@ -142,19 +237,21 @@ the upper right corner of the map canvas. The user can add as many church marker
 
 The last attribute to our ``PointEditor`` control is the ``dialog_forms`` attribute. This allows to
 attach one or more custom form dialogs to each of the markers. In this example we attach a single
-form dialog, which allows to edit the maximum number of visitors for each church together with a
-short description using richtext. When the user clicks on the church marker, the popup now contains
-an extra button to open a dialog with our ``ChurchCapacityForm`` as declared above.
+form dialog, which allows us to edit the name, the maximum number of visitors for each church
+together with a short description using richtext. When the user clicks on the church marker, the
+popup now contains an extra button to open a dialog with our ``ChurchCapacityForm`` as declared
+above.
 
 On submission, the content of the ``map`` field is exported as GeoJSON, where each marker contains
 a record named ``properties`` with a sub record named ``capacity``. That sub record contains the
-values of the fields ``max_visitors`` and ``description`` as entered by the user.
+values of the fields ``name``, ``max_visitors`` and ``description`` as entered by the user.
 
 
-Using the Model Form Field
---------------------------
+Geometry Map as Model Form Field
+================================
 
-In this example we store the content of the edited map inside a model field in the database.
+In this example we put all of the above geometry editors together and store the content of the
+edited map in a model field inside the database.
 
 .. code-block:: python
 	:caption: models.py
@@ -169,18 +266,14 @@ In this example we store the content of the edited map inside a model field in t
 	        blank=True,
 	    )
 
-Since we want to configure the map editor, we need to configure the widget for our ``map`` field
-when creating a form for this model:
+Out of this Django model, we can create a model form class. The only part when now have to configure
+is the widget for the ``map`` field.
 
-.. django-view:: churches_model_form
+.. django-view:: church_model_form
 	:caption: forms.py
 	:hide-view:
 
 	from django.forms.models import ModelForm
-	from formset.geomap.controls import (
-		PointEditor, PolylineEditor, PolygonEditor, MultiPolygonEditor
-	)
-	from formset.widgets.geomap import GeoMapWidget
 	from testapp.models import ChurchModel
 
 	class ChurchModelForm(ModelForm):
@@ -190,13 +283,21 @@ when creating a form for this model:
 	        widgets = {
 	            'map': GeoMapWidget(
 	                controls_bottomleft=[
-	                    [PolylineEditor(), PolygonEditor(), MultiPolygonEditor()],
 	                    PointEditor(),
+	                    PolylineEditor(),
+	                    PolygonEditor(),
+	                    MultiPolygonEditor(),
+	                ],
+	                controls_topright=[
+	                    PointEditor(
+	                        identifier='church',
+	                        add_button_icon='testapp/icons/add-church-marker.svg',
+	                        dialog_forms=[ChurchDetailForm()],
+	                    ),
 	                ],
 	                attrs={'style': 'height: 450px;'},
 	            ),
 	        }
-
 
 .. django-view:: church_edit_view
 	:view-function: ChurchEditView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'church-edit-result'}, form_kwargs={'auto_id': 'ce_id_%s'})
@@ -215,26 +316,100 @@ when creating a form for this model:
 .. note:: After submission, the geographic data is stored in the database. Therefore after reloading
 	this page, the same content will reappear in the map canvas representing the field.
 
-Here we use four control elements, ``PointEditor``, ``PolylineEditor``, ``PolygonEditor`` and
-``MultiPolygonEditor``. Users can add as many of them as they need. Users can also edit existing
-markers by simple dragging them. The polylines and polygons can be edited by dragging their vertex
-markers. Each vertex has a halfway marker, which allows to add a new vertex in between two existing
-vertices. With a short click on a vertex marker, the adjacent vertices are merged. When clicking on
-a marker, polyline or polygon, a popup appears with a trash button to remove that entity.
 
-A multipolygon can be used to represent a polygon with holes. The outer polygon and the inner
-polygons are represented as separate polygons inside the same data structure. In order to add a new
-separate polygon to a multipolygon, a user must click on the polygon which opens the popup, and then
-click on the "Add Polygon" button.
+Rendering the GeoJSON Data Structure
+------------------------------------
 
-The ``GeoMapWidget`` can be configured to display the control buttons in any of the four corners of
-the map canvas by using the attributes ``controls_topleft``, ``controls_topright``,
-``controls_bottomleft`` and ``controls_bottomright``. Control buttons can be grouped together by
-putting them inside a list.
+Until now we have used the ``GeoMapWidget`` to edit geographic data structures and store its content
+as GeoJSON. However, we sometimes might want to just represent this structure on a map canvas
+outside of a ``<django-formset>``-element and without the possibility to edit it. For this purpose,
+**django-formset** offers a special web component named ``<geomap-renderer>``. This component is not
+part of the **django-formset** ecosystem and must be loaded separately. It can be used to render a
+GeoJSON data structure created by the editors described here.
+
+The GeoJSON specification allows to keep arbitrary data inside the ``properties`` data structure of
+each geographic ``Feature``. Up to here, we have stored the content of the configured dialog form
+editors inside this ``properties`` record. When rendering this GeoJSON data structure, we need a way
+to transform this data to be displayed inside a Leaflet tooltip and/or a popup. For this purpose,
+**django-formset** uses the special templates ``geomap/tooltips/{identifier}.json``,
+``geomap/tooltips/{identifier}.html``, ``geomap/popups/{identifier}.json`` and
+``geomap/popups/{identifier}.html`` to render the content of the configured dialog form editor(s).
+The attribute ``identifier`` is the string used to identify the given geometry editor. Template
+files ending with ``.json`` are used to configure the ``PopupOptions`` and ``TooltipOptions`` of the
+Leaflet popup and tooltip. Refer to the Leaflet documentation for details on the available options.
+Template files ending with ``.html`` are used to render the content of the dialog form editor as
+HTML. This then is the a human readable content shown inside each Leaflet popup or tooltip
+respectively.
+
+In this example we want to render the content of the ``ChurchDetailForm`` dialog form editor as HTML
+inside a Leaflet popup. In addition to this, we also want to render the name of the church inside a
+Leaflet tooltip. For this purpose, we prepare these Django template files:
+
+.. code-block:: json
+	:caption: geomap/tooltips/church.json
+
+	{
+	  "offset": [-1, -30],
+	  "direction": "top"
+	}
+
+.. code-block:: django
+	:caption: geomap/tooltips/church.html
+
+	<strong>{{ church_details.name }}</strong>
+
+.. code-block:: django
+	:caption: geomap/popups/church.html
+
+	{% load richtext %}
+	<h3>Name: {{ church_details.name }}</h3>
+	<p>Capacity: {{ church_details.max_visitors }}</p>
+	{% render_richtext church_details.description %}
+
+With these templates, we now can display the content of the ``map`` field using our GeoJSON
+renderer. For this purpose, **django-formset** offers a special templatetag named
+``geomap_renderer``. This templatetag can be used in any Django template and doesn't have to be
+embedded inside a ``<django-formset>``. 
+
+.. code-block:: django
+
+	{% load static geojson_tags %}
+	<script src="{% static 'formset/js/geojson-renderer.js' %}" type="module"></script>
+	…
+	<div style="height: 500px; width: 100%;">
+	{% render_geojson map_data filter='feature?.id?.startsWith("church:")' %}
+	</div>
+
+Here, the context variable ``map_data`` is the GeoJSON data structure.
+
+Since this data structure can contain multiple geographic data structures of different types, here
+we use the optional parameter ``filter`` to restrict the features to be rendered to only churches.
+In this example, we only want to render the features which have an ``id`` starting with ``church:``.
+The filter must be a valid JavaScript expression. The variable ``feature`` is the current feature
+being processed. If unset or invalid, all features from the GeoJSON data structure will be rendered.
+
+.. django-view:: church_detail_view
+	:view-function: ChurchDetailView.as_view()
+	:hide-code:
+
+	from django.views.generic.base import TemplateResponseMixin
+	from django.views.generic import View
+	from testapp.demo_helpers import SessionModelFormViewMixin
+
+	class ChurchDetailView(SessionModelFormViewMixin, TemplateResponseMixin, View):
+	    template_name = 'testapp/church-detail.html'
+	
+	    def get(self, request, *args, **kwargs):
+	        object = self.get_object(queryset=ChurchModel.objects.all())
+	        context = {'map_data': object.map}
+	        return self.render_to_response(context)
+
+.. note:: The geographic data shown here has been retrieved from the database for each specific
+	user. It is saved whenever that user submits the form for the model field example shown above.
 
 
-Adopting the Map
-----------------
+Alternative Map Tiles
+=====================
 
 The map canvas is rendered using the Leaflet_ JavaScript library. By default, the map uses the
 OpenStreetMap_ tile server. However, the map can be configured to use any other tile server. For
@@ -281,7 +456,7 @@ server and can be used for various purposes.
 
 
 Global Settings
----------------
+===============
 
 If the ``GeoMapWidget`` is instantiated without specifying the ``url_template``,
 ``tile_layer_options`` or ``map_options`` attributes, it can be configured to use global settings
@@ -314,53 +489,77 @@ Attribute Reference for ``GeoMapWidget``
 The ``GeoMapWidget`` inherits from :class:`django.forms.widgets.Textarea` class and hence accepts
 all of its attributes. In addition, it accepts these attributes:
 
-* ``controls_topleft``, ``controls_topright``, ``controls_bottomleft``, ``controls_bottomright``:
-  If set, each of these attributes must be a list of instances of a class inheriting from
-  :class:`formset.geomap.controls.ControlElement`. They are used to specify an editor for a
-  geographic data structure. Currently these editors are implemented:
-  :class:`formset.geomap.controls.PointEditor`, :class:`formset.geomap.controls.PolylineEditor`,
-  :class:`formset.geomap.controls.PolygonEditor` and
-  :class:`formset.geomap.controls.MultiPolygonEditor`. Each of these editors can be used to
-  add, edit and remove the corresponding geographic data structures. Editors can also be grouped
-  together by putting them inside a list.
-* If the same editor is used multiple times, the attribute ``identifier`` must specify a string
-  which is unique for all control elements used in the ``GeoMapWidget``. It is used as prefix in
-  the ``id`` record inside the GeoJSON data structure.
-* Each editor can accept an optional custom icon for the control button. The attribute is named
-  ``add_button_icon``. If unset, a default icon is used. If a custom icon is specified, it must be
-  a string containing the path to an SVG file located in a templates folder.
-* Each editor can accept an optional custom icon for the delete button appearing in the popup.
-  The attribute is named ``delete_button_icon``. If unset, a default icon is used. If a custom icon
-  is specified, it must be be a string containing the path to an SVG file located in a templates
-  folder.
-* :class:`formset.geomap.controls.PointEditor` can accept an optional custom marker symbol for the
-  geographic data structure. The attribute is named ``marker``. If unset the default marker symbol
-  is used. The marker must be specfied through a dictionary containing the following keys:
 
-  * ``iconUrl``: A string containing the path to an image file located in a static folder.
-  * ``iconSize``: A list of two integers specifying the width and height of the icon in pixels.
-  * ``iconAnchor``: A list of two integers specifying the point of the icon which will correspond to
-    the marker's location. The coordinates are given in pixels relative to the top left corner of
-    the icon image.
-  * ``popupAnchor``: A list of two integers specifying the point from which popups will "open",
-    relative to the icon anchor. The coordinates are given in pixels relative to the top left corner
-    of the icon image.
-* Each editor can accept an optional minimum- and maximum number of entities to be added. They are
-  named ``min_markers`` and ``max_markers`` for the :class:`formset.geomap.controls.PointEditor`,
-  ``min_polylines`` and ``max_polylines`` for the :class:`formset.geomap.controls.PolylineEditor`,
-  ``min_polygons`` and ``max_polygons`` for the :class:`formset.geomap.controls.PolygonEditor` and
-  :class:`formset.geomap.controls.MultiPolygonEditor`. If unset no limit is enforced. If a minimum
-  number is specified, the user must add at least that many entities, otherwise the form is
-  considered as invalid. If a maximum number is specified, the user cannot add more than that many
-  entities.
-* Each editor can accept an optional list of form dialogs to be attached to each of its entities.
-  The attribute is named ``dialog_forms``. If unset, no extra form dialogs are attached to the given
-  editor. This list must contain instances of a class inheriting from
-  :class:`formset.geomap.dialogs.GeoMapDialogForm`.
-* Classes inheriting from :class:`formset.geomap.dialogs.GeoMapDialogForm` must specify a member
-  string named ``extension``. This string is used to identify the ``properties`` record in the
-  GeoJSON data structure and must be unique accross all form dialogs attached to the
-  ``GeoMapWidget``.
+.. rubric:: ``controls_topleft``, ``controls_topright``, ``controls_bottomleft``, ``controls_bottomright``
+
+If set, each of these attributes must be a list of instances of a class inheriting from
+:class:`formset.geomap.controls.ControlElement`. They are used to specify an editor for a geographic
+data structure. Currently these editors are implemented:
+
+* :class:`formset.geomap.controls.PointEditor`
+* :class:`formset.geomap.controls.PolylineEditor`
+* :class:`formset.geomap.controls.PolygonEditor`
+* :class:`formset.geomap.controls.MultiPolygonEditor`
+
+Each of these editors can be used to add, edit and remove the corresponding geographic data
+structures. Editors can also be grouped together by putting them inside a list.
+
+
+.. rubric:: Geometry Editor Attributes
+
+If the same editor is used multiple times, the attribute ``identifier`` must specify a string
+which is unique for all control elements. It is used as prefix in the ``id`` record inside the
+GeoJSON data structure.
+
+Each editor can accept an optional custom icon for the control button. The attribute is named
+``add_button_icon``. If unset, a default icon is used. If a custom icon is specified, it must be a
+string containing the path to an SVG file located in a templates folder.
+
+Each editor can accept an optional custom icon for the delete button appearing in the popup.
+The attribute is named ``delete_button_icon``. If unset, a default icon is used. If a custom icon
+is specified, it must be be a string containing the path to an SVG file located in a templates
+folder.
+
+
+.. rubric:: :class:`formset.geomap.controls.PointEditor`
+
+This editor looks for an optional custom marker symbol inside the Django template folders. The path
+of this template is ``geomap/markers/{identifier}.json``, where ``{identifier}`` is the string
+specified in the ``identifier`` attribute of the ``PointEditor``. If this template is not found, 
+the default marker symbol is used. The marker must be specified through a dictionary containing the
+following keys:
+
+* ``iconUrl``: A string containing the path to an image file located in a static folder.
+* ``iconSize``: A list of two integers specifying the width and height of the icon in pixels.
+* ``iconAnchor``: A list of two integers specifying the point of the icon which will correspond to
+  the marker's location. The coordinates are given in pixels relative to the top left corner of
+  the icon image.
+* ``popupAnchor``: A list of two integers specifying the point from which popups will "open",
+  relative to the icon anchor. The coordinates are given in pixels relative to the top left corner
+  of the icon image.
+
+
+.. rubric:: Limit Number of Entities
+
+Each editor can accept an optional minimum- and maximum number of entities to be added. They are
+named ``min_markers`` and ``max_markers`` for the :class:`formset.geomap.controls.PointEditor`,
+``min_polylines`` and ``max_polylines`` for the :class:`formset.geomap.controls.PolylineEditor`,
+``min_polygons`` and ``max_polygons`` for the :class:`formset.geomap.controls.PolygonEditor` and
+:class:`formset.geomap.controls.MultiPolygonEditor`. If unset no limit is enforced. If a minimum
+number is specified, the user must add at least that many entities, otherwise the form is considered
+as invalid. If a maximum number is specified, the user cannot add more than that many entities.
+
+
+.. rubric:: Attach Custom Form Dialogs
+
+Each editor can accept an optional list of form dialogs to be attached to each of its entities.
+The attribute is named ``dialog_forms``. If unset, no extra form dialogs are attached to the given
+editor. This list must contain instances of a class inheriting from
+:class:`formset.geomap.dialogs.GeoMapDialogForm`.
+
+Classes inheriting from :class:`formset.geomap.dialogs.GeoMapDialogForm` must specify a member
+string named ``extension``. This string is used to identify the ``properties`` record in the GeoJSON
+data structure and must be unique accross all form dialogs attached to the ``GeoMapWidget``.
 
 
 Implementation Details

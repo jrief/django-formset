@@ -1,0 +1,4 @@
+{% load richtext %}
+<h3>{{ church_details.name }}</h3>
+<p>Capacity: {{ church_details.max_visitors }}</p>
+{% render_richtext church_details.description %}
