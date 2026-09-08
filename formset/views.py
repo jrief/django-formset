@@ -15,6 +15,7 @@ from django.views.generic.base import ContextMixin, TemplateResponseMixin, View
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormView as GenericFormView
 
+from formset.geomap.utils import amend_geojson_feature_collection
 from formset.upload import FileUploadMixin
 from formset.utils import CollectionFieldMixin
 from formset.widgets.models import IncompleteSelectMixin
@@ -385,3 +386,16 @@ class BulkEditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, For
             return super().form_collection_valid(form_collection)
         else:
             return self.form_collection_invalid(form_collection)
+
+
+class RichtextConversionResponseMixin:
+    """
+    Add this mixin to any Django View class using forms containing a richtext field
+    which requires server side amending of a GeoJSON feature collection.
+    """
+    def post(self, request, **kwargs):
+        if request.content_type == 'application/json' and request.accepts('application/json'):
+            body = json.loads(request.body)
+            if body.get('type') == 'FeatureCollection' and isinstance(body.get('features'), list):
+                return JsonResponse(amend_geojson_feature_collection(body))
+        return super().post(request, **kwargs)

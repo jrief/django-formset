@@ -108,8 +108,8 @@ class SimpleGeoMapDialogForm(RichtextDialogForm):
             ],
             attrs={
                 'style': 'height:300px;width:100%;',
-                'richtext-map-to': '{content: elements.geomap.value}',
-                'richtext-map-from': '{dataset: {content: JSON.stringify(attributes.content)}}',
+                'richtext-map-to': 'geomap_to_document()',
+                'richtext-map-from': 'document_to_geomap()',
             },
         ),
         required=False,

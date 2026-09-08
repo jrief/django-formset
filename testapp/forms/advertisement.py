@@ -176,7 +176,21 @@ initial_json = {
                                                         }
                                                     ]
                                                 }
-                                            }
+                                            },
+                                            "_marker_": {
+                                                "icon": {
+                                                    "iconUrl": '/static/formset/icons/marker-icon.svg',
+                                                    "iconSize": [25, 41],
+                                                    "iconAnchor": [13, 41],
+                                                    "popupAnchor": [-2, -44],
+                                                    "shadowUrl": '/static/formset/icons/marker-shadow.png',
+                                                    "shadowSize": [68, 68],
+                                                    "shadowAnchor": [22, 68],
+                                                },
+                                            },
+                                            "_popup_": {
+                                                "content": "<p><strong>Capela do Senhor do Palheirnho</strong></p><p><a href=\"https://www.avintes.pt\">Avintes</a></p>",
+                                            },
                                         },
                                         "geometry": {
                                             "type": "Point",
@@ -185,7 +199,7 @@ initial_json = {
                                                 41.10432
                                             ]
                                         },
-                                        "id": "default-marker:0"
+                                        "id": "special-marker:0"
                                     }
                                 ]
                             }
@@ -297,7 +311,7 @@ class AdvertisementForm(forms.Form):
                 controls.DialogControl(SpecialGeoMapDialogForm()),
             ]),
         ],
-        attrs={'placeholder': "Start typing …", 'use_json': True, 'maxlength': 2000, 'style': 'height: 450px;'}),
+        attrs={'placeholder': "Start typing …", 'use_json': True, 'maxlength': 2000, 'style': 'height: 600px;'}),
         initial=initial_json['ad_text'],
     )
     extra_text = fields.CharField(
@@ -315,5 +329,6 @@ class AdvertisementForm(forms.Form):
                 controls.Redo(),
             ],
             attrs={'maxlength': 500, 'style': 'height: 250px;'},
-        )
+        ),
+        required=False,
     )

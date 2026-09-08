@@ -89,6 +89,7 @@ class SpecialGeoMapDialogForm(richtext_dialogs.SimpleGeoMapDialogForm):
         widget=GeoMapWidget(
             controls_topleft=[
                 PointEditor(
+                    identifier='special-marker',
                     dialog_forms=[
                         EditMarkerDialogForm(),
                     ],
@@ -96,8 +97,8 @@ class SpecialGeoMapDialogForm(richtext_dialogs.SimpleGeoMapDialogForm):
             ],
             attrs={
                 'style': 'height:300px;width:100%;',
-                'richtext-map-to': '{content: elements.geomap.value}',
-                'richtext-map-from': '{dataset: {content: JSON.stringify(attributes.content)}}',
+                'richtext-map-to': 'geomap_to_document()',
+                'richtext-map-from': 'document_to_geomap()',
             },
         ),
         required=False,

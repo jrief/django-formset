@@ -376,9 +376,7 @@ embedded inside a ``<django-formset>``.
 	{% load static geojson_tags %}
 	<script src="{% static 'formset/js/geojson-renderer.js' %}" type="module"></script>
 	…
-	<div style="height: 500px; width: 100%;">
-	{% render_geojson map_data filter="feature?.id?.startsWith('church:')" %}
-	</div>
+	{% render_geojson map_data filter="feature?.id?.startsWith('church:')" style="height: 500px;" %}
 
 When rendering this template, the context variable ``map_data`` contains the GeoJSON data structure.
 

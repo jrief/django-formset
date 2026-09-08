@@ -1134,7 +1134,15 @@ class GeoMap extends Map implements Inducible {
 		if (bbox) {
 			const bounds = latLngBounds([bbox[1], bbox[0]], [bbox[3], bbox[2]]);
 			// use requestIdleCallback to avoid blocking the main thread during map initialization
-			window.requestIdleCallback(() => this.flyToBounds(bounds, {animate: false}));
+			window.requestIdleCallback(() => {
+				this.invalidateSize();
+				this.fitBounds(bounds);
+				this.flyToBounds(bounds, {animate: false});
+			});
+		} else {
+			window.requestIdleCallback(() => {
+				this.invalidateSize();
+			});
 		}
 		for (const editor of Object.values(this.editors)) {
 			editor.clear();

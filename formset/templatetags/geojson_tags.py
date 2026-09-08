@@ -3,56 +3,33 @@ from urllib.parse import quote
 
 from django import template
 from django.http import HttpRequest
-from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
-from django.utils.html import mark_safe, strip_spaces_between_tags
+from django.utils.html import strip_spaces_between_tags
+from django.utils.safestring import mark_safe
+
+from formset.geomap.utils import amend_geojson_feature_collection
 
 
 register = template.Library()
 
 @register.simple_tag(name='render_geojson', takes_context=True)
-def render_geojson(context, map_data, template='geomap/geojson-renderer.html', leaflet_attributes=None, filter='true'):
+def render_geojson(context, map_data, template='geomap/geojson-renderer.html', leaflet_attributes=None, filter='true', style=None):
     try:
-        for feature in map_data['features']:
-            identifier, index = feature['id'].split(':')
-            properties = feature.pop('properties')
-            feature['properties'] = {'marker': {}, 'popup': {}, 'tooltip': {}}
-
-            # custom Leaflet marker icon
-            if feature['geometry']['type'] == 'Point':
-                try:
-                    marker_icon = get_template(f'geomap/markers/{identifier}.json').render()
-                    feature['properties']['marker']['icon'] = json.loads(marker_icon)
-                except TemplateDoesNotExist:
-                    pass
-
-            # Leaflet popup
-            try:
-                content = get_template(f'geomap/popups/{identifier}.html').render(properties)
-                feature['properties']['popup']['content'] = strip_spaces_between_tags(content)
-                options = get_template(f'geomap/popups/{identifier}.json').render(properties)
-                feature['properties']['popup']['options'] = json.loads(options)
-            except TemplateDoesNotExist:
-                pass
-
-            # Leaflet tooltip
-            try:
-                content = get_template(f'geomap/tooltips/{identifier}.html').render(properties)
-                feature['properties']['tooltip']['content'] = strip_spaces_between_tags(content)
-                options = get_template(f'geomap/tooltips/{identifier}.json').render(properties)
-                feature['properties']['tooltip']['options'] = json.loads(options)
-            except TemplateDoesNotExist:
-                pass
-
+        amend_geojson_feature_collection(map_data)
     except (KeyError, TypeError):
         raise ValueError("map_data must be valid GeoJSON")
-
+    default_style = {'width': '100%', 'display': 'block'}
+    try:
+        style = {**default_style, **dict(item.split(':') for item in style.split(';') if item)}
+    except AttributeError:
+        style = default_style
     request = context.get('request', HttpRequest())
     template = get_template(template)
     context = {
         'json_data': json.dumps(map_data),
-        'leaflet_attributes': leaflet_attributes,
         'filter': quote(filter),
+        'style': '; '.join(f'{k}: {v}' for k, v in style.items()),
+        'leaflet_attributes': leaflet_attributes,
     }
     html = template.render(context, request)
     return mark_safe(strip_spaces_between_tags(html))

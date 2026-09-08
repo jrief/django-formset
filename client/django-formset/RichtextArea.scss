@@ -312,10 +312,6 @@
 	}
 
 	geojson-renderer {
-		display: block;
-		border: 1px solid red;
-		background-color: pink;
-		width: 100px;
-		height: 50px;
+		border: 1px solid var(--border-color);
 	}
 }

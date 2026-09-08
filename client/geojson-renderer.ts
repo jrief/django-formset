@@ -18,6 +18,11 @@ import getDataValue from 'lodash.get';
 import styles from 'django-formset/GeoMap.scss';
 
 
+const styleSheet = new CSSStyleSheet();
+styleSheet.replaceSync(styles);
+styleSheet.insertRule(':host > div {width:100%; height:100%; min-height:150px; z-index:0;}');
+
+
 class GeoJSONRenderer extends HTMLElement {
 	readonly #shadowRoot: ShadowRoot;
 	readonly #leaflet: Map;
@@ -40,12 +45,14 @@ class GeoJSONRenderer extends HTMLElement {
 
 	constructor() {
 		super();
-		this.#shadowRoot = this.attachShadow({mode: 'closed'});
-		const styleSheet = new CSSStyleSheet();
-		styleSheet.replace(styles).then(() => {
-			styleSheet.insertRule(':host > div {width: 100%; min-height: 150px; height: 100%;}');
+		this.#shadowRoot = this.attachShadow({mode: 'open'});
+		try {
 			this.#shadowRoot.adoptedStyleSheets.push(styleSheet);
-		});
+		} catch (e) {
+			const styleElem = document.createElement('style');
+			styleElem.textContent = styles;
+			this.#shadowRoot.appendChild(styleElem);
+		}
 		const divElem = document.createElement('div') as HTMLDivElement;
 		this.#shadowRoot.appendChild(divElem);
 		this.#leaflet = new Map(divElem, GeoJSONRenderer.defaultMapOptions);
@@ -70,30 +77,33 @@ class GeoJSONRenderer extends HTMLElement {
 			}
 		});
 		const geojson = JSON.parse(this.getAttribute('json') ?? '{}');
+		if (geojson.type !== 'FeatureCollection')
+			throw new Error('Invalid GeoJSON');
+		geojson['features'] ??= [];
 		let filterFunction: (feature: any) => boolean;
 		try {
-			const filterString = decodeURIComponent(this.getAttribute('filter') ?? '');
+			const filterString = decodeURIComponent(this.getAttribute('filter') ?? 'true');
 			filterFunction = new Function('feature', `return ${filterString}`) as (feature: any) => boolean;
 		} catch (e) {
-			filterFunction = () => true;
+			filterFunction = (feature: any) => true;
 		}
 		const bbox = getDataValue(geojson, 'bbox') as number[];
 		const options: GeoJSONOptions = {
 			filter: filterFunction,
 			pointToLayer: (feature, latlng) => {
 				const options: MarkerOptions = {
-					icon: new Icon(feature.properties.marker.icon as IconOptions),
+					icon: new Icon(feature.properties._marker_.icon as IconOptions),
 				};
 				return new Marker(latlng, options);
 			},
 			onEachFeature: (feature, layer) => {
-				if (feature.properties.popup) {
-					const options = feature.properties.popup.options ?? {} as PopupOptions;
-					layer.bindPopup(feature.properties.popup.content, options);
+				if (feature.properties._popup_) {
+					const options = feature.properties._popup_.options ?? {} as PopupOptions;
+					layer.bindPopup(feature.properties._popup_.content, options);
 				}
-				if (feature.properties.tooltip) {
-					const options = feature.properties.tooltip.options ?? {} as TooltipOptions;
-					layer.bindTooltip(feature.properties.tooltip.content, options);
+				if (feature.properties._tooltip_) {
+					const options = feature.properties._tooltip_.options ?? {} as TooltipOptions;
+					layer.bindTooltip(feature.properties._tooltip_.content, options);
 				}
 			},
 		};
@@ -105,6 +115,10 @@ class GeoJSONRenderer extends HTMLElement {
 				this.#leaflet.invalidateSize();
 				this.#leaflet.fitBounds(bounds);
 				this.#leaflet.flyToBounds(bounds, {animate: false});
+			});
+		} else {
+			window.requestIdleCallback(() => {
+				this.#leaflet.invalidateSize();
 			});
 		}
 	}

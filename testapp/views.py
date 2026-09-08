@@ -27,7 +27,7 @@ from formset.calendar import CalendarResponseMixin
 from formset.forms import DeclarativeFieldsetMetaclass, FormsetModelFormMetaclass, FormMixin
 from formset.views import (
     FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormCollectionViewMixin, FormViewMixin,
-    EditCollectionView, BulkEditCollectionView
+    EditCollectionView, BulkEditCollectionView, RichtextConversionResponseMixin
 )
 
 from testapp.demo_helpers import SessionFormCollectionViewMixin
@@ -179,7 +179,7 @@ class DemoViewMixin:
         pass
 
 
-class DemoFormViewMixin(DemoViewMixin, CalendarResponseMixin, IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin):
+class DemoFormViewMixin(DemoViewMixin, CalendarResponseMixin, IncompleteSelectResponseMixin, FileUploadMixin, RichtextConversionResponseMixin, FormViewMixin):
     template_name = 'testapp/native-form.html'
     extra_context = {
         'click_actions': 'disable -> submit -> reload !~ scrollToError',
