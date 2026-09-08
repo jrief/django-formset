@@ -33,7 +33,7 @@ from formset.views import (
 from testapp.demo_helpers import SessionFormCollectionViewMixin
 from testapp.forms.accordion import AccordionForm
 from testapp.forms.address import AddressForm
-from testapp.forms.advertisement import AdvertisementForm
+from testapp.forms.advertisement import AdvertisementForm, initial_json
 from testapp.forms.article import ArticleForm
 from testapp.forms.blog import BlogModelForm
 from testapp.forms.company import CompanyCollection, CompaniesCollection
@@ -120,6 +120,19 @@ class SuccessView(TemplateView):
             'framework': self.request.resolver_match.app_name,
             'leaf_breadcrumb': "Success",
             'valid_formset_data': self.request.session.get('valid_formset_data'),
+        })
+        return context
+
+
+class RenderRichtextView(TemplateView):
+    template_name = 'testapp/render-richtext.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'framework': self.request.resolver_match.app_name,
+            'leaf_breadcrumb': "Success",
+            'content': initial_json['ad_text'],
         })
         return context
 
@@ -825,4 +838,5 @@ urlpatterns = [
         model=CarouselForm._meta.model,
         filtered_type='carousel',
     ), name='carousel'),
+    path('richtext', RenderRichtextView.as_view(), name='richtext'),
 ]
