@@ -1,0 +1,4 @@
+{% extends framework|default:"testapp"|add:"/base.html" %}
+{% load richtext %}
+
+{% block main-content %}{% render_richtext content %}{% endblock %}
