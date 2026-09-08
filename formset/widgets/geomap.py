@@ -109,7 +109,7 @@ class GeoMapWidget(Textarea):
     def build_attrs(self, base_attrs, extra_attrs=None):
         attrs = super().build_attrs(base_attrs, extra_attrs)
         attrs.update({
-            'is': 'django-geo-map',
+            'is': 'django-geomap',
             'data-url-template': self.url_template,
             'data-tile-layer-options': json.dumps(self.tile_layer_options),
             'data-map-options': json.dumps(self.map_options),

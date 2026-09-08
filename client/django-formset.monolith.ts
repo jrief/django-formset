@@ -100,8 +100,8 @@ function handleDOMLoaded() {
 	customElementNames.push('django-datetimerangepicker');
 	window.customElements.define('django-form-dialog', FormDialogElement, {extends: 'dialog'});
 	customElementNames.push('django-form-dialog');
-	window.customElements.define('django-geo-map', GeoMapElement, {extends: 'textarea'});
-	customElementNames.push('django-geo-map');
+	window.customElements.define('django-geomap', GeoMapElement, {extends: 'textarea'});
+	customElementNames.push('django-geomap');
 	window.customElements.define('django-stepper-collection', StepperCollectionElement);
 	customElementNames.push('django-stepper-collection');
 
