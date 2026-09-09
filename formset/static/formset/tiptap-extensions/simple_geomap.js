@@ -30,9 +30,9 @@
 	},
 
 	geomap_to_document(elements) {
-		console.log('geomap_to_document', elements);
 		const endpointUrl = elements.geomap.closest('django-formset')?.getAttribute('endpoint');
 		if (!endpointUrl) {
+			console.warn("No endpoint URL found");
 			return {content: elements.geomap.value};
 		}
 		return new Promise((resolve, reject) => {
@@ -47,7 +47,7 @@
 				if (response.ok) {
 					response.json().then(data => resolve({content: data}));
 				} else {
-					reject(new Error("Failed to save geomap data"));
+					reject(new Error(response.statusText));
 				}
 			}).catch(error => {
 				reject(error);
