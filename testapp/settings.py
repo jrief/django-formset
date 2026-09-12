@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'secret_key')
 
-DEBUG = os.getenv('DJANGO_DEBUG', '').lower() in ['true', '1', 'yes']
+DEBUG = True
 
 DEPLOYED = os.getenv('DJANGO_DEPLOYED', '').lower() in ['true', '1', 'yes']
 

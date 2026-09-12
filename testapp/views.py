@@ -57,6 +57,7 @@ from testapp.forms.galleryform import GalleryImageForm
 from testapp.forms.issue import EditIssueCollection, EditIssueManyCollection
 from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputForm, MomentPickerForm
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
+from testapp.forms.multiwidget import MultiWidgetForm
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import (
     sample_person_data, BootstrapRenderedPersonForm, ModelPersonForm, PersonForm,
@@ -709,6 +710,9 @@ urlpatterns = [
         form_class=MoonForm,
         calendar_renderer_class=MoonCalendarRenderer,
     ), name='moon'),
+    path('multiwidget', DemoFormView.as_view(
+        form_class=MultiWidgetForm
+    ), name='multiwidget'),
     path('country', DemoFormView.as_view(
         form_class=CountryForm,
     ), name='country'),
