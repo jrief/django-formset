@@ -47,6 +47,10 @@ class ControlElement:
 class Group(list):
     template_name = 'formset/richtext/control_group.html'
 
+    def clean_content(self, richtext_field, content):
+        for element in self:
+            element.clean_content(richtext_field, content)
+
     def render(self, renderer, context=None):
         if context is None:
             context = {
