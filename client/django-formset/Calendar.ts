@@ -1012,9 +1012,8 @@ class CalendarSheet {
 			query.set('interval', String(this.interval));
 		}
 		this.element.classList.add('loading');
-		const response = await fetch(`${this.calendar.endpoint}?calendar&${query.toString()}`, {
-			method: 'GET',
-		});
+		const headers = new Headers({'X-Request-Source': 'CalendarSheet'});
+		const response = await fetch(`${this.calendar.endpoint}?${query.toString()}`, {headers});
 		this.element.classList.remove('loading');
 		if (response.status === 200) {
 			this.element.innerHTML = await response.text();

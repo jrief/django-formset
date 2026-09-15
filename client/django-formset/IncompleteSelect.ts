@@ -86,12 +86,11 @@ export abstract class IncompleteSelect extends Widget {
 	protected async loadOptions(query: URLSearchParams, successCallback: Function) {
 		const endpoint = URL.parse(this.endpoint!, window.location.origin)!;
 		const searchParams = new URLSearchParams([...endpoint.searchParams, ['field', this.fieldName], ...query]);
-		const headers = new Headers();
-		headers.append('Accept', 'application/json');
-		const response = await fetch(`${endpoint.pathname}?${searchParams.toString()}`, {
-			method: 'GET',
-			headers: headers,
-		} as RequestInit);
+		const headers = new Headers({
+			'Accept': 'application/json',
+			'X-Request-Source': 'IncompleteSelect',
+		});
+		const response = await fetch(`${endpoint.pathname}?${searchParams.toString()}`, {headers});
 		if (response.status === 200) {
 			const data = await response.json();
 			if (typeof data.incomplete === 'boolean') {

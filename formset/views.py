@@ -25,7 +25,7 @@ class IncompleteSelectResponseMixin:
     :class:`formset.widgets.DualSelector`.
     """
     def get(self, request, **kwargs):
-        if request.accepts('application/json') and 'field' in request.GET:
+        if request.headers.get('X-Request-Source') == 'IncompleteSelect' and 'field' in request.GET:
             return self._fetch_options(request)
         return super().get(request, **kwargs)
 
@@ -194,8 +194,8 @@ class FormCollectionViewMixin(FormsetResponseMixin):
     collection_kwargs = None
 
     def get(self, request, *args, **kwargs):
-        if request.accepts('application/json') and set(['path', 'pk']).issubset(request.GET):
-            # invoked by `DjangoFormset.prefillPartial()`
+        if request.headers.get('X-Request-Source') == 'PrefillPartial' and set(['path', 'pk']).issubset(request.GET):
+            # invoked by `DjangoFormset.prefillPartial()` to fetch extra data for a partial form initialization
             return self._fetch_partial_data()
         # instantiate blank versions of the forms in the collection
         return self.render_to_response(self.get_context_data())
@@ -301,13 +301,25 @@ class FormCollectionViewMixin(FormsetResponseMixin):
         return JsonResponse(form_collection._errors, status=422, safe=False)
 
 
-class FormCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin,
-                         TemplateResponseMixin, View):
+class FormCollectionView(
+    IncompleteSelectResponseMixin,
+    FileUploadMixin,
+    FormCollectionViewMixin,
+    ContextMixin,
+    TemplateResponseMixin,
+    View,
+):
     pass
 
 
-class EditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, SingleObjectMixin,
-                         TemplateResponseMixin, View):
+class EditCollectionView(
+    IncompleteSelectResponseMixin,
+    FileUploadMixin,
+    FormCollectionViewMixin,
+    SingleObjectMixin,
+    TemplateResponseMixin,
+    View,
+):
     """
     View for editing a class inheriting from `FormCollection` which binds to a single object.
     """
@@ -337,8 +349,14 @@ class EditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCol
             return self.form_collection_invalid(form_collection)
 
 
-class BulkEditCollectionView(IncompleteSelectResponseMixin, FileUploadMixin, FormCollectionViewMixin, ContextMixin,
-                             TemplateResponseMixin, View):
+class BulkEditCollectionView(
+    IncompleteSelectResponseMixin,
+    FileUploadMixin,
+    FormCollectionViewMixin,
+    ContextMixin,
+    TemplateResponseMixin,
+    View,
+):
     """
     View for editing a class inheriting from `FormCollection` which binds to multiple objects.
     """
@@ -390,8 +408,8 @@ class RichtextConversionResponseMixin:
     which requires server side amending of a GeoJSON feature collection.
     """
     def post(self, request, **kwargs):
-        if request.content_type == 'application/json' and request.accepts('application/json'):
-            body = json.loads(request.body)
+        if request.headers.get('X-Request-Source') == 'RichtextConversion':
+            body = self._request_body
             if body.get('type') == 'FeatureCollection' and isinstance(body.get('features'), list):
                 return JsonResponse(amend_geojson_feature_collection(body))
         return super().post(request, **kwargs)

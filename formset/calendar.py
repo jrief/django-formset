@@ -218,7 +218,7 @@ class CalendarResponseMixin:
     calendar_renderer_class = CalendarRenderer
 
     def get(self, request, **kwargs):
-        if request.accepts('text/html') and 'calendar' in request.GET:
+        if request.headers.get('X-Request-Source') == 'CalendarSheet' and 'date' in request.GET:
             try:
                 start_datetime, hour12, view_mode, interval = self.calendar_renderer_class.parse_request(request)
             except (TypeError, ValueError):
