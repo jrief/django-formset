@@ -69,7 +69,7 @@ This example shows how to use the form field for a geographic map together with 
 	        ),
 	    )
 
-.. django-view:: simple_point_view
+.. django-view:: geo_map_view
 	:view-function: GeoMapView.as_view(form_class=geographic_data.SimplePointForm, extra_context={'framework': 'bootstrap', 'pre_id': 'simple-point-result'}, form_kwargs={'auto_id': 'sp_id_%s'})
 	:hide-code:
 
@@ -317,8 +317,10 @@ is the widget for the ``map`` field.
 	this page, the same content will reappear in the map canvas representing the field.
 
 
+.. _geojson-renderer:
+
 Rendering the GeoJSON Data Structure
-------------------------------------
+====================================
 
 Until now we have used the ``GeoMapWidget`` to edit geographic data structures and store its content
 as GeoJSON. However, we sometimes might want to just represent this structure on a map canvas
@@ -452,6 +454,122 @@ server and can be used for various purposes.
 .. _Leaflet: https://leafletjs.com/
 .. _OpenStreetMap: https://www.openstreetmap.org/
 .. _basemap.at: https://basemap.at/
+
+
+Richtext Integration
+====================
+
+In the above example ``ChurchDetailForm`` we have seen that we can use a ``RichTextField`` to store
+a description together with a marker inside a geographic map. In **django-formset** we can also go
+the other way around, and use a ``GeoMapField`` inside our :ref:`Richtext editor <richtext>`. For
+this purpose, we create a simple form with a single richtext field and a few control elements, one
+of which is a dialog to edit a geographic map with markers. The dialog form for the map contains a
+single ``GeoMapField`` with a ``PointEditor`` control element, which itself is another dialog form
+to edit a description of the marker using another nested richtext field.
+
+.. django-view:: richtext_with_geomap_form
+	:caption: richtext_form.py
+	:emphasize-lines: 25, 54
+
+	from formset.richtext.dialogs import SimpleGeoMapDialogForm, SimpleImageDialogForm
+	from formset.widgets.richtext import RichTextarea, controls
+
+	class SpecialMarkerDialogForm(GeoMapDialogForm):
+	    title = "Special Marker"
+	    extension = 'special_marker'
+	    properties_map = {'body': 'body'}
+
+	    body = RichTextField(
+	        widget=RichTextarea(
+	            control_elements=[
+	                controls.Bold(),
+	                controls.Italic(),
+	                controls.DialogControl(SimpleImageDialogForm()),
+	                controls.Separator(),
+	                controls.ClearFormat(),
+	                controls.Undo(),
+	                controls.Redo(),
+	            ],
+	            attrs={'maxlength': 500, 'style': 'height: 250px;'},
+	        ),
+	        required=False,
+	    )
+
+	class SpecialGeoMapDialogForm(SimpleGeoMapDialogForm):
+	    geomap = GeoMapField(
+	        label="Edit Map Markers",
+	        widget=GeoMapWidget(
+	            controls_topleft=[
+	                PointEditor(
+	                    identifier='special-marker',
+	                    dialog_forms=[
+	                        SpecialMarkerDialogForm(),
+	                    ],
+	                ),
+	            ],
+	            attrs={
+	                'style': 'height:300px;width:100%;',
+	                'richtext-map-to': 'geomap_to_document()',
+	                'richtext-map-from': 'document_to_geomap()',
+	            },
+	        ),
+	        required=False,
+	    )
+
+	class RichTextWithGeoMapForm(Form):
+	    content = RichTextField(
+	        label="Content",
+	        widget=RichTextarea(
+	            control_elements=[
+	                controls.Heading([1,2,3]),
+	                controls.Bold(),
+	                controls.Italic(),
+	                controls.DialogControl(SpecialGeoMapDialogForm()),
+	                controls.Separator(),
+	                controls.ClearFormat(),
+	                controls.Redo(),
+	                controls.Undo(),
+	            ],
+	            attrs={'style': 'height: 600px;'},
+	        ),
+	        required=False,
+	    )
+
+Event though this example is a bit more complex, it shows how to integrate a ``GeoMapField`` inside
+a richtext editor and vice versa. 
+
+.. django-referred-view:: richtext_geomap_view
+
+There is a caveat though: The ``SpecialGeoMapDialogForm`` used as a control element by this richtext
+editor configuration uses the web component ``<geomap-renderer>`` to render the map canvas, when
+rendered inside the richtext area itself. This has been explained in the previous section named
+‘:ref:`Rendering the GeoJSON Data Structure <geojson-renderer>`’. This ``<geomap-renderer>``
+requires its content to be a valid GeoJSON data structure with additional information on how to
+style the markers, their optional popups and tooltips. We therefore must provide a method so that
+the richtext editor can amend the content of the edited GeoMap with that extra information. For
+this purpose, we use the function ``geomap_to_document()`` found inside our
+``tiptap-extensions/simple_geomap.js`` file. This function is used to convert the content of the
+``GeoMapField`` into data to be stored inside the richtext editor's document data structure. Before
+doing so, we send that data to the server, where it is amended with the missing information
+mentioned before.
+
+Since our embedding component ``<django-formset>`` already provides a default endpoint, we
+fortunately do not have to specify an extra one for this purpose, . However, we must intercept
+all requests to perform such an amendment. We therefore add the special class
+``RichtextConversionResponseMixin`` to the ``FormView`` which controls our formset. Here is a simple
+example of how to use this mixin class:
+
+.. django-view:: richtext_geomap_view
+	:view-function: RichTextWithGeoMapView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'richtext-with-geomap-result'}, form_kwargs={'auto_id': 'rtgm_id_%s'})
+	:hide-view:
+	:caption: views.py
+
+	from formset.views import RichtextConversionResponseMixin 
+
+	class RichTextWithGeoMapView(RichtextConversionResponseMixin, FormView):
+	    template_name = "form.html"
+	    form_class = RichTextWithGeoMapForm
+	    success_url = "/success"
 
 
 Global Settings
