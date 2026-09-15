@@ -31,7 +31,6 @@
 
 	image_to_document(elements) {
 		// richtext-map-to: SimpleImageDialogForm.image
-		console.log('image_to_document', elements);
 		const fileupload = JSON.parse(elements.image.dataset.fileupload);
 		return {
 			src: fileupload.download_url,
@@ -41,7 +40,6 @@
 
 	document_to_image(inputElement, attributes) {
 		// richtext-map-from: SimpleImageDialogForm.image
-		console.log('document_to_image', attributes, inputElement);
 		return {
 			dataset: {fileupload: JSON.stringify(attributes.dataset)},
 		};
