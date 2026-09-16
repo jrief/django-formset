@@ -40,6 +40,7 @@ class GeoJSONRenderer extends HTMLElement {
 		attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>',
 		crossOrigin: true,
 		detectRetina: true,
+		referrerPolicy: 'strict-origin-when-cross-origin',
 	};
 	static observedAttributes = ['json'];
 
