@@ -2,6 +2,7 @@ import json
 
 from django.template.exceptions import TemplateDoesNotExist
 from django.template.loader import get_template, select_template
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 from formset.dialog import DialogForm
@@ -88,7 +89,6 @@ class PointEditor(ControlElement):
     label = _("Edit Marker Point")
     add_button_icon = 'formset/geomap/icons/add-marker.svg'
     delete_button_icon = 'formset/geomap/icons/delete-marker.svg'
-    default_marker_json = compact_json(get_template('geomap/markers/default-marker.json').render())
 
     def __init__(self, min_markers=None, max_markers=None, **kwargs):
         super().__init__(min_entries=min_markers, max_entries=max_markers, **kwargs)
@@ -98,6 +98,10 @@ class PointEditor(ControlElement):
         if not context.get('marker_json'):
             context['marker_json'] = self.default_marker_json
         return context
+
+    @cached_property
+    def default_marker_json(self):
+        return compact_json(get_template('geomap/markers/default-marker.json').render())
 
 
 class PolylineEditor(ControlElement):
