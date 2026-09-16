@@ -177,20 +177,6 @@ initial_json = {
                                                     ]
                                                 }
                                             },
-                                            "_marker_": {
-                                                "icon": {
-                                                    "iconUrl": '/static/formset/icons/marker-icon.svg',
-                                                    "iconSize": [25, 41],
-                                                    "iconAnchor": [13, 41],
-                                                    "popupAnchor": [-2, -44],
-                                                    "shadowUrl": '/static/formset/icons/marker-shadow.png',
-                                                    "shadowSize": [68, 68],
-                                                    "shadowAnchor": [22, 68],
-                                                },
-                                            },
-                                            "_popup_": {
-                                                "content": "<p><strong>Capela do Senhor do Palheirnho</strong></p><p><a href=\"https://www.avintes.pt\">Avintes</a></p>",
-                                            },
                                         },
                                         "geometry": {
                                             "type": "Point",
