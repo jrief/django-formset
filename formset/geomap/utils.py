@@ -6,7 +6,11 @@ from django.utils.html import strip_spaces_between_tags
 
 
 def amend_geojson_feature_collection(map_data):
-    for feature in map_data['features']:
+    try:
+        features = map_data['features']
+    except (KeyError, TypeError):
+        return map_data
+    for feature in features:
         identifier, index = feature['id'].split(':')
         properties = feature['properties']
 

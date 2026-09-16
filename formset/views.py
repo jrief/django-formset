@@ -410,6 +410,6 @@ class RichtextConversionResponseMixin:
     def post(self, request, **kwargs):
         if request.headers.get('X-Request-Source') == 'RichtextConversion':
             body = self._request_body
-            if body.get('type') == 'FeatureCollection' and isinstance(body.get('features'), list):
+            if body.get('type') == 'FeatureCollection':
                 return JsonResponse(amend_geojson_feature_collection(body))
         return super().post(request, **kwargs)
