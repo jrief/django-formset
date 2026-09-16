@@ -1,14 +1,14 @@
 import os
 import struct
 from base64 import b16encode
-from datetime import timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import UploadedFile
 from django.core.signing import get_cookie_signer
 from django.forms.widgets import FILE_INPUT_CONTRADICTION, FileInput
-from django.utils.timezone import datetime, now
+from django.utils.timezone import now
 
 
 class UploadedFileInput(FileInput):

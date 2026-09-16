@@ -1,12 +1,11 @@
 import calendar
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from enum import Enum
 
 from django.conf import settings
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.loader import get_template
 from django.utils.formats import date_format
-from django.utils.timezone import datetime
 
 
 class Layout(Enum):
