@@ -54,9 +54,10 @@ class RichTextarea(Textarea):
         return value
 
     def build_attrs(self, base_attrs, extra_attrs=None):
-        attrs = super().build_attrs(base_attrs, extra_attrs)
-        attrs['is'] = 'django-richtext'
-        return attrs
+        return {
+            **super().build_attrs(base_attrs, extra_attrs),
+            'is': 'django-richtext',
+        }
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
