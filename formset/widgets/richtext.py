@@ -29,6 +29,8 @@ class RichTextarea(Textarea):
             self.control_elements = control_elements
 
     def format_value(self, value):
+        if self.attrs.get('use_json'):
+            return ''  # do not render any JSON data inside the <textarea>…</textarea> element
         return value or ''
 
     def value_from_datadict(self, data, files, name):
@@ -62,15 +64,12 @@ class RichTextarea(Textarea):
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
         if attrs.get('use_json') or self.attrs.get('use_json'):
-            context['use_json'] = True
             if isinstance(value, dict):
                 context['widget']['attrs']['data-content'] = json.dumps(value)
             elif isinstance(value, str) and '"type": "doc"' in value:  # already JSONified
                 context['widget']['attrs']['data-content'] = value
             else:
                 context['widget']['attrs']['data-content'] = '{"type": "doc"}'  # empty document
-            context['widget'].pop('value', None)  # we don't want the <textarea> to contain any JSON data
-        context['widget']['attrs'].pop('use_json', None)
         return context
 
     def render(self, name, value, attrs=None, renderer=None):
@@ -93,6 +92,7 @@ class RichTextarea(Textarea):
                     if isinstance(elm, controls.DialogControl):
                         dialog_forms.append(render_dialog(elm.dialog_form))
 
+        context['widget']['attrs'].pop('use_json', None)
         context.update(
             control_panel=control_panel,
             dialog_forms=dialog_forms,

@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from formset.dialog import ApplyButton, CancelButton, RevertButton, TransientDialogForm
 from formset.formfields.activator import Activator
 from formset.formfields.geomap import GeoMapField
+from formset.formfields.richtext import RichTextField
 from formset.geomap.controls import PointEditor
 from formset.geomap.utils import amend_geojson_feature_collection
 from formset.richtext import controls
@@ -181,7 +182,7 @@ class FootnoteDialogForm(RichtextDialogForm):
     plugin_type = 'node'
     icon = 'formset/richtext/icons/footnote.svg'
 
-    content = fields.CharField(
+    content = RichTextField(
         label=_("Footnote Content"),
         widget=RichTextarea(
             control_elements=[
@@ -198,7 +199,6 @@ class FootnoteDialogForm(RichtextDialogForm):
                 controls.Undo(),
             ],
             attrs={
-                'use_json': True,
                 'richtext-map-to': '{content: elements.content.value}',
                 'richtext-map-from': '{dataset: {content: JSON.stringify(attributes.content)}}',
             },
