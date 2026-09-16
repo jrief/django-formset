@@ -115,6 +115,23 @@ class SimpleGeoMapDialogForm(RichtextDialogForm):
         required=False,
     )
 
+    def clean_content(self, richtext_field, content):
+        """
+        TipTap's JSON structure for the geomap extension may contain special attributes added by
+        :func:`formset.geomap.utils.amend_geojson_feature_collection` to provide additional information when
+        using the `<geojson-renderer>` widget. When storing the document, they add extra payload without benefit,
+        so they are removed here.
+        """
+        try:
+            content = content['content']
+            if content['type'] == 'FeatureCollection' and isinstance(content['features'], list):
+                for feature in content['features']:
+                    feature.pop('_marker_', None)
+                    feature.pop('_popup_', None)
+                    feature.pop('_tooltip_', None)
+        except KeyError:
+            pass
+
 
 class PlaceholderDialogForm(RichtextDialogForm):
     title = _("Edit Placeholder")
