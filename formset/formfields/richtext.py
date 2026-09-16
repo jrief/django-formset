@@ -21,6 +21,14 @@ class RichTextField(JSONField):
             self.storage = storage
         super().__init__(widget=widget, *args, **kwargs)
 
+    def prepare_value(self, value):
+        if isinstance(value, dict) and value.get('type') == 'doc' and isinstance(value.get('content'), list):
+            for control_element in self.widget.control_elements:
+                control_element.prepare_content(self, value['content'])
+        else:
+            value = {'type': 'doc', 'content': []}
+        return super().prepare_value(value)
+
     def to_python(self, value):
         """Return a dict as required by TipTap."""
         if value in self.empty_values:
@@ -35,7 +43,7 @@ class RichTextField(JSONField):
 
     def clean(self, value):
         value = super().clean(value)
-        if isinstance(value, dict) and 'content' in value:
+        if isinstance(value, dict) and isinstance(value.get('content'), list):
             for control_element in self.widget.control_elements:
                 control_element.clean_content(self, value['content'])
         return value

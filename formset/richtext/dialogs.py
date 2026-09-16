@@ -5,6 +5,7 @@ from formset.dialog import ApplyButton, CancelButton, RevertButton, TransientDia
 from formset.formfields.activator import Activator
 from formset.formfields.geomap import GeoMapField
 from formset.geomap.controls import PointEditor
+from formset.geomap.utils import amend_geojson_feature_collection
 from formset.richtext import controls
 from formset.richtext.upload import persit_uploaded_file
 from formset.widgets import UploadedFileInput
@@ -47,6 +48,11 @@ class RichtextDialogForm(TransientDialogForm):
         context = super().get_context()
         context['extension_script'] = self.extension_script
         return context
+
+    def prepare_content(self, richtext_field, contents):
+        """
+        Hook to prepare content for this dialog form to be rendered by the RichTextarea widget.
+        """
 
     def clean_content(self, richtext_field, attributes):
         for name, field in self.fields.items():
@@ -114,6 +120,17 @@ class SimpleGeoMapDialogForm(RichtextDialogForm):
         ),
         required=False,
     )
+
+    def prepare_content(self, richtext_field, contents):
+        """
+        Parse TipTap's JSON structure and look for an attribute of type 'simple_map'. Amend the GeoJSON
+        to add special attributes to provide additional information when using the `<geojson-renderer>` widget.
+        """
+        for entry in contents:
+            if isinstance(entry.get('content'), list):
+                self.prepare_content(richtext_field, entry['content'])
+            elif entry.get('type') == self.extension and 'content' in entry.get('attrs', {}):
+                amend_geojson_feature_collection(entry['attrs']['content'])
 
     def clean_content(self, richtext_field, content):
         """
