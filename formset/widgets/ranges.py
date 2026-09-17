@@ -1,8 +1,8 @@
-from datetime import date
+from datetime import date, datetime
 
 from django.forms.utils import to_current_timezone
 from django.forms.widgets import Input
-from django.utils.timezone import datetime, is_naive
+from django.utils.timezone import is_naive
 
 from formset.calendar import Layout
 from formset.widgets import DateCalendar, DatePicker, DateTextbox, DateTimeCalendar, DateTimePicker, DateTimeTextbox

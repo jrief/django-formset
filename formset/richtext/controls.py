@@ -32,6 +32,11 @@ class ControlElement:
             'icon': self.button_icon,
         }
 
+    def prepare_content(self, richtext_field, content):
+        """
+        Hook to prepare content for this dialog form to be rendered by the RichTextarea widget.
+        """
+
     def clean_content(self, richtext_field, content):
         """
         Hook to clean the content returned by the Richtext editor element.
@@ -46,6 +51,14 @@ class ControlElement:
 
 class Group(list):
     template_name = 'formset/richtext/control_group.html'
+
+    def prepare_content(self, richtext_field, contents):
+        for element in self:
+            element.prepare_content(richtext_field, contents)
+
+    def clean_content(self, richtext_field, content):
+        for element in self:
+            element.clean_content(richtext_field, content)
 
     def render(self, renderer, context=None):
         if context is None:
@@ -313,6 +326,12 @@ class DialogControl(ControlElement):
             'label': self.dialog_form.title,
             'icon': self.button_icon,
         }
+
+    def prepare_content(self, richtext_field, contents):
+        """
+        Hook to prepare content for this dialog form to be rendered by the RichTextarea widget.
+        """
+        return self.dialog_form.prepare_content(richtext_field, contents)
 
     def clean_content(self, richtext_field, content):
         errmsg = gettext("Invalid content structure: Expected a list of dictionaries.")

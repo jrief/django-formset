@@ -4,7 +4,9 @@ from django.utils.translation import gettext_lazy as _
 from formset.dialog import ApplyButton, CancelButton, RevertButton, TransientDialogForm
 from formset.formfields.activator import Activator
 from formset.formfields.geomap import GeoMapField
+from formset.formfields.richtext import RichTextField
 from formset.geomap.controls import PointEditor
+from formset.geomap.utils import amend_geojson_feature_collection
 from formset.richtext import controls
 from formset.richtext.upload import persit_uploaded_file
 from formset.widgets import UploadedFileInput
@@ -47,6 +49,11 @@ class RichtextDialogForm(TransientDialogForm):
         context = super().get_context()
         context['extension_script'] = self.extension_script
         return context
+
+    def prepare_content(self, richtext_field, contents):
+        """
+        Hook to prepare content for this dialog form to be rendered by the RichTextarea widget.
+        """
 
     def clean_content(self, richtext_field, attributes):
         for name, field in self.fields.items():
@@ -115,6 +122,34 @@ class SimpleGeoMapDialogForm(RichtextDialogForm):
         required=False,
     )
 
+    def prepare_content(self, richtext_field, contents):
+        """
+        Parse TipTap's JSON structure and look for an attribute of type 'simple_map'. Amend the GeoJSON
+        to add special attributes to provide additional information when using the `<geojson-renderer>` widget.
+        """
+        for entry in contents:
+            if isinstance(entry.get('content'), list):
+                self.prepare_content(richtext_field, entry['content'])
+            elif entry.get('type') == self.extension and 'content' in entry.get('attrs', {}):
+                amend_geojson_feature_collection(entry['attrs']['content'])
+
+    def clean_content(self, richtext_field, content):
+        """
+        TipTap's JSON structure for the geomap extension may contain special attributes added by
+        :func:`formset.geomap.utils.amend_geojson_feature_collection` to provide additional information when
+        using the `<geojson-renderer>` widget. When storing the document, they add extra payload without benefit,
+        so they are removed here.
+        """
+        try:
+            content = content['content']
+            if content['type'] == 'FeatureCollection' and isinstance(content['features'], list):
+                for feature in content['features']:
+                    feature.pop('_marker_', None)
+                    feature.pop('_popup_', None)
+                    feature.pop('_tooltip_', None)
+        except KeyError:
+            pass
+
 
 class PlaceholderDialogForm(RichtextDialogForm):
     title = _("Edit Placeholder")
@@ -147,7 +182,7 @@ class FootnoteDialogForm(RichtextDialogForm):
     plugin_type = 'node'
     icon = 'formset/richtext/icons/footnote.svg'
 
-    content = fields.CharField(
+    content = RichTextField(
         label=_("Footnote Content"),
         widget=RichTextarea(
             control_elements=[
@@ -164,7 +199,6 @@ class FootnoteDialogForm(RichtextDialogForm):
                 controls.Undo(),
             ],
             attrs={
-                'use_json': True,
                 'richtext-map-to': '{content: elements.content.value}',
                 'richtext-map-from': '{dataset: {content: JSON.stringify(attributes.content)}}',
             },

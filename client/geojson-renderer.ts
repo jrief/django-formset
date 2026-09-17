@@ -40,6 +40,7 @@ class GeoJSONRenderer extends HTMLElement {
 		attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>',
 		crossOrigin: true,
 		detectRetina: true,
+		referrerPolicy: 'strict-origin-when-cross-origin',
 	};
 	static observedAttributes = ['json'];
 
@@ -90,19 +91,19 @@ class GeoJSONRenderer extends HTMLElement {
 		const bbox = getDataValue(geojson, 'bbox') as number[];
 		const options: GeoJSONOptions = {
 			filter: filterFunction,
-			pointToLayer: (feature, latlng) => {
+			pointToLayer: (feature: any, latlng) => {
 				const options: MarkerOptions = {
-					icon: new Icon(feature.properties._marker_.icon as IconOptions),
+					icon: new Icon(feature._marker_.icon as IconOptions),
 				};
 				return new Marker(latlng, options);
 			},
-			onEachFeature: (feature, layer) => {
-				if (feature.properties._popup_) {
-					const options = feature.properties._popup_.options ?? {} as PopupOptions;
-					layer.bindPopup(feature.properties._popup_.content, options);
+			onEachFeature: (feature: any, layer) => {
+				if (feature._popup_) {
+					const options = feature._popup_.options ?? {} as PopupOptions;
+					layer.bindPopup(feature._popup_.content, options);
 				}
-				if (feature.properties._tooltip_) {
-					const options = feature.properties._tooltip_.options ?? {} as TooltipOptions;
+				if (feature._tooltip_) {
+					const options = feature._tooltip_.options ?? {} as TooltipOptions;
 					layer.bindTooltip(feature.properties._tooltip_.content, options);
 				}
 			},

@@ -107,14 +107,13 @@ class GeoMapWidget(Textarea):
 
 
     def build_attrs(self, base_attrs, extra_attrs=None):
-        attrs = super().build_attrs(base_attrs, extra_attrs)
-        attrs.update({
+        return {
+            **super().build_attrs(base_attrs, extra_attrs),
             'is': 'django-geomap',
             'data-url-template': self.url_template,
             'data-tile-layer-options': json.dumps(self.tile_layer_options),
             'data-map-options': json.dumps(self.map_options),
-        })
-        return attrs
+        }
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
@@ -122,7 +121,6 @@ class GeoMapWidget(Textarea):
             context['widget']['attrs']['data-content'] = json.dumps(value)
         elif isinstance(value, str) and '"type": "FeatureCollection"' in value:  # already JSONified
             context['widget']['attrs']['data-content'] = value
-        context['widget'].pop('value', None)  # we don't want the <textarea> to contain any JSON data
         return context
 
     def render(self, name, value, attrs=None, renderer=None):
@@ -179,6 +177,7 @@ class GeoMapWidget(Textarea):
                     ),
                 )
             )
+        context['widget']['attrs'].pop('use_json', None)
         context.update(
             control_elements=control_elements,
             popups=popups,

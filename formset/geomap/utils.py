@@ -6,7 +6,11 @@ from django.utils.html import strip_spaces_between_tags
 
 
 def amend_geojson_feature_collection(map_data):
-    for feature in map_data['features']:
+    try:
+        features = map_data['features']
+    except (KeyError, TypeError):
+        return map_data
+    for feature in features:
         identifier, index = feature['id'].split(':')
         properties = feature['properties']
 
@@ -14,28 +18,25 @@ def amend_geojson_feature_collection(map_data):
         if feature['geometry']['type'] == 'Point':
             try:
                 marker_icon = get_template(f'geomap/markers/{identifier}.json').render()
-                properties.setdefault('_marker_', {})
-                properties['_marker_']['icon'] = json.loads(marker_icon)
+                feature['_marker_'] = {'icon': json.loads(marker_icon)}
             except TemplateDoesNotExist:
                 pass
 
         # Leaflet popup
         try:
             content = get_template(f'geomap/popups/{identifier}.html').render(properties)
-            properties.setdefault('_popup_', {})
-            properties['_popup_']['content'] = strip_spaces_between_tags(content)
+            feature['_popup_'] = {'content': strip_spaces_between_tags(content)}
             options = get_template(f'geomap/popups/{identifier}.json').render(properties)
-            properties['_popup_']['options'] = json.loads(options)
+            feature['_popup_']['options'] = json.loads(options)
         except TemplateDoesNotExist:
             pass
 
         # Leaflet tooltip
         try:
             content = get_template(f'geomap/tooltips/{identifier}.html').render(properties)
-            properties.setdefault('_tooltip_', {})
-            properties['_tooltip_']['content'] = strip_spaces_between_tags(content)
+            feature['_tooltip_'] = {'content': strip_spaces_between_tags(content)}
             options = get_template(f'geomap/tooltips/{identifier}.json').render(properties)
-            properties['_tooltip_']['options'] = json.loads(options)
+            feature['_tooltip_']['options'] = json.loads(options)
         except TemplateDoesNotExist:
             pass
     return map_data

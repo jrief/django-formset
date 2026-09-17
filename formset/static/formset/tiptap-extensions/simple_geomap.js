@@ -36,12 +36,14 @@
 			return {content: elements.geomap.value};
 		}
 		return new Promise((resolve, reject) => {
+			const headers = new Headers({
+				'Content-Type': 'application/json',
+				'X-CSRFToken': document.cookie.match(/csrftoken=([0-9a-zA-Z]+)/)?.[1] ?? '',
+				'X-Request-Source': 'RichtextConversion',
+			});
 			fetch(endpointUrl, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': document.cookie.match(/csrftoken=([0-9a-zA-Z]+)/)?.[1] ?? '',
-				},
+				headers: headers,
 				body: JSON.stringify(elements.geomap.value),
 			}).then(response => {
 				if (response.ok) {

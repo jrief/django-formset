@@ -1,5 +1,6 @@
 from django.forms import fields, forms, models, widgets
 
+from formset.formfields.richtext import RichTextField
 from formset.richtext import controls, dialogs
 from formset.widgets.richtext import RichTextarea
 
@@ -177,20 +178,6 @@ initial_json = {
                                                     ]
                                                 }
                                             },
-                                            "_marker_": {
-                                                "icon": {
-                                                    "iconUrl": '/static/formset/icons/marker-icon.svg',
-                                                    "iconSize": [25, 41],
-                                                    "iconAnchor": [13, 41],
-                                                    "popupAnchor": [-2, -44],
-                                                    "shadowUrl": '/static/formset/icons/marker-shadow.png',
-                                                    "shadowSize": [68, 68],
-                                                    "shadowAnchor": [22, 68],
-                                                },
-                                            },
-                                            "_popup_": {
-                                                "content": "<p><strong>Capela do Senhor do Palheirnho</strong></p><p><a href=\"https://www.avintes.pt\">Avintes</a></p>",
-                                            },
                                         },
                                         "geometry": {
                                             "type": "Point",
@@ -268,50 +255,53 @@ class MarginBottom(controls.ClassBaseControlElement):
 
 
 class AdvertisementForm(forms.Form):
-    ad_text = fields.CharField(
+    ad_text = RichTextField(
         label="Advertisement Text",
-        widget=RichTextarea(control_elements=[
-            controls.Group([
-                controls.Heading([1,2,3]),
-                controls.Bold(),
-                controls.Blockquote(),
-                controls.CodeBlock(),
-                controls.HardBreak(),
-                controls.Italic(),
-                controls.Underline(),
-            ]),
-            controls.Group([
-                controls.TextColor(['text-red', 'text-green', 'text-blue']),
-                #controls.TextColor(['rgb(212, 0, 0)', 'rgb(0, 212, 0)', 'rgb(0, 0, 212)']),
-                controls.FontFamily(font_family_classes),
-                controls.FontSize(font_size_classes),
-                controls.LineHeight(line_height_classes),
-                MarginBottom(margin_bottom_classes),
-                controls.Separator(),
-                controls.TextIndent(),
-                controls.TextIndent('outdent'),
-                controls.TextMargin('increase'),
-                controls.TextMargin('decrease'),
-                controls.TextAlign(['left', 'center', 'right']),
-            ]),
-            controls.Group([
-                controls.HorizontalRule(),
-                controls.Strike(),
-                controls.Subscript(),
-                controls.Superscript(),
-            ]),
-            controls.Group([
-                controls.ClearFormat(),
-                controls.Redo(),
-                controls.Undo(),
-                controls.DialogControl(CustomHyperlinkDialogForm()),
-                controls.DialogControl(dialogs.SimpleImageDialogForm()),
-                controls.DialogControl(dialogs.PlaceholderDialogForm()),
-                controls.DialogControl(dialogs.FootnoteDialogForm()),
-                controls.DialogControl(SpecialGeoMapDialogForm()),
-            ]),
-        ],
-        attrs={'placeholder': "Start typing …", 'use_json': True, 'maxlength': 2000, 'style': 'height: 600px;'}),
+        widget=RichTextarea(
+            control_elements=[
+                controls.Group([
+                    controls.Heading([1,2,3]),
+                    controls.Bold(),
+                    controls.Blockquote(),
+                    controls.CodeBlock(),
+                    controls.HardBreak(),
+                    controls.Italic(),
+                    controls.Underline(),
+                ]),
+                controls.Group([
+                    controls.TextColor(['text-red', 'text-green', 'text-blue']),
+                    #controls.TextColor(['rgb(212, 0, 0)', 'rgb(0, 212, 0)', 'rgb(0, 0, 212)']),
+                    controls.FontFamily(font_family_classes),
+                    controls.FontSize(font_size_classes),
+                    controls.LineHeight(line_height_classes),
+                    MarginBottom(margin_bottom_classes),
+                    controls.Separator(),
+                    controls.TextIndent(),
+                    controls.TextIndent('outdent'),
+                    controls.TextMargin('increase'),
+                    controls.TextMargin('decrease'),
+                    controls.TextAlign(['left', 'center', 'right']),
+                ]),
+                controls.Group([
+                    controls.HorizontalRule(),
+                    controls.Strike(),
+                    controls.Subscript(),
+                    controls.Superscript(),
+                ]),
+                controls.Group([
+                    controls.ClearFormat(),
+                    controls.Redo(),
+                    controls.Undo(),
+                    controls.DialogControl(CustomHyperlinkDialogForm()),
+                    controls.DialogControl(dialogs.SimpleImageDialogForm()),
+                    controls.DialogControl(dialogs.PlaceholderDialogForm()),
+                    controls.DialogControl(dialogs.FootnoteDialogForm()),
+                    controls.DialogControl(SpecialGeoMapDialogForm()),
+                ]),
+            ],
+            attrs={'placeholder': "Start typing …", 'maxlength': 2000, 'style': 'height: 600px;'}
+        ),
+        help_text="Content id stored as JSON data structure.",
         initial=initial_json['ad_text'],
     )
     extra_text = fields.CharField(
@@ -331,4 +321,6 @@ class AdvertisementForm(forms.Form):
             attrs={'maxlength': 500, 'style': 'height: 250px;'},
         ),
         required=False,
+        help_text="Content id stored as HTML.",
+        initial='<p>Some <strong>extra</strong> text with a <a href="http://example.org">link</a>.</p>',
     )

@@ -2170,15 +2170,16 @@ export class DjangoFormset implements DjangoFormset {
 			this.removeFreshCollections();
 			const body = {extra_data: {...this.extraData, ...(extraData ?? {})}, ...this.buildBody()};
 			try {
-				const headers = new Headers();
-				headers.append('Accept', 'application/json');
-				headers.append('Content-Type', 'application/json');
+				const headers = new Headers({
+					'Accept': 'application/json',
+					'Content-Type': 'application/json',
+				});
 				if (this.CSRFToken) {
 					headers.append('X-CSRFToken', this.CSRFToken);
 				}
 				const response = await fetch(this.endpoint, {
 					method: 'POST',
-					headers: headers,
+					headers,
 					body: JSON.stringify(body),
 					signal: this.abortController.signal,
 				} as RequestInit);
@@ -2214,8 +2215,10 @@ export class DjangoFormset implements DjangoFormset {
 			throw new Error("<django-formset> requires attribute 'endpoint=\"server endpoint\"' for submission");
 		try {
 			const query = new URLSearchParams({pk, path: path.join('.')});
-			const headers = new Headers();
-			headers.append('Accept', 'application/json');
+			const headers = new Headers({
+				'Accept': 'application/json',
+				'X-Request-Source': 'PrefillPartial',
+			});
 			const response = await fetch(`${this.endpoint}?${query.toString()}`, {headers});
 			switch (response.status) {
 				case 200:
@@ -2266,15 +2269,16 @@ export class DjangoFormset implements DjangoFormset {
 			fullPath, getDataValue(this.buildBody(), fullPath)
 		);
 		try {
-			const headers = new Headers();
-			headers.append('Accept', 'application/json');
-			headers.append('Content-Type', 'application/json');
+			const headers = new Headers({
+				'Accept': 'application/json',
+				'Content-Type': 'application/json',
+			});
 			if (this.CSRFToken) {
 				headers.append('X-CSRFToken', this.CSRFToken);
 			}
 			const response = await fetch(this.endpoint, {
 				method: 'PATCH',
-				headers: headers,
+				headers,
 				body: JSON.stringify(body),
 			});
 			switch (response.status) {

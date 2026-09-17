@@ -154,6 +154,7 @@ FORMSET_GEOMAP = {
         'attribution': 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>',
         'crossOrigin': True,
         'detectRetina': True,
+        'referrerPolicy': 'strict-origin-when-cross-origin',
     },
     'map_options': {
         'maxZoom': 18,

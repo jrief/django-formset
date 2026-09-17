@@ -1,12 +1,11 @@
 import calendar
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from enum import Enum
 
 from django.conf import settings
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.loader import get_template
 from django.utils.formats import date_format
-from django.utils.timezone import datetime
 
 
 class Layout(Enum):
@@ -218,7 +217,7 @@ class CalendarResponseMixin:
     calendar_renderer_class = CalendarRenderer
 
     def get(self, request, **kwargs):
-        if request.accepts('text/html') and 'calendar' in request.GET:
+        if request.headers.get('X-Request-Source') == 'CalendarSheet' and 'date' in request.GET:
             try:
                 start_datetime, hour12, view_mode, interval = self.calendar_renderer_class.parse_request(request)
             except (TypeError, ValueError):

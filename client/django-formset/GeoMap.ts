@@ -1044,6 +1044,7 @@ class GeoMap extends Map implements Inducible {
 		attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>',
 		crossOrigin: true,
 		detectRetina: true,
+		referrerPolicy: 'strict-origin-when-cross-origin',
 	};
 
 	constructor(element: GeoMapElement) {
