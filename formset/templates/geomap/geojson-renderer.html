@@ -1,2 +1,2 @@
 {# remember to include `<script src="{% static 'formset/js/geojson-renderer.js' %}" type="module"></script>` before using this web component #}
-<geojson-renderer json="{{ json_data }}"{% if filter %} filter="{{ filter }}"{% endif %} style="{{ style }}"></geojson-renderer>
+<geojson-renderer content="{{ content }}"{% if filter %} filter="{{ filter }}"{% endif %} style="{{ style }}" data-url-template="{{ url_template }}" data-tile-layer-options="{{ tile_layer_options }}" data-map-options="{{ map_options }}"></geojson-renderer>

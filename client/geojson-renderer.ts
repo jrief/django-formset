@@ -42,7 +42,7 @@ class GeoJSONRenderer extends HTMLElement {
 		detectRetina: true,
 		referrerPolicy: 'strict-origin-when-cross-origin',
 	};
-	static observedAttributes = ['json'];
+	static observedAttributes = ['content', 'filter'];
 
 	constructor() {
 		super();
@@ -56,13 +56,16 @@ class GeoJSONRenderer extends HTMLElement {
 		}
 		const divElem = document.createElement('div') as HTMLDivElement;
 		this.#shadowRoot.appendChild(divElem);
-		this.#leaflet = new Map(divElem, GeoJSONRenderer.defaultMapOptions);
-		const tileLayer = new TileLayer(GeoJSONRenderer.defaultUrlTemplate, GeoJSONRenderer.defaultTileLayerOptions);
+		const mapOptions = this.dataset.mapOptions ? JSON.parse(this.dataset.mapOptions) : GeoJSONRenderer.defaultMapOptions;
+		this.#leaflet = new Map(divElem, mapOptions);
+		const urlTemplate = this.dataset.urlTemplate ?? GeoJSONRenderer.defaultUrlTemplate;
+		const tileLayerOptions = this.dataset.tileLayerOptions ? JSON.parse(this.dataset.tileLayerOptions) : GeoJSONRenderer.defaultTileLayerOptions;
+		const tileLayer = new TileLayer(urlTemplate, tileLayerOptions);
 		this.#leaflet.addLayer(tileLayer);
 	}
 
 	attributeChangedCallback(name: string) {
-		if (name === 'json') {
+		if (name === 'content' || name === 'filter') {
 			this.#setGeoData();
 		}
 	}
@@ -77,7 +80,7 @@ class GeoJSONRenderer extends HTMLElement {
 				this.#leaflet.removeLayer(layer);
 			}
 		});
-		const geojson = JSON.parse(this.getAttribute('json') ?? '{}');
+		const geojson = JSON.parse(this.getAttribute('content') ?? '{}');
 		if (geojson.type !== 'FeatureCollection')
 			throw new Error('Invalid GeoJSON');
 		geojson['features'] ??= [];

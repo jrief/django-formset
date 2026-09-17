@@ -1,6 +1,5 @@
 import json
 
-from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.forms.widgets import Textarea
 from django.utils.html import format_html, format_html_join
@@ -8,19 +7,7 @@ from django.utils.safestring import mark_safe
 
 from formset.geomap.controls import ControlElement
 from formset.geomap.dialogs import GeoMapDialogForm
-
-default_settings = getattr(settings, 'FORMSET_GEOMAP', {})
-default_settings.setdefault('urlTemplate', 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
-default_settings.setdefault('tileLayerOptions', {
-    'attribution': 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>',
-})
-default_settings.setdefault('mapOptions', {
-   'maxZoom': 18,
-   'minZoom': 1,
-   'zoom': 9,
-   'center': [51.5, 0],
-   'doubleClickZoom': False,
-})
+from formset.geomap.settings import default_settings
 
 
 class GeoMapWidget(Textarea):
