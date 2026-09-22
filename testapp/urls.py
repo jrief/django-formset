@@ -10,6 +10,8 @@ from django.views.i18n import JavaScriptCatalog
 
 from formset import __version__
 
+from testapp.models.page import PageModel
+
 
 def render_landing(request):
     context = {
@@ -27,6 +29,14 @@ def render_landing(request):
     return HttpResponse(template.render(context))
 
 
+def render_page(request, slug):
+    page = PageModel.objects.get(slug=slug)
+    context = {
+        'page': page,
+    }
+    template = get_template('page.html')
+    return HttpResponse(template.render(context))
+
 urlpatterns = [
     path('success', lambda request: HttpResponse('<h1>Form data succesfully submitted</h1>'), name='form_data_valid'),
     path('default/', include(('testapp.views', 'default'))),
@@ -35,6 +45,7 @@ urlpatterns = [
     path('foundation/', include(('testapp.views', 'foundation'))),
     path('tailwind/', include(('testapp.views', 'tailwind'))),
     path('uikit/', include(('testapp.views', 'uikit'))),
+    path('page/<slug:slug>/', render_page, name='page_detail'),
 ]
 if settings.USE_I18N:
     urlpatterns.extend(i18n_patterns(path(

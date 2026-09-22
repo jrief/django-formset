@@ -1,4 +1,7 @@
 from django.db import models
+from django.urls import reverse
+
+from formset.modelfields.richtext import RichTextField
 
 from testapp.models.reporter import Reporter
 
@@ -24,9 +27,14 @@ class PageModel(models.Model):
         max_length=40,
         db_index=True,
     )
+    content = RichTextField(
+        verbose_name="Page Content",
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return self.title
 
     def get_absolute_url(self):
-        return f"/pages/{self.slug}/"
+        return reverse('page_detail', kwargs={'slug': self.slug})

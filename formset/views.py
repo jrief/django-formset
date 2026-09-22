@@ -409,7 +409,12 @@ class RichtextConversionResponseMixin:
     """
     def post(self, request, **kwargs):
         if request.headers.get('X-Request-Source') == 'RichtextConversion':
-            body = self._request_body
-            if body.get('type') == 'FeatureCollection':
-                return JsonResponse(amend_geojson_feature_collection(body))
+            document_data = self.formset_to_document(request)
+            if document_data is not None:
+                return JsonResponse(document_data)
         return super().post(request, **kwargs)
+
+    def formset_to_document(self, request):
+        if self._request_body.get('type') == 'FeatureCollection':
+            return amend_geojson_feature_collection(self._request_body)
+

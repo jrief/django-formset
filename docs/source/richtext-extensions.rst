@@ -5,8 +5,9 @@ Richtext Extensions
 ===================
 
 Having a Richtext editor which can set simple property values such as **bold** or *italic* on
-editable text elements is not a big deal, even the most basic implementation can do that. The
-difficulty arises when you want to set more than one property on a certain paragraph or node.
+editable text elements is not a big deal, even the most basic implementation of an HTML element such
+as ``<div contenteditable="true">`` can do that. The difficulty arises when you want to set more
+than one property on a certain paragraph or node.
 
 Take for instance the hyperlink, the most basic implementation requires two fields: the URL and the
 text to display. But some implementers might want to set more properties, such as the rel_, the
@@ -72,6 +73,7 @@ using the :ref:`selectize`.
 	    title = "Edit Hyperlink"
 	    extension = 'custom_hyperlink'
 	    extension_script = 'testapp/tiptap-extensions/custom_hyperlink.js'
+	    icon = 'formset/richtext/icons/link.svg'
 	    plugin_type = 'mark'
 	    prefix = 'custom_hyperlink_dialog'
 
@@ -210,7 +212,7 @@ control elements:
 	            controls.Italic(),
 	            controls.DialogControl(
 	                CustomHyperlinkDialogForm(),
-	                icon='formset/icons/link.svg',
+	                icon='formset/richtext/icons/link.svg',
 	            ),
 	        ],
 	        attrs={
@@ -302,7 +304,7 @@ This attribute is another unique identifier. It is used to set a name for the di
 .. _behind-the-scenes:
 
 Behind the scenes
------------------
+=================
 
 The most tricky part of the implementation is the mapping of the dialog form fields to the editor's
 document state and vice versa. Dialog forms therefore need a way to bidirectionally exchange their
@@ -378,7 +380,7 @@ the editor. This attribute can take three types of values:
   Example: ``{dataset: {fileupload: JSON.stringify(attributes.dataset)}}`` maps the value of the
   attribute ``dataset`` of the editor's document state to the ``dataset`` attribute of the
   associated input field in the form dialog. 
-* **The name of a function followed by brackets**, for instance ``change_link_type()``. This
+* **The name of a function followed by brackets**, for instance ``document_to_hyperlink()``. This
   function must be an attribute of the object declared inside the extension script as explained in
   the previous section. As its first argument it takes the field of the dialog form, usually an
   HTMLInputElement_ or HTMLSelectElement_. As its second argument it receives the editor's document
@@ -395,7 +397,7 @@ the editor. This attribute can take three types of values:
 	{
 	    ...
 	
-	    change_link_type(inputElement, attributes) {
+	    document_to_hyperlink(inputElement, attributes) {
 	        if (attributes.page && inputElement.value === "internal") {
 	           inputElement.checked = true;
 	        } else if (attributes.href && inputElement.value === "external") {
@@ -426,7 +428,11 @@ the editor. This attribute can take three types of values:
 	    ...
 	    link_type = fields.ChoiceField(
 	        ...
-	        widget=RadioSelect(attrs={'richtext-map-from': 'change_link_type()'}),
+	        widget=RadioSelect(
+	            attrs={
+	                'richtext-map-from': 'document_to_hyperlink()',
+	            },
+	        ),
 	    )
 
 .. _HTMLInputElement: https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement
@@ -455,7 +461,7 @@ the same key. Using this attribute is only allowed if neither ``richtext-map-to`
 
 This extra attribute is used to map the editor's selected text to the dialog form field's value. It
 is applied whenever the user selects some text and wants to convert it into a mark or node element.
-A ggod example is the hyperlink editor, where the user selects some text and clicks on the link
+A good example is the hyperlink editor, where the user selects some text and clicks on the link
 button. This attribute is used to set the initial value of the dialog form field to the selected
 text.
 
@@ -473,7 +479,7 @@ text.
 
 
 Rendering the content
----------------------
+=====================
 
 The internal representation of the editor is a state object containing nodes and marks. To render
 the content of the editor, we can use the ``render_richtext`` template tag as explained in
@@ -495,3 +501,139 @@ For our custom hyperlink extension, the template could look like this:
 
 This template then is used by the richtext renderer and loaded whenever an element of type
 ``custom_hyperlink`` is encountered.
+
+
+Richtext Response Mixin
+=======================
+
+Consider the following scenario: A user selects some text in the Richtext editor and clicks on the
+link editor. The dialog form opens and the user selects "External URL" as **Link Type** but then
+he pastes a link from a page which can be referenced as internal page. In content management systems
+or e-commerce sites, we prefer to link onto objects rather than using external URLs because they
+might change whenever the site structure is revised.
+
+We therefore need a way to convert external URLs to internal page references whenever applicable.
+For this purpose, we use the function ``hyperlink_to_document(elements)`` and add it to our
+extension script. In our form declaration we then use the attribute ``richtext-map-to`` and rewrite
+the field as:
+
+.. code-block:: python
+	:caption: myapp/forms.py
+
+	class CustomHyperlinkDialogForm(dialogs.RichtextDialogForm):
+	    ...
+	    link_type = fields.ChoiceField(
+	        choices=[
+	            ('external', "External URL"),
+	            ('internal', "Internal Page"),
+	        ],
+	        widget=widgets.Select(attrs={
+	            'richtext-map-to': 'hyperlink_to_document()',
+	            'richtext-map-from': '{value: attributes.href ? "external" : "internal"}',
+	        }),
+	    )
+
+and we also rewrite the TipTap extension script to include the function
+``hyperlink_to_document(elements)``:
+
+.. code-block:: javascript
+	:caption: myapp/tiptap-extensions/custom_hyperlink.js
+
+	{
+	    name: 'custom_hyperlink',
+	    priority: 1000,
+	    keepOnSplit: false,
+	    ...
+	    hyperlink_to_document(elements) {
+	        const endpointUrl = elements.link_type.closest('django-formset')?.getAttribute('endpoint');
+	        if (!endpointUrl) {
+	            console.warn("No endpoint URL found");
+	            return {};
+	        }
+	        return new Promise((resolve, reject) => {
+	            const headers = new Headers({
+	                'Content-Type': 'application/json',
+	                'X-CSRFToken': document.cookie.match(/csrftoken=([0-9a-zA-Z]+)/)?.[1] ?? '',
+	                'X-Request-Source': 'RichtextConversion',
+	            });
+	            const body = {
+	                link_type: elements.link_type.value,
+	                href: elements.url.value,
+	                page_id: elements.page.value,
+	                custom_hyperlink: true,
+	            };
+	            fetch(endpointUrl, {
+	                method: 'POST',
+	                headers: headers,
+	                body: JSON.stringify(body),
+	            }).then(response => {
+	                if (response.ok) {
+	                    response.json().then(data => {
+	                        elements.link_type.value = data.link_type;
+	                        elements.url.value = data.href;
+	                        elements.page.value = String(data.page_id);
+	                        resolve(data);
+	                    });
+	                } else {
+	                    reject(new Error(response.statusText));
+	                }
+	            }).catch(error => {
+	                reject(error);
+	            });
+	        });
+	    },
+	    ...
+	}
+
+This function is called whenever the dialog form is closed and the user has clicked on the "Apply"
+button. It offloads the content of the form fields ``link_type``, ``url``, and ``page`` to the
+server endpoint connected to the embedding ``<django-formset>``, which then performs an optional
+conversion of an external URL to an internal page reference. The server endpoint must return a JSON
+response containing the updated values of these fields. This function then also updates the
+attributes stored inside the document format used by the TipTap editor with the returned values.
+
+In order for this to work, we must intercept the request on the server side and perform the
+conversion. For this purpose, **django-formset** offers the ``RichtextConversionResponseMixin``
+which we can add to our existing view class:
+
+.. code-block:: python
+	:caption: myapp/views.py
+
+	from formset.views import FormView, RichtextConversionResponseMixin
+
+	class PagesView(RichtextConversionResponseMixin, FormView):
+
+	    ...
+	
+	    def formset_to_document(self, request):
+	        body = dict(self._request_body)
+	        if body.pop('custom_hyperlink', None):
+	            if page_id := body.get('page_id'):
+	                # assert that the page_id is valid, otherwise reset the page field
+	                try:
+	                    page = PageModel.objects.get(id=page_id)
+	                    return {'href': None, 'page_id': page.id, 'link_type': 'internal'}
+	                except (KeyError, PageModel.DoesNotExist, Resolver404):
+	                    body['page_id'] = None
+	
+	            if href := body.get('href'):
+	                # if an external URL is provided, rewrite it as internal link if it 
+	                # can be represented by a PageModel object
+	                try:
+	                    parseres = urlparse(href)
+	                    if get_current_site(request).domain == parseres.netloc:
+	                        match = resolve(parseres.path)
+	                        page = PageModel.objects.get(slug=match.kwargs['slug'])
+	                        return {'href': None, 'page_id': page.id, 'link_type': 'internal'}
+	                except (KeyError, PageModel.DoesNotExist, Resolver404):
+	                    pass
+	
+	            return body
+	        return super().formset_to_document(request)
+
+This mixin intercepts all requests intended for richtext conversion and if so, delegates that task
+to the method ``formset_to_document()``. In this method we check if the request is for our
+``custom_hyperlink`` extension and if so, it checks if the given link points onto a page
+respresentable as an internal page rather than an external URL. This gives developers the
+flexibility to implement their own logic for converting the values of dialog form fields to document
+data even before the formset is finally submitted.

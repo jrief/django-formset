@@ -1,0 +1,12 @@
+{% extends "./native-form.html" %}
+{% load static richtext %}
+
+{% block head %}
+	<title>{{ page.title }}</title>
+	{{ block.super }}
+{% endblock %}
+
+{% block main-content %}
+	{{ block.super }}
+	{% render_richtext page.content %}
+{% endblock %}

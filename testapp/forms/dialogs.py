@@ -35,6 +35,7 @@ class CustomHyperlinkDialogForm(richtext_dialogs.RichtextDialogForm):
         ],
         initial='internal',
         widget=widgets.Select(attrs={
+            'richtext-map-to': 'hyperlink_to_document()',
             'richtext-map-from': '{value: attributes.href ? "external" : "internal"}',
         }),
     )
@@ -73,6 +74,7 @@ class EditMarkerDialogForm(GeoMapDialogForm):
                 richtext_controls.BulletList(),
                 richtext_controls.OrderedList(),
                 richtext_controls.DialogControl(CustomHyperlinkDialogForm()),
+                richtext_controls.DialogControl(richtext_dialogs.SimpleImageDialogForm()),
                 richtext_controls.Separator(),
                 richtext_controls.ClearFormat(),
                 richtext_controls.Undo(),

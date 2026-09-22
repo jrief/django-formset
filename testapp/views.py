@@ -1,8 +1,10 @@
 import functools
 import json
 import types
+from urllib.parse import urlparse
 
 from django.conf import settings
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.files.uploadedfile import UploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Model
@@ -12,7 +14,7 @@ from django.forms.models import BaseModelForm, construct_instance
 from django.forms.renderers import get_default_renderer
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.template.loader import get_template
-from django.urls import get_resolver, path
+from django.urls import get_resolver, path, resolve, Resolver404
 from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
 from django.views.generic import FormView, TemplateView, UpdateView
@@ -79,8 +81,10 @@ from testapp.forms.state import StateFilteredForm, StateForm, StatesForm
 from testapp.forms.terms_of_use import AcceptTermsCollection
 from testapp.forms.user import UserCollection, UserExtensionCollection
 from testapp.forms.upload import UploadForm
-from testapp.models import (BlogModel, ChurchModel, Company, EventSeriesModel, IssueModel, PersonModel, PollModel,
-    ProductModel, Reporter, User)
+from testapp.models import (
+    BlogModel, ChurchModel, Company, EventSeriesModel, IssueModel, PersonModel, PageModel, PollModel,
+    ProductModel, Reporter, User
+)
 from testapp.models.gallery import Gallery
 
 
@@ -231,6 +235,30 @@ class DemoFormViewMixin(DemoViewMixin, CalendarResponseMixin, IncompleteSelectRe
             )
         return form_class
 
+    def formset_to_document(self, request):
+        body = dict(self._request_body)
+        if body.pop('custom_hyperlink', None):
+            if page_id := body.get('page_id'):
+                # assert that the page_id is valid, otherwise  and return the page_id in the response
+                try:
+                    page = PageModel.objects.get(id=page_id)
+                    return {'href': None, 'page_id': page.id, 'link_type': 'internal'}
+                except (KeyError, PageModel.DoesNotExist, Resolver404):
+                    body['page_id'] = None
+
+            if href := body.get('href'):
+                # if an external URL is provided, rewrite it as internal link if it matches
+                try:
+                    parseres = urlparse(href)
+                    if get_current_site(request).domain == parseres.netloc:
+                        match = resolve(parseres.path)
+                        page = PageModel.objects.get(slug=match.kwargs['slug'])
+                        return {'href': None, 'page_id': page.id, 'link_type': 'internal'}
+                except (KeyError, PageModel.DoesNotExist, Resolver404):
+                    pass
+
+            return body
+        return super().formset_to_document(request)
 
 class DemoFormView(DemoFormViewMixin, FormView):
     pass

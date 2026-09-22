@@ -57,7 +57,7 @@ initial_json = {
                             {
                                 "type": "custom_hyperlink",
                                 "attrs": {
-                                    "href": "http://example.org",
+                                    "href": "http://localhost:8204/page/slack/",
                                 }
                             }
                         ],
@@ -151,6 +151,28 @@ initial_json = {
                                                                         }
                                                                     ],
                                                                     "text": "Capela do Senhor do Palheirnho"
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "paragraph",
+                                                            "content": [
+                                                                {
+                                                                    "type": "simple_image",
+                                                                    "attrs": {
+                                                                        "src": "/media/ad_images/Palheirnho.jpg",
+                                                                        "alt": None,
+                                                                        "title": None,
+                                                                        "dataset": {
+                                                                            "upload_temp_name": "ad_images/Palheirnho.jpg:1x8a9K:iUKrupJ3fkrl0WYllk3tHiHhJ_B4dYdRPe4NMBt1h0g",
+                                                                            "content_type": "image/jpeg",
+                                                                            "content_type_extra": {},
+                                                                            "name": "Palheirnho.jpg",
+                                                                            "download_url": "/media/ad_images/Palheirnho.jpg",
+                                                                            "thumbnail_url": "/media/ad_images/Palheirnho_h130.jpg",
+                                                                            "size": 21891
+                                                                        }
+                                                                    }
                                                                 }
                                                             ]
                                                         },
@@ -322,5 +344,5 @@ class AdvertisementForm(forms.Form):
         ),
         required=False,
         help_text="Content id stored as HTML.",
-        initial='<p>Some <strong>extra</strong> text with a <a href="http://example.org">link</a>.</p>',
+        initial='<p>Some <strong>extra</strong> text with a <a href="http://example.org/">link</a>.</p>',
     )

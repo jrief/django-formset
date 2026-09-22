@@ -238,6 +238,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=100, verbose_name='Page Title')),
                 ('slug', models.SlugField(null=True, unique=True, verbose_name='Page Slug')),
+                ('content', formset.modelfields.richtext.RichTextField(blank=True, null=True, verbose_name='Page Content')),
                 ('created_by', models.CharField(db_index=True, editable=False, max_length=40)),
                 ('reporter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pages', to='testapp.reporter', verbose_name='Reporter')),
             ],
