@@ -172,7 +172,10 @@
 		.dropdown-input-wrap {
 			box-sizing: border-box;
 			width: 100%;
-			padding: 0.25rem;
+			padding: 0.25rem 0.25rem 0;
+			background-color: var(--django-formset-background-color);
+			border-left: var(--border-width) var(--border-style) var(--border-color);
+			border-right: var(--border-width) var(--border-style) var(--border-color);
 
 			.dropdown-input {
 				width: 100%;
@@ -191,6 +194,8 @@
 			overflow-x: hidden;
 			overflow-scrolling: touch;
 			scroll-behavior: smooth;
+			padding: 0.25rem;
+			padding-bottom: 0.25rem;
 		}
 
 		.optgroup {
