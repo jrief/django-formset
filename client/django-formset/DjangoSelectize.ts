@@ -122,7 +122,7 @@ export class DjangoSelectize extends IncompleteSelect {
 			},
 		};
 		if (this.isIncomplete) {
-			settings.load = this.load;
+			settings.load = (search: string, callback: Function) => this.load(search, callback);
 			settings.shouldLoad = (query: string) => true;  // always load from server, even if query is empty
 			settings.plugins = {
 				...settings.plugins,
@@ -228,14 +228,14 @@ export class DjangoSelectize extends IncompleteSelect {
 		return Array.from(groupnames).map(name => ({label: name, value: name}));
 	}
 
-	private load = (search: string, callback: Function) => {
+	protected load(search: string, callback: Function) {
 		this.tomSelect.clearOptions();
 		this.tomSelect.clearOptionGroups();
 		this.loadOptions(this.buildFetchQuery(0, {search}), (options: Array<OptionData>) => {
 			callback(options, this.extractOptGroups(options));
 			this.offset = options.length;
 		});
-	};
+	}
 
 	private loadMore(): Promise<boolean> {
 		return new Promise<boolean>(resolve => {
