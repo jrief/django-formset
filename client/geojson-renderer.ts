@@ -107,7 +107,7 @@ class GeoJSONRenderer extends HTMLElement {
 				}
 				if (feature._tooltip_) {
 					const options = feature._tooltip_.options ?? {} as TooltipOptions;
-					layer.bindTooltip(feature.properties._tooltip_.content, options);
+					layer.bindTooltip(feature._tooltip_.content, options);
 				}
 			},
 		};

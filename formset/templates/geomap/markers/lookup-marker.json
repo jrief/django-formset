@@ -1,0 +1,1 @@
+{% include "geomap/markers/default-marker.json" %}

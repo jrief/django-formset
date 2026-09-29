@@ -15,3 +15,4 @@ default_settings.setdefault('mapOptions', {
    'center': [51.5, 0],  # London coordinates as default center
    'doubleClickZoom': False,
 })
+default_settings.setdefault('addressLookupUrl', 'https://nominatim.openstreetmap.org/search')

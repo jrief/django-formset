@@ -96,3 +96,6 @@ django-form-collection[sibling-position] > .collection-drag-handle ~ .remove-col
 .dj-calendar li.available {
 	background-color: light-dark(rgb(200, 255, 195), rgb(50, 65, 55));
 }
+.page > .main > .content {
+	z-index: 52;  /* Furo's <aside>-element has z-index: 50 */
+}

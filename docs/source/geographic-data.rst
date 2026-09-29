@@ -107,8 +107,8 @@ and multipolygons to the map canvas. The user can add as many of them as he want
 	        label="Map",
 	        widget=GeoMapWidget(
 	            controls_topleft=[
-	                [PointEditor(), PolylineEditor()],
-	                [PolygonEditor(), MultiPolygonEditor()],
+	                PointEditor(),
+	                [PolylineEditor(), PolygonEditor(), MultiPolygonEditor()],
 	            ],
 	        ),
 	    )
@@ -315,6 +315,38 @@ is the widget for the ``map`` field.
 
 .. note:: After submission, the geographic data is stored in the database. Therefore after reloading
 	this page, the same content will reappear in the map canvas representing the field.
+
+
+Address Lookup
+==============
+
+When working with geographic data, we sometimes want to allow the user to search for a specific
+address. For this purpose, **django-formset** offers a geomap editor named ``LookupPointEditor``.
+This editor behaves similar to the ``PointEditor`` used in the previous examples, but instead of
+offering a draggable marker, it opens a dialog form. This dialog form contains a single text field,
+where the user can enter an address, even partially. On input, this address is sent to a geocoding
+service, which returns a list of corresponding geographic coordinates. 
+
+.. django-view:: address_lookup_form
+	:view-function: GeoMapView.as_view(form_class=geographic_data.AddressLookupForm, extra_context={'framework': 'bootstrap', 'pre_id': 'lookup-map-result'}, form_kwargs={'auto_id': 'al_id_%s'})
+	:caption: form.py
+
+	from formset.geomap.controls import LookupPointEditor
+
+	class AddressLookupForm(Form):
+	    map = GeoMapField(
+	        label="Marker by Address Lookup",
+	        widget=GeoMapWidget(
+	            controls_topleft=[
+	                LookupPointEditor(),
+	            ],
+	        ),
+	    )
+
+In this dialog form the user can select one of the returned addresses, which then is used to place
+a marker on the map at the given coordinates. By clicking on the “Apply” button, the marker is
+added to the map. By clicking on the “Cancel” button, the marker is removed and the dialog form is
+closed.
 
 
 .. _geojson-renderer:
@@ -576,9 +608,9 @@ Global Settings
 ===============
 
 If the ``GeoMapWidget`` is instantiated without specifying the ``url_template``,
-``tile_layer_options`` or ``map_options`` attributes, it can be configured to use global settings
-for the map. This allows to set the default values for these attributes in Django's ``settings.py``
-module:
+``tile_layer_options``, ``map_options`` or ``address_lookup_url`` attributes, it can be configured
+by using the global settings for the map. This allows to set the default values for these attributes
+in the Django's ``settings.py`` module:
 
 .. code-block:: python
 	:caption: settings.py
@@ -597,6 +629,7 @@ module:
 	        'center': [47.5, 13.6],
 	        'doubleClickZoom': False,
 	    },
+	    'addressLookupUrl': 'https://nominatim.openstreetmap.org/search',
 	}
 
 
