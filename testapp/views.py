@@ -196,7 +196,14 @@ class DemoViewMixin:
         pass
 
 
-class DemoFormViewMixin(DemoViewMixin, CalendarResponseMixin, IncompleteSelectResponseMixin, FileUploadMixin, RichtextConversionResponseMixin, FormViewMixin):
+class DemoFormViewMixin(
+    DemoViewMixin,
+    CalendarResponseMixin,
+    IncompleteSelectResponseMixin,
+    FileUploadMixin,
+    RichtextConversionResponseMixin,
+    FormViewMixin,
+):
     template_name = 'testapp/native-form.html'
     extra_context = {
         'click_actions': 'disable -> submit -> reload !~ scrollToError',
