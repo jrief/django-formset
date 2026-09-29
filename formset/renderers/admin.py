@@ -57,6 +57,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/div.html': _amend_form,
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/text.html': _amend_input,
+        'django/forms/widgets/search.html': _amend_input,
         'formset/default/widgets/button.html': _amend_button,
         'formset/default/widgets/datetime.html': _amend_input,
     })
