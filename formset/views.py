@@ -1,6 +1,6 @@
 import json
 
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, FieldDoesNotExist
 from django.db import transaction
 from django.db.models import QuerySet
 from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
@@ -26,17 +26,18 @@ class IncompleteSelectResponseMixin:
     """
     def get(self, request, **kwargs):
         if request.headers.get('X-Request-Source') == 'IncompleteSelect' and 'field' in request.GET:
-            return self._fetch_options(request)
+            try:
+                return self._fetch_options(request)
+            except FieldDoesNotExist:
+                pass
+            except Exception as e:
+                return HttpResponseBadRequest(str(e))
         return super().get(request, **kwargs)
 
     def _fetch_options(self, request):
-        field_path = request.GET['field']
-        try:
-            field = self.get_field(field_path)
-        except (KeyError, ValueError):
-            return HttpResponseBadRequest(f"No such field: {field_path}")
+        field = self.get_field(request.GET['field'])
         assert isinstance(field.widget, IncompleteSelectMixin), (
-            f"Field {field_path} must use a widget inheriting from `IncompleteSelectMixin`."
+            f"Field {request.GET['field']} must use a widget inheriting from `IncompleteSelectMixin`."
         )
         widget = field.widget
         try:
@@ -145,7 +146,7 @@ class FormViewMixin(FormsetResponseMixin):
             return self.form_class.base_fields[parts[1]]
         if isinstance(self.form_class.base_fields[parts[0]], CollectionFieldMixin):
             return self.form_class.base_fields[parts[0]].collection.get_field('.'.join(parts[1:]))
-        raise KeyError(f"Field {field_path} not found in formset {self.form_class.__name__}.")
+        raise FieldDoesNotExist(f"Field {field_path} not found in formset {self.form_class.__name__}.")
 
 
 class FormView(IncompleteSelectResponseMixin, FileUploadMixin, FormViewMixin, GenericFormView):
@@ -417,4 +418,3 @@ class RichtextConversionResponseMixin:
     def formset_to_document(self, request):
         if self._request_body.get('type') == 'FeatureCollection':
             return amend_geojson_feature_collection(self._request_body)
-
