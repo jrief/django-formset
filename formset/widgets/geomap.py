@@ -77,6 +77,13 @@ class GeoMapWidget(Textarea):
                                 f"already been registered on {self}."
                             )
                         dialog_form_extensions.add(dialog_form.extension)
+                    if editor.lookup_dialog:
+                        if editor.lookup_dialog.extension in dialog_form_extensions:
+                            raise ImproperlyConfigured(
+                                f"The lookup dialog form using extension “{editor.lookup_dialog.extension}” has "
+                                f"already been registered on {self}."
+                            )
+                        dialog_form_extensions.add(editor.lookup_dialog.extension)
                 elif isinstance(editor, (list, tuple)):
                     for sub_editor in editor:
                         if sub_editor.identifier in editor_identifiers:
@@ -91,7 +98,13 @@ class GeoMapWidget(Textarea):
                                     f"already been registered on {self}."
                                 )
                             dialog_form_extensions.add(dialog_form.extension)
-
+                        if sub_editor.lookup_dialog:
+                            if sub_editor.lookup_dialog.extension in dialog_form_extensions:
+                                raise ImproperlyConfigured(
+                                    f"The lookup dialog form using extension “{sub_editor.lookup_dialog.extension}” has "
+                                    f"already been registered on {self}."
+                                )
+                            dialog_form_extensions.add(sub_editor.lookup_dialog.extension)
 
     def build_attrs(self, base_attrs, extra_attrs=None):
         return {
@@ -133,7 +146,7 @@ class GeoMapWidget(Textarea):
 
         form_prefix = attrs.pop('form_prefix', None)  # added by BoundField.build_widget_attrs
         context = self.get_context(name, value, attrs)
-        control_elements, popups, dialog_forms = [], [], []
+        control_elements, popups, dialog_forms, lookup_dialogs = [], [], [], []
         for position, controls in self.controls.items():
             rendered_controls = [[]]
             for control_element in controls:
@@ -144,6 +157,8 @@ class GeoMapWidget(Textarea):
                         if isinstance(dialog_form, GeoMapDialogForm):
                             dialog_forms.append(render_dialog(dialog_form, control_element.identifier))
                             popups[-1]['dialogs'].append(get_popup_dialog(dialog_form))
+                    if control_element.lookup_dialog:
+                        lookup_dialogs.append(render_dialog(control_element.lookup_dialog, control_element.identifier))
                 elif isinstance(control_element, (list, tuple)):
                     rendered_controls.append([ctrl_elm.render(renderer) for ctrl_elm in control_element])
                     rendered_controls.append([])
@@ -153,6 +168,9 @@ class GeoMapWidget(Textarea):
                             if isinstance(dialog_form, GeoMapDialogForm):
                                 dialog_forms.append(render_dialog(dialog_form, ctrl_elm.identifier))
                                 popups[-1]['dialogs'].append(get_popup_dialog(dialog_form))
+                        if ctrl_elm.lookup_dialog:
+                            lookup_dialogs.append(render_dialog(ctrl_elm.lookup_dialog, ctrl_elm.identifier))
+
             control_elements.append(
                 format_html(
                     '<div aria-current="{position}">{controls}</div>',
@@ -169,5 +187,6 @@ class GeoMapWidget(Textarea):
             control_elements=control_elements,
             popups=popups,
             dialog_forms=dialog_forms,
+            lookup_dialogs=lookup_dialogs,
         )
         return self._render(self.template_name, context, renderer)

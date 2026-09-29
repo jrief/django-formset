@@ -217,9 +217,12 @@ class Selectize(IncompleteSelectMixin, Select):
         group_field_name=None,
         filter_by=None,
         use_filter_set=None,
+        webcomponent=None,
         placeholder=None,
     ):
         super().__init__(attrs, choices, search_lookup, group_field_name, filter_by, use_filter_set)
+        if webcomponent is not None:
+            self.webcomponent = webcomponent
         if placeholder is not None:
             self.placeholder = placeholder
 

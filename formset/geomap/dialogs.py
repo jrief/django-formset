@@ -1,5 +1,6 @@
-from django.forms import fields
+from django.forms import fields, widgets
 from django.utils.functional import cached_property
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from formset.dialog import ApplyButton, CancelButton, TransientDialogForm
@@ -44,3 +45,36 @@ class SimpleNameDialogForm(GeoMapDialogForm):
     properties_map = {'name': 'name'}
 
     name = fields.CharField()
+
+
+class LookupDialogForm(TransientDialogForm):
+    title = _("Lookup by Address")
+    extension = 'address_lookup'
+    properties_map = {'addressLookupUrl': 'https://nominatim.openstreetmap.org/search'}
+    template_name = 'formset/geomap/form_dialog.html'
+    epilogue = mark_safe('<ul role="listbox"></ul>')  # here the results of the address lookup will be displayed
+
+    lookup_address = fields.CharField(
+        label=_("Address"),
+        required=False,
+        widget=widgets.SearchInput(
+            attrs={'size': 60, 'placeholder': _("Address to look up")},
+        ),
+    )
+    cancel = Activator(
+        label=_("Cancel"),
+        widget=CancelButton,
+    )
+    apply = Activator(
+        label=_("Apply"),
+        widget=ApplyButton,
+        initial='apply',
+    )
+
+    @property
+    def induce_open(self):
+        return None
+
+    @property
+    def induce_close(self):
+        return f'.dialog_{self.extension}.cancel:active || .dialog_{self.extension}.apply:active'

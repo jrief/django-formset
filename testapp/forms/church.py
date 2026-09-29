@@ -1,4 +1,3 @@
-from django.contrib.staticfiles.storage import staticfiles_storage
 from django.forms import fields, ModelForm
 
 from formset.formfields.richtext import RichTextField
@@ -81,8 +80,9 @@ class ChurchModelForm(ModelForm):
                         min_markers=1,
                         max_markers=3,
                     ),
-                    geomap_controls.PolylineEditor(),
+                    geomap_controls.LookupPointEditor(),
                     [
+                        geomap_controls.PolylineEditor(),
                         geomap_controls.PolygonEditor(),
                         geomap_controls.MultiPolygonEditor(),
                     ],

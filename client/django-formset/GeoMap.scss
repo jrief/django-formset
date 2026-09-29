@@ -58,6 +58,24 @@
 
 	dialog {
 		z-index: 1000;  // Leaflet uses z-indices up to 700
+
+		&[aria-describedby="lookup-marker"] {
+			[role="listbox"] {
+				min-height: 200px;
+				overflow: auto;
+				line-height: 2em;
+				list-style-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M 11.535545,11.722753 7.9999933,15.75 4.4644645,11.722753 c -1.9526193,-2.2242601 -1.9526193,-5.8303865 0,-8.0545959 1.9526196,-2.2242095 5.1184146,-2.2242095 7.0710805,0 1.952607,2.2242094 1.952607,5.8303358 0,8.0545959 z" /></svg>');
+				padding-inline-start: 20px;
+
+				li:hover > a {
+					cursor: pointer;
+					pointer-events: none;
+					text-decoration-line: underline;
+					text-decoration-style: dashed;
+				}
+			}
+
+		}
 	}
 
 	&:has(>dialog[open]) {

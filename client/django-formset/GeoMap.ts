@@ -99,10 +99,115 @@ class GeoMapFormDialog extends TransientFormDialog {
 }
 
 
+class LookupFormDialog extends TransientFormDialog {
+	private readonly searchInput: HTMLInputElement;
+	private readonly resultsList: HTMLUListElement;
+	private readonly properties: Record<string, string>;
+	private timeoutHandle: number|null = null;
+	public currentMarker: GeoMapLookupMarker|null = null;
+
+	constructor(element: HTMLDialogElement, geomap: GeoMap) {
+		super(element, geomap.path);
+		const searchInput = this.element.querySelector('input');
+		if (!(searchInput instanceof HTMLInputElement))
+			throw new Error('Could not find search input in lookup dialog');
+		this.searchInput = searchInput;
+		const resultsList = this.element.querySelector('ul[role="listbox"]');
+		if (!(resultsList instanceof HTMLUListElement))
+			throw new Error('Could not find results list in lookup dialog');
+		this.resultsList = resultsList;
+		this.properties = JSON.parse(this.formElement.dataset.propertiesMap ?? '{}');
+	}
+
+	public openDialog() {
+		if (this.element.open)
+			return;
+		super.openDialog();
+		this.searchInput.addEventListener('input', this.handleInput);
+		this.resultsList.addEventListener('click', this.handleClick);
+	}
+
+	public closeDialog(button?: DjangoButton, returnValue?: string) {
+		this.searchInput.removeEventListener('input', this.handleInput);
+		this.resultsList.removeEventListener('click', this.handleClick);
+		this.resultsList.replaceChildren();
+		this.searchInput.value = '';
+		if (this.currentMarker) {
+			if (returnValue === 'apply') {
+				this.currentMarker.dropMarker();
+			}
+			if (returnValue === 'close') {
+				this.currentMarker.deleteMarker();
+			}
+			this.currentMarker = null;
+		}
+		super.closeDialog(button, returnValue);
+	}
+
+	private handleClick = (event: MouseEvent) => {
+		let liElement = event.target;
+		while (liElement instanceof HTMLElement) {
+			if (liElement instanceof HTMLLIElement)
+				break;
+			liElement = liElement.parentElement;
+		}
+		if (!(liElement instanceof HTMLLIElement))
+			return;
+		if (this.currentMarker) {
+			const bbox = liElement.dataset.boundingbox!.split(',').map(parseFloat);
+			const bounds = latLngBounds([bbox[0], bbox[2]], [bbox[1], bbox[3]]);
+			const maxZoom = this.currentMarker.editor.geomap.getMaxZoom();
+			this.currentMarker.setLatLng({lat: parseFloat(liElement.dataset.lat!), lng: parseFloat(liElement.dataset.lng!)});
+			this.currentMarker.editor.geomap.flyToBounds(bounds, {animate: true, maxZoom: maxZoom});
+		}
+	};
+
+	private handleInput = () => {
+		if (this.timeoutHandle !== null) {
+			clearTimeout(this.timeoutHandle);
+			this.timeoutHandle = null;
+		}
+		if (this.searchInput.value.length < 3) {
+			this.resultsList.replaceChildren();
+			return;
+		}
+		this.timeoutHandle = window.setTimeout(async () => {
+			this.timeoutHandle = null;
+			await this.fetchResults(this.searchInput.value);
+		}, 1000);
+	};
+
+	private async fetchResults(query: string) {
+		const acceptLanguage = document.documentElement.getAttribute('lang') ?? navigator.language;
+		const params = new URLSearchParams({q: query, format: 'jsonv2', 'accept-language': acceptLanguage});
+		try {
+			const response = await fetch(`${this.properties.addressLookupUrl}?${params.toString()}`);
+			const data: Array<any> = await response.json();
+			this.resultsList.replaceChildren();
+			for (const item of data) {
+				const li = document.createElement('li');
+				li.innerHTML = `<a>${item.display_name}</a>`;
+				li.dataset.lat = item.lat;
+				li.dataset.lng = item.lon;
+				li.dataset.boundingbox = item.boundingbox;
+				this.resultsList.appendChild(li);
+			}
+			if (data.length === 0) {
+				const li = document.createElement('li');
+				li.innerHTML = `<em>${gettext("No addresses found")}</em>`;
+				this.resultsList.appendChild(li);
+			}
+		} catch (error: any) {
+			console.error("Error fetching address results: ", error);
+		}
+	}
+}
+
+
 abstract class GeometryEditor {
 	public readonly geomap: GeoMap;
 	protected readonly popupTemplate: HTMLDivElement;
-	public readonly formDialogs: GeoMapFormDialog[] = [];
+	public readonly formDialogs: TransientFormDialog[] = [];
 	protected readonly anchor: HTMLAnchorElement;
 	protected readonly minEntries: number|null;
 	protected readonly maxEntries: number|null;
@@ -116,10 +221,9 @@ abstract class GeometryEditor {
 		if (!(popupTemplate instanceof HTMLDivElement))
 			throw new Error('Could not find popup template for [role="tooltip"]');
 		this.popupTemplate = popupTemplate;
-		this.registerFormDialogs();
 	}
 
-	private registerFormDialogs() {
+	public registerFormDialogs() {
 		const dialogs = this.geomap.wrapperElement.querySelectorAll(`:scope > dialog[df-induce-open][aria-describedby="${this.identifier}"]`);
 		for (const dialogElement of dialogs) {
 			if (!(dialogElement instanceof HTMLDialogElement))
@@ -155,7 +259,7 @@ abstract class GeometryEditor {
 
 	public extendLayer(index: [number, number]) {}
 
-	public register() {
+	public registerInducer() {
 		this.geomap.on('click', this.handleClick);
 	}
 
@@ -166,7 +270,7 @@ abstract class GeometryEditor {
 
 
 class GeoMapMarker extends Marker {
-	private readonly editor: GeometryEditor;
+	public readonly editor: GeometryEditor;
 	private readonly popup: Popup;
 	public readonly properties: Record<string, any> = {};
 	public readonly index: [number, number];
@@ -227,15 +331,18 @@ class GeoMapMarker extends Marker {
 	};
 
 	public deleteMarker() {
+		const map = this.editor.geomap;
 		this.editor.closeAllDialogs();
-		this.removeFrom(this.editor.geomap);
+		this.removeFrom(map);
 		this.editor.deleteLayer(this.index);
-		this.editor.geomap.checkValidity();
+		map.getContainer().classList.remove('marker-placement');
+		map.checkValidity();
 	}
 }
 
 
 class PointEditor extends GeometryEditor {
+	protected MarkerClass = GeoMapMarker;
 	public readonly markers: (GeoMapMarker|null)[] = [];
 	private readonly markerIcon: Icon;
 
@@ -256,7 +363,7 @@ class PointEditor extends GeometryEditor {
 						const coordinates = getDataValue(geometry, 'coordinates');
 						if (Array.isArray(coordinates) && coordinates.length === 2) {
 							const latlng = GeoJSON.coordsToLatLng(coordinates as [number, number]);
-							const marker = new GeoMapMarker(this, latlng, [this.markers.length, 0], this.popupTemplate, this.markerIcon);
+							const marker = new this.MarkerClass(this, latlng, [this.markers.length, 0], this.popupTemplate, this.markerIcon);
 							const properties = getDataValue(feature, 'properties');
 							if (isPlainObject(properties)) {
 								Object.assign(marker.properties, properties);
@@ -324,10 +431,51 @@ class PointEditor extends GeometryEditor {
 		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaDescription !== this.anchor.ariaDescription)
 			return;
 		this.geomap.cancelInitialPlacements();
-		const marker = new GeoMapMarker(this, event.latlng, [this.markers.length, 0], this.popupTemplate, this.markerIcon);
+		const marker = new this.MarkerClass(this, event.latlng, [this.markers.length, 0], this.popupTemplate, this.markerIcon);
 		this.markers.push(marker);
 		marker.initialPlacement();
 	};
+}
+
+
+class GeoMapLookupMarker extends GeoMapMarker {
+	public initialPlacement() {
+		const editor = this.editor as LookupPointEditor;
+		editor.lookupDialog.openDialog();
+		editor.lookupDialog.currentMarker = this;
+	}
+}
+
+
+class LookupPointEditor extends PointEditor {
+	public readonly lookupDialog: LookupFormDialog;
+
+	constructor(geomap: GeoMap, anchor: HTMLAnchorElement, iconOptions: IconOptions) {
+		super(geomap, anchor, iconOptions);
+		this.MarkerClass = GeoMapLookupMarker;
+		const lookupTemplate = this.geomap.controlsTemplate.content.querySelector(`dialog[aria-describedby="${this.identifier}"]`);
+		if (!(lookupTemplate instanceof HTMLDialogElement))
+			throw new Error(`Could not find lookup template for dialog[aria-describedby="${this.identifier}"]`);
+		this.lookupDialog = this.attachLookup(lookupTemplate);
+	}
+
+	private attachLookup(lookupTemplate: HTMLDialogElement) : LookupFormDialog {
+		this.geomap.wrapperElement.insertAdjacentHTML('beforeend', lookupTemplate.outerHTML);
+		const dialog = this.geomap.wrapperElement.querySelector(`dialog[aria-describedby="${this.identifier}"]`);
+		if (!(dialog instanceof HTMLDialogElement))
+			throw new Error(`Could not find dialog[aria-describedby="${this.identifier}"]`);
+		return new LookupFormDialog(dialog, this.geomap);
+	}
+
+	public registerFormDialogs() {
+		super.registerFormDialogs();
+		this.formDialogs.push(this.lookupDialog);
+	}
+
+	public updateOperability(...args: any[]) {
+		this.lookupDialog.updateOperability(...args);
+		super.updateOperability(...args);
+	}
 }
 
 
@@ -1013,6 +1161,7 @@ class MultiPolygonEditor extends PolygonEditor {
 
 const registry: Record<string, new (geomap: GeoMap, anchor: HTMLAnchorElement, ...args: any[]) => GeometryEditor> = {
 	PointEditor,
+	LookupPointEditor,
 	PolylineEditor,
 	PolygonEditor,
 	MultiPolygonEditor,
@@ -1060,7 +1209,7 @@ class GeoMap extends Map implements Inducible {
 		if (!(controlsTemplate instanceof HTMLTemplateElement))
 			throw new Error(`Could not find <template> element in ${wrapperElement}`);
 		this.controlsTemplate = controlsTemplate;
-		this.registerInducer();
+		this.register();
 		this.intersectionObserver = new IntersectionObserver(this.handleVisibility);
 		this.mutationObserver = new MutationObserver(this.attributesChanged);
 		this.resizeObserver = new ResizeObserver(this.handleResize);
@@ -1182,7 +1331,7 @@ class GeoMap extends Map implements Inducible {
 		}
 	}
 
-	private registerInducer() {
+	private register() {
 		const formset = this.wrapperElement.closest('django-formset');
 		if (!formset)
 			return;
@@ -1191,7 +1340,10 @@ class GeoMap extends Map implements Inducible {
 				return;
 			this.formset = event.detail.formset as DjangoFormset;
 			this.formset.registerInducer(this);
-			Object.values(this.editors).forEach(editor => editor.register());
+			Object.values(this.editors).forEach(editor => {
+				editor.registerFormDialogs();
+				editor.registerInducer();
+			});
 			const initialData = JSON.parse(this.textAreaElement.dataset.content as string ?? 'null');
 			this.setInitialData(initialData);
 			const handleEscape = (event: KeyboardEvent) => {

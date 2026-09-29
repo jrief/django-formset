@@ -7,6 +7,9 @@
 	{% for popup in popups %}
 		{% include "formset/geomap/popup.html" %}
 	{% endfor %}
+	{% for lookup_dialog in lookup_dialogs %}
+		{{ lookup_dialog }}
+	{% endfor %}
 	</template>
 	<div role="presentation" class="leaflet-map"></div>
 	{% for dialog_form in dialog_forms %}{{ dialog_form }}{% endfor %}

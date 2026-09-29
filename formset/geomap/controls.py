@@ -6,6 +6,7 @@ from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 from formset.dialog import DialogForm
+from formset.geomap.dialogs import LookupDialogForm
 
 
 def compact_json(s):
@@ -19,6 +20,7 @@ class ControlElement:
     dialog_forms = []
     min_entries = None
     max_entries = None
+    lookup_dialog = None
 
     def __init__(
         self,
@@ -86,7 +88,7 @@ class ControlElement:
 
 class PointEditor(ControlElement):
     identifier = 'default-marker'
-    label = _("Edit Marker Point")
+    label = _("Add Marker")
     add_button_icon = 'formset/geomap/icons/add-marker.svg'
     delete_button_icon = 'formset/geomap/icons/delete-marker.svg'
 
@@ -104,9 +106,16 @@ class PointEditor(ControlElement):
         return compact_json(get_template('geomap/markers/default-marker.json').render())
 
 
+class LookupPointEditor(PointEditor):
+    identifier = 'lookup-marker'
+    label = _("Add Marker by Address")
+    add_button_icon = 'formset/geomap/icons/lookup-marker.svg'
+    lookup_dialog = LookupDialogForm()
+
+
 class PolylineEditor(ControlElement):
     identifier = 'polyline'
-    label = _("Edit Polyline")
+    label = _("Add Polyline")
     add_button_icon = 'formset/geomap/icons/add-polyline.svg'
     delete_button_icon = 'formset/geomap/icons/delete-polyline.svg'
 
@@ -116,7 +125,7 @@ class PolylineEditor(ControlElement):
 
 class PolygonEditor(ControlElement):
     identifier = 'polygon'
-    label = _("Edit Polygon")
+    label = _("Add Polygon")
     add_button_icon = 'formset/geomap/icons/add-polygon.svg'
     delete_button_icon = 'formset/geomap/icons/delete-polygon.svg'
 
@@ -126,7 +135,7 @@ class PolygonEditor(ControlElement):
 
 class MultiPolygonEditor(ControlElement):
     identifier = 'multipolygon'
-    label = _("Edit Multi-Polygon")
+    label = _("Add Multi-Polygon")
     add_button_icon = 'formset/geomap/icons/add-multipolygon.svg'
     delete_button_icon = 'formset/geomap/icons/delete-multipolygon.svg'
     extend_button_icon = 'formset/geomap/icons/extend-multipolygon.svg'
