@@ -234,7 +234,7 @@ function handleDOMLoaded() {
 	const promises = Array<Promise<void[]>>();
 
 	StyleHelpers.attachPseudoStyles();
-	document.querySelectorAll('template.empty-collection').forEach(element => {
+	document.querySelectorAll('template').forEach(element => {
 		if (element instanceof HTMLTemplateElement && element.content instanceof DocumentFragment) {
 			promises.push(domLookup(element.content, true));
 		}
