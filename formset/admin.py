@@ -111,7 +111,8 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
                 "The field %s cannot be referenced." % to_field
             )
 
-        if request.method == 'GET' and ('calendar' in request.GET or 'field' in request.GET):
+        intercepted_requests = ['CalendarSheet', 'IncompleteSelect', 'PrefillPartial']
+        if request.method == 'GET' and request.headers.get('X-Request-Source') in intercepted_requests:
             # intercept calendar and/or incomplete requests
             return super().get(request)
 
