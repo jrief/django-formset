@@ -1,4 +1,6 @@
 import {
+	Circle,
+	CircleOptions,
 	Control,
 	ControlPosition,
 	DivIcon,
@@ -39,6 +41,14 @@ type ControlOptions = {
 	position: string;
 	leafletBar: HTMLElement;
 }
+
+
+const tempVertexOptions: PolylineOptions = {
+	bubblingMouseEvents: false,
+	dashArray: "2 4",
+	weight: 1.5,
+};
+
 
 class GeoMapFormDialog extends TransientFormDialog {
 	private readonly geomap: GeoMap;
@@ -525,6 +535,194 @@ class VertexMarker extends Marker {
 }
 
 
+class GeoMapCircle extends Circle {
+	private readonly editor: GeometryEditor;
+	public readonly properties: Record<string, any> = {};
+	public readonly index: [number, number];
+	public readonly group: LayerGroup;
+	private readonly popup: Popup;
+	private tempVertex: Polyline|null = null;  // temporary vertex moving with the cursor
+	public moveCursor: Function|null = null;
+
+	constructor(editor: GeometryEditor, latlng: LatLng, index: [number, number], popupTemplate: HTMLDivElement) {
+		const options: CircleOptions = {
+			bubblingMouseEvents: true,
+		};
+		super(latlng, options);
+		this.editor = editor;
+		this.index = index;
+		this.group = new LayerGroup();
+		this.group.addTo(editor.geomap);
+		this.addTo(this.group);
+		this.popup = this.attachPopup(popupTemplate);
+	}
+
+	public get identifier(): string {
+		return `${this.editor.identifier}:${this.index[0]}`;
+	}
+
+	private attachPopup(popupTemplate: HTMLDivElement) : Popup {
+		const popupContent = document.importNode(popupTemplate, true);
+		this.editor.geomap.formset!.assignDetachedButtons(popupContent);
+		popupContent.querySelectorAll('[df-click="activate"]').forEach((button: Element) => {
+			if (button instanceof HTMLButtonElement) {
+				button.dataset.identifier = this.identifier;
+			}
+		});
+		popupContent.querySelector('[name="delete_layer"]')?.addEventListener('click', () => this.deleteCircle());
+		const popup = new Popup({closeButton: false, autoClose: true, closeOnClick: true});
+		popup.setContent(popupContent);
+		return popup;
+	}
+
+	public openPopup(latlng?: LatLngExpression): this {
+		this.editor.geomap.closeAllDialogs();
+		return super.openPopup(latlng);
+	}
+
+	public initialPlacement() {
+		const map = this.editor.geomap;
+		map.getContainer().classList.add('marker-placement');
+		this.moveCursor = (event: LeafletMouseEvent) => this.setLatLng(event.latlng);
+		map.on('mousemove', this.moveCursor as any);
+		map.once('click', this.handleFirstClick);
+	}
+
+	public handleFirstClick = (event: LeafletMouseEvent) => {
+		const map = this.editor.geomap;
+		const latlng = this.getLatLng();
+		this.tempVertex = polyline([event.latlng, event.latlng], tempVertexOptions);
+		this.tempVertex.addTo(this.group);
+		map.off('mousemove', this.moveCursor as any);
+		this.moveCursor = (event: LeafletMouseEvent) => {
+			const radius = latlng.distanceTo(event.latlng);
+			this.setRadius(radius);
+			if (this.tempVertex) {
+				this.tempVertex.setLatLngs([latlng, event.latlng]);
+			}
+		};
+		map.on('mousemove', this.moveCursor as any);
+		map.once('click', this.handleSecondClick);
+	};
+
+	public handleSecondClick = (event: LeafletMouseEvent) => {
+		const map = this.editor.geomap;
+		map.off('mousemove', this.moveCursor as any);
+		this.moveCursor = null;
+		map.getContainer().classList.remove('marker-placement');
+		this.bindPopup(this.popup);
+		if (this.tempVertex) {
+			this.group.removeLayer(this.tempVertex);
+			this.tempVertex = null;
+		}
+	};
+
+	public deleteCircle() {
+		const map = this.editor.geomap;
+		this.editor.closeAllDialogs();
+		this.group.removeLayer(this);
+		this.group.removeFrom(map);
+		this.editor.deleteLayer(this.index);
+		map.getContainer().classList.remove('marker-placement');
+		map.checkValidity();
+	}
+}
+
+
+class CircleEditor extends GeometryEditor {
+	public readonly circles: (GeoMapCircle|null)[] = [];
+
+	constructor(geomap: GeoMap, anchor: HTMLAnchorElement) {
+		super(geomap, anchor);
+	}
+
+	public getLayer(index: [number, number]) : Layer|null {
+		return this.circles[index[0]];
+	}
+
+	public cancelInitialPlacement() {
+		if (this.circles.at(-1)?.moveCursor) {
+			const circle = this.circles.pop()!;
+			const map = this.geomap;
+			map.getContainer().classList.remove('marker-placement');
+			map.off('mousemove', circle.moveCursor as any);
+			map.off('click', circle.handleFirstClick as any);
+			map.off('click', circle.handleSecondClick as any);
+			circle.moveCursor = null;
+			circle.deleteCircle();
+		}
+	}
+
+	public checkValidity(): boolean {
+		const numEntries = this.circles.filter(circle => circle !== null).length;
+ 		this.anchor.ariaDisabled = this.maxEntries !== null && numEntries >= this.maxEntries ? 'true' : null;
+		return (this.minEntries === null || numEntries >= this.minEntries);
+	}
+
+	public deleteLayer(index: [number, number]) {
+		this.circles[index[0]]?.unbindPopup();
+		this.circles[index[0]] = null;
+	}
+
+	protected handleClick = (event: LeafletMouseEvent) => {
+		const target = event.originalEvent.target;
+		if (!(target instanceof Element) || target.closest('[role="button"]')?.ariaDescription !== this.anchor.ariaDescription)
+			return;
+		this.geomap.cancelInitialPlacements();
+		const circle = new GeoMapCircle(this, event.latlng, [this.circles.length, 0], this.popupTemplate);
+		this.circles.push(circle);
+		circle.initialPlacement();
+	};
+
+	public setInitialData(initialData: JSONValue) {
+		if (getDataValue(initialData, 'type') === 'FeatureCollection') {
+			const features = getDataValue(initialData, 'features');
+			if (Array.isArray(features)) {
+				for (const feature of features) {
+					if (String(getDataValue(feature, 'id', '')).split(':')[0] !== this.identifier)
+						continue;
+					const geometry = getDataValue(feature, 'geometry');
+					if (isPlainObject(geometry) && getDataValue(geometry, 'type') === 'Circle') {
+						const latlng = (GeoJSON.geometryToLayer(geometry as any) as any).getLatLngs() as LatLng;
+						const circle = new GeoMapCircle(this, latlng, [this.circles.length, 0], this.popupTemplate);
+						const properties = getDataValue(feature, 'properties');
+						if (isPlainObject(properties)) {
+							Object.assign(circle.properties, properties);
+						}
+						// circle.setVertexMarkers(latlng);
+						this.circles.push(circle);
+					}
+				}
+			}
+		}
+	}
+
+	public clear() {
+		for (const circle of this.circles) {
+			if (circle) {
+				circle.deleteCircle();
+			}
+		}
+		this.circles.length = 0;
+	}
+
+	public getFeatures() : Record<string, any[]>[] {
+		const features: Record<string, any>[] = [];
+		for (const circle of this.circles) {
+			if (circle) {
+				features.push({
+					...circle.toGeoJSON(),
+					radius: circle.getRadius(),
+					properties: circle.properties,
+					id: circle.identifier,
+				});
+			}
+		}
+		return features;
+	}
+}
+
+
 class GeoMapPolyline extends Polyline {
 	private readonly editor: GeometryEditor;
 	public readonly properties: Record<string, any> = {};
@@ -581,8 +779,6 @@ class GeoMapPolyline extends Polyline {
 				this.tempVertex.setLatLngs([firstLatLng, event.latlng]);
 			}
 		};
-		this.closePopup();
-		this.unbindPopup();
 		map.on('mousemove', this.moveVertex as any);
 		map.on('click', this.addVertex);
 		map.once('dblclick', this.finishPolyline);
@@ -592,12 +788,7 @@ class GeoMapPolyline extends Polyline {
 		if (this.tempVertex) {
 			this.tempVertex.setLatLngs([event.latlng, event.latlng]);
 		} else {
-			const options: PolylineOptions = {
-				bubblingMouseEvents: false,
-				dashArray: "2 4",
-				weight: 1.5,
-			};
-			this.tempVertex = polyline([event.latlng, event.latlng], options);
+			this.tempVertex = polyline([event.latlng, event.latlng], tempVertexOptions);
 			this.tempVertex.addTo(this.group);
 		}
 		this.addLatLng(event.latlng);
@@ -888,12 +1079,7 @@ class GeoMapPolygon extends Polygon {
 		if (this.tempVertex) {
 			this.tempVertex.setLatLngs([event.latlng, event.latlng]);
 		} else {
-			const options: PolylineOptions = {
-				bubblingMouseEvents: false,
-				dashArray: "2 4",
-				weight: 1.5,
-			};
-			this.tempVertex = polyline([event.latlng, event.latlng], options);
+			this.tempVertex = polyline([event.latlng, event.latlng], tempVertexOptions);
 			this.tempVertex.addTo(this.group);
 		}
 		const latlngRing = this.getLatLngs().at(-1) as LatLng[];
@@ -1162,6 +1348,7 @@ class MultiPolygonEditor extends PolygonEditor {
 const registry: Record<string, new (geomap: GeoMap, anchor: HTMLAnchorElement, ...args: any[]) => GeometryEditor> = {
 	PointEditor,
 	LookupPointEditor,
+	CircleEditor,
 	PolylineEditor,
 	PolygonEditor,
 	MultiPolygonEditor,

@@ -113,6 +113,16 @@ class LookupPointEditor(PointEditor):
     lookup_dialog = LookupDialogForm()
 
 
+class CircleEditor(ControlElement):
+    identifier = 'circle'
+    label = _("Add Circle")
+    add_button_icon = 'formset/geomap/icons/add-circle.svg'
+    delete_button_icon = 'formset/geomap/icons/delete-circle.svg'
+
+    def __init__(self, min_circles=None, max_circles=None, **kwargs):
+        super().__init__(min_entries=min_circles, max_entries=max_circles, **kwargs)
+
+
 class PolylineEditor(ControlElement):
     identifier = 'polyline'
     label = _("Add Polyline")

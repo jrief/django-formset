@@ -82,6 +82,7 @@ class ChurchModelForm(ModelForm):
                     ),
                     geomap_controls.LookupPointEditor(),
                     [
+                        geomap_controls.CircleEditor(),
                         geomap_controls.PolylineEditor(),
                         geomap_controls.PolygonEditor(),
                         geomap_controls.MultiPolygonEditor(),
