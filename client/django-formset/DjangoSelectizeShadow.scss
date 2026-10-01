@@ -173,12 +173,14 @@
 			box-sizing: border-box;
 			width: 100%;
 			padding: 0.25rem 0.25rem 0;
-			background-color: var(--django-formset-background-color);
+			background-color: color-mix(in srgb, var(--django-formset-background-color), transparent 25%);
+			backdrop-filter: blur(1rem);
 			border-left: var(--border-width) var(--border-style) var(--border-color);
 			border-right: var(--border-width) var(--border-style) var(--border-color);
 
 			.dropdown-input {
 				width: 100%;
+				background-color: var(--django-formset-background-color);
 				box-sizing: border-box;
 				border: var(--border-width) var(--border-style) var(--border-color);
 				border-radius: var(--border-radius);
