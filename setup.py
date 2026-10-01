@@ -21,6 +21,7 @@ CLASSIFIERS = [
     'Programming Language :: Python :: 3.13',
     'Framework :: Django :: 5.2',
     'Framework :: Django :: 6.0',
+    'Framework :: Django :: 6.1',
 ]
 
 setup(
@@ -32,9 +33,11 @@ setup(
     url='https://django-formset.fly.dev/',
     packages=find_namespace_packages(include=['formset']),
     install_requires=[
-        'django>=5.2,<6.1',
+        'django>=5.2,<6.2',
     ],
-    extra_requires={
+    extras_require={
+        'country': ['django-countries'],
+        'filter': ['django-filter'],
         'thumbnail': ['Pillow'],
         'phonenumbers': ['phonenumbers'],
     },
