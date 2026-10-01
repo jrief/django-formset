@@ -183,7 +183,7 @@ specified as attribute ``help_text = "…"`` inside classes inheriting from
 :class:`formset.collection.FormCollection`, or as a parameter when initializing the collection.
 
 
-.. version-deprecated:: 2.2
+.. deprecated:: 2.2
 
 .. rubric:: Label for "Add" button
 
@@ -194,7 +194,7 @@ This attribute is deprecated in favor of ``induce_add_sibling`` and its correspo
 field. See rubric below for details.
 
 
-.. version-added:: 2.2
+.. versionadded:: 2.2
 
 .. rubric:: Add a child to a collections with siblings
 

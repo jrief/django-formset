@@ -4,7 +4,7 @@
 Django-Admin Integration
 ========================
 
-.. version-added:: 2.0
+.. versionadded:: 2.0
 
 One of the goals of **django-formset** is to offer a flexible and easy to use library for
 manipulating formsets and to offer widgets with a way better usability than the builtin HTML form

@@ -34,6 +34,9 @@ For this purpose, **django-formset** offers:
   * A :class:`formset.geomap.controls.PolygonEditor` to edit multiple geographic polygons.
   * A :class:`formset.geomap.controls.MultiPolygonEditor` to edit multiple geographic
     multi-polygons.
+  * The :class:`formset.geomap.controls.CircleEditor` is a variant of the `PointEditor` but stores a
+    radius and draws a circle instead of a marker. The radius is stored in the GeoJSON properties
+    record of the feature.
 
 Each of those geographic control elements can optionally attach customized form dialogs. Read below
 for details.
@@ -69,6 +72,7 @@ This example shows how to use the form field for a geographic map together with 
 	        ),
 	    )
 
+
 .. django-view:: geo_map_view
 	:view-function: GeoMapView.as_view(form_class=geographic_data.SimplePointForm, extra_context={'framework': 'bootstrap', 'pre_id': 'simple-point-result'}, form_kwargs={'auto_id': 'sp_id_%s'})
 	:hide-code:
@@ -99,7 +103,12 @@ and multipolygons to the map canvas. The user can add as many of them as he want
 
 	from django.forms.forms import Form
 	from formset.formfields.geomap import GeoMapField
-	from formset.geomap.controls import PolylineEditor, PolygonEditor, MultiPolygonEditor
+	from formset.geomap.controls import (
+	    CircleEditor,
+	    PolylineEditor,
+	    PolygonEditor,
+	    MultiPolygonEditor,
+	)
 	from formset.widgets.geomap import GeoMapWidget
 	
 	class MultiGeoDataForm(Form):
@@ -108,14 +117,15 @@ and multipolygons to the map canvas. The user can add as many of them as he want
 	        widget=GeoMapWidget(
 	            controls_topleft=[
 	                PointEditor(),
+	                CircleEditor(),
 	                [PolylineEditor(), PolygonEditor(), MultiPolygonEditor()],
 	            ],
 	        ),
 	    )
 
-Here we use four control elements, ``PointEditor``, ``PolylineEditor``, ``PolygonEditor`` and
-``MultiPolygonEditor``. All four of them are placed in to upper left corner of the map canvas but
-other configurations are possible by using the parameters ``controls_topright``,
+Here we use five control elements, ``PointEditor``, ``CircleEditor``, ``PolylineEditor``,
+``PolygonEditor`` and ``MultiPolygonEditor``. All five of them are placed in to upper left corner of
+the map canvas but other configurations are possible by using the parameters ``controls_topright``,
 ``controls_bottomleft`` and ``controls_bottomright``. Control buttons can be grouped together by
 putting them inside a list, which leaves a small space between the two groups.
 
@@ -570,7 +580,17 @@ to edit a description of the marker using another nested richtext field.
 Event though this example is a bit more complex, it shows how to integrate a ``GeoMapField`` inside
 a richtext editor and vice versa. 
 
-.. django-referred-view:: richtext_geomap_view
+.. django-view:: richtext_geomap_view
+	:view-function: RichTextWithGeoMapView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'richtext-with-geomap-result'}, form_kwargs={'auto_id': 'rtgm_id_%s'})
+	:hide-code:
+
+	from formset.views import RichtextConversionResponseMixin 
+
+	class RichTextWithGeoMapView(RichtextConversionResponseMixin, FormView):
+	    template_name = "form.html"
+	    form_class = RichTextWithGeoMapForm
+	    success_url = "/success"
+
 
 There is a caveat though: The ``SpecialGeoMapDialogForm`` used as a control element by this richtext
 editor configuration uses the web component ``<geomap-renderer>`` to render the map canvas, when
@@ -591,17 +611,8 @@ all requests to perform such an amendment. We therefore add the special class
 ``RichtextConversionResponseMixin`` to the ``FormView`` which controls our formset. Here is a simple
 example of how to use this mixin class:
 
-.. django-view:: richtext_geomap_view
-	:view-function: RichTextWithGeoMapView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'richtext-with-geomap-result'}, form_kwargs={'auto_id': 'rtgm_id_%s'})
-	:hide-view:
-	:caption: views.py
-
-	from formset.views import RichtextConversionResponseMixin 
-
-	class RichTextWithGeoMapView(RichtextConversionResponseMixin, FormView):
-	    template_name = "form.html"
-	    form_class = RichTextWithGeoMapForm
-	    success_url = "/success"
+.. django-referred-view:: richtext_geomap_view
+	:show-code:
 
 
 Global Settings

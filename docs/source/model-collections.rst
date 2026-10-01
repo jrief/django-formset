@@ -466,7 +466,7 @@ relation from ``Company`` to ``Department``, and ``teams`` for the relation from
 ommitted them here. They are only required, if the attribute name of the collection differs from the
 ``related_name`` of the foreign key.
 
-.. version-changed:: 2.2
+.. versionchanged:: 2.2
 
 .. rubric:: ``get_or_create_instance(data, position)``
 
