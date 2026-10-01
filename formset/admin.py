@@ -2,6 +2,7 @@ import json
 import types
 import warnings
 
+from django import VERSION as DJANGO_VERSION
 from django.contrib import admin as django_admin
 from django.contrib.admin import helpers
 from django.contrib.admin.options import IS_POPUP_VAR, TO_FIELD_VAR, get_content_type_for_model
@@ -21,9 +22,11 @@ from formset.upload import receive_uploaded_file
 from formset.views import FormCollectionViewMixin, IncompleteSelectResponseMixin
 from formset.widgets import UploadedFileInput
 
+_legacy = '.legacy' if DJANGO_VERSION < (6, 1) else ''
+
 
 class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, FormCollectionViewMixin):
-    change_form_template = 'admin/formset/change_form.html'
+    change_form_template = f'admin/formset/change_form{_legacy}.html'
     formfield_overrides = {
         BooleanField: {'label_suffix': ''},
         FileField: {'widget': UploadedFileInput},
@@ -111,9 +114,9 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
                 "The field %s cannot be referenced." % to_field
             )
 
-        intercepted_requests = ['CalendarSheet', 'IncompleteSelect', 'PrefillPartial']
+        intercepted_requests = ['CalendarSheet', 'IncompleteSelect', 'PrefillPartial', 'RichtextConversion']
         if request.method == 'GET' and request.headers.get('X-Request-Source') in intercepted_requests:
-            # intercept calendar and/or incomplete requests
+            # intercepted requests are handled by their mixin classes
             return super().get(request)
 
         if request.method == 'POST' and request.content_type == 'multipart/form-data' and 'temp_file' in request.FILES:

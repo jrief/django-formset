@@ -1,6 +1,10 @@
+from django import VERSION as DJANGO_VERSION
+
 from formset.boundfield import ClassList
 from formset.renderers import ButtonVariant
 from formset.renderers.default import FormRenderer as DefaultFormRenderer
+
+_legacy = '.legacy' if DJANGO_VERSION < (6, 1) else ''
 
 
 class FormRenderer(DefaultFormRenderer):
@@ -16,12 +20,12 @@ class FormRenderer(DefaultFormRenderer):
         'formset/default/fieldset.html': 'formset/admin/fieldset.html',
         'formset/default/widgets/collection.html': 'formset/admin/widgets/collection.html',
         'formset/default/widgets/file.html': 'formset/admin/widgets/file.html',
-        'formset/default/widgets/dual_selector.html': 'formset/admin/widgets/dual_selector.html',
+        'formset/default/widgets/dual_selector.html': f'formset/admin/widgets/dual_selector{_legacy}.html',
     })
 
     def _amend_form(self, context):
         super()._amend_form(context)
-        context['field_group_template'] = 'formset/admin/field_group.html'
+        context['field_group_template'] = f'formset/admin/field_group{_legacy}.html'
         return context
 
     def _amend_label(self, context):

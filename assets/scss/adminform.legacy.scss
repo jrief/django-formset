@@ -2,22 +2,21 @@
 
 django-formset {
 	.aligned {
-		.flex-container {
-			gap: 0;  // otherwise the gap is added twice for invisible elements
-
-			legend, label {
-				margin-bottom: 8px;  // instead of a gap, add some margin to the bottom
-			}
-		}
-
 		p.help, div.help {
 			margin-top: 0;
-			margin-bottom: 8px;
+			margin-left: 160px;
+			padding-left: 10px;
 		}
 
 		.dj-field-errors {
-			ul > li {
-				list-style: none;
+			margin-left: 160px;
+
+			ul {
+				padding-left: 10px;
+
+				> li {
+					list-style: none;
+				}
 			}
 		}
 	}
@@ -165,12 +164,8 @@ django-formset {
 		}
 
 		.flex-container {
-			> :is(.dj-richtext-wrapper, [is^="django-selectize"]) {
-				align-self: stretch;
-			}
-
-			.dj-form-inlined {
-				margin-inline-end: 1.5rem;
+			> .dj-richtext-wrapper, > [role="textbox"] {
+				flex-grow: 1;
 			}
 		}
 
@@ -187,6 +182,14 @@ django-formset {
 			background-color: var(--body-bg);
 		}
 
+		[is^="django-selectize"] + .shadow-wrapper {
+			width: calc(100% - 170px);
+		}
+
+		:is(select[is^="django-selectize"], select[is="django-dual-selector"]).dj-concealed {
+			width: 1px !important;
+		}
+
 		.df-dual-selector {
 			input {
 				border-bottom-left-radius: 0;
@@ -200,6 +203,8 @@ django-formset {
 			}
 
 			&.selector {
+				margin-bottom: 5px;
+
 				.selector-available, .selector-chosen {
 					input {
 						margin-left: unset;
@@ -213,7 +218,7 @@ django-formset {
 				}
 
 				.selector-chooser {
-					margin: 6rem 0.25rem 0;
+					margin: 6rem 0 0;
 					padding: 0.125rem 0;
 					width: auto;
 
@@ -227,8 +232,8 @@ django-formset {
 						background-color: var(--close-button-bg);
 						color: var(--primary-fg);
 						opacity: 0.8;
-						width: 24px;
-						height: 24px;
+						width: 16px;
+						height: 16px;
 
 						&:hover {
 							opacity: 1;
