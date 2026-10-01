@@ -17,6 +17,7 @@ import {
 	MapOptions,
 	Marker,
 	MarkerOptions,
+	Point,
 	Polyline,
 	PolylineOptions,
 	Polygon,
@@ -496,9 +497,9 @@ class VertexMarker extends Marker {
 		iconAnchor: [5, 5],
 	});
 	static readonly halfwayOpacity = 0.7;
-	private readonly path: GeoMapPolyline|GeoMapPolygon;
+	private readonly path: GeoMapCircle|GeoMapPolyline|GeoMapPolygon;
 
-	constructor(latlng: LatLng, path: GeoMapPolyline|GeoMapPolygon, halfway: boolean) {
+	constructor(latlng: LatLng, path: GeoMapCircle|GeoMapPolyline|GeoMapPolygon, halfway: boolean) {
 		const options: MarkerOptions = {
 			icon: VertexMarker.vertexIcon,
 			draggable: true,
@@ -542,7 +543,8 @@ class GeoMapCircle extends Circle {
 	public readonly group: LayerGroup;
 	private readonly popup: Popup;
 	private tempVertex: Polyline|null = null;  // temporary vertex moving with the cursor
-	public moveCursor: Function|null = null;
+	public vertexMarkers: VertexMarker[][] = [];
+	public dragCircle: Function|null = null;
 
 	constructor(editor: GeometryEditor, latlng: LatLng, index: [number, number], popupTemplate: HTMLDivElement) {
 		const options: CircleOptions = {
@@ -583,43 +585,85 @@ class GeoMapCircle extends Circle {
 	public initialPlacement() {
 		const map = this.editor.geomap;
 		map.getContainer().classList.add('marker-placement');
-		this.moveCursor = (event: LeafletMouseEvent) => this.setLatLng(event.latlng);
-		map.on('mousemove', this.moveCursor as any);
-		map.once('click', this.handleFirstClick);
+		this.dragCircle = (event: LeafletMouseEvent) => this.setLatLng(event.latlng);
+		map.on('mousemove', this.dragCircle as any);
+		map.once('click', this.startCircle);
 	}
 
-	public handleFirstClick = (event: LeafletMouseEvent) => {
+	public startCircle = (event: LeafletMouseEvent) => {
 		const map = this.editor.geomap;
 		const latlng = this.getLatLng();
 		this.tempVertex = polyline([event.latlng, event.latlng], tempVertexOptions);
 		this.tempVertex.addTo(this.group);
-		map.off('mousemove', this.moveCursor as any);
-		this.moveCursor = (event: LeafletMouseEvent) => {
+		map.off('mousemove', this.dragCircle as any);
+		this.dragCircle = (event: LeafletMouseEvent) => {
 			const radius = latlng.distanceTo(event.latlng);
 			this.setRadius(radius);
 			if (this.tempVertex) {
 				this.tempVertex.setLatLngs([latlng, event.latlng]);
 			}
 		};
-		map.on('mousemove', this.moveCursor as any);
-		map.once('click', this.handleSecondClick);
+		map.on('mousemove', this.dragCircle as any);
+		map.once('click', this.finishCircle);
 	};
 
-	public handleSecondClick = (event: LeafletMouseEvent) => {
+	public finishCircle = (event: LeafletMouseEvent) => {
+		const radius = this.getLatLng().distanceTo(event.latlng);
+		this.setRadius(radius);
 		const map = this.editor.geomap;
-		map.off('mousemove', this.moveCursor as any);
-		this.moveCursor = null;
+		map.off('mousemove', this.dragCircle as any);
+		this.dragCircle = null;
 		map.getContainer().classList.remove('marker-placement');
 		this.bindPopup(this.popup);
 		if (this.tempVertex) {
 			this.group.removeLayer(this.tempVertex);
 			this.tempVertex = null;
 		}
+		this.setCircleMarkers(event.latlng);
 	};
 
+	public setCircleMarkers(latlng: LatLng) {
+		while (this.index[0] >= this.vertexMarkers.length) {
+			this.vertexMarkers.push([]);
+		}
+		const centerMarker = new VertexMarker(this.getLatLng(), this, false);
+		centerMarker.addTo(this.group);
+		this.vertexMarkers[this.index[0]].push(centerMarker);
+		const radiusMarker = new VertexMarker(latlng, this, false);
+		radiusMarker.addTo(this.group);
+		this.vertexMarkers[this.index[0]].push(radiusMarker);
+	}
+
+	public updateVertices(index: [number, number], latlng: LatLng) {
+		const center = this.getLatLng();
+		if (index[1] === 0) {
+			// drag center and move radius marker accordingly (does not work well near the poles)
+			const point1 = new Point(center.lat, center.lng);
+			const point2 = new Point(latlng.lat, latlng.lng);
+			const delta = point2.subtract(point1);
+			const radiusMarker = this.vertexMarkers[index[0]][1];
+			const point3 = new Point(radiusMarker.getLatLng().lat + delta.x, radiusMarker.getLatLng().lng + delta.y);
+			this.setLatLng(latlng);
+			latlng = new LatLng(point3.x, point3.y);
+			radiusMarker.setLatLng(latlng);
+		}
+		const radius = this.getLatLng().distanceTo(latlng);
+		this.setRadius(radius);
+	}
+
+	public deleteVertex(index: [number, number]) {
+		// Circle must be deleted using the popup delete button
+	}
+
 	public deleteCircle() {
-		const map = this.editor.geomap;
 		this.editor.closeAllDialogs();
+		if (this.tempVertex) {
+			this.group.removeLayer(this.tempVertex);
+			this.tempVertex = null;
+		}
+		this.vertexMarkers.forEach(markers => markers.forEach(marker => this.group.removeLayer(marker)));
+		this.vertexMarkers.length = 0;
+		const map = this.editor.geomap;
 		this.group.removeLayer(this);
 		this.group.removeFrom(map);
 		this.editor.deleteLayer(this.index);
@@ -641,14 +685,14 @@ class CircleEditor extends GeometryEditor {
 	}
 
 	public cancelInitialPlacement() {
-		if (this.circles.at(-1)?.moveCursor) {
+		if (this.circles.at(-1)?.dragCircle) {
 			const circle = this.circles.pop()!;
 			const map = this.geomap;
 			map.getContainer().classList.remove('marker-placement');
-			map.off('mousemove', circle.moveCursor as any);
-			map.off('click', circle.handleFirstClick as any);
-			map.off('click', circle.handleSecondClick as any);
-			circle.moveCursor = null;
+			map.off('mousemove', circle.dragCircle as any);
+			map.off('click', circle.startCircle as any);
+			map.off('click', circle.finishCircle as any);
+			circle.dragCircle = null;
 			circle.deleteCircle();
 		}
 	}
@@ -682,15 +726,21 @@ class CircleEditor extends GeometryEditor {
 					if (String(getDataValue(feature, 'id', '')).split(':')[0] !== this.identifier)
 						continue;
 					const geometry = getDataValue(feature, 'geometry');
-					if (isPlainObject(geometry) && getDataValue(geometry, 'type') === 'Circle') {
-						const latlng = (GeoJSON.geometryToLayer(geometry as any) as any).getLatLngs() as LatLng;
-						const circle = new GeoMapCircle(this, latlng, [this.circles.length, 0], this.popupTemplate);
-						const properties = getDataValue(feature, 'properties');
-						if (isPlainObject(properties)) {
-							Object.assign(circle.properties, properties);
+					if (isPlainObject(geometry) && getDataValue(geometry, 'type') === 'Point') {
+						const coordinates = getDataValue(geometry, 'coordinates');
+						if (Array.isArray(coordinates) && coordinates.length === 2) {
+							const center = GeoJSON.coordsToLatLng(coordinates as [number, number]);
+							const circle = new GeoMapCircle(this, center, [this.circles.length, 0], this.popupTemplate);
+							const radius = getDataValue(feature, 'properties.radius', 1000) as number;
+							circle.setRadius(radius);
+							const properties = getDataValue(feature, 'properties');
+							if (isPlainObject(properties)) {
+								Object.assign(circle.properties, properties);
+							}
+							const latlng = new LatLng(circle.getLatLng().lat, circle.getBounds().getEast());
+							circle.setCircleMarkers(latlng);
+							this.circles.push(circle);
 						}
-						// circle.setVertexMarkers(latlng);
-						this.circles.push(circle);
 					}
 				}
 			}
@@ -712,8 +762,7 @@ class CircleEditor extends GeometryEditor {
 			if (circle) {
 				features.push({
 					...circle.toGeoJSON(),
-					radius: circle.getRadius(),
-					properties: circle.properties,
+					properties: {...circle.properties, radius: circle.getRadius()},
 					id: circle.identifier,
 				});
 			}
@@ -852,6 +901,7 @@ class GeoMapPolyline extends Polyline {
 			this.vertexMarkers[index0].splice(index1, 0, prevVertexMarker);
 			this.vertexMarkers[index0].splice(index1 + 2, 0, nextVertexMarker);
 		} else {
+			// existing vertex – update the latlng
 			latlngs[index1 / 2] = latlng;
 			const prevVertexMarker = this.vertexMarkers[index0][index1 - 1];
 			if (prevVertexMarker) {
