@@ -9,7 +9,7 @@
 			content: {
 				default: JSON.stringify({type: 'FeatureCollection'}),
 				renderHTML: attributes => {
-					return {json: JSON.stringify(attributes.content)};
+					return {content: JSON.stringify(attributes.content)};
 				},
 				parseHTML: element => {
 					return JSON.parse(element.getAttribute('content') ?? '{"type": "FeatureCollection"}');
