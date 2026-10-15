@@ -81,8 +81,12 @@ class GeoJSONRenderer extends HTMLElement {
 			}
 		});
 		const geojson = JSON.parse(this.getAttribute('content') ?? '{}');
-		if (geojson.type !== 'FeatureCollection')
-			throw new Error('Invalid GeoJSON');
+		if (geojson.type !== 'FeatureCollection') {
+			window.requestIdleCallback(() => {
+				this.#leaflet.invalidateSize();
+			});
+			return;
+		}
 		geojson['features'] ??= [];
 		let filterFunction: (feature: any) => boolean;
 		try {
