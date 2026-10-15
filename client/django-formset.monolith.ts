@@ -40,6 +40,7 @@ import {
 import {FormDialogElement} from './django-formset/FormDialog';
 import {GeoMapElement} from './django-formset/GeoMap';
 import {StepperCollectionElement} from './django-formset/StepperCollection';
+import {amendAltchaComponent} from './django-formset/altcha';
 
 
 function handleDOMLoaded() {
@@ -104,6 +105,7 @@ function handleDOMLoaded() {
 	customElementNames.push('django-geomap');
 	window.customElements.define('django-stepper-collection', StepperCollectionElement);
 	customElementNames.push('django-stepper-collection');
+	promises.push(new Promise<void>((resolve) => amendAltchaComponent(document, resolve)));
 
 	const foundIds = new Set<string>();
 	document.querySelectorAll('django-formset [id]').forEach(element => {

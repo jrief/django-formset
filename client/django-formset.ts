@@ -3,7 +3,6 @@ import 'requestidlecallback';
 import {DjangoFormsetElement} from './django-formset/DjangoFormset';
 import {StyleHelpers} from './django-formset/helpers';
 
-
 /*************************************************************************
 *  Initialize the external components registry if it doesn't exist yet.
 *  External scripts can push entries before or after this script loads:
@@ -220,6 +219,13 @@ function domLookup(fragmentRoot: Document|DocumentFragment, isTemplate: boolean=
 	}
 
 	// register external web components using the same approach
+	if (fragmentRoot.querySelector('altcha-widget')) {
+		promises.push(new Promise((resolve, reject) => {
+			import('./django-formset/altcha').then(({amendAltchaComponent}) => {
+				amendAltchaComponent(fragmentRoot, resolve);
+			}).catch(err => reject(err));
+		}));
+	}
 	for (const {selector, loader} of window.djangoFormsetComponents) {
 		if (fragmentRoot.querySelector(selector)) {
 			promises.push(loader(fragmentRoot));

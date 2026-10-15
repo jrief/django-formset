@@ -29,7 +29,7 @@ from formset.calendar import CalendarResponseMixin
 from formset.forms import DeclarativeFieldsetMetaclass, FormsetModelFormMetaclass, FormMixin
 from formset.views import (
     FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormCollectionViewMixin, FormViewMixin,
-    EditCollectionView, BulkEditCollectionView, RichtextConversionResponseMixin
+    EditCollectionView, BulkEditCollectionView, RichtextConversionResponseMixin,
 )
 
 from testapp.demo_helpers import SessionFormCollectionViewMixin
@@ -38,6 +38,7 @@ from testapp.forms.address import AddressForm
 from testapp.forms.advertisement import AdvertisementForm, initial_json
 from testapp.forms.article import ArticleForm
 from testapp.forms.blog import BlogModelForm
+from testapp.forms.captcha import CaptchaForm
 from testapp.forms.company import CompanyCollection, CompaniesCollection
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import (
@@ -874,4 +875,5 @@ urlpatterns = [
         filtered_type='carousel',
     ), name='carousel'),
     path('richtext', RenderRichtextView.as_view(), name='richtext'),
+    path('captcha', DemoFormView.as_view(form_class=CaptchaForm), name='captcha'),
 ]
