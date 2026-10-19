@@ -113,6 +113,7 @@ class FormRenderer(DefaultFormRenderer):
         'django/forms/widgets/radio.html': _amend_multiple_input,
         'formset/default/detached_field.html': _amend_detached_field,
         'formset/default/fieldset.html': _amend_fieldset,
+        'formset/default/widgets/altcha.html': _amend_input,
         'formset/default/widgets/button.html': _amend_button,
         'formset/default/widgets/calendar.html': _amend_input,
         'formset/default/widgets/datetime.html': _amend_input,

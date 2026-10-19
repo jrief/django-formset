@@ -8,5 +8,8 @@ class CaptchaForm(forms.Form):
     How to use ``ALTCHA``.
     """
 
-    email = fields.EmailField(help_text="Subscribe with your email address.")
+    email = fields.EmailField(
+        initial='joe@example.com',
+        help_text="Subscribe with your email address.",
+    )
     captcha_token = AltchaField()

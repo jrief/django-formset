@@ -40,7 +40,7 @@ import {
 import {FormDialogElement} from './django-formset/FormDialog';
 import {GeoMapElement} from './django-formset/GeoMap';
 import {StepperCollectionElement} from './django-formset/StepperCollection';
-import {amendAltchaComponent} from './django-formset/altcha';
+import {amendAltchaComponent} from './django-formset/AltchaWidget';
 
 
 function handleDOMLoaded() {

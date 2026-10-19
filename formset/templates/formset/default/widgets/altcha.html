@@ -1,1 +1,1 @@
-<altcha-widget name="{{ widget.name }}" challenge="{{ widget.value }}" form="{{ widget.attrs.form }}"></altcha-widget>
+<altcha-widget name="{{ widget.name }}" challenge="{{ widget.value }}"{% if widget.attrs.form %} form="{{ widget.attrs.form }}"{% endif %}{% if widget.attrs.class %} class="{{ widget.attrs.class }}"{% endif %}></altcha-widget>

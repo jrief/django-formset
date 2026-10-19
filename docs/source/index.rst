@@ -49,6 +49,7 @@ Django's counterparts.
 	decimal-unit-field
 	country-selectize
 	phone-number-field
+	captcha
 	admin-integration
 	custom-components
 	development

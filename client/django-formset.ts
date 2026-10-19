@@ -221,7 +221,7 @@ function domLookup(fragmentRoot: Document|DocumentFragment, isTemplate: boolean=
 	// register external web components using the same approach
 	if (fragmentRoot.querySelector('altcha-widget')) {
 		promises.push(new Promise((resolve, reject) => {
-			import('./django-formset/altcha').then(({amendAltchaComponent}) => {
+			import('./django-formset/AltchaWidget').then(({amendAltchaComponent}) => {
 				amendAltchaComponent(fragmentRoot, resolve);
 			}).catch(err => reject(err));
 		}));
