@@ -96,8 +96,7 @@ class FieldGroup {
 					});
 					break;
 				case 'file':
-					// @ts-ignore
-					this.fileUploader = new FileUploadWidget(this, element);
+					this.fileUploader = new FileUploadWidget(this as any, element);
 					element.addEventListener('invalid', () => this.errorPlaceholder.reportValidationError());
 					break;
 				default:
