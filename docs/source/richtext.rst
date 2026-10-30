@@ -390,7 +390,7 @@ Additional Attributes
 Apart from the control elements, the rich text editor widget can be configured using additional
 attributes:
 
-.. rubric:: maxlength
+.. rubric:: ``maxlength``
 
 By adding ``maxlength`` to the widget's attributes, we can limit the number of characters to be
 entered into this text field. In the bottom right corner, this will show how many characters can
@@ -404,13 +404,13 @@ still be entered.
 	the given ``maxlength`` value. You therefore should not limit this value on the model field
 	since this is a hard limit enforced by the database.
 
-.. rubric:: use_json
+.. rubric:: ``use_json``
 
 If the content of the rich text editor shall be stored as JSON, set ``use_json=True``. This only is
 required when using this widget for a Django form's ``CharField``. When using the model field class
 :class:`formset.modelfields.RichTextField`, this is not necessary.
 
-.. rubric:: placeholder
+.. rubric:: ``placeholder``
 
 By adding ``placeholder="Some text"`` to the widget's attributes, we can add a placeholder to the
 text field. This will disappear as soon as we start typing.

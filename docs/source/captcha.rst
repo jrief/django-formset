@@ -1,20 +1,26 @@
 .. _captcha:
 
-===================
-Captcha Alternative
-===================
+======================
+Alternative to CAPTCHA
+======================
 
 Whenever you expose a form to non-authenticated users on sites that are accessible to a wide
-audience, the risk is high that automated bots will submit the form and spam your website. To
-mitigate this risk, various systems have evolved over time to distinguish between human users and
-those bots. One of the most common methods is the use of CAPTCHAs_. These however are annoying for
-users and in times of AI, simple to solve.
+audience, there is a high risk that automated bots will submit the form and spam your website. To
+mitigate this, various systems have evolved over time to distinguish between human users and those
+bots. One of the most common methods is the use of CAPTCHAs_. These however are annoying for users
+and in times of AI, simple to solve.
+
+.. figure:: _static/captcha.png
+   :width: 400px
+   :alt: Confirm You're Not A Robot
+   :align: center
 
 .. _CAPTCHAs: https://en.wikipedia.org/wiki/CAPTCHA
 
-Since this library focuses on the user experience, it does not provide a CAPTCHA implementation.
-Instead, it provides an alternative that is easy to implement and does not annoy users. The idea is
-to add a challenge to the form which must be solved using some computational effort by the browser.
+Since this library focuses on the user experience, it does not provide a classic CAPTCHA
+implementation. Instead, it provides an alternative that is easy to implement and does not annoy
+users. The idea is to add a challenge to the form which must be solved using some computational
+effort by the browser.
 
 In Django we can add this challenge to a form by using the special form field
 :class:`formset.formfields.altcha.AltchaField`.
@@ -56,7 +62,7 @@ form is invalid and the user must reload the form.
 Altcha Customization
 ====================
 
-.. rubric:: timeout
+.. rubric:: ``timeout``
 
 The challenge is only valid for a limited time. If the user takes too long to submit the form, the
 challenge will expire. This timeout can be configured by using the ``timeout`` attribute in the form
@@ -66,7 +72,7 @@ the duration of the timeout and hence can't be reused.
 The default timeout is 600 seconds (10 minutes).
 
 
-.. rubric:: cost
+.. rubric:: ``cost``
 
 The computational effort required to solve the challenge can be adjusted using the ``cost``
 attribute in the form field. A higher cost increases the difficulty of solving the challenge,
@@ -74,7 +80,7 @@ providing better protection against automated attacks, but may also increase the
 legitimate users to complete the challenge. The default is 10000.
 
 
-.. rubric:: algorithm
+.. rubric:: ``algorithm``
 
 ALTCHA supports multiple proof-of-work algorithms. ``PBKDF2/*`` and ``SHA-*`` are bundled with the
 main widget by default. For a complete list of supported algorithms, check the documentation on
@@ -87,9 +93,9 @@ Implementation Details
 ======================
 
 The web component ``<altcha-widget …>`` is implemented by the JavaScript library altcha_ and is
-loaded automatically whenever a form containing an `AltchaField` is rendered. In addition, the
+loaded automatically whenever a form containing an ``AltchaField`` is rendered. In addition, the
 server side implementation of the form field is provided by the `Python package altcha`_ and must be
-installed as a third party dependency. Both the JavaScript library and the Python package are
+installed as a third party dependency. Both, the JavaScript library and the Python package are
 maintained by the same author and are licensed under the MIT license.
 
 .. _altcha: https://altcha.org/
