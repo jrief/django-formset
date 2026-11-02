@@ -1,7 +1,5 @@
 import pytest
 
-from django.conf import settings
-from django.core.management import call_command
 from django.views.generic import TemplateView
 from django.template.loader import render_to_string
 from django.utils.html import strip_spaces_between_tags
@@ -370,16 +368,10 @@ def test_render_alternative_template():
     assert html == '<article><p>This is <strong>bold</strong><em>and italic</em> text.</p></article>'
 
 
-@pytest.fixture(scope='session')
-def django_db_modify_db_setup(django_db_blocker):
-    with django_db_blocker.unblock():
-        call_command('loaddata', settings.BASE_DIR / 'testapp/fixtures/reporters.json', verbosity=0)
-        call_command('loaddata', settings.BASE_DIR / 'testapp/fixtures/pages.json', verbosity=0)
-
-
 @pytest.mark.django_db
-def test_render_custom_hyperlink():
+def test_render_custom_hyperlink(loaded_pages_once):
     page = PageModel.objects.order_by('?').first()
+    assert page is not None
     context = {'object': {
         'text': {
             'type': 'doc',

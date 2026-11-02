@@ -2,6 +2,8 @@ import os
 import pytest
 from playwright.sync_api import sync_playwright
 
+from django.conf import settings
+from django.core.management import call_command
 from django.urls import reverse
 
 os.environ.setdefault('DJANGO_ALLOW_ASYNC_UNSAFE', 'true')
@@ -59,3 +61,10 @@ def page(connector, viewname, locale, language):
     django_formset = page.locator('django-formset:defined')
     django_formset.wait_for()
     return page
+
+
+@pytest.fixture(scope="session")
+def loaded_pages_once(django_db_setup, django_db_blocker):
+    with django_db_blocker.unblock():
+        call_command('loaddata', settings.BASE_DIR / 'testapp/fixtures/reporters.json', verbosity=0)
+        call_command('loaddata', settings.BASE_DIR / 'testapp/fixtures/pages.json', verbosity=0)
