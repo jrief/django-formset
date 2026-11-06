@@ -116,6 +116,30 @@ class FormRenderer(DjangoTemplates):
         context['form'] = context['form'].replicate(renderer=self)
         return context
 
+    # Templates safe to amend within a MultiWidget (only manipulate attrs.class)
+    _multiwidget_amendable_templates = frozenset({
+        'django/forms/widgets/text.html',
+        'django/forms/widgets/tel.html',
+        'django/forms/widgets/email.html',
+        'django/forms/widgets/date.html',
+        'django/forms/widgets/datetime.html',
+        'django/forms/widgets/number.html',
+        'django/forms/widgets/url.html',
+        'django/forms/widgets/password.html',
+        'django/forms/widgets/textarea.html',
+        'django/forms/widgets/select.html',
+    })
+
+    def _amend_multiwidget(self, context):
+        for subwidget in context['widget']['subwidgets']:
+            template = subwidget['template_name']
+            if template not in self._multiwidget_amendable_templates:
+                continue
+            modifier = self._context_modifiers.get(template)
+            if callable(modifier):
+                types.MethodType(modifier, self)({'widget': subwidget})
+        return context
+
     _context_modifiers = {
         'django/forms/div.html': _amend_form,
         'formset/default/form.html': _amend_form,
@@ -123,6 +147,7 @@ class FormRenderer(DjangoTemplates):
         'django/forms/label.html': _amend_label,
         'django/forms/widgets/checkbox_select.html': _amend_multiple_input,
         'django/forms/widgets/radio.html': _amend_multiple_input,
+        'django/forms/widgets/multiwidget.html': _amend_multiwidget,
         'formset/default/fieldset.html': _amend_fieldset,
         'formset/default/detached_field.html': _amend_detached_field,
         'formset/default/collection.html': _amend_collection,
