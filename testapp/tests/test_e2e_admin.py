@@ -77,14 +77,11 @@ def test_admin_edit_company(live_server, page, viewname, nth_save, subtests):
     assert company.departments.first().name == "Marketing"
     assert company.departments.first().teams.count() == 1
     assert company.departments.first().teams.first().name == "Action Sports"
-    if nth_save == 0:
-        next_view_url = reverse('admin:testapp_company_changelist')
-    elif nth_save == 1:
-        next_view_url = reverse('admin:testapp_company_add')
-    elif nth_save == 2:
-        next_view_url = reverse('admin:testapp_company_change', kwargs={'object_id': company.id})
-    else:
-        raise ValueError(f"Invalid nth_save value: {nth_save}")
+    next_view_url = [
+        reverse('admin:testapp_company_changelist'),
+        reverse('admin:testapp_company_add'),
+        reverse('admin:testapp_company_change', kwargs={'object_id': company.id}),
+    ][nth_save]
     expect(page).to_have_url(f'{live_server.url}{next_view_url}')
     if nth_save != 2:
         return
