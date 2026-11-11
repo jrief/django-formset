@@ -21,7 +21,7 @@ class AccordionItem(forms.Form):
 
 class AccordionCollection(FormCollection):
     min_siblings = 0
-    extra_siblings = 0
+    extra_siblings = 1
     accordion_item = AccordionItem()
     legend = "Accordion"
     induce_add_sibling = '.add_item:active'
