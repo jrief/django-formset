@@ -1,6 +1,7 @@
 import pytest
 from datetime import date
 from playwright.sync_api import expect
+from time import sleep
 
 from django.forms import fields, Form
 from django.urls import reverse
@@ -23,6 +24,7 @@ def test_admin_edit_person(live_server, page, viewname, nth_save, subtests):
     page.locator('#id_birth_date + [role="textbox"] [aria-placeholder="mm"]').fill("05")
     page.locator('#id_birth_date + [role="textbox"] [aria-placeholder="dd"]').fill("25")
     page.locator('#id_continent').select_option('2')
+    sleep(0.2)  # wait for the select2 to update the hidden input
     page.locator('#id_annotation').focus()
     expect(page.locator('#id_annotation')).to_be_focused()
     with page.expect_response(page.url) as response_info:
@@ -34,14 +36,11 @@ def test_admin_edit_person(live_server, page, viewname, nth_save, subtests):
     assert person.extra_data.get('activity_days') == 123
     assert person.birth_date == date(year=1975, month=5, day=25)
     assert person.get_continent_display() == "Europe"
-    if nth_save == 0:
-        next_view_url = reverse('admin:testapp_personmodel_changelist')
-    elif nth_save == 1:
-        next_view_url = reverse('admin:testapp_personmodel_add')
-    elif nth_save == 2:
-        next_view_url = reverse('admin:testapp_personmodel_change', kwargs={'object_id': person.id})
-    else:
-        raise ValueError(f"Invalid nth_save value: {nth_save}")
+    next_view_url = [
+        reverse('admin:testapp_personmodel_changelist'),
+        reverse('admin:testapp_personmodel_add'),
+        reverse('admin:testapp_personmodel_change', kwargs={'object_id': person.id}),
+    ][nth_save]
     expect(page).to_have_url(f'{live_server.url}{next_view_url}')
     if nth_save != 2:
         return
