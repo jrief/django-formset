@@ -1,7 +1,7 @@
 from django.forms import fields, widgets
-from django.forms.models import ModelForm
 
 from formset.collection import AddSiblingActivator, FormCollection
+from formset.forms import ModelForm
 
 from testapp.models.company import Company, Department, Team
 
