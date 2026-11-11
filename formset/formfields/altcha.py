@@ -2,8 +2,7 @@ import base64
 import datetime
 import json
 
-from altcha import create_challenge, verify_solution, Challenge, Payload, Solution
-
+from altcha import Challenge, Payload, Solution, create_challenge, verify_solution
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError

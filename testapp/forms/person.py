@@ -6,7 +6,9 @@ from formset.formfields import DateRangeField
 from formset.formfields.richtext import RichTextField
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
 from formset.richtext.dialogs import SimpleLinkDialogForm
-from formset.widgets import DatePicker, DateTimePicker, DualSelector, PhoneNumberInput, Selectize, UploadedFileInput
+from formset.widgets import (
+    DatePicker, DateRangeDualPicker, DateTimePicker, DualSelector, PhoneNumberInput, Selectize, SelectizeMultiple, UploadedFileInput
+)
 from formset.widgets.richtext import controls, RichTextarea
 
 from testapp.models import PersonModel
@@ -87,6 +89,7 @@ class ModelPersonForm(ModelForm):
     validity = DateRangeField(
         label="Validity",
         required=False,
+        widget=DateRangeDualPicker,
         help_text="This field is not saved in the database.",
     )
     about = RichTextField(
