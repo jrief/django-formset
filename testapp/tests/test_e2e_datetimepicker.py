@@ -58,7 +58,7 @@ def test_datetimepicker_set(page, viewname, locale):
     expect(today_li).to_be_visible()
     today_string = now.date().isoformat()
     assert today_li.get_attribute('data-date') == f'{today_string}T00:00'
-    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
         today_li.click()
     assert response_info.value.ok is True
     query_params = parse_qs(urlparse(response_info.value.request.url).query)
@@ -70,7 +70,7 @@ def test_datetimepicker_set(page, viewname, locale):
     minutes_ul = calendar.locator(f'ul.minutes[aria-labelledby="{aria_label}"]')
     expect(minutes_ul).not_to_be_visible()
     try:
-        with page.expect_request(regex(rf'^{page.url}\?calendar.+$'), timeout=500):
+        with page.expect_request(regex(rf'^{page.url}\?.+$'), timeout=500):
             hour_li.click()
     except TimeoutError:
         pass
@@ -99,6 +99,7 @@ def test_datetimepicker_set(page, viewname, locale):
 def test_datetimepicker_change(page, viewname, locale):
     textbox = page.locator('django-formset input[name="schedule"] + [role="textbox"]')
     opener = page.locator('django-formset input[name="schedule"] + [role="textbox"] > .calendar-picker-indicator')
+    expect(opener).to_be_visible()
     calendar = page.locator('django-formset input[name="schedule"] + [role="textbox"] + .dj-calendar')
     expect(calendar).not_to_be_visible()
     if locale == 'en-US':
@@ -110,7 +111,7 @@ def test_datetimepicker_change(page, viewname, locale):
     else:
         expect(textbox).to_have_text(datetime.strftime(schedule_datetime, '%Y-%m-%d %H:%M'))
 
-    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
         opener.click()
     assert response_info.value.ok is True
     query_params = parse_qs(urlparse(response_info.value.request.url).query)
@@ -119,7 +120,7 @@ def test_datetimepicker_change(page, viewname, locale):
     assert query_params.get('interval') == ['15']
     expect(calendar).to_be_visible()
 
-    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
         calendar.locator('button.next').click()
     assert response_info.value.ok is True
     query_params = parse_qs(urlparse(response_info.value.request.url).query)
@@ -129,7 +130,7 @@ def test_datetimepicker_change(page, viewname, locale):
 
     extend_button = calendar.locator('button.extend')
     expect(extend_button).to_have_text("March 2023")
-    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
         extend_button.click()
     assert response_info.value.ok is True
     query_params = parse_qs(urlparse(response_info.value.request.url).query)
@@ -139,7 +140,7 @@ def test_datetimepicker_change(page, viewname, locale):
 
     extend_button = calendar.locator('button.extend')
     expect(extend_button).to_have_text("2023")
-    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
         extend_button.click()
     assert response_info.value.ok is True
     query_params = parse_qs(urlparse(response_info.value.request.url).query)
@@ -148,7 +149,7 @@ def test_datetimepicker_change(page, viewname, locale):
     assert query_params.get('interval') == ['15']
 
     expect(calendar.locator('.controls time[datetime]')).to_have_text("2020 – 2039")
-    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
         calendar.locator('.controls button.narrow').click()
     assert response_info.value.ok is True
     query_params = parse_qs(urlparse(response_info.value.request.url).query)
@@ -156,7 +157,7 @@ def test_datetimepicker_change(page, viewname, locale):
     assert query_params.get('mode') == ['m']
     assert query_params.get('interval') == ['15']
 
-    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
         calendar.locator('ul.months li[data-date="2023-07-01T00:00"]').click()
     assert response_info.value.ok is True
     query_params = parse_qs(urlparse(response_info.value.request.url).query)
@@ -164,7 +165,7 @@ def test_datetimepicker_change(page, viewname, locale):
     assert query_params.get('mode') == ['w']
     assert query_params.get('interval') == ['15']
 
-    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
         calendar.locator('ul.monthdays li[data-date="2023-07-09T00:00"]').click()
     assert response_info.value.ok is True
     query_params = parse_qs(urlparse(response_info.value.request.url).query)
@@ -202,7 +203,7 @@ def test_datetimepicker_navigate(page, viewname):
     selected_date = datetime.fromisoformat(calendar.locator('ul.monthdays li.selected').get_attribute('data-date'))
     assert selected_date.date() == datetime(2023, 2, 21).date()
     page.keyboard.press('ArrowDown')
-    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
         page.keyboard.press('ArrowRight')
     assert response_info.value.ok is True
     query_params = parse_qs(urlparse(response_info.value.request.url).query)
@@ -211,7 +212,7 @@ def test_datetimepicker_navigate(page, viewname):
     assert query_params.get('interval') == ['15']
 
     expect(calendar.locator('ul.monthdays li.selected')).to_have_attribute('data-date', '2023-03-01T00:00')
-    with page.expect_response(regex(rf'^{page.url}\?calendar.+$')) as response_info:
+    with page.expect_response(regex(rf'^{page.url}\?.+$')) as response_info:
         page.keyboard.press('ArrowDown')
         page.keyboard.press('ArrowLeft')
         page.keyboard.press('Enter')

@@ -211,8 +211,8 @@ forms and collection to edit the company, its departments and their teams such a
 
 	from django.forms.fields import IntegerField
 	from django.forms.widgets import HiddenInput
-	from django.forms.models import ModelForm
 	from formset.collection import AddSiblingActivator, FormCollection
+	from formset.forms import ModelForm
 	from testapp.models import Company, Department, Team
 	
 	class TeamForm(ModelForm):

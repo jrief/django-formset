@@ -143,7 +143,7 @@ foreign keys stored inside a JSON field:
 	    'fieldname',       # the name of the field in the JSON object
 	)
 
-Both functiond return ``None`` if the given field name is not present in the JSON object, or if it
+Both functions return ``None`` if the given field name is not present in the JSON object, or if it
 doesn't exist on the model, or if the foreign key points to a non-existing object.
 
 .. _referential integrity: https://en.wikipedia.org/wiki/Referential_integrity

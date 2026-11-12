@@ -1,5 +1,4 @@
-from django import VERSION as DJANGO_VERSION
-from django import template
+from django import VERSION as DJANGO_VERSION, template
 from django.contrib.admin.templatetags.admin_modify import submit_row
 from django.contrib.admin.templatetags.base import InclusionAdminNode
 

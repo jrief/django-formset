@@ -10,7 +10,6 @@ from django.utils.safestring import mark_safe
 from formset.geomap.settings import default_settings
 from formset.geomap.utils import amend_geojson_feature_collection
 
-
 register = template.Library()
 
 @register.simple_tag(name='render_geojson', takes_context=True)

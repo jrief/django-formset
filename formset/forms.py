@@ -98,41 +98,37 @@ class Form(FormMixin, BaseForm, metaclass=DeclarativeFieldsetMetaclass):
 class ModelFormMixin(FormMixin):
 
     def __init__(self, instance=None, *args, **kwargs):
-        def initial_value(field_name, field, value):
-            if isinstance(field, CollectionFieldMixin):
-                collection = field.collection
-                initial = CollectionFieldMixin.traverse_initial(collection, instance, value)
-                return collection.replicate(instance=instance, initial=initial, prefix=field_name, renderer=renderer)
-            else:
-                return prepare_initial(instance, field_name, field, value)
-
         renderer = kwargs.get('renderer', getattr(self, 'renderer', self.default_renderer))
-        model_field_names = [f.name for f in self._meta.model._meta.get_fields()]
         initial = kwargs.get('initial', {})
         for field_name, field in self.base_fields.items():
-            if isinstance(field, CollectionFieldMixin) and field_name in model_field_names:
-                initial.setdefault(field_name, initial_value(field_name, field, getattr(instance, field_name, None)))
-        fields_map = getattr(self._meta, 'fields_map', {})
-        for field_name, assigned_fields in fields_map.items():
-            if isinstance(assigned_fields, list):
-                # map form fields to given JSONField in the model
-                for af in assigned_fields:
-                    try:
-                        value = getattr(instance, field_name)[af]
-                    except KeyError:
-                        value = self.base_fields[af].initial
-                    except (AttributeError, TypeError):
-                        value = None
-                    initial.setdefault(af, initial_value(af, self.base_fields[af], value))
-            elif isinstance(assigned_fields, str):
-                # direct mapping of a model field to a form field
-                af = assigned_fields
+            if isinstance(field, CollectionFieldMixin):
+                collection = field.collection
                 value = getattr(instance, field_name, None)
-                initial.setdefault(af, initial_value(af, self.base_fields[af], value))
-            else:
-                raise TypeError(f"Invalid type for field {field_name}: {type(assigned_fields)}")
+                value = CollectionFieldMixin.traverse_initial(collection, instance, value)
+                value = collection.replicate(instance=instance, initial=value, prefix=field_name, renderer=renderer)
+                initial.setdefault(field_name, value)
         kwargs['initial'] = initial
         super().__init__(instance=instance, *args, **kwargs)
+
+    def get_initial_for_field(self, field, field_name):
+        for key, assigned_fields in getattr(self._meta, 'fields_map', {}).items():
+            if (
+                isinstance(assigned_fields, list) and field_name in assigned_fields
+                or isinstance(assigned_fields, str) and field_name == assigned_fields
+            ):
+                try:
+                    initial = self.initial.get(key, field.initial)[field_name]
+                except (TypeError, KeyError):
+                    continue
+                if isinstance(field, CollectionFieldMixin):
+                    return field.collection.replicate(
+                        instance=self.instance,
+                        initial=CollectionFieldMixin.traverse_initial(field.collection, self.instance, initial),
+                        prefix=field_name,
+                        renderer=self.renderer,
+                    )
+                return prepare_initial(self.instance, field_name, field, initial)
+        return super().get_initial_for_field(field, field_name)
 
     def _clean_form(self):
         super()._clean_form()
@@ -205,7 +201,7 @@ class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):
                 fields=None if fields == ALL_FIELDS else fields,
                 exclude=exclude,
             )
-            Meta.fields = mcs._create_fields_option(form_fields, fields_map)
+            Meta.fields = mcs._create_fields_option(form_fields, fields_map, fields)
             for key, value in fields_map.items():
                 if isinstance(value, (list, tuple)):
                     fields_map[key] = list(value)
@@ -261,8 +257,8 @@ class FormsetModelFormMetaclass(FormsetMetaclassMixin, ModelFormMetaclass):
         return type('Meta', (), {})
 
     @classmethod
-    def _create_fields_option(mcs, form_fields, fields_map):
-        fields = {}  # abusing dict to keep order of field names
+    def _create_fields_option(mcs, form_fields, fields_map, fields):
+        fields = {} if fields in (None, ALL_FIELDS) else {f: None for f in fields}  # dict to keep order of field names
         for field_name, form_field in form_fields.items():
             fields[field_name] = None
             if field_name in fields_map:
