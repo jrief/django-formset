@@ -154,7 +154,7 @@ class ModelAdminMixin(CalendarResponseMixin, IncompleteSelectResponseMixin, Form
         else:
             title = gettext("View {title}")
 
-        if collection_class := self.get_collection_class():
+        if collection_class:
             form_or_collection = collection_class(**kwargs)
         else:
             form_or_collection = self.get_model_form()(**kwargs)
