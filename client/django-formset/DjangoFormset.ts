@@ -1187,7 +1187,7 @@ class DjangoFieldset {
 	};
 
 	private getDataValue(path: Path) : string|undefined {
-		return this.form.getDataValue(path, `${this.element.name}.`);
+		return this.form.getDataValue(path, this.element.name);
 	}
 
 	public updateOperability(...args: any[]) {
