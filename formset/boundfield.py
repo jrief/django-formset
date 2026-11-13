@@ -94,6 +94,18 @@ class BoundField(boundfield.BoundField):
             extra_classes.add(field_css_classes)
         return super().css_classes(extra_classes)
 
+    @cached_property
+    def initial(self):
+        fieldset, fieldset_name = self._get_fieldset_info()
+        if fieldset and self.name.startswith(f'{fieldset_name}.'):
+            if isinstance(fieldset.initial, dict):
+                field_name = self.name[len(fieldset_name) + 1:]
+                MISSING = object()
+                initial = fieldset.initial.get(field_name, MISSING)
+                if initial is not MISSING:
+                    return initial
+        return super().initial
+
     def build_widget_attrs(self, attrs, widget=None):
         attrs = super().build_widget_attrs(attrs, widget)
         if hasattr(self.form, 'form_id'):

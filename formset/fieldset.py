@@ -39,6 +39,7 @@ class Fieldset(metaclass=FieldsetFieldsMetaclass):
     def __init__(
         self,
         legend=None,
+        initial=None,
         show_condition=None,
         hide_condition=None,
         disable_condition=None,
@@ -63,6 +64,7 @@ class Fieldset(metaclass=FieldsetFieldsMetaclass):
             self.help_text = help_text
         if template_name:
             self.template_name = template_name
+        self.initial = initial or {}
         super().__init__()
 
     def get_context(self):
