@@ -17,7 +17,7 @@ and in times of AI, simple to solve.
 
 .. _CAPTCHAs: https://en.wikipedia.org/wiki/CAPTCHA
 
-Since this library focuses on the user experience, it does not provide a classic CAPTCHA
+Since this library focuses on intuitive user experience, it does not provide a classic CAPTCHA
 implementation. Instead, it provides an alternative that is easy to implement and does not annoy
 users. The idea is to add a challenge to the form which must be solved using some computational
 effort by the browser.
@@ -96,7 +96,7 @@ The web component ``<altcha-widget …>`` is implemented by the JavaScript libra
 loaded automatically whenever a form containing an ``AltchaField`` is rendered. In addition, the
 server side implementation of the form field is provided by the `Python package altcha`_ and must be
 installed as a third party dependency. Both, the JavaScript library and the Python package are
-maintained by the same author and are licensed under the MIT license.
+maintained by the same author and MIT licensed.
 
 .. _altcha: https://altcha.org/
 .. _Python package altcha: https://pypi.org/project/altcha/

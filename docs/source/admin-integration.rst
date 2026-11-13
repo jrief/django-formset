@@ -147,7 +147,7 @@ The ``autocomplete_fields`` attribute of the Django-Admin is used to render a Se
 The ``raw_id_fields`` attribute of the Django-Admin is used to render a ``ForeignKey`` or
 ``ManyToManyField`` as a text input field. In **django-formset**, there is no recommended equivalent
 for this widget, but it can be implemented using a TextInput_ or NumberInput_ widget when declaring
-the form field.
+the form field. I do not recommend this approach, because it is not user friendly and error prone.
 
 .. _TextInput: https://docs.djangoproject.com/en/stable/ref/forms/widgets/#textinput
 .. _NumberInput: https://docs.djangoproject.com/en/stable/ref/forms/widgets/#numberinput

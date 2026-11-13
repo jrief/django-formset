@@ -129,4 +129,11 @@ only difference is that the selectable options prepend the flag symbol to their 
 is possible because the underlying JavaScript library TomSelect.js_ allows to customize nearly
 every aspect of HTML.
 
+Flag icons are provided by the package flag-icons_. These icons are converted from SVG to PNG and
+packed into a single sprite during the build of **django-formset**.
+
+There is **no need** to `npm install flag-icons`_ anymore.
+
 .. _TomSelect.js: https://tom-select.js.org/
+.. _flag-icons: https://flagicons.lipis.dev
+.. _npm install flag-icons: https://www.npmjs.com/package/flag-icons

@@ -138,6 +138,7 @@ phones only.
 	            "mobile-only": True,
 	        }),
 	        validators=[phone_number_validator],
+	        help_text="Enter your mobile phone number to receive an SMS.",
 	    )
 
 .. django-view:: sms_view
@@ -214,9 +215,12 @@ The PIP package phonenumbers_ is used by the server side implementation. It is u
 phone numbers when rendering them in Django templates. This is a Python port of said Google's
 libphonenumber library.
 
+The flags shown in front of the entered phone number are shared with the
+:ref:`CountrySelectize<country-selectize>` field.
+
 .. _libphonenumber: https://github.com/google/libphonenumber
 .. _libphonenumber-js: https://www.npmjs.com/package/libphonenumber-js
 .. _phonenumbers: https://pypi.org/project/phonenumbers/
 
-.. note:: These two libraries are are updated quite often to reflect the changes made to the
-	worldwide telephone system, so prepare your project for regular updates.
+.. note:: These two libraries are updated quite often to reflect the changes made to the worldwide
+	telephone system, so prepare your project for regular updates.
