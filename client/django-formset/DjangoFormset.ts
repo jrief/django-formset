@@ -1171,7 +1171,7 @@ class DjangoFieldset {
 			const fieldsetRect = this.element.getBoundingClientRect();
 			const legendRect = legendElement.getBoundingClientRect();
 			let collapsedHeight: number;
-			if (legendRect.top > fieldsetRect.top) {
+			if (Math.ceil(legendRect.top) >= Math.floor(fieldsetRect.top)) {
 				collapsedHeight = legendRect.top - fieldsetRect.top + legendRect.height;
 				collapsedHeight += parseFloat(getComputedStyle(legendElement).marginBottom);
 			} else {
