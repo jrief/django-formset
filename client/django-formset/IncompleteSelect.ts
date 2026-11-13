@@ -3,7 +3,7 @@ import {Widget} from './Widget';
 
 
 export abstract class IncompleteSelect extends Widget {
-	private readonly initialIncomplete: boolean;
+	protected readonly initialIncomplete: boolean;
 	protected isIncomplete: boolean;
 	protected getValue = () => [] as string|string[];
 	private filterByValues = new Map<string, string | string[]>();

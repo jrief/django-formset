@@ -329,7 +329,7 @@ export class DualSelector extends IncompleteSelect {
 		const query = this.searchLeftInput?.value ?? '';
 		let numFoundOptions = this.lookup(this.selectLeftElement, query);
 		// first we look up for matching options ...
-		if (this.isIncomplete && numFoundOptions < this.selectLeftElement.size) {
+		if (this.initialIncomplete && numFoundOptions < this.selectLeftElement.size) {
 			// if we find less options than the <select> element can depict,
 			// query for additional matching options from the server.
 			this.remoteLookup();
