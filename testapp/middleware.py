@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
 from django.utils.deprecation import MiddlewareMixin
+from django.utils.timezone import now
 
 
 class AutoLoginMiddleware(MiddlewareMixin):
@@ -18,6 +19,7 @@ class AutoLoginMiddleware(MiddlewareMixin):
                     password='secret',
                     is_superuser=True,
                     is_staff=True,
+                    last_login=now(),
                 )
             except IntegrityError:
                 # prevent race condition during end-to-end tests
