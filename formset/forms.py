@@ -148,7 +148,7 @@ class ModelFormMixin(FormMixin):
                         if field_name not in model_field_names:
                             raise AttributeError
                         cleaned_data[field_name] = dict(getattr(self.instance, field_name))
-                    except (AttributeError, ValueError):
+                    except (AttributeError, TypeError, ValueError):
                         cleaned_data[field_name] = {}
                     for af in assigned_fields:
                         if af not in self.cleaned_data:
