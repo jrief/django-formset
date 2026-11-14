@@ -82,6 +82,7 @@ from testapp.forms.state import StateFilteredForm, StateForm, StatesForm
 from testapp.forms.terms_of_use import AcceptTermsCollection
 from testapp.forms.user import UserCollection, UserExtensionCollection
 from testapp.forms.upload import UploadForm
+from testapp.forms.wedding import WeddingForm
 from testapp.models import (
     BlogModel, ChurchModel, Company, EventSeriesModel, IssueModel, PersonModel, PageModel, PollModel,
     ProductModel, Reporter, User
@@ -800,6 +801,9 @@ urlpatterns = [
     path('states', DemoFormView.as_view(
         form_class=StatesForm,
     ), name='states'),
+    path('wedding', DemoFormView.as_view(
+        form_class=WeddingForm,
+    ), name='wedding'),
     path('person', DemoModelFormView.as_view(
         form_class=ModelPersonForm,
         model=PersonModel,

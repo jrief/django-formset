@@ -55,7 +55,7 @@ class DepartmentCollection(FormCollection):
     min_siblings = 0
     extra_siblings = 1
     department = DepartmentForm()
-    teams = TeamCollection()
+    teams = TeamCollection(collapsed=False)
     legend = "Departments"
     related_field = 'company'
 

@@ -1,6 +1,4 @@
-import json
 import pytest
-from time import sleep
 from playwright.sync_api import expect
 
 from django.urls import path
