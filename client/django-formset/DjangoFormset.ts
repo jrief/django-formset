@@ -1120,6 +1120,25 @@ class DjangoButton {
 }
 
 
+function makeElementCollapsible(collapsibleElement: HTMLElement|null, legendElement: HTMLLegendElement|null) {
+	if (collapsibleElement && legendElement) {
+		const fieldsetRect = collapsibleElement.getBoundingClientRect();
+		const legendRect = legendElement.getBoundingClientRect();
+		let collapsedHeight: number;
+		if (Math.ceil(legendRect.top) >= Math.floor(fieldsetRect.top)) {
+			collapsedHeight = legendRect.top - fieldsetRect.top + legendRect.height;
+			collapsedHeight += parseFloat(getComputedStyle(legendElement).marginBottom);
+		} else {
+			collapsedHeight = 0;
+		}
+		collapsibleElement.style.setProperty('--collapsed-height', `${collapsedHeight}px`);
+		legendElement.addEventListener('click', () => {
+			collapsibleElement.ariaExpanded = collapsibleElement.ariaExpanded === 'true' ? 'false' : 'true';
+		});
+	}
+}
+
+
 class DjangoFieldset {
 	public readonly form: DjangoForm;
 	private readonly element: HTMLFieldSetElement;
@@ -1131,9 +1150,7 @@ class DjangoFieldset {
 		this.element = element;
 		this.updateVisibility = this.evalVisibility('df-show', true) ?? this.evalVisibility('df-hide', false) ?? function() {};
 		this.updateDisabled = this.evalDisable();
-		if (element.ariaExpanded) {
-			this.handleCollapse();
-		}
+		makeElementCollapsible(this.element, this.element.querySelector(':scope > .fieldset-heading'));
 	}
 
 	private evalVisibility(attribute: string, visible: boolean): Function|null {
@@ -1164,27 +1181,6 @@ class DjangoFieldset {
 			throw new Error(`Error while parsing <fieldset df-disable="${attrValue}">: ${error}.`);
 		}
 	}
-
-	private handleCollapse() {
-		const legendElement = this.element.querySelector(':scope > legend');
-		if (legendElement instanceof HTMLLegendElement) {
-			const fieldsetRect = this.element.getBoundingClientRect();
-			const legendRect = legendElement.getBoundingClientRect();
-			let collapsedHeight: number;
-			if (Math.ceil(legendRect.top) >= Math.floor(fieldsetRect.top)) {
-				collapsedHeight = legendRect.top - fieldsetRect.top + legendRect.height;
-				collapsedHeight += parseFloat(getComputedStyle(legendElement).marginBottom);
-			} else {
-				collapsedHeight = 0;
-			}
-			this.element.style.setProperty('--collapsed-height', `${collapsedHeight}px`);
-			legendElement.addEventListener('click', this.toggleCollapse);
-		}
-	}
-
-	private toggleCollapse = (event: Event) => {
-		this.element.ariaExpanded = this.element.ariaExpanded === 'true' ? 'false' : 'true';
-	};
 
 	private getDataValue(path: Path) : string|undefined {
 		return this.form.getDataValue(path, this.element.name);
@@ -1428,10 +1424,14 @@ class DjangoFormCollection {
 	public markedForRemoval = false;
 
 	constructor(formset: DjangoFormset, element: HTMLElement, parent?: DjangoFormCollection) {
-		this.formset = formset;
 		this.element = element;
+		this.formset = formset;
 		this.parent = parent;
 		this.findFormCollections();
+		makeElementCollapsible(
+			element.querySelector(':scope > .collection-siblings[aria-expanded]'),
+			element?.querySelector(':scope > .collection-heading'),
+		);
 	}
 
 	private findFormCollections() {

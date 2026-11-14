@@ -58,8 +58,45 @@ django-form-collection {
 		}
 	}
 
-	.collection-siblings:has(> .sortable-chosen) > [sibling-position] > .remove-collection {
-		visibility: hidden;
+	legend:has(~ .collection-siblings[aria-expanded])::before {
+		content: " ";
+		width: 0;
+		height: 0;
+		border-top: 5px solid transparent;
+		border-bottom: 5px solid transparent;
+		border-left: 5px solid currentColor;
+		border-right: 5px solid transparent;
+		margin-right: 0.25em;
+		cursor: pointer;
+		display: inline-block;
+		vertical-align: middle;
+		transform: translate(2.5px, -2.5px);
+	}
+
+	legend:has(~ .collection-siblings[aria-expanded="true"])::before {
+		transform: rotateZ(90deg);
+	}
+
+	.collection-siblings {
+		&[aria-expanded] {
+			height: auto;
+			transition: height 0.2s ease-out;
+			--collapsed-height: 10px;
+		}
+
+		&[aria-expanded="false"] {
+			height: var(--collapsed-height);
+			overflow: hidden;
+			border-bottom: none;
+
+			& ~ button {
+				display: none;
+			}
+		}
+
+		&:has(> .sortable-chosen) > [sibling-position] > .remove-collection {
+			visibility: hidden;
+		}
 	}
 
 	.dj-ghost-collection {

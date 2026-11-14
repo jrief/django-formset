@@ -133,6 +133,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
     max_siblings = None
     extra_siblings = None
     is_sortable = None
+    collapsed = None
     legend = None
     help_text = None
     add_label = None
@@ -153,6 +154,7 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         extra_siblings=None,
         is_sortable=None,
         legend=None,
+        collapsed=None,
         help_text=None
     ):
         self.data = MultiValueDict() if data is None else data
@@ -186,6 +188,8 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
             self.is_sortable = False
         if legend is not None:
             self.legend = legend
+        if self.legend and isinstance(collapsed, bool):
+            self.collapsed = collapsed
         if help_text is not None:
             self.help_text = help_text
 
@@ -306,6 +310,11 @@ class BaseFormCollection(HolderMixin, RenderableMixin):
         if self._errors is None:
             self.full_clean()
         return self._errors
+
+    @property
+    def is_expanded(self):
+        if self.collapsed is not None:
+            return 'false' if self.collapsed else 'true'
 
     def is_valid(self):
         """Return True if all forms in this collection are valid."""

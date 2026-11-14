@@ -1,8 +1,8 @@
 {% spaceless %}
-{% if collection.legend %}<legend>{{ collection.legend }}</legend>{% endif %}
+{% if collection.legend %}<legend class="collection-heading">{{ collection.legend }}</legend>{% endif %}
 {% if collection.has_many %}
 <div role="alert" class="dj-collection-errors"{% if collection.prefix %} prefix="{{ collection.prefix }}"{% endif %}><ul class="dj-errorlist"></ul></div>
-<div class="collection-siblings">
+<div class="collection-siblings"{% if collection.is_expanded %} aria-expanded="{{ collection.is_expanded }}"{% endif %}>
 {% endif %}
 {% for holder in collection %}
 	{% if holder.is_single %}

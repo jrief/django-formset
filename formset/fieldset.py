@@ -56,10 +56,10 @@ class Fieldset(metaclass=FieldsetFieldsMetaclass):
             self.hide_condition = hide_condition
         if disable_condition:
             self.disable_condition = disable_condition
-        if collapsed is not None:
-            self.collapsed = collapsed
         if legend:
             self.legend = legend
+        if self.legend and isinstance(collapsed, bool):
+            self.collapsed = collapsed
         if help_text:
             self.help_text = help_text
         if template_name:
