@@ -1,5 +1,10 @@
 ## Changes
 
+- 2.2.5
+  * Fix #277: Always perform a remote lookup if field is marked as incomplete.
+  * Fix: In the admin view, collapsible ``Fieldset``-s do not work.
+  * Fix #263: Error alert now shows the response text.
+
 - 2.2.4
   * Fix #266: Timing issue in widgets `DateField` and `DateTimeField`. Input focus switched before
     processing user input in Firefox and Safari browsers.
